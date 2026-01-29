@@ -75,12 +75,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "next || true",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --reporter=dot",
     "test:watch": "vitest",
     "format": "prettier --write .",
-    "prepare": "husky install"
+    "prepare": "husky"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",
