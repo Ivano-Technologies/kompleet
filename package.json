@@ -1,0 +1,25 @@
+{
+  "name": "kompleet-platform",
+  "version": "1.0.0",
+  "description": "Professional platform migration with quality gates",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "precommit": "npm run lint && npm run typecheck && npm run test"
+  },
+  "keywords": [],
+  "author": "Kezie Okpala",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^25.1.0",
+    "eslint": "^9.39.2",
+    "next": "^16.1.6",
+    "prettier": "^3.8.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  }
+}
