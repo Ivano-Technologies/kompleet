@@ -1,0 +1,2 @@
+-- Create core tables (depends on enums from 002)
+-- Add table definitions here

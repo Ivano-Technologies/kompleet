@@ -1,0 +1,2 @@
+-- Database functions (used by triggers)
+-- Add function definitions here
