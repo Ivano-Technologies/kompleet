@@ -84,12 +84,14 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",
+    "@types/react-dom": "^19.2.3",
     "next": "^16.1.6",
-    "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "pino": "^10.3.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "@types/react": "19.2.10",
+    "@types/react": "^19.2.10",
     "eslint": "^8.56.0",
     "eslint-config-next": "^16.1.6",
     "husky": "^9.0.11",
