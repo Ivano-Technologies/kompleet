@@ -1,0 +1,2 @@
+-- Define custom enums for the application
+-- Add enum definitions here
