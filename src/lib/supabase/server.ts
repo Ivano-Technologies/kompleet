@@ -35,7 +35,7 @@ import { cookies } from 'next/headers';
  * }
  * ```
  */
-export function createServerClient(): SupabaseClient {
+export async function createServerClient(): Promise<SupabaseClient> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
@@ -47,7 +47,7 @@ export function createServerClient(): SupabaseClient {
   }
 
   // Get the cookie store from Next.js
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
 
   // Extract auth token from cookies
   // Supabase stores the session in cookies with specific naming convention
