@@ -18,9 +18,10 @@ import { SupabaseClient } from '@supabase/supabase-js';
 // Mock user profile data
 const mockProfile: UserProfile = {
   id: 'user-123',
-  email: 'test@example.com',
-  full_name: 'Test User',
-  avatar_url: 'https://example.com/avatar.jpg',
+  subscription_tier: 'professional',
+  entity_type: 'individual',
+  fiscal_year_start_month: 1,
+  onboarding_completed: true,
   created_at: '2024-01-01T00:00:00Z',
   updated_at: '2024-01-01T00:00:00Z',
 };
@@ -95,7 +96,7 @@ describe('getUserProfile', () => {
 
 describe('updateUserProfile', () => {
   it('should update user profile successfully', async () => {
-    const updatedProfile = { ...mockProfile, full_name: 'Updated Name' };
+    const updatedProfile = { ...mockProfile, subscription_tier: 'business' as const };
 
     const mockClient = {
       from: vi.fn().mockReturnValue({
@@ -113,12 +114,12 @@ describe('updateUserProfile', () => {
     } as unknown as SupabaseClient;
 
     const result = await updateUserProfile(mockClient, 'user-123', {
-      full_name: 'Updated Name',
+      subscription_tier: 'business',
     });
 
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.data.full_name).toBe('Updated Name');
+      expect(result.data.subscription_tier).toBe('business');
     }
   });
 
@@ -139,7 +140,7 @@ describe('updateUserProfile', () => {
     } as unknown as SupabaseClient;
 
     const result = await updateUserProfile(mockClient, 'user-123', {
-      full_name: 'Updated Name',
+      subscription_tier: 'business',
     });
 
     expect(result.success).toBe(false);

@@ -23,14 +23,14 @@ export type QueryResult<T> =
   | { success: false; error: string };
 
 /**
- * User profile type
- * TODO: Replace with actual database schema types
+ * User profile type matching the profiles table schema
  */
 export interface UserProfile {
   id: string;
-  email: string;
-  full_name?: string;
-  avatar_url?: string;
+  subscription_tier: 'free' | 'starter' | 'professional' | 'business' | 'enterprise';
+  entity_type: 'individual' | 'company';
+  fiscal_year_start_month: number;
+  onboarding_completed: boolean;
   created_at: string;
   updated_at: string;
 }
