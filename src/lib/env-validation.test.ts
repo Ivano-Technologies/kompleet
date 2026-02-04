@@ -88,25 +88,25 @@ describe('environment helpers', () => {
   const originalEnv = process.env.NODE_ENV;
 
   afterEach(() => {
-    process.env.NODE_ENV = originalEnv;
+    (process.env as any).NODE_ENV = originalEnv;
   });
 
   it('should detect production environment', () => {
-    process.env.NODE_ENV = 'production';
+    (process.env as any).NODE_ENV = 'production';
     expect(isProduction()).toBe(true);
     expect(isDevelopment()).toBe(false);
     expect(isTest()).toBe(false);
   });
 
   it('should detect development environment', () => {
-    process.env.NODE_ENV = 'development';
+    (process.env as any).NODE_ENV = 'development';
     expect(isProduction()).toBe(false);
     expect(isDevelopment()).toBe(true);
     expect(isTest()).toBe(false);
   });
 
   it('should detect test environment', () => {
-    process.env.NODE_ENV = 'test';
+    (process.env as any).NODE_ENV = 'test';
     expect(isProduction()).toBe(false);
     expect(isDevelopment()).toBe(false);
     expect(isTest()).toBe(true);
