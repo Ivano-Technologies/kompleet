@@ -4,12 +4,12 @@
  * Usage: node scripts/apply-migration.js [migration-file]
  */
 
-const { createClient } = require('@supabase/supabase-js');
 const fs = require('fs');
 const path = require('path');
 
-// Load environment variables
-require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+// Load environment variables from .env file
+const dotenv = require('dotenv');
+dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -24,7 +24,8 @@ console.log('🚀 Supabase Migration Runner\n');
 console.log(`   URL: ${supabaseUrl}`);
 console.log(`   Key: ${supabaseKey.substring(0, 20)}...`);
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+// Note: We don't need to create a Supabase client for this script
+// We just output the SQL for manual execution
 
 async function applyMigration(migrationFile) {
   console.log(`\n📄 Applying migration: ${migrationFile}\n`);
