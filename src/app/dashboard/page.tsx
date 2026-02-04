@@ -1,6 +1,7 @@
 import { createServerClient } from '@/lib/supabase/server';
 import { requireServerUser } from '@/lib/supabase/session';
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
 import LogoutButton from './LogoutButton';
 
 export default async function DashboardPage() {
@@ -41,6 +42,28 @@ export default async function DashboardPage() {
           <h3 style={{ marginBottom: '10px' }}>Protected Content</h3>
           <p>This page is only accessible to authenticated users.</p>
           <p>Your session is being managed by Supabase with server-side verification.</p>
+        </div>
+
+        <div style={{
+          marginTop: '20px',
+          padding: '20px',
+          backgroundColor: '#fff',
+          border: '1px solid #ddd',
+          borderRadius: '8px',
+        }}>
+          <h3 style={{ marginBottom: '15px' }}>Navigation</h3>
+          <ul style={{ listStyle: 'none', padding: 0 }}>
+            <li style={{ marginBottom: '10px' }}>
+              <Link href="/reports" style={{ color: '#0070f3', textDecoration: 'none' }}>
+                → View Reports (Protected)
+              </Link>
+            </li>
+            <li>
+              <Link href="/" style={{ color: '#0070f3', textDecoration: 'none' }}>
+                → Home (Public)
+              </Link>
+            </li>
+          </ul>
         </div>
       </div>
     );
