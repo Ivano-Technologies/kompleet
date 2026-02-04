@@ -17,6 +17,7 @@
  *   const { data, error } = await getTransactions(supabase, { taxYear: 2024 });
  */
 
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type { TypedSupabaseClient } from './client';
 import type {
   Transaction,
@@ -89,6 +90,104 @@ export interface TransactionWithCategory extends Transaction {
 // ============================================================
 
 /**
+ * Get a user's profile by ID.
+ * Returns { success: true, data } on success.
+ * Returns { success: false, error } on failure or not found.
+ */
+export async function getUserProfile(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<{ success: boolean; data?: Profile; error?: string }> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', userId)
+    .single();
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  if (!data) {
+    return { success: false, error: 'Profile not found' };
+  }
+
+  return { success: true, data: data as Profile };
+}
+
+/**
+ * Update a user's profile by ID.
+ * Returns { success: true, data } on success.
+ * Returns { success: false, error } on failure.
+ */
+export async function updateUserProfile(
+  supabase: SupabaseClient,
+  userId: string,
+  updates: Partial<Profile>
+): Promise<{ success: boolean; data?: Profile; error?: string }> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .update(updates)
+    .eq('id', userId)
+    .select()
+    .single();
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  if (!data) {
+    return { success: false, error: 'Profile not found' };
+  }
+
+  return { success: true, data: data as Profile };
+}
+
+/**
+ * List user profiles with pagination.
+ * Returns { success: true, data, total } on success.
+ * Returns { success: false, error } on failure.
+ */
+export async function listUserProfiles(
+  supabase: SupabaseClient,
+  limit: number = 50,
+  offset: number = 0
+): Promise<{ success: boolean; data?: Profile[]; total?: number; error?: string }> {
+  const { data, error, count } = await supabase
+    .from('profiles')
+    .select('*', { count: 'exact' })
+    .range(offset, offset + limit - 1);
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  return {
+    success: true,
+    data: (data ?? []) as Profile[],
+    total: count ?? 0,
+  };
+}
+
+/**
+ * Check if a user profile exists.
+ */
+export async function userProfileExists(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<boolean> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('id', userId)
+    .single();
+
+  if (error) return false;
+
+  return data !== null;
+}
+
+/**
  * Get the current user's profile.
  *
  * @example
@@ -123,13 +222,13 @@ export async function getProfile(
 export async function updateProfile(
   supabase: TypedSupabaseClient,
   userId: string,
-  updates: Partial<Pick<Profile, 
-    | 'full_name' 
-    | 'phone' 
-    | 'entity_type' 
-    | 'tin' 
-    | 'company_name' 
-    | 'rc_number' 
+  updates: Partial<Pick<Profile,
+    | 'full_name'
+    | 'phone'
+    | 'entity_type'
+    | 'tin'
+    | 'company_name'
+    | 'rc_number'
     | 'company_address'
     | 'vat_registered'
     | 'vat_number'
