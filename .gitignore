@@ -10,7 +10,7 @@ build/
 *.log
 .next/
 .vercel
-
+out/
 # ML Training Files (too large for GitHub)
 ml-training/models/*.joblib
 ml-training/models/*.pkl
