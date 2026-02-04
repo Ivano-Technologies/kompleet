@@ -54,6 +54,11 @@ export default async function DashboardPage() {
           <h3 style={{ marginBottom: '15px' }}>Navigation</h3>
           <ul style={{ listStyle: 'none', padding: 0 }}>
             <li style={{ marginBottom: '10px' }}>
+              <Link href="/profile" style={{ color: '#0070f3', textDecoration: 'none' }}>
+                → View Profile (Database + RLS)
+              </Link>
+            </li>
+            <li style={{ marginBottom: '10px' }}>
               <Link href="/reports" style={{ color: '#0070f3', textDecoration: 'none' }}>
                 → View Reports (Protected)
               </Link>
