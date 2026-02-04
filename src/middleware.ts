@@ -33,6 +33,9 @@ const PUBLIC_ROUTES = [
   '/reset-password',
   '/privacy',
   '/terms',
+  '/401',
+  '/403',
+  '/api/health',
 ];
 
 /**
