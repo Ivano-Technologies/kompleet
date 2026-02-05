@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",
+    "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.94.0",
     "@types/react": "^19.2.10",
     "@types/react-dom": "^19.2.3",

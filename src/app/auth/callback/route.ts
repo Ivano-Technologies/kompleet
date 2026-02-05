@@ -12,7 +12,7 @@ import type { NextRequest } from 'next/server';
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get('code');
-  const next = requestUrl.searchParams.get('next') || '/dashboard';
+  const redirect = requestUrl.searchParams.get('redirect') || '/dashboard';
 
   if (code) {
     try {
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
       }
 
       // Successful authentication - redirect to intended destination
-      return NextResponse.redirect(new URL(next, requestUrl.origin));
+      return NextResponse.redirect(new URL(redirect, requestUrl.origin));
     } catch (err) {
       console.error('Unexpected error in auth callback:', err);
       return NextResponse.redirect(new URL('/login?error=unexpected', requestUrl.origin));
