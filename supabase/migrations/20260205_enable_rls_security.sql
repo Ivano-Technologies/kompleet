@@ -77,14 +77,14 @@ CREATE POLICY "Users can read their own audit logs"
 ON public.audit_logs
 FOR SELECT
 TO authenticated
-USING (auth.uid()::text = user_id);
+USING (auth.uid() = user_id);
 
 -- Allow users to insert their own audit logs
 CREATE POLICY "Users can insert their own audit logs"
 ON public.audit_logs
 FOR INSERT
 TO authenticated
-WITH CHECK (auth.uid()::text = user_id);
+WITH CHECK (auth.uid() = user_id);
 
 -- Allow service role to manage all audit logs
 CREATE POLICY "Allow service role to manage audit logs"
