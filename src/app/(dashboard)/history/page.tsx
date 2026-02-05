@@ -7,8 +7,10 @@ import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CalculationDetailModal } from '@/components/CalculationDetailModal';
+import { CalculationComparisonModal } from '@/components/CalculationComparisonModal';
 import { useCalculationHistory } from '@/hooks/useCalculationHistory';
-import { Trash2, Eye, Download, Search, Filter } from 'lucide-react';
+import { Trash2, Eye, Download, Search, Filter, FileSpreadsheet } from 'lucide-react';
+import { exportToExcel } from '@/lib/excel-exporter';
 import type { CalculationHistory } from '@/types/calculation-history';
 
 export default function HistoryPage() {
@@ -24,6 +26,11 @@ export default function HistoryPage() {
   const [selectedCalculation, setSelectedCalculation] =
     useState<CalculationHistory | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkDeleteMode, setBulkDeleteMode] = useState(false);
+  const [comparisonMode, setComparisonMode] = useState(false);
+  const [comparisonCalcs, setComparisonCalcs] = useState<[CalculationHistory | null, CalculationHistory | null]>([null, null]);
+  const [showComparisonModal, setShowComparisonModal] = useState(false);
 
   const { data, total, loading, error, refresh, deleteCalculation } =
     useCalculationHistory(filters);
@@ -72,6 +79,51 @@ export default function HistoryPage() {
     }
   };
 
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+    
+    if (confirm(`Are you sure you want to delete ${selectedIds.size} calculation(s)?`)) {
+      for (const id of selectedIds) {
+        await deleteCalculation(id);
+      }
+      setSelectedIds(new Set());
+      setBulkDeleteMode(false);
+    }
+  };
+
+  const toggleSelection = (id: string) => {
+    const newSelected = new Set(selectedIds);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedIds(newSelected);
+  };
+
+  const selectAll = () => {
+    if (selectedIds.size === data.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(data.map(d => d.id)));
+    }
+  };
+
+  const handleComparisonSelect = (calc: CalculationHistory) => {
+    if (!comparisonCalcs[0]) {
+      setComparisonCalcs([calc, null]);
+    } else if (!comparisonCalcs[1]) {
+      setComparisonCalcs([comparisonCalcs[0], calc]);
+      setShowComparisonModal(true);
+      setComparisonMode(false);
+    }
+  };
+
+  const resetComparison = () => {
+    setComparisonCalcs([null, null]);
+    setComparisonMode(false);
+  };
+
   const handleViewDetail = (calculation: CalculationHistory) => {
     setSelectedCalculation(calculation);
     setShowDetailModal(true);
@@ -111,11 +163,122 @@ export default function HistoryPage() {
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Calculation History</h1>
-        <p className="text-muted-foreground">
-          View and manage all your past tax calculations
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Calculation History</h1>
+            <p className="text-muted-foreground">
+              View and manage all your past tax calculations
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => exportToExcel(data)}
+              disabled={data.length === 0}
+            >
+              <FileSpreadsheet className="mr-2 h-4 w-4" />
+              Export to Excel
+            </Button>
+            <Button
+              variant={comparisonMode ? 'default' : 'outline'}
+              onClick={() => {
+                if (comparisonMode) {
+                  resetComparison();
+                } else {
+                  setComparisonMode(true);
+                  setBulkDeleteMode(false);
+                }
+              }}
+              disabled={data.length < 2}
+            >
+              {comparisonMode ? 'Exit Compare Mode' : 'Compare'}
+            </Button>
+            <Button
+              variant={bulkDeleteMode ? 'default' : 'outline'}
+              onClick={() => {
+                if (bulkDeleteMode) {
+                  setBulkDeleteMode(false);
+                  setSelectedIds(new Set());
+                } else {
+                  setBulkDeleteMode(true);
+                  setComparisonMode(false);
+                }
+              }}
+            >
+              {bulkDeleteMode ? 'Exit Bulk Mode' : 'Bulk Delete'}
+            </Button>
+          </div>
+        </div>
       </div>
+
+      {/* Comparison Mode Banner */}
+      {comparisonMode && (
+        <Card className="p-4 mb-6 bg-purple-50 border-purple-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-medium">Comparison Mode Active</p>
+              <p className="text-sm text-muted-foreground">
+                {!comparisonCalcs[0] 
+                  ? 'Select first calculation to compare'
+                  : 'Select second calculation to compare'}
+              </p>
+              {comparisonCalcs[0] && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  First: {getCalculatorName(comparisonCalcs[0].calculation_type)} - {formatDate(comparisonCalcs[0].created_at)}
+                </p>
+              )}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={resetComparison}
+            >
+              Cancel
+            </Button>
+          </div>
+        </Card>
+      )}
+
+      {/* Bulk Actions */}
+      {bulkDeleteMode && (
+        <Card className="p-4 mb-6 bg-blue-50 border-blue-200">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={selectAll}
+              >
+                {selectedIds.size === data.length ? 'Deselect All' : 'Select All'}
+              </Button>
+              <span className="text-sm text-muted-foreground">
+                {selectedIds.size} selected
+              </span>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleBulkDelete}
+                disabled={selectedIds.size === 0}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete Selected
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setBulkDeleteMode(false);
+                  setSelectedIds(new Set());
+                }}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </Card>
+      )}
 
       {/* Filters */}
       <Card className="p-6 mb-6">
@@ -195,6 +358,16 @@ export default function HistoryPage() {
               <table className="w-full">
                 <thead className="border-b bg-muted/50">
                   <tr>
+                    {bulkDeleteMode && (
+                      <th className="px-4 py-3 text-center text-sm font-medium w-12">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.size === data.length && data.length > 0}
+                          onChange={selectAll}
+                          className="h-4 w-4"
+                        />
+                      </th>
+                    )}
                     <th className="px-4 py-3 text-left text-sm font-medium">
                       Date
                     </th>
@@ -215,6 +388,16 @@ export default function HistoryPage() {
                 <tbody>
                   {data.map((calculation) => (
                     <tr key={calculation.id} className="border-b hover:bg-muted/50">
+                      {bulkDeleteMode && (
+                        <td className="px-4 py-3 text-center">
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.has(calculation.id)}
+                            onChange={() => toggleSelection(calculation.id)}
+                            className="h-4 w-4"
+                          />
+                        </td>
+                      )}
                       <td className="px-4 py-3 text-sm">
                         {formatDate(calculation.created_at)}
                       </td>
@@ -233,25 +416,33 @@ export default function HistoryPage() {
                       <td className="px-4 py-3 text-sm text-right font-semibold">
                         {formatCurrency(getTotalTax(calculation.results))}
                       </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center justify-center gap-2">
+                      <td className="px-4 py-3 text-right space-x-2">
+                        {comparisonMode ? (
                           <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleViewDetail(calculation)}
-                            title="View Details"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleComparisonSelect(calculation)}
                           >
-                            <Eye className="h-4 w-4" />
+                            Select
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDelete(calculation.id)}
-                            title="Delete"
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </div>
+                        ) : (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleViewDetail(calculation)}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDelete(calculation.id)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -304,6 +495,16 @@ export default function HistoryPage() {
         calculation={selectedCalculation}
         open={showDetailModal}
         onClose={() => setShowDetailModal(false)}
+      />
+
+      <CalculationComparisonModal
+        calculation1={comparisonCalcs[0]}
+        calculation2={comparisonCalcs[1]}
+        open={showComparisonModal}
+        onClose={() => {
+          setShowComparisonModal(false);
+          resetComparison();
+        }}
       />
     </div>
   );
