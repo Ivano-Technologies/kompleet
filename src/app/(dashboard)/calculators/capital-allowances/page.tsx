@@ -6,7 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { InfoIcon, Calculator } from 'lucide-react';
+import { InfoIcon, Calculator, Download } from 'lucide-react';
+import { generateCalculationPDF } from '@/lib/pdf-generator';
 
 interface DepreciationSchedule {
   year: number;
@@ -308,6 +309,38 @@ export default function CapitalAllowancesCalculator() {
               </table>
             </div>
           </div>
+
+          <Button
+            onClick={() => {
+              if (!result) return;
+              generateCalculationPDF({
+                calculatorType: 'Capital Allowances Calculator',
+                date: new Date().toLocaleDateString('en-NG', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                }),
+                inputs: {
+                  asset_type: result.assetType,
+                  asset_cost: result.assetCost,
+                },
+                results: {
+                  allowance_rate: `${result.allowanceRate}%`,
+                  annual_allowance: result.annualAllowance,
+                  first_year_allowance: result.firstYearAllowance,
+                  years_to_full_depreciation: `${result.yearsToFullDepreciation} years`,
+                },
+                ruleVersion: 'v1.0.0-2025-tax-act',
+                sources: ['Federal Inland Revenue Service (FIRS)'],
+                confidenceLevel: 'High',
+              });
+            }}
+            variant="outline"
+            className="w-full mt-4"
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Export as PDF
+          </Button>
         </Card>
       )}
 

@@ -6,9 +6,10 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { InfoIcon, Calculator, Loader2 } from 'lucide-react';
+import { InfoIcon, Calculator, Loader2, Download } from 'lucide-react';
 import { useTaxRules } from '@/hooks/useTaxRules';
 import { logCalculation } from '@/hooks/useAuditLog';
+import { generateCalculationPDF } from '@/lib/pdf-generator';
 
 interface TaxBracket {
   from: number;
@@ -336,6 +337,39 @@ export default function IndividualTaxCalculatorPage() {
                     </div>
                   </CardContent>
                 </Card>
+
+                <Button
+                  onClick={() => {
+                    if (!result) return;
+                    generateCalculationPDF({
+                      calculatorType: 'Individual Income Tax Calculator',
+                      date: new Date().toLocaleDateString('en-NG', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      }),
+                      inputs: {
+                        gross_income: parseFloat(grossIncome),
+                        rent_paid: parseFloat(rentPaid) || 0,
+                        owner_occupier_interest: parseFloat(ownerOccupierInterest) || 0,
+                      },
+                      results: {
+                        taxable_income: result.taxableIncome,
+                        total_tax: result.totalTax,
+                        net_income: result.netIncome,
+                        effective_tax_rate: `${result.effectiveTaxRate.toFixed(2)}%`,
+                      },
+                      ruleVersion: 'v1.0.0-2025-tax-act',
+                      sources: ['Federal Inland Revenue Service (FIRS)'],
+                      confidenceLevel: 'High',
+                    });
+                  }}
+                  variant="outline"
+                  className="w-full"
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Export as PDF
+                </Button>
               </>
             )}
 
