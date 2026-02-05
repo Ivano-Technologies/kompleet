@@ -6,7 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { InfoIcon, Calculator } from 'lucide-react';
+import { InfoIcon, Calculator, Download } from 'lucide-react';
+import { generateCalculationPDF } from '@/lib/pdf-generator';
 
 interface StampDutyResult {
   transactionType: string;
@@ -299,6 +300,39 @@ export default function StampDutyCalculator() {
               </div>
             </div>
           )}
+
+          <Button
+            onClick={() => {
+              if (!result) return;
+              generateCalculationPDF({
+                calculatorType: 'Stamp Duty Calculator',
+                date: new Date().toLocaleDateString('en-NG', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                }),
+                inputs: {
+                  transaction_type: result.transactionType,
+                  amount: result.amount,
+                  lease_duration: result.leaseDuration ? `${result.leaseDuration} years` : 'N/A',
+                },
+                results: {
+                  exemption_status: result.isExempt ? 'Exempt' : 'Applicable',
+                  exemption_reason: result.exemptionReason || 'N/A',
+                  applicable_rate: `${result.applicableRate}%`,
+                  stamp_duty: result.stampDuty,
+                },
+                ruleVersion: 'v1.0.0-2025-tax-act',
+                sources: ['Federal Inland Revenue Service (FIRS)'],
+                confidenceLevel: 'High',
+              });
+            }}
+            variant="outline"
+            className="w-full mt-4"
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Export as PDF
+          </Button>
         </Card>
       )}
 

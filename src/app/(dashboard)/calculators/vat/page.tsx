@@ -6,9 +6,10 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { InfoIcon, Calculator, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
+import { InfoIcon, Calculator, CheckCircle2, XCircle, Loader2, Download } from 'lucide-react';
 import { useTaxRules } from '@/hooks/useTaxRules';
 import { logCalculation } from '@/hooks/useAuditLog';
+import { generateCalculationPDF } from '@/lib/pdf-generator';
 
 interface VATResult {
   isExempt: boolean;
@@ -354,6 +355,43 @@ export default function VATCalculatorPage() {
                       </AlertDescription>
                     </Alert>
                   )}
+
+                  <Button
+                    onClick={() => {
+                      if (!result) return;
+                      generateCalculationPDF({
+                        calculatorType: 'VAT Calculator',
+                        date: new Date().toLocaleDateString('en-NG', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                        }),
+                        inputs: {
+                          amount: parseFloat(amount),
+                          calculation_type: calculationType === 'add' ? 'Add VAT' : 'Extract VAT',
+                          turnover: parseFloat(turnover) || 0,
+                          total_assets: parseFloat(totalAssets) || 0,
+                          is_rent_transaction: isRentTransaction ? 'Yes' : 'No',
+                        },
+                        results: {
+                          vat_status: result.isExempt ? 'Exempt' : 'Applicable',
+                          exemption_reason: result.exemptionReason || 'N/A',
+                          net_amount: result.netAmount,
+                          vat_amount: result.vatAmount,
+                          gross_amount: result.grossAmount,
+                          vat_rate: `${result.vatRate}%`,
+                        },
+                        ruleVersion: 'v1.0.0-2025-tax-act',
+                        sources: ['Federal Inland Revenue Service (FIRS)', 'EY Analysis', 'KPMG Analysis'],
+                        confidenceLevel: 'High',
+                      });
+                    }}
+                    variant="outline"
+                    className="w-full mt-4"
+                  >
+                    <Download className="mr-2 h-4 w-4" />
+                    Export as PDF
+                  </Button>
                 </CardContent>
               </Card>
             )}

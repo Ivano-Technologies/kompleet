@@ -6,7 +6,8 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { InfoIcon, Calculator } from 'lucide-react';
+import { InfoIcon, Calculator, Download } from 'lucide-react';
+import { generateCalculationPDF } from '@/lib/pdf-generator';
 
 interface MonthlyBreakdown {
   month: number;
@@ -297,6 +298,36 @@ export default function PropertyTaxCalculator() {
               </table>
             </div>
           </Card>
+
+          <Button
+            onClick={() => {
+              if (!result) return;
+              generateCalculationPDF({
+                calculatorType: 'Property Tax (WHT) Calculator',
+                date: new Date().toLocaleDateString('en-NG', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                }),
+                inputs: {
+                  annual_rent: result.annualRent,
+                },
+                results: {
+                  wht_rate: `${result.whtRate}%`,
+                  wht_amount: result.whtAmount,
+                  net_rent: result.netRent,
+                },
+                ruleVersion: 'v1.0.0-2025-tax-act',
+                sources: ['Federal Inland Revenue Service (FIRS)'],
+                confidenceLevel: 'High',
+              });
+            }}
+            variant="outline"
+            className="w-full"
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Export as PDF
+          </Button>
         </>
       )}
 

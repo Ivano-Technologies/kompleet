@@ -6,9 +6,10 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { InfoIcon, Calculator, Loader2 } from 'lucide-react';
+import { InfoIcon, Calculator, Loader2, Download } from 'lucide-react';
 import { useTaxRules } from '@/hooks/useTaxRules';
 import { logCalculation } from '@/hooks/useAuditLog';
+import { generateCalculationPDF } from '@/lib/pdf-generator';
 
 interface BusinessTaxResult {
   isSmallCompany: boolean;
@@ -129,6 +130,35 @@ export default function BusinessTaxCalculatorPage() {
       currency: 'NGN',
       minimumFractionDigits: 2,
     }).format(amount);
+  };
+
+  const handleExportPDF = () => {
+    if (!result) return;
+
+    generateCalculationPDF({
+      calculatorType: 'Business Tax Calculator',
+      date: new Date().toLocaleDateString('en-NG', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      }),
+      inputs: {
+        turnover: parseFloat(turnover),
+        total_assets: parseFloat(totalAssets),
+        assessable_profit: parseFloat(assessableProfit),
+        is_professional_service: isProfessionalService ? 'Yes' : 'No',
+      },
+      results: {
+        company_classification: result.isSmallCompany ? 'Small Company' : 'Other Company',
+        corporate_tax: result.corporateTax,
+        development_levy: result.developmentLevy,
+        total_tax: result.totalTax,
+        effective_tax_rate: `${result.effectiveTaxRate.toFixed(2)}%`,
+      },
+      ruleVersion: 'v1.0.0-2025-tax-act',
+      sources: ['Federal Inland Revenue Service (FIRS)', 'EY Analysis', 'KPMG Analysis'],
+      confidenceLevel: 'High',
+    });
   };
 
   return (
@@ -310,6 +340,11 @@ export default function BusinessTaxCalculatorPage() {
                       </AlertDescription>
                     </Alert>
                   )}
+
+                  <Button onClick={handleExportPDF} variant="outline" className="w-full">
+                    <Download className="mr-2 h-4 w-4" />
+                    Export as PDF
+                  </Button>
                 </CardContent>
               </Card>
             )}
