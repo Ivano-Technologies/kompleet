@@ -6,7 +6,9 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { InfoIcon, Calculator } from 'lucide-react';
+import { InfoIcon, Calculator, Loader2 } from 'lucide-react';
+import { useTaxRules } from '@/hooks/useTaxRules';
+import { logCalculation } from '@/hooks/useAuditLog';
 
 interface TaxBracket {
   from: number;
@@ -33,19 +35,18 @@ export default function IndividualTaxCalculatorPage() {
   const [result, setResult] = useState<IndividualTaxResult | null>(null);
   const [error, setError] = useState<string>('');
 
-  // Nigeria Tax Act 2025 - Personal Income Tax Rates
-  const TAX_BRACKETS = [
-    { from: 0, to: 800_000, rate: 0 },
-    { from: 800_001, to: 3_000_000, rate: 0.15 },
-    { from: 3_000_001, to: 12_000_000, rate: 0.18 },
-    { from: 12_000_001, to: 25_000_000, rate: 0.21 },
-    { from: 25_000_001, to: 50_000_000, rate: 0.23 },
-    { from: 50_000_001, to: null, rate: 0.25 },
-  ];
+  // Fetch tax rules from database
+  const { rules, loading: rulesLoading, error: rulesError } = useTaxRules('individual_income_tax');
 
   const calculateIndividualTax = () => {
     setError('');
     setResult(null);
+
+    // Check if rules are loaded
+    if (!rules) {
+      setError('Tax rules are not loaded yet. Please wait...');
+      return;
+    }
 
     // Validation
     const grossIncomeNum = parseFloat(grossIncome);
@@ -67,9 +68,45 @@ export default function IndividualTaxCalculatorPage() {
       return;
     }
 
+    // Get tax brackets from database rules
+    const TAX_BRACKETS = [
+      {
+        from: rules.tax_bracket_1?.value?.from || 0,
+        to: rules.tax_bracket_1?.value?.to || 800_000,
+        rate: (rules.tax_bracket_1?.value?.rate || 0) / 100,
+      },
+      {
+        from: rules.tax_bracket_2?.value?.from || 800_001,
+        to: rules.tax_bracket_2?.value?.to || 3_000_000,
+        rate: (rules.tax_bracket_2?.value?.rate || 15) / 100,
+      },
+      {
+        from: rules.tax_bracket_3?.value?.from || 3_000_001,
+        to: rules.tax_bracket_3?.value?.to || 12_000_000,
+        rate: (rules.tax_bracket_3?.value?.rate || 18) / 100,
+      },
+      {
+        from: rules.tax_bracket_4?.value?.from || 12_000_001,
+        to: rules.tax_bracket_4?.value?.to || 25_000_000,
+        rate: (rules.tax_bracket_4?.value?.rate || 21) / 100,
+      },
+      {
+        from: rules.tax_bracket_5?.value?.from || 25_000_001,
+        to: rules.tax_bracket_5?.value?.to || 50_000_000,
+        rate: (rules.tax_bracket_5?.value?.rate || 23) / 100,
+      },
+      {
+        from: rules.tax_bracket_6?.value?.from || 50_000_001,
+        to: rules.tax_bracket_6?.value?.to || null,
+        rate: (rules.tax_bracket_6?.value?.rate || 25) / 100,
+      },
+    ];
+
     // Calculate deductions
     // Rent Relief: N500,000 OR 20% of annual rent paid (whichever is LOWER)
-    const rentRelief = Math.min(500_000, rentPaidNum * 0.2);
+    const rentReliefCap = rules.rent_relief?.value?.cap || 500_000;
+    const rentReliefPercentage = (rules.rent_relief?.value?.percentage || 20) / 100;
+    const rentRelief = Math.min(rentReliefCap, rentPaidNum * rentReliefPercentage);
 
     // Owner-Occupier Interest: Fully deductible
     const totalDeductions = rentRelief + interestNum;
@@ -80,7 +117,7 @@ export default function IndividualTaxCalculatorPage() {
     // Calculate tax using progressive brackets
     let remainingIncome = taxableIncome;
     let totalTax = 0;
-    const bracketDetails: TaxBracket[] = [];
+    const bracketResults: TaxBracket[] = [];
 
     for (const bracket of TAX_BRACKETS) {
       if (remainingIncome <= 0) break;
@@ -89,10 +126,10 @@ export default function IndividualTaxCalculatorPage() {
       const taxableInBracket = Math.min(remainingIncome, bracketSize);
       const taxOnBracket = taxableInBracket * bracket.rate;
 
-      bracketDetails.push({
+      bracketResults.push({
         from: bracket.from,
         to: bracket.to,
-        rate: bracket.rate,
+        rate: bracket.rate * 100,
         taxableAmount: taxableInBracket,
         taxOnBracket,
       });
@@ -104,15 +141,28 @@ export default function IndividualTaxCalculatorPage() {
     const netIncome = grossIncomeNum - totalTax;
     const effectiveTaxRate = grossIncomeNum > 0 ? (totalTax / grossIncomeNum) * 100 : 0;
 
-    setResult({
+    const calculationResult = {
       grossIncome: grossIncomeNum,
       totalDeductions,
       taxableIncome,
       totalTax,
       netIncome,
       effectiveTaxRate,
-      brackets: bracketDetails,
-    });
+      brackets: bracketResults,
+    };
+
+    setResult(calculationResult);
+
+    // Log calculation for audit trail
+    logCalculation(
+      'individual_income_tax',
+      {
+        grossIncome: grossIncomeNum,
+        rentPaid: rentPaidNum,
+        ownerOccupierInterest: interestNum,
+      },
+      calculationResult
+    ).catch(err => console.error('Failed to log calculation:', err));
   };
 
   const formatCurrency = (amount: number): string => {
@@ -123,194 +173,230 @@ export default function IndividualTaxCalculatorPage() {
     }).format(amount);
   };
 
-  const formatBracketRange = (from: number, to: number | null): string => {
-    if (to === null) {
-      return `Above ${formatCurrency(from)}`;
-    }
-    return `${formatCurrency(from)} - ${formatCurrency(to)}`;
-  };
-
   return (
-    <div className="container mx-auto p-6 max-w-5xl">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Individual Tax Calculator</h1>
-        <p className="text-muted-foreground">
-          Calculate personal income tax under the Nigeria Tax Act 2025 progressive rate system
-        </p>
-      </div>
+    <div className="container mx-auto py-8 px-4">
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">Individual Tax Calculator</h1>
+          <p className="text-muted-foreground">
+            Calculate personal income tax under Nigeria Tax Act 2025
+          </p>
+        </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Input Form */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Income & Deductions</CardTitle>
-            <CardDescription>Enter your annual income and deductible expenses</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="grossIncome">Annual Gross Income (₦)</Label>
-              <Input
-                id="grossIncome"
-                type="number"
-                placeholder="e.g., 15000000"
-                value={grossIncome}
-                onChange={(e) => setGrossIncome(e.target.value)}
-              />
-            </div>
+        {rulesError && (
+          <Alert variant="destructive" className="mb-6">
+            <InfoIcon className="h-4 w-4" />
+            <AlertDescription>
+              Failed to load tax rules: {rulesError}. Using fallback rates.
+            </AlertDescription>
+          </Alert>
+        )}
 
-            <div className="space-y-2">
-              <Label htmlFor="rentPaid">Annual Rent Paid (₦)</Label>
-              <Input
-                id="rentPaid"
-                type="number"
-                placeholder="e.g., 3000000"
-                value={rentPaid}
-                onChange={(e) => setRentPaid(e.target.value)}
-              />
-              <p className="text-xs text-muted-foreground">
-                Relief: ₦500,000 OR 20% of rent (whichever is lower)
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="interest">Owner-Occupier Interest (₦)</Label>
-              <Input
-                id="interest"
-                type="number"
-                placeholder="e.g., 500000"
-                value={ownerOccupierInterest}
-                onChange={(e) => setOwnerOccupierInterest(e.target.value)}
-              />
-              <p className="text-xs text-muted-foreground">Interest on owner-occupier house loan</p>
-            </div>
-
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-
-            <Button onClick={calculateIndividualTax} className="w-full" size="lg">
-              <Calculator className="mr-2 h-4 w-4" />
-              Calculate Tax
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Results */}
-        <div className="space-y-4">
+        <div className="grid gap-6 md:grid-cols-2">
           <Card>
             <CardHeader>
-              <CardTitle>Tax Calculation</CardTitle>
+              <CardTitle>Income & Deductions</CardTitle>
+              <CardDescription>Enter your annual income and eligible deductions</CardDescription>
             </CardHeader>
-            <CardContent>
-              {result ? (
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center py-2 border-b">
-                      <span className="text-sm">Gross Income</span>
-                      <span className="font-semibold">{formatCurrency(result.grossIncome)}</span>
-                    </div>
-                    <div className="flex justify-between items-center py-2 border-b">
-                      <span className="text-sm">Total Deductions</span>
-                      <span className="font-semibold text-green-600">-{formatCurrency(result.totalDeductions)}</span>
-                    </div>
-                    <div className="flex justify-between items-center py-2 border-b">
-                      <span className="text-sm">Taxable Income</span>
-                      <span className="font-semibold">{formatCurrency(result.taxableIncome)}</span>
-                    </div>
-                    <div className="flex justify-between items-center py-3 bg-red-50 px-3 rounded-lg mt-2">
-                      <span className="font-bold">Total Tax Due</span>
-                      <span className="font-bold text-lg text-red-600">{formatCurrency(result.totalTax)}</span>
-                    </div>
-                    <div className="flex justify-between items-center py-3 bg-green-50 px-3 rounded-lg">
-                      <span className="font-bold">Net Income</span>
-                      <span className="font-bold text-lg text-green-600">{formatCurrency(result.netIncome)}</span>
-                    </div>
-                    <div className="flex justify-between items-center py-2">
-                      <span className="text-sm text-muted-foreground">Effective Tax Rate</span>
-                      <span className="text-sm font-medium">{result.effectiveTaxRate.toFixed(2)}%</span>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Calculator className="mx-auto h-12 w-12 mb-3 opacity-50" />
-                  <p>Enter income details and click Calculate Tax to see results</p>
-                </div>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="income">Annual Gross Income (₦)</Label>
+                <Input
+                  id="income"
+                  type="number"
+                  placeholder="e.g., 15000000"
+                  value={grossIncome}
+                  onChange={(e) => setGrossIncome(e.target.value)}
+                  disabled={rulesLoading}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="rent">Annual Rent Paid (₦)</Label>
+                <Input
+                  id="rent"
+                  type="number"
+                  placeholder="e.g., 3000000"
+                  value={rentPaid}
+                  onChange={(e) => setRentPaid(e.target.value)}
+                  disabled={rulesLoading}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Relief: ₦{rules?.rent_relief?.value?.cap?.toLocaleString() || '500,000'} or{' '}
+                  {rules?.rent_relief?.value?.percentage || 20}% of rent (whichever is lower)
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="interest">Owner-Occupier Interest (₦)</Label>
+                <Input
+                  id="interest"
+                  type="number"
+                  placeholder="e.g., 500000"
+                  value={ownerOccupierInterest}
+                  onChange={(e) => setOwnerOccupierInterest(e.target.value)}
+                  disabled={rulesLoading}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Interest on owner-occupier house loans is fully deductible
+                </p>
+              </div>
+
+              <Button 
+                onClick={calculateIndividualTax} 
+                className="w-full"
+                disabled={rulesLoading}
+              >
+                {rulesLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Loading Rules...
+                  </>
+                ) : (
+                  <>
+                    <Calculator className="mr-2 h-4 w-4" />
+                    Calculate Tax
+                  </>
+                )}
+              </Button>
+
+              {error && (
+                <Alert variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
               )}
             </CardContent>
           </Card>
 
-          {result && result.brackets.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Tax Bracket Breakdown</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {result.brackets.map((bracket, index) => (
-                    <div key={index} className="p-3 bg-gray-50 rounded-lg">
-                      <div className="flex justify-between items-start mb-1">
-                        <span className="text-sm font-medium">{formatBracketRange(bracket.from, bracket.to)}</span>
-                        <span className="text-sm font-semibold">{(bracket.rate * 100).toFixed(0)}%</span>
-                      </div>
-                      <div className="flex justify-between items-center text-xs text-muted-foreground">
-                        <span>{formatCurrency(bracket.taxableAmount)} taxable</span>
-                        <span className="font-medium text-foreground">{formatCurrency(bracket.taxOnBracket)}</span>
-                      </div>
+          <div className="space-y-6">
+            {result && (
+              <>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Tax Summary</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex justify-between text-sm">
+                      <span>Gross Income:</span>
+                      <span className="font-medium">{formatCurrency(result.grossIncome)}</span>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <InfoIcon className="h-5 w-5" />
-                Tax Rates (2025)
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="text-sm space-y-2">
-              <div>
-                <p className="font-semibold mb-2">Progressive Tax Brackets:</p>
-                <ul className="space-y-1 text-muted-foreground">
-                  <li className="flex justify-between">
-                    <span>First ₦800,000</span>
-                    <span className="font-medium">0%</span>
-                  </li>
-                  <li className="flex justify-between">
-                    <span>₦800,001 - ₦3,000,000</span>
-                    <span className="font-medium">15%</span>
-                  </li>
-                  <li className="flex justify-between">
-                    <span>₦3,000,001 - ₦12,000,000</span>
-                    <span className="font-medium">18%</span>
-                  </li>
-                  <li className="flex justify-between">
-                    <span>₦12,000,001 - ₦25,000,000</span>
-                    <span className="font-medium">21%</span>
-                  </li>
-                  <li className="flex justify-between">
-                    <span>₦25,000,001 - ₦50,000,000</span>
-                    <span className="font-medium">23%</span>
-                  </li>
-                  <li className="flex justify-between">
-                    <span>Above ₦50,000,000</span>
-                    <span className="font-medium">25%</span>
-                  </li>
-                </ul>
-              </div>
-              <div className="pt-2 border-t">
-                <p className="text-xs text-muted-foreground">
-                  Source: Nigeria Tax Act 2025 | Last reviewed: Feb 4, 2026
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+                    <div className="flex justify-between text-sm">
+                      <span>Total Deductions:</span>
+                      <span className="font-medium">
+                        -{formatCurrency(result.totalDeductions)}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between text-sm border-t pt-2">
+                      <span>Taxable Income:</span>
+                      <span className="font-medium">{formatCurrency(result.taxableIncome)}</span>
+                    </div>
+
+                    <div className="flex justify-between font-bold text-lg border-t pt-2">
+                      <span>Total Tax:</span>
+                      <span className="text-red-600">{formatCurrency(result.totalTax)}</span>
+                    </div>
+
+                    <div className="flex justify-between text-sm">
+                      <span>Net Income:</span>
+                      <span className="font-medium text-green-600">
+                        {formatCurrency(result.netIncome)}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between text-sm text-muted-foreground">
+                      <span>Effective Tax Rate:</span>
+                      <span>{result.effectiveTaxRate.toFixed(2)}%</span>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Tax Bracket Breakdown</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {result.brackets.map((bracket, index) => (
+                        <div key={index} className="text-sm">
+                          <div className="flex justify-between font-medium">
+                            <span>
+                              {formatCurrency(bracket.from)} -{' '}
+                              {bracket.to ? formatCurrency(bracket.to) : 'Above'}
+                            </span>
+                            <span>{bracket.rate}%</span>
+                          </div>
+                          <div className="flex justify-between text-muted-foreground text-xs">
+                            <span>Taxable: {formatCurrency(bracket.taxableAmount)}</span>
+                            <span>Tax: {formatCurrency(bracket.taxOnBracket)}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </>
+            )}
+
+            {!result && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Tax Rates (2025)</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2 text-sm">
+                    <p className="flex justify-between">
+                      <span>First ₦800,000</span>
+                      <span className="font-medium">0%</span>
+                    </p>
+                    <p className="flex justify-between">
+                      <span>₦800,001 - ₦3,000,000</span>
+                      <span className="font-medium">15%</span>
+                    </p>
+                    <p className="flex justify-between">
+                      <span>₦3,000,001 - ₦12,000,000</span>
+                      <span className="font-medium">18%</span>
+                    </p>
+                    <p className="flex justify-between">
+                      <span>₦12,000,001 - ₦25,000,000</span>
+                      <span className="font-medium">21%</span>
+                    </p>
+                    <p className="flex justify-between">
+                      <span>₦25,000,001 - ₦50,000,000</span>
+                      <span className="font-medium">23%</span>
+                    </p>
+                    <p className="flex justify-between">
+                      <span>Above ₦50,000,000</span>
+                      <span className="font-medium">25%</span>
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </div>
+
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle>About This Calculator</CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm text-muted-foreground space-y-2">
+            <p>
+              This calculator implements the Nigeria Tax Act 2025 progressive tax rates for
+              individuals. Tax rates and deduction limits are fetched dynamically from the KOMPLEET
+              Tax Rules Engine.
+            </p>
+            <p>
+              <strong>Data Source:</strong> Federal Inland Revenue Service (FIRS), validated by EY
+              and KPMG analyses. Confidence level: {rules?.tax_bracket_1?.confidence || 'high'}.
+            </p>
+            <p>
+              <strong>Disclaimer:</strong> This is an estimate. Consult a qualified Nigerian tax
+              professional for personalized advice.
+            </p>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

@@ -6,7 +6,9 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { InfoIcon, Calculator, CheckCircle2, XCircle } from 'lucide-react';
+import { InfoIcon, Calculator, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
+import { useTaxRules } from '@/hooks/useTaxRules';
+import { logCalculation } from '@/hooks/useAuditLog';
 
 interface VATResult {
   isExempt: boolean;
@@ -26,13 +28,18 @@ export default function VATCalculatorPage() {
   const [result, setResult] = useState<VATResult | null>(null);
   const [error, setError] = useState<string>('');
 
-  const VAT_RATE = 0.075; // 7.5%
-  const SMALL_BUSINESS_TURNOVER_THRESHOLD = 100_000_000; // N100M
-  const SMALL_BUSINESS_ASSETS_THRESHOLD = 250_000_000; // N250M
+  // Fetch VAT rules from database
+  const { rules, loading: rulesLoading, error: rulesError } = useTaxRules('vat');
 
   const calculateVAT = () => {
     setError('');
     setResult(null);
+
+    // Check if rules are loaded
+    if (!rules) {
+      setError('Tax rules are not loaded yet. Please wait...');
+      return;
+    }
 
     // Validation
     const amountNum = parseFloat(amount);
@@ -54,24 +61,29 @@ export default function VATCalculatorPage() {
       return;
     }
 
+    // Get VAT rate and thresholds from database
+    const VAT_RATE = (rules.standard_rate?.value?.rate || 7.5) / 100;
+    const SMALL_BUSINESS_TURNOVER_THRESHOLD = rules.small_business_exemption_turnover?.value?.threshold || 100_000_000;
+    const SMALL_BUSINESS_ASSETS_THRESHOLD = rules.small_business_exemption_assets?.value?.threshold || 250_000_000;
+
     // Check VAT exemptions
     let isExempt = false;
     let exemptionReason: string | null = null;
 
-    // 1. Rent transactions are VAT exempt
+    // Rent exemption
     if (isRentTransaction) {
       isExempt = true;
       exemptionReason = 'Rent transactions are exempt from VAT';
     }
 
-    // 2. Small business exemption: Turnover < N100M AND Assets < N250M
+    // Small business exemption
     if (
       !isExempt &&
       turnoverNum < SMALL_BUSINESS_TURNOVER_THRESHOLD &&
       assetsNum < SMALL_BUSINESS_ASSETS_THRESHOLD
     ) {
       isExempt = true;
-      exemptionReason = 'Small business exemption (Turnover < ₦100M and Assets < ₦250M)';
+      exemptionReason = `Small business exemption (turnover < ₦${(SMALL_BUSINESS_TURNOVER_THRESHOLD / 1_000_000).toFixed(0)}M and assets < ₦${(SMALL_BUSINESS_ASSETS_THRESHOLD / 1_000_000).toFixed(0)}M)`;
     }
 
     let netAmount: number;
@@ -79,32 +91,46 @@ export default function VATCalculatorPage() {
     let grossAmount: number;
 
     if (isExempt) {
-      // No VAT applicable
       netAmount = amountNum;
       vatAmount = 0;
       grossAmount = amountNum;
     } else {
       if (calculationType === 'add') {
-        // Add VAT to net amount
+        // Add VAT to amount
         netAmount = amountNum;
-        vatAmount = netAmount * VAT_RATE;
+        vatAmount = amountNum * VAT_RATE;
         grossAmount = netAmount + vatAmount;
       } else {
-        // Extract VAT from gross amount
+        // Extract VAT from amount
         grossAmount = amountNum;
-        netAmount = grossAmount / (1 + VAT_RATE);
+        netAmount = amountNum / (1 + VAT_RATE);
         vatAmount = grossAmount - netAmount;
       }
     }
 
-    setResult({
+    const calculationResult = {
       isExempt,
       exemptionReason,
       netAmount,
       vatAmount,
       grossAmount,
       vatRate: VAT_RATE * 100,
-    });
+    };
+
+    setResult(calculationResult);
+
+    // Log calculation for audit trail
+    logCalculation(
+      'vat',
+      {
+        amount: amountNum,
+        turnover: turnoverNum,
+        totalAssets: assetsNum,
+        isRentTransaction,
+        calculationType,
+      },
+      calculationResult
+    ).catch(err => console.error('Failed to log calculation:', err));
   };
 
   const formatCurrency = (amount: number): string => {
@@ -116,224 +142,243 @@ export default function VATCalculatorPage() {
   };
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">VAT Calculator</h1>
-        <p className="text-muted-foreground">
-          Calculate Value Added Tax under the Nigeria Tax Act 2025 (7.5% standard rate)
-        </p>
-      </div>
+    <div className="container mx-auto py-8 px-4">
+      <div className="max-w-4xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">VAT Calculator</h1>
+          <p className="text-muted-foreground">
+            Calculate Value Added Tax under Nigeria Tax Act 2025
+          </p>
+        </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Input Form */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Transaction Details</CardTitle>
-            <CardDescription>Enter transaction amount and business information</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label>Calculation Type</Label>
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant={calculationType === 'add' ? 'default' : 'outline'}
-                  onClick={() => setCalculationType('add')}
-                  className="flex-1"
-                >
-                  Add VAT
-                </Button>
-                <Button
-                  type="button"
-                  variant={calculationType === 'extract' ? 'default' : 'outline'}
-                  onClick={() => setCalculationType('extract')}
-                  className="flex-1"
-                >
-                  Extract VAT
-                </Button>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {calculationType === 'add'
-                  ? 'Calculate VAT to add to net amount'
-                  : 'Extract VAT from gross amount (VAT inclusive)'}
-              </p>
-            </div>
+        {rulesError && (
+          <Alert variant="destructive" className="mb-6">
+            <InfoIcon className="h-4 w-4" />
+            <AlertDescription>
+              Failed to load tax rules: {rulesError}. Using fallback rates.
+            </AlertDescription>
+          </Alert>
+        )}
 
-            <div className="space-y-2">
-              <Label htmlFor="amount">
-                {calculationType === 'add' ? 'Net Amount (₦)' : 'Gross Amount (₦)'}
-              </Label>
-              <Input
-                id="amount"
-                type="number"
-                placeholder="e.g., 1000000"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="turnover">Annual Turnover (₦)</Label>
-              <Input
-                id="turnover"
-                type="number"
-                placeholder="e.g., 50000000"
-                value={turnover}
-                onChange={(e) => setTurnover(e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="assets">Total Assets (₦)</Label>
-              <Input
-                id="assets"
-                type="number"
-                placeholder="e.g., 200000000"
-                value={totalAssets}
-                onChange={(e) => setTotalAssets(e.target.value)}
-              />
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="rent"
-                checked={isRentTransaction}
-                onChange={(e) => setIsRentTransaction(e.target.checked)}
-                className="h-4 w-4 rounded border-gray-300"
-              />
-              <Label htmlFor="rent" className="cursor-pointer">
-                This is a rent transaction
-              </Label>
-            </div>
-
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-
-            <Button onClick={calculateVAT} className="w-full" size="lg">
-              <Calculator className="mr-2 h-4 w-4" />
-              Calculate VAT
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Results */}
-        <div className="space-y-4">
+        <div className="grid gap-6 md:grid-cols-2">
           <Card>
             <CardHeader>
-              <CardTitle>VAT Calculation</CardTitle>
+              <CardTitle>Transaction Details</CardTitle>
+              <CardDescription>Enter transaction and business information</CardDescription>
             </CardHeader>
-            <CardContent>
-              {result ? (
-                <div className="space-y-4">
-                  {/* Exemption Status */}
-                  <div
-                    className={`p-4 rounded-lg ${
-                      result.isExempt
-                        ? 'bg-green-50 border border-green-200'
-                        : 'bg-blue-50 border border-blue-200'
-                    }`}
-                  >
-                    <div className="flex items-start gap-2">
-                      {result.isExempt ? (
-                        <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5" />
-                      ) : (
-                        <XCircle className="h-5 w-5 text-blue-600 mt-0.5" />
-                      )}
-                      <div>
-                        <p className="font-semibold">
-                          {result.isExempt ? 'VAT Exempt' : 'VAT Applicable'}
-                        </p>
-                        {result.exemptionReason && (
-                          <p className="text-sm text-muted-foreground mt-1">{result.exemptionReason}</p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Calculation Breakdown */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center py-2 border-b">
-                      <span className="text-sm">Net Amount</span>
-                      <span className="font-semibold">{formatCurrency(result.netAmount)}</span>
-                    </div>
-                    <div className="flex justify-between items-center py-2 border-b">
-                      <span className="text-sm">
-                        VAT ({result.vatRate}%)
-                        {result.isExempt && <span className="text-xs text-muted-foreground ml-1">(Exempt)</span>}
-                      </span>
-                      <span className={`font-semibold ${result.isExempt ? 'text-green-600' : ''}`}>
-                        {result.isExempt ? '₦0.00' : formatCurrency(result.vatAmount)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center py-3 bg-primary/10 px-3 rounded-lg mt-2">
-                      <span className="font-bold">Gross Amount</span>
-                      <span className="font-bold text-lg">{formatCurrency(result.grossAmount)}</span>
-                    </div>
-                  </div>
-
-                  {/* Calculation Formula */}
-                  {!result.isExempt && (
-                    <div className="p-3 bg-gray-50 rounded-lg text-sm">
-                      <p className="font-semibold mb-1">Formula:</p>
-                      <p className="text-muted-foreground">
-                        {calculationType === 'add'
-                          ? `Gross = Net × (1 + ${result.vatRate}%) = ${formatCurrency(result.netAmount)} × 1.075`
-                          : `Net = Gross ÷ (1 + ${result.vatRate}%) = ${formatCurrency(result.grossAmount)} ÷ 1.075`}
-                      </p>
-                    </div>
-                  )}
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Calculation Type</Label>
+                <div className="flex gap-4">
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      value="add"
+                      checked={calculationType === 'add'}
+                      onChange={(e) => setCalculationType('add')}
+                      className="h-4 w-4"
+                      disabled={rulesLoading}
+                    />
+                    <span>Add VAT</span>
+                  </label>
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      value="extract"
+                      checked={calculationType === 'extract'}
+                      onChange={(e) => setCalculationType('extract')}
+                      className="h-4 w-4"
+                      disabled={rulesLoading}
+                    />
+                    <span>Extract VAT</span>
+                  </label>
                 </div>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Calculator className="mx-auto h-12 w-12 mb-3 opacity-50" />
-                  <p>Enter transaction details and click Calculate VAT to see results</p>
-                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="amount">
+                  {calculationType === 'add' ? 'Net Amount (₦)' : 'Gross Amount (₦)'}
+                </Label>
+                <Input
+                  id="amount"
+                  type="number"
+                  placeholder="e.g., 100000"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  disabled={rulesLoading}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="turnover">Annual Turnover (₦)</Label>
+                <Input
+                  id="turnover"
+                  type="number"
+                  placeholder="e.g., 50000000"
+                  value={turnover}
+                  onChange={(e) => setTurnover(e.target.value)}
+                  disabled={rulesLoading}
+                />
+                <p className="text-xs text-muted-foreground">
+                  For small business exemption check
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="assets">Total Assets (₦)</Label>
+                <Input
+                  id="assets"
+                  type="number"
+                  placeholder="e.g., 200000000"
+                  value={totalAssets}
+                  onChange={(e) => setTotalAssets(e.target.value)}
+                  disabled={rulesLoading}
+                />
+                <p className="text-xs text-muted-foreground">
+                  For small business exemption check
+                </p>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="rent"
+                  checked={isRentTransaction}
+                  onChange={(e) => setIsRentTransaction(e.target.checked)}
+                  className="h-4 w-4"
+                  disabled={rulesLoading}
+                />
+                <Label htmlFor="rent" className="font-normal">
+                  This is a rent transaction (exempt from VAT)
+                </Label>
+              </div>
+
+              <Button 
+                onClick={calculateVAT} 
+                className="w-full"
+                disabled={rulesLoading}
+              >
+                {rulesLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Loading Rules...
+                  </>
+                ) : (
+                  <>
+                    <Calculator className="mr-2 h-4 w-4" />
+                    Calculate VAT
+                  </>
+                )}
+              </Button>
+
+              {error && (
+                <Alert variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
               )}
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <InfoIcon className="h-5 w-5" />
-                VAT Rules (2025)
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="text-sm space-y-2">
-              <div>
-                <p className="font-semibold">Standard Rate:</p>
-                <p className="text-muted-foreground">7.5% (unchanged from previous law)</p>
-              </div>
-              <div>
-                <p className="font-semibold">Small Business Exemption:</p>
-                <ul className="list-disc list-inside text-muted-foreground ml-2">
-                  <li>Turnover &lt; ₦100 million AND</li>
-                  <li>Total assets &lt; ₦250 million</li>
-                </ul>
-              </div>
-              <div>
-                <p className="font-semibold">Exempt Items:</p>
-                <ul className="list-disc list-inside text-muted-foreground ml-2">
-                  <li>Rent (land or building)</li>
-                  <li>Essential goods and services</li>
-                </ul>
-              </div>
-              <div>
-                <p className="font-semibold">Input VAT Recovery:</p>
-                <p className="text-muted-foreground">All input tax recoverable from output tax</p>
-              </div>
-              <div className="pt-2 border-t">
-                <p className="text-xs text-muted-foreground">
-                  Source: Nigeria Tax Act 2025 | Last reviewed: Feb 4, 2026
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>VAT Information</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3 text-sm">
+                  <div className="flex items-start">
+                    <InfoIcon className="h-4 w-4 mr-2 mt-0.5 text-blue-500" />
+                    <div>
+                      <p className="font-medium">Standard VAT Rate</p>
+                      <p className="text-muted-foreground">
+                        {rules?.standard_rate?.value?.rate || 7.5}% (unchanged from previous law)
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start">
+                    <CheckCircle2 className="h-4 w-4 mr-2 mt-0.5 text-green-500" />
+                    <div>
+                      <p className="font-medium">Small Business Exemption</p>
+                      <p className="text-muted-foreground">
+                        Turnover {'<'} ₦{((rules?.small_business_exemption_turnover?.value?.threshold || 100_000_000) / 1_000_000).toFixed(0)}M AND Assets {'<'} ₦{((rules?.small_business_exemption_assets?.value?.threshold || 250_000_000) / 1_000_000).toFixed(0)}M
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start">
+                    <XCircle className="h-4 w-4 mr-2 mt-0.5 text-orange-500" />
+                    <div>
+                      <p className="font-medium">Rent Exemption</p>
+                      <p className="text-muted-foreground">
+                        Rent (land or building) is exempt from VAT
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {result && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>VAT Calculation Result</CardTitle>
+                  {result.isExempt && (
+                    <Alert className="mt-2">
+                      <CheckCircle2 className="h-4 w-4" />
+                      <AlertDescription>{result.exemptionReason}</AlertDescription>
+                    </Alert>
+                  )}
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <span>Net Amount:</span>
+                    <span className="font-medium">{formatCurrency(result.netAmount)}</span>
+                  </div>
+
+                  <div className="flex justify-between text-sm">
+                    <span>VAT ({result.vatRate}%):</span>
+                    <span className="font-medium">{formatCurrency(result.vatAmount)}</span>
+                  </div>
+
+                  <div className="border-t pt-2 flex justify-between font-bold text-lg">
+                    <span>Gross Amount:</span>
+                    <span>{formatCurrency(result.grossAmount)}</span>
+                  </div>
+
+                  {!result.isExempt && (
+                    <Alert>
+                      <InfoIcon className="h-4 w-4" />
+                      <AlertDescription>
+                        VAT of {formatCurrency(result.vatAmount)} {calculationType === 'add' ? 'added to' : 'extracted from'} the amount
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </div>
+
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle>About This Calculator</CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm text-muted-foreground space-y-2">
+            <p>
+              This calculator implements the Nigeria Tax Act 2025 VAT provisions. VAT rates and
+              exemption thresholds are fetched dynamically from the KOMPLEET Tax Rules Engine.
+            </p>
+            <p>
+              <strong>Data Source:</strong> Federal Inland Revenue Service (FIRS), validated by EY
+              and KPMG analyses. Confidence level: {rules?.standard_rate?.confidence || 'high'}.
+            </p>
+            <p>
+              <strong>Disclaimer:</strong> This is an estimate. Consult a qualified Nigerian tax
+              professional for personalized advice.
+            </p>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
