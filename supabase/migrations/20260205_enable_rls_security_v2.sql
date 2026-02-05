@@ -1,5 +1,6 @@
 -- Enable Row Level Security (RLS) on all public tables
 -- This migration addresses the critical security vulnerabilities identified in Supabase Security Advisor
+-- Version 2: Updated to match actual database schema
 
 -- ============================================================================
 -- ENABLE RLS ON ALL TABLES
@@ -10,6 +11,7 @@ ALTER TABLE public.tax_rules ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.sources ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.review_queue ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
 -- ============================================================================
 -- RULE VERSIONS POLICIES
@@ -121,49 +123,51 @@ USING (true)
 WITH CHECK (true);
 
 -- ============================================================================
--- PROFILES TABLE (if exists)
+-- PROFILES POLICIES
 -- ============================================================================
 
--- Check if profiles table exists and enable RLS
-DO $$
-BEGIN
-  IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'profiles') THEN
-    ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-    
-    -- Allow users to read their own profile
-    CREATE POLICY "Users can read their own profile"
-    ON public.profiles
-    FOR SELECT
-    TO authenticated
-    USING (auth.uid() = id);
-    
-    -- Allow users to update their own profile
-    CREATE POLICY "Users can update their own profile"
-    ON public.profiles
-    FOR UPDATE
-    TO authenticated
-    USING (auth.uid() = id)
-    WITH CHECK (auth.uid() = id);
-    
-    -- Allow service role to manage all profiles
-    CREATE POLICY "Allow service role to manage profiles"
-    ON public.profiles
-    FOR ALL
-    TO service_role
-    USING (true)
-    WITH CHECK (true);
-  END IF;
-END $$;
+-- Allow users to read their own profile
+CREATE POLICY "Users can read their own profile"
+ON public.profiles
+FOR SELECT
+TO authenticated
+USING (auth.uid() = id);
+
+-- Allow users to update their own profile
+CREATE POLICY "Users can update their own profile"
+ON public.profiles
+FOR UPDATE
+TO authenticated
+USING (auth.uid() = id)
+WITH CHECK (auth.uid() = id);
+
+-- Allow service role to manage all profiles
+CREATE POLICY "Allow service role to manage profiles"
+ON public.profiles
+FOR ALL
+TO service_role
+USING (true)
+WITH CHECK (true);
 
 -- ============================================================================
--- INDEXES FOR PERFORMANCE
+-- INDEXES FOR PERFORMANCE (based on actual schema)
 -- ============================================================================
 
--- Add indexes on foreign keys to improve query performance
+-- Add indexes on foreign keys and frequently queried columns
 CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id ON public.audit_logs(user_id);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_created_at ON public.audit_logs(created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_rule_versions_rule_id ON public.rule_versions(rule_id);
-CREATE INDEX IF NOT EXISTS idx_tax_rules_category ON public.tax_rules(category);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_rule_version_id ON public.audit_logs(rule_version_id);
+
+CREATE INDEX IF NOT EXISTS idx_tax_rules_rule_version_id ON public.tax_rules(rule_version_id);
+CREATE INDEX IF NOT EXISTS idx_tax_rules_source_id ON public.tax_rules(source_id);
+CREATE INDEX IF NOT EXISTS idx_tax_rules_rule_type ON public.tax_rules(rule_type);
+
+CREATE INDEX IF NOT EXISTS idx_review_queue_source_id ON public.review_queue(source_id);
+CREATE INDEX IF NOT EXISTS idx_review_queue_status ON public.review_queue(status);
+CREATE INDEX IF NOT EXISTS idx_review_queue_assigned_to ON public.review_queue(assigned_to);
+
+CREATE INDEX IF NOT EXISTS idx_rule_versions_is_active ON public.rule_versions(is_active);
+CREATE INDEX IF NOT EXISTS idx_rule_versions_effective_from ON public.rule_versions(effective_from);
 
 -- ============================================================================
 -- COMMENTS
@@ -177,3 +181,6 @@ COMMENT ON POLICY "Users can read their own audit logs" ON public.audit_logs IS
 
 COMMENT ON POLICY "Allow service role to manage audit logs" ON public.audit_logs IS 
 'Service role has full access for administrative operations';
+
+COMMENT ON POLICY "Users can read their own profile" ON public.profiles IS 
+'Users can only view and update their own profile information';
