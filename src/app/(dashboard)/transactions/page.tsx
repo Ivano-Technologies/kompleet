@@ -44,6 +44,7 @@ export default function TransactionsPage() {
     startDate: '',
     endDate: '',
   });
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     fetchTransactions();
@@ -129,6 +130,36 @@ export default function TransactionsPage() {
     });
   };
 
+  const handleExport = async (format: 'csv' | 'json') => {
+    setExporting(true);
+    try {
+      const params = new URLSearchParams({
+        format,
+        ...(filters.type && { type: filters.type }),
+        ...(filters.startDate && { startDate: filters.startDate }),
+        ...(filters.endDate && { endDate: filters.endDate }),
+      });
+
+      const response = await fetch(`/api/transactions/export?${params}`);
+      
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `transactions_${new Date().toISOString().split('T')[0]}.${format}`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      }
+    } catch (error) {
+      console.error('Export error:', error);
+    } finally {
+      setExporting(false);
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
@@ -139,12 +170,43 @@ export default function TransactionsPage() {
             {pagination.total} total transaction{pagination.total !== 1 ? 's' : ''}
           </p>
         </div>
-        <Link
-          href="/transactions/upload"
-          className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium"
-        >
-          Upload Transactions
-        </Link>
+        <div className="flex gap-3">
+          <Link
+            href="/transactions/review"
+            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+          >
+            Review Uncategorized
+          </Link>
+          <div className="relative">
+            <button
+              onClick={() => document.getElementById('export-menu')?.classList.toggle('hidden')}
+              disabled={exporting}
+              className="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors font-medium disabled:opacity-50"
+            >
+              {exporting ? 'Exporting...' : 'Export'}
+            </button>
+            <div id="export-menu" className="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+              <button
+                onClick={() => { handleExport('csv'); document.getElementById('export-menu')?.classList.add('hidden'); }}
+                className="block w-full text-left px-4 py-2 hover:bg-gray-50 rounded-t-lg"
+              >
+                Export as CSV
+              </button>
+              <button
+                onClick={() => { handleExport('json'); document.getElementById('export-menu')?.classList.add('hidden'); }}
+                className="block w-full text-left px-4 py-2 hover:bg-gray-50 rounded-b-lg"
+              >
+                Export as JSON
+              </button>
+            </div>
+          </div>
+          <Link
+            href="/transactions/upload"
+            className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium"
+          >
+            Upload Transactions
+          </Link>
+        </div>
       </div>
 
       {/* Filters */}
