@@ -36,6 +36,8 @@ const PUBLIC_ROUTES = [
   '/401',
   '/403',
   '/api/health',
+  '/api/tax-rules',
+  '/api/audit-log',
   '/calculators/*',
 ];
 
