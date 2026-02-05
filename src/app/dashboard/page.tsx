@@ -3,6 +3,7 @@ import { requireServerUser } from '@/lib/supabase/session';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import LogoutButton from './LogoutButton';
+import { RecentCalculations } from '@/components/RecentCalculations';
 
 export default async function DashboardPage() {
   const supabase = await createServerClient();
@@ -38,10 +39,15 @@ export default async function DashboardPage() {
           padding: '20px',
           backgroundColor: '#e8f4f8',
           borderRadius: '8px',
+          marginBottom: '20px',
         }}>
           <h3 style={{ marginBottom: '10px' }}>Protected Content</h3>
           <p>This page is only accessible to authenticated users.</p>
           <p>Your session is being managed by Supabase with server-side verification.</p>
+        </div>
+
+        <div style={{ marginBottom: '20px' }}>
+          <RecentCalculations />
         </div>
 
         <div style={{
@@ -53,6 +59,11 @@ export default async function DashboardPage() {
         }}>
           <h3 style={{ marginBottom: '15px' }}>Navigation</h3>
           <ul style={{ listStyle: 'none', padding: 0 }}>
+            <li style={{ marginBottom: '10px' }}>
+              <Link href="/history" style={{ color: '#22c55e', textDecoration: 'none', fontWeight: 'bold' }}>
+                📊 Calculation History
+              </Link>
+            </li>
             <li style={{ marginBottom: '10px' }}>
               <Link href="/profile" style={{ color: '#0070f3', textDecoration: 'none' }}>
                 → View Profile (Database + RLS)
@@ -66,6 +77,40 @@ export default async function DashboardPage() {
             <li>
               <Link href="/" style={{ color: '#0070f3', textDecoration: 'none' }}>
                 → Home (Public)
+              </Link>
+            </li>
+          </ul>
+
+          <h4 style={{ marginTop: '20px', marginBottom: '10px' }}>Tax Calculators</h4>
+          <ul style={{ listStyle: 'none', padding: 0, display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
+            <li>
+              <Link href="/calculators/business-tax" style={{ color: '#0070f3', textDecoration: 'none', fontSize: '14px' }}>
+                → Business Tax
+              </Link>
+            </li>
+            <li>
+              <Link href="/calculators/individual-tax" style={{ color: '#0070f3', textDecoration: 'none', fontSize: '14px' }}>
+                → Individual Tax
+              </Link>
+            </li>
+            <li>
+              <Link href="/calculators/vat" style={{ color: '#0070f3', textDecoration: 'none', fontSize: '14px' }}>
+                → VAT
+              </Link>
+            </li>
+            <li>
+              <Link href="/calculators/capital-allowances" style={{ color: '#0070f3', textDecoration: 'none', fontSize: '14px' }}>
+                → Capital Allowances
+              </Link>
+            </li>
+            <li>
+              <Link href="/calculators/stamp-duty" style={{ color: '#0070f3', textDecoration: 'none', fontSize: '14px' }}>
+                → Stamp Duty
+              </Link>
+            </li>
+            <li>
+              <Link href="/calculators/property-tax" style={{ color: '#0070f3', textDecoration: 'none', fontSize: '14px' }}>
+                → Property Tax
               </Link>
             </li>
           </ul>
