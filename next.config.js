@@ -8,12 +8,6 @@ const nextConfig = {
     ignoreBuildErrors: false,
   },
 
-  // Ensure proper ESLint checking
-  eslint: {
-    // Fail build on lint errors
-    ignoreDuringBuilds: false,
-  },
-
   // Environment variables validation
   // Next.js will validate these are present at build time
   env: {

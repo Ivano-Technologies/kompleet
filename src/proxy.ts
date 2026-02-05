@@ -1,7 +1,7 @@
 /**
- * Next.js Middleware - Auth Guard
+ * Next.js Proxy - Auth Guard
  * 
- * This middleware enforces authentication on protected routes.
+ * This proxy enforces authentication on protected routes.
  * It runs on the Edge runtime for optimal performance.
  * 
  * Route categories:
@@ -65,7 +65,7 @@ function matchesRoute(pathname: string, routes: string[]): boolean {
 }
 
 /**
- * Middleware function
+ * Proxy function (formerly middleware)
  * 
  * Flow:
  * 1. Check if route is public → allow access
@@ -74,7 +74,7 @@ function matchesRoute(pathname: string, routes: string[]): boolean {
  * 4. If not authenticated and on protected route → redirect to login
  * 5. Otherwise → allow access
  */
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Allow public routes without auth check
@@ -140,9 +140,9 @@ export async function middleware(request: NextRequest) {
 }
 
 /**
- * Middleware configuration
+ * Proxy configuration
  * 
- * Matcher patterns define which routes this middleware applies to.
+ * Matcher patterns define which routes this proxy applies to.
  * We exclude:
  * - Static files (_next/static)
  * - Images (_next/image)
