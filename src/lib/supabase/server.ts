@@ -52,13 +52,16 @@ export async function createServerClient(): Promise<SupabaseClient> {
       },
       setAll(cookiesToSet) {
         try {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options)
-          );
-        } catch {
-          // The setAll method was called from a Server Component.
-          // This can be ignored if you have middleware refreshing
-          // user sessions.
+          cookiesToSet.forEach(({ name, value, options }) => {
+            cookieStore.set(name, value, options);
+          });
+        } catch (error) {
+          // Cookie setting can fail in Server Components (read-only context)
+          // This is expected and can be safely ignored if middleware handles session refresh
+          // However, log the error in development for debugging
+          if (process.env.NODE_ENV === 'development') {
+            console.warn('Failed to set cookies in Server Component:', error);
+          }
         }
       },
     },

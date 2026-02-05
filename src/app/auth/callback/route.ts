@@ -19,15 +19,26 @@ export async function GET(request: NextRequest) {
       const supabase = await createServerClient();
       
       // Exchange the code for a session
-      const { error } = await supabase.auth.exchangeCodeForSession(code);
+      const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
       if (error) {
         console.error('Auth callback error:', error.message);
         return NextResponse.redirect(new URL('/login?error=auth_failed', requestUrl.origin));
       }
 
-      // Successful authentication - redirect to intended destination
-      return NextResponse.redirect(new URL(redirect, requestUrl.origin));
+      // Verify session was created
+      if (!data.session) {
+        console.error('No session created after code exchange');
+        return NextResponse.redirect(new URL('/login?error=no_session', requestUrl.origin));
+      }
+
+      // Create response with redirect
+      const response = NextResponse.redirect(new URL(redirect, requestUrl.origin));
+      
+      // Ensure cookies are set by refreshing the session
+      await supabase.auth.getSession();
+      
+      return response;
     } catch (err) {
       console.error('Unexpected error in auth callback:', err);
       return NextResponse.redirect(new URL('/login?error=unexpected', requestUrl.origin));

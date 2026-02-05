@@ -17,7 +17,7 @@
 
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createServerClient } from '@supabase/ssr';
 
 /**
  * Public routes that don't require authentication
@@ -69,7 +69,7 @@ function matchesRoute(pathname: string, routes: string[]): boolean {
  * 
  * Flow:
  * 1. Check if route is public → allow access
- * 2. Check authentication status
+ * 2. Check authentication status using Supabase SSR
  * 3. If authenticated and on auth route → redirect to dashboard
  * 4. If not authenticated and on protected route → redirect to login
  * 5. Otherwise → allow access
@@ -92,32 +92,38 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Extract auth token from cookies
-  const authToken = request.cookies.get('sb-access-token')?.value;
-
-  // Create Supabase client for auth check
-  const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-      detectSessionInUrl: false,
-    },
-    global: {
-      headers: authToken
-        ? {
-            Authorization: `Bearer ${authToken}`,
-          }
-        : {},
+  // Create response object to handle cookie updates
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
     },
   });
+
+  // Create Supabase client with proper SSR cookie handling
+  const supabase = createServerClient(
+    supabaseUrl,
+    supabaseAnonKey,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            request.cookies.set(name, value);
+            response.cookies.set(name, value, options);
+          });
+        },
+      },
+    }
+  );
 
   // Check authentication status
   const {
     data: { user },
-    error,
   } = await supabase.auth.getUser();
 
-  const isAuthenticated = !error && user !== null;
+  const isAuthenticated = user !== null;
 
   // If authenticated and trying to access auth routes (login/signup)
   // Redirect to dashboard
@@ -135,8 +141,8 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Allow request to proceed
-  return NextResponse.next();
+  // Return response with updated cookies
+  return response;
 }
 
 /**
