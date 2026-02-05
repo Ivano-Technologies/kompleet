@@ -3,16 +3,19 @@
  * 
  * This module provides a browser-safe Supabase client for client components.
  * Used for authentication flows (login, signup, logout) in the browser.
+ * 
+ * Uses @supabase/ssr for proper OAuth handling in Next.js App Router.
  */
 
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { createBrowserClient as createSSRBrowserClient } from '@supabase/ssr';
+import { SupabaseClient } from '@supabase/supabase-js';
 
 let clientInstance: SupabaseClient | null = null;
 
 /**
  * Creates or returns the singleton Supabase client for browser use
  * 
- * @returns SupabaseClient configured for browser authentication
+ * @returns SupabaseClient configured for browser authentication with SSR support
  * @throws Error if required environment variables are missing
  */
 export function createBrowserClient(): SupabaseClient {
@@ -31,15 +34,11 @@ export function createBrowserClient(): SupabaseClient {
     );
   }
 
-  // Create client with browser-specific configuration
-  clientInstance = createClient(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      persistSession: true, // Persist session in browser storage
-      autoRefreshToken: true, // Automatically refresh expired tokens
-      detectSessionInUrl: true, // Handle OAuth callbacks
-      storage: typeof window !== 'undefined' ? window.localStorage : undefined,
-    },
-  });
+  // Create client using @supabase/ssr for proper OAuth handling
+  clientInstance = createSSRBrowserClient(
+    supabaseUrl,
+    supabaseAnonKey
+  );
 
   return clientInstance;
 }
