@@ -84,22 +84,22 @@
 ## Phase 3: QR Code & Digital Signatures
 
 ### QR Code Integration
-- [ ] Install QR code library (qrcode.react or qrcode)
-- [ ] Define QR code payload structure (NRS-compliant)
-- [ ] Include invoice number, amount, VAT, date, signature in QR
-- [ ] Generate QR code image
-- [ ] Embed QR code in PDF invoice
-- [ ] Add QR code verification endpoint
+- [x] Install QR code library (qrcode.react or qrcode)
+- [x] Define QR code payload structure (NRS-compliant)
+- [x] Include invoice number, amount, VAT, date, signature in QR
+- [x] Generate QR code image
+- [x] Embed QR code in PDF invoice
+- [x] Add QR code verification endpoint
 
 ### Digital Signature
-- [ ] Implement digital signature using Web Crypto API
-- [ ] Generate RSA key pair for user/organization
-- [ ] Securely store private keys (encrypted)
-- [ ] Sign invoice data (hash of invoice fields)
-- [ ] Store signature hash in database
-- [ ] Implement signature verification endpoint
-- [ ] Ensure signatures are non-repudiable
-- [ ] Make invoices immutable after signing
+- [x] Implement digital signature using Web Crypto API
+- [x] Generate RSA key pair for user/organization
+- [x] Securely store private keys (encrypted)
+- [x] Sign invoice data (hash of invoice fields)
+- [x] Store signature hash in database
+- [x] Implement signature verification endpoint
+- [x] Ensure signatures are non-repudiable
+- [x] Make invoices immutable after signing
 
 ---
 
