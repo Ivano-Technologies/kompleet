@@ -1,3 +1,5 @@
+import { ClerkProvider } from '@clerk/nextjs';
+
 // Root layout component
 export const metadata = {
   title: 'Kompleet Platform',
@@ -10,8 +12,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body>{children}</body>
-    </html>
+    <ClerkProvider>
+      <html lang="en">
+        <body>{children}</body>
+      </html>
+    </ClerkProvider>
   );
 }

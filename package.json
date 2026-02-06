@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "@azure/identity": "^4.13.0",
+    "@clerk/nextjs": "^6.37.3",
     "@microsoft/microsoft-graph-client": "^3.0.7",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-tabs": "^1.1.13",
