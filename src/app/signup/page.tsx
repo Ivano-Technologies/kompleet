@@ -114,8 +114,13 @@ export default function SignupPage() {
       <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
         {/* Header */}
         <div className="text-center mb-8">
+          {/* Logo */}
+          <div className="mx-auto w-16 h-16 bg-[#0A6847] rounded-xl flex items-center justify-center mb-4">
+            <span className="text-white text-3xl font-bold">&lt;</span>
+          </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Create your account</h1>
-          <p className="text-gray-600">Start managing your Nigerian tax compliance today</p>
+          <p className="text-gray-600 mb-1">Start managing your Nigerian tax compliance today</p>
+          <p className="text-sm text-gray-500 italic">Kompleet records. Kompleet filings. Kompleet compliance.</p>
         </div>
 
         {/* Error Message */}
