@@ -43,7 +43,7 @@ export function IncomeExpensesChart({ data }: IncomeExpensesChartProps) {
               borderRadius: '8px',
               backdropFilter: 'blur(10px)',
             }}
-            formatter={(value: number) => [formatCurrency(value), '']}
+            formatter={((value: number) => [formatCurrency(value), '']) as any}
             labelStyle={{ color: '#fff', fontWeight: 'bold' }}
           />
           <Legend 
