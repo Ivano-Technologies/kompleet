@@ -220,9 +220,9 @@ export async function generateInvoicePDF(invoiceId: string): Promise<Buffer> {
   const pageHeight = doc.internal.pageSize.getHeight();
 
   // Colors (Nigerian green branding)
-  const primaryColor = [10, 104, 71]; // #0A6847
-  const textColor = [0, 0, 0];
-  const grayColor = [128, 128, 128];
+  const primaryColor: [number, number, number] = [10, 104, 71]; // #0A6847
+  const textColor: [number, number, number] = [0, 0, 0];
+  const grayColor: [number, number, number] = [128, 128, 128];
 
   // ============================================
   // Header Section
