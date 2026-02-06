@@ -12,7 +12,7 @@ import { sql } from 'drizzle-orm';
  */
 export const importSessions = pgTable('import_sessions', {
   id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id').notNull().references(() => sql`auth.users(id)`),
+  userId: uuid('user_id').notNull(), // References auth.users(id)
   fileName: text('file_name').notNull(),
   fileSize: integer('file_size').notNull(), // in bytes
   bankCode: text('bank_code').notNull(), // GTB, ZEN, ACC, FBN, UBA, ECO, SBT, FID, UNB, WEM
@@ -51,7 +51,7 @@ export const duplicateCandidates = pgTable('duplicate_candidates', {
   similarityScore: decimal('similarity_score', { precision: 5, scale: 2 }).notNull(), // 0.00 to 1.00
   matchFactors: text('match_factors').array().notNull(), // ['date', 'amount', 'merchant', 'reference']
   status: text('status').notNull().default('pending'), // pending, merged, kept_both, rejected
-  resolvedBy: uuid('resolved_by').references(() => sql`auth.users(id)`),
+  resolvedBy: uuid('resolved_by'), // References auth.users(id)
   resolvedAt: timestamp('resolved_at'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 });
