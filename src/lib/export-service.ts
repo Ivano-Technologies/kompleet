@@ -8,7 +8,7 @@ import { createServerClient as createClient } from '@/lib/supabase/server';
 // =====================================================
 
 export async function exportTransactionsCSV(userId: string, taxYear?: number) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // Build query
   let query = supabase
@@ -51,7 +51,7 @@ export async function exportTransactionsCSV(userId: string, taxYear?: number) {
 // =====================================================
 
 export async function exportTransactionsExcel(userId: string, taxYear?: number) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // Build query
   let query = supabase
@@ -127,7 +127,7 @@ export async function exportTransactionsExcel(userId: string, taxYear?: number) 
 // =====================================================
 
 export async function exportFinancialStatementWord(userId: string, taxYear: number, statementType: 'balance_sheet' | 'pnl' | 'tax_summary') {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // Fetch transactions for the year
   const { data: transactions, error } = await supabase

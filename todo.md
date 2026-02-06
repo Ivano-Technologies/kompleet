@@ -243,7 +243,14 @@
 
 ## Next.js 15 Async Params Fix (February 6, 2026)
 
-- [ ] Fix route handler params to await Promise (Next.js 15 breaking change)
-- [ ] Update all dynamic route handlers to use async params
-- [ ] Test build after fix
+- [x] Fix route handler params to await Promise (Next.js 15 breaking change)
+- [x] Update all dynamic route handlers to use async params - Fixed 6 route files
+- [x] Test build after fix - Pushed for Vercel to test
+- [x] Push to GitHub - Successfully pushed
+
+## Supabase Client Await Fix (February 6, 2026)
+
+- [ ] Fix createClient() calls that are not awaited
+- [ ] Update all route handlers to await createClient()
+- [ ] Test build
 - [ ] Push to GitHub

@@ -239,7 +239,7 @@ export async function storeUserKeys(
   publicKey: string,
   privateKey: string
 ): Promise<void> {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // Encrypt private key before storage (using a master key)
   const encryptedPrivateKey = await encryptPrivateKey(privateKey);
@@ -266,7 +266,7 @@ export async function getUserKeys(userId: string): Promise<{
   publicKey: string;
   privateKey: string;
 } | null> {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from('user_keys')
@@ -401,7 +401,7 @@ export async function signAndIssueInvoice(
   invoiceId: string,
   userId: string
 ): Promise<void> {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // 1. Get or create user keys
   let keys = await getUserKeys(userId);
@@ -464,7 +464,7 @@ export async function verifyInvoice(invoiceId: string): Promise<{
   isValid: boolean;
   invoice: any;
 }> {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // Fetch invoice
   const { data: invoice, error } = await supabase

@@ -93,7 +93,7 @@ export async function getNextInvoiceNumber(
   userId: string,
   taxYear: number
 ): Promise<string> {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // Call database function to get next number
   const { data, error } = await supabase.rpc('get_next_invoice_number', {
@@ -114,7 +114,7 @@ export async function getNextInvoiceNumber(
 // ============================================
 
 export async function createInvoice(invoiceData: InvoiceData): Promise<string> {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // Calculate totals
   const totals = calculateInvoiceTotals(invoiceData.line_items);
@@ -169,7 +169,7 @@ export async function createInvoice(invoiceData: InvoiceData): Promise<string> {
 // ============================================
 
 export async function issueInvoice(invoiceId: string, userId: string): Promise<void> {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // Update invoice status to issued and make immutable
   const { error } = await supabase
@@ -201,7 +201,7 @@ export async function issueInvoice(invoiceId: string, userId: string): Promise<v
 // ============================================
 
 export async function generateInvoicePDF(invoiceId: string): Promise<Buffer> {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // Fetch invoice data
   const { data: invoice, error } = await supabase
