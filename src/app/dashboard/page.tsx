@@ -3,7 +3,16 @@ import { requireServerUser } from '@/lib/supabase/session';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import LogoutButton from './LogoutButton';
-import { RecentCalculations } from '@/components/RecentCalculations';
+import { 
+  getMonthlyIncomeExpenses, 
+  getCategoryBreakdown, 
+  getTaxProjections, 
+  getComplianceMetrics 
+} from '@/lib/dashboard/data-aggregation';
+import { IncomeExpensesChart } from '@/components/charts/IncomeExpensesChart';
+import { CategoryBreakdownChart } from '@/components/charts/CategoryBreakdownChart';
+import { TaxProjectionChart } from '@/components/charts/TaxProjectionChart';
+import { ComplianceHealthMeter } from '@/components/charts/ComplianceHealthMeter';
 
 export default async function DashboardPage() {
   const supabase = await createServerClient();
@@ -11,109 +20,185 @@ export default async function DashboardPage() {
   try {
     const user = await requireServerUser(supabase);
 
+    // Fetch all dashboard data
+    const [incomeExpenses, categoryBreakdown, taxProjections, complianceMetrics] = await Promise.all([
+      getMonthlyIncomeExpenses(user.id),
+      getCategoryBreakdown(user.id),
+      getTaxProjections(user.id),
+      getComplianceMetrics(user.id),
+    ]);
+
     return (
-      <div style={{ maxWidth: '800px', margin: '50px auto', padding: '20px' }}>
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center',
-          marginBottom: '30px' 
-        }}>
-          <h1>Dashboard</h1>
-          <LogoutButton />
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-green-900 to-slate-900 p-4 md:p-6 lg:p-8">
+        {/* Header */}
+        <div className="max-w-7xl mx-auto mb-8">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
+                Dashboard
+              </h1>
+              <p className="text-gray-300">Welcome back, {user.email?.split('@')[0]}!</p>
+            </div>
+            <LogoutButton />
+          </div>
 
-        <div style={{
-          padding: '20px',
-          backgroundColor: '#f5f5f5',
-          borderRadius: '8px',
-          marginBottom: '20px',
-        }}>
-          <h2 style={{ marginBottom: '15px' }}>Welcome!</h2>
-          <p><strong>Email:</strong> {user.email}</p>
-          <p><strong>User ID:</strong> {user.id}</p>
-          <p><strong>Last Sign In:</strong> {user.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleString() : 'N/A'}</p>
-        </div>
+          {/* Quick Stats - Glassmorphism Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            {/* Total Transactions */}
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 shadow-xl">
+              <div className="text-gray-300 text-sm mb-2">Total Transactions</div>
+              <div className="text-3xl font-bold text-white">{complianceMetrics.totalTransactions}</div>
+            </div>
 
-        <div style={{
-          padding: '20px',
-          backgroundColor: '#e8f4f8',
-          borderRadius: '8px',
-          marginBottom: '20px',
-        }}>
-          <h3 style={{ marginBottom: '10px' }}>Protected Content</h3>
-          <p>This page is only accessible to authenticated users.</p>
-          <p>Your session is being managed by Supabase with server-side verification.</p>
-        </div>
+            {/* Categorized */}
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 shadow-xl">
+              <div className="text-gray-300 text-sm mb-2">Categorized</div>
+              <div className="text-3xl font-bold text-green-400">{complianceMetrics.categorizedTransactions}</div>
+            </div>
 
-        <div style={{ marginBottom: '20px' }}>
-          <RecentCalculations />
-        </div>
+            {/* Reconciliation Rate */}
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 shadow-xl">
+              <div className="text-gray-300 text-sm mb-2">Reconciliation</div>
+              <div className="text-3xl font-bold text-blue-400">{complianceMetrics.reconciliationRate}%</div>
+            </div>
 
-        <div style={{
-          marginTop: '20px',
-          padding: '20px',
-          backgroundColor: '#fff',
-          border: '1px solid #ddd',
-          borderRadius: '8px',
-        }}>
-          <h3 style={{ marginBottom: '15px' }}>Navigation</h3>
-          <ul style={{ listStyle: 'none', padding: 0 }}>
-            <li style={{ marginBottom: '10px' }}>
-              <Link href="/history" style={{ color: '#22c55e', textDecoration: 'none', fontWeight: 'bold' }}>
-                📊 Calculation History
-              </Link>
-            </li>
-            <li style={{ marginBottom: '10px' }}>
-              <Link href="/profile" style={{ color: '#0070f3', textDecoration: 'none' }}>
-                → View Profile (Database + RLS)
-              </Link>
-            </li>
-            <li style={{ marginBottom: '10px' }}>
-              <Link href="/reports" style={{ color: '#0070f3', textDecoration: 'none' }}>
-                → View Reports (Protected)
-              </Link>
-            </li>
-            <li>
-              <Link href="/" style={{ color: '#0070f3', textDecoration: 'none' }}>
-                → Home (Public)
-              </Link>
-            </li>
-          </ul>
+            {/* Tax Readiness */}
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 shadow-xl">
+              <div className="text-gray-300 text-sm mb-2">Tax Readiness</div>
+              <div className="text-3xl font-bold text-yellow-400">{complianceMetrics.taxReadinessScore}%</div>
+            </div>
+          </div>
 
-          <h4 style={{ marginTop: '20px', marginBottom: '10px' }}>Tax Calculators</h4>
-          <ul style={{ listStyle: 'none', padding: 0, display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
-            <li>
-              <Link href="/calculators/business-tax" style={{ color: '#0070f3', textDecoration: 'none', fontSize: '14px' }}>
-                → Business Tax
+          {/* Charts Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            {/* Income vs Expenses Chart */}
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 shadow-xl">
+              <h2 className="text-xl font-semibold text-white mb-4">Income vs Expenses</h2>
+              <div className="h-80">
+                <IncomeExpensesChart data={incomeExpenses} />
+              </div>
+            </div>
+
+            {/* Category Breakdown Chart */}
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 shadow-xl">
+              <h2 className="text-xl font-semibold text-white mb-4">Expense Categories</h2>
+              <div className="h-80">
+                {categoryBreakdown.length > 0 ? (
+                  <CategoryBreakdownChart data={categoryBreakdown} />
+                ) : (
+                  <div className="flex items-center justify-center h-full text-gray-400">
+                    No expense data available
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Tax Projection Chart */}
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 shadow-xl">
+              <h2 className="text-xl font-semibold text-white mb-4">Tax Projections</h2>
+              <div className="h-80">
+                <TaxProjectionChart data={taxProjections} />
+              </div>
+            </div>
+
+            {/* Compliance Health Meter */}
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 shadow-xl">
+              <h2 className="text-xl font-semibold text-white mb-4">Compliance Health</h2>
+              <div className="h-80">
+                <ComplianceHealthMeter data={complianceMetrics} />
+              </div>
+            </div>
+          </div>
+
+          {/* Navigation Links - Glassmorphism */}
+          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 shadow-xl">
+            <h3 className="text-xl font-semibold text-white mb-4">Quick Actions</h3>
+            
+            {/* Main Actions */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+              <Link 
+                href="/transactions" 
+                className="bg-green-600/20 hover:bg-green-600/30 border border-green-500/30 rounded-xl p-4 transition-all duration-200 hover:scale-105"
+              >
+                <div className="text-2xl mb-2">💰</div>
+                <div className="text-white font-semibold">Transactions</div>
+                <div className="text-gray-300 text-sm">View & manage</div>
               </Link>
-            </li>
-            <li>
-              <Link href="/calculators/individual-tax" style={{ color: '#0070f3', textDecoration: 'none', fontSize: '14px' }}>
-                → Individual Tax
+
+              <Link 
+                href="/history" 
+                className="bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 rounded-xl p-4 transition-all duration-200 hover:scale-105"
+              >
+                <div className="text-2xl mb-2">📊</div>
+                <div className="text-white font-semibold">History</div>
+                <div className="text-gray-300 text-sm">Calculation history</div>
               </Link>
-            </li>
-            <li>
-              <Link href="/calculators/vat" style={{ color: '#0070f3', textDecoration: 'none', fontSize: '14px' }}>
-                → VAT
+
+              <Link 
+                href="/reports" 
+                className="bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 rounded-xl p-4 transition-all duration-200 hover:scale-105"
+              >
+                <div className="text-2xl mb-2">📈</div>
+                <div className="text-white font-semibold">Reports</div>
+                <div className="text-gray-300 text-sm">Financial reports</div>
               </Link>
-            </li>
-            <li>
-              <Link href="/calculators/capital-allowances" style={{ color: '#0070f3', textDecoration: 'none', fontSize: '14px' }}>
-                → Capital Allowances
+
+              <Link 
+                href="/profile" 
+                className="bg-yellow-600/20 hover:bg-yellow-600/30 border border-yellow-500/30 rounded-xl p-4 transition-all duration-200 hover:scale-105"
+              >
+                <div className="text-2xl mb-2">👤</div>
+                <div className="text-white font-semibold">Profile</div>
+                <div className="text-gray-300 text-sm">Account settings</div>
               </Link>
-            </li>
-            <li>
-              <Link href="/calculators/stamp-duty" style={{ color: '#0070f3', textDecoration: 'none', fontSize: '14px' }}>
-                → Stamp Duty
+            </div>
+
+            {/* Tax Calculators */}
+            <h4 className="text-lg font-semibold text-white mb-3">Tax Calculators</h4>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+              <Link 
+                href="/calculators/business-tax" 
+                className="bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg p-3 text-center transition-all duration-200 hover:scale-105"
+              >
+                <div className="text-white text-sm font-medium">Business Tax</div>
               </Link>
-            </li>
-            <li>
-              <Link href="/calculators/property-tax" style={{ color: '#0070f3', textDecoration: 'none', fontSize: '14px' }}>
-                → Property Tax
+
+              <Link 
+                href="/calculators/individual-tax" 
+                className="bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg p-3 text-center transition-all duration-200 hover:scale-105"
+              >
+                <div className="text-white text-sm font-medium">Individual Tax</div>
               </Link>
-            </li>
-          </ul>
+
+              <Link 
+                href="/calculators/vat" 
+                className="bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg p-3 text-center transition-all duration-200 hover:scale-105"
+              >
+                <div className="text-white text-sm font-medium">VAT</div>
+              </Link>
+
+              <Link 
+                href="/calculators/capital-allowances" 
+                className="bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg p-3 text-center transition-all duration-200 hover:scale-105"
+              >
+                <div className="text-white text-sm font-medium">Capital Allowances</div>
+              </Link>
+
+              <Link 
+                href="/calculators/stamp-duty" 
+                className="bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg p-3 text-center transition-all duration-200 hover:scale-105"
+              >
+                <div className="text-white text-sm font-medium">Stamp Duty</div>
+              </Link>
+
+              <Link 
+                href="/calculators/property-tax" 
+                className="bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg p-3 text-center transition-all duration-200 hover:scale-105"
+              >
+                <div className="text-white text-sm font-medium">Property Tax</div>
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     );
