@@ -22,6 +22,7 @@ export interface Reminder {
   reminder_date: string;
   sent: boolean;
   days_before: number;
+  user_id?: string; // From joined filing_deadlines table
 }
 
 /**
@@ -208,6 +209,7 @@ export async function getPendingReminders(): Promise<Reminder[]> {
       .select(`
         *,
         filing_deadlines (
+          user_id,
           form_type,
           tax_year,
           deadline_date,
@@ -230,6 +232,7 @@ export async function getPendingReminders(): Promise<Reminder[]> {
 
       return {
         ...r,
+        user_id: deadline.user_id,
         days_before: daysBefore
       };
     });
