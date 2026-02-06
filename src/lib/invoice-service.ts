@@ -113,7 +113,7 @@ export async function getNextInvoiceNumber(
 // Invoice Creation Service
 // ============================================
 
-export async function createInvoice(invoiceData: InvoiceData): Promise<string> {
+export async function createInvoice(invoiceData: InvoiceData): Promise<{ id: string; invoice_number: string }> {
   const supabase = await createClient();
 
   // Calculate totals
@@ -145,7 +145,7 @@ export async function createInvoice(invoiceData: InvoiceData): Promise<string> {
       template_id: invoiceData.template_id,
       status: 'draft'
     })
-    .select('id')
+    .select('id, invoice_number')
     .single();
 
   if (error) {
@@ -161,7 +161,7 @@ export async function createInvoice(invoiceData: InvoiceData): Promise<string> {
     metadata: { invoice_number: invoiceNumber }
   });
 
-  return data.id;
+  return { id: data.id, invoice_number: data.invoice_number };
 }
 
 // ============================================
