@@ -7,7 +7,7 @@
  * @module server/ml-governance/rollback
  */
 
-import { db } from '@/db';
+// import { db } from '@/db'; // TODO: Setup Drizzle ORM db instance
 import {
   mlRollbackHistory,
   mlAuditLogs,

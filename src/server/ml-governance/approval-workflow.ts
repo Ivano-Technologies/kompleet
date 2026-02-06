@@ -7,7 +7,7 @@
  * @module server/ml-governance/approval-workflow
  */
 
-import { db } from '@/db';
+// import { db } from '@/db'; // TODO: Setup Drizzle ORM db instance
 import {
   mlApprovalWorkflows,
   mlApprovalStages,

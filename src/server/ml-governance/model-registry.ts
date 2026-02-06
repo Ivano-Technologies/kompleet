@@ -7,7 +7,7 @@
  * @module server/ml-governance/model-registry
  */
 
-import { db } from '@/db';
+// import { db } from '@/db'; // TODO: Setup Drizzle ORM db instance
 import {
   mlModels,
   mlTrainingDatasets,
