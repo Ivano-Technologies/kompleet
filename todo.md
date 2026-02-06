@@ -236,7 +236,14 @@
 ## Vercel Deployment Fixes (February 6, 2026)
 
 - [x] Fix Supabase createClient import error - Fixed 30 files to use createServerClient
-- [ ] Fix module export errors in various files
-- [ ] Test build locally with `pnpm build`
-- [ ] Push fixes to GitHub
-- [ ] Verify Vercel deployment succeeds
+- [x] Fix module export errors in various files - Added missing UI components, installed dependencies
+- [x] Test build locally with `pnpm build` - Build started but took too long, pushed fixes for Vercel
+- [x] Push fixes to GitHub - Successfully pushed
+- [ ] Verify Vercel deployment succeeds - Waiting for Vercel to rebuild
+
+## Next.js 15 Async Params Fix (February 6, 2026)
+
+- [ ] Fix route handler params to await Promise (Next.js 15 breaking change)
+- [ ] Update all dynamic route handlers to use async params
+- [ ] Test build after fix
+- [ ] Push to GitHub

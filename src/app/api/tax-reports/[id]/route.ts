@@ -20,7 +20,7 @@ export async function GET(
     const { data: report, error } = await supabase
       .from('tax_reports')
       .select('*')
-      .eq('id', params.id)
+      .eq('id', (await params).id)
       .eq('user_id', user.id)
       .single();
 
@@ -65,7 +65,7 @@ export async function PATCH(
     const { data: report, error } = await supabase
       .from('tax_reports')
       .update(updateData)
-      .eq('id', params.id)
+      .eq('id', (await params).id)
       .eq('user_id', user.id)
       .select()
       .single();
@@ -102,7 +102,7 @@ export async function DELETE(
     const { error } = await supabase
       .from('tax_reports')
       .delete()
-      .eq('id', params.id)
+      .eq('id', (await params).id)
       .eq('user_id', user.id);
 
     if (error) {
