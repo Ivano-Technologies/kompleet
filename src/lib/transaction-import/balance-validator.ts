@@ -29,7 +29,7 @@ export interface BalanceWarning {
   transactionIndex: number;
   date: string;
   merchant: string;
-  warningType: 'LARGE_DISCREPANCY' | 'UNUSUAL_BALANCE';
+  warningType: 'LARGE_DISCREPANCY' | 'UNUSUAL_BALANCE' | 'NEGATIVE_BALANCE';
   message: string;
 }
 
