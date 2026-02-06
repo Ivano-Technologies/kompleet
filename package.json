@@ -15,6 +15,7 @@
   "author": "Kezie Okpala",
   "license": "ISC",
   "devDependencies": {
+    "@aws-sdk/client-s3": "^3.984.0",
     "@types/formidable": "^3.4.6",
     "@types/node": "^25.1.0",
     "@types/papaparse": "^5.5.2",

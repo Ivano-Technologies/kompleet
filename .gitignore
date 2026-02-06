@@ -16,3 +16,4 @@ ml-training/models/*.joblib
 ml-training/models/*.pkl
 ml-training/*.csv
 public/ml-models/*.joblib
+.ml-models-cache/
