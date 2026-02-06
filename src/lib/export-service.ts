@@ -133,7 +133,7 @@ export async function exportFinancialStatementWord(userId: string, taxYear: numb
   const { data: transactions, error } = await supabase
     .from('transactions')
     .select('*')
-    .eq('user_id', user_id)
+    .eq('user_id', userId)
     .eq('tax_year', taxYear);
 
   if (error) {
