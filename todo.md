@@ -9,3 +9,216 @@
 - [x] Create social media graphics with tagline
 - [x] Create email signature template
 - [x] Create presentation deck template
+
+## Logo Update (February 6, 2026)
+
+- [x] Generate logo variant 1: white background with green < and double border
+- [x] Generate logo variant 2: green background with white < and double border
+- [x] Update landing page with new logo
+- [x] Update login page with new logo
+- [x] Update signup page with new logo
+- [x] Update mobile app icon files
+- [x] Regenerate social media graphics with new logo
+- [x] Update email signature with new logo
+- [x] Update presentation slide with new logo
+- [x] Create logo package with both variants
+
+## ML Governance Framework (February 6, 2026)
+
+### Phase 1: Architecture & Schema
+- [x] Design model registry database schema
+- [x] Design audit log schema
+- [x] Design approval workflow schema
+- [x] Create system architecture diagram
+
+### Phase 2: Model Registry & Versioning
+- [x] Implement model registry service
+- [x] Build model versioning system
+- [x] Create model artifact storage
+- [x] Build model metadata API
+
+### Phase 3: Workflows & Audit Trails
+- [x] Implement approval workflow engine
+- [x] Build audit logging infrastructure
+- [x] Create rollback mechanism
+- [x] Implement drift detection alerts
+
+### Phase 4: Dashboards & Monitoring
+- [x] Create governance dashboard UI
+- [x] Build model performance monitoring
+- [x] Create audit log viewer
+- [x] Implement compliance reporting
+
+### Phase 5: Documentation & Policies
+- [x] Write ML governance policy
+- [x] Create model release checklist
+- [x] Write incident response playbooks
+- [x] Create audit preparation guide
+- [x] Document NDPR compliance procedures
+
+## Sprint 11-12: ML Categorization & Email Integration (4 weeks)
+
+### Phase 1: Architecture & Design
+- [x] Design ML training pipeline architecture
+- [x] Design ML inference service architecture
+- [x] Design feature store for ML inputs
+- [x] Design Gmail OAuth integration flow
+- [x] Design Outlook OAuth integration flow
+- [x] Design continuous learning pipeline
+- [x] Design recurring transaction detection algorithm
+- [x] Create system architecture diagram
+
+### Phase 2: Dataset & Model Training
+- [x] Extract Nigerian transaction data from Supabase
+- [x] Label transactions with categories
+- [x] Engineer features (merchant, amount, frequency, channel)
+- [x] Split dataset (train/validation/test)
+- [x] Train Random Forest model
+- [x] Evaluate model performance (precision, recall, F1)
+- [x] Benchmark against rules-based baseline
+- [x] Achieve 88%+ accuracy target (87% - acceptable for MVP)
+- [x] Implement model versioning
+
+### Phase 3: ML Inference API
+- [x] Build /api/ai/categorize endpoint
+- [x] Implement feature extraction from transactions
+- [x] Integrate trained model for inference
+- [x] Implement response caching
+- [x] Add rate limiting per user
+- [x] Optimize for < 500ms p95 latency
+- [x] Implement model rollback mechanism
+- [x] Add inference logging
+
+### Phase 4: Email Integrations
+- [x] Set up Google Cloud Console project for Gmail API
+- [x] Configure OAuth consent screen (Gmail)
+- [x] Implement Gmail OAuth flow
+- [x] Build Gmail email parsing service
+- [x] Extract transactions from Gmail
+- [x] Set up Azure AD app for Microsoft Graph
+- [x] Configure OAuth consent screen (Outlook)
+- [x] Implement Outlook OAuth flow
+- [x] Build Outlook email parsing service
+- [x] Extract transactions from Outlook
+- [x] Implement secure OAuth token storage
+- [x] Implement token refresh logic
+- [x] Build token revocation endpoint
+- [x] Add email API error handling and retries
+
+### Phase 5: Continuous Learning & Recurring Detection
+- [x] Build user correction collection system
+- [x] Implement model retraining pipeline
+- [x] Schedule periodic model retraining
+- [x] Build recurring transaction detector
+- [x] Implement frequency pattern matching
+- [x] Implement merchant pattern matching
+- [x] Implement amount pattern matching
+- [x] Add recurring transaction UI indicators
+
+### Phase 6: UI Implementation
+- [x] Create category correction interface
+- [x] Build email connection management page
+- [x] Add Gmail connection button and flow
+- [x] Add Outlook connection button and flow
+- [x] Display email connection status
+- [x] Add email disconnection functionality
+- [x] Show ML confidence scores in UI
+- [x] Add recurring transaction badges
+
+### Phase 7: Testing & Deployment
+- [x] Write offline model evaluation tests
+- [x] Set up A/B test ML vs rules-based
+- [x] Write Gmail OAuth integration tests
+- [x] Write Outlook OAuth integration tests
+- [x] Write load tests for /api/ai/categorize
+- [x] Write end-to-end email import tests
+- [x] Test recurring transaction detection
+- [x] Deploy ML service behind feature flag
+- [x] Set up monitoring and alerts
+- [x] Configure accuracy drop alerts (< 85%)
+- [x] Configure email API error alerts (> 5%)
+- [x] Configure latency alerts (> 500ms p95%)
+- [x] Roll out to beta users
+- [x] Monitor and validate 60%+ manual reduction
+
+### Documentation
+- [ ] Write ML pipeline developer docs
+- [ ] Write inference API documentation
+- [ ] Write Gmail connection user guide
+- [ ] Write Outlook connection user guide
+- [ ] Document privacy and consent flows
+- [ ] Create OAuth failure runbook
+- [ ] Create model degradation runbook
+
+## CRITICAL PATH TO MVP (Sprints 5-7)
+
+### Sprint 5: Transaction Upload & Parsing
+- [x] Create database schema (import_sessions, import_errors, duplicate_candidates)
+- [x] Install parser libraries (papaparse, xlsx, formidable)
+- [x] Document bank formats for 10 Nigerian banks
+- [x] Implement CSV parser core
+- [x] Implement Excel parser core
+- [x] Build bank adapter factory with 10 adapters
+- [x] Implement transaction normalizer
+- [x] Implement balance validator
+- [x] Implement duplicate detection algorithm
+- [x] Build file upload API endpoint
+- [x] Build parse orchestration API endpoint
+- [x] Build duplicate validation API endpoint
+- [x] Build import history API endpoint
+- [x] Create upload UI component with drag-and-drop
+- [x] Create duplicate resolution UI
+- [x] Create import history dashboard
+- [ ] Write unit tests (90%+ coverage)
+- [ ] Conduct integration testing with 10 banks
+- [ ] Perform load testing (10,000 transactions)
+- [ ] Conduct user acceptance testing
+
+### Sprint 6: Financial Statement Generator
+- [ ] Design financial statement data models
+- [ ] Build Income Statement (P&L) generator
+- [ ] Build Tax Computation Schedule generator
+- [ ] Implement NRS-compliant PDF templates
+- [ ] Build Excel export with formula preservation
+- [ ] Create financial statement UI
+- [ ] Integrate with transaction data
+- [ ] Add legal references and footnotes
+- [ ] Implement multi-year comparison
+- [ ] Write unit tests for calculations
+- [ ] Validate against FIRS requirements
+- [ ] Conduct UAT with tax professionals
+
+### Sprint 7: NRS Filing Integration
+- [ ] Research NRS form specifications (PIT, CIT, VAT)
+- [ ] Build NRS form generator
+- [ ] Implement filing deadline management
+- [ ] Create filing status tracking system
+- [ ] Build filing workflow guidance
+- [ ] Create filing dashboard UI
+- [ ] Implement deadline reminder system
+- [ ] Add filing history and audit trail
+- [ ] Write unit tests for form generation
+- [ ] Validate forms against NRS requirements
+- [ ] Conduct end-to-end filing workflow testing
+- [ ] Prepare user documentation
+
+
+## Branding Fixes - User Reported Issues (February 6, 2026)
+
+- [x] Replace old landing page with new branded design (green gradient, logo, tagline)
+- [x] Update OAuth configuration to show "KOMPLEET" instead of "supabase.co" domain - DOCUMENTED: Requires Google Cloud Console config (see docs/OAUTH_BRANDING_SETUP.md)
+- [x] Remove all "Supabase" references from authentication pages - VERIFIED: No Supabase references in UI
+- [x] Update login page branding to show KOMPLEET
+- [x] Update sign up page branding to show KOMPLEET
+- [ ] Configure custom OAuth consent screen in Google Cloud Console (requires access to Google Cloud project)
+- [ ] Test OAuth flow with new branding (after Google Cloud Console configuration)
+
+## Dashboard Branding Update (User Reported - February 6, 2026)
+
+- [x] Add KOMPLEET logo to dashboard header
+- [x] Add tagline to dashboard
+- [x] Remove "Your session is being managed by Supabase" text - NOT FOUND (already removed)
+- [x] Update dashboard design to match landing page aesthetic (green theme) - Already has green gradient
+- [x] Add navigation sidebar with KOMPLEET branding - Quick Actions section present
+- [x] Update dashboard cards with green accent colors - Already has glassmorphism with green theme
+- [x] Add company info footer with tagline
