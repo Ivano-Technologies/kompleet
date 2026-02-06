@@ -79,7 +79,7 @@ export async function parseCSV(
           successfulRows: transactions.length,
         });
       },
-      error: (error) => {
+      error: (error: Error) => {
         errors.push({
           rowNumber: 0,
           errorType: 'FILE_PARSING_ERROR',
