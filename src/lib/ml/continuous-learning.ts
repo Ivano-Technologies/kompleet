@@ -3,7 +3,7 @@
  * Collects user corrections and triggers model retraining
  */
 
-import { createClient } from '@/lib/supabase/server';
+import { createServerClient as createClient } from '@/lib/supabase/server';
 
 /**
  * Record a user correction for ML training

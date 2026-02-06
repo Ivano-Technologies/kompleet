@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createServerClient as createClient } from '@/lib/supabase/server';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import QRCode from 'qrcode';

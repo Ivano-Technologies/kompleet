@@ -3,7 +3,7 @@
  * Tracks model performance, drift, and system health
  */
 
-import { createClient } from '@/lib/supabase/server';
+import { createServerClient as createClient } from '@/lib/supabase/server';
 
 interface ModelMetrics {
   accuracy: number;

@@ -232,3 +232,11 @@
 - [x] Update application to download models on startup (ml-service/inference.py)
 - [x] Test model download and caching - Successfully tested, 181.90 MB downloaded from S3
 - [x] Document model management process - docs/ML_MODELS_STORAGE.md created
+
+## Vercel Deployment Fixes (February 6, 2026)
+
+- [x] Fix Supabase createClient import error - Fixed 30 files to use createServerClient
+- [ ] Fix module export errors in various files
+- [ ] Test build locally with `pnpm build`
+- [ ] Push fixes to GitHub
+- [ ] Verify Vercel deployment succeeds

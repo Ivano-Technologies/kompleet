@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { createBrowserClient as createClient } from '@/lib/supabase/client';
 import Image from 'next/image';
 
 interface Invoice {

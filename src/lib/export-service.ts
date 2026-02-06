@@ -1,7 +1,7 @@
 import ExcelJS from 'exceljs';
 import { Document, Packer, Paragraph, Table, TableCell, TableRow, TextRun, AlignmentType, WidthType } from 'docx';
 import archiver from 'archiver';
-import { createClient } from '@/lib/supabase/server';
+import { createServerClient as createClient } from '@/lib/supabase/server';
 
 // =====================================================
 // CSV Export

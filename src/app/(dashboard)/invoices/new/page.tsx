@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
+import { createBrowserClient as createClient } from '@/lib/supabase/client';
 import { InvoiceLineItem, CustomerInfo } from '@/lib/invoice-service';
 
 export default function NewInvoicePage() {

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { exchangeCodeForTokens, getUserEmail } from '@/lib/email/gmail';
-import { createClient } from '@/lib/supabase/server';
+import { createServerClient as createClient } from '@/lib/supabase/server';
 import { encrypt } from '@/lib/crypto';
 
 export async function GET(request: NextRequest) {

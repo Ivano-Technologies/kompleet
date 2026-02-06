@@ -3,7 +3,7 @@
  * Identifies payment patterns and recurring transactions
  */
 
-import { createClient } from '@/lib/supabase/server';
+import { createServerClient as createClient } from '@/lib/supabase/server';
 
 interface Transaction {
   id: string;

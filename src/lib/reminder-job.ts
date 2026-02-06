@@ -4,7 +4,7 @@
  * Runs daily to send pending email reminders
  */
 
-import { createClient } from '@/lib/supabase/server';
+import { createServerClient as createClient } from '@/lib/supabase/server';
 import { getPendingReminders, markReminderSent } from './deadline-service';
 import {
   generate7DayReminderEmail,
