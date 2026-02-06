@@ -62,10 +62,9 @@ export function CategoryBreakdownChart({ data }: CategoryBreakdownChartProps) {
               borderRadius: '8px',
               backdropFilter: 'blur(10px)',
             }}
-            formatter={(value: number, name: string) => [
-              formatCurrency(value),
-              name,
-            ]}
+            formatter={(value: number, name: string) => {
+              return [formatCurrency(value), name] as [string, string];
+            }}
             labelStyle={{ color: '#fff', fontWeight: 'bold' }}
           />
           <Legend 
