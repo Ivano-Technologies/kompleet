@@ -25,7 +25,7 @@ export async function archiveInvoice(options: ArchiveOptions): Promise<ArchiveRe
   const { invoice_id, user_id, reason = 'Automatic archiving after 30 days' } = options;
 
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     // Get invoice
     const { data: invoice, error: fetchError } = await supabase
@@ -113,7 +113,7 @@ export async function retrieveArchivedInvoice(
   user_id: string
 ): Promise<any> {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     // Get archive record
     const { data: archive, error } = await supabase
@@ -158,7 +158,7 @@ export async function archiveOldInvoices(): Promise<{
   errors: string[];
 }> {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     // Find invoices older than 30 days that are issued/paid
     const thirtyDaysAgo = new Date();
@@ -209,7 +209,7 @@ export async function checkRetentionCompliance(user_id: string): Promise<{
   total_archives: number;
 }> {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     // Get all archives for user
     const { data: archives, error } = await supabase
@@ -268,7 +268,7 @@ export async function generateComplianceReport(user_id: string): Promise<{
   audit_log_count: number;
 }> {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     // Count total invoices
     const { count: total_invoices } = await supabase

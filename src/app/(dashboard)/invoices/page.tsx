@@ -39,7 +39,7 @@ export default function InvoicesPage() {
     setError('');
 
     try {
-      const supabase = createClient();
+      const supabase = await createClient();
       const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) {

@@ -143,7 +143,7 @@ export default function NewInvoicePage() {
     setError('');
 
     try {
-      const supabase = createClient();
+      const supabase = await createClient();
       const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) {
@@ -190,7 +190,7 @@ export default function NewInvoicePage() {
     setError('');
 
     try {
-      const supabase = createClient();
+      const supabase = await createClient();
       const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) {

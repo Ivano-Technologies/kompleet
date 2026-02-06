@@ -22,7 +22,7 @@ export async function migrateYearData(
   userId: string,
   options: MigrationOptions
 ): Promise<MigrationResult> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const result: MigrationResult = {
     success: true,
     transactionsCopied: 0,
@@ -161,7 +161,7 @@ export async function migrateYearData(
 }
 
 async function logMigrationStart(userId: string, options: MigrationOptions): Promise<string> {
-  const supabase = createClient();
+  const supabase = await createClient();
   
   const { data, error } = await supabase
     .from('data_migration_logs')
@@ -185,7 +185,7 @@ async function logMigrationStart(userId: string, options: MigrationOptions): Pro
 }
 
 async function logMigrationComplete(migrationLogId: string, result: MigrationResult) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   await supabase
     .from('data_migration_logs')
@@ -199,7 +199,7 @@ async function logMigrationComplete(migrationLogId: string, result: MigrationRes
 }
 
 export async function rollbackMigration(userId: string, targetYear: number): Promise<boolean> {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   try {
     // Delete all data for target year (rollback)
