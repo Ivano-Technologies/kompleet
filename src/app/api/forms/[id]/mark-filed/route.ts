@@ -3,7 +3,7 @@ import { createServerClient as createClient } from '@/lib/supabase/server';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient();
@@ -14,7 +14,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const formId = params.id;
+    const { id: formId } = await params;
     const body = await request.json();
     const { confirmationNumber, filedDate, notes } = body;
 
@@ -137,7 +137,7 @@ export async function POST(
 // GET endpoint to retrieve filing status
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient();
@@ -148,7 +148,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const formId = params.id;
+    const { id: formId } = await params;
 
     // Fetch filing status
     const { data: filingStatus, error: dbError } = await supabase
