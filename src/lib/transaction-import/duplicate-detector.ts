@@ -6,7 +6,7 @@
 import { NormalizedTransaction } from './normalizer';
 
 export interface DuplicateMatch {
-  existingTransaction: NormalizedTransaction;
+  existingTransaction: NormalizedTransaction & { id?: string };
   newTransaction: NormalizedTransaction;
   similarityScore: number; // 0.0 to 1.0
   matchFactors: MatchFactor[];
@@ -21,7 +21,7 @@ const FUZZY_MERCHANT_THRESHOLD = 0.80; // 80% merchant name similarity
  * Find duplicate transactions
  */
 export function findDuplicates(
-  existingTransactions: NormalizedTransaction[],
+  existingTransactions: (NormalizedTransaction & { id?: string })[],
   newTransactions: NormalizedTransaction[]
 ): DuplicateMatch[] {
   const duplicates: DuplicateMatch[] = [];

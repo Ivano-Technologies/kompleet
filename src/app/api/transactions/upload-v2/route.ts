@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
         await supabase.from('duplicate_candidates').insert(
           duplicates.map(dup => ({
             session_id: session.id,
-            existing_transaction_id: dup.existingTransaction.id,
+            existing_transaction_id: dup.existingTransaction.id!,
             new_transaction_data: dup.newTransaction,
             similarity_score: dup.similarityScore,
             match_factors: dup.matchFactors,
