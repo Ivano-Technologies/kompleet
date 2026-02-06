@@ -4,7 +4,7 @@
  * Auto-populates NRS forms with user data from Supabase
  */
 
-import { createClient } from '@/lib/supabase/server';
+import { createServerClient as createClient } from '@/lib/supabase/server';
 import { PITFormData, CITFormData, VATFormData } from './nrs-forms';
 
 /**
