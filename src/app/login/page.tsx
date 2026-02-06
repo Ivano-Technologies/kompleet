@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, FormEvent, Suspense } from 'react';
+import { useState, FormEvent, Suspense, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createBrowserClient } from '@/lib/supabase/client';
 import Link from 'next/link';
@@ -16,6 +16,19 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirect') || '/dashboard';
+  const authError = searchParams.get('error');
+
+  // Display auth callback errors
+  useEffect(() => {
+    if (authError) {
+      const errorMessages: Record<string, string> = {
+        'auth_failed': 'Authentication failed. Please try again.',
+        'no_session': 'Failed to create session. Please try again.',
+        'unexpected': 'An unexpected error occurred. Please try again.',
+      };
+      setError(errorMessages[authError] || 'Authentication error. Please try again.');
+    }
+  }, [authError]);
 
   const handlePasswordLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -31,14 +44,33 @@ function LoginForm() {
       });
 
       if (authError) {
-        setError(authError.message);
+        // Provide more specific error messages
+        if (authError.message.includes('Invalid login credentials')) {
+          setError('Invalid email or password. Please check your credentials and try again.');
+        } else if (authError.message.includes('Email not confirmed')) {
+          setError('Please verify your email address before signing in. Check your inbox for the confirmation link.');
+        } else {
+          setError(authError.message);
+        }
         setLoading(false);
         return;
       }
 
-      if (data.session) {
+      // Verify session was created
+      if (!data.session) {
+        setError('Failed to create session. Please try again.');
+        setLoading(false);
+        return;
+      }
+
+      // Double-check session is valid before redirecting
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
         router.push(redirectTo);
         router.refresh();
+      } else {
+        setError('Session verification failed. Please try again.');
+        setLoading(false);
       }
     } catch (err) {
       setError('An unexpected error occurred. Please try again.');
@@ -99,6 +131,7 @@ function LoginForm() {
         setLoading(false);
         return;
       }
+      // Keep loading state - user is being redirected to Google
     } catch (err) {
       setError('Failed to sign in with Google. Please try again.');
       setLoading(false);
@@ -136,6 +169,15 @@ function LoginForm() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      {/* Loading overlay during OAuth redirect */}
+      {loading && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-8 text-center">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mb-4"></div>
+            <p className="text-gray-700 font-medium">Signing you in...</p>
+          </div>
+        </div>
+      )}
       <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
         {/* Header */}
         <div className="text-center mb-8">
