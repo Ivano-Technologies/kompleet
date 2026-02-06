@@ -33,11 +33,20 @@ export default async function DashboardPage() {
         {/* Header */}
         <div className="max-w-7xl mx-auto mb-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-            <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
-                Dashboard
-              </h1>
-              <p className="text-gray-300">Welcome back, {user.email?.split('@')[0]}!</p>
+            <div className="flex items-center gap-4">
+              {/* KOMPLEET Logo */}
+              <img 
+                src="/assets/logo-inverted.png" 
+                alt="KOMPLEET Logo" 
+                className="w-16 h-16"
+              />
+              <div>
+                <h1 className="text-3xl md:text-4xl font-bold text-white mb-1">
+                  KOMPLEET Dashboard
+                </h1>
+                <p className="text-gray-300 mb-1">Welcome back, {user.email?.split('@')[0]}!</p>
+                <p className="text-sm text-gray-400 italic">Kompleet records. Kompleet filings. Kompleet compliance.</p>
+              </div>
             </div>
             <LogoutButton />
           </div>
@@ -198,6 +207,16 @@ export default async function DashboardPage() {
                 <div className="text-white text-sm font-medium">Property Tax</div>
               </Link>
             </div>
+          </div>
+
+          {/* Footer with Branding */}
+          <div className="mt-8 pt-6 border-t border-white/10 text-center">
+            <p className="text-gray-400 text-sm mb-2">
+              © 2026 Ivano Technologies Ltd. All rights reserved.
+            </p>
+            <p className="text-gray-500 text-xs italic">
+              Kompleet records. Kompleet filings. Kompleet compliance.
+            </p>
           </div>
         </div>
       </div>

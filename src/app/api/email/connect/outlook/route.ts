@@ -1,0 +1,33 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { getAuthorizationUrl } from '@/lib/email/outlook';
+import { randomBytes } from 'crypto';
+
+export async function POST(request: NextRequest) {
+  try {
+    // Generate state token for CSRF protection
+    const state = randomBytes(32).toString('hex');
+    
+    // Store state in session/cookie
+    const response = NextResponse.json({
+      authorization_url: getAuthorizationUrl(state),
+      state
+    });
+    
+    // Set state cookie
+    response.cookies.set('outlook_oauth_state', state, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 600 // 10 minutes
+    });
+    
+    return response;
+    
+  } catch (error) {
+    console.error('[Outlook Connect Error]', error);
+    return NextResponse.json(
+      { error: 'Failed to initialize Outlook connection' },
+      { status: 500 }
+    );
+  }
+}

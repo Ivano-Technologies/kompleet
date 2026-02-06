@@ -16,21 +16,16 @@ export default function Home() {
         textAlign: 'center' 
       }}>
         {/* Logo */}
-        <div style={{
-          width: '80px',
-          height: '80px',
-          backgroundColor: 'white',
-          borderRadius: '16px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          margin: '0 auto 30px',
-          fontSize: '48px',
-          fontWeight: 'bold',
-          color: '#0A6847'
-        }}>
-          &lt;
-        </div>
+        <img 
+          src="/assets/logo-primary.png" 
+          alt="KOMPLEET Logo" 
+          style={{
+            width: '120px',
+            height: '120px',
+            margin: '0 auto 30px',
+            display: 'block'
+          }}
+        />
 
         <h1 style={{ 
           fontSize: '56px',

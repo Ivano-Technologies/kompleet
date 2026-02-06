@@ -140,9 +140,11 @@ function LoginForm() {
         {/* Header */}
         <div className="text-center mb-8">
           {/* Logo */}
-          <div className="mx-auto w-16 h-16 bg-[#0A6847] rounded-xl flex items-center justify-center mb-4">
-            <span className="text-white text-3xl font-bold">&lt;</span>
-          </div>
+          <img 
+            src="/assets/logo-primary.png" 
+            alt="KOMPLEET Logo" 
+            className="mx-auto w-20 h-20 mb-4"
+          />
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome back</h1>
           <p className="text-gray-600 mb-1">Sign in to your KOMPLEET account</p>
           <p className="text-sm text-gray-500 italic">Kompleet records. Kompleet filings. Kompleet compliance.</p>
