@@ -44,13 +44,13 @@ export async function POST(request: NextRequest) {
     // Generate Word document
     const buffer = await exportFinancialStatementWord(user.id, tax_year, statement_type);
     
-    const statementNames = {
+    const statementNames: Record<string, string> = {
       balance_sheet: 'Balance_Sheet',
       pnl: 'Profit_Loss',
       tax_summary: 'Tax_Summary'
     };
     
-    const filename = `${statementNames[statement_type]}_${tax_year}.docx`;
+    const filename = `${statementNames[statement_type as string]}_${tax_year}.docx`;
 
     // Create export history record
     const expiresAt = new Date();
