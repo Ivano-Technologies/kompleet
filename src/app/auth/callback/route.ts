@@ -5,7 +5,8 @@
  * Exchanges the auth code for a session and redirects to the dashboard.
  */
 
-import { createServerClient } from '@/lib/supabase/server';
+import { createServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
@@ -16,7 +17,23 @@ export async function GET(request: NextRequest) {
 
   if (code) {
     try {
-      const supabase = await createServerClient();
+      const cookieStore = await cookies();
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+      const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+      // Create Supabase client with cookie handling
+      const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll();
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              cookieStore.set(name, value, options);
+            });
+          },
+        },
+      });
       
       // Exchange the code for a session
       const { data, error } = await supabase.auth.exchangeCodeForSession(code);
@@ -32,13 +49,10 @@ export async function GET(request: NextRequest) {
         return NextResponse.redirect(new URL('/login?error=no_session', requestUrl.origin));
       }
 
-      // Create response with redirect
-      const response = NextResponse.redirect(new URL(redirect, requestUrl.origin));
-      
-      // Ensure cookies are set by refreshing the session
-      await supabase.auth.getSession();
-      
-      return response;
+      console.log('OAuth session created successfully for user:', data.user?.email);
+
+      // Redirect to the target page
+      return NextResponse.redirect(new URL(redirect, requestUrl.origin));
     } catch (err) {
       console.error('Unexpected error in auth callback:', err);
       return NextResponse.redirect(new URL('/login?error=unexpected', requestUrl.origin));
