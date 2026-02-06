@@ -18,16 +18,38 @@ from functools import lru_cache
 app = Flask(__name__)
 
 # Configuration
-MODEL_DIR = os.getenv('MODEL_DIR', '/home/ubuntu/kompleet-web/public/ml-models')
-MODEL_VERSION = '1.0.0_20260206_051815'
+MODEL_DIR = os.getenv('MODEL_DIR', '/home/ubuntu/kompleet-web/.ml-models-cache')
+MODEL_VERSION = 'v1.0.0'
+S3_BASE_URL = 'https://kompleet-ml-models.s3.eu-west-1.amazonaws.com'
 PORT = int(os.getenv('ML_SERVICE_PORT', 5000))
 
-# Load model and encoders at startup
-print(f"Loading model version {MODEL_VERSION}...")
-model_path = os.path.join(MODEL_DIR, f'model_{MODEL_VERSION}.joblib')
-encoder_path = os.path.join(MODEL_DIR, f'encoders_{MODEL_VERSION}.joblib')
-metadata_path = os.path.join(MODEL_DIR, f'metadata_{MODEL_VERSION}.json')
+# Ensure model directory exists
+os.makedirs(MODEL_DIR, exist_ok=True)
 
+def download_model_file(s3_key: str, local_path: str):
+    """Download model file from S3 if not cached"""
+    if os.path.exists(local_path):
+        print(f"✅ {os.path.basename(local_path)} already cached")
+        return
+    
+    import urllib.request
+    url = f"{S3_BASE_URL}/{s3_key}"
+    print(f"Downloading {os.path.basename(local_path)} from S3...")
+    urllib.request.urlretrieve(url, local_path)
+    size_mb = os.path.getsize(local_path) / (1024 * 1024)
+    print(f"✅ Downloaded {os.path.basename(local_path)} ({size_mb:.2f} MB)")
+
+# Download models from S3
+print(f"Loading model version {MODEL_VERSION}...")
+model_path = os.path.join(MODEL_DIR, f'model-{MODEL_VERSION}.joblib')
+encoder_path = os.path.join(MODEL_DIR, f'encoders-{MODEL_VERSION}.joblib')
+metadata_path = os.path.join(MODEL_DIR, f'metadata-{MODEL_VERSION}.json')
+
+download_model_file(f'{MODEL_VERSION}/model.joblib', model_path)
+download_model_file(f'{MODEL_VERSION}/encoders.joblib', encoder_path)
+download_model_file(f'{MODEL_VERSION}/metadata.json', metadata_path)
+
+# Load models
 model = joblib.load(model_path)
 encoders = joblib.load(encoder_path)
 with open(metadata_path, 'r') as f:

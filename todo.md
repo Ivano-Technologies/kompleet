@@ -222,3 +222,13 @@
 - [x] Add navigation sidebar with KOMPLEET branding - Quick Actions section present
 - [x] Update dashboard cards with green accent colors - Already has glassmorphism with green theme
 - [x] Add company info footer with tagline
+
+## ML Models Storage Migration (February 6, 2026)
+
+- [x] Create AWS S3 bucket "kompleet-ml-models"
+- [x] Upload model files to S3 (181.90 MB model.joblib, encoders.joblib, metadata.json)
+- [x] Set public read access policy on S3 bucket
+- [x] Create model download utility function (src/lib/ml/model-loader.ts)
+- [x] Update application to download models on startup (ml-service/inference.py)
+- [x] Test model download and caching - Successfully tested, 181.90 MB downloaded from S3
+- [x] Document model management process - docs/ML_MODELS_STORAGE.md created
