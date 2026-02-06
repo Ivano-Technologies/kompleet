@@ -47,8 +47,16 @@ export async function POST(request: NextRequest) {
       completed_at: new Date().toISOString()
     });
 
+    // Convert Buffer to ReadableStream for Next.js 15 + TypeScript 5.9.3 compatibility
+    const stream = new ReadableStream({
+      start(controller) {
+        controller.enqueue(buffer);
+        controller.close();
+      }
+    });
+
     // Return file
-    return new NextResponse(buffer.buffer, {
+    return new NextResponse(stream, {
       headers: {
         'Content-Type': 'application/zip',
         'Content-Disposition': `attachment; filename="${filename}"`,
