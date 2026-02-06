@@ -186,7 +186,7 @@ export async function exportFinancialStatementWord(userId: string, taxYear: numb
               new TableRow({
                 children: [
                   new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Total Assets', bold: true })] })] }),
-                  new TableCell({ children: [new Paragraph({ text: income.toLocaleString('en-NG'), bold: true, alignment: AlignmentType.RIGHT })] })
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: income.toLocaleString('en-NG'), bold: true })], alignment: AlignmentType.RIGHT })] })
                 ]
               }),
               new TableRow({
@@ -204,13 +204,13 @@ export async function exportFinancialStatementWord(userId: string, taxYear: numb
               new TableRow({
                 children: [
                   new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Total Liabilities', bold: true })] })] }),
-                  new TableCell({ children: [new Paragraph({ text: taxLiability.toLocaleString('en-NG'), bold: true, alignment: AlignmentType.RIGHT })] })
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: taxLiability.toLocaleString('en-NG'), bold: true })], alignment: AlignmentType.RIGHT })] })
                 ]
               }),
               new TableRow({
                 children: [
                   new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'NET WORTH', bold: true })] })] }),
-                  new TableCell({ children: [new Paragraph({ text: (income - taxLiability).toLocaleString('en-NG'), bold: true, alignment: AlignmentType.RIGHT })] })
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: (income - taxLiability).toLocaleString('en-NG'), bold: true })], alignment: AlignmentType.RIGHT })] })
                 ]
               })
             ],
@@ -263,7 +263,7 @@ export async function exportFinancialStatementWord(userId: string, taxYear: numb
               new TableRow({
                 children: [
                   new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Net Income', bold: true })] })] }),
-                  new TableCell({ children: [new Paragraph({ text: netIncome.toLocaleString('en-NG'), bold: true, alignment: AlignmentType.RIGHT })] })
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: netIncome.toLocaleString('en-NG'), bold: true })], alignment: AlignmentType.RIGHT })] })
                 ]
               }),
               new TableRow({
@@ -275,7 +275,7 @@ export async function exportFinancialStatementWord(userId: string, taxYear: numb
               new TableRow({
                 children: [
                   new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Net Profit After Tax', bold: true })] })] }),
-                  new TableCell({ children: [new Paragraph({ text: (netIncome - taxLiability).toLocaleString('en-NG'), bold: true, alignment: AlignmentType.RIGHT })] })
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: (netIncome - taxLiability).toLocaleString('en-NG'), bold: true })], alignment: AlignmentType.RIGHT })] })
                 ]
               })
             ],
@@ -329,7 +329,7 @@ export async function exportFinancialStatementWord(userId: string, taxYear: numb
               new TableRow({
                 children: [
                   new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Taxable Income', bold: true })] })] }),
-                  new TableCell({ children: [new Paragraph({ text: netIncome.toLocaleString('en-NG'), bold: true, alignment: AlignmentType.RIGHT })] })
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: netIncome.toLocaleString('en-NG'), bold: true })], alignment: AlignmentType.RIGHT })] })
                 ]
               }),
               new TableRow({
@@ -341,7 +341,7 @@ export async function exportFinancialStatementWord(userId: string, taxYear: numb
               new TableRow({
                 children: [
                   new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Tax Payable', bold: true })] })] }),
-                  new TableCell({ children: [new Paragraph({ text: taxLiability.toLocaleString('en-NG'), bold: true, alignment: AlignmentType.RIGHT })] })
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: taxLiability.toLocaleString('en-NG'), bold: true })], alignment: AlignmentType.RIGHT })] })
                 ]
               })
             ],
