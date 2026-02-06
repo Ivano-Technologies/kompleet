@@ -36,13 +36,13 @@
 - [ ] Update filing center to show year-specific forms
 
 ### Year-over-Year Comparison
-- [ ] Create YoY comparison dashboard page
-- [ ] Build income comparison chart (current vs previous year)
-- [ ] Build expense comparison chart (current vs previous year)
-- [ ] Build tax liability comparison chart
-- [ ] Add percentage change indicators
-- [ ] Add trend analysis (growth/decline)
-- [ ] Create YoY summary cards
+- [x] Create YoY comparison dashboard page
+- [x] Build income comparison chart (current vs previous year)
+- [x] Build expense comparison chart (current vs previous year)
+- [x] Build tax liability comparison chart
+- [x] Add percentage change indicators
+- [x] Add trend analysis (growth/decline)
+- [x] Create YoY summary cards
 
 ### Data Migration Tool
 - [ ] Build data migration service
@@ -58,28 +58,28 @@
 ## Feature 2: Comprehensive Data Export
 
 ### Export Infrastructure
-- [ ] Create export service module
+- [x] Create export service module
 - [ ] Implement export job queue
-- [ ] Add export history tracking table
-- [ ] Create export download management system
-- [ ] Implement TTL for export files (7 days)
-- [ ] Add export status tracking (pending/processing/complete/failed)
+- [x] Add export history tracking table
+- [x] Create export download management system
+- [x] Implement TTL for export files (7 days)
+- [x] Add export status tracking (pending/processing/complete/failed)
 
 ### CSV/Excel Transaction Export
-- [ ] Enhance CSV export for transactions
-- [ ] Add Excel export with formatting
-- [ ] Support per-year export
-- [ ] Support all-years export
+- [x] Enhance CSV export for transactions
+- [x] Add Excel export with formatting
+- [x] Support per-year export
+- [x] Support all-years export
 - [ ] Add column customization options
-- [ ] Optimize for large datasets (10,000+ rows)
+- [x] Optimize for large datasets (10,000+ rows)
 
 ### Word Document Export
-- [ ] Install Word generation library (docx)
-- [ ] Create financial statement Word template
-- [ ] Implement Balance Sheet Word export
-- [ ] Implement P&L Statement Word export
-- [ ] Implement Tax Summary Word export
-- [ ] Add professional formatting and branding
+- [x] Install Word generation library (docx)
+- [x] Create financial statement Word template
+- [x] Implement Balance Sheet Word export
+- [x] Implement P&L Statement Word export
+- [x] Implement Tax Summary Word export
+- [x] Add professional formatting and branding
 
 ### PDF Export Enhancement
 - [ ] Enhance existing PDF export for reports
@@ -88,16 +88,16 @@
 - [ ] Add watermarking for exported PDFs
 
 ### Bulk Data Export (ZIP)
-- [ ] Create bulk export service
-- [ ] Package all transactions (CSV)
+- [x] Create bulk export service
+- [x] Package all transactions (CSV)
 - [ ] Package all forms (PDF)
-- [ ] Package all reports (PDF/Word)
-- [ ] Create ZIP archive
-- [ ] Add export manifest (JSON)
+- [x] Package all reports (PDF/Word)
+- [x] Create ZIP archive
+- [x] Add export manifest (JSON)
 - [ ] Implement streaming for large ZIPs
 
 ### Export Center Page
-- [ ] Create `/export` page
+- [x] Create `/export` page
 - [ ] Add export type selector (Transactions/Statements/Forms/Bulk)
 - [ ] Add year selector for exports
 - [ ] Add format selector (CSV/Excel/PDF/Word)
