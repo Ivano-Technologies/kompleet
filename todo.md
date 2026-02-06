@@ -250,7 +250,14 @@
 
 ## Supabase Client Await Fix (February 6, 2026)
 
-- [ ] Fix createClient() calls that are not awaited
-- [ ] Update all route handlers to await createClient()
+- [x] Fix createClient() calls that are not awaited - Fixed 19 files
+- [x] Update all route handlers to await createClient()
+- [x] Test build - Pushed for Vercel to test
+- [x] Push to GitHub - Successfully pushed (commit f4a69855d)
+
+## Buffer Type Error Fix (February 6, 2026)
+
+- [ ] Fix Buffer type error in export/bulk/route.ts
+- [ ] Update NextResponse to accept Buffer properly
 - [ ] Test build
 - [ ] Push to GitHub
