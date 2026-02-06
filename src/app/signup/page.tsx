@@ -12,7 +12,35 @@ export default function SignupPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
   const router = useRouter();
+
+  const handleResendVerification = async () => {
+    setResendLoading(true);
+    setResendSuccess(false);
+    
+    try {
+      const supabase = createBrowserClient();
+      const { error: resendError } = await supabase.auth.resend({
+        type: 'signup',
+        email: email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+
+      if (resendError) {
+        setError(resendError.message);
+      } else {
+        setResendSuccess(true);
+      }
+    } catch (err) {
+      setError('Failed to resend verification email. Please try again.');
+    } finally {
+      setResendLoading(false);
+    }
+  };
 
   const handlePasswordSignup = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -44,7 +72,14 @@ export default function SignupPage() {
       });
 
       if (authError) {
-        setError(authError.message);
+        // Provide more specific error messages
+        if (authError.message.includes('already registered')) {
+          setError('This email is already registered. Please sign in or use a different email.');
+        } else if (authError.message.includes('Password should be')) {
+          setError('Password must be at least 6 characters long.');
+        } else {
+          setError(authError.message);
+        }
         setLoading(false);
         return;
       }
@@ -76,6 +111,7 @@ export default function SignupPage() {
         setLoading(false);
         return;
       }
+      // Keep loading state - user is being redirected to Google
     } catch (err) {
       setError('Failed to sign up with Google. Please try again.');
       setLoading(false);
@@ -98,12 +134,26 @@ export default function SignupPage() {
             We've sent a confirmation link to <strong>{email}</strong>. Click the link to activate your
             account.
           </p>
-          <Link
-            href="/login"
-            className="inline-block bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium"
-          >
-            Go to login
-          </Link>
+          {resendSuccess && (
+            <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-sm text-green-800">✓ Verification email resent successfully!</p>
+            </div>
+          )}
+          <div className="space-y-3">
+            <Link
+              href="/login"
+              className="block w-full bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium text-center"
+            >
+              Go to login
+            </Link>
+            <button
+              onClick={handleResendVerification}
+              disabled={resendLoading}
+              className="block w-full text-green-600 hover:text-green-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {resendLoading ? 'Resending...' : 'Resend verification email'}
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -111,6 +161,15 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      {/* Loading overlay during OAuth redirect */}
+      {loading && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-8 text-center">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mb-4"></div>
+            <p className="text-gray-700 font-medium">Creating your account...</p>
+          </div>
+        </div>
+      )}
       <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
         {/* Header */}
         <div className="text-center mb-8">
