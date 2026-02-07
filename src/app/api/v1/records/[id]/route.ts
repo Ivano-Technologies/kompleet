@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { apiSuccess, apiError, requireAuth } from '@/lib/api';
-import type { Record } from '@/types/api';
+import type { FinancialRecord } from '@/types/api';
 
 /**
  * GET /api/v1/records/:id
@@ -19,7 +19,7 @@ export async function GET(
 
   try {
     // TODO: Replace with actual database query
-    const mockRecord: Record = {
+    const mockRecord: FinancialRecord = {
       id,
       userId,
       type: 'income',
@@ -60,7 +60,7 @@ export async function PUT(
     const body = await request.json();
 
     // TODO: Replace with actual database update
-    const updatedRecord: Record = {
+    const updatedRecord: FinancialRecord = {
       id,
       userId,
       type: body.type || 'income',

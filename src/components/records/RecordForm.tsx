@@ -1,10 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import type { CreateRecordRequest, Record } from '@/types/api';
+import type { CreateRecordRequest, FinancialRecord } from '@/types/api';
 
 interface RecordFormProps {
-  record?: Record;
+  record?: FinancialRecord;
   onSubmit: (data: CreateRecordRequest) => void;
   onCancel: () => void;
 }
