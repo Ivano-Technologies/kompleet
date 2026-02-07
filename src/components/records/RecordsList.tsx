@@ -1,11 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import type { Record } from '@/types/api';
+import type { FinancialRecord } from '@/types/api';
 
 interface RecordsListProps {
-  records: Record[];
-  onEdit?: (record: Record) => void;
+  records: FinancialRecord[];
+  onEdit?: (record: FinancialRecord) => void;
   onDelete?: (recordId: string) => void;
 }
 

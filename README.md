@@ -1,180 +1,276 @@
-# Supabase CLI
+# KOMPLEET Platform (Web)
 
-[![Coverage Status](https://coveralls.io/repos/github/supabase/cli/badge.svg?branch=main)](https://coveralls.io/github/supabase/cli?branch=main) [![Bitbucket Pipelines](https://img.shields.io/bitbucket/pipelines/supabase-cli/setup-cli/master?style=flat-square&label=Bitbucket%20Canary)](https://bitbucket.org/supabase-cli/setup-cli/pipelines) [![Gitlab Pipeline Status](https://img.shields.io/gitlab/pipeline-status/sweatybridge%2Fsetup-cli?label=Gitlab%20Canary)
-](https://gitlab.com/sweatybridge/setup-cli/-/pipelines)
+**KOMPLEET** is a comprehensive tax compliance and financial management platform for Nigerian businesses and individuals, built to comply with the Nigerian Tax Act 2026.
 
-[Supabase](https://supabase.io) is an open source Firebase alternative. We're building the features of Firebase using enterprise-grade open source tools.
+## Overview
 
-This repository contains all the functionality for Supabase CLI.
+The KOMPLEET Web Platform provides:
+- **User Authentication** - Clerk-based authentication with Google OAuth, email/password, and magic links
+- **Transaction Management** - Income and expense tracking with categorization
+- **Tax Calculators** - Business Tax (CIT), Individual Tax (PIT), VAT, Capital Allowances, Stamp Duty, Property Tax
+- **Financial Reports** - Tax summaries, balance sheets, profit & loss statements with PDF export
+- **Compliance Dashboard** - Real-time compliance health monitoring
+- **Tax Deadline Reminders** - Push notifications for important tax deadlines
 
-- [x] Running Supabase locally
-- [x] Managing database migrations
-- [x] Creating and deploying Supabase Functions
-- [x] Generating types directly from your database schema
-- [x] Making authenticated HTTP requests to [Management API](https://supabase.com/docs/reference/api/introduction)
+## Tech Stack
 
-## Getting started
+### Frontend
+- **Framework:** Next.js 15 (App Router)
+- **Language:** TypeScript 5.9
+- **Styling:** Tailwind CSS
+- **UI Components:** shadcn/ui
+- **Charts:** Recharts
 
-### Install the CLI
+### Backend & Services
+- **Authentication:** Clerk (migrated from Supabase Auth)
+- **Database:** Supabase PostgreSQL with Row Level Security (RLS)
+- **Deployment:** Vercel
+- **Package Manager:** pnpm
 
-Available via [NPM](https://www.npmjs.com) as dev dependency. To install:
+### Key Integrations
+- **Clerk:** User authentication and management
+- **Supabase:** Database, RLS policies, and data storage
+- **Vercel:** Hosting and serverless functions
+- **Webhooks:** Clerk user sync to Supabase
+
+## Project Structure
+
+```
+kompleet-platform/
+├── src/
+│   ├── app/                    # Next.js App Router
+│   │   ├── (auth)/            # Authentication pages
+│   │   │   ├── login/         # Login page with Clerk SignIn
+│   │   │   └── signup/        # Signup page with Clerk SignUp
+│   │   ├── (dashboard)/       # Protected dashboard pages
+│   │   │   ├── dashboard/     # Main dashboard
+│   │   │   ├── transactions/  # Transaction management
+│   │   │   ├── calculators/   # Tax calculators
+│   │   │   ├── reports/       # Financial reports
+│   │   │   └── profile/       # User profile & settings
+│   │   ├── api/               # API routes
+│   │   │   └── webhooks/
+│   │   │       └── clerk/     # Clerk webhook handler
+│   │   └── middleware.ts      # Clerk auth middleware
+│   ├── components/            # React components
+│   │   ├── ui/               # shadcn/ui components
+│   │   └── ...               # Custom components
+│   ├── lib/                  # Utilities and helpers
+│   │   └── supabase/
+│   │       ├── server.ts     # Supabase server client (Clerk JWT)
+│   │       └── client.ts     # Supabase browser client
+│   └── supabase/
+│       └── migrations/       # Database migrations
+│           └── CLERK_SYNC_MIGRATION.sql
+├── public/                   # Static assets
+├── .env.local               # Environment variables (not committed)
+├── package.json
+├── tailwind.config.ts
+└── tsconfig.json
+```
+
+## Setup
+
+### Prerequisites
+- Node.js 18+ and pnpm
+- Clerk account (https://clerk.com)
+- Supabase project (https://supabase.com)
+- Vercel account for deployment (https://vercel.com)
+
+### Environment Variables
+
+Create a `.env.local` file in the project root:
 
 ```bash
-npm i supabase --save-dev
+# Clerk Authentication
+NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
+CLERK_SECRET_KEY=sk_test_...
+CLERK_WEBHOOK_SECRET=whsec_...
+
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+# App Configuration
+NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
-When installing with yarn 4, you need to disable experimental fetch with the following nodejs config.
+### Installation
 
-```
-NODE_OPTIONS=--no-experimental-fetch yarn add supabase
-```
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/Ivano-Technologies/KOMPLEET-PLATFORM.git
+   cd KOMPLEET-PLATFORM
+   ```
 
-> **Note**
-For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency](https://bun.sh/guides/install/trusted) before running `bun add -D supabase`.
+2. **Install dependencies:**
+   ```bash
+   pnpm install
+   ```
 
-<details>
-  <summary><b>macOS</b></summary>
+3. **Configure Clerk:**
+   - Create a Clerk application at https://dashboard.clerk.com
+   - Enable Email/Password and Google OAuth providers
+   - Create JWT template named `kompleet-supabase` with custom claims:
+     ```json
+     {
+       "sub": "{{user.id}}"
+     }
+     ```
+   - Copy publishable key and secret key to `.env.local`
 
-  Available via [Homebrew](https://brew.sh). To install:
+4. **Configure Supabase:**
+   - Create a Supabase project at https://supabase.com/dashboard
+   - Go to Settings → API → JWT Settings
+   - Add Clerk as JWT provider:
+     - JWKS URL: `https://your-clerk-domain/.well-known/jwks.json`
+     - JWT Secret: (from Clerk JWT template)
+   - Run database migration:
+     ```bash
+     psql -h your-project.supabase.co -U postgres -d postgres -f src/supabase/migrations/CLERK_SYNC_MIGRATION.sql
+     ```
 
-  ```sh
-  brew install supabase/tap/supabase
-  ```
+5. **Configure Clerk Webhook:**
+   - In Clerk Dashboard, go to Webhooks
+   - Create endpoint: `https://your-domain.com/api/webhooks/clerk`
+   - Subscribe to events: `user.created`, `user.updated`, `user.deleted`
+   - Copy webhook secret to `.env.local`
 
-  To install the beta release channel:
-  
-  ```sh
-  brew install supabase/tap/supabase-beta
-  brew link --overwrite supabase-beta
-  ```
-  
-  To upgrade:
+6. **Run development server:**
+   ```bash
+   pnpm dev
+   ```
 
-  ```sh
-  brew upgrade supabase
-  ```
-</details>
+7. **Open browser:**
+   ```
+   http://localhost:3000
+   ```
 
-<details>
-  <summary><b>Windows</b></summary>
+## Database Schema
 
-  Available via [Scoop](https://scoop.sh). To install:
+The platform uses Supabase PostgreSQL with the following key tables:
 
-  ```powershell
-  scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
-  scoop install supabase
-  ```
+### `clerk_users`
+Synced from Clerk via webhook, stores user profile data:
+- `clerk_user_id` (primary key) - Clerk user ID
+- `email` - User email address
+- `first_name`, `last_name` - User name
+- `avatar_url` - Profile picture URL
+- `created_at`, `updated_at` - Timestamps
 
-  To upgrade:
+### `transactions`
+Financial transactions (income/expenses):
+- `id` (UUID primary key)
+- `user_id` (references `clerk_users.clerk_user_id`)
+- `type` - 'income' or 'expense'
+- `category` - Transaction category
+- `amount` - Transaction amount
+- `description` - Transaction description
+- `date` - Transaction date
+- RLS policies ensure users can only access their own transactions
 
-  ```powershell
-  scoop update supabase
-  ```
-</details>
+### Row Level Security (RLS)
+All tables have RLS policies that:
+1. Extract Clerk user ID from JWT using `get_clerk_user_id()` helper function
+2. Restrict access to user's own data only
+3. Support both Clerk JWT and Supabase Auth during migration
 
-<details>
-  <summary><b>Linux</b></summary>
+## Authentication Flow
 
-  Available via [Homebrew](https://brew.sh) and Linux packages.
+### User Sign-Up/Sign-In
+1. User signs up/in via Clerk UI components (`<SignIn />`, `<SignUp />`)
+2. Clerk creates user account and issues JWT
+3. Clerk webhook fires `user.created` event
+4. Webhook handler (`/api/webhooks/clerk`) syncs user to `clerk_users` table
+5. User is redirected to dashboard
 
-  #### via Homebrew
+### API Authentication
+1. Clerk middleware (`middleware.ts`) protects routes
+2. Supabase client (`lib/supabase/server.ts`) extracts Clerk JWT
+3. Supabase validates JWT using Clerk JWKS
+4. RLS policies use `get_clerk_user_id()` to enforce access control
 
-  To install:
+## API Routes
 
-  ```sh
-  brew install supabase/tap/supabase
-  ```
+### `/api/webhooks/clerk` (POST)
+Webhook endpoint for Clerk user sync:
+- **Events:** `user.created`, `user.updated`, `user.deleted`
+- **Authentication:** Clerk webhook signature verification
+- **Actions:** Upsert/delete user in `clerk_users` table
 
-  To upgrade:
+## Deployment
 
-  ```sh
-  brew upgrade supabase
-  ```
+### Vercel Deployment
 
-  #### via Linux packages
+1. **Connect repository to Vercel:**
+   ```bash
+   vercel
+   ```
 
-  Linux packages are provided in [Releases](https://github.com/supabase/cli/releases). To install, download the `.apk`/`.deb`/`.rpm`/`.pkg.tar.zst` file depending on your package manager and run the respective commands.
+2. **Configure environment variables in Vercel:**
+   - Go to Project Settings → Environment Variables
+   - Add all variables from `.env.local`
+   - Ensure variables are set for Production, Preview, and Development
 
-  ```sh
-  sudo apk add --allow-untrusted <...>.apk
-  ```
+3. **Deploy:**
+   ```bash
+   vercel --prod
+   ```
 
-  ```sh
-  sudo dpkg -i <...>.deb
-  ```
+4. **Configure Clerk webhook URL:**
+   - Update webhook endpoint to production URL: `https://your-domain.com/api/webhooks/clerk`
 
-  ```sh
-  sudo rpm -i <...>.rpm
-  ```
+### Important Notes
+- Clerk environment variables (`NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`) MUST be set in Vercel for production
+- Webhook secret must match between Clerk Dashboard and Vercel environment variables
+- Supabase JWT configuration must include Clerk JWKS URL
 
-  ```sh
-  sudo pacman -U <...>.pkg.tar.zst
-  ```
-</details>
+## Testing
 
-<details>
-  <summary><b>Other Platforms</b></summary>
+### Test User Creation
+1. Sign up at `/signup`
+2. Check Supabase `clerk_users` table for synced user
+3. Verify RLS policies by querying transactions
 
-  You can also install the CLI via [go modules](https://go.dev/ref/mod#go-install) without the help of package managers.
-
-  ```sh
-  go install github.com/supabase/cli@latest
-  ```
-
-  Add a symlink to the binary in `$PATH` for easier access:
-
-  ```sh
-  ln -s "$(go env GOPATH)/bin/cli" /usr/bin/supabase
-  ```
-
-  This works on other non-standard Linux distros.
-</details>
-
-<details>
-  <summary><b>Community Maintained Packages</b></summary>
-
-  Available via [pkgx](https://pkgx.sh/). Package script [here](https://github.com/pkgxdev/pantry/blob/main/projects/supabase.com/cli/package.yml).
-  To install in your working directory:
-
-  ```bash
-  pkgx install supabase
-  ```
-
-  Available via [Nixpkgs](https://nixos.org/). Package script [here](https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/supabase-cli/default.nix).
-</details>
-
-### Run the CLI
-
+### Test Webhook
 ```bash
-supabase bootstrap
+curl -X POST https://your-domain.com/api/webhooks/clerk \
+  -H "Content-Type: application/json" \
+  -H "svix-id: test" \
+  -H "svix-timestamp: $(date +%s)" \
+  -H "svix-signature: test" \
+  -d '{"type":"user.created","data":{"id":"user_test","email_addresses":[{"email_address":"test@example.com"}]}}'
 ```
 
-Or using npx:
+## Migration from Supabase Auth
 
-```bash
-npx supabase bootstrap
-```
+The platform has been migrated from Supabase Auth to Clerk. Key changes:
+- ✅ Clerk authentication UI components replace Supabase Auth UI
+- ✅ Clerk JWT replaces Supabase JWT
+- ✅ `clerk_users` table replaces `auth.users` references
+- ✅ RLS policies updated to use `get_clerk_user_id()` helper
+- ✅ Webhook integration for user sync
+- ✅ Dual-auth support during migration (both Clerk and Supabase Auth work)
 
-The bootstrap command will guide you through the process of setting up a Supabase project using one of the [starter](https://github.com/supabase-community/supabase-samples/blob/main/samples.json) templates.
+## Related Repositories
 
-## Docs
+- **Mobile App:** [KOMPLEET-MOBILE](https://github.com/Ivano-Technologies/KOMPLEET-MOBILE)
+- **Program Management:** [kompleet-program-management](https://github.com/Ivano-Technologies/kompleet-program-management)
 
-Command & config reference can be found [here](https://supabase.com/docs/reference/cli/about).
+## Documentation
 
-## Breaking changes
+- **Clerk Documentation:** https://clerk.com/docs
+- **Supabase Documentation:** https://supabase.com/docs
+- **Next.js Documentation:** https://nextjs.org/docs
+- **Nigerian Tax Act 2026:** https://firs.gov.ng
 
-We follow semantic versioning for changes that directly impact CLI commands, flags, and configurations.
+## Support
 
-However, due to dependencies on other service images, we cannot guarantee that schema migrations, seed.sql, and generated types will always work for the same CLI major version. If you need such guarantees, we encourage you to pin a specific version of CLI in package.json.
+For issues or questions:
+- **GitHub Issues:** https://github.com/Ivano-Technologies/KOMPLEET-PLATFORM/issues
+- **Email:** support@techivano.com
 
-## Developing
+## License
 
-To run from source:
-
-```sh
-# Go >= 1.22
-go run . help
-```
-# Trigger redeployment after SSO disabled - Thu Feb  5 07:15:59 EST 2026
-# Clerk Authentication Migration Complete
-
+Proprietary - Ivano Technologies Ltd © 2026

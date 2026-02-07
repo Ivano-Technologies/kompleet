@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { apiSuccess, apiError, requireAuth } from '@/lib/api';
-import type { Record, PaginatedResponse } from '@/types/api';
+import type { FinancialRecord, PaginatedResponse } from '@/types/api';
 
 /**
  * GET /api/v1/records
@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
 
     // TODO: Replace with actual database query
     // For now, return mock data
-    const mockRecords: Record[] = [
+    const mockRecords: FinancialRecord[] = [
       {
         id: '1',
         userId,
@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
     const end = start + limit;
     const paginatedRecords = filteredRecords.slice(start, end);
 
-    const response: PaginatedResponse<Record> = {
+    const response: PaginatedResponse<FinancialRecord> = {
       items: paginatedRecords,
       pagination: {
         total,
@@ -128,7 +128,7 @@ export async function POST(request: NextRequest) {
     }
 
     // TODO: Replace with actual database insert
-    const newRecord: Record = {
+    const newRecord: FinancialRecord = {
       id: Math.random().toString(36).substring(7),
       userId,
       type: body.type,

@@ -25,8 +25,8 @@ export interface PaginatedResponse<T> {
   pagination: PaginationMeta;
 }
 
-// Record types
-export interface Record {
+// Financial Record types
+export interface FinancialRecord {
   id: string;
   userId: string;
   type: 'income' | 'expense';
@@ -87,7 +87,7 @@ export interface DashboardSummary {
   vatCollected: number;
   vatPaid: number;
   pendingFilings: number;
-  recentRecords: Record[];
+  recentRecords: FinancialRecord[];
   monthlyTrend: Array<{
     month: string;
     income: number;
