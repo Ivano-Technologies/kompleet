@@ -14,7 +14,8 @@ if (!DATABASE_URL) {
 async function migrate() {
   console.log('🔄 Connecting to database...');
   
-  const sql = postgres(DATABASE_URL, {
+  // TypeScript knows DATABASE_URL is defined here because of the check above
+  const sql = postgres(DATABASE_URL!, {
     ssl: 'require',
   });
 
