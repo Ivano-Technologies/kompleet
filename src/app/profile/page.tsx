@@ -3,73 +3,137 @@ import { requireServerUser } from '@/lib/supabase/session';
 import { getUserProfile } from '@/lib/supabase/queries';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import { currentUser } from '@clerk/nextjs/server';
+import { AvatarUpload } from '@/components/avatar-upload';
 
 export default async function ProfilePage() {
   const supabase = await createServerClient();
+  const clerkUser = await currentUser();
   
+  if (!clerkUser) {
+    redirect('/login');
+  }
+
   try {
     const user = await requireServerUser(supabase);
 
     // Fetch user profile from database
-    // This demonstrates RLS in action - user can only fetch their own profile
     const profileResult = await getUserProfile(supabase, user.id);
 
     return (
       <div style={{ maxWidth: '800px', margin: '50px auto', padding: '20px' }}>
-        <div style={{ marginBottom: '20px' }}>
+        <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Link href="/dashboard" style={{ color: '#0070f3', textDecoration: 'none' }}>
             ← Back to Dashboard
           </Link>
+          <Link 
+            href="/profile/edit" 
+            style={{ 
+              backgroundColor: '#0070f3', 
+              color: 'white', 
+              padding: '8px 16px', 
+              borderRadius: '6px', 
+              textDecoration: 'none',
+              fontWeight: '500'
+            }}
+          >
+            Edit Profile
+          </Link>
         </div>
 
-        <h1 style={{ marginBottom: '20px' }}>User Profile</h1>
+        <h1 style={{ marginBottom: '30px' }}>User Profile</h1>
 
-        {profileResult.success && profileResult.data ? (
-          <div style={{
-            padding: '20px',
-            backgroundColor: '#f5f5f5',
-            borderRadius: '8px',
-            marginBottom: '20px',
-          }}>
-            <h2 style={{ marginBottom: '15px' }}>Profile Information</h2>
-            <div style={{ display: 'grid', gap: '10px' }}>
-              <div>
-                <strong>Email:</strong> {user.email}
-              </div>
-              <div>
-                <strong>User ID:</strong> {profileResult.data.id}
-              </div>
-              <div>
-                <strong>Subscription Tier:</strong>{' '}
-                <span style={{
-                  padding: '4px 8px',
-                  backgroundColor: '#0070f3',
-                  color: 'white',
-                  borderRadius: '4px',
-                  fontSize: '14px',
-                }}>
-                  {profileResult.data.subscription_tier}
-                </span>
-              </div>
-              <div>
-                <strong>Entity Type:</strong> {profileResult.data.entity_type}
-              </div>
-              <div>
-                <strong>Fiscal Year Start:</strong> {profileResult.data.fiscal_year_start_month}
-              </div>
-              <div>
-                <strong>Onboarding Complete:</strong>{' '}
-                {profileResult.data.onboarding_completed ? '✅ Yes' : '❌ No'}
-              </div>
-              <div>
-                <strong>Created:</strong> {new Date(profileResult.data.created_at).toLocaleString()}
-              </div>
-              <div>
-                <strong>Last Updated:</strong> {new Date(profileResult.data.updated_at).toLocaleString()}
-              </div>
+        {/* Avatar Section */}
+        <div style={{
+          padding: '30px',
+          backgroundColor: '#ffffff',
+          borderRadius: '12px',
+          marginBottom: '20px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center'
+        }}>
+          <AvatarUpload />
+        </div>
+
+        {/* Profile Information */}
+        <div style={{
+          padding: '20px',
+          backgroundColor: '#f5f5f5',
+          borderRadius: '8px',
+          marginBottom: '20px',
+        }}>
+          <h2 style={{ marginBottom: '15px' }}>Profile Information</h2>
+          <div style={{ display: 'grid', gap: '10px' }}>
+            <div>
+              <strong>Name:</strong> {clerkUser.firstName} {clerkUser.lastName}
+            </div>
+            <div>
+              <strong>Email:</strong> {clerkUser.primaryEmailAddress?.emailAddress}
+            </div>
+            <div>
+              <strong>User ID:</strong> {clerkUser.id}
+            </div>
+            {profileResult.success && profileResult.data && (
+              <>
+                <div>
+                  <strong>Subscription Tier:</strong>{' '}
+                  <span style={{
+                    padding: '4px 8px',
+                    backgroundColor: '#0070f3',
+                    color: 'white',
+                    borderRadius: '4px',
+                    fontSize: '14px',
+                  }}>
+                    {profileResult.data.subscription_tier}
+                  </span>
+                </div>
+                <div>
+                  <strong>Entity Type:</strong> {profileResult.data.entity_type}
+                </div>
+                <div>
+                  <strong>Fiscal Year Start:</strong> {profileResult.data.fiscal_year_start_month}
+                </div>
+                <div>
+                  <strong>Onboarding Complete:</strong>{' '}
+                  {profileResult.data.onboarding_completed ? '✅ Yes' : '❌ No'}
+                </div>
+              </>
+            )}
+            <div>
+              <strong>Account Created:</strong> {new Date(clerkUser.createdAt).toLocaleString()}
             </div>
           </div>
-        ) : (
+        </div>
+
+        {/* Password Management */}
+        <div style={{
+          padding: '20px',
+          backgroundColor: '#fff3cd',
+          border: '1px solid #ffc107',
+          borderRadius: '8px',
+          marginBottom: '20px',
+        }}>
+          <h3 style={{ marginBottom: '10px' }}>🔐 Password & Security</h3>
+          <p style={{ marginBottom: '15px' }}>Manage your password and security settings</p>
+          <Link 
+            href="/forgot-password"
+            style={{
+              display: 'inline-block',
+              backgroundColor: '#ffc107',
+              color: '#000',
+              padding: '8px 16px',
+              borderRadius: '6px',
+              textDecoration: 'none',
+              fontWeight: '500'
+            }}
+          >
+            Change Password
+          </Link>
+        </div>
+
+        {!profileResult.success && (
           <div style={{
             padding: '20px',
             backgroundColor: '#fff3cd',
@@ -78,13 +142,12 @@ export default async function ProfilePage() {
             marginBottom: '20px',
           }}>
             <h3>Profile Not Found</h3>
-            <p>No profile found for this user. This may indicate:</p>
+            <p>No profile found in database. This may indicate:</p>
             <ul style={{ paddingLeft: '20px', marginTop: '10px' }}>
               <li>Profile hasn't been created yet</li>
               <li>Database connection issue</li>
-              <li>RLS policy blocking access (security working correctly)</li>
             </ul>
-            {!profileResult.success && profileResult.error && (
+            {profileResult.error && (
               <p style={{ marginTop: '10px', color: '#c00' }}>
                 <strong>Error:</strong> {profileResult.error}
               </p>
@@ -98,45 +161,17 @@ export default async function ProfilePage() {
           borderRadius: '8px',
         }}>
           <h3 style={{ marginBottom: '10px' }}>🔒 RLS Protection Active</h3>
-          <p>This page demonstrates database access with Row Level Security:</p>
+          <p>This page demonstrates secure profile management:</p>
           <ul style={{ marginTop: '10px', paddingLeft: '20px' }}>
-            <li>Profile query uses <code>auth.uid()</code> to enforce ownership</li>
-            <li>User can only fetch their own profile data</li>
-            <li>Attempting to fetch another user's profile returns empty result</li>
-            <li>Server-side queries use explicit client parameter (no globals)</li>
+            <li>Profile data protected by Row Level Security</li>
+            <li>Avatar managed through Clerk</li>
+            <li>Password reset handled securely</li>
+            <li>User can only access their own data</li>
           </ul>
-        </div>
-
-        <div style={{
-          marginTop: '20px',
-          padding: '20px',
-          backgroundColor: '#fff',
-          border: '1px solid #ddd',
-          borderRadius: '8px',
-        }}>
-          <h3 style={{ marginBottom: '10px' }}>Database Query Pattern</h3>
-          <pre style={{
-            backgroundColor: '#f5f5f5',
-            padding: '15px',
-            borderRadius: '4px',
-            overflow: 'auto',
-            fontSize: '14px',
-          }}>
-{`// Server-side query with explicit client
-const result = await getUserProfile(supabase, userId);
-
-// RLS policy enforces:
-// WHERE auth.uid() = id
-
-// Result:
-// - Success: User's own profile
-// - Failure: Empty result (not an error)`}
-          </pre>
         </div>
       </div>
     );
   } catch (error) {
-    // User not authenticated - redirect to login
     redirect('/login');
   }
 }
