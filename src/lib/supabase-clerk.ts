@@ -13,15 +13,16 @@ import { useAuth } from '@clerk/nextjs';
 export function useSupabaseClerk() {
   const { getToken } = useAuth();
 
+  // Note: This client is created without the Clerk token initially.
+  // For authenticated requests, use createSupabaseClerkClient on the server side.
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       global: {
-        headers: async () => {
-          const token = await getToken({ template: 'kompleet-supabase' });
-          return token ? { Authorization: `Bearer ${token}` } : {};
-        },
+        // Supabase client doesn't support async headers function
+        // Token must be set per-request or use server-side client
+        headers: {},
       },
     }
   );
