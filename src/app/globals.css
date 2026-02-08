@@ -4,6 +4,8 @@
 
 /* NextAuth-inspired Design System - Light Theme */
 :root {
+  --black: 0 0 0; /* Pure black */
+  --white: 255 255 255; /* Pure white */
   --background: 255 255 255; /* Pure white */
   --foreground: 0 0 0; /* Pure black */
   --muted: 102 102 102; /* #666666 */
