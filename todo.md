@@ -398,3 +398,14 @@
 - [ ] Polish card designs with refined borders and spacing
 - [ ] Enhance button styles with better hover states
 - [ ] Test all enhancements and deploy
+
+
+## Icon Sizing and Visual Balance Fixes (February 8, 2026)
+
+- [x] Fix hero logo to 176px (w-44 h-44) to match NextAuth prominence
+- [x] Fix feature card icons to 192px (w-48 h-48) to match NextAuth large circles
+- [x] Fix inner SVG icons to 96px (w-24 h-24) for proper proportion
+- [x] Fix feature titles to text-3xl (30px) to match NextAuth
+- [x] Verify navigation logo size (32px) is appropriate
+- [ ] Test visual hierarchy across all breakpoints
+- [ ] Compare deployed site with NextAuth reference
