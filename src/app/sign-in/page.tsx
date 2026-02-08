@@ -156,10 +156,11 @@ export default function SignInPage() {
                 },
               },
             }}
-            providers={['google', 'github']}
+            providers={[]} // No OAuth providers - magic link only
             redirectTo={`${process.env.NEXT_PUBLIC_SITE_URL || 'https://techivano.com'}/auth/callback`}
-            view="sign_in"
-            showLinks={true}
+            view="magic_link" // Magic link authentication only
+            showLinks={false} // Hide sign up link for now
+            magicLink={true}
           />
         </div>
 
