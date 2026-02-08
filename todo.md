@@ -287,14 +287,22 @@
 
 ## Migrate from Clerk to Supabase Auth (February 7, 2026)
 
-- [ ] Remove Clerk dependencies from package.json
-- [ ] Remove Clerk middleware and components
-- [ ] Create Supabase Auth components (SignIn, SignUp, AuthProvider)
-- [ ] Update authentication context to use Supabase
-- [ ] Update protected routes to use Supabase session
-- [ ] Update API routes to validate Supabase JWT tokens
+- [x] Remove Clerk dependencies from package.json
+- [x] Remove Clerk middleware and components
+- [x] Create Supabase Auth components (SignIn, SignUp, AuthProvider)
+- [x] Update authentication context to use Supabase
+- [x] Update protected routes to use Supabase session
+- [x] Update API routes to validate Supabase JWT tokens
 - [ ] Remove Clerk environment variables from Vercel
 - [ ] Test email/password authentication
 - [ ] Test OAuth providers (Google, GitHub) via Supabase
 - [ ] Update mobile app to use Supabase Auth
 - [ ] Test end-to-end auth flow on production
+
+## Fix Remaining Clerk References (Build Errors)
+
+- [ ] Fix src/lib/api.ts - Remove Clerk getUserId function
+- [ ] Fix src/app/layout.tsx - Add missing globals.css
+- [ ] Fix src/app/forgot-password/page.tsx - Remove Clerk imports
+- [ ] Fix src/app/profile/edit/page.tsx - Remove Clerk imports
+- [ ] Fix src/lib/supabase/client.ts - Add createClient export

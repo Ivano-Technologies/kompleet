@@ -44,3 +44,8 @@ export function createBrowserClient(): SupabaseClient {
 }
 
 export type BrowserSupabaseClient = ReturnType<typeof createBrowserClient>;
+
+/**
+ * Alias for createBrowserClient for convenience
+ */
+export const createClient = createBrowserClient;
