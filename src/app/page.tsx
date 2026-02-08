@@ -78,7 +78,7 @@ export default function Home() {
       />
 
       {/* Hero Section with Floating Logos - Dark Background */}
-      <div className="relative bg-black text-white min-h-[600px] flex items-center justify-center py-24 md:py-32">
+      <div className="relative bg-black/100 text-white min-h-[600px] flex items-center justify-center py-24 md:py-32">
         <Container>
           <div className="text-center max-w-4xl mx-auto">
             {/* Large KOMPLEET Logo */}
@@ -128,7 +128,7 @@ export default function Home() {
       </div>
 
       {/* Tagline Section - Dark Background */}
-      <Section spacing="md" className="bg-black text-white">
+      <Section spacing="md" className="bg-black/100 text-white">
         <div className="text-center">
           <h2 className="text-5xl md:text-6xl font-bold tracking-tight">
             Kompleet records. <span className="text-gray-400">Kompleet filings.</span> Kompleet compliance.
@@ -137,7 +137,7 @@ export default function Home() {
       </Section>
 
       {/* Features Section - Dark Background */}
-      <Section spacing="lg" className="bg-black text-white">
+      <Section spacing="lg" className="bg-black/100 text-white">
         <div className="text-center mb-16">
           <h3 className="text-4xl font-bold mb-4">Built for Nigerian Businesses</h3>
           <p className="text-xl text-gray-400 max-w-3xl mx-auto">
