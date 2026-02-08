@@ -86,15 +86,15 @@ export interface LogoProps {
 
 export function Logo({ text = 'KOMPLEET', imageSrc, imageAlt = 'Logo' }: LogoProps) {
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-2">
       {imageSrc && (
         <img
           src={imageSrc}
           alt={imageAlt}
-          className="w-10 h-10"
+          className="w-8 h-8"
         />
       )}
-      <span className="text-xl font-bold text-foreground">
+      <span className="text-lg font-semibold text-foreground">
         {text}
       </span>
     </div>

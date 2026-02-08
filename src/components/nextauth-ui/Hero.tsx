@@ -57,7 +57,7 @@ export const Hero = forwardRef<HTMLDivElement, HeroProps>(
 
             {/* Actions */}
             {actions && (
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <div className="flex flex-row items-center justify-center gap-4 flex-wrap">
                 {actions}
               </div>
             )}
