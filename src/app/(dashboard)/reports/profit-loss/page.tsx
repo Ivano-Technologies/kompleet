@@ -89,7 +89,7 @@ export default function ProfitLossPage() {
       </div>
 
       {/* Date Selection */}
-      <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+      <div className="bg-white rounded-lg p-6 mb-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Select Period</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
@@ -128,7 +128,7 @@ export default function ProfitLossPage() {
 
       {/* Statement */}
       {statement && (
-        <div className="bg-white rounded-lg shadow-sm p-8">
+        <div className="bg-white rounded-lg p-8">
           {/* Header */}
           <div className="text-center mb-8 border-b-2 border-gray-900 pb-4">
             <h2 className="text-2xl font-bold text-gray-900">PROFIT & LOSS STATEMENT</h2>

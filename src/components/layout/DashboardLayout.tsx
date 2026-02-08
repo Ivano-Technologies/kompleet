@@ -81,7 +81,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
               {/* Dropdown Menu */}
               {showUserMenu && (
-                <div className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-200 rounded-lg shadow-lg">
+                <div className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-200 rounded-lg">
                   <Link
                     href="/profile"
                     className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 rounded-t-lg"

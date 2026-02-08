@@ -281,7 +281,7 @@ export default function TransactionReviewPage() {
       </div>
 
       {/* Current Transaction */}
-      <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+      <div className="bg-white rounded-lg p-6 mb-6">
         <div className="flex justify-between items-start mb-4">
           <div>
             <h2 className="text-xl font-semibold text-gray-900 mb-1">
@@ -345,7 +345,7 @@ export default function TransactionReviewPage() {
       )}
 
       {/* Custom Category Selection */}
-      <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+      <div className="bg-white rounded-lg p-6 mb-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-3">Or Choose a Category</h3>
         <div className="flex gap-3">
           <select

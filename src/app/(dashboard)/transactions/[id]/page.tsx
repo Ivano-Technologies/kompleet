@@ -261,7 +261,7 @@ export default function TransactionDetailsPage() {
       )}
 
       {/* Transaction Details */}
-      <div className="bg-white rounded-lg shadow-sm p-6 space-y-6">
+      <div className="bg-white rounded-lg p-6 space-y-6">
         {/* Amount */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">

@@ -312,3 +312,73 @@
 - [x] Update sign-in page to show only magic link (email) authentication
 - [x] Remove password and OAuth options temporarily
 - [ ] Test magic link authentication flow
+
+
+## Dashboard Chart Rendering Issues (February 8, 2026)
+
+- [x] Fix chart components with invalid dimensions (-1 width/height)
+- [x] Add explicit width/height to chart containers
+- [ ] Test all dashboard charts render correctly (requires new magic link login)
+
+
+## UI Redesign - NextAuth Design Language (February 8, 2026)
+
+### Design Decisions (LOCKED)
+- Font: Inter (NextAuth exact match)
+- Colors: NextAuth light/dark themes + Nigerian green (#008751) accents only
+- Tone: Friendly & approachable
+- Dashboard: Overview with stats + quick actions (NextAuth-style layout)
+- Legal: Privacy Policy + Terms of Service links in footer only
+- Users: Optimize for all segments equally (no personalization yet)
+
+### Phase 1: Foundation
+- [x] Analyze NextAuth live site for pixel-perfect details
+- [x] Create Design System v2.0 with NextAuth fidelity
+- [x] Get user approval for design system
+- [x] Update Tailwind config with exact NextAuth tokens
+- [x] Load Inter font from Google Fonts
+- [x] Remove all glassmorphism effects from existing components
+- [x] Remove all shadow utilities from existing components
+- [x] Create CSS variables for theme switching
+
+### Phase 2: Component Library
+- [x] Button (primary with Nigerian green, secondary with dashed hover, danger)
+- [x] Card (feature card, data card with CardHeader/CardTitle/CardContent)
+- [x] Input & Textarea (with Nigerian green focus states)
+- [x] Container (1200px max-width)
+- [x] Navigation (sticky header with active link highlighting)
+- [x] Footer (3-column layout with tagline and copyright)
+- [x] Section & SectionHeader (generous vertical padding)
+- [x] Grid (1-4 columns, responsive)
+- [x] Hero (landing page hero with badge, title, subtitle, actions)
+- [x] FloatingLogos (Nigerian finance brand logos at 10% opacity)
+- [ ] Table (transactions, reports) - Future
+- [ ] Modal (confirmation, alerts) - Future
+- [ ] Progress (circular, linear) - Future
+- [ ] Badge (status indicators) - Future
+- [ ] Dropdown (select, menu) - Future
+- [ ] Tabs (navigation within pages) - Future
+
+### Phase 3: Page Redesigns
+- [ ] Landing page (/) - NextAuth hero pattern
+- [ ] Sign-in page (/sign-in) - Centered card
+- [ ] Dashboard (/dashboard) - Overview with stats + quick actions
+- [ ] Tax calculators - Clean form layouts
+- [ ] Transactions - High-contrast table
+- [ ] E-invoicing - Form-heavy pages
+- [ ] Bank uploads - Drag-and-drop zone
+- [ ] Filing center - Status cards
+- [ ] Reports - Data-heavy layouts
+- [ ] Profile/Settings - Simple forms
+
+### Phase 4: Themes & Polish
+- [ ] Implement dark theme
+- [ ] Test theme switching
+- [ ] Accessibility checks (WCAG AA)
+- [ ] Responsive testing (mobile, tablet, desktop)
+- [ ] Performance optimization
+
+### Phase 5: Deployment
+- [ ] User approval for final UI
+- [ ] Deploy to production
+- [ ] Before/after comparison documentation
