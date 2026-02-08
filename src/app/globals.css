@@ -1,6 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@config "../../tailwind.config.js";
 
 /* NextAuth-inspired Design System - Light Theme */
 :root {
@@ -120,6 +119,3 @@ body {
 .icon-gradient-teal {
   background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
 }
-
-
-/* Force rebuild - February 8, 2026 05:06 UTC */
