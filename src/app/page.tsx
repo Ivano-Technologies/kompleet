@@ -108,15 +108,14 @@ export default function Home() {
 
             {/* Actions */}
             <div className="flex flex-row items-center justify-center gap-4 flex-wrap">
-          <>
-            <Link href="/sign-in">
-              <Button size="lg">Get Started Free</Button>
-            </Link>
-            <Link href="/features">
-              <Button variant="secondary" size="lg">
-                Learn More
-              </Button>
-            </Link>
+              <Link href="/sign-in">
+                <Button size="lg">Get Started Free</Button>
+              </Link>
+              <Link href="/features">
+                <Button variant="secondary" size="lg">
+                  Learn More
+                </Button>
+              </Link>
             </div>
 
             {/* Floating Logos */}
