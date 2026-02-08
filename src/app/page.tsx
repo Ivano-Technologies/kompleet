@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 
 // Nigerian-Inspired KOMPLEET Landing Page with Glassmorphism
