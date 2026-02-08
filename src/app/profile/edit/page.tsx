@@ -51,7 +51,7 @@ export default function EditProfilePage() {
 
           <h1 className="text-3xl font-bold text-gray-900 mb-6">Edit Profile</h1>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
             <form onSubmit={handleSubmit}>
               <div className="space-y-6">
                 <div>

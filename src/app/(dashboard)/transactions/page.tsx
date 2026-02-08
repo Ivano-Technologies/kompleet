@@ -185,7 +185,7 @@ export default function TransactionsPage() {
             >
               {exporting ? 'Exporting...' : 'Export'}
             </button>
-            <div id="export-menu" className="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
+            <div id="export-menu" className="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg border border-gray-200 z-10">
               <button
                 onClick={() => { handleExport('csv'); document.getElementById('export-menu')?.classList.add('hidden'); }}
                 className="block w-full text-left px-4 py-2 hover:bg-gray-50 rounded-t-lg"
@@ -210,7 +210,7 @@ export default function TransactionsPage() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+      <div className="bg-white rounded-lg p-4 mb-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <input
             type="text"
@@ -263,7 +263,7 @@ export default function TransactionsPage() {
       </div>
 
       {/* Transactions Table */}
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+      <div className="bg-white rounded-lg overflow-hidden">
         {loading ? (
           <div className="p-12 text-center text-gray-500">Loading transactions...</div>
         ) : transactions.length === 0 ? (

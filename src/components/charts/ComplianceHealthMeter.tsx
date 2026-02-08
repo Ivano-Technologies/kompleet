@@ -62,13 +62,13 @@ export function ComplianceHealthMeter({ data }: ComplianceHealthMeterProps) {
 
       {/* Metrics Grid */}
       <div className="w-full grid grid-cols-2 gap-4">
-        <div className="text-center p-3 rounded-lg bg-white/5 backdrop-blur-sm border border-white/10">
+        <div className="text-center p-3 rounded-lg bg-surface border border-border">
           <div className="text-2xl font-bold text-white">
             {categorizedTransactions}/{totalTransactions}
           </div>
           <div className="text-xs text-gray-400 mt-1">Categorized</div>
         </div>
-        <div className="text-center p-3 rounded-lg bg-white/5 backdrop-blur-sm border border-white/10">
+        <div className="text-center p-3 rounded-lg bg-surface border border-border">
           <div className="text-2xl font-bold text-white">
             {reconciliationRate}%
           </div>

@@ -94,7 +94,7 @@ export default function FilingCenterPage() {
         </div>
 
         {/* Filters and Actions */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <div className="bg-white rounded-lg p-6 mb-6">
           <div className="flex flex-wrap gap-4 items-center justify-between">
             <div className="flex gap-4">
               {/* Form Type Filter */}
@@ -162,7 +162,7 @@ export default function FilingCenterPage() {
         </div>
 
         {/* Forms List */}
-        <div className="bg-white rounded-lg shadow-sm">
+        <div className="bg-white rounded-lg">
           <div className="p-6 border-b border-gray-200">
             <h2 className="text-xl font-semibold text-gray-900">Your Forms</h2>
             <p className="text-sm text-gray-600 mt-1">

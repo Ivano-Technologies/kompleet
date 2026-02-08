@@ -62,23 +62,23 @@ export default function ReportsPage() {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow-sm p-6">
+        <div className="bg-white rounded-lg p-6">
           <div className="text-sm text-gray-600 font-medium">Total Transactions</div>
           <div className="text-3xl font-bold text-gray-900 mt-2">{stats.totalTransactions}</div>
         </div>
-        <div className="bg-green-50 rounded-lg shadow-sm p-6">
+        <div className="bg-green-50 rounded-lg p-6">
           <div className="text-sm text-green-700 font-medium">Total Revenue</div>
           <div className="text-3xl font-bold text-green-900 mt-2">
             {formatCurrency(stats.totalRevenue)}
           </div>
         </div>
-        <div className="bg-red-50 rounded-lg shadow-sm p-6">
+        <div className="bg-red-50 rounded-lg p-6">
           <div className="text-sm text-red-700 font-medium">Total Expenses</div>
           <div className="text-3xl font-bold text-red-900 mt-2">
             {formatCurrency(stats.totalExpenses)}
           </div>
         </div>
-        <div className={`rounded-lg shadow-sm p-6 ${stats.netIncome >= 0 ? 'bg-blue-50' : 'bg-yellow-50'}`}>
+        <div className={`rounded-lg p-6 ${stats.netIncome >= 0 ? 'bg-blue-50' : 'bg-yellow-50'}`}>
           <div className={`text-sm font-medium ${stats.netIncome >= 0 ? 'text-blue-700' : 'text-yellow-700'}`}>
             Net {stats.netIncome >= 0 ? 'Profit' : 'Loss'}
           </div>
@@ -93,7 +93,7 @@ export default function ReportsPage() {
         {/* Profit & Loss Statement */}
         <Link
           href="/reports/profit-loss"
-          className="bg-white rounded-lg shadow-sm p-8 hover:shadow-md transition-shadow border-2 border-transparent hover:border-green-500"
+          className="bg-white rounded-lg p-8 hover:shadow-md transition-shadow border-2 border-transparent hover:border-green-500"
         >
           <div className="flex items-start justify-between mb-4">
             <div className="text-5xl">📊</div>
@@ -159,7 +159,7 @@ export default function ReportsPage() {
         {/* Balance Sheet */}
         <Link
           href="/reports/balance-sheet"
-          className="bg-white rounded-lg shadow-sm p-8 hover:shadow-md transition-shadow border-2 border-transparent hover:border-blue-500"
+          className="bg-white rounded-lg p-8 hover:shadow-md transition-shadow border-2 border-transparent hover:border-blue-500"
         >
           <div className="flex items-start justify-between mb-4">
             <div className="text-5xl">📈</div>
