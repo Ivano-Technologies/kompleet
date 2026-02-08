@@ -38,8 +38,8 @@ export function CategoryBreakdownChart({ data }: CategoryBreakdownChartProps) {
   };
 
   return (
-    <div className="w-full h-full">
-      <ResponsiveContainer width="100%" height="100%">
+    <div className="w-full h-full min-h-[300px]">
+      <ResponsiveContainer width="100%" height={300}>
         <PieChart>
           <Pie
             data={data}
