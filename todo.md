@@ -309,6 +309,6 @@
 
 ## Simplify Authentication for Testing
 
-- [ ] Update sign-in page to show only magic link (email) authentication
-- [ ] Remove password and OAuth options temporarily
+- [x] Update sign-in page to show only magic link (email) authentication
+- [x] Remove password and OAuth options temporarily
 - [ ] Test magic link authentication flow
