@@ -1,4 +1,4 @@
-import { AuthProvider } from '@/lib/supabase/auth-provider';
+import { AuthProvider } from '@/contexts/AuthContext';
 import { Inter } from 'next/font/google';
 import './globals.css';
 
