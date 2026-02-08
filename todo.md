@@ -301,8 +301,14 @@
 
 ## Fix Remaining Clerk References (Build Errors)
 
-- [ ] Fix src/lib/api.ts - Remove Clerk getUserId function
-- [ ] Fix src/app/layout.tsx - Add missing globals.css
-- [ ] Fix src/app/forgot-password/page.tsx - Remove Clerk imports
-- [ ] Fix src/app/profile/edit/page.tsx - Remove Clerk imports
-- [ ] Fix src/lib/supabase/client.ts - Add createClient export
+- [x] Fix src/lib/api.ts - Remove Clerk getUserId function
+- [x] Fix src/app/layout.tsx - Add missing globals.css
+- [x] Fix src/app/forgot-password/page.tsx - Remove Clerk imports
+- [x] Fix src/app/profile/edit/page.tsx - Remove Clerk imports
+- [x] Fix src/lib/supabase/client.ts - Add createClient export
+
+## Simplify Authentication for Testing
+
+- [ ] Update sign-in page to show only magic link (email) authentication
+- [ ] Remove password and OAuth options temporarily
+- [ ] Test magic link authentication flow
