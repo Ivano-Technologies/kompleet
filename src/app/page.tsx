@@ -119,7 +119,8 @@ export default function Home() {
           flexWrap: 'wrap'
         }}>
           <Link 
-            href="/signup" 
+            href="/sign-in" 
+            className="cta-button-primary"
             style={{
               padding: '18px 48px',
               background: 'linear-gradient(135deg, #FF6B35 0%, #F7B801 100%)',
@@ -131,22 +132,14 @@ export default function Home() {
               boxShadow: '0 8px 24px rgba(255, 107, 53, 0.4)',
               transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
               display: 'inline-block',
-              border: 'none',
-              cursor: 'pointer'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-2px) scale(1.02)';
-              e.currentTarget.style.boxShadow = '0 12px 32px rgba(255, 107, 53, 0.5)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0) scale(1)';
-              e.currentTarget.style.boxShadow = '0 8px 24px rgba(255, 107, 53, 0.4)';
+              border: 'none'
             }}
           >
             Get Started Free
           </Link>
           <Link 
-            href="/login" 
+            href="/sign-in" 
+            className="cta-button-secondary"
             style={{
               padding: '18px 48px',
               background: 'rgba(255, 255, 255, 0.2)',
@@ -158,16 +151,7 @@ export default function Home() {
               fontWeight: '700',
               border: '2px solid rgba(255, 255, 255, 0.3)',
               transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-              display: 'inline-block',
-              cursor: 'pointer'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)';
-              e.currentTarget.style.transform = 'translateY(-2px)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
-              e.currentTarget.style.transform = 'translateY(0)';
+              display: 'inline-block'
             }}
           >
             Sign In
@@ -182,25 +166,15 @@ export default function Home() {
           marginTop: '100px',
           textAlign: 'left'
         }}>
-          <div style={{
+          <div className="feature-card" style={{
             background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%)',
             backdropFilter: 'blur(20px) saturate(180%)',
             padding: '40px',
             borderRadius: '24px',
             border: '1px solid rgba(255, 255, 255, 0.3)',
             boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            cursor: 'pointer'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-8px)';
-            e.currentTarget.style.boxShadow = '0 16px 48px rgba(0, 0, 0, 0.25)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.15)';
-          }}
-          >
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+          }}>
             <div style={{ 
               fontSize: '48px', 
               marginBottom: '20px',
@@ -217,25 +191,15 @@ export default function Home() {
             </p>
           </div>
 
-          <div style={{
+          <div className="feature-card" style={{
             background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%)',
             backdropFilter: 'blur(20px) saturate(180%)',
             padding: '40px',
             borderRadius: '24px',
             border: '1px solid rgba(255, 255, 255, 0.3)',
             boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            cursor: 'pointer'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-8px)';
-            e.currentTarget.style.boxShadow = '0 16px 48px rgba(0, 0, 0, 0.25)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.15)';
-          }}
-          >
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+          }}>
             <div style={{ 
               fontSize: '48px', 
               marginBottom: '20px',
@@ -252,25 +216,15 @@ export default function Home() {
             </p>
           </div>
 
-          <div style={{
+          <div className="feature-card" style={{
             background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%)',
             backdropFilter: 'blur(20px) saturate(180%)',
             padding: '40px',
             borderRadius: '24px',
             border: '1px solid rgba(255, 255, 255, 0.3)',
             boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
-            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-            cursor: 'pointer'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-8px)';
-            e.currentTarget.style.boxShadow = '0 16px 48px rgba(0, 0, 0, 0.25)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.15)';
-          }}
-          >
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+          }}>
             <div style={{ 
               fontSize: '48px', 
               marginBottom: '20px',
@@ -296,75 +250,160 @@ export default function Home() {
           backdropFilter: 'blur(20px) saturate(180%)',
           borderRadius: '32px',
           border: '1px solid rgba(255, 255, 255, 0.3)',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)'
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)'
         }}>
           <h2 style={{ 
             fontSize: '42px', 
-            fontWeight: '700', 
+            fontWeight: '800', 
             marginBottom: '50px',
             textAlign: 'center',
-            background: 'linear-gradient(135deg, #FFFFFF 0%, #F7B801 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text'
+            color: 'white'
           }}>
-            Everything You Need for Tax Compliance
+            Why Choose KOMPLEET?
           </h2>
+          
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-            gap: '32px',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+            gap: '40px',
             textAlign: 'left'
           }}>
-            {[
-              { icon: '🧮', title: 'Tax Calculators', desc: 'CIT, PIT, VAT, Capital Allowances, Stamp Duty, Property Tax' },
-              { icon: '📱', title: 'Mobile App', desc: 'iOS & Android apps for on-the-go management' },
-              { icon: '🔐', title: 'Secure & Private', desc: 'Bank-level encryption, NDPR compliant' },
-              { icon: '📈', title: 'Reports & Analytics', desc: 'Balance Sheet, P&L, Tax Summary with PDF export' },
-              { icon: '🔔', title: 'Smart Reminders', desc: 'Never miss a tax deadline with automated alerts' },
-              { icon: '📋', title: 'E-Invoicing', desc: 'NRS-compliant invoices with digital signatures' }
-            ].map((feature, index) => (
-              <div key={index} style={{
-                background: 'rgba(255, 255, 255, 0.1)',
-                backdropFilter: 'blur(10px)',
-                padding: '24px',
-                borderRadius: '16px',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                transition: 'all 0.3s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
-                e.currentTarget.style.transform = 'translateY(-4px)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
-                e.currentTarget.style.transform = 'translateY(0)';
-              }}
-              >
-                <div style={{ fontSize: '32px', marginBottom: '12px' }}>{feature.icon}</div>
-                <h4 style={{ fontWeight: '700', marginBottom: '8px', fontSize: '18px' }}>{feature.title}</h4>
-                <p style={{ opacity: 0.9, fontSize: '15px', lineHeight: '1.6' }}>{feature.desc}</p>
-              </div>
-            ))}
+            <div>
+              <div style={{ 
+                fontSize: '32px', 
+                marginBottom: '16px',
+                background: 'linear-gradient(135deg, #FF6B35 0%, #F7B801 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                fontWeight: '700'
+              }}>🇳🇬</div>
+              <h4 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '10px', color: 'white' }}>
+                Nigerian-First Design
+              </h4>
+              <p style={{ opacity: 0.9, lineHeight: '1.6', fontSize: '16px' }}>
+                Built specifically for Nigerian tax regulations and business practices
+              </p>
+            </div>
+
+            <div>
+              <div style={{ 
+                fontSize: '32px', 
+                marginBottom: '16px',
+                background: 'linear-gradient(135deg, #004E89 0%, #00A86B 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                fontWeight: '700'
+              }}>🔒</div>
+              <h4 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '10px', color: 'white' }}>
+                Bank-Level Security
+              </h4>
+              <p style={{ opacity: 0.9, lineHeight: '1.6', fontSize: '16px' }}>
+                Your financial data is encrypted and protected with enterprise-grade security
+              </p>
+            </div>
+
+            <div>
+              <div style={{ 
+                fontSize: '32px', 
+                marginBottom: '16px',
+                background: 'linear-gradient(135deg, #00A86B 0%, #F7B801 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                fontWeight: '700'
+              }}>⚡</div>
+              <h4 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '10px', color: 'white' }}>
+                Real-Time Updates
+              </h4>
+              <p style={{ opacity: 0.9, lineHeight: '1.6', fontSize: '16px' }}>
+                Stay current with automatic tax law updates and compliance changes
+              </p>
+            </div>
+
+            <div>
+              <div style={{ 
+                fontSize: '32px', 
+                marginBottom: '16px',
+                background: 'linear-gradient(135deg, #FF6B35 0%, #F7B801 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                fontWeight: '700'
+              }}>📱</div>
+              <h4 style={{ fontSize: '20px', fontWeight: '700', marginBottom: '10px', color: 'white' }}>
+                Mobile & Web Access
+              </h4>
+              <p style={{ opacity: 0.9, lineHeight: '1.6', fontSize: '16px' }}>
+                Manage your finances anywhere, anytime, on any device
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* Footer */}
+        {/* Footer CTA */}
         <div style={{
           marginTop: '100px',
-          paddingTop: '50px',
-          borderTop: '1px solid rgba(255, 255, 255, 0.2)',
-          opacity: 0.9,
-          fontSize: '15px'
+          padding: '60px 40px',
+          textAlign: 'center'
         }}>
-          <p style={{ marginBottom: '12px', fontWeight: '600' }}>
-            © 2026 Ivano Technologies Ltd. All rights reserved.
+          <h2 style={{ 
+            fontSize: '42px', 
+            fontWeight: '800', 
+            marginBottom: '24px',
+            color: 'white'
+          }}>
+            Ready to Get Started?
+          </h2>
+          <p style={{ 
+            fontSize: '20px', 
+            marginBottom: '40px', 
+            opacity: 0.95,
+            maxWidth: '700px',
+            margin: '0 auto 40px',
+            lineHeight: '1.7'
+          }}>
+            Join thousands of Nigerian businesses and individuals who trust KOMPLEET for their tax compliance needs.
           </p>
-          <p style={{ fontStyle: 'italic', fontFamily: "'Playfair Display', serif" }}>
-            Kompleet records. Kompleet filings. Kompleet compliance.
-          </p>
+          <Link 
+            href="/sign-in" 
+            className="cta-button-primary"
+            style={{
+              padding: '20px 60px',
+              background: 'linear-gradient(135deg, #FF6B35 0%, #F7B801 100%)',
+              color: 'white',
+              textDecoration: 'none',
+              borderRadius: '12px',
+              fontSize: '20px',
+              fontWeight: '700',
+              boxShadow: '0 8px 24px rgba(255, 107, 53, 0.4)',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              display: 'inline-block',
+              border: 'none'
+            }}
+          >
+            Start Free Trial
+          </Link>
         </div>
       </div>
+
+      <style jsx>{`
+        .cta-button-primary:hover {
+          transform: translateY(-2px) scale(1.02);
+          box-shadow: 0 12px 32px rgba(255, 107, 53, 0.5);
+        }
+        
+        .cta-button-secondary:hover {
+          background: rgba(255, 255, 255, 0.3);
+          transform: translateY(-2px);
+        }
+        
+        .feature-card:hover {
+          transform: translateY(-8px);
+          box-shadow: 0 16px 48px rgba(0, 0, 0, 0.25);
+        }
+      `}</style>
     </main>
   );
 }
