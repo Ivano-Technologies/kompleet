@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { useUser } from "@clerk/nextjs";
+import { useAuth } from "@/contexts/AuthContext";
 import Image from "next/image";
 
 export function AvatarUpload() {
-  const { user } = useUser();
+  const { user } = useAuth();
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -30,31 +31,21 @@ export function AvatarUpload() {
     setError(null);
 
     try {
-      // Convert file to base64
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      
-      reader.onload = async () => {
-        try {
-          const base64Image = reader.result as string;
-          
-          // Update Clerk user avatar
-          await user?.setProfileImage({ file: base64Image });
-          
-          // Refresh user data
-          await user?.reload();
-          
-          setUploading(false);
-        } catch (err: any) {
-          setError(err.message || "Failed to upload avatar");
-          setUploading(false);
-        }
-      };
+      const formData = new FormData();
+      formData.append("file", file);
 
-      reader.onerror = () => {
-        setError("Failed to read file");
-        setUploading(false);
-      };
+      const response = await fetch("/api/upload-avatar", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to upload avatar");
+      }
+
+      const data = await response.json();
+      setAvatarUrl(data.url);
+      setUploading(false);
     } catch (err: any) {
       setError(err.message || "Failed to upload avatar");
       setUploading(false);
@@ -65,21 +56,30 @@ export function AvatarUpload() {
     fileInputRef.current?.click();
   };
 
+  // Get user initials for fallback avatar
+  const getInitials = () => {
+    if (!user?.email) return "?";
+    const email = user.email;
+    return email.charAt(0).toUpperCase();
+  };
+
+  const displayAvatarUrl = avatarUrl || user?.user_metadata?.avatar_url;
+
   return (
     <div className="flex flex-col items-center gap-4">
       <div className="relative">
         <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-200 border-4 border-white shadow-lg">
-          {user?.imageUrl ? (
+          {displayAvatarUrl ? (
             <Image
-              src={user.imageUrl}
-              alt={user.fullName || "User avatar"}
+              src={displayAvatarUrl}
+              alt="User avatar"
               width={128}
               height={128}
               className="w-full h-full object-cover"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-blue-500 text-white text-4xl font-bold">
-              {user?.firstName?.[0]}{user?.lastName?.[0]}
+              {getInitials()}
             </div>
           )}
         </div>
