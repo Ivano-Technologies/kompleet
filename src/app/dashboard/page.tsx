@@ -159,7 +159,7 @@ export default async function DashboardPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="h-80">
-                    <ComplianceHealthMeter metrics={complianceMetrics} />
+                    <ComplianceHealthMeter data={complianceMetrics} />
                   </div>
                 </CardContent>
               </Card>
