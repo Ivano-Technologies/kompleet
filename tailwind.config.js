@@ -15,8 +15,8 @@ module.exports = {
       },
       colors: {
         // NextAuth-inspired pure black/white themes
-        black: '#000000',
-        white: '#FFFFFF',
+        black: 'rgb(var(--black) / <alpha-value>)',
+        white: 'rgb(var(--white) / <alpha-value>)',
         background: 'rgb(var(--background) / <alpha-value>)',
         foreground: 'rgb(var(--foreground) / <alpha-value>)',
         muted: 'rgb(var(--muted) / <alpha-value>)',
