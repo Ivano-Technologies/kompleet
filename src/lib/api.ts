@@ -55,13 +55,14 @@ export function validateRequired<T extends Record<string, unknown>>(
 }
 
 /**
- * Get user ID from Clerk session
+ * Get user ID from Supabase Auth session
  */
 export async function getUserId(request: Request): Promise<string | null> {
   try {
-    const { auth } = await import('@clerk/nextjs/server');
-    const { userId } = await auth();
-    return userId;
+    const { createServerClient } = await import('@/lib/supabase/server');
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    return user?.id || null;
   } catch (error) {
     console.error('Failed to get user ID:', error);
     return null;
