@@ -13,6 +13,7 @@ import {
   Logo,
   Footer,
   FloatingLogos,
+  Container,
 } from '@/components/nextauth-ui';
 
 /**
