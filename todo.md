@@ -276,3 +276,25 @@
 - [ ] Test responsive design on mobile and desktop
 - [ ] Update Tailwind config with new design tokens
 - [ ] Deploy redesigned platform to production
+
+## Critical Login Issue (February 7, 2026)
+
+- [ ] Fix Clerk OAuth redirect using development domain instead of production
+- [ ] Update Clerk environment variables to use production keys
+- [ ] Configure Clerk dashboard with correct production callback URLs
+- [ ] Test login flow on production (techivano.com)
+- [ ] Test login flow on mobile app
+
+## Migrate from Clerk to Supabase Auth (February 7, 2026)
+
+- [ ] Remove Clerk dependencies from package.json
+- [ ] Remove Clerk middleware and components
+- [ ] Create Supabase Auth components (SignIn, SignUp, AuthProvider)
+- [ ] Update authentication context to use Supabase
+- [ ] Update protected routes to use Supabase session
+- [ ] Update API routes to validate Supabase JWT tokens
+- [ ] Remove Clerk environment variables from Vercel
+- [ ] Test email/password authentication
+- [ ] Test OAuth providers (Google, GitHub) via Supabase
+- [ ] Update mobile app to use Supabase Auth
+- [ ] Test end-to-end auth flow on production

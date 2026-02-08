@@ -1,9 +1,10 @@
-import { ClerkProvider } from '@clerk/nextjs';
+import { AuthProvider } from '@/contexts/AuthContext';
+import './globals.css';
 
 // Root layout component
 export const metadata = {
-  title: 'Kompleet Platform',
-  description: 'Professional platform for transaction management',
+  title: 'KOMPLEET - Tax Compliance & Financial Management',
+  description: 'Professional tax compliance and financial management platform for Nigerian businesses and individuals. Fully aligned with the 2026 Nigerian Tax Act.',
 };
 
 export default function RootLayout({
@@ -12,10 +13,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ClerkProvider>
-      <html lang="en">
-        <body>{children}</body>
-      </html>
-    </ClerkProvider>
+    <html lang="en">
+      <body>
+        <AuthProvider>{children}</AuthProvider>
+      </body>
+    </html>
   );
 }
