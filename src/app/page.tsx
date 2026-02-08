@@ -77,12 +77,37 @@ export default function Home() {
       />
 
       {/* Hero Section with Floating Logos - Dark Background */}
-      <Hero
-        className="bg-black text-white"
-        badge="2026"
-        title="KOMPLEET"
-        subtitle="Kompleet records. Kompleet filings. Kompleet compliance."
-        actions={
+      <div className="relative bg-black text-white min-h-[600px] flex items-center justify-center py-24 md:py-32">
+        <Container>
+          <div className="text-center max-w-4xl mx-auto">
+            {/* Large KOMPLEET Logo */}
+            <div className="mb-8">
+              <img
+                src="/assets/logo-primary.png"
+                alt="KOMPLEET"
+                className="w-48 h-48 mx-auto"
+              />
+            </div>
+
+            {/* Badge */}
+            <div className="inline-block mb-6">
+              <span className="px-4 py-2 bg-primary/10 text-primary text-sm font-semibold rounded-full">
+                2026
+              </span>
+            </div>
+
+            {/* Title */}
+            <h1 className="text-7xl md:text-8xl font-black tracking-tight mb-6">
+              KOMPLEET
+            </h1>
+
+            {/* Subtitle */}
+            <p className="text-2xl text-gray-400 mb-8 max-w-2xl mx-auto">
+              Tax Compliance for Nigerian Businesses
+            </p>
+
+            {/* Actions */}
+            <div className="flex flex-row items-center justify-center gap-4 flex-wrap">
           <>
             <Link href="/sign-in">
               <Button size="lg">Get Started Free</Button>
@@ -92,11 +117,15 @@ export default function Home() {
                 Learn More
               </Button>
             </Link>
-          </>
-        }
-      >
-        <FloatingLogos />
-      </Hero>
+            </div>
+
+            {/* Floating Logos */}
+            <div className="mt-12">
+              <FloatingLogos />
+            </div>
+          </div>
+        </Container>
+      </div>
 
       {/* Tagline Section - Dark Background */}
       <Section spacing="md" className="bg-black text-white">
