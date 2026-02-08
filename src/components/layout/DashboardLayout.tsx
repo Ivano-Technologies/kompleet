@@ -1,9 +1,9 @@
 'use client';
 
-import { UserButton } from '@clerk/nextjs';
+import { useAuth } from '@/contexts/AuthContext';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { ReactNode } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { ReactNode, useState } from 'react';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -11,6 +11,9 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, signOut } = useAuth();
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
   const navItems = [
     { href: '/dashboard', label: 'Dashboard', icon: '📊' },
@@ -20,6 +23,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     { href: '/bank', label: 'Bank Sync', icon: '🏦' },
     { href: '/settings', label: 'Settings', icon: '⚙️' },
   ];
+
+  const handleSignOut = async () => {
+    await signOut();
+    router.push('/');
+  };
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -42,7 +50,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   href={item.href}
                   className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                     isActive
-                      ? 'bg-blue-50 text-blue-700 font-medium'
+                      ? 'bg-green-50 text-green-700 font-medium'
                       : 'text-gray-700 hover:bg-gray-100'
                   }`}
                 >
@@ -55,12 +63,40 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
           {/* User Profile */}
           <div className="p-4 border-t border-gray-200">
-            <div className="flex items-center gap-3">
-              <UserButton afterSignOutUrl="/login" />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">Your Account</p>
-                <p className="text-xs text-gray-500">Manage profile</p>
-              </div>
+            <div className="relative">
+              <button
+                onClick={() => setShowUserMenu(!showUserMenu)}
+                className="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <div className="w-10 h-10 rounded-full bg-green-600 flex items-center justify-center text-white font-semibold">
+                  {user?.email?.charAt(0).toUpperCase() || 'U'}
+                </div>
+                <div className="flex-1 min-w-0 text-left">
+                  <p className="text-sm font-medium text-gray-900 truncate">
+                    {user?.email || 'User'}
+                  </p>
+                  <p className="text-xs text-gray-500">View profile</p>
+                </div>
+              </button>
+
+              {/* Dropdown Menu */}
+              {showUserMenu && (
+                <div className="absolute bottom-full left-0 right-0 mb-2 bg-white border border-gray-200 rounded-lg shadow-lg">
+                  <Link
+                    href="/profile"
+                    className="block px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 rounded-t-lg"
+                    onClick={() => setShowUserMenu(false)}
+                  >
+                    Profile Settings
+                  </Link>
+                  <button
+                    onClick={handleSignOut}
+                    className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 rounded-b-lg"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>

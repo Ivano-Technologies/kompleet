@@ -2,24 +2,23 @@
  * Server-side Supabase client factory
  * 
  * This module provides factory functions for creating Supabase clients
- * that work with Clerk authentication in Server Components, Route Handlers, and Middleware.
- * 
- * Uses Clerk JWT for authentication instead of Supabase Auth.
+ * that work with Supabase Auth in Server Components, Route Handlers, and Middleware.
  */
-import { createClient } from '@supabase/supabase-js';
-import { auth } from '@clerk/nextjs/server';
+import { createServerClient as createSupabaseServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js';
 
 /**
- * Creates a Supabase client configured for server-side use with Clerk authentication.
+ * Creates a Supabase client configured for server-side use with Supabase Auth.
  * 
  * This client:
- * - Uses Clerk JWT for authentication
- * - Respects RLS policies based on Clerk user ID
+ * - Uses Supabase Auth for authentication
+ * - Respects RLS policies based on authenticated user
  * - Is safe for Server Components and Route Handlers
- * - Automatically includes Clerk JWT in requests
+ * - Automatically manages auth cookies
  * 
- * @returns A configured Supabase client instance with Clerk authentication
+ * @returns A configured Supabase client instance with Supabase Auth
  * 
  * @example
  * ```ts
@@ -43,14 +42,23 @@ export async function createServerClient(): Promise<SupabaseClient> {
     );
   }
 
-  // Get Clerk authentication
-  const { getToken } = await auth();
-  const token = await getToken({ template: 'kompleet-supabase' });
+  const cookieStore = await cookies();
 
-  // Create Supabase client with Clerk JWT
-  return createClient(supabaseUrl, supabaseAnonKey, {
-    global: {
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
+  return createSupabaseServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll();
+      },
+      setAll(cookiesToSet) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            cookieStore.set(name, value, options);
+          });
+        } catch (error) {
+          // Handle cookie setting errors (e.g., in middleware)
+          console.error('Error setting cookies:', error);
+        }
+      },
     },
   });
 }

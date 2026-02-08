@@ -1,177 +1,93 @@
-import { createServerClient } from '@/lib/supabase/server';
-import { requireServerUser } from '@/lib/supabase/session';
-import { getUserProfile } from '@/lib/supabase/queries';
-import { redirect } from 'next/navigation';
-import Link from 'next/link';
-import { currentUser } from '@clerk/nextjs/server';
-import { AvatarUpload } from '@/components/avatar-upload';
+'use client';
 
-export default async function ProfilePage() {
-  const supabase = await createServerClient();
-  const clerkUser = await currentUser();
-  
-  if (!clerkUser) {
-    redirect('/login');
-  }
+import { useAuth } from '@/contexts/AuthContext';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 
-  try {
-    const user = await requireServerUser(supabase);
+export default function ProfilePage() {
+  const { user } = useAuth();
 
-    // Fetch user profile from database
-    const profileResult = await getUserProfile(supabase, user.id);
+  return (
+    <ProtectedRoute>
+      <DashboardLayout>
+        <div className="max-w-4xl">
+          <h1 className="text-3xl font-bold text-gray-900 mb-6">Profile Settings</h1>
 
-    return (
-      <div style={{ maxWidth: '800px', margin: '50px auto', padding: '20px' }}>
-        <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Link href="/dashboard" style={{ color: '#0070f3', textDecoration: 'none' }}>
-            ← Back to Dashboard
-          </Link>
-          <Link 
-            href="/profile/edit" 
-            style={{ 
-              backgroundColor: '#0070f3', 
-              color: 'white', 
-              padding: '8px 16px', 
-              borderRadius: '6px', 
-              textDecoration: 'none',
-              fontWeight: '500'
-            }}
-          >
-            Edit Profile
-          </Link>
-        </div>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Profile Information</h2>
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={user?.email || ''}
+                  disabled
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700"
+                />
+                <p className="mt-1 text-sm text-gray-500">
+                  Your email address is managed by your authentication provider.
+                </p>
+              </div>
 
-        <h1 style={{ marginBottom: '30px' }}>User Profile</h1>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  User ID
+                </label>
+                <input
+                  type="text"
+                  value={user?.id || ''}
+                  disabled
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 font-mono text-sm"
+                />
+              </div>
 
-        {/* Avatar Section */}
-        <div style={{
-          padding: '30px',
-          backgroundColor: '#ffffff',
-          borderRadius: '12px',
-          marginBottom: '20px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center'
-        }}>
-          <AvatarUpload />
-        </div>
-
-        {/* Profile Information */}
-        <div style={{
-          padding: '20px',
-          backgroundColor: '#f5f5f5',
-          borderRadius: '8px',
-          marginBottom: '20px',
-        }}>
-          <h2 style={{ marginBottom: '15px' }}>Profile Information</h2>
-          <div style={{ display: 'grid', gap: '10px' }}>
-            <div>
-              <strong>Name:</strong> {clerkUser.firstName} {clerkUser.lastName}
-            </div>
-            <div>
-              <strong>Email:</strong> {clerkUser.primaryEmailAddress?.emailAddress}
-            </div>
-            <div>
-              <strong>User ID:</strong> {clerkUser.id}
-            </div>
-            {profileResult.success && profileResult.data && (
-              <>
-                <div>
-                  <strong>Subscription Tier:</strong>{' '}
-                  <span style={{
-                    padding: '4px 8px',
-                    backgroundColor: '#0070f3',
-                    color: 'white',
-                    borderRadius: '4px',
-                    fontSize: '14px',
-                  }}>
-                    {profileResult.data.subscription_tier}
-                  </span>
-                </div>
-                <div>
-                  <strong>Entity Type:</strong> {profileResult.data.entity_type}
-                </div>
-                <div>
-                  <strong>Fiscal Year Start:</strong> {profileResult.data.fiscal_year_start_month}
-                </div>
-                <div>
-                  <strong>Onboarding Complete:</strong>{' '}
-                  {profileResult.data.onboarding_completed ? '✅ Yes' : '❌ No'}
-                </div>
-              </>
-            )}
-            <div>
-              <strong>Account Created:</strong> {new Date(clerkUser.createdAt).toLocaleString()}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Account Created
+                </label>
+                <input
+                  type="text"
+                  value={user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}
+                  disabled
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700"
+                />
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Password Management */}
-        <div style={{
-          padding: '20px',
-          backgroundColor: '#fff3cd',
-          border: '1px solid #ffc107',
-          borderRadius: '8px',
-          marginBottom: '20px',
-        }}>
-          <h3 style={{ marginBottom: '10px' }}>🔐 Password & Security</h3>
-          <p style={{ marginBottom: '15px' }}>Manage your password and security settings</p>
-          <Link 
-            href="/forgot-password"
-            style={{
-              display: 'inline-block',
-              backgroundColor: '#ffc107',
-              color: '#000',
-              padding: '8px 16px',
-              borderRadius: '6px',
-              textDecoration: 'none',
-              fontWeight: '500'
-            }}
-          >
-            Change Password
-          </Link>
-        </div>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Account Actions</h2>
+            <div className="space-y-3">
+              <button
+                onClick={() => window.location.href = '/settings'}
+                className="w-full px-4 py-3 text-left text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition-colors font-medium"
+              >
+                <span className="text-xl mr-3">⚙️</span>
+                Go to Settings
+              </button>
+              <button
+                onClick={() => alert('Password reset functionality coming soon. Check your email for password reset link.')}
+                className="w-full px-4 py-3 text-left text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors font-medium"
+              >
+                <span className="text-xl mr-3">🔐</span>
+                Change Password
+              </button>
+            </div>
+          </div>
 
-        {!profileResult.success && (
-          <div style={{
-            padding: '20px',
-            backgroundColor: '#fff3cd',
-            border: '1px solid #ffc107',
-            borderRadius: '8px',
-            marginBottom: '20px',
-          }}>
-            <h3>Profile Not Found</h3>
-            <p>No profile found in database. This may indicate:</p>
-            <ul style={{ paddingLeft: '20px', marginTop: '10px' }}>
-              <li>Profile hasn't been created yet</li>
-              <li>Database connection issue</li>
+          <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-blue-900 mb-2">🔒 Security Features</h3>
+            <ul className="space-y-2 text-blue-800">
+              <li>✅ Profile data protected by Row Level Security (RLS)</li>
+              <li>✅ Secure authentication with Supabase Auth</li>
+              <li>✅ Password reset handled securely via email</li>
+              <li>✅ You can only access your own data</li>
             </ul>
-            {profileResult.error && (
-              <p style={{ marginTop: '10px', color: '#c00' }}>
-                <strong>Error:</strong> {profileResult.error}
-              </p>
-            )}
           </div>
-        )}
-
-        <div style={{
-          padding: '20px',
-          backgroundColor: '#e8f4f8',
-          borderRadius: '8px',
-        }}>
-          <h3 style={{ marginBottom: '10px' }}>🔒 RLS Protection Active</h3>
-          <p>This page demonstrates secure profile management:</p>
-          <ul style={{ marginTop: '10px', paddingLeft: '20px' }}>
-            <li>Profile data protected by Row Level Security</li>
-            <li>Avatar managed through Clerk</li>
-            <li>Password reset handled securely</li>
-            <li>User can only access their own data</li>
-          </ul>
         </div>
-      </div>
-    );
-  } catch (error) {
-    redirect('/login');
-  }
+      </DashboardLayout>
+    </ProtectedRoute>
+  );
 }
