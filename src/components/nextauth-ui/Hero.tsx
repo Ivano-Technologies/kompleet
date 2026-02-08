@@ -44,7 +44,7 @@ export const Hero = forwardRef<HTMLDivElement, HeroProps>(
             )}
 
             {/* Title */}
-            <h1 className="text-hero text-foreground mb-6">
+            <h1 className="text-hero text-gradient mb-6 font-black tracking-tight">
               {title}
             </h1>
 

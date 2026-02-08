@@ -106,9 +106,11 @@ export default function Home() {
         
         <Grid columns={3}>
           {/* Feature 1: Easy */}
-          <Card variant="feature" className="text-center">
-            <div className="w-[200px] h-[200px] rounded-full bg-gradient-to-br from-purple-500 to-cyan-500 flex items-center justify-center mx-auto mb-6">
-              <span className="text-6xl">📊</span>
+          <Card variant="feature" className="text-center hover-lift">
+            <div className="w-24 h-24 rounded-full icon-gradient-purple flex items-center justify-center mx-auto mb-6">
+              <svg className="w-12 h-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
             </div>
             <CardHeader>
               <CardTitle>Easy</CardTitle>
@@ -124,9 +126,12 @@ export default function Home() {
           </Card>
 
           {/* Feature 2: Flexible */}
-          <Card variant="feature" className="text-center">
-            <div className="w-[200px] h-[200px] rounded-full bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center mx-auto mb-6">
-              <span className="text-6xl">🔧</span>
+          <Card variant="feature" className="text-center hover-lift">
+            <div className="w-24 h-24 rounded-full icon-gradient-pink flex items-center justify-center mx-auto mb-6">
+              <svg className="w-12 h-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
             </div>
             <CardHeader>
               <CardTitle>Flexible</CardTitle>
@@ -142,9 +147,11 @@ export default function Home() {
           </Card>
 
           {/* Feature 3: Secure */}
-          <Card variant="feature" className="text-center">
-            <div className="w-[200px] h-[200px] rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center mx-auto mb-6">
-              <span className="text-6xl">🔒</span>
+          <Card variant="feature" className="text-center hover-lift">
+            <div className="w-24 h-24 rounded-full icon-gradient-blue flex items-center justify-center mx-auto mb-6">
+              <svg className="w-12 h-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
             </div>
             <CardHeader>
               <CardTitle>Secure</CardTitle>

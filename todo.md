@@ -388,10 +388,10 @@
 
 - [x] Fix logo size (too large, make smaller like NextAuth)
 - [x] Fix button alignment (horizontal alignment and spacing)
-- [ ] Add gradient text effects to hero title
-- [ ] Implement hover animations on buttons and cards
-- [ ] Enhance typography with better line heights and letter spacing
-- [ ] Add gradient backgrounds to feature card icons
+- [x] Add gradient text effects to hero title
+- [x] Implement hover animations on buttons and cards
+- [x] Enhance typography with better line heights and letter spacing
+- [x] Add gradient backgrounds to feature card icons
 - [ ] Refine navigation with better active states and transitions
 - [ ] Improve visual hierarchy with varied font sizes
 - [ ] Add subtle background patterns or decorative elements
