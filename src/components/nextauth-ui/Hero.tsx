@@ -44,13 +44,13 @@ export const Hero = forwardRef<HTMLDivElement, HeroProps>(
             )}
 
             {/* Title */}
-            <h1 className="text-hero text-gradient mb-6 font-black tracking-tight">
+            <h1 className="text-hero mb-6 font-black tracking-tight">
               {title}
             </h1>
 
             {/* Subtitle */}
             {subtitle && (
-              <p className="text-h3 text-muted mb-8 max-w-2xl mx-auto">
+              <p className="text-h3 text-gray-400 mb-8 max-w-2xl mx-auto">
                 {subtitle}
               </p>
             )}

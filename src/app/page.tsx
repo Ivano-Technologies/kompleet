@@ -76,8 +76,9 @@ export default function Home() {
         }
       />
 
-      {/* Hero Section with Floating Logos */}
+      {/* Hero Section with Floating Logos - Dark Background */}
       <Hero
+        className="bg-black text-white"
         badge="2026"
         title="KOMPLEET"
         subtitle="Kompleet records. Kompleet filings. Kompleet compliance."
@@ -97,74 +98,73 @@ export default function Home() {
         <FloatingLogos />
       </Hero>
 
-      {/* Features Section */}
-      <Section spacing="lg">
-        <SectionHeader
-          title="Built for Nigerian Businesses"
-          subtitle="Professional tax compliance and financial management platform fully aligned with the 2026 Nigerian Tax Act."
-        />
+      {/* Tagline Section - Dark Background */}
+      <Section spacing="md" className="bg-black text-white">
+        <div className="text-center">
+          <h2 className="text-5xl md:text-6xl font-bold tracking-tight">
+            Kompleet records. <span className="text-gray-400">Kompleet filings.</span> Kompleet compliance.
+          </h2>
+        </div>
+      </Section>
+
+      {/* Features Section - Dark Background */}
+      <Section spacing="lg" className="bg-black text-white">
+        <div className="text-center mb-16">
+          <h3 className="text-4xl font-bold mb-4">Built for Nigerian Businesses</h3>
+          <p className="text-xl text-gray-400 max-w-3xl mx-auto">
+            Professional tax compliance and financial management platform fully aligned with the 2026 Nigerian Tax Act.
+          </p>
+        </div>
         
         <Grid columns={3}>
           {/* Feature 1: Easy */}
-          <Card variant="feature" className="text-center hover-lift">
-            <div className="w-24 h-24 rounded-full icon-gradient-purple flex items-center justify-center mx-auto mb-6">
-              <svg className="w-12 h-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          <div className="text-center hover-lift p-8">
+            <div className="w-40 h-40 rounded-full icon-gradient-purple flex items-center justify-center mx-auto mb-6">
+              <svg className="w-16 h-16 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
             </div>
-            <CardHeader>
-              <CardTitle>Easy</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-muted">
-                <li>Automated transaction categorization</li>
-                <li>Bank statement uploads</li>
-                <li>Email receipt parsing</li>
-                <li>One-click tax calculations</li>
-              </ul>
-            </CardContent>
-          </Card>
+            <h3 className="text-2xl font-bold text-white mb-4">Easy</h3>
+            <ul className="space-y-2 text-gray-400 text-left max-w-xs mx-auto">
+              <li>• Automated transaction categorization</li>
+              <li>• Bank statement uploads</li>
+              <li>• Email receipt parsing</li>
+              <li>• One-click tax calculations</li>
+            </ul>
+          </div>
 
           {/* Feature 2: Flexible */}
-          <Card variant="feature" className="text-center hover-lift">
-            <div className="w-24 h-24 rounded-full icon-gradient-pink flex items-center justify-center mx-auto mb-6">
-              <svg className="w-12 h-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          <div className="text-center hover-lift p-8">
+            <div className="w-40 h-40 rounded-full icon-gradient-pink flex items-center justify-center mx-auto mb-6">
+              <svg className="w-16 h-16 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </div>
-            <CardHeader>
-              <CardTitle>Flexible</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-muted">
-                <li>Works for SMEs and freelancers</li>
-                <li>Multiple business support</li>
-                <li>Custom categories and rules</li>
-                <li>Export to Excel or PDF</li>
-              </ul>
-            </CardContent>
-          </Card>
+            <h3 className="text-2xl font-bold text-white mb-4">Flexible</h3>
+            <ul className="space-y-2 text-gray-400 text-left max-w-xs mx-auto">
+              <li>• Works for SMEs and freelancers</li>
+              <li>• Multiple business support</li>
+              <li>• Custom categories and rules</li>
+              <li>• Export to Excel or PDF</li>
+            </ul>
+          </div>
 
           {/* Feature 3: Secure */}
-          <Card variant="feature" className="text-center hover-lift">
-            <div className="w-24 h-24 rounded-full icon-gradient-blue flex items-center justify-center mx-auto mb-6">
-              <svg className="w-12 h-12 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          <div className="text-center hover-lift p-8">
+            <div className="w-40 h-40 rounded-full icon-gradient-blue flex items-center justify-center mx-auto mb-6">
+              <svg className="w-16 h-16 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
             </div>
-            <CardHeader>
-              <CardTitle>Secure</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-muted">
-                <li>Bank-level encryption</li>
-                <li>NDPR compliant</li>
-                <li>Secure cloud storage</li>
-                <li>Regular security audits</li>
-              </ul>
-            </CardContent>
-          </Card>
+            <h3 className="text-2xl font-bold text-white mb-4">Secure</h3>
+            <ul className="space-y-2 text-gray-400 text-left max-w-xs mx-auto">
+              <li>• Bank-level encryption</li>
+              <li>• NDPR compliant</li>
+              <li>• Secure cloud storage</li>
+              <li>• Regular security audits</li>
+            </ul>
+          </div>
         </Grid>
       </Section>
 
