@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  
+
   // Ensure proper TypeScript checking
   typescript: {
     // Fail build on type errors
@@ -9,7 +9,6 @@ const nextConfig = {
   },
 
   // Environment variables validation
-  // Next.js will validate these are present at build time
   env: {
     // Public variables (safe for client)
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -22,9 +21,9 @@ const nextConfig = {
 
   // Image optimization (if needed later)
   images: {
-    domains: [], // Add allowed image domains here
+    domains: [],
     formats: ['image/avif', 'image/webp'],
   },
 };
 
-module.exports = nextConfig;
+export default nextConfig;
