@@ -1,0 +1,13 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "🔎 Running typecheck before push..."
+npm run typecheck || exit 1
+
+echo "🧹 Running lint before push..."
+npm run lint || exit 1
+
+echo "🧪 Running tests before push..."
+npm run test || exit 1
+
+echo "✅ Pre-push checks passed"

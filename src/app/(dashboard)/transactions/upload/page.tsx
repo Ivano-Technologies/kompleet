@@ -126,7 +126,7 @@ export default function TransactionUploadPage() {
       </div>
 
       {/* Upload Form */}
-      <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+      <div className="bg-white rounded-lg p-6 mb-6">
         {/* Bank Type Selection */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">

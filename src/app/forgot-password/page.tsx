@@ -1,132 +1,133 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
-import { createBrowserClient } from '@/lib/supabase/client';
+import { useState } from 'react';
 import Link from 'next/link';
+import { createClient } from '@/lib/supabase/client';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  const handleResetPassword = async (e: FormEvent<HTMLFormElement>) => {
+  const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
     setLoading(true);
+    setError(null);
 
     try {
-      const supabase = createBrowserClient();
-      const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+      const supabase = createClient();
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
       });
 
-      if (resetError) {
-        setError(resetError.message);
-        setLoading(false);
-        return;
-      }
+      if (error) throw error;
 
       setSuccess(true);
-      setLoading(false);
-    } catch (err) {
-      setError('An unexpected error occurred. Please try again.');
+    } catch (err: any) {
+      setError(err.message || 'Failed to send reset email');
+    } finally {
       setLoading(false);
     }
   };
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
-          <div className="mb-6">
-            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
-              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-            </div>
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Check your email</h2>
-          <p className="text-gray-600 mb-6">
-            We've sent a password reset link to <strong>{email}</strong>. Click the link in the email to reset your password.
+      <div style={{ maxWidth: '400px', margin: '100px auto', padding: '20px' }}>
+        <div style={{
+          padding: '30px',
+          backgroundColor: '#d4edda',
+          border: '1px solid #c3e6cb',
+          borderRadius: '8px',
+          textAlign: 'center',
+        }}>
+          <h1 style={{ color: '#155724', marginBottom: '15px' }}>✅ Check Your Email</h1>
+          <p style={{ color: '#155724', marginBottom: '20px' }}>
+            We've sent a password reset link to <strong>{email}</strong>
           </p>
-          <div className="space-y-3">
-            <Link
-              href="/login"
-              className="block w-full bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium"
-            >
-              Back to login
-            </Link>
-            <button
-              onClick={() => {
-                setSuccess(false);
-                setEmail('');
-              }}
-              className="block w-full text-green-600 hover:text-green-700 font-medium"
-            >
-              Send to a different email
-            </button>
-          </div>
+          <Link 
+            href="/sign-in"
+            style={{
+              display: 'inline-block',
+              backgroundColor: '#28a745',
+              color: 'white',
+              padding: '10px 20px',
+              borderRadius: '6px',
+              textDecoration: 'none',
+              fontWeight: '500',
+            }}
+          >
+            Back to Sign In
+          </Link>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <img 
-            src="/assets/logo-primary.png" 
-            alt="KOMPLEET Logo" 
-            className="mx-auto w-20 h-20 mb-4"
+    <div style={{ maxWidth: '400px', margin: '100px auto', padding: '20px' }}>
+      <h1 style={{ marginBottom: '10px' }}>Reset Password</h1>
+      <p style={{ color: '#666', marginBottom: '30px' }}>
+        Enter your email address and we'll send you a link to reset your password.
+      </p>
+
+      <form onSubmit={handleResetPassword}>
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{ display: 'block', marginBottom: '5px', fontWeight: '500' }}>
+            Email Address
+          </label>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            style={{
+              width: '100%',
+              padding: '10px',
+              border: '1px solid #ddd',
+              borderRadius: '6px',
+              fontSize: '16px',
+            }}
+            placeholder="you@example.com"
           />
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Reset your password</h1>
-          <p className="text-gray-600">Enter your email address and we'll send you a link to reset your password.</p>
         </div>
 
-        {/* Error Message */}
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-sm text-red-800">{error}</p>
+          <div style={{
+            padding: '10px',
+            backgroundColor: '#f8d7da',
+            border: '1px solid #f5c6cb',
+            borderRadius: '6px',
+            color: '#721c24',
+            marginBottom: '20px',
+          }}>
+            {error}
           </div>
         )}
 
-        {/* Reset Password Form */}
-        <form onSubmit={handleResetPassword} className="space-y-4">
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              disabled={loading}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent disabled:opacity-50"
-              placeholder="you@example.com"
-            />
-          </div>
+        <button
+          type="submit"
+          disabled={loading}
+          style={{
+            width: '100%',
+            padding: '12px',
+            backgroundColor: loading ? '#ccc' : '#0070f3',
+            color: 'white',
+            border: 'none',
+            borderRadius: '6px',
+            fontSize: '16px',
+            fontWeight: '500',
+            cursor: loading ? 'not-allowed' : 'pointer',
+          }}
+        >
+          {loading ? 'Sending...' : 'Send Reset Link'}
+        </button>
+      </form>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? 'Sending reset link...' : 'Send reset link'}
-          </button>
-        </form>
-
-        {/* Back to Login Link */}
-        <p className="mt-6 text-center text-sm text-gray-600">
-          Remember your password?{' '}
-          <Link href="/login" className="text-green-600 hover:text-green-700 font-medium">
-            Sign in
-          </Link>
-        </p>
+      <div style={{ marginTop: '20px', textAlign: 'center' }}>
+        <Link href="/sign-in" style={{ color: '#0070f3', textDecoration: 'none' }}>
+          ← Back to Sign In
+        </Link>
       </div>
     </div>
   );

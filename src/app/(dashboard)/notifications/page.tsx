@@ -146,7 +146,7 @@ export default function NotificationsPage() {
         </div>
 
         {/* Notification Preferences */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <div className="bg-white rounded-lg p-6 mb-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Notification Preferences</h2>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -211,7 +211,7 @@ export default function NotificationsPage() {
         </div>
 
         {/* Upcoming Deadlines */}
-        <div className="bg-white rounded-lg shadow-sm mb-6">
+        <div className="bg-white rounded-lg mb-6">
           <div className="p-6 border-b border-gray-200">
             <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
               <Calendar className="w-5 h-5 text-emerald-600" />
@@ -287,7 +287,7 @@ export default function NotificationsPage() {
         </div>
 
         {/* Reminder History */}
-        <div className="bg-white rounded-lg shadow-sm">
+        <div className="bg-white rounded-lg">
           <div className="p-6 border-b border-gray-200">
             <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
               <Bell className="w-5 h-5 text-emerald-600" />

@@ -170,7 +170,7 @@ export default function CategoriesPage() {
         {filteredCategories.map((category) => (
           <div
             key={category.id}
-            className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow"
+            className="bg-white rounded-lg p-6 hover:shadow-md transition-shadow"
           >
             {editingId === category.id ? (
               /* Edit Mode */

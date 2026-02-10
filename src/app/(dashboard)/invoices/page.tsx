@@ -118,7 +118,7 @@ export default function InvoicesPage() {
       )}
 
       {/* Filters */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+      <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* Search */}
           <div className="md:col-span-2">
@@ -166,7 +166,7 @@ export default function InvoicesPage() {
       </div>
 
       {/* Invoices Table */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
         {loading ? (
           <div className="p-12 text-center text-gray-500">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
@@ -260,23 +260,23 @@ export default function InvoicesPage() {
       {/* Summary Stats */}
       {!loading && filteredInvoices.length > 0 && (
         <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div className="bg-white rounded-lg border border-gray-200 p-4">
             <div className="text-sm text-gray-600">Total Invoices</div>
             <div className="text-2xl font-bold text-gray-900 mt-1">{filteredInvoices.length}</div>
           </div>
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div className="bg-white rounded-lg border border-gray-200 p-4">
             <div className="text-sm text-gray-600">Total Amount</div>
             <div className="text-2xl font-bold text-gray-900 mt-1">
               ₦{filteredInvoices.reduce((sum, inv) => sum + inv.total_amount, 0).toLocaleString('en-NG')}
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div className="bg-white rounded-lg border border-gray-200 p-4">
             <div className="text-sm text-gray-600">Issued</div>
             <div className="text-2xl font-bold text-blue-600 mt-1">
               {filteredInvoices.filter(inv => inv.status === 'issued').length}
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+          <div className="bg-white rounded-lg border border-gray-200 p-4">
             <div className="text-sm text-gray-600">Paid</div>
             <div className="text-2xl font-bold text-green-600 mt-1">
               {filteredInvoices.filter(inv => inv.status === 'paid').length}

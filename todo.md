@@ -261,3 +261,151 @@
 - [ ] Update NextResponse to accept Buffer properly
 - [ ] Test build
 - [ ] Push to GitHub
+
+## Nigerian-Inspired UX Redesign (Phase 4 - February 7, 2026)
+
+- [ ] Create vibrant Nigerian-inspired design system with color palette
+- [ ] Update typography (larger, bolder fonts for headings)
+- [ ] Redesign buttons with rounded corners and vibrant colors
+- [ ] Add Nigerian cultural patterns/textures as subtle backgrounds
+- [ ] Update homepage hero section with new design
+- [ ] Redesign feature cards with better visual hierarchy
+- [ ] Update color scheme (keep brand green + add orange, gold, blue accents)
+- [ ] Improve button hover states and interactions
+- [ ] Add glassmorphism effects to widgets
+- [ ] Test responsive design on mobile and desktop
+- [ ] Update Tailwind config with new design tokens
+- [ ] Deploy redesigned platform to production
+
+## Critical Login Issue (February 7, 2026)
+
+- [ ] Fix Clerk OAuth redirect using development domain instead of production
+- [ ] Update Clerk environment variables to use production keys
+- [ ] Configure Clerk dashboard with correct production callback URLs
+- [ ] Test login flow on production (techivano.com)
+- [ ] Test login flow on mobile app
+
+## Migrate from Clerk to Supabase Auth (February 7, 2026)
+
+- [x] Remove Clerk dependencies from package.json
+- [x] Remove Clerk middleware and components
+- [x] Create Supabase Auth components (SignIn, SignUp, AuthProvider)
+- [x] Update authentication context to use Supabase
+- [x] Update protected routes to use Supabase session
+- [x] Update API routes to validate Supabase JWT tokens
+- [ ] Remove Clerk environment variables from Vercel
+- [ ] Test email/password authentication
+- [ ] Test OAuth providers (Google, GitHub) via Supabase
+- [ ] Update mobile app to use Supabase Auth
+- [ ] Test end-to-end auth flow on production
+
+## Fix Remaining Clerk References (Build Errors)
+
+- [x] Fix src/lib/api.ts - Remove Clerk getUserId function
+- [x] Fix src/app/layout.tsx - Add missing globals.css
+- [x] Fix src/app/forgot-password/page.tsx - Remove Clerk imports
+- [x] Fix src/app/profile/edit/page.tsx - Remove Clerk imports
+- [x] Fix src/lib/supabase/client.ts - Add createClient export
+
+## Simplify Authentication for Testing
+
+- [x] Update sign-in page to show only magic link (email) authentication
+- [x] Remove password and OAuth options temporarily
+- [ ] Test magic link authentication flow
+
+
+## Dashboard Chart Rendering Issues (February 8, 2026)
+
+- [x] Fix chart components with invalid dimensions (-1 width/height)
+- [x] Add explicit width/height to chart containers
+- [ ] Test all dashboard charts render correctly (requires new magic link login)
+
+
+## UI Redesign - NextAuth Design Language (February 8, 2026)
+
+### Design Decisions (LOCKED)
+- Font: Inter (NextAuth exact match)
+- Colors: NextAuth light/dark themes + Nigerian green (#008751) accents only
+- Tone: Friendly & approachable
+- Dashboard: Overview with stats + quick actions (NextAuth-style layout)
+- Legal: Privacy Policy + Terms of Service links in footer only
+- Users: Optimize for all segments equally (no personalization yet)
+
+### Phase 1: Foundation
+- [x] Analyze NextAuth live site for pixel-perfect details
+- [x] Create Design System v2.0 with NextAuth fidelity
+- [x] Get user approval for design system
+- [x] Update Tailwind config with exact NextAuth tokens
+- [x] Load Inter font from Google Fonts
+- [x] Remove all glassmorphism effects from existing components
+- [x] Remove all shadow utilities from existing components
+- [x] Create CSS variables for theme switching
+
+### Phase 2: Component Library
+- [x] Button (primary with Nigerian green, secondary with dashed hover, danger)
+- [x] Card (feature card, data card with CardHeader/CardTitle/CardContent)
+- [x] Input & Textarea (with Nigerian green focus states)
+- [x] Container (1200px max-width)
+- [x] Navigation (sticky header with active link highlighting)
+- [x] Footer (3-column layout with tagline and copyright)
+- [x] Section & SectionHeader (generous vertical padding)
+- [x] Grid (1-4 columns, responsive)
+- [x] Hero (landing page hero with badge, title, subtitle, actions)
+- [x] FloatingLogos (Nigerian finance brand logos at 10% opacity)
+- [ ] Table (transactions, reports) - Future
+- [ ] Modal (confirmation, alerts) - Future
+- [ ] Progress (circular, linear) - Future
+- [ ] Badge (status indicators) - Future
+- [ ] Dropdown (select, menu) - Future
+- [ ] Tabs (navigation within pages) - Future
+
+### Phase 3: Page Redesigns
+- [ ] Landing page (/) - NextAuth hero pattern
+- [ ] Sign-in page (/sign-in) - Centered card
+- [ ] Dashboard (/dashboard) - Overview with stats + quick actions
+- [ ] Tax calculators - Clean form layouts
+- [ ] Transactions - High-contrast table
+- [ ] E-invoicing - Form-heavy pages
+- [ ] Bank uploads - Drag-and-drop zone
+- [ ] Filing center - Status cards
+- [ ] Reports - Data-heavy layouts
+- [ ] Profile/Settings - Simple forms
+
+### Phase 4: Themes & Polish
+- [ ] Implement dark theme
+- [ ] Test theme switching
+- [ ] Accessibility checks (WCAG AA)
+- [ ] Responsive testing (mobile, tablet, desktop)
+- [ ] Performance optimization
+
+### Phase 5: Deployment
+- [ ] User approval for final UI
+- [ ] Deploy to production
+- [ ] Before/after comparison documentation
+
+
+## Design Enhancement - Add Visual Sophistication (February 8, 2026)
+
+- [x] Fix logo size (too large, make smaller like NextAuth)
+- [x] Fix button alignment (horizontal alignment and spacing)
+- [x] Add gradient text effects to hero title
+- [x] Implement hover animations on buttons and cards
+- [x] Enhance typography with better line heights and letter spacing
+- [x] Add gradient backgrounds to feature card icons
+- [ ] Refine navigation with better active states and transitions
+- [ ] Improve visual hierarchy with varied font sizes
+- [ ] Add subtle background patterns or decorative elements
+- [ ] Polish card designs with refined borders and spacing
+- [ ] Enhance button styles with better hover states
+- [ ] Test all enhancements and deploy
+
+
+## Icon Sizing and Visual Balance Fixes (February 8, 2026)
+
+- [x] Fix hero logo to 176px (w-44 h-44) to match NextAuth prominence
+- [x] Fix feature card icons to 192px (w-48 h-48) to match NextAuth large circles
+- [x] Fix inner SVG icons to 96px (w-24 h-24) for proper proportion
+- [x] Fix feature titles to text-3xl (30px) to match NextAuth
+- [x] Verify navigation logo size (32px) is appropriate
+- [ ] Test visual hierarchy across all breakpoints
+- [ ] Compare deployed site with NextAuth reference
