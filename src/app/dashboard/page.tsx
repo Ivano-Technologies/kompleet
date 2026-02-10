@@ -1,6 +1,5 @@
 import { createServerClient } from '@/lib/supabase/server';
 import { requireServerUser } from '@/lib/supabase/session';
-import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import LogoutButton from './LogoutButton';
 import { 
@@ -13,7 +12,29 @@ import { IncomeExpensesChart } from '@/components/charts/IncomeExpensesChart';
 import { CategoryBreakdownChart } from '@/components/charts/CategoryBreakdownChart';
 import { TaxProjectionChart } from '@/components/charts/TaxProjectionChart';
 import { ComplianceHealthMeter } from '@/components/charts/ComplianceHealthMeter';
+import {
+  Navigation,
+  Logo,
+  Container,
+  Section,
+  Grid,
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  Button,
+} from '@/components/nextauth-ui';
 
+/**
+ * KOMPLEET Dashboard - NextAuth Design
+ * 
+ * Features:
+ * - NextAuth-style navigation
+ * - Flat design (no glassmorphism, no shadows)
+ * - Nigerian green accents
+ * - Grid layout for stats and charts
+ * - Quick actions section
+ */
 export default async function DashboardPage() {
   const supabase = await createServerClient();
   
@@ -28,201 +49,217 @@ export default async function DashboardPage() {
       getComplianceMetrics(user.id),
     ]);
 
+    const navLinks = [
+      { href: '/dashboard', label: 'Dashboard' },
+      { href: '/transactions', label: 'Transactions' },
+      { href: '/tax-calculators', label: 'Tax Calculators' },
+      { href: '/e-invoicing', label: 'E-Invoicing' },
+      { href: '/reports', label: 'Reports' },
+    ];
+
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-green-900 to-slate-900 p-4 md:p-6 lg:p-8">
-        {/* Header */}
-        <div className="max-w-7xl mx-auto mb-8">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-            <div className="flex items-center gap-4">
-              {/* KOMPLEET Logo */}
-              <img 
-                src="/assets/logo-inverted.png" 
-                alt="KOMPLEET Logo" 
-                className="w-16 h-16"
-              />
-              <div>
-                <h1 className="text-3xl md:text-4xl font-bold text-white mb-1">
-                  KOMPLEET Dashboard
-                </h1>
-                <p className="text-gray-300 mb-1">Welcome back, {user.email?.split('@')[0]}!</p>
-                <p className="text-sm text-gray-400 italic">Kompleet records. Kompleet filings. Kompleet compliance.</p>
-              </div>
-            </div>
-            <LogoutButton />
-          </div>
+      <>
+        {/* Navigation */}
+        <Navigation
+          logo={<Logo text="KOMPLEET" imageSrc="/assets/logo-primary.png" />}
+          links={navLinks}
+          rightContent={<LogoutButton />}
+        />
 
-          {/* Quick Stats - Glassmorphism Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            {/* Total Transactions */}
-            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 shadow-xl">
-              <div className="text-gray-300 text-sm mb-2">Total Transactions</div>
-              <div className="text-3xl font-bold text-white">{complianceMetrics.totalTransactions}</div>
+        {/* Dashboard Content */}
+        <div className="min-h-screen bg-background">
+          <Section spacing="md">
+            {/* Welcome Header */}
+            <div className="mb-8">
+              <h1 className="text-h1 text-foreground mb-2">
+                Welcome back, {user.email?.split('@')[0]}!
+              </h1>
+              <p className="text-body text-muted italic">
+                Kompleet records. Kompleet filings. Kompleet compliance.
+              </p>
             </div>
 
-            {/* Categorized */}
-            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 shadow-xl">
-              <div className="text-gray-300 text-sm mb-2">Categorized</div>
-              <div className="text-3xl font-bold text-green-400">{complianceMetrics.categorizedTransactions}</div>
-            </div>
+            {/* Quick Stats */}
+            <Grid columns={4} gap="md" className="mb-12">
+              <Card>
+                <div className="text-sm text-muted mb-2">Total Transactions</div>
+                <div className="text-h2 text-foreground">{complianceMetrics.totalTransactions}</div>
+              </Card>
 
-            {/* Reconciliation Rate */}
-            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 shadow-xl">
-              <div className="text-gray-300 text-sm mb-2">Reconciliation</div>
-              <div className="text-3xl font-bold text-blue-400">{complianceMetrics.reconciliationRate}%</div>
-            </div>
+              <Card>
+                <div className="text-sm text-muted mb-2">Categorized</div>
+                <div className="text-h2 text-primary">{complianceMetrics.categorizedTransactions}</div>
+              </Card>
 
-            {/* Tax Readiness */}
-            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 shadow-xl">
-              <div className="text-gray-300 text-sm mb-2">Tax Readiness</div>
-              <div className="text-3xl font-bold text-yellow-400">{complianceMetrics.taxReadinessScore}%</div>
-            </div>
-          </div>
+              <Card>
+                <div className="text-sm text-muted mb-2">Reconciliation</div>
+                <div className="text-h2 text-foreground">{complianceMetrics.reconciliationRate}%</div>
+              </Card>
 
-          {/* Charts Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            {/* Income vs Expenses Chart */}
-            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 shadow-xl">
-              <h2 className="text-xl font-semibold text-white mb-4">Income vs Expenses</h2>
-              <div className="h-80">
-                <IncomeExpensesChart data={incomeExpenses} />
-              </div>
-            </div>
+              <Card>
+                <div className="text-sm text-muted mb-2">Tax Readiness</div>
+                <div className="text-h2 text-foreground">{complianceMetrics.taxReadinessScore}%</div>
+              </Card>
+            </Grid>
 
-            {/* Category Breakdown Chart */}
-            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 shadow-xl">
-              <h2 className="text-xl font-semibold text-white mb-4">Expense Categories</h2>
-              <div className="h-80">
-                {categoryBreakdown.length > 0 ? (
-                  <CategoryBreakdownChart data={categoryBreakdown} />
-                ) : (
-                  <div className="flex items-center justify-center h-full text-gray-400">
-                    No expense data available
+            {/* Charts Grid */}
+            <Grid columns={2} gap="lg" className="mb-12">
+              {/* Income vs Expenses Chart */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Income vs Expenses</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-80">
+                    <IncomeExpensesChart data={incomeExpenses} />
                   </div>
-                )}
-              </div>
-            </div>
+                </CardContent>
+              </Card>
 
-            {/* Tax Projection Chart */}
-            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 shadow-xl">
-              <h2 className="text-xl font-semibold text-white mb-4">Tax Projections</h2>
-              <div className="h-80">
-                <TaxProjectionChart data={taxProjections} />
-              </div>
-            </div>
+              {/* Category Breakdown Chart */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Expense Categories</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-80">
+                    {categoryBreakdown.length > 0 ? (
+                      <CategoryBreakdownChart data={categoryBreakdown} />
+                    ) : (
+                      <div className="flex items-center justify-center h-full text-muted">
+                        No expense data available
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
 
-            {/* Compliance Health Meter */}
-            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 shadow-xl">
-              <h2 className="text-xl font-semibold text-white mb-4">Compliance Health</h2>
-              <div className="h-80">
-                <ComplianceHealthMeter data={complianceMetrics} />
-              </div>
-            </div>
-          </div>
+              {/* Tax Projection Chart */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Tax Projections</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-80">
+                    {taxProjections.length > 0 ? (
+                      <TaxProjectionChart data={taxProjections} />
+                    ) : (
+                      <div className="flex items-center justify-center h-full text-muted">
+                        No tax projection data available
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
 
-          {/* Navigation Links - Glassmorphism */}
-          <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 shadow-xl">
-            <h3 className="text-xl font-semibold text-white mb-4">Quick Actions</h3>
-            
-            {/* Main Actions */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-              <Link 
-                href="/transactions" 
-                className="bg-green-600/20 hover:bg-green-600/30 border border-green-500/30 rounded-xl p-4 transition-all duration-200 hover:scale-105"
-              >
-                <div className="text-2xl mb-2">💰</div>
-                <div className="text-white font-semibold">Transactions</div>
-                <div className="text-gray-300 text-sm">View & manage</div>
-              </Link>
+              {/* Compliance Health */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Compliance Health</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-80">
+                    <ComplianceHealthMeter data={complianceMetrics} />
+                  </div>
+                </CardContent>
+              </Card>
+            </Grid>
 
-              <Link 
-                href="/history" 
-                className="bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 rounded-xl p-4 transition-all duration-200 hover:scale-105"
-              >
-                <div className="text-2xl mb-2">📊</div>
-                <div className="text-white font-semibold">History</div>
-                <div className="text-gray-300 text-sm">Calculation history</div>
-              </Link>
+            {/* Quick Actions */}
+            <Card className="mb-12">
+              <CardHeader>
+                <CardTitle>Quick Actions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Grid columns={3} gap="md">
+                  <Link href="/transactions/upload">
+                    <Button variant="secondary" className="w-full">
+                      📤 Upload Bank Statement
+                    </Button>
+                  </Link>
+                  <Link href="/tax-calculators">
+                    <Button variant="secondary" className="w-full">
+                      🧮 Calculate Taxes
+                    </Button>
+                  </Link>
+                  <Link href="/e-invoicing">
+                    <Button variant="secondary" className="w-full">
+                      📄 Create E-Invoice
+                    </Button>
+                  </Link>
+                  <Link href="/transactions">
+                    <Button variant="secondary" className="w-full">
+                      💳 View Transactions
+                    </Button>
+                  </Link>
+                  <Link href="/reports">
+                    <Button variant="secondary" className="w-full">
+                      📊 Generate Report
+                    </Button>
+                  </Link>
+                  <Link href="/settings">
+                    <Button variant="secondary" className="w-full">
+                      ⚙️ Settings
+                    </Button>
+                  </Link>
+                </Grid>
+              </CardContent>
+            </Card>
 
-              <Link 
-                href="/reports" 
-                className="bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 rounded-xl p-4 transition-all duration-200 hover:scale-105"
-              >
-                <div className="text-2xl mb-2">📈</div>
-                <div className="text-white font-semibold">Reports</div>
-                <div className="text-gray-300 text-sm">Financial reports</div>
-              </Link>
-
-              <Link 
-                href="/profile" 
-                className="bg-yellow-600/20 hover:bg-yellow-600/30 border border-yellow-500/30 rounded-xl p-4 transition-all duration-200 hover:scale-105"
-              >
-                <div className="text-2xl mb-2">👤</div>
-                <div className="text-white font-semibold">Profile</div>
-                <div className="text-gray-300 text-sm">Account settings</div>
-              </Link>
-            </div>
-
-            {/* Tax Calculators */}
-            <h4 className="text-lg font-semibold text-white mb-3">Tax Calculators</h4>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-              <Link 
-                href="/calculators/business-tax" 
-                className="bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg p-3 text-center transition-all duration-200 hover:scale-105"
-              >
-                <div className="text-white text-sm font-medium">Business Tax</div>
-              </Link>
-
-              <Link 
-                href="/calculators/individual-tax" 
-                className="bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg p-3 text-center transition-all duration-200 hover:scale-105"
-              >
-                <div className="text-white text-sm font-medium">Individual Tax</div>
-              </Link>
-
-              <Link 
-                href="/calculators/vat" 
-                className="bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg p-3 text-center transition-all duration-200 hover:scale-105"
-              >
-                <div className="text-white text-sm font-medium">VAT</div>
-              </Link>
-
-              <Link 
-                href="/calculators/capital-allowances" 
-                className="bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg p-3 text-center transition-all duration-200 hover:scale-105"
-              >
-                <div className="text-white text-sm font-medium">Capital Allowances</div>
-              </Link>
-
-              <Link 
-                href="/calculators/stamp-duty" 
-                className="bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg p-3 text-center transition-all duration-200 hover:scale-105"
-              >
-                <div className="text-white text-sm font-medium">Stamp Duty</div>
-              </Link>
-
-              <Link 
-                href="/calculators/property-tax" 
-                className="bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg p-3 text-center transition-all duration-200 hover:scale-105"
-              >
-                <div className="text-white text-sm font-medium">Property Tax</div>
-              </Link>
-            </div>
-          </div>
-
-          {/* Footer with Branding */}
-          <div className="mt-8 pt-6 border-t border-white/10 text-center">
-            <p className="text-gray-400 text-sm mb-2">
-              © 2026 Ivano Technologies Ltd. All rights reserved.
-            </p>
-            <p className="text-gray-500 text-xs italic">
-              Kompleet records. Kompleet filings. Kompleet compliance.
-            </p>
-          </div>
+            {/* Tax Calculators Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Tax Calculators</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Grid columns={3} gap="md">
+                  <Link href="/tax-calculators/personal-income">
+                    <Button variant="secondary" className="w-full">
+                      Personal Income Tax
+                    </Button>
+                  </Link>
+                  <Link href="/tax-calculators/company-income">
+                    <Button variant="secondary" className="w-full">
+                      Company Income Tax
+                    </Button>
+                  </Link>
+                  <Link href="/tax-calculators/vat">
+                    <Button variant="secondary" className="w-full">
+                      VAT Calculator
+                    </Button>
+                  </Link>
+                  <Link href="/tax-calculators/withholding">
+                    <Button variant="secondary" className="w-full">
+                      Withholding Tax
+                    </Button>
+                  </Link>
+                  <Link href="/tax-calculators/capital-gains">
+                    <Button variant="secondary" className="w-full">
+                      Capital Gains Tax
+                    </Button>
+                  </Link>
+                  <Link href="/tax-calculators/stamp-duty">
+                    <Button variant="secondary" className="w-full">
+                      Stamp Duty
+                    </Button>
+                  </Link>
+                </Grid>
+              </CardContent>
+            </Card>
+          </Section>
         </div>
-      </div>
+      </>
     );
   } catch (error) {
-    // User not authenticated - redirect to login
-    redirect('/login');
+    console.error('Dashboard error:', error);
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card>
+          <CardContent>
+            <p className="text-error-light">Failed to load dashboard. Please try again.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 }

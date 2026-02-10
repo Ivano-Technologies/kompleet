@@ -221,7 +221,7 @@ export default function InvoiceDetailPage() {
       </div>
 
       {/* Invoice Details */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 mb-6">
+      <div className="bg-white rounded-lg border border-gray-200 p-8 mb-6">
         {/* Customer Info */}
         <div className="mb-8">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Customer Information</h2>
@@ -375,7 +375,7 @@ export default function InvoiceDetailPage() {
 
       {/* Digital Signature & QR Code */}
       {invoice.signature_hash && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+        <div className="bg-white rounded-lg border border-gray-200 p-8">
           <h2 className="text-xl font-semibold text-gray-900 mb-6">Security & Verification</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

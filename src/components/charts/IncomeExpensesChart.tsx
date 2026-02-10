@@ -19,8 +19,8 @@ export function IncomeExpensesChart({ data }: IncomeExpensesChartProps) {
   };
 
   return (
-    <div className="w-full h-full">
-      <ResponsiveContainer width="100%" height="100%">
+    <div className="w-full h-full min-h-[300px]">
+      <ResponsiveContainer width="100%" height={300}>
         <BarChart
           data={data}
           margin={{ top: 20, right: 30, left: 20, bottom: 5 }}

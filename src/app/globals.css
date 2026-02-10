@@ -1,0 +1,121 @@
+@import "tailwindcss";
+@config "../../tailwind.config.js";
+
+/* NextAuth-inspired Design System - Light Theme */
+:root {
+  --black: 0 0 0; /* Pure black */
+  --white: 255 255 255; /* Pure white */
+  --background: 255 255 255; /* Pure white */
+  --foreground: 0 0 0; /* Pure black */
+  --muted: 102 102 102; /* #666666 */
+  --border: 224 224 224; /* #E0E0E0 */
+  --surface: 255 255 255; /* Same as background */
+  --floating-logo: 224 224 224; /* #E0E0E0 at 10% opacity */
+}
+
+/* NextAuth-inspired Design System - Dark Theme */
+:root.dark {
+  --background: 0 0 0; /* Pure black */
+  --foreground: 255 255 255; /* Pure white */
+  --muted: 160 160 160; /* #A0A0A0 */
+  --border: 51 51 51; /* #333333 */
+  --surface: 0 0 0; /* Same as background */
+  --floating-logo: 51 51 51; /* #333333 at 10% opacity */
+}
+
+/* Base styles */
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+body {
+  color: rgb(var(--foreground));
+  background: rgb(var(--background));
+  font-family: var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
+  letter-spacing: -0.01em;
+}
+
+/* Remove default focus outline and add custom one */
+*:focus-visible {
+  outline: 2px solid #008751;
+  outline-offset: 2px;
+}
+
+/* Smooth transitions for theme switching */
+* {
+  transition-property: background-color, border-color, color;
+  transition-duration: 200ms;
+  transition-timing-function: ease;
+}
+
+/* Disable transitions on theme change to avoid flash */
+.no-transition * {
+  transition: none !important;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Gradient text effect for hero titles */
+.text-gradient {
+  background: linear-gradient(135deg, rgb(var(--foreground)) 0%, rgb(var(--muted)) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Hover animations */
+.hover-lift {
+  transition: transform 200ms ease, box-shadow 200ms ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+}
+
+.hover-scale {
+  transition: transform 200ms ease;
+}
+
+.hover-scale:hover {
+  transform: scale(1.02);
+}
+
+/* Feature card icon gradients */
+.icon-gradient-purple {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.icon-gradient-pink {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.icon-gradient-blue {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.icon-gradient-green {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+.icon-gradient-orange {
+  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+}
+
+.icon-gradient-teal {
+  background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
+}
