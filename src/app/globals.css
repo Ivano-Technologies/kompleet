@@ -72,35 +72,27 @@ body {
   transition: none !important;
 }
 
-/* Glassmorphism Effects - Core Design Pattern */
+/* Solid Background Components - No Glassmorphism */
 .glass-nav {
-  background: rgba(var(--background-dark), 0.8);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(var(--primary-rgb), 0.2);
+  background: rgba(17, 33, 27, 0.95);
+  border-bottom: 1px solid rgba(10, 103, 70, 0.3);
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(var(--primary-rgb), 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(10, 103, 70, 0.2);
   border-radius: 0.75rem;
 }
 
 .glass-card-light {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(var(--primary-rgb), 0.1);
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(10, 103, 70, 0.1);
   border-radius: 0.75rem;
 }
 
 .glass-sidebar {
-  background: rgba(var(--background-dark), 0.95);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-right: 1px solid rgba(var(--primary-rgb), 0.15);
+  background: rgba(17, 33, 27, 1);
+  border-right: 1px solid rgba(10, 103, 70, 0.2);
 }
 
 /* Hero glow effect */
