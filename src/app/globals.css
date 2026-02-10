@@ -23,7 +23,8 @@
   --surface-dark: 17 33 27;
 }
 
-/* Dark Theme */
+/* Dark Theme - Applied by default */
+html.dark,
 :root.dark {
   --background: var(--background-dark);
   --foreground: var(--foreground-dark);
