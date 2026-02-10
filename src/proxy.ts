@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
   })
@@ -39,6 +39,8 @@ export async function middleware(request: NextRequest) {
     '/',
     '/sign-in',
     '/sign-up',
+    '/login',
+    '/signup',
     '/kompleet',
     '/kompleet-privacy',
     '/kompleet-terms',
@@ -53,12 +55,17 @@ export async function middleware(request: NextRequest) {
   // Redirect to sign-in if user is not authenticated and trying to access protected route
   if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone()
-    url.pathname = '/sign-in'
+    url.pathname = '/login'
     return NextResponse.redirect(url)
   }
 
   // Redirect to dashboard if user is authenticated and trying to access auth pages
-  if (user && (request.nextUrl.pathname === '/sign-in' || request.nextUrl.pathname === '/sign-up')) {
+  if (user && (
+    request.nextUrl.pathname === '/sign-in' || 
+    request.nextUrl.pathname === '/sign-up' ||
+    request.nextUrl.pathname === '/login' ||
+    request.nextUrl.pathname === '/signup'
+  )) {
     const url = request.nextUrl.clone()
     url.pathname = '/dashboard'
     return NextResponse.redirect(url)
