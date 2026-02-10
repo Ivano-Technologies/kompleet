@@ -645,6 +645,89 @@ export interface Database {
           }
         ];
       };
+
+      // ----------------------------------------------------------
+      // INVOICES
+      // ----------------------------------------------------------
+      invoices: {
+        Row: {
+          id: string;
+          user_id: string;
+          invoice_number: string;
+          invoice_date: string;
+          due_date: string | null;
+          customer_info: Json;
+          line_items: Json;
+          subtotal: number;
+          vat_amount: number;
+          discount_amount: number;
+          total_amount: number;
+          status: string;
+          tax_year: number;
+          payment_terms: string | null;
+          notes: string | null;
+          signature_hash: string | null;
+          qr_payload: string | null;
+          is_immutable: boolean;
+          created_at: string;
+          issued_at: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          invoice_number: string;
+          invoice_date: string;
+          due_date?: string | null;
+          customer_info: Json;
+          line_items: Json;
+          subtotal: number;
+          vat_amount: number;
+          discount_amount?: number;
+          total_amount: number;
+          status?: string;
+          tax_year: number;
+          payment_terms?: string | null;
+          notes?: string | null;
+          signature_hash?: string | null;
+          qr_payload?: string | null;
+          is_immutable?: boolean;
+          created_at?: string;
+          issued_at?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          invoice_number?: string;
+          invoice_date?: string;
+          due_date?: string | null;
+          customer_info?: Json;
+          line_items?: Json;
+          subtotal?: number;
+          vat_amount?: number;
+          discount_amount?: number;
+          total_amount?: number;
+          status?: string;
+          tax_year?: number;
+          payment_terms?: string | null;
+          notes?: string | null;
+          signature_hash?: string | null;
+          qr_payload?: string | null;
+          is_immutable?: boolean;
+          created_at?: string;
+          issued_at?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'invoices_user_id_fkey';
+            columns: ['user_id'];
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          }
+        ];
+      };
     };
 
     Views: {
