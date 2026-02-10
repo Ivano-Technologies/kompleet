@@ -68,7 +68,7 @@ export default function Home() {
         links={navLinks}
         rightContent={
           <>
-            <Link href="/sign-in">
+            <Link href="/login">
               <Button variant="secondary" size="sm">
                 Sign In
               </Button>
@@ -109,7 +109,7 @@ export default function Home() {
 
             {/* Actions */}
             <div className="flex flex-row items-center justify-center gap-4 flex-wrap">
-              <Link href="/sign-in">
+              <Link href="/login">
                 <Button size="lg">Get Started Free</Button>
               </Link>
               <Link href="/features">
@@ -206,7 +206,7 @@ export default function Home() {
           <p className="text-body text-muted mb-8">
             Join hundreds of Nigerian businesses using KOMPLEET for tax compliance and financial management.
           </p>
-          <Link href="/sign-in">
+          <Link href="/signup">
             <Button size="lg">Get Started Free</Button>
           </Link>
         </div>
