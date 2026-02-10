@@ -129,5 +129,24 @@ export function createSupabaseClientWithOptions(
 // RE-EXPORTS
 // ============================================================
 
+// ============================================================
+// ALIASES FOR BACKWARDS COMPATIBILITY
+// ============================================================
+
+/**
+ * Alias for createSupabaseClient for backwards compatibility.
+ * Use createSupabaseClient in new code.
+ */
+export { createSupabaseClient as createClient };
+
+/**
+ * Alias for createBrowserClient (legacy naming)
+ */
+export { createSupabaseClient as createBrowserClient };
+
+// ============================================================
+// RE-EXPORTS
+// ============================================================
+
 // Re-export types from supabase-js for convenience
 export type { SupabaseClient, Session, User } from '@supabase/supabase-js';
