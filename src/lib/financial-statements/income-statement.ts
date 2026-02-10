@@ -42,60 +42,61 @@ export function generateIncomeStatement(
   startDate: string,
   endDate: string
 ): IncomeStatementData {
-  // Filter transactions by date range
-  const filteredTransactions = transactions.filter((t) => {
-    const date = t.transaction_date;
-    return date >= startDate && date <= endDate;
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+
+  const filtered = transactions.filter((t) => {
+    const d = new Date(t.transaction_date);
+    return d >= start && d <= end;
   });
 
-  // Separate income and expenses
-  const incomeTransactions = filteredTransactions.filter(
-    (t) => t.category?.type === 'income' || (t.transaction_type === 'credit' && !t.category)
-  );
-
-  const expenseTransactions = filteredTransactions.filter(
-    (t) => t.category?.type === 'expense' || (t.transaction_type === 'debit' && !t.category)
-  );
-
-  // Calculate revenue breakdown
   const revenueBreakdown: Record<string, number> = {};
-  let totalRevenue = 0;
-
-  incomeTransactions.forEach((t) => {
-    const category = t.category?.name || 'Uncategorized Income';
-    revenueBreakdown[category] = (revenueBreakdown[category] || 0) + t.amount;
-    totalRevenue += t.amount;
-  });
-
-  // Calculate expense breakdown
   const expenseBreakdown: Record<string, number> = {};
+
+  let totalRevenue = 0;
   let totalExpenses = 0;
 
-  expenseTransactions.forEach((t) => {
-    const category = t.category?.name || 'Uncategorized Expense';
-    expenseBreakdown[category] = (expenseBreakdown[category] || 0) + t.amount;
-    totalExpenses += t.amount;
-  });
+  for (const t of filtered) {
+    const amount = Math.abs(t.amount);
+    const categoryName = t.category?.name ?? 'Uncategorized';
 
-  // Calculate profit metrics
+    const isIncome =
+      t.category?.type === 'income' || t.transaction_type === 'credit';
+
+    const isExpense =
+      t.category?.type === 'expense' || t.transaction_type === 'debit';
+
+    if (isIncome) {
+      revenueBreakdown[categoryName] =
+        (revenueBreakdown[categoryName] || 0) + amount;
+      totalRevenue += amount;
+    }
+
+    if (isExpense) {
+      expenseBreakdown[categoryName] =
+        (expenseBreakdown[categoryName] || 0) + amount;
+      totalExpenses += amount;
+    }
+  }
+
   const grossProfit = totalRevenue - totalExpenses;
-  const profitMargin = totalRevenue > 0 ? (grossProfit / totalRevenue) * 100 : 0;
+  const profitMargin =
+    totalRevenue > 0
+      ? Number(((grossProfit / totalRevenue) * 100).toFixed(2))
+      : 0;
 
   return {
-    period: {
-      startDate,
-      endDate,
-    },
+    period: { startDate, endDate },
     revenue: {
-      total: totalRevenue,
+      total: Number(totalRevenue.toFixed(2)),
       breakdown: revenueBreakdown,
     },
     expenses: {
-      total: totalExpenses,
+      total: Number(totalExpenses.toFixed(2)),
       breakdown: expenseBreakdown,
     },
-    grossProfit,
-    netProfit: grossProfit, // Simplified: same as gross profit for now
+    grossProfit: Number(grossProfit.toFixed(2)),
+    netProfit: Number(grossProfit.toFixed(2)),
     profitMargin,
   };
 }
@@ -104,10 +105,12 @@ export function generateIncomeStatement(
  * Format currency for display
  */
 export function formatCurrency(amount: number): string {
-  return `₦${amount.toLocaleString('en-NG', {
+  return new Intl.NumberFormat('en-NG', {
+    style: 'currency',
+    currency: 'NGN',
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  })}`;
+  }).format(amount);
 }
 
 /**
@@ -122,121 +125,31 @@ export function generateIncomeStatementHTML(data: IncomeStatementData): string {
 <head>
   <meta charset="UTF-8">
   <title>Income Statement</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 40px;
-      color: #333;
-    }
-    h1 {
-      text-align: center;
-      color: #1a5f3a;
-    }
-    .period {
-      text-align: center;
-      margin-bottom: 30px;
-      color: #666;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 20px;
-    }
-    th, td {
-      padding: 12px;
-      text-align: left;
-      border-bottom: 1px solid #ddd;
-    }
-    th {
-      background-color: #f5f5f5;
-      font-weight: bold;
-    }
-    .amount {
-      text-align: right;
-    }
-    .total-row {
-      font-weight: bold;
-      background-color: #f9f9f9;
-    }
-    .profit-row {
-      font-weight: bold;
-      font-size: 1.1em;
-      background-color: #e8f5e9;
-    }
-    .section-header {
-      background-color: #1a5f3a;
-      color: white;
-      font-weight: bold;
-    }
-  </style>
 </head>
 <body>
   <h1>Income Statement (Profit & Loss)</h1>
-  <div class="period">
-    Period: ${new Date(period.startDate).toLocaleDateString('en-NG')} to ${new Date(period.endDate).toLocaleDateString('en-NG')}
-  </div>
+  <p>
+    Period: ${new Date(period.startDate).toLocaleDateString('en-NG')} 
+    to ${new Date(period.endDate).toLocaleDateString('en-NG')}
+  </p>
 
-  <table>
-    <tr class="section-header">
-      <th>REVENUE</th>
-      <th class="amount">Amount (₦)</th>
-    </tr>
+  <h2>Revenue</h2>
+  <ul>
     ${Object.entries(revenue.breakdown)
-      .map(
-        ([category, amount]) => `
-      <tr>
-        <td>${category}</td>
-        <td class="amount">${formatCurrency(amount)}</td>
-      </tr>
-    `
-      )
+      .map(([k, v]) => `<li>${k}: ${formatCurrency(v)}</li>`)
       .join('')}
-    <tr class="total-row">
-      <td>Total Revenue</td>
-      <td class="amount">${formatCurrency(revenue.total)}</td>
-    </tr>
-  </table>
+  </ul>
 
-  <table>
-    <tr class="section-header">
-      <th>EXPENSES</th>
-      <th class="amount">Amount (₦)</th>
-    </tr>
+  <h2>Expenses</h2>
+  <ul>
     ${Object.entries(expenses.breakdown)
-      .map(
-        ([category, amount]) => `
-      <tr>
-        <td>${category}</td>
-        <td class="amount">${formatCurrency(amount)}</td>
-      </tr>
-    `
-      )
+      .map(([k, v]) => `<li>${k}: ${formatCurrency(v)}</li>`)
       .join('')}
-    <tr class="total-row">
-      <td>Total Expenses</td>
-      <td class="amount">${formatCurrency(expenses.total)}</td>
-    </tr>
-  </table>
+  </ul>
 
-  <table>
-    <tr class="profit-row">
-      <td>Gross Profit</td>
-      <td class="amount">${formatCurrency(grossProfit)}</td>
-    </tr>
-    <tr class="profit-row">
-      <td>Net Profit</td>
-      <td class="amount">${formatCurrency(netProfit)}</td>
-    </tr>
-    <tr>
-      <td>Profit Margin</td>
-      <td class="amount">${profitMargin.toFixed(2)}%</td>
-    </tr>
-  </table>
-
-  <div style="margin-top: 40px; text-align: center; color: #666; font-size: 0.9em;">
-    <p>Generated by KOMPLEET Platform</p>
-    <p>Kompleet records. Kompleet filings. Kompleet compliance.</p>
-  </div>
+  <h3>Gross Profit: ${formatCurrency(grossProfit)}</h3>
+  <h3>Net Profit: ${formatCurrency(netProfit)}</h3>
+  <p>Profit Margin: ${profitMargin}%</p>
 </body>
 </html>
   `;

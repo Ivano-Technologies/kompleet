@@ -1,6 +1,6 @@
 /**
  * Tests for Database Queries
- * ==========================
+ * =====
  */
 
 import { describe, it, expect, vi } from 'vitest';
@@ -97,21 +97,21 @@ describe('getUserProfile', () => {
   });
 });
 
-// ============================================================
+// ====
 // updateUserProfile Tests
-// ============================================================
+// ====
 
 describe('updateUserProfile', () => {
   it('should update user profile successfully', async () => {
-<<<<<<< HEAD
+
     const updatedProfile = { ...mockProfile, subscription_tier: 'business' as const };
-=======
+
     const mockUpdatedProfile = {
       id: 'user-123',
       full_name: 'Updated Name',
       email: 'john@example.com',
     };
->>>>>>> 07538039a (Pre-deployment: All tests passing (48/48))
+
 
     const mockClient = {
       from: vi.fn(() => ({
@@ -134,11 +134,11 @@ describe('updateUserProfile', () => {
 
     expect(result.success).toBe(true);
     if (result.success) {
-<<<<<<< HEAD
+
       expect(result.data.subscription_tier).toBe('business');
-=======
+
       expect(result.data?.full_name).toBe('Updated Name');
->>>>>>> 07538039a (Pre-deployment: All tests passing (48/48))
+
     }
   });
 
@@ -169,9 +169,9 @@ describe('updateUserProfile', () => {
   });
 });
 
-// ============================================================
+// ====
 // listUserProfiles Tests
-// ============================================================
+// ====
 
 describe('listUserProfiles', () => {
   it('should return list of user profiles', async () => {
@@ -245,9 +245,9 @@ describe('listUserProfiles', () => {
   });
 });
 
-// ============================================================
+// ====
 // userProfileExists Tests
-// ============================================================
+// ====
 
 describe('userProfileExists', () => {
   it('should return true when profile exists', async () => {
