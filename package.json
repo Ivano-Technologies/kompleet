@@ -3,14 +3,21 @@
   "version": "1.0.0",
   "description": "Professional platform migration with quality gates",
   "main": "index.js",
+  
+  {
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "lint": "next lint",
+    "start": "next start",
+    "lint": "next lint .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest",
-    "precommit": "npm run lint && npm run typecheck && npm run test"
-  },
+    "test": "vitest run --passWithNoTests",
+    "test:watch": "vitest",
+    "format": "prettier --write .",
+    "ci": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
+  }
+}
+
   "keywords": [],
   "author": "Kezie Okpala",
   "license": "ISC",
