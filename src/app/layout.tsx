@@ -1,3 +1,18 @@
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+import './globals.css';
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-inter',
+  display: 'swap',
+});
+
+export const metadata: Metadata = {
+  title: 'KOMPLEET - Tax Compliance Platform',
+  description: 'Kompleet records. Kompleet filings. Kompleet compliance.',
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -5,9 +20,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={inter.variable}>
-      <body className="font-sans">
-        <AuthProvider>{children}</AuthProvider>
-      </body>
+      <body className="font-sans">{children}</body>
     </html>
   );
 }
