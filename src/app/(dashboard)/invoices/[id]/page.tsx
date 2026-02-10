@@ -5,11 +5,11 @@ import { useRouter, useParams } from 'next/navigation';
 import { createBrowserClient as createClient } from '@/lib/supabase/client';
 import Image from 'next/image';
 
-interface Invoice {
-  id: string;
-  invoice_number: string;
-  invoice_date: string;
-  due_date: string | null;
+import type { Database } from '@/lib/supabase/types';
+
+type DbInvoice = Database['public']['Tables']['invoices']['Row'];
+
+interface Invoice extends Omit<DbInvoice, 'customer_info' | 'line_items'> {
   customer_info: {
     name: string;
     email?: string;
@@ -25,19 +25,6 @@ interface Invoice {
     discount?: number;
     amount: number;
   }>;
-  subtotal: number;
-  vat_amount: number;
-  discount_amount: number;
-  total_amount: number;
-  status: string;
-  tax_year: number;
-  payment_terms?: string;
-  notes?: string;
-  signature_hash?: string;
-  qr_payload?: string;
-  is_immutable: boolean;
-  created_at: string;
-  issued_at?: string;
 }
 
 export default function InvoiceDetailPage() {
@@ -75,7 +62,8 @@ export default function InvoiceDetailPage() {
 
       if (fetchError) throw fetchError;
 
-      setInvoice(data);
+      // Cast Json types to proper interfaces
+      setInvoice(data as Invoice);
 
       // Generate QR code image if payload exists
       if (data.qr_payload) {

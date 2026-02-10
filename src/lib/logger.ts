@@ -180,3 +180,52 @@ export function createRequestLogger(request: Request, additionalContext?: LogCon
 export function createUserLogger(userId: string, additionalContext?: LogContext): Logger {
   return logger.child({ userId, ...additionalContext });
 }
+
+/**
+ * Log the duration of an operation
+ * @param operation - Name of the operation
+ * @param startTime - Start time in milliseconds
+ * @param context - Additional context
+ */
+export function logDuration(
+  operation: string,
+  startTime: number,
+  context?: LogContext
+): void {
+  const durationMs = Date.now() - startTime;
+  logger.info(`${operation} completed`, {
+    operation,
+    durationMs,
+    ...context,
+  });
+}
+
+/**
+ * Format an error for logging
+ * @param error - Error object or unknown error
+ * @returns Formatted error object
+ */
+export function formatError(error: unknown): {
+  message: string;
+  stack?: string;
+  code?: string;
+  name?: string;
+} {
+  if (error instanceof Error) {
+    return {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+      code: (error as any).code,
+    };
+  }
+
+  if (typeof error === 'string') {
+    return { message: error };
+  }
+
+  return {
+    message: 'Unknown error',
+    stack: JSON.stringify(error),
+  };
+}
