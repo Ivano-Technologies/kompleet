@@ -8,11 +8,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient as createClient } from '@/lib/supabase/server';
 import { generateIncomeStatement, generateIncomeStatementHTML } from '@/lib/financial-statements/income-statement';
 import { generateTaxComputation, generateTaxComputationHTML } from '@/lib/financial-statements/tax-computation';
+import { withRateLimit } from '@/lib/with-rate-limit';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function POST(request: NextRequest) {
+async function handlePOST(request: NextRequest) {
   try {
     const supabase = await createClient();
     
@@ -93,3 +94,6 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+// Apply rate limiting (20 requests per minute for expensive financial statement generation)
+export const POST = withRateLimit(handlePOST, { limit: 20 });

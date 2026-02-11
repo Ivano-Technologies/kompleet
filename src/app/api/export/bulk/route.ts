@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient as createClient } from '@/lib/supabase/server';
 import { createBulkExportZIP } from '@/lib/export-service';
+import { withRateLimit } from '@/lib/with-rate-limit';
 
-export async function POST(request: NextRequest) {
+async function handlePOST(request: NextRequest) {
   try {
     const supabase = await createClient();
 
@@ -71,3 +72,6 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+// Apply rate limiting (20 requests per minute for expensive bulk export operations)
+export const POST = withRateLimit(handlePOST, { limit: 20 });

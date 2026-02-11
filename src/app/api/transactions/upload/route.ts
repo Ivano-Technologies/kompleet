@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient as createClient } from '@/lib/supabase/server';
 import { parseCSV, parseExcel, detectBankType, removeDuplicates, type ParsedTransaction } from '@/lib/parsers/bank-statement-parser';
 import { categorizeTransaction, type Category } from '@/lib/services/categorization-service';
+import { withRateLimit } from '@/lib/with-rate-limit';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60; // 60 seconds for large files
@@ -15,7 +16,7 @@ interface UploadResponse {
   transactions?: any[];
 }
 
-export async function POST(request: NextRequest): Promise<NextResponse<UploadResponse>> {
+async function handlePOST(request: NextRequest): Promise<NextResponse<UploadResponse>> {
   try {
     const supabase = await createClient();
     
@@ -193,3 +194,6 @@ export async function POST(request: NextRequest): Promise<NextResponse<UploadRes
     );
   }
 }
+
+// Apply rate limiting (15 requests per minute for file upload operations)
+export const POST = withRateLimit(handlePOST, { limit: 15 });
