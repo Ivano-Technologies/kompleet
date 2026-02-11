@@ -1,7 +1,14 @@
+/**
+ * Tax Rules API (Database Version)
+ * GET /api/tax-rules - Get tax rules from database
+ * Protected: Requires 'calculators:read' permission
+ */
+
 import { createServerClient } from '@/lib/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { withAuth } from '@/lib/auth/with-auth';
 
-export async function GET(request: NextRequest) {
+async function handleGET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const ruleType = searchParams.get('type');
@@ -71,3 +78,6 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+// Apply authentication and authorization (requires calculators:read permission)
+export const GET = withAuth(handleGET, { requiredPermission: 'calculators:read' });

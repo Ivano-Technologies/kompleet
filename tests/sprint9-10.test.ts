@@ -264,12 +264,13 @@ describe('Sprint 9-10: E-Invoicing Module Tests', () => {
         qr_payload: '{...}'
       };
       
-      const hasRequiredFields = 
+      const hasRequiredFields = !!(
         invoice.invoice_number &&
         invoice.customer_info.tin &&
         invoice.signature_hash &&
-        invoice.qr_payload;
-      
+        invoice.qr_payload
+      );
+
       expect(hasRequiredFields).toBe(true);
     });
 

@@ -10,6 +10,7 @@ import { InfoIcon, Calculator, Loader2, Download } from 'lucide-react';
 import { useTaxRules } from '@/hooks/useTaxRules';
 import { logCalculation } from '@/hooks/useAuditLog';
 import { generateCalculationPDF } from '@/lib/pdf-generator';
+import { SaveCalculationButton } from '@/components/calculators/SaveCalculationButton';
 
 interface TaxBracket {
   from: number;
@@ -337,6 +338,26 @@ export default function IndividualTaxCalculatorPage() {
                     </div>
                   </CardContent>
                 </Card>
+
+                <SaveCalculationButton
+                  taxType="pit"
+                  taxYear={new Date().getFullYear()}
+                  inputData={{
+                    grossIncome: parseFloat(grossIncome),
+                    rentPaid: parseFloat(rentPaid) || 0,
+                    ownerOccupierInterest: parseFloat(ownerOccupierInterest) || 0,
+                  }}
+                  grossAmount={parseFloat(grossIncome)}
+                  deductions={result.totalDeductions}
+                  taxableAmount={result.taxableIncome}
+                  taxDue={result.totalTax}
+                  effectiveRate={result.effectiveTaxRate}
+                  breakdown={{
+                    brackets: result.brackets,
+                    netIncome: result.netIncome,
+                  }}
+                  className="w-full"
+                />
 
                 <Button
                   onClick={() => {

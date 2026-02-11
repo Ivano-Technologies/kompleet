@@ -12,7 +12,7 @@
     "start": "next start",
     "lint": "next lint .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run --passWithNoTests --exclude tests/sprint6*.test.ts --exclude tests/sprint7*.test.ts --exclude tests/sprint8*.test.ts --exclude tests/sprint9-10*.test.ts --exclude tests/critical-path-integration.test.ts",
+    "test": "vitest run --passWithNoTests --exclude tests/sprint7*.test.ts --exclude tests/critical-path-integration.test.ts",
     "test:watch": "vitest",
     "format": "prettier --write .",
     "prepare": "husky",
