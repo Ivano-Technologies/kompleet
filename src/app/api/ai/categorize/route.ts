@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withRateLimit } from '@/lib/with-rate-limit';
 
 const ML_SERVICE_URL = process.env.ML_SERVICE_URL || 'http://localhost:5000';
 
-export async function POST(request: NextRequest) {
+async function handlePOST(request: NextRequest) {
   try {
     // Parse request body
     const body = await request.json();
@@ -58,6 +59,9 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+// Apply rate limiting (30 requests per minute for expensive AI operations)
+export const POST = withRateLimit(handlePOST, { limit: 30 });
 
 export async function GET() {
   try {
