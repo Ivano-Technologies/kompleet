@@ -5,15 +5,11 @@
   "framework": "nextjs",
   "outputDirectory": ".next",
   "regions": ["iad1"],
-  "env": {
-    "NEXT_PUBLIC_SUPABASE_URL": "@kompleet-supabase-url",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@kompleet-supabase-anon-key"
-  },
   "build": {
     "env": {
-      "SUPABASE_SERVICE_ROLE_KEY": "@kompleet-supabase-service-role-key",
-      "DATABASE_URL": "@kompleet-database-url",
-      "ML_SERVICE_URL": "@kompleet-ml-service-url"
+      "NEXT_PUBLIC_SUPABASE_URL": "",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY": "",
+      "NEXT_PUBLIC_SITE_URL": "https://kompleet.ng"
     }
   },
   "headers": [
