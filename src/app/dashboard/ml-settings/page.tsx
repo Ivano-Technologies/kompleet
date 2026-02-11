@@ -30,10 +30,6 @@ export default function MLSettingsPage() {
   const [recurringPatterns, setRecurringPatterns] = useState<RecurringPattern[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
   async function loadData() {
     try {
       // Load correction stats
@@ -56,6 +52,10 @@ export default function MLSettingsPage() {
       setLoading(false);
     }
   }
+
+  useEffect(() => {
+    loadData();
+  }, []);
 
   async function connectEmail(provider: 'gmail' | 'outlook') {
     try {
