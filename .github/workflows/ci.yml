@@ -1,4 +1,3 @@
-```yaml
 name: CI
 
 on:
@@ -68,6 +67,3 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - run: pnpm lint
-```
-
----
