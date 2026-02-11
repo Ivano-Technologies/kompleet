@@ -12,15 +12,11 @@
     "start": "next start",
     "lint": "next lint .",
     "typecheck": "tsc --noEmit",
-
     "test": "vitest run --passWithNoTests --exclude tests/sprint6*.test.ts --exclude tests/sprint7*.test.ts --exclude tests/sprint8*.test.ts --exclude tests/sprint9-10*.test.ts --exclude tests/critical-path-integration.test.ts",
     "test:watch": "vitest",
-
     "format": "prettier --write .",
-
     "prepare": "husky",
     "precommit": "pnpm lint && pnpm typecheck && pnpm test",
-
     "ci": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
   },
   "dependencies": {
@@ -45,6 +41,7 @@
     "jspdf": "^4.1.0",
     "jspdf-autotable": "^5.0.7",
     "lucide-react": "^0.563.0",
+    "next": "^16.1.6",
     "papaparse": "5.4.1",
     "pg": "^8.18.0",
     "pino": "^10.3.0",
@@ -56,13 +53,15 @@
     "svix": "^1.84.1",
     "tailwind-merge": "^3.4.0",
     "xlsx": "0.18.5",
-    "next": "^16.1.6"
+    "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.18",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
+    "@types/archiver": "^7.0.0",
     "@types/node": "^25.1.0",
     "@types/papaparse": "^5.5.2",
     "@types/pg": "^8.16.0",
