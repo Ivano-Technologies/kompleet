@@ -1,12 +1,11 @@
 import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 import { rateLimit, getIdentifier } from './rate-limit';
 
 interface RateLimitOptions {
   limit?: number; // requests per window
   window?: number; // window duration in milliseconds
 }
-
-type ApiHandler = (request: Request, context?: any) => Promise<Response> | Response;
 
 /**
  * Higher-order function that adds rate limiting to API route handlers
@@ -22,11 +21,11 @@ type ApiHandler = (request: Request, context?: any) => Promise<Response> | Respo
  * @param options - Rate limit configuration
  * @returns Wrapped handler with rate limiting
  */
-export function withRateLimit(
-  handler: ApiHandler,
+export function withRateLimit<T extends Request | NextRequest = Request>(
+  handler: (request: T, context?: any) => Promise<Response> | Response,
   options: RateLimitOptions = {}
-): ApiHandler {
-  return async (request: Request, context?: any) => {
+): (request: T, context?: any) => Promise<Response> {
+  return async (request: T, context?: any) => {
     const identifier = getIdentifier(request);
     const result = rateLimit(identifier, options);
 

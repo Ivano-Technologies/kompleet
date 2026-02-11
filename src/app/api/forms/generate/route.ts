@@ -1,8 +1,9 @@
+import { withRateLimit } from '@/lib/with-rate-limit';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient as createClient } from '@/lib/supabase/server';
 import { generatePITForm, generateCITForm, generateVATForm } from '@/lib/nrs-forms';
 
-export async function POST(request: NextRequest) {
+async function handlePOST(request: NextRequest) {
   try {
     const supabase = await createClient();
     
@@ -107,3 +108,6 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+// Apply rate limiting
+export const POST = withRateLimit(handlePOST, { limit: 20 });

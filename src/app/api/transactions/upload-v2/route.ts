@@ -1,3 +1,4 @@
+import { withRateLimit } from '@/lib/with-rate-limit';
 /**
  * Transaction Upload API v2 (Sprint 5)
  * POST /api/transactions/upload-v2
@@ -16,7 +17,7 @@ export const maxDuration = 60;
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
-export async function POST(request: NextRequest) {
+async function handlePOST(request: NextRequest) {
   try {
     const supabase = await createClient();
     
@@ -230,3 +231,6 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+// Apply rate limiting
+export const POST = withRateLimit(handlePOST, { limit: 20 });
