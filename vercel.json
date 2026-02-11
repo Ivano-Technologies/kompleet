@@ -35,31 +35,11 @@
       ]
     }
   ],
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/"
-    }
-  ],
   "redirects": [
     {
       "source": "/tax-calculators/:path*",
       "destination": "/calculators/:path*",
       "permanent": true
     }
-  ],
-  "functions": {
-    "api/**/*.ts": {
-      "maxDuration": 10
-    },
-    "api/calculations/save.ts": {
-      "maxDuration": 15
-    },
-    "api/export/bulk.ts": {
-      "maxDuration": 30
-    },
-    "api/ai/batch-categorize.ts": {
-      "maxDuration": 30
-    }
-  }
+  ]
 }
