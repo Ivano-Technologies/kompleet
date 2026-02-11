@@ -1,0 +1,69 @@
+{
+  "buildCommand": "pnpm build",
+  "devCommand": "pnpm dev",
+  "installCommand": "pnpm install",
+  "framework": "nextjs",
+  "outputDirectory": ".next",
+  "regions": ["iad1"],
+  "env": {
+    "NEXT_PUBLIC_SUPABASE_URL": "@kompleet-supabase-url",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@kompleet-supabase-anon-key"
+  },
+  "build": {
+    "env": {
+      "SUPABASE_SERVICE_ROLE_KEY": "@kompleet-supabase-service-role-key",
+      "DATABASE_URL": "@kompleet-database-url",
+      "ML_SERVICE_URL": "@kompleet-ml-service-url"
+    }
+  },
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/tax-calculators/:path*",
+      "destination": "/calculators/:path*",
+      "permanent": true
+    }
+  ],
+  "functions": {
+    "api/**/*.ts": {
+      "maxDuration": 10
+    },
+    "api/calculations/save.ts": {
+      "maxDuration": 15
+    },
+    "api/export/bulk.ts": {
+      "maxDuration": 30
+    },
+    "api/ai/batch-categorize.ts": {
+      "maxDuration": 30
+    }
+  }
+}

@@ -177,7 +177,7 @@ export default async function DashboardPage() {
                       📤 Upload Bank Statement
                     </Button>
                   </Link>
-                  <Link href="/tax-calculators">
+                  <Link href="/calculators">
                     <Button variant="secondary" className="w-full">
                       🧮 Calculate Taxes
                     </Button>
@@ -212,35 +212,40 @@ export default async function DashboardPage() {
                 <CardTitle>Tax Calculators</CardTitle>
               </CardHeader>
               <CardContent>
+                <div className="mb-4">
+                  <Link href="/calculators" className="text-primary hover:underline text-sm font-medium">
+                    View All Calculators →
+                  </Link>
+                </div>
                 <Grid columns={3} gap="md">
-                  <Link href="/tax-calculators/personal-income">
+                  <Link href="/calculators/individual-tax">
                     <Button variant="secondary" className="w-full">
-                      Personal Income Tax
+                      👤 Personal Income Tax
                     </Button>
                   </Link>
-                  <Link href="/tax-calculators/company-income">
+                  <Link href="/calculators/business-tax">
                     <Button variant="secondary" className="w-full">
-                      Company Income Tax
+                      🏢 Company Income Tax
                     </Button>
                   </Link>
-                  <Link href="/tax-calculators/vat">
+                  <Link href="/calculators/vat">
                     <Button variant="secondary" className="w-full">
-                      VAT Calculator
+                      📊 VAT Compliance
                     </Button>
                   </Link>
-                  <Link href="/tax-calculators/withholding">
+                  <Link href="/calculators/stamp-duty">
                     <Button variant="secondary" className="w-full">
-                      Withholding Tax
+                      📜 Stamp Duty
                     </Button>
                   </Link>
-                  <Link href="/tax-calculators/capital-gains">
+                  <Link href="/calculators/capital-allowances">
                     <Button variant="secondary" className="w-full">
-                      Capital Gains Tax
+                      🏭 Capital Allowances
                     </Button>
                   </Link>
-                  <Link href="/tax-calculators/stamp-duty">
+                  <Link href="/calculators/property-tax">
                     <Button variant="secondary" className="w-full">
-                      Stamp Duty
+                      🏠 Property Tax
                     </Button>
                   </Link>
                 </Grid>

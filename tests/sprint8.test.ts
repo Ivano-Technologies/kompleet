@@ -222,7 +222,7 @@ describe('Sprint 8: Performance', () => {
     await new Promise(resolve => setTimeout(resolve, 5000));
     const duration = Date.now() - start;
     expect(duration).toBeLessThan(10000);
-  });
+  }, 15000); // 15 second timeout to allow 10 second test to complete
 
   it('should calculate YoY comparison within 500ms', async () => {
     const start = Date.now();

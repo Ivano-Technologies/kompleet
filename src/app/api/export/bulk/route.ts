@@ -1,17 +1,19 @@
+/**
+ * Bulk Export API
+ * POST /api/export/bulk - Export all data as ZIP
+ * Protected: Requires 'export:bulk' permission
+ * Rate limited: 20 requests per minute
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient as createClient } from '@/lib/supabase/server';
 import { createBulkExportZIP } from '@/lib/export-service';
 import { withRateLimit } from '@/lib/with-rate-limit';
+import { withAuth } from '@/lib/auth/with-auth';
 
-async function handlePOST(request: NextRequest) {
+async function handlePOST(request: NextRequest, user: any) {
   try {
     const supabase = await createClient();
-
-    // Get authenticated user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
 
     // Parse request body
     const body = await request.json();
@@ -73,5 +75,9 @@ async function handlePOST(request: NextRequest) {
   }
 }
 
-// Apply rate limiting (20 requests per minute for expensive bulk export operations)
-export const POST = withRateLimit(handlePOST, { limit: 20 });
+// Apply authentication, authorization, and rate limiting
+// Order: Auth first (check permission), then rate limit (prevent abuse)
+export const POST = withRateLimit(
+  withAuth(handlePOST, { requiredPermission: 'export:bulk' }),
+  { limit: 20 }
+);

@@ -1,16 +1,17 @@
+/**
+ * Data Migration API
+ * POST /api/migration/migrate - Migrate data between tax years
+ * Protected: Requires 'admin:access' permission
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient as createClient } from '@/lib/supabase/server';
 import { migrateYearData, type MigrationOptions } from '@/lib/data-migration-service';
+import { withAuth } from '@/lib/auth/with-auth';
 
-export async function POST(request: NextRequest) {
+async function handlePOST(request: NextRequest, user: any) {
   try {
     const supabase = await createClient();
-
-    // Get authenticated user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
 
     // Parse request body
     const body = await request.json();
@@ -72,3 +73,6 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+// Apply authentication and authorization (requires admin:access permission)
+export const POST = withAuth(handlePOST, { requiredPermission: 'admin:access' });

@@ -10,6 +10,7 @@ import { InfoIcon, Calculator, Loader2, Download } from 'lucide-react';
 import { useTaxRules } from '@/hooks/useTaxRules';
 import { logCalculation } from '@/hooks/useAuditLog';
 import { generateCalculationPDF } from '@/lib/pdf-generator';
+import { SaveCalculationButton } from '@/components/calculators/SaveCalculationButton';
 
 interface BusinessTaxResult {
   isSmallCompany: boolean;
@@ -341,10 +342,30 @@ export default function BusinessTaxCalculatorPage() {
                     </Alert>
                   )}
 
-                  <Button onClick={handleExportPDF} variant="outline" className="w-full">
-                    <Download className="mr-2 h-4 w-4" />
-                    Export as PDF
-                  </Button>
+                  <div className="space-y-2">
+                    <SaveCalculationButton
+                      taxType="cit"
+                      taxYear={new Date().getFullYear()}
+                      inputData={{
+                        turnover: parseFloat(turnover),
+                        totalAssets: parseFloat(totalAssets),
+                        assessableProfit: parseFloat(assessableProfit),
+                        isProfessionalService,
+                      }}
+                      grossAmount={result.breakdown.assessableProfit}
+                      deductions={0}
+                      taxableAmount={result.breakdown.assessableProfit}
+                      taxDue={result.totalTax}
+                      effectiveRate={result.effectiveTaxRate}
+                      breakdown={result.breakdown}
+                      className="w-full"
+                    />
+
+                    <Button onClick={handleExportPDF} variant="outline" className="w-full">
+                      <Download className="mr-2 h-4 w-4" />
+                      Export as PDF
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             )}

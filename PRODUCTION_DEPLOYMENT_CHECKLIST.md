@@ -155,6 +155,11 @@
 
 ### Step 2: Supabase Configuration
 - [ ] Enable PITR (Point-in-Time Recovery)
+  - **CRITICAL**: Follow `docs/DATABASE_PITR_GUIDE.md` for step-by-step instructions
+  - Requires: Supabase Pro Plan ($25/month)
+  - Configuration: 7-day retention (recommended for MVP)
+  - Time estimate: 30 minutes
+  - Verification: Check Dashboard → Database → Backups shows "PITR: Enabled"
 - [ ] Enable Leaked Password Protection
 - [ ] Review team access levels
 - [ ] Verify RLS policies

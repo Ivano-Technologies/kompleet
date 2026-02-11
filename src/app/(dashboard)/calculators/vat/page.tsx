@@ -10,6 +10,7 @@ import { InfoIcon, Calculator, CheckCircle2, XCircle, Loader2, Download } from '
 import { useTaxRules } from '@/hooks/useTaxRules';
 import { logCalculation } from '@/hooks/useAuditLog';
 import { generateCalculationPDF } from '@/lib/pdf-generator';
+import { SaveCalculationButton } from '@/components/calculators/SaveCalculationButton';
 
 interface VATResult {
   isExempt: boolean;
@@ -355,6 +356,30 @@ export default function VATCalculatorPage() {
                       </AlertDescription>
                     </Alert>
                   )}
+
+                  <SaveCalculationButton
+                    taxType="vat"
+                    taxYear={new Date().getFullYear()}
+                    inputData={{
+                      amount: parseFloat(amount),
+                      calculationType,
+                      turnover: parseFloat(turnover) || 0,
+                      totalAssets: parseFloat(totalAssets) || 0,
+                      isRentTransaction,
+                    }}
+                    grossAmount={result.grossAmount}
+                    deductions={0}
+                    taxableAmount={result.netAmount}
+                    taxDue={result.vatAmount}
+                    effectiveRate={result.vatRate}
+                    breakdown={{
+                      isExempt: result.isExempt,
+                      exemptionReason: result.exemptionReason,
+                      netAmount: result.netAmount,
+                      vatAmount: result.vatAmount,
+                    }}
+                    className="w-full mt-4"
+                  />
 
                   <Button
                     onClick={() => {

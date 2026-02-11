@@ -1,13 +1,15 @@
 /**
  * Tax Rules API
  * GET /api/tax/rules - Get tax rules (optionally filtered)
+ * Protected: Requires 'admin:manage_rules' permission
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { withAuth } from '@/lib/auth/with-auth';
 import { rulesEngine } from '@/lib/services/rules-engine';
 import type { RuleType } from '@/types/tax';
 
-export async function GET(request: NextRequest) {
+async function handleGET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const versionId = searchParams.get('version_id') || undefined;
@@ -36,3 +38,6 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+// Apply authentication and authorization (requires admin:manage_rules permission)
+export const GET = withAuth(handleGET, { requiredPermission: 'admin:manage_rules' });

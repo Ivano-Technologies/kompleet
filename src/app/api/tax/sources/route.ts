@@ -1,12 +1,14 @@
 /**
  * Tax Sources API
  * GET /api/tax/sources - Get all regulatory sources
+ * Protected: Requires 'admin:manage_rules' permission
  */
 
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { withAuth } from '@/lib/auth/with-auth';
 import { rulesEngine } from '@/lib/services/rules-engine';
 
-export async function GET() {
+async function handleGET(request: NextRequest) {
   try {
     const sources = await rulesEngine.getSources();
 
@@ -19,3 +21,6 @@ export async function GET() {
     );
   }
 }
+
+// Apply authentication and authorization (requires admin:manage_rules permission)
+export const GET = withAuth(handleGET, { requiredPermission: 'admin:manage_rules' });
