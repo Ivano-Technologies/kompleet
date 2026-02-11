@@ -26,9 +26,13 @@ jobs:
 
       - run: pnpm build
         env:
+          CI: 'true'
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_SITE_URL: https://kompleet.ng
+          SUPABASE_SERVICE_ROLE_KEY: 'eyJ_ci_placeholder_for_build'
+          OPENAI_API_KEY: 'sk-ci_placeholder_for_build'
+          DATABASE_URL: 'postgresql://ci:placeholder@localhost:5432/ci_build'
 
   test:
     name: test
@@ -48,7 +52,13 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - run: pnpm test
-        continue-on-error: true
+        env:
+          CI: 'true'
+          NEXT_PUBLIC_SUPABASE_URL: 'http://localhost:54321'
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: 'eyJ_test_placeholder'
+          SUPABASE_SERVICE_ROLE_KEY: 'eyJ_test_placeholder'
+          OPENAI_API_KEY: 'sk-test_placeholder'
+          DATABASE_URL: 'postgresql://test:test@localhost:5432/test'
 
   lint:
     name: lint

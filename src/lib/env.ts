@@ -185,6 +185,7 @@ function formatZodError(error: z.ZodError<any>): string {
 
 function validateEnv(): Env {
   const isServer = typeof window === 'undefined';
+  const isCI = process.env.CI === 'true';
 
   const rawEnv = process.env as Record<string, string | undefined>;
 
@@ -194,8 +195,10 @@ function validateEnv(): Env {
     if (!result.success) {
       const formatted = formatZodError(result.error);
 
-      if (process.env.NODE_ENV === 'development') {
-        console.warn('⚠️ Environment validation failed (development mode):\n', formatted);
+      // Allow placeholders in development or CI environments
+      if (process.env.NODE_ENV === 'development' || isCI) {
+        const envName = isCI ? 'CI' : 'development';
+        console.warn(`⚠️  Environment validation failed (${envName} mode):\n`, formatted);
 
         return serverSchema.merge(clientSchema).parse({
           ...rawEnv,
