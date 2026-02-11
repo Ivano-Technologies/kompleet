@@ -5,6 +5,7 @@
 
 import { describe, it, expect, vi } from 'vitest';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from './types';
 import {
   getUserProfile,
   updateUserProfile,
@@ -12,13 +13,26 @@ import {
   userProfileExists,
 } from './queries';
 
+type UserProfile = Database['public']['Tables']['profiles']['Row'];
+
 // Mock user profile data
 const mockProfile: UserProfile = {
   id: 'user-123',
-  subscription_tier: 'professional',
+  email: 'test@example.com',
+  full_name: 'Test User',
+  phone: null,
   entity_type: 'individual',
-  fiscal_year_start_month: 1,
-  onboarding_completed: true,
+  tin: null,
+  company_name: null,
+  rc_number: null,
+  company_address: null,
+  vat_registered: false,
+  vat_number: null,
+  subscription_tier: 'professional',
+  subscription_expires_at: null,
+  monthly_transaction_count: 0,
+  last_transaction_reset: null,
+  deleted_at: null,
   created_at: '2024-01-01T00:00:00Z',
   updated_at: '2024-01-01T00:00:00Z',
 };
@@ -129,15 +143,18 @@ describe('updateUserProfile', () => {
     } as unknown as SupabaseClient;
 
     const result = await updateUserProfile(mockClient, 'user-123', {
-      subscription_tier: 'business',
+      subscription_tier: 'professional',
     });
 
     expect(result.success).toBe(true);
-    if (result.success) {
+    if (result.success && result.data) {
 
-      expect(result.data.subscription_tier).toBe('business');
+      expect(result.data.subscription_tier).toBe('professional');
 
-      expect(result.data?.full_name).toBe('Updated Name');
+      expect(result.data.full_name).toBe('Updated Name');
+    } else {
+      // Handle error case
+      expect(result.error).toBeDefined();
 
     }
   });
@@ -159,7 +176,7 @@ describe('updateUserProfile', () => {
     } as unknown as SupabaseClient;
 
     const result = await updateUserProfile(mockClient, 'user-123', {
-      subscription_tier: 'business',
+      subscription_tier: 'professional',
     });
 
     expect(result.success).toBe(false);

@@ -31,19 +31,19 @@ export default function SignInPage() {
   }, [user, router]);
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-[#11211b] flex flex-col items-center justify-center p-4 dark">
       {/* Logo Link */}
       <Link href="/" className="mb-8">
         <Logo text="KOMPLEET" imageSrc="/assets/logo-primary.png" />
       </Link>
 
       {/* Sign-In Card */}
-      <div className="w-full max-w-md bg-surface border border-border rounded-2xl p-8">
+      <div className="w-full max-w-md bg-white/5 border border-[#0a6746]/20 rounded-2xl p-8">
         <div className="text-center mb-8">
-          <h1 className="text-h2 text-foreground mb-2">
+          <h1 className="text-2xl font-bold text-white mb-2">
             Welcome back
           </h1>
-          <p className="text-body text-muted">
+          <p className="text-gray-400">
             Sign in to your account
           </p>
         </div>
@@ -115,7 +115,7 @@ export default function SignInPage() {
         />
 
         {/* Footer Text */}
-        <p className="text-center text-caption text-muted mt-8">
+        <p className="text-center text-sm text-gray-400 mt-8">
           Professional tax compliance platform for Nigerian businesses
         </p>
       </div>
@@ -123,7 +123,7 @@ export default function SignInPage() {
       {/* Back to Home Link */}
       <Link
         href="/"
-        className="mt-6 text-sm text-muted hover:text-foreground transition-colors duration-200"
+        className="mt-6 text-sm text-gray-400 hover:text-gray-300 transition-colors duration-200"
       >
         ← Back to home
       </Link>

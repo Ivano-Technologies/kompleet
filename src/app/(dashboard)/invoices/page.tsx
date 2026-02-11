@@ -3,20 +3,15 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createBrowserClient as createClient } from '@/lib/supabase/client';
+import type { Database } from '@/lib/supabase/types';
 
-interface Invoice {
-  id: string;
-  invoice_number: string;
-  invoice_date: string;
-  due_date: string | null;
+type DbInvoice = Database['public']['Tables']['invoices']['Row'];
+
+interface Invoice extends Omit<DbInvoice, 'customer_info'> {
   customer_info: {
     name: string;
     email?: string;
   };
-  total_amount: number;
-  status: 'draft' | 'issued' | 'paid' | 'cancelled' | 'archived';
-  tax_year: number;
-  created_at: string;
 }
 
 export default function InvoicesPage() {
@@ -61,7 +56,8 @@ export default function InvoicesPage() {
 
       if (fetchError) throw fetchError;
 
-      setInvoices(data || []);
+      // Cast Json types to proper interfaces
+      setInvoices((data || []) as Invoice[]);
     } catch (err: any) {
       setError(err.message);
     } finally {
