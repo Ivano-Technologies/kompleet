@@ -36,8 +36,15 @@ describe('validateEnv', () => {
   });
 
   it('should fail validation with missing required vars', () => {
+    // Explicitly clear required vars that may be set by test setup
+    delete process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    delete process.env.OPENAI_API_KEY;
+    delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+    delete process.env.STRIPE_SECRET_KEY;
+    delete process.env.STRIPE_WEBHOOK_SECRET;
+    delete process.env.STRIPE_PRICE_PRO;
+    delete process.env.STRIPE_PRICE_ENTERPRISE;
     process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://example.supabase.co';
-    // Missing other required vars
 
     const result = validateEnv();
 

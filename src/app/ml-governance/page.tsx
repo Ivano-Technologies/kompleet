@@ -61,10 +61,6 @@ export default function MLGovernanceDashboard() {
   const [driftAlerts, setDriftAlerts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadDashboardData();
-  }, []);
-
   const loadDashboardData = async () => {
     try {
       // Load KPIs
@@ -91,6 +87,10 @@ export default function MLGovernanceDashboard() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
 
   if (loading) {
     return (

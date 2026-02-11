@@ -11,11 +11,6 @@ export default function ReportsPage() {
     netIncome: 0,
   });
 
-  useEffect(() => {
-    // Fetch quick stats
-    fetchStats();
-  }, []);
-
   const fetchStats = async () => {
     try {
       const response = await fetch('/api/transactions?limit=10000');
@@ -41,6 +36,10 @@ export default function ReportsPage() {
       console.error('Error fetching stats:', error);
     }
   };
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-NG', {

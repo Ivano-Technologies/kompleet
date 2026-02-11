@@ -124,6 +124,7 @@ describe('updateUserProfile', () => {
       id: 'user-123',
       full_name: 'Updated Name',
       email: 'john@example.com',
+      subscription_tier: 'professional',
     };
 
 

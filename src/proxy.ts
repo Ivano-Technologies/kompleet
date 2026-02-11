@@ -41,6 +41,7 @@ export async function proxy(request: NextRequest) {
     '/sign-up',
     '/login',
     '/signup',
+    '/auth/callback',
     '/kompleet',
     '/kompleet-privacy',
     '/kompleet-terms',
