@@ -26,9 +26,9 @@ module.exports = {
         
         // Nigerian green accent (replaces NextAuth cyan)
         primary: {
-          DEFAULT: '#008751',
-          hover: '#006B3F',
-          'dark-hover': '#00A862',
+          DEFAULT: '#0a6746',
+          hover: '#085a3c',
+          'dark-hover': '#0d7e55',
         },
         
         // Semantic colors
