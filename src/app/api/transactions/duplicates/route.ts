@@ -14,21 +14,21 @@ export const dynamic = 'force-dynamic';
 /**
  * Get pending duplicate candidates
  */
-async function handleGET(request: NextRequest) {
+async function handleGET(request: NextRequest): Promise<Response> {
   try {
     const supabase = await createClient();
-    
+
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    
+
     // Get query parameters
     const searchParams = request.nextUrl.searchParams;
     const sessionId = searchParams.get('sessionId');
-    
+
     // Build query
     let query = supabase
       .from('duplicate_candidates')
@@ -39,22 +39,22 @@ async function handleGET(request: NextRequest) {
       .eq('import_sessions.user_id', user.id)
       .eq('status', 'pending')
       .order('created_at', { ascending: false });
-    
+
     if (sessionId) {
       query = query.eq('session_id', sessionId);
     }
-    
+
     const { data: duplicates, error: duplicatesError } = await query;
-    
+
     if (duplicatesError) {
       throw duplicatesError;
     }
-    
+
     return NextResponse.json({
       duplicates,
       total: duplicates?.length || 0,
     });
-    
+
   } catch (error) {
     console.error('Get duplicates error:', error);
     return NextResponse.json(
@@ -67,35 +67,35 @@ async function handleGET(request: NextRequest) {
 /**
  * Resolve duplicate candidate
  */
-async function handlePOST(request: NextRequest) {
+async function handlePOST(request: NextRequest): Promise<Response> {
   try {
     const supabase = await createClient();
-    
+
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    
+
     // Parse request body
     const body = await request.json();
-    const { duplicateId, action } = body; // action: 'merge', 'keep_both', 'reject'
-    
+    const { duplicateId, action } = body; // action: 'merged', 'kept_both', 'rejected'
+
     if (!duplicateId || !action) {
       return NextResponse.json(
         { error: 'Missing duplicateId or action' },
         { status: 400 }
       );
     }
-    
+
     if (!['merged', 'kept_both', 'rejected'].includes(action)) {
       return NextResponse.json(
         { error: 'Invalid action' },
         { status: 400 }
       );
     }
-    
+
     // Get duplicate candidate
     const { data: duplicate, error: duplicateError } = await supabase
       .from('duplicate_candidates')
@@ -106,14 +106,12 @@ async function handlePOST(request: NextRequest) {
       .eq('id', duplicateId)
       .eq('import_sessions.user_id', user.id)
       .single();
-    
+
     if (duplicateError || !duplicate) {
       return NextResponse.json({ error: 'Duplicate not found' }, { status: 404 });
     }
-    
-    // Handle action
+
     if (action === 'merged') {
-      // Mark as merged (don't import new transaction)
       await supabase
         .from('duplicate_candidates')
         .update({
@@ -122,16 +120,16 @@ async function handlePOST(request: NextRequest) {
           resolved_at: new Date().toISOString(),
         })
         .eq('id', duplicateId);
-      
+
       return NextResponse.json({
         success: true,
         message: 'Duplicate merged with existing transaction',
       });
-      
-    } else if (action === 'kept_both') {
-      // Import new transaction
+    }
+
+    if (action === 'kept_both') {
       const newTransaction = duplicate.new_transaction_data;
-      
+
       const { error: insertError } = await supabase
         .from('transactions')
         .insert({
@@ -145,12 +143,11 @@ async function handlePOST(request: NextRequest) {
           source: `${newTransaction.metadata.bankCode}_import`,
           metadata: newTransaction.metadata,
         });
-      
+
       if (insertError) {
         throw insertError;
       }
-      
-      // Mark as kept_both
+
       await supabase
         .from('duplicate_candidates')
         .update({
@@ -159,14 +156,14 @@ async function handlePOST(request: NextRequest) {
           resolved_at: new Date().toISOString(),
         })
         .eq('id', duplicateId);
-      
+
       return NextResponse.json({
         success: true,
         message: 'Both transactions kept',
       });
-      
-    } else if (action === 'rejected') {
-      // Mark as rejected (don't import new transaction)
+    }
+
+    if (action === 'rejected') {
       await supabase
         .from('duplicate_candidates')
         .update({
@@ -175,13 +172,19 @@ async function handlePOST(request: NextRequest) {
           resolved_at: new Date().toISOString(),
         })
         .eq('id', duplicateId);
-      
+
       return NextResponse.json({
         success: true,
         message: 'New transaction rejected',
       });
     }
-    
+
+    // 🔒 Fallback (should never happen, but satisfies TS exhaustiveness)
+    return NextResponse.json(
+      { error: 'Unhandled action' },
+      { status: 400 }
+    );
+
   } catch (error) {
     console.error('Resolve duplicate error:', error);
     return NextResponse.json(
