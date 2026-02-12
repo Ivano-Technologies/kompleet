@@ -200,3 +200,63 @@ body {
 .icon-gradient-teal {
   background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
 }
+
+/* Unified Button System */
+.btn-primary {
+  background-color: rgb(var(--primary));
+  color: white;
+  font-weight: 600;
+  transition: all 200ms ease;
+  box-shadow: 0 4px 6px -1px rgba(var(--primary-rgb), 0.2);
+}
+.btn-primary:hover {
+  background-color: #085a3c;
+}
+.btn-primary:focus-visible {
+  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.4);
+}
+
+.btn-secondary {
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  font-weight: 600;
+  transition: all 200ms ease;
+}
+.btn-secondary:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.btn-white {
+  background-color: white;
+  color: rgb(var(--primary));
+  font-weight: 700;
+  transition: all 200ms ease;
+}
+.btn-white:hover {
+  background-color: #f1f5f9;
+}
+
+.btn-ghost {
+  background-color: rgba(var(--primary-rgb), 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-weight: 700;
+  transition: all 200ms ease;
+}
+.btn-ghost:hover {
+  background-color: rgba(var(--primary-rgb), 0.3);
+}
+
+.btn-with-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+button:focus-visible {
+  outline: 2px solid rgb(var(--primary));
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.2);
+}
