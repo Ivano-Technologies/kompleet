@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthorizationUrl } from '@/lib/email/gmail';
 import { randomBytes } from 'crypto';
+import { withRateLimit } from '@/lib/with-rate-limit';
 
-export async function POST(request: NextRequest) {
+async function handlePOST(request: NextRequest) {
   try {
     // Generate state token for CSRF protection
     const state = randomBytes(32).toString('hex');
@@ -31,3 +32,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const POST = withRateLimit(handlePOST, { limit: 10 });

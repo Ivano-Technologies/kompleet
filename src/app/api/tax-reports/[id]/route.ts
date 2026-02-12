@@ -1,16 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient as createClient } from '@/lib/supabase/server';
+import { withRateLimit } from '@/lib/with-rate-limit';
 
 export const runtime = 'nodejs';
 
-export async function GET(
+async function handleGET(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient();
     const params = await context.params;
-    
+
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
@@ -39,14 +40,14 @@ export async function GET(
   }
 }
 
-export async function PATCH(
+async function handlePATCH(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient();
     const params = await context.params;
-    
+
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
@@ -85,14 +86,14 @@ export async function PATCH(
   }
 }
 
-export async function DELETE(
+async function handleDELETE(
   request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient();
     const params = await context.params;
-    
+
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
@@ -119,3 +120,7 @@ export async function DELETE(
     );
   }
 }
+
+export const GET = withRateLimit(handleGET);
+export const PATCH = withRateLimit(handlePATCH);
+export const DELETE = withRateLimit(handleDELETE);

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient as createClient } from '@/lib/supabase/server';
 import { getUpcomingDeadlines } from '@/lib/deadline-service';
+import { withRateLimit } from '@/lib/with-rate-limit';
 
-export async function GET(request: NextRequest) {
+async function handleGET(request: NextRequest) {
   try {
     const supabase = await createClient();
     
@@ -29,3 +30,5 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+export const GET = withRateLimit(handleGET, { limit: 120 });

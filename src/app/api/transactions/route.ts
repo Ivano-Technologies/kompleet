@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient as createClient } from '@/lib/supabase/server';
+import { withRateLimit } from '@/lib/with-rate-limit';
 
 export const runtime = 'nodejs';
 
@@ -13,7 +14,7 @@ interface TransactionFilters {
   limit?: number;
 }
 
-export async function GET(request: NextRequest): Promise<NextResponse> {
+async function handleGET(request: NextRequest): Promise<NextResponse> {
   try {
     const supabase = await createClient();
     
@@ -107,7 +108,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 }
 
-export async function DELETE(request: NextRequest): Promise<NextResponse> {
+async function handleDELETE(request: NextRequest): Promise<NextResponse> {
   try {
     const supabase = await createClient();
     
@@ -158,3 +159,6 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
     );
   }
 }
+
+export const GET = withRateLimit(handleGET);
+export const DELETE = withRateLimit(handleDELETE);

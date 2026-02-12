@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient as createClient } from '@/lib/supabase/server';
 import { createInvoice } from '@/lib/invoice-service';
+import { withRateLimit } from '@/lib/with-rate-limit';
 
-export async function POST(request: NextRequest) {
+async function handlePOST(request: NextRequest) {
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -34,12 +35,14 @@ export async function POST(request: NextRequest) {
       notes
     });
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       invoice_id: invoice.id,
-      invoice_number: invoice.invoice_number 
+      invoice_number: invoice.invoice_number
     }, { status: 201 });
   } catch (error: any) {
     console.error('Error creating invoice:', error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+
+export const POST = withRateLimit(handlePOST);

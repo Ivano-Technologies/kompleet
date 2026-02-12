@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient as createClient } from '@/lib/supabase/server';
+import { withRateLimit } from '@/lib/with-rate-limit';
 
 export const runtime = 'nodejs';
 
@@ -9,7 +10,7 @@ interface RouteParams {
   }>;
 }
 
-export async function GET(
+async function handleGET(
   request: NextRequest,
   { params }: RouteParams
 ): Promise<NextResponse> {
@@ -55,7 +56,7 @@ export async function GET(
   }
 }
 
-export async function PUT(
+async function handlePUT(
   request: NextRequest,
   { params }: RouteParams
 ): Promise<NextResponse> {
@@ -135,7 +136,7 @@ export async function PUT(
   }
 }
 
-export async function DELETE(
+async function handleDELETE(
   request: NextRequest,
   { params }: RouteParams
 ): Promise<NextResponse> {
@@ -171,7 +172,7 @@ export async function DELETE(
       success: true,
       message: 'Transaction deleted',
     });
-    
+
   } catch (error) {
     console.error('Delete error:', error);
     return NextResponse.json(
@@ -180,3 +181,7 @@ export async function DELETE(
     );
   }
 }
+
+export const GET = withRateLimit(handleGET);
+export const PUT = withRateLimit(handlePUT);
+export const DELETE = withRateLimit(handleDELETE);

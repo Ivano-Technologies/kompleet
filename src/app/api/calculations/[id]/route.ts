@@ -8,6 +8,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
+import { withRateLimit } from '@/lib/with-rate-limit';
 
 interface RouteContext {
   params: Promise<{
@@ -15,7 +16,7 @@ interface RouteContext {
   }>;
 }
 
-export async function GET(request: NextRequest, context: RouteContext) {
+async function handleGET(request: NextRequest, context: RouteContext) {
   try {
     const { id } = await context.params;
     const supabase = await createServerClient();
@@ -57,7 +58,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
   }
 }
 
-export async function PATCH(request: NextRequest, context: RouteContext) {
+async function handlePATCH(request: NextRequest, context: RouteContext) {
   try {
     const { id } = await context.params;
     const supabase = await createServerClient();
@@ -170,7 +171,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   }
 }
 
-export async function DELETE(request: NextRequest, context: RouteContext) {
+async function handleDELETE(request: NextRequest, context: RouteContext) {
   try {
     const { id } = await context.params;
     const supabase = await createServerClient();
@@ -237,3 +238,7 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+
+export const GET = withRateLimit(handleGET);
+export const PATCH = withRateLimit(handlePATCH);
+export const DELETE = withRateLimit(handleDELETE);

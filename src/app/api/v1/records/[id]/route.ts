@@ -1,12 +1,13 @@
 import { NextRequest } from 'next/server';
 import { apiSuccess, apiError, requireAuth } from '@/lib/api';
+import { withRateLimit } from '@/lib/with-rate-limit';
 import type { FinancialRecord } from '@/types/api';
 
 /**
  * GET /api/v1/records/:id
  * Get a single record by ID
  */
-export async function GET(
+async function handleGET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -45,7 +46,7 @@ export async function GET(
  * PUT /api/v1/records/:id
  * Update a record
  */
-export async function PUT(
+async function handlePUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -88,7 +89,7 @@ export async function PUT(
  * DELETE /api/v1/records/:id
  * Delete a record
  */
-export async function DELETE(
+async function handleDELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -106,3 +107,7 @@ export async function DELETE(
     return apiError('INTERNAL_ERROR', 'Failed to delete record', 500);
   }
 }
+
+export const GET = withRateLimit(handleGET);
+export const PUT = withRateLimit(handlePUT);
+export const DELETE = withRateLimit(handleDELETE);

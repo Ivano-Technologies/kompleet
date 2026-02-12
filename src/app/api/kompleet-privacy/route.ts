@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import { withRateLimit } from '@/lib/with-rate-limit';
 
-export async function GET() {
+async function handleGET() {
   const htmlContent = fs.readFileSync(
     path.join(process.cwd(), 'public', 'kompleet-privacy.html'),
     'utf-8'
@@ -14,3 +15,5 @@ export async function GET() {
     },
   });
 }
+
+export const GET = withRateLimit(handleGET, { limit: 120 });
