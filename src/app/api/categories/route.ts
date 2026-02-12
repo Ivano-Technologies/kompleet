@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient as createClient } from '@/lib/supabase/server';
+import { withRateLimit } from '@/lib/with-rate-limit';
 
 export const runtime = 'nodejs';
 
-export async function GET(request: NextRequest): Promise<NextResponse> {
+async function handleGET(request: NextRequest): Promise<NextResponse> {
   try {
     const supabase = await createClient();
     
@@ -33,7 +34,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
     
     return NextResponse.json({ categories });
-    
+
   } catch (error) {
     console.error('API error:', error);
     return NextResponse.json(
@@ -42,3 +43,5 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     );
   }
 }
+
+export const GET = withRateLimit(handleGET, { limit: 120 });

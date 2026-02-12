@@ -1,12 +1,13 @@
 import { NextRequest } from 'next/server';
 import { apiSuccess, apiError, requireAuth } from '@/lib/api';
+import { withRateLimit } from '@/lib/with-rate-limit';
 import type { FinancialRecord, PaginatedResponse } from '@/types/api';
 
 /**
  * GET /api/v1/records
  * List records with filtering and pagination
  */
-export async function GET(request: NextRequest) {
+async function handleGET(request: NextRequest) {
   // Require authentication
   const authResult = await requireAuth(request);
   if ('userId' in authResult === false) {
@@ -100,7 +101,7 @@ export async function GET(request: NextRequest) {
  * POST /api/v1/records
  * Create a new record
  */
-export async function POST(request: NextRequest) {
+async function handlePOST(request: NextRequest) {
   // Require authentication
   const authResult = await requireAuth(request);
   if ('userId' in authResult === false) {
@@ -151,3 +152,6 @@ export async function POST(request: NextRequest) {
     return apiError('INTERNAL_ERROR', 'Failed to create record', 500);
   }
 }
+
+export const GET = withRateLimit(handleGET);
+export const POST = withRateLimit(handlePOST);

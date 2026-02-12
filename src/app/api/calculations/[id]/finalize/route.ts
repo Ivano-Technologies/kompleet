@@ -9,6 +9,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
+import { withRateLimit } from '@/lib/with-rate-limit';
 
 interface RouteContext {
   params: Promise<{
@@ -16,7 +17,7 @@ interface RouteContext {
   }>;
 }
 
-export async function POST(request: NextRequest, context: RouteContext) {
+async function handlePOST(request: NextRequest, context: RouteContext) {
   try {
     const { id } = await context.params;
     const supabase = await createServerClient();
@@ -100,3 +101,5 @@ export async function POST(request: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+
+export const POST = withRateLimit(handlePOST);

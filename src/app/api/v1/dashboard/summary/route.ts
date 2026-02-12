@@ -1,12 +1,13 @@
 import { NextRequest } from 'next/server';
 import { apiSuccess, apiError, requireAuth } from '@/lib/api';
 import type { DashboardSummary } from '@/types/api';
+import { withRateLimit } from '@/lib/with-rate-limit';
 
 /**
  * GET /api/v1/dashboard/summary
  * Get dashboard summary statistics
  */
-export async function GET(request: NextRequest) {
+async function handleGET(request: NextRequest) {
   const authResult = await requireAuth(request);
   if ('userId' in authResult === false) {
     return authResult;
@@ -65,3 +66,5 @@ export async function GET(request: NextRequest) {
     return apiError('INTERNAL_ERROR', 'Failed to fetch dashboard summary', 500);
   }
 }
+
+export const GET = withRateLimit(handleGET);

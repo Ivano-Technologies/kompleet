@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { exchangeCodeForTokens, getUserEmail } from '@/lib/email/gmail';
 import { createServerClient as createClient } from '@/lib/supabase/server';
 import { encrypt } from '@/lib/crypto';
+import { withRateLimit } from '@/lib/with-rate-limit';
 
-export async function GET(request: NextRequest) {
+async function handleGET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const code = searchParams.get('code');
@@ -88,3 +89,5 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+export const GET = withRateLimit(handleGET, { limit: 10 });

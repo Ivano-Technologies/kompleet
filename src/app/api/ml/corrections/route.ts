@@ -1,23 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient as createClient } from '@/lib/supabase/server';
 import { recordCorrection, getCorrectionStats } from '@/lib/ml/continuous-learning';
+import { withRateLimit } from '@/lib/with-rate-limit';
 
-export async function POST(request: NextRequest) {
+async function handlePOST(request: NextRequest) {
   try {
     // Get current user
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    
+
     if (!user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
-    
+
     // Parse request body
     const body = await request.json();
-    
+
     // Validate required fields
     if (!body.transaction_data || !body.predicted_category || !body.corrected_category) {
       return NextResponse.json(
@@ -25,7 +26,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    
+
     // Record correction
     await recordCorrection({
       userId: user.id,
@@ -35,12 +36,12 @@ export async function POST(request: NextRequest) {
       correctedCategory: body.corrected_category,
       confidence: body.confidence || 0
     });
-    
+
     return NextResponse.json({
       success: true,
       message: 'Correction recorded successfully'
     });
-    
+
   } catch (error) {
     console.error('[Record Correction API Error]', error);
     return NextResponse.json(
@@ -50,24 +51,24 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET(request: NextRequest) {
+async function handleGET(request: NextRequest) {
   try {
     // Get current user
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    
+
     if (!user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
-    
+
     // Get correction stats
     const stats = await getCorrectionStats(user.id);
-    
+
     return NextResponse.json(stats);
-    
+
   } catch (error) {
     console.error('[Get Correction Stats API Error]', error);
     return NextResponse.json(
@@ -76,3 +77,6 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+export const POST = withRateLimit(handlePOST);
+export const GET = withRateLimit(handleGET);
