@@ -14,14 +14,15 @@ export default function Home() {
               </div>
               <span className="text-2xl font-bold tracking-tight text-white uppercase">Kompleet</span>
             </div>
-            <div className="hidden md:flex space-x-8 items-center">
-              <Link className="text-sm font-medium hover:text-primary transition-colors" href="#features">Features</Link>
-              <Link className="text-sm font-medium hover:text-primary transition-colors" href="#compliance">Compliance</Link>
-              <Link className="text-sm font-medium hover:text-primary transition-colors" href="/pricing">Pricing</Link>
-              <Link className="text-sm font-medium hover:text-primary transition-colors" href="#resources">Resources</Link>
+            <div className="hidden md:flex space-x-8 items-center h-full">
+              <Link className="text-sm font-medium hover:text-primary transition-colors py-2" href="#features">Features</Link>
+              <Link className="text-sm font-medium hover:text-primary transition-colors py-2" href="#compliance">Compliance</Link>
+              <Link className="text-sm font-medium hover:text-primary transition-colors py-2" href="/pricing">Pricing</Link>
+              <Link className="text-sm font-medium hover:text-primary transition-colors py-2" href="#resources">Resources</Link>
               <Link
                 href="/signup"
-                className="bg-primary hover:bg-primary-hover text-white px-6 py-2.5 rounded font-semibold text-sm transition-all shadow-lg shadow-primary/20"
+                className="btn-primary px-6 py-2.5 rounded text-sm"
+                aria-label="Get started with Kompleet"
               >
                 Get Started
               </Link>
@@ -51,11 +52,16 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/signup"
-                className="bg-primary hover:bg-primary-hover text-white px-8 py-4 rounded-lg font-bold text-lg flex items-center justify-center gap-2 transition-all"
+                className="btn-primary btn-with-icon px-8 py-4 rounded-lg font-bold text-lg"
+                aria-label="Start for free"
               >
-                Start for Free <span className="material-icons">arrow_forward</span>
+                Start for Free <span className="material-icons text-xl">arrow_forward</span>
               </Link>
-              <button className="bg-white/5 hover:bg-white/10 border border-white/10 px-8 py-4 rounded-lg font-bold text-lg transition-all">
+              <button
+                type="button"
+                className="btn-secondary btn-with-icon px-8 py-4 rounded-lg font-bold text-lg"
+                aria-label="Watch product demo"
+              >
                 Watch Demo
               </button>
             </div>
@@ -118,21 +124,21 @@ export default function Home() {
               </p>
               <ul className="space-y-4">
                 <li className="flex items-start gap-3">
-                  <span className="material-icons text-primary mt-1">check_circle</span>
+                  <span className="material-icons text-primary mt-1 flex-shrink-0">check_circle</span>
                   <div>
                     <h4 className="font-bold">Automated VAT &amp; WHT</h4>
                     <p className="text-sm text-slate-500">Auto-calculate and generate reports for value-added and withholding taxes.</p>
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
-                  <span className="material-icons text-primary mt-1">check_circle</span>
+                  <span className="material-icons text-primary mt-1 flex-shrink-0">check_circle</span>
                   <div>
                     <h4 className="font-bold">Direct Filing Integration</h4>
                     <p className="text-sm text-slate-500">Streamlined process to submit directly to FIRS and LIRS portals.</p>
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
-                  <span className="material-icons text-primary mt-1">check_circle</span>
+                  <span className="material-icons text-primary mt-1 flex-shrink-0">check_circle</span>
                   <div>
                     <h4 className="font-bold">Multi-Currency Invoicing</h4>
                     <p className="text-sm text-slate-500">Bill clients in Naira or USD with real-time exchange rates.</p>
@@ -140,7 +146,7 @@ export default function Home() {
                 </li>
               </ul>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div className="glass-card p-8 rounded-xl flex flex-col items-center text-center">
                 <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mb-4">
                   <span className="material-icons text-primary">receipt_long</span>
@@ -148,7 +154,7 @@ export default function Home() {
                 <h3 className="font-bold mb-2">Smart Invoices</h3>
                 <p className="text-xs text-slate-500">Send professional invoices in seconds.</p>
               </div>
-              <div className="glass-card p-8 rounded-xl flex flex-col items-center text-center mt-8">
+              <div className="glass-card p-8 rounded-xl flex flex-col items-center text-center">
                 <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mb-4">
                   <span className="material-icons text-primary">insights</span>
                 </div>
@@ -162,7 +168,7 @@ export default function Home() {
                 <h3 className="font-bold mb-2">Tax Reminders</h3>
                 <p className="text-xs text-slate-500">Never miss a filing deadline again.</p>
               </div>
-              <div className="glass-card p-8 rounded-xl flex flex-col items-center text-center mt-8">
+              <div className="glass-card p-8 rounded-xl flex flex-col items-center text-center">
                 <div className="w-12 h-12 bg-primary/20 rounded-lg flex items-center justify-center mb-4">
                   <span className="material-icons text-primary">groups</span>
                 </div>
@@ -177,7 +183,7 @@ export default function Home() {
       {/* Stats Section */}
       <section className="py-20 bg-primary/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div className="text-center">
               <div className="text-4xl font-extrabold text-primary mb-2">&#x20A6;2.5B+</div>
               <p className="text-sm font-medium text-slate-500">Processed Monthly</p>
@@ -242,13 +248,15 @@ export default function Home() {
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link
                   href="/signup"
-                  className="bg-white text-primary hover:bg-slate-100 px-8 py-4 rounded-lg font-bold text-lg transition-all"
+                  className="btn-white px-8 py-4 rounded-lg text-lg"
+                  aria-label="Create a free Kompleet account"
                 >
                   Create Free Account
                 </Link>
                 <Link
                   href="/contact"
-                  className="bg-primary/20 hover:bg-primary/30 text-white border border-white/20 px-8 py-4 rounded-lg font-bold text-lg transition-all"
+                  className="btn-ghost px-8 py-4 rounded-lg text-lg"
+                  aria-label="Contact Kompleet sales team"
                 >
                   Contact Sales
                 </Link>
@@ -261,8 +269,8 @@ export default function Home() {
       {/* Footer */}
       <footer className="bg-white/[0.02] border-t border-white/5 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-12">
-            <div className="col-span-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8 lg:gap-12">
+            <div className="sm:col-span-2 md:col-span-1 lg:col-span-2">
               <div className="flex items-center gap-2 mb-6">
                 <div className="w-8 h-8 bg-primary rounded flex items-center justify-center">
                   <span className="material-icons text-white text-sm">account_balance_wallet</span>
@@ -273,13 +281,13 @@ export default function Home() {
                 The definitive financial operating system for modern Nigerian businesses. Registered and compliant with national standards.
               </p>
               <div className="flex gap-4">
-                <a className="text-slate-500 hover:text-primary transition-colors" href="#">
+                <a className="text-slate-500 hover:text-primary transition-colors" href="#" aria-label="Follow us on Facebook">
                   <span className="material-icons">facebook</span>
                 </a>
-                <a className="text-slate-500 hover:text-primary transition-colors" href="#">
+                <a className="text-slate-500 hover:text-primary transition-colors" href="#" aria-label="Follow us on Twitter">
                   <span className="material-icons">alternate_email</span>
                 </a>
-                <a className="text-slate-500 hover:text-primary transition-colors" href="#">
+                <a className="text-slate-500 hover:text-primary transition-colors" href="#" aria-label="Share Kompleet">
                   <span className="material-icons">share</span>
                 </a>
               </div>
