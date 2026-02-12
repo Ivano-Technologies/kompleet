@@ -63,18 +63,18 @@ async function handlePOST(request: NextRequest) {
 // Apply rate limiting (30 requests per minute for expensive AI operations)
 export const POST = withRateLimit(handlePOST, { limit: 30 });
 
-export async function GET() {
+async function handleGET() {
   try {
     // Health check - ping ML service
     const response = await fetch(`${ML_SERVICE_URL}/health`);
     const health = await response.json();
-    
+
     return NextResponse.json({
       status: 'operational',
       ml_service: health,
       timestamp: new Date().toISOString()
     });
-    
+
   } catch (error) {
     return NextResponse.json(
       {
@@ -86,3 +86,5 @@ export async function GET() {
     );
   }
 }
+
+export const GET = withRateLimit(handleGET, { limit: 120 });
