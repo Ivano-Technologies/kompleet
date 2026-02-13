@@ -1,8 +1,20 @@
 import OpenAI from 'openai';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || process.env.OPEN_AI_API_KEY,
-});
+let _openai: OpenAI | null = null;
+
+function getOpenAI(): OpenAI {
+  if (!_openai) {
+    const apiKey =
+      process.env.OPENAI_API_KEY ||
+      process.env.OPEN_AI_API_KEY ||
+      process.env.NEXT_PUBLIC_OPEN_AI_API_KEY;
+    if (!apiKey) {
+      throw new Error('OpenAI API key not configured. Set OPENAI_API_KEY in environment variables.');
+    }
+    _openai = new OpenAI({ apiKey });
+  }
+  return _openai;
+}
 
 export interface LLMCategorizationInput {
   merchant: string;
@@ -38,7 +50,7 @@ export async function llmCategorize(
 
   const startTime = Date.now();
 
-  const completion = await openai.chat.completions.create({
+  const completion = await getOpenAI().chat.completions.create({
     model: 'gpt-4o-mini',
     temperature: 0.1,
     max_tokens: 200,
@@ -99,7 +111,7 @@ export async function llmBatchCategorize(
 
   const startTime = Date.now();
 
-  const completion = await openai.chat.completions.create({
+  const completion = await getOpenAI().chat.completions.create({
     model: 'gpt-4o-mini',
     temperature: 0.1,
     max_tokens: transactions.length * 100,
