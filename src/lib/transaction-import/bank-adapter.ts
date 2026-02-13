@@ -6,8 +6,9 @@
 import { getBankConfig, BANK_CONFIGS } from './bank-configs';
 import { parseCSV, ParseResult } from './csv-parser';
 import { parseExcel } from './excel-parser';
+import { parsePDF } from './pdf-parser';
 
-export type FileType = 'csv' | 'excel';
+export type FileType = 'csv' | 'excel' | 'pdf';
 
 /**
  * Parse bank statement file using appropriate adapter
@@ -17,6 +18,12 @@ export async function parseBankStatement(
   bankCode: string,
   fileType: FileType
 ): Promise<ParseResult> {
+  if (fileType === 'pdf') {
+    const buffer = Buffer.isBuffer(fileContent) ? fileContent : Buffer.from(fileContent);
+    const bankConfig = getBankConfig(bankCode);
+    return parsePDF(buffer, bankConfig?.name);
+  }
+
   const bankConfig = getBankConfig(bankCode);
 
   if (!bankConfig) {
@@ -48,6 +55,10 @@ export function detectFileType(fileName: string, mimeType?: string): FileType {
     return 'excel';
   }
 
+  if (ext === 'pdf') {
+    return 'pdf';
+  }
+
   // Fallback to MIME type
   if (mimeType) {
     if (mimeType.includes('csv') || mimeType.includes('text/plain')) {
@@ -60,6 +71,10 @@ export function detectFileType(fileName: string, mimeType?: string): FileType {
       mimeType.includes('xlsx')
     ) {
       return 'excel';
+    }
+
+    if (mimeType.includes('pdf')) {
+      return 'pdf';
     }
   }
 

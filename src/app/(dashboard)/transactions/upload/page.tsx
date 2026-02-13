@@ -25,8 +25,8 @@ export default function TransactionUploadPage() {
     if (selectedFile) {
       // Validate file type
       const fileName = selectedFile.name.toLowerCase();
-      if (!fileName.endsWith('.csv') && !fileName.endsWith('.xlsx') && !fileName.endsWith('.xls')) {
-        setError('Please select a CSV or Excel file');
+      if (!fileName.endsWith('.csv') && !fileName.endsWith('.xlsx') && !fileName.endsWith('.xls') && !fileName.endsWith('.pdf')) {
+        setError('Please select a CSV, Excel, or PDF file');
         return;
       }
       
@@ -93,11 +93,11 @@ export default function TransactionUploadPage() {
     const droppedFile = e.dataTransfer.files[0];
     if (droppedFile) {
       const fileName = droppedFile.name.toLowerCase();
-      if (!fileName.endsWith('.csv') && !fileName.endsWith('.xlsx') && !fileName.endsWith('.xls')) {
-        setError('Please select a CSV or Excel file');
+      if (!fileName.endsWith('.csv') && !fileName.endsWith('.xlsx') && !fileName.endsWith('.xls') && !fileName.endsWith('.pdf')) {
+        setError('Please select a CSV, Excel, or PDF file');
         return;
       }
-      
+
       if (droppedFile.size > 10 * 1024 * 1024) {
         setError('File size must be less than 10MB');
         return;
@@ -121,7 +121,7 @@ export default function TransactionUploadPage() {
         </Link>
         <h1 className="text-3xl font-bold text-gray-900">Upload Transactions</h1>
         <p className="text-gray-600 mt-2">
-          Import transactions from your bank statement (CSV format)
+          Import transactions from your bank statement (CSV, Excel, or PDF)
         </p>
       </div>
 
@@ -159,7 +159,7 @@ export default function TransactionUploadPage() {
           <input
             id="file-input"
             type="file"
-            accept=".csv,.xlsx,.xls"
+            accept=".csv,.xlsx,.xls,.pdf"
             onChange={handleFileChange}
             className="hidden"
           />
@@ -205,7 +205,7 @@ export default function TransactionUploadPage() {
                 <span className="text-gray-600"> or drag and drop</span>
               </div>
               <p className="text-sm text-gray-500">
-                CSV or Excel files up to 10MB
+                CSV, Excel, or PDF files up to 10MB
               </p>
             </div>
           )}
@@ -255,13 +255,29 @@ export default function TransactionUploadPage() {
           </div>
 
           {result.success && result.imported > 0 && (
-            <div className="mt-6">
+            <div className="mt-6 space-y-3">
               <button
                 onClick={() => router.push('/transactions')}
                 className="w-full bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium"
               >
                 View Transactions
               </button>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => router.push('/transactions/review')}
+                  className="flex-1 bg-white text-green-600 border border-green-300 px-4 py-2 rounded-lg hover:bg-green-50 transition-colors text-sm font-medium"
+                >
+                  Review Uncategorized
+                </button>
+                {result.duplicates > 0 && (
+                  <button
+                    onClick={() => router.push('/transactions/duplicates')}
+                    className="flex-1 bg-white text-orange-600 border border-orange-300 px-4 py-2 rounded-lg hover:bg-orange-50 transition-colors text-sm font-medium"
+                  >
+                    Resolve Duplicates ({result.duplicates})
+                  </button>
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -273,21 +289,22 @@ export default function TransactionUploadPage() {
           📋 How to prepare your bank statement
         </h3>
         <ol className="list-decimal list-inside space-y-2 text-sm text-blue-800">
-          <li>Download your bank statement in CSV format</li>
-          <li>Make sure it includes: Date, Description, Amount (or Debit/Credit columns)</li>
-          <li>Remove any header rows that don't contain transaction data</li>
+          <li>Download your bank statement in CSV, Excel, or PDF format</li>
+          <li>For CSV/Excel: Make sure it includes Date, Description, Amount columns</li>
+          <li>For PDF: Upload the statement as-is — AI will extract transactions automatically</li>
           <li>Select your bank from the dropdown above</li>
           <li>Upload the file and we'll automatically categorize your transactions</li>
         </ol>
-        
+
         <div className="mt-4 pt-4 border-t border-blue-200">
           <p className="text-sm text-blue-800 font-medium mb-2">Supported formats:</p>
           <ul className="list-disc list-inside space-y-1 text-sm text-blue-700">
-            <li>GTBank CSV export</li>
-            <li>Zenith Bank CSV export</li>
-            <li>Access Bank CSV export</li>
-            <li>First Bank CSV export</li>
-            <li>UBA CSV export</li>
+            <li>PDF bank statements (AI-powered extraction)</li>
+            <li>GTBank CSV/Excel export</li>
+            <li>Zenith Bank CSV/Excel export</li>
+            <li>Access Bank CSV/Excel export</li>
+            <li>First Bank CSV/Excel export</li>
+            <li>UBA CSV/Excel export</li>
             <li>Generic CSV with Date, Description, Amount columns</li>
           </ul>
         </div>

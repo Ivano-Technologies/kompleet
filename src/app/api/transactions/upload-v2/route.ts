@@ -53,12 +53,12 @@ async function handlePOST(request: NextRequest) {
     }
     
     // Detect file type
-    let fileType: 'csv' | 'excel';
+    let fileType: 'csv' | 'excel' | 'pdf';
     try {
       fileType = detectFileType(file.name, file.type);
     } catch (error) {
       return NextResponse.json(
-        { error: 'Unsupported file type. Please upload CSV or Excel files.' },
+        { error: 'Unsupported file type. Please upload CSV, Excel, or PDF files.' },
         { status: 400 }
       );
     }
@@ -84,6 +84,9 @@ async function handlePOST(request: NextRequest) {
       // Read file content
       const buffer = Buffer.from(await file.arrayBuffer());
       const content = fileType === 'csv' ? buffer.toString('utf-8') : buffer;
+
+      // PDF files work with any bank code (LLM handles format detection)
+      // For CSV/Excel, bank config is required
       
       // Parse bank statement
       const parseResult = await parseBankStatement(content, bankCode, fileType);
