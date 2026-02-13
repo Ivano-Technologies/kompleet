@@ -171,7 +171,7 @@ export default function ReportsPage() {
           <div className="space-y-3">
             {['Revenue breakdown by category', 'Expense categorization', 'Taxable income calculation', 'Profit margin analysis'].map((item, idx) => (
               <div key={idx} className="flex items-center gap-3">
-                 <div className="w-5 h-5 rounded-lg bg-success-500/10 flex items-center justify-center">>
+                <div className="w-5 h-5 rounded-lg bg-success-500/10 flex items-center justify-center">
                   <span className="material-icons text-success-500 text-xs">check</span>
                 </div>
                 <span className="text-sm text-light-text-secondary dark:text-dark-text-secondary">{item}</span>
