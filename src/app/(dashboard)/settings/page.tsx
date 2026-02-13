@@ -200,7 +200,7 @@ export default function SettingsPage() {
               value={profile.bio}
               onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
               rows={4}
-              className={`w-full ${inputClass} border rounded-lg px-4 py-3 focus:outline-none transition-colors resize-none`}
+              className="w-full bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border text-light-text-primary dark:text-dark-text-primary rounded-lg px-4 py-3 focus:outline-none focus:border-primary-500 transition-colors resize-none"
               placeholder="Product Designer based in Tokyo. Experienced in high-performance web interfaces and design systems."
             />
           </div>
@@ -227,9 +227,9 @@ export default function SettingsPage() {
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
                   <span className="material-icons text-primary-500">security</span>
-                  <h3 className={`font-semibold ${textPrimaryClass}`}>TWO-FACTOR AUTHENTICATION</h3>
+                  <h3 className="font-semibold text-light-text-primary dark:text-dark-text-primary">TWO-FACTOR AUTHENTICATION</h3>
                 </div>
-                <p className={`${textSecondaryClass} text-sm`}>
+                <p className="text-light-text-secondary dark:text-dark-text-secondary text-sm">
                   Add an extra layer of security to your account
                 </p>
               </div>
@@ -262,9 +262,9 @@ export default function SettingsPage() {
               <div>
                 <div className="flex items-center gap-3 mb-2">
                   <span className="material-icons text-warning-500">lock</span>
-                  <h3 className={`font-semibold ${textPrimaryClass}`}>PASSWORD</h3>
+                  <h3 className="font-semibold text-light-text-primary dark:text-dark-text-primary">PASSWORD</h3>
                 </div>
-                <p className={`${textSecondaryClass} text-sm`}>
+                <p className="text-light-text-secondary dark:text-dark-text-secondary text-sm">
                   Change your account password
                 </p>
               </div>
@@ -396,7 +396,7 @@ export default function SettingsPage() {
                 />
               </button>
             </div>
-            <p className={`${textTertiaryClass} text-xs`}>
+            <p className="text-light-text-tertiary dark:text-dark-text-tertiary text-xs">
               Receive push notifications on profile search
             </p>
           </div>
@@ -419,23 +419,23 @@ export default function SettingsPage() {
                 />
               </button>
             </div>
-            <p className={`${textTertiaryClass} text-xs`}>
+            <p className="text-light-text-tertiary dark:text-dark-text-tertiary text-xs">
               Receive product updates and offers
             </p>
           </div>
         </div>
 
         {/* Danger Zone */}
-        <div className={`${surfaceClass} border-2 border-error-500/20 rounded-xl p-8`}>
+        <div className="bg-light-surface dark:bg-dark-surface border-2 border-error-500/20 rounded-xl p-8">
           <h2 className={`text-xl font-bold text-error-500 mb-2`}>Danger Zone</h2>
-          <p className={`${textSecondaryClass} text-sm mb-6`}>
+          <p className="text-light-text-secondary dark:text-dark-text-secondary text-sm mb-6">
             Irreversible actions regarding your account
           </p>
 
           <div className="flex items-center justify-between">
             <div>
-              <h3 className={`font-semibold ${textPrimaryClass} mb-1`}>Delete Account</h3>
-              <p className={`${textTertiaryClass} text-sm`}>
+              <h3 className="font-semibold text-light-text-primary dark:text-dark-text-primary mb-1">Delete Account</h3>
+              <p className="text-light-text-tertiary dark:text-dark-text-tertiary text-sm">
                 Once you delete your account, there is no going back. Please be certain.
               </p>
             </div>
