@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { createBrowserClient as createClient } from '@/lib/supabase/client';
+import { useTheme } from '@/contexts/ThemeContext';
 
 export default function SettingsPage() {
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const { theme, setTheme } = useTheme();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
@@ -84,27 +85,20 @@ export default function SettingsPage() {
     }
   };
 
-  const bgClass = isDarkMode ? 'bg-dark-background' : 'bg-light-background';
-  const surfaceClass = isDarkMode ? 'bg-dark-surface border-dark-border' : 'bg-white border-gray-200';
-  const textPrimaryClass = isDarkMode ? 'text-dark-text-primary' : 'text-gray-900';
-  const textSecondaryClass = isDarkMode ? 'text-dark-text-secondary' : 'text-gray-600';
-  const textTertiaryClass = isDarkMode ? 'text-dark-text-tertiary' : 'text-gray-500';
-  const inputClass = isDarkMode 
-    ? 'bg-dark-background border-dark-border text-dark-text-primary placeholder-dark-text-tertiary focus:border-primary-500' 
-    : 'bg-gray-50 border-gray-300 text-gray-900 placeholder-gray-400 focus:border-primary-500';
+  // Theme classes now use Tailwind dark: variants
 
   return (
-    <div className={`min-h-screen ${bgClass}`}>
+    <div className="min-h-screen bg-light-background dark:bg-dark-background">
       {/* Header */}
-      <div className={`${surfaceClass} border-b px-8 py-6`}>
+      <div className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border border-b px-8 py-6">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <div>
-            <h1 className={`text-3xl font-bold ${textPrimaryClass}`}>Settings</h1>
-            <p className={`${textSecondaryClass} mt-1`}>
+            <h1 className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary">Settings</h1>
+            <p className="text-light-text-secondary dark:text-dark-text-secondary mt-1">
               Manage your account information and preferences
             </p>
           </div>
-          <button className={`${surfaceClass} border rounded-lg px-4 py-2 ${textPrimaryClass} hover:border-primary-500 transition-colors`}>
+          <button className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-lg px-4 py-2 text-light-text-primary dark:text-dark-text-primary hover:border-primary-500 transition-colors">
             <span className="material-icons text-sm">notifications</span>
           </button>
         </div>
@@ -127,15 +121,15 @@ export default function SettingsPage() {
         )}
 
         {/* Profile Settings */}
-        <div className={`${surfaceClass} border rounded-xl p-8 mb-6`}>
-          <h2 className={`text-xl font-bold ${textPrimaryClass} mb-6`}>Profile Settings</h2>
-          <p className={`${textSecondaryClass} text-sm mb-8`}>
+        <div className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl p-8 mb-6">
+          <h2 className="text-xl font-bold text-light-text-primary dark:text-dark-text-primary mb-6">Profile Settings</h2>
+          <p className="text-light-text-secondary dark:text-dark-text-secondary text-sm mb-8">
             Manage your profile and public-facing details
           </p>
 
           {/* Profile Picture */}
           <div className="mb-8">
-            <label className={`block text-sm font-semibold ${textPrimaryClass} mb-4`}>
+            <label className="block text-sm font-semibold text-light-text-primary dark:text-dark-text-primary mb-4`}>
               PROFILE PICTURE
             </label>
             <div className="flex items-center gap-6">
@@ -157,10 +151,10 @@ export default function SettingsPage() {
                 <button className="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors">
                   Change Photo
                 </button>
-                <button className={`ml-3 ${textSecondaryClass} hover:${textPrimaryClass} text-sm font-medium transition-colors`}>
+                <button className="ml-3 text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary text-sm font-medium transition-colors">
                   Remove
                 </button>
-                <p className={`${textTertiaryClass} text-xs mt-2`}>
+                <p className="text-light-text-tertiary dark:text-dark-text-tertiary text-xs mt-2">
                   JPG, GIF or PNG. Max size of 2MB. Min 300 x 300 px / 1:1 ratio
                 </p>
               </div>
@@ -170,29 +164,29 @@ export default function SettingsPage() {
           {/* Name Fields */}
           <div className="grid grid-cols-2 gap-6 mb-6">
             <div>
-              <label className={`block text-sm font-semibold ${textPrimaryClass} mb-2`}>
+              <label className="block text-sm font-semibold text-light-text-primary dark:text-dark-text-primary mb-2`}>
                 Full Name
               </label>
               <input
                 type="text"
                 value={profile.firstName}
                 onChange={(e) => setProfile({ ...profile, firstName: e.target.value })}
-                className={`w-full ${inputClass} border rounded-lg px-4 py-3 focus:outline-none transition-colors`}
+                className="w-full bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border text-light-text-primary dark:text-dark-text-primary placeholder-light-text-tertiary dark:placeholder-dark-text-tertiary rounded-lg px-4 py-3 focus:outline-none focus:border-primary-500 transition-colors"
                 placeholder="Alexander"
               />
             </div>
             <div>
-              <label className={`block text-sm font-semibold ${textPrimaryClass} mb-2`}>
+              <label className="block text-sm font-semibold text-light-text-primary dark:text-dark-text-primary mb-2`}>
                 Email Address
               </label>
               <input
                 type="email"
                 value={profile.email}
                 onChange={(e) => setProfile({ ...profile, email: e.target.value })}
-                className={`w-full ${inputClass} border rounded-lg px-4 py-3 focus:outline-none transition-colors`}
+                className="w-full bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border text-light-text-primary dark:text-dark-text-primary placeholder-light-text-tertiary dark:placeholder-dark-text-tertiary rounded-lg px-4 py-3 focus:outline-none focus:border-primary-500 transition-colors"
                 placeholder="alexander.t@kompleet.tax"
               />
-              <p className={`${textTertiaryClass} text-xs mt-2`}>
+              <p className="text-light-text-tertiary dark:text-dark-text-tertiary text-xs mt-2">
                 Email provided by Supabase. Custom domains are not supported.
               </p>
             </div>
@@ -200,7 +194,7 @@ export default function SettingsPage() {
 
           {/* Bio */}
           <div className="mb-8">
-            <label className={`block text-sm font-semibold ${textPrimaryClass} mb-2`}>
+            <label className="block text-sm font-semibold text-light-text-primary dark:text-dark-text-primary mb-2`}>
               Bio
             </label>
             <textarea
@@ -222,9 +216,9 @@ export default function SettingsPage() {
         </div>
 
         {/* Security Settings */}
-        <div className={`${surfaceClass} border rounded-xl p-8 mb-6`}>
-          <h2 className={`text-xl font-bold ${textPrimaryClass} mb-6`}>Security Settings</h2>
-          <p className={`${textSecondaryClass} text-sm mb-8`}>
+        <div className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl p-8 mb-6">
+          <h2 className="text-xl font-bold text-light-text-primary dark:text-dark-text-primary mb-6">Security Settings</h2>
+          <p className="text-light-text-secondary dark:text-dark-text-secondary text-sm mb-8">
             Manage your password and authentication methods
           </p>
 
@@ -243,7 +237,7 @@ export default function SettingsPage() {
               <button
                 onClick={() => setTwoFactorEnabled(!twoFactorEnabled)}
                 className={`relative w-14 h-8 rounded-full transition-colors ${
-                  twoFactorEnabled ? 'bg-primary-500' : isDarkMode ? 'bg-dark-border' : 'bg-gray-300'
+                  twoFactorEnabled ? 'bg-primary-500' : 'bg-light-border dark:bg-dark-border'
                 }`}
               >
                 <div
@@ -287,17 +281,17 @@ export default function SettingsPage() {
                 <input
                   type="password"
                   placeholder="Current password"
-                  className={`w-full ${inputClass} border rounded-lg px-4 py-3 focus:outline-none transition-colors`}
+                  className="w-full bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border text-light-text-primary dark:text-dark-text-primary placeholder-light-text-tertiary dark:placeholder-dark-text-tertiary rounded-lg px-4 py-3 focus:outline-none focus:border-primary-500 transition-colors"
                 />
                 <input
                   type="password"
                   placeholder="New password"
-                  className={`w-full ${inputClass} border rounded-lg px-4 py-3 focus:outline-none transition-colors`}
+                  className="w-full bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border text-light-text-primary dark:text-dark-text-primary placeholder-light-text-tertiary dark:placeholder-dark-text-tertiary rounded-lg px-4 py-3 focus:outline-none focus:border-primary-500 transition-colors"
                 />
                 <input
                   type="password"
                   placeholder="Confirm new password"
-                  className={`w-full ${inputClass} border rounded-lg px-4 py-3 focus:outline-none transition-colors`}
+                  className="w-full bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border text-light-text-primary dark:text-dark-text-primary placeholder-light-text-tertiary dark:placeholder-dark-text-tertiary rounded-lg px-4 py-3 focus:outline-none focus:border-primary-500 transition-colors"
                 />
                 <button className="bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
                   Update Password
@@ -308,21 +302,21 @@ export default function SettingsPage() {
         </div>
 
         {/* Preferences */}
-        <div className={`${surfaceClass} border rounded-xl p-8 mb-6`}>
-          <h2 className={`text-xl font-bold ${textPrimaryClass} mb-6`}>Preferences</h2>
-          <p className={`${textSecondaryClass} text-sm mb-8`}>
+        <div className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl p-8 mb-6">
+          <h2 className="text-xl font-bold text-light-text-primary dark:text-dark-text-primary mb-6">Preferences</h2>
+          <p className="text-light-text-secondary dark:text-dark-text-secondary text-sm mb-8">
             Tailor the application to your needs and workflow
           </p>
 
           {/* Language */}
           <div className="mb-6">
-            <label className={`block text-sm font-semibold ${textPrimaryClass} mb-2`}>
+            <label className="block text-sm font-semibold text-light-text-primary dark:text-dark-text-primary mb-2`}>
               INTERFACE LANGUAGE
             </label>
             <select
               value={language}
               onChange={(e) => setLanguage(e.target.value)}
-              className={`w-full ${inputClass} border rounded-lg px-4 py-3 focus:outline-none transition-colors`}
+              className="w-full bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border text-light-text-primary dark:text-dark-text-primary rounded-lg px-4 py-3 focus:outline-none focus:border-primary-500 transition-colors"
             >
               <option>English (US)</option>
               <option>English (UK)</option>
@@ -333,13 +327,13 @@ export default function SettingsPage() {
 
           {/* Timezone */}
           <div className="mb-8">
-            <label className={`block text-sm font-semibold ${textPrimaryClass} mb-2`}>
+            <label className="block text-sm font-semibold text-light-text-primary dark:text-dark-text-primary mb-2`}>
               TIMEZONE
             </label>
             <select
               value={timezone}
               onChange={(e) => setTimezone(e.target.value)}
-              className={`w-full ${inputClass} border rounded-lg px-4 py-3 focus:outline-none transition-colors`}
+              className="w-full bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border text-light-text-primary dark:text-dark-text-primary rounded-lg px-4 py-3 focus:outline-none focus:border-primary-500 transition-colors"
             >
               <option>GMT+01:00, Central European Time</option>
               <option>GMT+00:00, Greenwich Mean Time</option>
@@ -349,37 +343,37 @@ export default function SettingsPage() {
           </div>
 
           {/* Theme Mode Toggle */}
-          <div className="mb-6 pb-6 border-b border-dark-border">
-            <label className={`block text-sm font-semibold ${textPrimaryClass} mb-4`}>
+          <div className="mb-6 pb-6 border-b border-light-border dark:border-dark-border">
+            <label className="block text-sm font-semibold text-light-text-primary dark:text-dark-text-primary mb-4`}>
               THEME MODE
             </label>
             <div className="flex items-center gap-4">
               <button
-                onClick={() => setIsDarkMode(false)}
+                onClick={() => setTheme('light')}
                 className={`flex-1 py-4 rounded-lg border-2 transition-all ${
-                  !isDarkMode
+                  theme === 'light'
                     ? 'border-primary-500 bg-primary-500/10'
-                    : isDarkMode ? 'border-dark-border bg-dark-background' : 'border-gray-200 bg-gray-50'
+                    : 'border-light-border dark:border-dark-border bg-light-background dark:bg-dark-background'
                 }`}
               >
                 <div className="flex items-center justify-center gap-3">
                   <span className="material-icons text-warning-500">light_mode</span>
-                  <span className={`font-semibold ${textPrimaryClass}`}>Solid Light</span>
-                  {!isDarkMode && <span className="material-icons text-primary-500 text-sm">check_circle</span>}
+                  <span className="font-semibold text-light-text-primary dark:text-dark-text-primary">Solid Light</span>
+                  {theme === 'light' && <span className="material-icons text-primary-500 text-sm">check_circle</span>}
                 </div>
               </button>
               <button
-                onClick={() => setIsDarkMode(true)}
+                onClick={() => setTheme('dark')}
                 className={`flex-1 py-4 rounded-lg border-2 transition-all ${
-                  isDarkMode
+                  theme === 'dark'
                     ? 'border-primary-500 bg-primary-500/10'
-                    : isDarkMode ? 'border-dark-border bg-dark-background' : 'border-gray-200 bg-gray-50'
+                    : 'border-light-border dark:border-dark-border bg-light-background dark:bg-dark-background'
                 }`}
               >
                 <div className="flex items-center justify-center gap-3">
                   <span className="material-icons text-primary-500">dark_mode</span>
-                  <span className={`font-semibold ${textPrimaryClass}`}>Solid Dark</span>
-                  {isDarkMode && <span className="material-icons text-primary-500 text-sm">check_circle</span>}
+                  <span className="font-semibold text-light-text-primary dark:text-dark-text-primary">Solid Dark</span>
+                  {theme === 'dark' && <span className="material-icons text-primary-500 text-sm">check_circle</span>}
                 </div>
               </button>
             </div>
@@ -388,13 +382,13 @@ export default function SettingsPage() {
           {/* Notifications */}
           <div className="mb-4">
             <div className="flex items-center justify-between mb-2">
-              <label className={`text-sm font-semibold ${textPrimaryClass}`}>
+              <label className="text-sm font-semibold text-light-text-primary dark:text-dark-text-primary">
                 Push Notifications
               </label>
               <button
                 onClick={() => setNotificationsEnabled(!notificationsEnabled)}
                 className={`relative w-14 h-8 rounded-full transition-colors ${
-                  notificationsEnabled ? 'bg-primary-500' : isDarkMode ? 'bg-dark-border' : 'bg-gray-300'
+                  notificationsEnabled ? 'bg-primary-500' : 'bg-light-border dark:bg-dark-border'
                 }`}
               >
                 <div
@@ -411,13 +405,13 @@ export default function SettingsPage() {
 
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className={`text-sm font-semibold ${textPrimaryClass}`}>
+              <label className="text-sm font-semibold text-light-text-primary dark:text-dark-text-primary">
                 Marketing Emails
               </label>
               <button
                 onClick={() => setMarketingEmails(!marketingEmails)}
                 className={`relative w-14 h-8 rounded-full transition-colors ${
-                  marketingEmails ? 'bg-primary-500' : isDarkMode ? 'bg-dark-border' : 'bg-gray-300'
+                  marketingEmails ? 'bg-primary-500' : 'bg-light-border dark:bg-dark-border'
                 }`}
               >
                 <div
