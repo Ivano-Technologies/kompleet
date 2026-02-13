@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@config "../../tailwind.config.cjs";
 
 /* KOMPLEET Design System - Stitch Integration */
 :root {
