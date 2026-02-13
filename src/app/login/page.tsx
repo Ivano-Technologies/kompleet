@@ -44,7 +44,7 @@ function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-dark-background dark">
+    <div className="min-h-screen flex items-center justify-center bg-light-background dark:bg-dark-background">
       <div className="w-full max-w-md p-8">
         {/* Logo */}
         <div className="text-center mb-8">
@@ -53,25 +53,25 @@ function LoginForm() {
               <div className="w-10 h-10 bg-primary-500 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-xl">K</span>
               </div>
-              <span className="text-2xl font-bold text-dark-text-primary">KOMPLEET</span>
+              <span className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">KOMPLEET</span>
             </div>
           </Link>
         </div>
 
         {/* Card - Solid Design */}
-        <div className="solid-card bg-dark-surface border-dark-border p-8">
-          <h1 className="text-2xl font-bold text-dark-text-primary mb-2">Welcome back</h1>
-          <p className="text-dark-text-secondary mb-6">Sign in to your account</p>
+        <div className="solid-card bg-light-surface dark:bg-dark-surface border-light-border dark:border-dark-border p-8">
+          <h1 className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary mb-2">Welcome back</h1>
+          <p className="text-light-text-secondary dark:text-dark-text-secondary mb-6">Sign in to your account</p>
 
           {error && (
-            <div className="mb-4 p-3 bg-error-dark/10 border border-error-dark/20 rounded-lg">
-              <p className="text-error-dark text-sm">{error}</p>
+            <div className="mb-4 p-3 bg-error-light/10 dark:bg-error-dark/10 border border-error-light/20 dark:border-error-dark/20 rounded-lg">
+              <p className="text-error-light dark:text-error-dark text-sm">{error}</p>
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-dark-text-secondary mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2">
                 Email address
               </label>
               <input
@@ -80,14 +80,14 @@ function LoginForm() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-4 py-3 bg-dark-surface-hover border border-dark-border rounded-lg text-dark-text-primary placeholder-dark-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 bg-light-surface dark:bg-dark-surface-hover border border-light-border dark:border-dark-border rounded-lg text-light-text-primary dark:text-dark-text-primary placeholder-light-text-tertiary dark:placeholder-dark-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                 placeholder="you@example.com"
               />
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label htmlFor="password" className="block text-sm font-medium text-dark-text-secondary">
+                <label htmlFor="password" className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary">
                   Password
                 </label>
                 <Link
@@ -104,7 +104,7 @@ function LoginForm() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
-                className="w-full px-4 py-3 bg-dark-surface-hover border border-dark-border rounded-lg text-dark-text-primary placeholder-dark-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-3 bg-light-surface dark:bg-dark-surface-hover border border-light-border dark:border-dark-border rounded-lg text-light-text-primary dark:text-dark-text-primary placeholder-light-text-tertiary dark:placeholder-dark-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                 placeholder="••••••••"
               />
             </div>
@@ -119,7 +119,7 @@ function LoginForm() {
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-dark-text-secondary">
+            <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
               Don't have an account?{' '}
               <Link href="/signup" className="text-primary-500 hover:text-primary-400 font-medium transition-colors">
                 Create account
@@ -130,15 +130,15 @@ function LoginForm() {
           <div className="mt-6 text-center">
             <Link
               href="/sign-in"
-              className="text-xs text-dark-text-tertiary hover:text-dark-text-secondary transition-colors"
+              className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary hover:text-light-text-secondary dark:hover:text-dark-text-secondary transition-colors"
             >
               Use magic link instead →
             </Link>
           </div>
 
           {/* Trust Badges */}
-          <div className="mt-8 pt-6 border-t border-dark-border">
-            <div className="flex items-center justify-center gap-4 text-xs text-dark-text-tertiary">
+          <div className="mt-8 pt-6 border-t border-light-border dark:border-dark-border">
+            <div className="flex items-center justify-center gap-4 text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
               <div className="flex items-center gap-1">
                 <span className="material-icons text-sm">security</span>
                 <span>NDPR Compliant</span>
