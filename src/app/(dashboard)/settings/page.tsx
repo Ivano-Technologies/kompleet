@@ -129,7 +129,7 @@ export default function SettingsPage() {
 
           {/* Profile Picture */}
           <div className="mb-8">
-            <label className="block text-sm font-semibold text-light-text-primary dark:text-dark-text-primary mb-4`}>
+            <label className="block text-sm font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">
               PROFILE PICTURE
             </label>
             <div className="flex items-center gap-6">
@@ -164,7 +164,7 @@ export default function SettingsPage() {
           {/* Name Fields */}
           <div className="grid grid-cols-2 gap-6 mb-6">
             <div>
-              <label className="block text-sm font-semibold text-light-text-primary dark:text-dark-text-primary mb-2`}>
+              <label className="block text-sm font-semibold text-light-text-primary dark:text-dark-text-primary mb-2">
                 Full Name
               </label>
               <input
@@ -176,7 +176,7 @@ export default function SettingsPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold text-light-text-primary dark:text-dark-text-primary mb-2`}>
+              <label className="block text-sm font-semibold text-light-text-primary dark:text-dark-text-primary mb-2">
                 Email Address
               </label>
               <input
@@ -194,8 +194,7 @@ export default function SettingsPage() {
 
           {/* Bio */}
           <div className="mb-8">
-            <label className="block text-sm font-semibold text-light-text-primary dark:text-dark-text-primary mb-2">
-              Bio
+            <label className="block text-sm font-semibold text-light-text-primary dark:text-dark-text-primary mb-2">              Bio
             </label>
             <textarea
               value={profile.bio}
@@ -310,7 +309,7 @@ export default function SettingsPage() {
 
           {/* Language */}
           <div className="mb-6">
-            <label className="block text-sm font-semibold text-light-text-primary dark:text-dark-text-primary mb-2`}>
+            <label className="block text-sm font-semibold text-light-text-primary dark:text-dark-text-primary mb-2">
               INTERFACE LANGUAGE
             </label>
             <select
@@ -327,7 +326,7 @@ export default function SettingsPage() {
 
           {/* Timezone */}
           <div className="mb-8">
-            <label className="block text-sm font-semibold text-light-text-primary dark:text-dark-text-primary mb-2`}>
+            <label className="block text-sm font-semibold text-light-text-primary dark:text-dark-text-primary mb-2">
               TIMEZONE
             </label>
             <select
@@ -344,7 +343,7 @@ export default function SettingsPage() {
 
           {/* Theme Mode Toggle */}
           <div className="mb-6 pb-6 border-b border-light-border dark:border-dark-border">
-            <label className="block text-sm font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">              THEME MODE
+            <label className="block text-sm font-semibold text-light-text-primarydark:text-dark-text-primary mb-4">              THEME MODE
             </label>
             <div className="flex items-center gap-4">
               <button
