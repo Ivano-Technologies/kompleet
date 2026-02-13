@@ -287,16 +287,7 @@ export default function ReportsPage() {
         </Link>
       </div>
 
-      {/* Theme Toggle Button (Floating) */}
-      <button
-        onClick={() => setIsDarkMode(!isDarkMode)}
-        className={`fixed bottom-8 right-8 w-14 h-14 rounded-full ${surfaceClass} border shadow-xl flex items-center justify-center hover:scale-110 transition-transform z-50`}
-        title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-      >
-        <span className="material-icons text-primary-500">
-          {isDarkMode ? 'light_mode' : 'dark_mode'}
-        </span>
-      </button>
+
     </div>
   );
 }
