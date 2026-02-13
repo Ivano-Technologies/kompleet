@@ -194,7 +194,7 @@ export default function SettingsPage() {
 
           {/* Bio */}
           <div className="mb-8">
-            <label className="block text-sm font-semibold text-light-text-primary dark:text-dark-text-primary mb-2`}>
+            <label className="block text-sm font-semibold text-light-text-primary dark:text-dark-text-primary mb-2">
               Bio
             </label>
             <textarea
@@ -344,8 +344,7 @@ export default function SettingsPage() {
 
           {/* Theme Mode Toggle */}
           <div className="mb-6 pb-6 border-b border-light-border dark:border-dark-border">
-            <label className="block text-sm font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">
-              THEME MODE
+            <label className="block text-sm font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">              THEME MODE
             </label>
             <div className="flex items-center gap-4">
               <button
