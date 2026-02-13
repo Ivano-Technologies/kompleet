@@ -54,7 +54,7 @@ async function handlePOST(request: NextRequest) {
     }
 
     // Step 2: Fall back to LLM for low-confidence items
-    const apiKey = process.env.OPENAI_API_KEY || process.env.OPEN_AI_API_KEY;
+    const apiKey = process.env.OPENAI_API_KEY || process.env.OPEN_AI_API_KEY || process.env.NEXT_PUBLIC_OPEN_AI_API_KEY;
     if (!apiKey) {
       // No API key — return rules result even if low confidence
       return NextResponse.json({
@@ -115,7 +115,7 @@ async function handlePOST(request: NextRequest) {
 export const POST = withRateLimit(handlePOST, { limit: 30 });
 
 async function handleGET() {
-  const apiKey = process.env.OPENAI_API_KEY || process.env.OPEN_AI_API_KEY;
+  const apiKey = process.env.OPENAI_API_KEY || process.env.OPEN_AI_API_KEY || process.env.NEXT_PUBLIC_OPEN_AI_API_KEY;
   return NextResponse.json({
     status: apiKey ? 'operational' : 'degraded',
     provider: apiKey ? 'openai (gpt-4o-mini)' : 'rules-only',

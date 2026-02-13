@@ -52,7 +52,7 @@ async function handlePOST(request: NextRequest) {
     });
 
     // Step 3: If there are low-confidence items and we have an API key, use LLM
-    const apiKey = process.env.OPENAI_API_KEY || process.env.OPEN_AI_API_KEY;
+    const apiKey = process.env.OPENAI_API_KEY || process.env.OPEN_AI_API_KEY || process.env.NEXT_PUBLIC_OPEN_AI_API_KEY;
     let llmResults: Record<number, { category: string; confidence: number; reasoning: string; inference_id: string }> = {};
 
     if (needsLLM.length > 0 && apiKey) {

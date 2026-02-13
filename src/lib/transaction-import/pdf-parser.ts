@@ -7,9 +7,21 @@ import { PDFParse } from 'pdf-parse';
 import OpenAI from 'openai';
 import { ParsedTransaction, ParseResult, ParseError } from './csv-parser';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY || process.env.OPEN_AI_API_KEY,
-});
+let _openai: OpenAI | null = null;
+
+function getOpenAI(): OpenAI {
+  if (!_openai) {
+    const apiKey =
+      process.env.OPENAI_API_KEY ||
+      process.env.OPEN_AI_API_KEY ||
+      process.env.NEXT_PUBLIC_OPEN_AI_API_KEY;
+    if (!apiKey) {
+      throw new Error('OpenAI API key not configured. Set OPENAI_API_KEY in environment variables.');
+    }
+    _openai = new OpenAI({ apiKey });
+  }
+  return _openai;
+}
 
 /**
  * Parse PDF bank statement — extracts text then uses LLM to structure transactions
@@ -45,7 +57,7 @@ export async function parsePDF(
     }
 
     // Step 2: Check if OpenAI API key is available
-    const apiKey = process.env.OPENAI_API_KEY || process.env.OPEN_AI_API_KEY;
+    const apiKey = process.env.OPENAI_API_KEY || process.env.OPEN_AI_API_KEY || process.env.NEXT_PUBLIC_OPEN_AI_API_KEY;
     if (!apiKey) {
       // Fallback: try basic regex extraction without LLM
       const transactions = extractTransactionsWithRegex(rawText);
@@ -141,7 +153,7 @@ async function extractTransactionsWithLLM(
       ? `This is chunk ${chunkIndex + 1} of ${totalChunks} from a multi-page statement.`
       : '';
 
-  const completion = await openai.chat.completions.create({
+  const completion = await getOpenAI().chat.completions.create({
     model: 'gpt-4o-mini',
     temperature: 0,
     max_tokens: 4000,
