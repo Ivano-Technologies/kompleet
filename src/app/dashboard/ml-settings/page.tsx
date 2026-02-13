@@ -55,6 +55,7 @@ export default function MLSettingsPage() {
 
   useEffect(() => {
     loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function connectEmail(provider: 'gmail' | 'outlook') {
