@@ -58,13 +58,13 @@ export default async function DashboardPage() {
     return (
       <SolidDashboardLayout userName={user.email?.split('@')[0]} userRole="Business Owner">
         {/* Header */}
-        <div className="bg-dark-background border-b border-dark-border px-8 py-6">
+        <div className="bg-light-background dark:bg-dark-background border-b border-light-border dark:border-dark-border px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-dark-text-primary mb-2">
+              <h1 className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary mb-2">
                 Financial Health Overview
               </h1>
-              <p className="text-dark-text-secondary">
+              <p className="text-light-text-secondary dark:text-dark-text-secondary">
                 Welcome back. Here's what's happening with your business today.
               </p>
             </div>
@@ -80,27 +80,27 @@ export default async function DashboardPage() {
           {/* KPI Cards */}
           <div className="grid grid-cols-3 gap-6">
             {/* Total Revenue */}
-            <div className="bg-dark-surface border border-dark-border rounded-xl p-6">
+            <div className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl p-6">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <span className="material-icons text-success-500">trending_up</span>
-                  <span className="text-sm text-dark-text-secondary">Total Revenue (MTD)</span>
+                  <span className="text-sm text-light-text-secondary dark:text-dark-text-secondary">Total Revenue (MTD)</span>
                 </div>
                 <span className="text-xs font-semibold text-success-500 bg-success-500/10 px-2 py-1 rounded">
                   +{kpiData.revenueChange}%
                 </span>
               </div>
-              <div className="text-3xl font-bold text-dark-text-primary">
+              <div className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary">
                 ₦{kpiData.totalRevenue.toLocaleString()}
               </div>
             </div>
 
             {/* Estimated Tax Owed */}
-            <div className="bg-dark-surface border border-dark-border rounded-xl p-6">
+            <div className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl p-6">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <span className="material-icons text-warning-500">account_balance</span>
-                  <span className="text-sm text-dark-text-secondary">Estimated Tax Owed</span>
+                  <span className="text-sm text-light-text-secondary dark:text-dark-text-secondary">Estimated Tax Owed</span>
                 </div>
                 <span className="text-xs font-semibold text-warning-500 bg-warning-500/10 px-2 py-1 rounded">
                   Due in {kpiData.taxDueIn}d
@@ -116,17 +116,17 @@ export default async function DashboardPage() {
             </div>
 
             {/* Outstanding Invoices */}
-            <div className="bg-dark-surface border border-dark-border rounded-xl p-6">
+            <div className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl p-6">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <span className="material-icons text-info-500">pending_actions</span>
-                  <span className="text-sm text-dark-text-secondary">Outstanding Invoices</span>
+                  <span className="text-sm text-light-text-secondary dark:text-dark-text-secondary">Outstanding Invoices</span>
                 </div>
                 <span className="text-xs font-semibold text-info-500 bg-info-500/10 px-2 py-1 rounded">
                   {kpiData.pendingCount} Pending
                 </span>
               </div>
-              <div className="text-3xl font-bold text-dark-text-primary flex items-center gap-3">
+              <div className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary flex items-center gap-3">
                 ₦{kpiData.outstandingInvoices.toLocaleString()}
                 <span className="material-icons text-info-500 text-2xl">show_chart</span>
               </div>
@@ -134,36 +134,36 @@ export default async function DashboardPage() {
           </div>
 
           {/* Monthly Cash Flow Chart */}
-          <div className="bg-dark-surface border border-dark-border rounded-xl p-6">
+          <div className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl p-6">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-xl font-bold text-dark-text-primary mb-1">
+                <h2 className="text-xl font-bold text-light-text-primary dark:text-dark-text-primary mb-1">
                   Monthly Cash Flow
                 </h2>
-                <p className="text-sm text-dark-text-secondary">
+                <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
                   Revenue visualization for 2024
                 </p>
               </div>
               <div className="flex items-center gap-4">
-                <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-dark-background text-dark-text-secondary hover:text-dark-text-primary transition-colors">
+                <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-light-background dark:bg-dark-background text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary transition-colors">
                   <span className="w-3 h-3 rounded-full bg-success-500"></span>
                   Cash Inflow
                 </button>
-                <button className="px-4 py-2 rounded-lg bg-dark-background text-dark-text-secondary hover:text-dark-text-primary transition-colors">
+                <button className="px-4 py-2 rounded-lg bg-light-background dark:bg-dark-background text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary transition-colors">
                   Last 4 Months
                 </button>
               </div>
             </div>
             {/* Chart Placeholder */}
-            <div className="h-64 flex items-center justify-center border border-dashed border-dark-border rounded-lg">
-              <p className="text-dark-text-tertiary">Chart visualization here</p>
+            <div className="h-64 flex items-center justify-center border border-dashed border-light-border dark:border-dark-border rounded-lg">
+              <p className="text-light-text-tertiary dark:text-dark-text-tertiary">Chart visualization here</p>
             </div>
           </div>
 
           {/* Recent Transactions */}
-          <div className="bg-dark-surface border border-dark-border rounded-xl p-6">
+          <div className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl p-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-dark-text-primary">
+              <h2 className="text-xl font-bold text-light-text-primary dark:text-dark-text-primary">
                 Recent Transactions
               </h2>
               <button className="text-primary-500 hover:text-primary-400 font-medium flex items-center gap-1">
@@ -176,27 +176,27 @@ export default async function DashboardPage() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-dark-border">
-                    <th className="text-left text-xs font-semibold text-dark-text-tertiary uppercase tracking-wide pb-3">
+                  <tr className="border-b border-light-border dark:border-dark-border">
+                    <th className="text-left text-xs font-semibold text-light-text-tertiary dark:text-dark-text-tertiary uppercase tracking-wide pb-3">
                       Transaction
                     </th>
-                    <th className="text-left text-xs font-semibold text-dark-text-tertiary uppercase tracking-wide pb-3">
+                    <th className="text-left text-xs font-semibold text-light-text-tertiary dark:text-dark-text-tertiary uppercase tracking-wide pb-3">
                       Category
                     </th>
-                    <th className="text-left text-xs font-semibold text-dark-text-tertiary uppercase tracking-wide pb-3">
+                    <th className="text-left text-xs font-semibold text-light-text-tertiary dark:text-dark-text-tertiary uppercase tracking-wide pb-3">
                       Date
                     </th>
-                    <th className="text-right text-xs font-semibold text-dark-text-tertiary uppercase tracking-wide pb-3">
+                    <th className="text-right text-xs font-semibold text-light-text-tertiary dark:text-dark-text-tertiary uppercase tracking-wide pb-3">
                       Amount
                     </th>
-                    <th className="text-right text-xs font-semibold text-dark-text-tertiary uppercase tracking-wide pb-3">
+                    <th className="text-right text-xs font-semibold text-light-text-tertiary dark:text-dark-text-tertiary uppercase tracking-wide pb-3">
                       Status
                     </th>
                   </tr>
                 </thead>
                 <tbody>
                   {recentTransactions.map((transaction) => (
-                    <tr key={transaction.id} className="border-b border-dark-border/50 hover:bg-dark-surface-hover transition-colors">
+                    <tr key={transaction.id} className="border-b border-light-border/50 dark:border-dark-border/50 hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover transition-colors">
                       <td className="py-4">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-full bg-primary-500/10 flex items-center justify-center">
@@ -204,18 +204,18 @@ export default async function DashboardPage() {
                               {transaction.status === 'SUCCESS' ? 'arrow_downward' : 'schedule'}
                             </span>
                           </div>
-                          <span className="font-medium text-dark-text-primary">
+                          <span className="font-medium text-light-text-primary dark:text-dark-text-primary">
                             {transaction.description}
                           </span>
                         </div>
                       </td>
-                      <td className="py-4 text-dark-text-secondary">
+                      <td className="py-4 text-light-text-secondary dark:text-dark-text-secondary">
                         {transaction.category}
                       </td>
-                      <td className="py-4 text-dark-text-secondary">
+                      <td className="py-4 text-light-text-secondary dark:text-dark-text-secondary">
                         {transaction.date}
                       </td>
-                      <td className="py-4 text-right font-semibold text-dark-text-primary">
+                      <td className="py-4 text-right font-semibold text-light-text-primary dark:text-dark-text-primary">
                         ₦{transaction.amount.toLocaleString()}
                       </td>
                       <td className="py-4 text-right">
@@ -241,8 +241,8 @@ export default async function DashboardPage() {
   } catch (error) {
     console.error('Dashboard error:', error);
     return (
-      <div className="min-h-screen bg-dark-background flex items-center justify-center">
-        <div className="bg-dark-surface border border-dark-border rounded-xl p-8">
+      <div className="min-h-screen bg-light-background dark:bg-dark-background flex items-center justify-center">
+        <div className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl p-8">
           <p className="text-error-500">Failed to load dashboard. Please try again.</p>
         </div>
       </div>
