@@ -1,58 +1,110 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withRateLimit } from '@/lib/with-rate-limit';
+import { llmCategorize } from '@/lib/services/llm-categorization-service';
+import { categorizeTransaction, type Category } from '@/lib/services/categorization-service';
+import { createClient } from '@supabase/supabase-js';
 
-const ML_SERVICE_URL = process.env.ML_SERVICE_URL || 'http://localhost:5000';
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 async function handlePOST(request: NextRequest) {
   try {
-    // Parse request body
     const body = await request.json();
-    
-    // Validate required fields
+
     if (!body.merchant || body.amount === undefined) {
       return NextResponse.json(
         { error: 'Missing required fields: merchant, amount' },
         { status: 400 }
       );
     }
-    
-    // Call ML inference service
-    const response = await fetch(`${ML_SERVICE_URL}/categorize`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
+
+    // Fetch user's categories for context
+    const { data: categories } = await supabaseAdmin
+      .from('categories')
+      .select('id, name, category_type, tax_treatment, keywords');
+
+    const categoryOptions = (categories || []).map(c => ({
+      name: c.name,
+      type: c.category_type,
+      tax_treatment: c.tax_treatment,
+    }));
+
+    // Step 1: Try rules-based categorization first (free, fast)
+    const rulesResult = categorizeTransaction(
+      body.merchant,
+      (categories || []) as Category[]
+    );
+
+    // If rules-based is confident enough, use it
+    if (rulesResult.confidenceScore >= 70) {
+      console.log('[Categorization] Rules-based hit', {
+        merchant: body.merchant,
+        category: rulesResult.categoryName,
+        confidence: rulesResult.confidenceScore,
+      });
+
+      return NextResponse.json({
+        category: rulesResult.categoryName,
+        confidence: rulesResult.confidenceScore,
+        inference_id: `rules-${Date.now()}`,
+        provider: 'rules',
+      });
+    }
+
+    // Step 2: Fall back to LLM for low-confidence items
+    const apiKey = process.env.OPENAI_API_KEY || process.env.OPEN_AI_API_KEY;
+    if (!apiKey) {
+      // No API key — return rules result even if low confidence
+      return NextResponse.json({
+        category: rulesResult.categoryName || 'Uncategorized',
+        confidence: rulesResult.confidenceScore,
+        inference_id: `rules-fallback-${Date.now()}`,
+        provider: 'rules',
+      });
+    }
+
+    const llmResult = await llmCategorize(
+      {
         merchant: body.merchant,
         amount: body.amount,
+        type: body.type,
         channel: body.channel,
-        timestamp: body.timestamp || new Date().toISOString(),
-        user_id: body.user_id
-      }),
-    });
-    
-    if (!response.ok) {
-      const error = await response.json();
-      return NextResponse.json(
-        { error: error.error || 'ML service error' },
-        { status: response.status }
-      );
-    }
-    
-    const result = await response.json();
-    
-    // Log inference for monitoring
-    console.log('[ML Categorization]', {
+        timestamp: body.timestamp,
+      },
+      categoryOptions
+    );
+
+    console.log('[Categorization] LLM result', {
       merchant: body.merchant,
-      predicted: result.category,
-      confidence: result.confidence,
-      inference_id: result.inference_id
+      category: llmResult.category,
+      confidence: llmResult.confidence,
+      inference_id: llmResult.inference_id,
     });
-    
-    return NextResponse.json(result);
-    
+
+    // Log inference (non-blocking)
+    supabaseAdmin.from('ml_inference_logs').insert({
+      user_id: body.user_id || null,
+      model_version: 'gpt-4o-mini',
+      provider: 'openai',
+      input: { merchant: body.merchant, amount: body.amount },
+      output: { category: llmResult.category, confidence: llmResult.confidence },
+      confidence: llmResult.confidence,
+      latency_ms: 0,
+      success: true,
+    });
+
+    return NextResponse.json({
+      category: llmResult.category,
+      confidence: llmResult.confidence,
+      inference_id: llmResult.inference_id,
+      reasoning: llmResult.reasoning,
+      provider: 'openai',
+    });
+
   } catch (error) {
-    console.error('[ML Categorization Error]', error);
+    console.error('[Categorization Error]', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -60,31 +112,16 @@ async function handlePOST(request: NextRequest) {
   }
 }
 
-// Apply rate limiting (30 requests per minute for expensive AI operations)
 export const POST = withRateLimit(handlePOST, { limit: 30 });
 
 async function handleGET() {
-  try {
-    // Health check - ping ML service
-    const response = await fetch(`${ML_SERVICE_URL}/health`);
-    const health = await response.json();
-
-    return NextResponse.json({
-      status: 'operational',
-      ml_service: health,
-      timestamp: new Date().toISOString()
-    });
-
-  } catch (error) {
-    return NextResponse.json(
-      {
-        status: 'degraded',
-        error: 'ML service unavailable',
-        timestamp: new Date().toISOString()
-      },
-      { status: 503 }
-    );
-  }
+  const apiKey = process.env.OPENAI_API_KEY || process.env.OPEN_AI_API_KEY;
+  return NextResponse.json({
+    status: apiKey ? 'operational' : 'degraded',
+    provider: apiKey ? 'openai (gpt-4o-mini)' : 'rules-only',
+    fallback: 'keyword-matching',
+    timestamp: new Date().toISOString(),
+  });
 }
 
 export const GET = withRateLimit(handleGET, { limit: 120 });

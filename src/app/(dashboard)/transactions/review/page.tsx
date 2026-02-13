@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 interface Transaction {
@@ -32,6 +32,8 @@ interface SuggestedCategory {
 
 export default function TransactionReviewPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const sessionId = searchParams.get('sessionId');
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -53,7 +55,9 @@ export default function TransactionReviewPage() {
 
   const fetchUncategorizedTransactions = async () => {
     try {
-      const response = await fetch('/api/transactions?uncategorized=true&limit=100');
+      const params = new URLSearchParams({ uncategorized: 'true', limit: '100' });
+      if (sessionId) params.set('sessionId', sessionId);
+      const response = await fetch(`/api/transactions?${params.toString()}`);
       const data = await response.json();
       
       if (response.ok) {
