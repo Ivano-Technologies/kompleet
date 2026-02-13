@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import HeroButtons from '@/components/landing/HeroButtons';
 
 export default function Home() {
   return (
@@ -14,7 +15,7 @@ export default function Home() {
               </div>
               <span className="text-2xl font-bold tracking-tight text-white uppercase">Kompleet</span>
             </div>
-            <div className="hidden md:flex space-x-8 items-center h-full">
+            <div className="hidden md:flex gap-8 items-center h-full">
               <Link className="text-sm font-medium hover:text-primary transition-colors py-2" href="#features">Features</Link>
               <Link className="text-sm font-medium hover:text-primary transition-colors py-2" href="#compliance">Compliance</Link>
               <Link className="text-sm font-medium hover:text-primary transition-colors py-2" href="/pricing">Pricing</Link>
@@ -49,36 +50,64 @@ export default function Home() {
             <p className="text-lg lg:text-xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
               Automate your FIRS and LIRS filings, manage professional invoices, and gain real-time insights into your business growth—all in one secure platform.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href="/signup"
-                className="btn-primary btn-with-icon px-8 py-4 rounded-lg font-bold text-lg"
-                aria-label="Start for free"
-              >
-                Start for Free <span className="material-icons text-xl">arrow_forward</span>
-              </Link>
-              <button
-                type="button"
-                className="btn-secondary btn-with-icon px-8 py-4 rounded-lg font-bold text-lg"
-                aria-label="Watch product demo"
-              >
-                Watch Demo
-              </button>
-            </div>
+            <HeroButtons />
           </div>
 
-          {/* Hero Image/Dashboard Preview */}
+          {/* Hero Dashboard Preview */}
           <div className="mt-20 relative">
             <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-transparent rounded-xl blur-lg"></div>
-            <div className="relative rounded-xl border border-white/10 bg-slate-900 overflow-hidden shadow-2xl">
-              <Image
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgP3bHKVIqZAWg_Cu2AuABqK9RLgNix-AARFKFmrvj7aKJdMrIxn1ggyNPHqyY9mHg1FP67DmehU5TmzxI0d4P-kaF--j0zUYnhihJ-Me49iWeTsDJTfHmDJjH7Y0SkGw_JvfiTo_8dsWhqksudXknNvdFjo5hOvEcXZc4Dq9hwECzSvMDQzp9wFMsyvT-TKv6FZ35Axd6Ij-peW06WVTgPXAoZuctjEiD4crhFKb3gp0bFa1BUhPeaJKDqKeaJF_xaGbBYOzB6AvB"
-                alt="Financial Dashboard"
-                width={1200}
-                height={675}
-                className="w-full h-auto opacity-90"
-                priority
-              />
+            <div className="relative rounded-xl border border-white/10 bg-slate-900 overflow-hidden shadow-2xl p-6">
+              {/* Mock Dashboard UI */}
+              <div className="flex items-center gap-2 mb-6">
+                <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                <span className="ml-4 text-xs text-slate-500 font-mono">dashboard.kompleet.app</span>
+              </div>
+              <div className="grid grid-cols-3 gap-4 mb-6">
+                <div className="bg-slate-800/60 rounded-lg p-4 border border-white/5">
+                  <p className="text-xs text-slate-500 mb-1">Revenue (MTD)</p>
+                  <p className="text-xl font-bold text-white">&#x20A6;4,250,000</p>
+                  <p className="text-xs text-green-400 mt-1">+12.5% vs last month</p>
+                </div>
+                <div className="bg-slate-800/60 rounded-lg p-4 border border-white/5">
+                  <p className="text-xs text-slate-500 mb-1">Tax Obligations</p>
+                  <p className="text-xl font-bold text-white">&#x20A6;637,500</p>
+                  <p className="text-xs text-primary mt-1">VAT + WHT calculated</p>
+                </div>
+                <div className="bg-slate-800/60 rounded-lg p-4 border border-white/5">
+                  <p className="text-xs text-slate-500 mb-1">Outstanding Invoices</p>
+                  <p className="text-xl font-bold text-white">12</p>
+                  <p className="text-xs text-yellow-400 mt-1">3 overdue</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-slate-800/60 rounded-lg p-4 border border-white/5 h-32 flex flex-col">
+                  <p className="text-xs text-slate-500 mb-2">Cashflow Trend</p>
+                  <div className="flex-1 flex items-end gap-1">
+                    {[40, 65, 45, 80, 60, 90, 75, 95, 85, 70, 88, 92].map((h, i) => (
+                      <div key={i} className="flex-1 bg-primary/40 rounded-t" style={{ height: `${h}%` }}></div>
+                    ))}
+                  </div>
+                </div>
+                <div className="bg-slate-800/60 rounded-lg p-4 border border-white/5 h-32">
+                  <p className="text-xs text-slate-500 mb-2">Compliance Status</p>
+                  <div className="space-y-2 mt-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-slate-400">FIRS Filing</span>
+                      <span className="text-green-400 font-medium">Up to date</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-slate-400">LIRS Filing</span>
+                      <span className="text-green-400 font-medium">Up to date</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-slate-400">PAYE Returns</span>
+                      <span className="text-yellow-400 font-medium">Due in 5 days</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -295,10 +324,10 @@ export default function Home() {
             <div>
               <h6 className="font-bold text-sm uppercase tracking-widest mb-6">Product</h6>
               <ul className="space-y-4 text-sm text-slate-500">
-                <li><Link className="hover:text-primary" href="/tax-calculators">Tax Automation</Link></li>
-                <li><Link className="hover:text-primary" href="/e-invoicing">Invoicing</Link></li>
+                <li><Link className="hover:text-primary" href="/calculators">Tax Automation</Link></li>
+                <li><Link className="hover:text-primary" href="/invoices">Invoicing</Link></li>
                 <li><Link className="hover:text-primary" href="/dashboard">Cashflow Analytics</Link></li>
-                <li><Link className="hover:text-primary" href="/payroll">Payroll</Link></li>
+                <li><Link className="hover:text-primary" href="/dashboard">Payroll</Link></li>
               </ul>
             </div>
             <div>
@@ -315,7 +344,7 @@ export default function Home() {
               <ul className="space-y-4 text-sm text-slate-500">
                 <li><Link className="hover:text-primary" href="/help">Help Center</Link></li>
                 <li><Link className="hover:text-primary" href="/contact">Contact Us</Link></li>
-                <li><Link className="hover:text-primary" href="/api">Developer API</Link></li>
+                <li><Link className="hover:text-primary" href="/api-docs">Developer API</Link></li>
                 <li><Link className="hover:text-primary" href="/legal">Legal</Link></li>
               </ul>
             </div>

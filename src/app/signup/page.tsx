@@ -5,6 +5,24 @@ import { useRouter } from 'next/navigation';
 import { createSupabaseClient } from '@/lib/supabase/client';
 import Link from 'next/link';
 
+function getPasswordStrength(pw: string) {
+  const checks = {
+    minLength: pw.length >= 6,
+    hasUpper: /[A-Z]/.test(pw),
+    hasNumber: /\d/.test(pw),
+    hasSpecial: /[^A-Za-z0-9]/.test(pw),
+  };
+  const passed = Object.values(checks).filter(Boolean).length;
+  let label: string;
+  let color: string;
+  let width: string;
+  if (passed <= 1) { label = 'Weak'; color = 'bg-red-500'; width = '25%'; }
+  else if (passed === 2) { label = 'Fair'; color = 'bg-yellow-500'; width = '50%'; }
+  else if (passed === 3) { label = 'Good'; color = 'bg-blue-500'; width = '75%'; }
+  else { label = 'Strong'; color = 'bg-green-500'; width = '100%'; }
+  return { checks, passed, label, color, width };
+}
+
 export default function SignUpPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
@@ -14,6 +32,7 @@ export default function SignUpPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const strength = getPasswordStrength(password);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -48,7 +67,12 @@ export default function SignUpPage() {
       });
 
       if (authError) {
-        setError(authError.message);
+        const msg = authError.message.toLowerCase();
+        if (msg.includes('weak') || msg.includes('password')) {
+          setError('Password is too weak. Try adding uppercase letters, numbers, and special characters.');
+        } else {
+          setError(authError.message);
+        }
         setLoading(false);
         return;
       }
@@ -176,7 +200,40 @@ export default function SignUpPage() {
                 className="w-full px-4 py-3 bg-white/5 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#0a6746] focus:border-transparent"
                 placeholder="••••••••"
               />
-              <p className="mt-1 text-xs text-gray-500">Minimum 6 characters</p>
+              {password.length > 0 && (
+                <div className="mt-2 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div className="flex-1 h-1.5 bg-gray-700 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all duration-300 ${strength.color}`}
+                        style={{ width: strength.width }}
+                      />
+                    </div>
+                    <span className={`text-xs font-medium ${
+                      strength.label === 'Weak' ? 'text-red-400' :
+                      strength.label === 'Fair' ? 'text-yellow-400' :
+                      strength.label === 'Good' ? 'text-blue-400' : 'text-green-400'
+                    }`}>{strength.label}</span>
+                  </div>
+                  <ul className="space-y-1 text-xs">
+                    <li className={strength.checks.minLength ? 'text-green-400' : 'text-gray-500'}>
+                      {strength.checks.minLength ? '\u2713' : '\u2022'} At least 6 characters
+                    </li>
+                    <li className={strength.checks.hasUpper ? 'text-green-400' : 'text-gray-500'}>
+                      {strength.checks.hasUpper ? '\u2713' : '\u2022'} One uppercase letter
+                    </li>
+                    <li className={strength.checks.hasNumber ? 'text-green-400' : 'text-gray-500'}>
+                      {strength.checks.hasNumber ? '\u2713' : '\u2022'} One number
+                    </li>
+                    <li className={strength.checks.hasSpecial ? 'text-green-400' : 'text-gray-500'}>
+                      {strength.checks.hasSpecial ? '\u2713' : '\u2022'} One special character (recommended)
+                    </li>
+                  </ul>
+                </div>
+              )}
+              {password.length === 0 && (
+                <p className="mt-1 text-xs text-gray-500">Minimum 6 characters</p>
+              )}
             </div>
 
             <div>
