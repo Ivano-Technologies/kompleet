@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function ReportsPage() {
   const [stats, setStats] = useState({
@@ -9,6 +9,16 @@ export default function ReportsPage() {
     totalRevenue: 0,
     totalExpenses: 0,
     netIncome: 0,
+  });
+  
+  // Calculate dates once on mount to avoid impure function calls during render
+  const [dateRange] = useState(() => {
+    const today = new Date();
+    const futureDate = new Date(today.getTime() + 30*24*60*60*1000);
+    return {
+      start: today.toLocaleDateString('en-NG', { month: 'short', day: 'numeric', year: 'numeric' }),
+      end: futureDate.toLocaleDateString('en-NG', { month: 'short', day: 'numeric', year: 'numeric' })
+    };
   });
   // Theme is now handled by ThemeProvider and Tailwind dark: classes
 
@@ -61,11 +71,11 @@ export default function ReportsPage() {
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <span className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
-                {new Date().toLocaleDateString('en-NG', { month: 'short', day: 'numeric', year: 'numeric' })}
+                {dateRange.start}
               </span>
               <span className="text-light-text-tertiary dark:text-dark-text-tertiary">-</span>
               <span className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
-                {useMemo(() => new Date(Date.now() + 30*24*60*60*1000).toLocaleDateString('en-NG', { month: 'short', day: 'numeric', year: 'numeric' }), [])}
+                {dateRange.end}
               </span>
             </div>
             <button className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-lg px-4 py-2 text-light-text-primary dark:text-dark-text-primary hover:border-primary-500 transition-colors text-sm font-medium">
