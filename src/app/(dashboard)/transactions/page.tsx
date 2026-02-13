@@ -161,19 +161,20 @@ export default function TransactionsPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-dark-background">
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Transactions</h1>
-          <p className="text-gray-600 mt-1">
-            {pagination.total} total transaction{pagination.total !== 1 ? 's' : ''}
-          </p>
-        </div>
-        <div className="flex gap-3">
+      <div className="bg-dark-background border-b border-dark-border px-8 py-6">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <h1 className="text-3xl font-bold text-dark-text-primary">Transactions</h1>
+            <span className="text-sm font-semibold text-dark-text-tertiary bg-dark-surface px-3 py-1 rounded-full border border-dark-border">
+              {pagination.total.toLocaleString()} TOTAL
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
           <Link
             href="/transactions/review"
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            className="bg-dark-surface border border-dark-border rounded-lg px-4 py-3 text-dark-text-secondary hover:text-dark-text-primary hover:border-primary-500 transition-all font-medium"
           >
             Review Uncategorized
           </Link>
@@ -181,208 +182,247 @@ export default function TransactionsPage() {
             <button
               onClick={() => document.getElementById('export-menu')?.classList.toggle('hidden')}
               disabled={exporting}
-              className="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors font-medium disabled:opacity-50"
+              className="bg-dark-surface border border-dark-border rounded-lg px-4 py-3 text-dark-text-secondary hover:text-dark-text-primary hover:border-primary-500 transition-all font-medium disabled:opacity-50 flex items-center gap-2"
             >
+              <span className="material-icons text-sm">file_download</span>
               {exporting ? 'Exporting...' : 'Export'}
             </button>
-            <div id="export-menu" className="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg border border-gray-200 z-10">
+            <div id="export-menu" className="hidden absolute right-0 mt-2 w-48 bg-dark-surface rounded-lg border border-dark-border shadow-xl z-10">
               <button
                 onClick={() => { handleExport('csv'); document.getElementById('export-menu')?.classList.add('hidden'); }}
-                className="block w-full text-left px-4 py-2 hover:bg-gray-50 rounded-t-lg"
+                className="block w-full text-left px-4 py-2 hover:bg-dark-surface-hover rounded-t-lg text-dark-text-primary"
               >
                 Export as CSV
               </button>
               <button
                 onClick={() => { handleExport('json'); document.getElementById('export-menu')?.classList.add('hidden'); }}
-                className="block w-full text-left px-4 py-2 hover:bg-gray-50 rounded-b-lg"
+                className="block w-full text-left px-4 py-2 hover:bg-dark-surface-hover rounded-b-lg text-dark-text-primary"
               >
                 Export as JSON
               </button>
             </div>
           </div>
-          <Link
-            href="/transactions/upload"
-            className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium"
-          >
-            Upload Transactions
-          </Link>
+          <button className="bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-all duration-200 shadow-lg hover:shadow-xl">
+            <span className="material-icons">add</span>
+            Add New
+          </button>
+          </div>
         </div>
-      </div>
 
-      {/* Filters */}
-      <div className="bg-white rounded-lg p-4 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <input
-            type="text"
-            placeholder="Search description..."
-            value={filters.search}
-            onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-          />
-          
+        {/* Search and Filters */}
+        <div className="flex items-center gap-4">
+          <div className="flex-1 relative">
+            <span className="material-icons absolute left-4 top-1/2 -translate-y-1/2 text-dark-text-tertiary">search</span>
+            <input
+              type="text"
+              placeholder="Search transactions, vendors, amounts..."
+              value={filters.search}
+              onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+              className="w-full bg-dark-surface border border-dark-border rounded-lg pl-12 pr-4 py-3 text-dark-text-primary placeholder-dark-text-tertiary focus:outline-none focus:border-primary-500 transition-colors"
+            />
+          </div>
           <select
             value={filters.type}
             onChange={(e) => setFilters({ ...filters, type: e.target.value })}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            className="bg-dark-surface border border-dark-border rounded-lg px-4 py-3 text-dark-text-secondary hover:text-dark-text-primary hover:border-primary-500 transition-all focus:outline-none focus:border-primary-500"
           >
-            <option value="">All Types</option>
+            <option value="">All Status</option>
             <option value="credit">Credit</option>
             <option value="debit">Debit</option>
           </select>
-
           <input
             type="date"
             value={filters.startDate}
             onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            placeholder="Start date"
+            className="bg-dark-surface border border-dark-border rounded-lg px-4 py-3 text-dark-text-secondary hover:text-dark-text-primary hover:border-primary-500 transition-all focus:outline-none focus:border-primary-500"
           />
-
           <input
             type="date"
             value={filters.endDate}
             onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            placeholder="End date"
+            className="bg-dark-surface border border-dark-border rounded-lg px-4 py-3 text-dark-text-secondary hover:text-dark-primary hover:border-primary-500 transition-all focus:outline-none focus:border-primary-500"
           />
+          <Link
+            href="/transactions/upload"
+            className="bg-dark-surface border border-dark-border rounded-lg px-4 py-3 text-dark-text-secondary hover:text-dark-text-primary hover:border-primary-500 transition-all font-medium whitespace-nowrap"
+          >
+            Upload
+          </Link>
         </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="p-8 space-y-6">
 
         {selectedIds.size > 0 && (
-          <div className="mt-4 flex items-center justify-between bg-green-50 p-3 rounded-lg">
-            <span className="text-green-800 font-medium">
+          <div className="bg-primary-500/10 border border-primary-500/20 rounded-xl p-4 flex items-center justify-between">
+            <span className="text-primary-500 font-medium">
               {selectedIds.size} transaction{selectedIds.size !== 1 ? 's' : ''} selected
             </span>
             <button
               onClick={handleBulkDelete}
-              className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+              className="bg-error-500 hover:bg-error-600 text-white px-4 py-2 rounded-lg transition-colors"
             >
               Delete Selected
             </button>
           </div>
         )}
-      </div>
 
-      {/* Transactions Table */}
-      <div className="bg-white rounded-lg overflow-hidden">
-        {loading ? (
-          <div className="p-12 text-center text-gray-500">Loading transactions...</div>
-        ) : transactions.length === 0 ? (
-          <div className="p-12 text-center">
-            <p className="text-gray-500 mb-4">No transactions found</p>
-            <Link
-              href="/transactions/upload"
-              className="text-green-600 hover:text-green-700 font-medium"
-            >
-              Upload your first bank statement →
-            </Link>
-          </div>
-        ) : (
-          <>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="px-4 py-3 text-left">
-                      <input
-                        type="checkbox"
-                        checked={selectedIds.size === transactions.length}
-                        onChange={handleSelectAll}
-                        className="rounded border-gray-300 text-green-600 focus:ring-green-500"
-                      />
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Date
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Description
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Category
-                    </th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Amount
-                    </th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Balance
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {transactions.map((transaction) => (
-                    <tr
-                      key={transaction.id}
-                      className="hover:bg-gray-50 cursor-pointer"
-                      onClick={() => router.push(`/transactions/${transaction.id}`)}
-                    >
-                      <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+        {/* Transactions Table */}
+        <div className="bg-dark-surface border border-dark-border rounded-xl overflow-hidden">
+          {loading ? (
+            <div className="p-12 text-center text-dark-text-tertiary">Loading transactions...</div>
+          ) : transactions.length === 0 ? (
+            <div className="p-12 text-center">
+              <p className="text-dark-text-secondary mb-4">No transactions found</p>
+              <Link
+                href="/transactions/upload"
+                className="text-primary-500 hover:text-primary-400 font-medium"
+              >
+                Upload your first bank statement →
+              </Link>
+            </div>
+          ) : (
+            <>
+              <div className="overflow-x-auto p-6">
+                <table className="w-full">
+                  <thead className="border-b border-dark-border">
+                    <tr>
+                      <th className="px-4 py-4 text-left">
                         <input
                           type="checkbox"
-                          checked={selectedIds.has(transaction.id)}
-                          onChange={() => handleSelectOne(transaction.id)}
-                          className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                          checked={selectedIds.size === transactions.length}
+                          onChange={handleSelectAll}
+                          className="rounded border-dark-border bg-dark-background text-primary-500 focus:ring-primary-500"
                         />
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-900">
-                        {formatDate(transaction.transaction_date)}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-900">
-                        {transaction.description}
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        {transaction.category ? (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            {transaction.category.name}
-                            {transaction.confidence_score !== undefined && transaction.confidence_score < 100 && (
-                              <span className="ml-1 text-green-600">
-                                ({transaction.confidence_score}%)
-                              </span>
-                            )}
-                          </span>
-                        ) : (
-                          <span className="text-gray-400 text-xs">Uncategorized</span>
-                        )}
-                      </td>
-                      <td className={`px-4 py-3 text-sm text-right font-medium ${
-                        transaction.transaction_type === 'credit' ? 'text-green-600' : 'text-red-600'
-                      }`}>
-                        {transaction.transaction_type === 'credit' ? '+' : '-'}
-                        {formatCurrency(transaction.amount)}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-right text-gray-900">
-                        {transaction.balance ? formatCurrency(transaction.balance) : '-'}
-                      </td>
+                      </th>
+                      <th className="px-4 py-4 text-left text-xs font-semibold text-dark-text-tertiary uppercase tracking-wide">
+                        Date
+                      </th>
+                      <th className="px-4 py-4 text-left text-xs font-semibold text-dark-text-tertiary uppercase tracking-wide">
+                        Description
+                      </th>
+                      <th className="px-4 py-4 text-left text-xs font-semibold text-dark-text-tertiary uppercase tracking-wide">
+                        Category
+                      </th>
+                      <th className="px-4 py-4 text-right text-xs font-semibold text-dark-text-tertiary uppercase tracking-wide">
+                        Amount
+                      </th>
+                      <th className="px-4 py-4 text-center text-xs font-semibold text-dark-text-tertiary uppercase tracking-wide">
+                        Status
+                      </th>
+                      <th className="px-4 py-4 text-center text-xs font-semibold text-dark-text-tertiary uppercase tracking-wide">
+                        Actions
+                      </th>
                     </tr>
-                  ))}
+                  </thead>
+                  <tbody className="divide-y divide-dark-border/50">
+                    {transactions.map((transaction) => (
+                      <tr
+                        key={transaction.id}
+                        className="hover:bg-dark-surface-hover cursor-pointer transition-colors"
+                        onClick={() => router.push(`/transactions/${transaction.id}`)}
+                      >
+                        <td className="px-4 py-4" onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.has(transaction.id)}
+                            onChange={() => handleSelectOne(transaction.id)}
+                            className="rounded border-dark-border bg-dark-background text-primary-500 focus:ring-primary-500"
+                          />
+                        </td>
+                        <td className="px-4 py-4">
+                          <div className="text-dark-text-primary font-medium">
+                            {formatDate(transaction.transaction_date)}
+                          </div>
+                        </td>
+                        <td className="px-4 py-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-lg bg-dark-background flex items-center justify-center">
+                              <span className="material-icons text-primary-500 text-sm">
+                                {transaction.transaction_type === 'credit' ? 'arrow_downward' : 'arrow_upward'}
+                              </span>
+                            </div>
+                            <span className="font-medium text-dark-text-primary">
+                              {transaction.description}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-4">
+                          {transaction.category ? (
+                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-success-500/10 text-success-500">
+                              {transaction.category.name}
+                              {transaction.confidence_score !== undefined && transaction.confidence_score < 100 && (
+                                <span className="ml-1">
+                                  ({transaction.confidence_score}%)
+                                </span>
+                              )}
+                            </span>
+                          ) : (
+                            <span className="text-dark-text-tertiary text-xs">Uncategorized</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-4 text-right">
+                          <span className={`font-semibold ${
+                            transaction.transaction_type === 'credit' ? 'text-success-500' : 'text-dark-text-primary'
+                          }`}>
+                            {transaction.transaction_type === 'credit' ? '+' : ''}{formatCurrency(transaction.amount)}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4 text-center">
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-success-500/10 text-success-500">
+                            {transaction.is_reconciled ? 'SUCCESSFUL' : 'PENDING'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4 text-center">
+                          <button className="p-2 hover:bg-dark-background rounded-lg transition-colors">
+                            <span className="material-icons text-dark-text-tertiary">more_vert</span>
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
                 </tbody>
               </table>
             </div>
 
-            {/* Pagination */}
-            <div className="px-4 py-3 border-t border-gray-200 flex items-center justify-between">
-              <div className="text-sm text-gray-700">
-                Showing {(pagination.page - 1) * pagination.limit + 1} to{' '}
-                {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
-                {pagination.total} results
+              {/* Pagination */}
+              <div className="flex items-center justify-between mt-6 pt-6 border-t border-dark-border px-4">
+                <div className="text-sm text-dark-text-secondary">
+                  Showing {(pagination.page - 1) * pagination.limit + 1} to{' '}
+                  {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
+                  {pagination.total.toLocaleString()} entries
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setPagination({ ...pagination, page: pagination.page - 1 })}
+                    disabled={pagination.page === 1}
+                    className="w-10 h-10 rounded-lg bg-dark-background text-dark-text-secondary hover:bg-dark-surface-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <span className="material-icons">arrow_back</span>
+                  </button>
+                  <button className="w-10 h-10 rounded-lg bg-primary-500 text-white font-medium hover:bg-primary-600 transition-colors">
+                    {pagination.page}
+                  </button>
+                  {pagination.page < pagination.totalPages - 1 && (
+                    <span className="text-dark-text-tertiary px-2">...</span>
+                  )}
+                  {pagination.page < pagination.totalPages && (
+                    <button className="w-10 h-10 rounded-lg bg-dark-background text-dark-text-secondary hover:bg-dark-surface-hover transition-colors">
+                      {pagination.totalPages}
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setPagination({ ...pagination, page: pagination.page + 1 })}
+                    disabled={pagination.page >= pagination.totalPages}
+                    className="w-10 h-10 rounded-lg bg-dark-background text-dark-text-secondary hover:bg-dark-surface-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <span className="material-icons">arrow_forward</span>
+                  </button>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setPagination({ ...pagination, page: pagination.page - 1 })}
-                  disabled={pagination.page === 1}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Previous
-                </button>
-                <button
-                  onClick={() => setPagination({ ...pagination, page: pagination.page + 1 })}
-                  disabled={pagination.page >= pagination.totalPages}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Next
-                </button>
-              </div>
-            </div>
-          </>
-        )}
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
