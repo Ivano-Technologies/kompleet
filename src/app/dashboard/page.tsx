@@ -1,39 +1,16 @@
 import { createServerClient } from '@/lib/supabase/server';
 import { requireServerUser } from '@/lib/supabase/session';
-import Link from 'next/link';
-import LogoutButton from './LogoutButton';
-import { 
-  getMonthlyIncomeExpenses, 
-  getCategoryBreakdown, 
-  getTaxProjections, 
-  getComplianceMetrics 
-} from '@/lib/dashboard/data-aggregation';
-import { IncomeExpensesChart } from '@/components/charts/IncomeExpensesChart';
-import { CategoryBreakdownChart } from '@/components/charts/CategoryBreakdownChart';
-import { TaxProjectionChart } from '@/components/charts/TaxProjectionChart';
-import { ComplianceHealthMeter } from '@/components/charts/ComplianceHealthMeter';
-import {
-  Navigation,
-  Logo,
-  Container,
-  Section,
-  Grid,
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-  Button,
-} from '@/components/nextauth-ui';
+import { SolidDashboardLayout } from '@/components/layout/SolidDashboardLayout';
 
 /**
- * KOMPLEET Dashboard - NextAuth Design
+ * KOMPLEET Dashboard - Financial Health Overview
  * 
+ * Design: Solid dark theme with sidebar navigation
  * Features:
- * - NextAuth-style navigation
- * - Flat design (no glassmorphism, no shadows)
- * - Nigerian green accents
- * - Grid layout for stats and charts
- * - Quick actions section
+ * - KPI cards (Revenue, Tax Owed, Outstanding Invoices)
+ * - Monthly Cash Flow chart
+ * - Recent Transactions table
+ * - Upcoming deadline reminder
  */
 export default async function DashboardPage() {
   const supabase = await createServerClient();
@@ -41,229 +18,233 @@ export default async function DashboardPage() {
   try {
     const user = await requireServerUser(supabase);
 
-    // Fetch all dashboard data
-    const [incomeExpenses, categoryBreakdown, taxProjections, complianceMetrics] = await Promise.all([
-      getMonthlyIncomeExpenses(user.id),
-      getCategoryBreakdown(user.id),
-      getTaxProjections(user.id),
-      getComplianceMetrics(user.id),
-    ]);
+    // Mock data - replace with actual data fetching
+    const kpiData = {
+      totalRevenue: 4820000,
+      revenueChange: 12.5,
+      estimatedTax: 342150,
+      taxDueIn: 14,
+      outstandingInvoices: 1205000,
+      pendingCount: 6,
+    };
 
-    const navLinks = [
-      { href: '/dashboard', label: 'Dashboard' },
-      { href: '/transactions', label: 'Transactions' },
-      { href: '/tax-calculators', label: 'Tax Calculators' },
-      { href: '/e-invoicing', label: 'E-Invoicing' },
-      { href: '/reports', label: 'Reports' },
+    const recentTransactions = [
+      {
+        id: 1,
+        description: 'Mainstack Payout',
+        category: 'Sales Income',
+        date: 'Oct 24, 2024',
+        amount: 450000,
+        status: 'SUCCESS',
+      },
+      {
+        id: 2,
+        description: 'AWS Infrastructure',
+        category: 'Technology',
+        date: 'Oct 22, 2024',
+        amount: 12400,
+        status: 'SUCCESS',
+      },
+      {
+        id: 3,
+        description: 'Client: Glo Nigeria',
+        category: 'Invoicing',
+        date: 'Oct 20, 2024',
+        amount: 890000,
+        status: 'PENDING',
+      },
     ];
 
     return (
-      <>
-        {/* Navigation */}
-        <Navigation
-          logo={<Logo text="KOMPLEET" imageSrc="/assets/logo-primary.png" />}
-          links={navLinks}
-          rightContent={<LogoutButton />}
-        />
-
-        {/* Dashboard Content */}
-        <div className="min-h-screen bg-background">
-          <Section spacing="md">
-            {/* Welcome Header */}
-            <div className="mb-8">
-              <h1 className="text-h1 text-foreground mb-2">
-                Welcome back, {user.email?.split('@')[0]}!
+      <SolidDashboardLayout userName={user.email?.split('@')[0]} userRole="Business Owner">
+        {/* Header */}
+        <div className="bg-dark-background border-b border-dark-border px-8 py-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-dark-text-primary mb-2">
+                Financial Health Overview
               </h1>
-              <p className="text-body text-muted italic">
-                Kompleet records. Kompleet filings. Kompleet compliance.
+              <p className="text-dark-text-secondary">
+                Welcome back. Here's what's happening with your business today.
               </p>
             </div>
-
-            {/* Quick Stats */}
-            <Grid columns={4} gap="md" className="mb-12">
-              <Card>
-                <div className="text-sm text-muted mb-2">Total Transactions</div>
-                <div className="text-h2 text-foreground">{complianceMetrics.totalTransactions}</div>
-              </Card>
-
-              <Card>
-                <div className="text-sm text-muted mb-2">Categorized</div>
-                <div className="text-h2 text-primary">{complianceMetrics.categorizedTransactions}</div>
-              </Card>
-
-              <Card>
-                <div className="text-sm text-muted mb-2">Reconciliation</div>
-                <div className="text-h2 text-foreground">{complianceMetrics.reconciliationRate}%</div>
-              </Card>
-
-              <Card>
-                <div className="text-sm text-muted mb-2">Tax Readiness</div>
-                <div className="text-h2 text-foreground">{complianceMetrics.taxReadinessScore}%</div>
-              </Card>
-            </Grid>
-
-            {/* Charts Grid */}
-            <Grid columns={2} gap="lg" className="mb-12">
-              {/* Income vs Expenses Chart */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Income vs Expenses</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-80">
-                    <IncomeExpensesChart data={incomeExpenses} />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Category Breakdown Chart */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Expense Categories</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-80">
-                    {categoryBreakdown.length > 0 ? (
-                      <CategoryBreakdownChart data={categoryBreakdown} />
-                    ) : (
-                      <div className="flex items-center justify-center h-full text-muted">
-                        No expense data available
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Tax Projection Chart */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Tax Projections</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-80">
-                    {taxProjections.length > 0 ? (
-                      <TaxProjectionChart data={taxProjections} />
-                    ) : (
-                      <div className="flex items-center justify-center h-full text-muted">
-                        No tax projection data available
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Compliance Health */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Compliance Health</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-80">
-                    <ComplianceHealthMeter data={complianceMetrics} />
-                  </div>
-                </CardContent>
-              </Card>
-            </Grid>
-
-            {/* Quick Actions */}
-            <Card className="mb-12">
-              <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Grid columns={3} gap="md">
-                  <Link href="/transactions/upload">
-                    <Button variant="secondary" className="w-full">
-                      📤 Upload Bank Statement
-                    </Button>
-                  </Link>
-                  <Link href="/calculators">
-                    <Button variant="secondary" className="w-full">
-                      🧮 Calculate Taxes
-                    </Button>
-                  </Link>
-                  <Link href="/e-invoicing">
-                    <Button variant="secondary" className="w-full">
-                      📄 Create E-Invoice
-                    </Button>
-                  </Link>
-                  <Link href="/transactions">
-                    <Button variant="secondary" className="w-full">
-                      💳 View Transactions
-                    </Button>
-                  </Link>
-                  <Link href="/reports">
-                    <Button variant="secondary" className="w-full">
-                      📊 Generate Report
-                    </Button>
-                  </Link>
-                  <Link href="/settings">
-                    <Button variant="secondary" className="w-full">
-                      ⚙️ Settings
-                    </Button>
-                  </Link>
-                </Grid>
-              </CardContent>
-            </Card>
-
-            {/* Tax Calculators Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Tax Calculators</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="mb-4">
-                  <Link href="/calculators" className="text-primary hover:underline text-sm font-medium">
-                    View All Calculators →
-                  </Link>
-                </div>
-                <Grid columns={3} gap="md">
-                  <Link href="/calculators/individual-tax">
-                    <Button variant="secondary" className="w-full">
-                      👤 Personal Income Tax
-                    </Button>
-                  </Link>
-                  <Link href="/calculators/business-tax">
-                    <Button variant="secondary" className="w-full">
-                      🏢 Company Income Tax
-                    </Button>
-                  </Link>
-                  <Link href="/calculators/vat">
-                    <Button variant="secondary" className="w-full">
-                      📊 VAT Compliance
-                    </Button>
-                  </Link>
-                  <Link href="/calculators/stamp-duty">
-                    <Button variant="secondary" className="w-full">
-                      📜 Stamp Duty
-                    </Button>
-                  </Link>
-                  <Link href="/calculators/capital-allowances">
-                    <Button variant="secondary" className="w-full">
-                      🏭 Capital Allowances
-                    </Button>
-                  </Link>
-                  <Link href="/calculators/property-tax">
-                    <Button variant="secondary" className="w-full">
-                      🏠 Property Tax
-                    </Button>
-                  </Link>
-                </Grid>
-              </CardContent>
-            </Card>
-          </Section>
+            <button className="bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-all duration-200 shadow-lg hover:shadow-xl">
+              <span className="material-icons">add</span>
+              Create Invoice
+            </button>
+          </div>
         </div>
-      </>
+
+        {/* Main Content */}
+        <div className="p-8 space-y-6">
+          {/* KPI Cards */}
+          <div className="grid grid-cols-3 gap-6">
+            {/* Total Revenue */}
+            <div className="bg-dark-surface border border-dark-border rounded-xl p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <span className="material-icons text-success-500">trending_up</span>
+                  <span className="text-sm text-dark-text-secondary">Total Revenue (MTD)</span>
+                </div>
+                <span className="text-xs font-semibold text-success-500 bg-success-500/10 px-2 py-1 rounded">
+                  +{kpiData.revenueChange}%
+                </span>
+              </div>
+              <div className="text-3xl font-bold text-dark-text-primary">
+                ₦{kpiData.totalRevenue.toLocaleString()}
+              </div>
+            </div>
+
+            {/* Estimated Tax Owed */}
+            <div className="bg-dark-surface border border-dark-border rounded-xl p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <span className="material-icons text-warning-500">account_balance</span>
+                  <span className="text-sm text-dark-text-secondary">Estimated Tax Owed</span>
+                </div>
+                <span className="text-xs font-semibold text-warning-500 bg-warning-500/10 px-2 py-1 rounded">
+                  Due in {kpiData.taxDueIn}d
+                </span>
+              </div>
+              <div className="text-3xl font-bold text-warning-500">
+                ₦{kpiData.estimatedTax.toLocaleString()}
+              </div>
+              <button className="text-sm text-primary-500 hover:text-primary-400 mt-3 flex items-center gap-1">
+                View breakdowns
+                <span className="material-icons text-sm">arrow_forward</span>
+              </button>
+            </div>
+
+            {/* Outstanding Invoices */}
+            <div className="bg-dark-surface border border-dark-border rounded-xl p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <span className="material-icons text-info-500">pending_actions</span>
+                  <span className="text-sm text-dark-text-secondary">Outstanding Invoices</span>
+                </div>
+                <span className="text-xs font-semibold text-info-500 bg-info-500/10 px-2 py-1 rounded">
+                  {kpiData.pendingCount} Pending
+                </span>
+              </div>
+              <div className="text-3xl font-bold text-dark-text-primary flex items-center gap-3">
+                ₦{kpiData.outstandingInvoices.toLocaleString()}
+                <span className="material-icons text-info-500 text-2xl">show_chart</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Monthly Cash Flow Chart */}
+          <div className="bg-dark-surface border border-dark-border rounded-xl p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-xl font-bold text-dark-text-primary mb-1">
+                  Monthly Cash Flow
+                </h2>
+                <p className="text-sm text-dark-text-secondary">
+                  Revenue visualization for 2024
+                </p>
+              </div>
+              <div className="flex items-center gap-4">
+                <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-dark-background text-dark-text-secondary hover:text-dark-text-primary transition-colors">
+                  <span className="w-3 h-3 rounded-full bg-success-500"></span>
+                  Cash Inflow
+                </button>
+                <button className="px-4 py-2 rounded-lg bg-dark-background text-dark-text-secondary hover:text-dark-text-primary transition-colors">
+                  Last 4 Months
+                </button>
+              </div>
+            </div>
+            {/* Chart Placeholder */}
+            <div className="h-64 flex items-center justify-center border border-dashed border-dark-border rounded-lg">
+              <p className="text-dark-text-tertiary">Chart visualization here</p>
+            </div>
+          </div>
+
+          {/* Recent Transactions */}
+          <div className="bg-dark-surface border border-dark-border rounded-xl p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-dark-text-primary">
+                Recent Transactions
+              </h2>
+              <button className="text-primary-500 hover:text-primary-400 font-medium flex items-center gap-1">
+                View All Transactions
+                <span className="material-icons text-sm">arrow_forward</span>
+              </button>
+            </div>
+
+            {/* Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-dark-border">
+                    <th className="text-left text-xs font-semibold text-dark-text-tertiary uppercase tracking-wide pb-3">
+                      Transaction
+                    </th>
+                    <th className="text-left text-xs font-semibold text-dark-text-tertiary uppercase tracking-wide pb-3">
+                      Category
+                    </th>
+                    <th className="text-left text-xs font-semibold text-dark-text-tertiary uppercase tracking-wide pb-3">
+                      Date
+                    </th>
+                    <th className="text-right text-xs font-semibold text-dark-text-tertiary uppercase tracking-wide pb-3">
+                      Amount
+                    </th>
+                    <th className="text-right text-xs font-semibold text-dark-text-tertiary uppercase tracking-wide pb-3">
+                      Status
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentTransactions.map((transaction) => (
+                    <tr key={transaction.id} className="border-b border-dark-border/50 hover:bg-dark-surface-hover transition-colors">
+                      <td className="py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-primary-500/10 flex items-center justify-center">
+                            <span className="material-icons text-primary-500 text-sm">
+                              {transaction.status === 'SUCCESS' ? 'arrow_downward' : 'schedule'}
+                            </span>
+                          </div>
+                          <span className="font-medium text-dark-text-primary">
+                            {transaction.description}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="py-4 text-dark-text-secondary">
+                        {transaction.category}
+                      </td>
+                      <td className="py-4 text-dark-text-secondary">
+                        {transaction.date}
+                      </td>
+                      <td className="py-4 text-right font-semibold text-dark-text-primary">
+                        ₦{transaction.amount.toLocaleString()}
+                      </td>
+                      <td className="py-4 text-right">
+                        <span
+                          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
+                            transaction.status === 'SUCCESS'
+                              ? 'bg-success-500/10 text-success-500'
+                              : 'bg-warning-500/10 text-warning-500'
+                          }`}
+                        >
+                          {transaction.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </SolidDashboardLayout>
     );
   } catch (error) {
     console.error('Dashboard error:', error);
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card>
-          <CardContent>
-            <p className="text-error-light">Failed to load dashboard. Please try again.</p>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-dark-background flex items-center justify-center">
+        <div className="bg-dark-surface border border-dark-border rounded-xl p-8">
+          <p className="text-error-500">Failed to load dashboard. Please try again.</p>
+        </div>
       </div>
     );
   }
