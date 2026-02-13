@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 
 export default function ReportsPage() {
   const [stats, setStats] = useState({
@@ -65,7 +65,7 @@ export default function ReportsPage() {
               </span>
               <span className="text-light-text-tertiary dark:text-dark-text-tertiary">-</span>
               <span className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
-                {new Date(Date.now() + 30*24*60*60*1000).toLocaleDateString('en-NG', { month: 'short', day: 'numeric', year: 'numeric' })}
+                {useMemo(() => new Date(Date.now() + 30*24*60*60*1000).toLocaleDateString('en-NG', { month: 'short', day: 'numeric', year: 'numeric' }), [])}
               </span>
             </div>
             <button className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-lg px-4 py-2 text-light-text-primary dark:text-dark-text-primary hover:border-primary-500 transition-colors text-sm font-medium">
