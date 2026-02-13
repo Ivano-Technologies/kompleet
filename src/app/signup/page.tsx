@@ -16,10 +16,10 @@ function getPasswordStrength(pw: string) {
   let label: string;
   let color: string;
   let width: string;
-  if (passed <= 1) { label = 'Weak'; color = 'bg-red-500'; width = '25%'; }
-  else if (passed === 2) { label = 'Fair'; color = 'bg-yellow-500'; width = '50%'; }
-  else if (passed === 3) { label = 'Good'; color = 'bg-blue-500'; width = '75%'; }
-  else { label = 'Strong'; color = 'bg-green-500'; width = '100%'; }
+  if (passed <= 1) { label = 'Weak'; color = 'bg-error-dark'; width = '25%'; }
+  else if (passed === 2) { label = 'Fair'; color = 'bg-warning-dark'; width = '50%'; }
+  else if (passed === 3) { label = 'Good'; color = 'bg-info-dark'; width = '75%'; }
+  else { label = 'Strong'; color = 'bg-success-dark'; width = '100%'; }
   return { checks, passed, label, color, width };
 }
 
@@ -95,23 +95,23 @@ export default function SignUpPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#11211b] dark">
+      <div className="min-h-screen flex items-center justify-center bg-dark-background dark">
         <div className="w-full max-w-md p-8">
-          <div className="bg-white/5 border border-[#0a6746]/20 rounded-xl p-8">
+          <div className="solid-card bg-dark-surface border-dark-border p-8">
             <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-[#0a6746]/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-[#0a6746]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-16 h-16 bg-primary-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <h1 className="text-2xl font-bold text-white mb-2">Account Created!</h1>
-              <p className="text-gray-400">
+              <h1 className="text-2xl font-bold text-dark-text-primary mb-2">Account Created!</h1>
+              <p className="text-dark-text-secondary">
                 Your account has been created successfully.
               </p>
             </div>
 
-            <div className="bg-[#0a6746]/10 border border-[#0a6746]/20 rounded-lg p-4 mb-6">
-              <p className="text-gray-300 text-sm">
+            <div className="bg-primary-500/10 border border-primary-500/20 rounded-lg p-4 mb-6">
+              <p className="text-dark-text-secondary text-sm">
                 Check your email for a confirmation link, or if email confirmation is disabled, 
                 you'll be redirected to the dashboard shortly.
               </p>
@@ -119,7 +119,7 @@ export default function SignUpPage() {
 
             <Link 
               href="/login"
-              className="block w-full py-3 px-4 bg-[#0a6746] hover:bg-[#0a6746]/90 text-white font-semibold rounded-lg transition-colors text-center"
+              className="btn-primary block w-full text-center"
             >
               Go to Login
             </Link>
@@ -130,34 +130,34 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#11211b] dark">
+    <div className="min-h-screen flex items-center justify-center bg-dark-background dark">
       <div className="w-full max-w-md p-8">
         {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-block">
             <div className="flex items-center justify-center gap-2">
-              <div className="w-10 h-10 bg-[#0a6746] rounded flex items-center justify-center">
+              <div className="w-10 h-10 bg-primary-500 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-xl">K</span>
               </div>
-              <span className="text-2xl font-bold text-white">KOMPLEET</span>
+              <span className="text-2xl font-bold text-dark-text-primary">KOMPLEET</span>
             </div>
           </Link>
         </div>
 
-        {/* Card */}
-        <div className="bg-white/5 border border-[#0a6746]/20 rounded-xl p-8">
-          <h1 className="text-2xl font-bold text-white mb-2">Create your account</h1>
-          <p className="text-gray-400 mb-6">Get started with KOMPLEET today</p>
+        {/* Card - Solid Design */}
+        <div className="solid-card bg-dark-surface border-dark-border p-8">
+          <h1 className="text-2xl font-bold text-dark-text-primary mb-2">Create your account</h1>
+          <p className="text-dark-text-secondary mb-6">Get started with KOMPLEET today</p>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
-              <p className="text-red-400 text-sm">{error}</p>
+            <div className="mb-4 p-3 bg-error-dark/10 border border-error-dark/20 rounded-lg">
+              <p className="text-error-dark text-sm">{error}</p>
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="fullName" className="block text-sm font-medium text-gray-300 mb-2">
+              <label htmlFor="fullName" className="block text-sm font-medium text-dark-text-secondary mb-2">
                 Full name
               </label>
               <input
@@ -166,13 +166,13 @@ export default function SignUpPage() {
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 required
-                className="w-full px-4 py-3 bg-white/5 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#0a6746] focus:border-transparent"
+                className="w-full px-4 py-3 bg-dark-surface-hover border border-dark-border rounded-lg text-dark-text-primary placeholder-dark-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                 placeholder="John Doe"
               />
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-dark-text-secondary mb-2">
                 Email address
               </label>
               <input
@@ -181,13 +181,13 @@ export default function SignUpPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-4 py-3 bg-white/5 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#0a6746] focus:border-transparent"
+                className="w-full px-4 py-3 bg-dark-surface-hover border border-dark-border rounded-lg text-dark-text-primary placeholder-dark-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                 placeholder="you@example.com"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-dark-text-secondary mb-2">
                 Password
               </label>
               <input
@@ -197,47 +197,54 @@ export default function SignUpPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
-                className="w-full px-4 py-3 bg-white/5 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#0a6746] focus:border-transparent"
+                className="w-full px-4 py-3 bg-dark-surface-hover border border-dark-border rounded-lg text-dark-text-primary placeholder-dark-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                 placeholder="••••••••"
               />
-              {password.length > 0 && (
-                <div className="mt-2 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 h-1.5 bg-gray-700 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all duration-300 ${strength.color}`}
-                        style={{ width: strength.width }}
-                      />
-                    </div>
+              
+              {/* Password Strength Indicator */}
+              {password && (
+                <div className="mt-2">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs text-dark-text-tertiary">Password strength:</span>
                     <span className={`text-xs font-medium ${
-                      strength.label === 'Weak' ? 'text-red-400' :
-                      strength.label === 'Fair' ? 'text-yellow-400' :
-                      strength.label === 'Good' ? 'text-blue-400' : 'text-green-400'
-                    }`}>{strength.label}</span>
+                      strength.label === 'Weak' ? 'text-error-dark' :
+                      strength.label === 'Fair' ? 'text-warning-dark' :
+                      strength.label === 'Good' ? 'text-info-dark' :
+                      'text-success-dark'
+                    }`}>
+                      {strength.label}
+                    </span>
                   </div>
-                  <ul className="space-y-1 text-xs">
-                    <li className={strength.checks.minLength ? 'text-green-400' : 'text-gray-500'}>
-                      {strength.checks.minLength ? '\u2713' : '\u2022'} At least 6 characters
-                    </li>
-                    <li className={strength.checks.hasUpper ? 'text-green-400' : 'text-gray-500'}>
-                      {strength.checks.hasUpper ? '\u2713' : '\u2022'} One uppercase letter
-                    </li>
-                    <li className={strength.checks.hasNumber ? 'text-green-400' : 'text-gray-500'}>
-                      {strength.checks.hasNumber ? '\u2713' : '\u2022'} One number
-                    </li>
-                    <li className={strength.checks.hasSpecial ? 'text-green-400' : 'text-gray-500'}>
-                      {strength.checks.hasSpecial ? '\u2713' : '\u2022'} One special character (recommended)
-                    </li>
-                  </ul>
+                  <div className="h-2 bg-dark-surface-hover rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full ${strength.color} transition-all duration-300`}
+                      style={{ width: strength.width }}
+                    />
+                  </div>
+                  <div className="mt-2 space-y-1">
+                    <div className={`text-xs flex items-center gap-2 ${strength.checks.minLength ? 'text-success-dark' : 'text-dark-text-tertiary'}`}>
+                      <span className="material-icons text-xs">{strength.checks.minLength ? 'check_circle' : 'radio_button_unchecked'}</span>
+                      At least 6 characters
+                    </div>
+                    <div className={`text-xs flex items-center gap-2 ${strength.checks.hasUpper ? 'text-success-dark' : 'text-dark-text-tertiary'}`}>
+                      <span className="material-icons text-xs">{strength.checks.hasUpper ? 'check_circle' : 'radio_button_unchecked'}</span>
+                      One uppercase letter
+                    </div>
+                    <div className={`text-xs flex items-center gap-2 ${strength.checks.hasNumber ? 'text-success-dark' : 'text-dark-text-tertiary'}`}>
+                      <span className="material-icons text-xs">{strength.checks.hasNumber ? 'check_circle' : 'radio_button_unchecked'}</span>
+                      One number
+                    </div>
+                    <div className={`text-xs flex items-center gap-2 ${strength.checks.hasSpecial ? 'text-success-dark' : 'text-dark-text-tertiary'}`}>
+                      <span className="material-icons text-xs">{strength.checks.hasSpecial ? 'check_circle' : 'radio_button_unchecked'}</span>
+                      One special character (recommended)
+                    </div>
+                  </div>
                 </div>
-              )}
-              {password.length === 0 && (
-                <p className="mt-1 text-xs text-gray-500">Minimum 6 characters</p>
               )}
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-300 mb-2">
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-dark-text-secondary mb-2">
                 Confirm password
               </label>
               <input
@@ -247,7 +254,7 @@ export default function SignUpPage() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 minLength={6}
-                className="w-full px-4 py-3 bg-white/5 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#0a6746] focus:border-transparent"
+                className="w-full px-4 py-3 bg-dark-surface-hover border border-dark-border rounded-lg text-dark-text-primary placeholder-dark-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                 placeholder="••••••••"
               />
             </div>
@@ -255,30 +262,34 @@ export default function SignUpPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-4 bg-[#0a6746] hover:bg-[#0a6746]/90 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Creating account...' : 'Create account'}
             </button>
           </form>
 
-          <div className="mt-6 text-center text-sm text-gray-400">
-            Already have an account?{' '}
-            <Link href="/login" className="text-[#0a6746] hover:text-[#0a6746]/80 font-medium">
-              Sign in
-            </Link>
+          <div className="mt-6 text-center">
+            <p className="text-sm text-dark-text-secondary">
+              Already have an account?{' '}
+              <Link href="/login" className="text-primary-500 hover:text-primary-400 font-medium transition-colors">
+                Sign in
+              </Link>
+            </p>
           </div>
 
-          <div className="mt-4 text-center">
-            <Link href="/sign-in" className="text-sm text-gray-400 hover:text-gray-300">
-              Or use magic link instead →
-            </Link>
+          {/* Trust Badges */}
+          <div className="mt-8 pt-6 border-t border-dark-border">
+            <div className="flex items-center justify-center gap-4 text-xs text-dark-text-tertiary">
+              <div className="flex items-center gap-1">
+                <span className="material-icons text-sm">security</span>
+                <span>NDPR Compliant</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="material-icons text-sm">lock</span>
+                <span>256-bit SSL</span>
+              </div>
+            </div>
           </div>
-        </div>
-
-        <div className="mt-6 text-center">
-          <Link href="/" className="text-sm text-gray-400 hover:text-gray-300">
-            ← Back to home
-          </Link>
         </div>
       </div>
     </div>
