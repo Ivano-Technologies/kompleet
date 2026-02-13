@@ -10,6 +10,7 @@ export default function ReportsPage() {
     totalExpenses: 0,
     netIncome: 0,
   });
+  const [isDarkMode, setIsDarkMode] = useState(true);
 
   const fetchStats = async () => {
     try {
@@ -49,217 +50,257 @@ export default function ReportsPage() {
     }).format(amount);
   };
 
+  const bgClass = isDarkMode ? 'bg-dark-background' : 'bg-light-background';
+  const surfaceClass = isDarkMode ? 'bg-dark-surface border-dark-border' : 'bg-white border-gray-200';
+  const textPrimaryClass = isDarkMode ? 'text-dark-text-primary' : 'text-gray-900';
+  const textSecondaryClass = isDarkMode ? 'text-dark-text-secondary' : 'text-gray-600';
+  const textTertiaryClass = isDarkMode ? 'text-dark-text-tertiary' : 'text-gray-500';
+
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className={`min-h-screen ${bgClass} p-8`}>
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Financial Reports</h1>
-        <p className="text-gray-600 mt-1">
-          Generate professional financial statements for tax compliance and business insights
+      <div className="max-w-7xl mx-auto mb-8">
+        <div className="flex items-center justify-between mb-2">
+          <h1 className={`text-3xl font-bold ${textPrimaryClass}`}>Financial Reports</h1>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className={`text-sm ${textSecondaryClass}`}>
+                {new Date().toLocaleDateString('en-NG', { month: 'short', day: 'numeric', year: 'numeric' })}
+              </span>
+              <span className={textTertiaryClass}>-</span>
+              <span className={`text-sm ${textSecondaryClass}`}>
+                {new Date(Date.now() + 30*24*60*60*1000).toLocaleDateString('en-NG', { month: 'short', day: 'numeric', year: 'numeric' })}
+              </span>
+            </div>
+            <button className={`${surfaceClass} border rounded-lg px-4 py-2 ${textPrimaryClass} hover:border-primary-500 transition-colors text-sm font-medium`}>
+              + Export Report
+            </button>
+          </div>
+        </div>
+        <p className={`${textSecondaryClass}`}>
+          Analyze your business metrics and growth
         </p>
       </div>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white rounded-lg p-6">
-          <div className="text-sm text-gray-600 font-medium">Total Transactions</div>
-          <div className="text-3xl font-bold text-gray-900 mt-2">{stats.totalTransactions}</div>
-        </div>
-        <div className="bg-green-50 rounded-lg p-6">
-          <div className="text-sm text-green-700 font-medium">Total Revenue</div>
-          <div className="text-3xl font-bold text-green-900 mt-2">
+      {/* Quick Stats - KPI Cards */}
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        {/* Total Revenue */}
+        <div className={`${surfaceClass} border rounded-xl p-6`}>
+          <div className="flex items-start justify-between mb-4">
+            <div className={`w-12 h-12 rounded-lg ${isDarkMode ? 'bg-success-500/10' : 'bg-green-50'} flex items-center justify-center`}>
+              <span className="material-icons text-success-500">trending_up</span>
+            </div>
+            <div className="flex items-center gap-1 text-success-500 text-sm font-semibold">
+              <span className="material-icons text-xs">arrow_upward</span>
+              <span>+8%</span>
+            </div>
+          </div>
+          <div className={`text-sm ${textTertiaryClass} mb-2`}>Total Revenue (MTD)</div>
+          <div className={`text-3xl font-bold ${textPrimaryClass}`}>
             {formatCurrency(stats.totalRevenue)}
           </div>
         </div>
-        <div className="bg-red-50 rounded-lg p-6">
-          <div className="text-sm text-red-700 font-medium">Total Expenses</div>
-          <div className="text-3xl font-bold text-red-900 mt-2">
+
+        {/* Total Expenses */}
+        <div className={`${surfaceClass} border rounded-xl p-6`}>
+          <div className="flex items-start justify-between mb-4">
+            <div className={`w-12 h-12 rounded-lg ${isDarkMode ? 'bg-error-500/10' : 'bg-red-50'} flex items-center justify-center`}>
+              <span className="material-icons text-error-500">trending_down</span>
+            </div>
+            <div className="flex items-center gap-1 text-error-500 text-sm font-semibold">
+              <span className="material-icons text-xs">arrow_downward</span>
+              <span>-3.2%</span>
+            </div>
+          </div>
+          <div className={`text-sm ${textTertiaryClass} mb-2`}>Total Outflow (MTD)</div>
+          <div className={`text-3xl font-bold ${textPrimaryClass}`}>
             {formatCurrency(stats.totalExpenses)}
           </div>
         </div>
-        <div className={`rounded-lg p-6 ${stats.netIncome >= 0 ? 'bg-blue-50' : 'bg-yellow-50'}`}>
-          <div className={`text-sm font-medium ${stats.netIncome >= 0 ? 'text-blue-700' : 'text-yellow-700'}`}>
-            Net {stats.netIncome >= 0 ? 'Profit' : 'Loss'}
+
+        {/* Estimated Tax Owed */}
+        <div className={`${surfaceClass} border rounded-xl p-6`}>
+          <div className="flex items-start justify-between mb-4">
+            <div className={`w-12 h-12 rounded-lg ${isDarkMode ? 'bg-warning-500/10' : 'bg-yellow-50'} flex items-center justify-center`}>
+              <span className="material-icons text-warning-500">account_balance</span>
+            </div>
+            <div className="flex items-center gap-1 text-warning-500 text-sm font-semibold">
+              <span>Due in 14d</span>
+            </div>
           </div>
-          <div className={`text-3xl font-bold mt-2 ${stats.netIncome >= 0 ? 'text-blue-900' : 'text-yellow-900'}`}>
-            {formatCurrency(Math.abs(stats.netIncome))}
+          <div className={`text-sm ${textTertiaryClass} mb-2`}>Estimated Tax Liability</div>
+          <div className={`text-3xl font-bold ${textPrimaryClass}`}>
+            {formatCurrency(stats.netIncome * 0.3)}
+          </div>
+        </div>
+
+        {/* Net Income */}
+        <div className={`${surfaceClass} border rounded-xl p-6`}>
+          <div className="flex items-start justify-between mb-4">
+            <div className={`w-12 h-12 rounded-lg ${isDarkMode ? 'bg-primary-500/10' : 'bg-blue-50'} flex items-center justify-center`}>
+              <span className="material-icons text-primary-500">show_chart</span>
+            </div>
+            <div className="flex items-center gap-1 text-primary-500 text-sm font-semibold">
+              <span className="material-icons text-xs">arrow_upward</span>
+              <span>+4%</span>
+            </div>
+          </div>
+          <div className={`text-sm ${textTertiaryClass} mb-2`}>Close Tax Rate</div>
+          <div className={`text-3xl font-bold ${textPrimaryClass}`}>
+            1.24%
           </div>
         </div>
       </div>
 
-      {/* Report Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Report Cards Grid */}
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Profit & Loss Statement */}
         <Link
           href="/reports/profit-loss"
-          className="bg-white rounded-lg p-8 hover:shadow-md transition-shadow border-2 border-transparent hover:border-green-500"
+          className={`${surfaceClass} border rounded-xl p-8 hover:border-primary-500 transition-all duration-200 group`}
         >
-          <div className="flex items-start justify-between mb-4">
-            <div className="text-5xl">📊</div>
-            <div className="bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full">
+          <div className="flex items-start justify-between mb-6">
+            <div className={`w-16 h-16 rounded-xl ${isDarkMode ? 'bg-primary-500/10' : 'bg-green-50'} flex items-center justify-center group-hover:scale-110 transition-transform`}>
+              <span className="text-4xl">📊</span>
+            </div>
+            <div className={`${isDarkMode ? 'bg-success-500/10 text-success-500' : 'bg-green-100 text-green-700'} text-xs font-bold px-3 py-1 rounded-full uppercase`}>
               Income Statement
             </div>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Profit & Loss Statement</h2>
-          <p className="text-gray-600 mb-4">
+          <h2 className={`text-2xl font-bold ${textPrimaryClass} mb-3`}>Profit & Loss Statement</h2>
+          <p className={`${textSecondaryClass} mb-6 leading-relaxed`}>
             View your revenue and expenses over a specific period. Essential for tax filing and
             business performance analysis.
           </p>
-          <div className="space-y-2 text-sm text-gray-700">
-            <div className="flex items-center gap-2">
-              <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fillRule="evenodd"
-                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <span>Revenue breakdown by category</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fillRule="evenodd"
-                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <span>Expense categorization</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fillRule="evenodd"
-                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <span>Taxable income calculation</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fillRule="evenodd"
-                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <span>Profit margin analysis</span>
-            </div>
+          <div className="space-y-3">
+            {['Revenue breakdown by category', 'Expense categorization', 'Taxable income calculation', 'Profit margin analysis'].map((item, idx) => (
+              <div key={idx} className="flex items-center gap-3">
+                <div className={`w-5 h-5 rounded-full ${isDarkMode ? 'bg-success-500/10' : 'bg-green-50'} flex items-center justify-center`}>
+                  <span className="material-icons text-success-500 text-xs">check</span>
+                </div>
+                <span className={`text-sm ${textSecondaryClass}`}>{item}</span>
+              </div>
+            ))}
           </div>
-          <div className="mt-6 flex items-center text-green-600 font-semibold">
-            Generate Report
-            <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
+          <div className="mt-8 flex items-center text-primary-500 font-semibold group-hover:gap-3 gap-2 transition-all">
+            <span>Generate Report</span>
+            <span className="material-icons">arrow_forward</span>
           </div>
         </Link>
 
         {/* Balance Sheet */}
         <Link
           href="/reports/balance-sheet"
-          className="bg-white rounded-lg p-8 hover:shadow-md transition-shadow border-2 border-transparent hover:border-blue-500"
+          className={`${surfaceClass} border rounded-xl p-8 hover:border-primary-500 transition-all duration-200 group`}
         >
-          <div className="flex items-start justify-between mb-4">
-            <div className="text-5xl">📈</div>
-            <div className="bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full">
+          <div className="flex items-start justify-between mb-6">
+            <div className={`w-16 h-16 rounded-xl ${isDarkMode ? 'bg-warning-500/10' : 'bg-blue-50'} flex items-center justify-center group-hover:scale-110 transition-transform`}>
+              <span className="text-4xl">💼</span>
+            </div>
+            <div className={`${isDarkMode ? 'bg-warning-500/10 text-warning-500' : 'bg-blue-100 text-blue-700'} text-xs font-bold px-3 py-1 rounded-full uppercase`}>
               Financial Position
             </div>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Balance Sheet</h2>
-          <p className="text-gray-600 mb-4">
-            Snapshot of your financial position at a specific date. Shows assets, liabilities, and
-            equity for comprehensive financial health assessment.
+          <h2 className={`text-2xl font-bold ${textPrimaryClass} mb-3`}>Balance Sheet</h2>
+          <p className={`${textSecondaryClass} mb-6 leading-relaxed`}>
+            Snapshot of your business's financial position at a specific point in time. Shows assets,
+            liabilities, and equity.
           </p>
-          <div className="space-y-2 text-sm text-gray-700">
-            <div className="flex items-center gap-2">
-              <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fillRule="evenodd"
-                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <span>Current & non-current assets</span>
+          <div className="space-y-3">
+            {['Assets overview', 'Liabilities tracking', 'Equity calculation', 'Financial health metrics'].map((item, idx) => (
+              <div key={idx} className="flex items-center gap-3">
+                <div className={`w-5 h-5 rounded-full ${isDarkMode ? 'bg-warning-500/10' : 'bg-blue-50'} flex items-center justify-center`}>
+                  <span className="material-icons text-warning-500 text-xs">check</span>
+                </div>
+                <span className={`text-sm ${textSecondaryClass}`}>{item}</span>
+              </div>
+            ))}
+          </div>
+          <div className="mt-8 flex items-center text-primary-500 font-semibold group-hover:gap-3 gap-2 transition-all">
+            <span>Generate Report</span>
+            <span className="material-icons">arrow_forward</span>
+          </div>
+        </Link>
+
+        {/* Cash Flow Statement */}
+        <Link
+          href="/reports/cash-flow"
+          className={`${surfaceClass} border rounded-xl p-8 hover:border-primary-500 transition-all duration-200 group`}
+        >
+          <div className="flex items-start justify-between mb-6">
+            <div className={`w-16 h-16 rounded-xl ${isDarkMode ? 'bg-success-500/10' : 'bg-purple-50'} flex items-center justify-center group-hover:scale-110 transition-transform`}>
+              <span className="text-4xl">💰</span>
             </div>
-            <div className="flex items-center gap-2">
-              <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fillRule="evenodd"
-                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <span>Liabilities breakdown</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fillRule="evenodd"
-                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <span>Owner's equity calculation</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fillRule="evenodd"
-                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <span>Financial ratios (current ratio, debt-to-equity)</span>
+            <div className={`${isDarkMode ? 'bg-primary-500/10 text-primary-500' : 'bg-purple-100 text-purple-700'} text-xs font-bold px-3 py-1 rounded-full uppercase`}>
+              Cash Analysis
             </div>
           </div>
-          <div className="mt-6 flex items-center text-blue-600 font-semibold">
-            Generate Report
-            <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
+          <h2 className={`text-2xl font-bold ${textPrimaryClass} mb-3`}>Cash Flow Statement</h2>
+          <p className={`${textSecondaryClass} mb-6 leading-relaxed`}>
+            Track how cash moves in and out of your business. Critical for understanding liquidity
+            and operational efficiency.
+          </p>
+          <div className="space-y-3">
+            {['Operating activities', 'Investing activities', 'Financing activities', 'Net cash position'].map((item, idx) => (
+              <div key={idx} className="flex items-center gap-3">
+                <div className={`w-5 h-5 rounded-full ${isDarkMode ? 'bg-primary-500/10' : 'bg-purple-50'} flex items-center justify-center`}>
+                  <span className="material-icons text-primary-500 text-xs">check</span>
+                </div>
+                <span className={`text-sm ${textSecondaryClass}`}>{item}</span>
+              </div>
+            ))}
+          </div>
+          <div className="mt-8 flex items-center text-primary-500 font-semibold group-hover:gap-3 gap-2 transition-all">
+            <span>Generate Report</span>
+            <span className="material-icons">arrow_forward</span>
+          </div>
+        </Link>
+
+        {/* Tax Summary Report */}
+        <Link
+          href="/reports/tax-summary"
+          className={`${surfaceClass} border rounded-xl p-8 hover:border-primary-500 transition-all duration-200 group`}
+        >
+          <div className="flex items-start justify-between mb-6">
+            <div className={`w-16 h-16 rounded-xl ${isDarkMode ? 'bg-error-500/10' : 'bg-red-50'} flex items-center justify-center group-hover:scale-110 transition-transform`}>
+              <span className="text-4xl">📋</span>
+            </div>
+            <div className={`${isDarkMode ? 'bg-error-500/10 text-error-500' : 'bg-red-100 text-red-700'} text-xs font-bold px-3 py-1 rounded-full uppercase`}>
+              Tax Compliance
+            </div>
+          </div>
+          <h2 className={`text-2xl font-bold ${textPrimaryClass} mb-3`}>Tax Summary Report</h2>
+          <p className={`${textSecondaryClass} mb-6 leading-relaxed`}>
+            Comprehensive overview of your tax obligations including VAT, WHT, and CIT. Ready for
+            FIRS and LIRS submission.
+          </p>
+          <div className="space-y-3">
+            {['VAT calculations', 'Withholding tax summary', 'CIT estimates', 'Filing deadlines'].map((item, idx) => (
+              <div key={idx} className="flex items-center gap-3">
+                <div className={`w-5 h-5 rounded-full ${isDarkMode ? 'bg-error-500/10' : 'bg-red-50'} flex items-center justify-center`}>
+                  <span className="material-icons text-error-500 text-xs">check</span>
+                </div>
+                <span className={`text-sm ${textSecondaryClass}`}>{item}</span>
+              </div>
+            ))}
+          </div>
+          <div className="mt-8 flex items-center text-primary-500 font-semibold group-hover:gap-3 gap-2 transition-all">
+            <span>Generate Report</span>
+            <span className="material-icons">arrow_forward</span>
           </div>
         </Link>
       </div>
 
-      {/* Info Box */}
-      <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-blue-900 mb-3">
-          💡 About Financial Statements
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-800">
-          <div>
-            <h4 className="font-semibold mb-2">Profit & Loss Statement</h4>
-            <p>
-              Also known as Income Statement, shows your business performance over a period (month,
-              quarter, year). Required for tax filing under the Nigeria Tax Act 2025.
-            </p>
-          </div>
-          <div>
-            <h4 className="font-semibold mb-2">Balance Sheet</h4>
-            <p>
-              Shows your financial position at a specific point in time. Essential for loan
-              applications, investor presentations, and understanding your business's net worth.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="mt-8 flex gap-4">
-        <Link
-          href="/transactions"
-          className="text-green-600 hover:text-green-700 font-medium"
-        >
-          ← View Transactions
-        </Link>
-        <Link
-          href="/categories"
-          className="text-green-600 hover:text-green-700 font-medium"
-        >
-          Manage Categories →
-        </Link>
-      </div>
+      {/* Theme Toggle Button (Floating) */}
+      <button
+        onClick={() => setIsDarkMode(!isDarkMode)}
+        className={`fixed bottom-8 right-8 w-14 h-14 rounded-full ${surfaceClass} border shadow-xl flex items-center justify-center hover:scale-110 transition-transform z-50`}
+        title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+      >
+        <span className="material-icons text-primary-500">
+          {isDarkMode ? 'light_mode' : 'dark_mode'}
+        </span>
+      </button>
     </div>
   );
 }
