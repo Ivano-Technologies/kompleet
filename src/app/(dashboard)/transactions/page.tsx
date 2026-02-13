@@ -161,20 +161,20 @@ export default function TransactionsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-dark-background">
+    <div className="min-h-screen bg-light-background dark:bg-dark-background">
       {/* Header */}
-      <div className="bg-dark-background border-b border-dark-border px-8 py-6">
+      <div className="bg-light-background dark:bg-dark-background border-b border-light-border dark:border-dark-border px-8 py-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
-            <h1 className="text-3xl font-bold text-dark-text-primary">Transactions</h1>
-            <span className="text-sm font-semibold text-dark-text-tertiary bg-dark-surface px-3 py-1 rounded-full border border-dark-border">
+            <h1 className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary">Transactions</h1>
+            <span className="text-sm font-semibold text-light-text-tertiary dark:text-dark-text-tertiary bg-light-surface dark:bg-dark-surface px-3 py-1 rounded-full border border-light-border dark:border-dark-border">
               {pagination.total.toLocaleString()} TOTAL
             </span>
           </div>
           <div className="flex items-center gap-3">
           <Link
             href="/transactions/review"
-            className="bg-dark-surface border border-dark-border rounded-lg px-4 py-3 text-dark-text-secondary hover:text-dark-text-primary hover:border-primary-500 transition-all font-medium"
+            className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-lg px-4 py-3 text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary hover:border-primary-500 transition-all font-medium"
           >
             Review Uncategorized
           </Link>
@@ -182,21 +182,21 @@ export default function TransactionsPage() {
             <button
               onClick={() => document.getElementById('export-menu')?.classList.toggle('hidden')}
               disabled={exporting}
-              className="bg-dark-surface border border-dark-border rounded-lg px-4 py-3 text-dark-text-secondary hover:text-dark-text-primary hover:border-primary-500 transition-all font-medium disabled:opacity-50 flex items-center gap-2"
+              className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-lg px-4 py-3 text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary hover:border-primary-500 transition-all font-medium disabled:opacity-50 flex items-center gap-2"
             >
               <span className="material-icons text-sm">file_download</span>
               {exporting ? 'Exporting...' : 'Export'}
             </button>
-            <div id="export-menu" className="hidden absolute right-0 mt-2 w-48 bg-dark-surface rounded-lg border border-dark-border shadow-xl z-10">
+            <div id="export-menu" className="hidden absolute right-0 mt-2 w-48 bg-light-surface dark:bg-dark-surface rounded-lg border border-light-border dark:border-dark-border shadow-xl z-10">
               <button
                 onClick={() => { handleExport('csv'); document.getElementById('export-menu')?.classList.add('hidden'); }}
-                className="block w-full text-left px-4 py-2 hover:bg-dark-surface-hover rounded-t-lg text-dark-text-primary"
+                className="block w-full text-left px-4 py-2 hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover rounded-t-lg text-light-text-primary dark:text-dark-text-primary"
               >
                 Export as CSV
               </button>
               <button
                 onClick={() => { handleExport('json'); document.getElementById('export-menu')?.classList.add('hidden'); }}
-                className="block w-full text-left px-4 py-2 hover:bg-dark-surface-hover rounded-b-lg text-dark-text-primary"
+                className="block w-full text-left px-4 py-2 hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover rounded-b-lg text-light-text-primary dark:text-dark-text-primary"
               >
                 Export as JSON
               </button>
@@ -212,19 +212,19 @@ export default function TransactionsPage() {
         {/* Search and Filters */}
         <div className="flex items-center gap-4">
           <div className="flex-1 relative">
-            <span className="material-icons absolute left-4 top-1/2 -translate-y-1/2 text-dark-text-tertiary">search</span>
+            <span className="material-icons absolute left-4 top-1/2 -translate-y-1/2 text-light-text-tertiary dark:text-dark-text-tertiary">search</span>
             <input
               type="text"
               placeholder="Search transactions, vendors, amounts..."
               value={filters.search}
               onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-              className="w-full bg-dark-surface border border-dark-border rounded-lg pl-12 pr-4 py-3 text-dark-text-primary placeholder-dark-text-tertiary focus:outline-none focus:border-primary-500 transition-colors"
+              className="w-full bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-lg pl-12 pr-4 py-3 text-light-text-primary dark:text-dark-text-primary placeholder-light-text-tertiary dark:placeholder-dark-text-tertiary focus:outline-none focus:border-primary-500 transition-colors"
             />
           </div>
           <select
             value={filters.type}
             onChange={(e) => setFilters({ ...filters, type: e.target.value })}
-            className="bg-dark-surface border border-dark-border rounded-lg px-4 py-3 text-dark-text-secondary hover:text-dark-text-primary hover:border-primary-500 transition-all focus:outline-none focus:border-primary-500"
+            className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-lg px-4 py-3 text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary hover:border-primary-500 transition-all focus:outline-none focus:border-primary-500"
           >
             <option value="">All Status</option>
             <option value="credit">Credit</option>
@@ -234,7 +234,7 @@ export default function TransactionsPage() {
             type="date"
             value={filters.startDate}
             onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
-            className="bg-dark-surface border border-dark-border rounded-lg px-4 py-3 text-dark-text-secondary hover:text-dark-text-primary hover:border-primary-500 transition-all focus:outline-none focus:border-primary-500"
+            className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-lg px-4 py-3 text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary hover:border-primary-500 transition-all focus:outline-none focus:border-primary-500"
           />
           <input
             type="date"
@@ -244,7 +244,7 @@ export default function TransactionsPage() {
           />
           <Link
             href="/transactions/upload"
-            className="bg-dark-surface border border-dark-border rounded-lg px-4 py-3 text-dark-text-secondary hover:text-dark-text-primary hover:border-primary-500 transition-all font-medium whitespace-nowrap"
+            className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-lg px-4 py-3 text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary hover:border-primary-500 transition-all font-medium whitespace-nowrap"
           >
             Upload
           </Link>
@@ -269,12 +269,12 @@ export default function TransactionsPage() {
         )}
 
         {/* Transactions Table */}
-        <div className="bg-dark-surface border border-dark-border rounded-xl overflow-hidden">
+        <div className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl overflow-hidden">
           {loading ? (
-            <div className="p-12 text-center text-dark-text-tertiary">Loading transactions...</div>
+            <div className="p-12 text-center text-light-text-tertiary dark:text-dark-text-tertiary">Loading transactions...</div>
           ) : transactions.length === 0 ? (
             <div className="p-12 text-center">
-              <p className="text-dark-text-secondary mb-4">No transactions found</p>
+              <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">No transactions found</p>
               <Link
                 href="/transactions/upload"
                 className="text-primary-500 hover:text-primary-400 font-medium"
@@ -286,41 +286,41 @@ export default function TransactionsPage() {
             <>
               <div className="overflow-x-auto p-6">
                 <table className="w-full">
-                  <thead className="border-b border-dark-border">
+                  <thead className="border-b border-light-border dark:border-dark-border">
                     <tr>
                       <th className="px-4 py-4 text-left">
                         <input
                           type="checkbox"
                           checked={selectedIds.size === transactions.length}
                           onChange={handleSelectAll}
-                          className="rounded border-dark-border bg-dark-background text-primary-500 focus:ring-primary-500"
+                          className="rounded border-light-border dark:border-dark-border bg-light-background dark:bg-dark-background text-primary-500 focus:ring-primary-500"
                         />
                       </th>
-                      <th className="px-4 py-4 text-left text-xs font-semibold text-dark-text-tertiary uppercase tracking-wide">
+                      <th className="px-4 py-4 text-left text-xs font-semibold text-light-text-tertiary dark:text-dark-text-tertiary uppercase tracking-wide">
                         Date
                       </th>
-                      <th className="px-4 py-4 text-left text-xs font-semibold text-dark-text-tertiary uppercase tracking-wide">
+                      <th className="px-4 py-4 text-left text-xs font-semibold text-light-text-tertiary dark:text-dark-text-tertiary uppercase tracking-wide">
                         Description
                       </th>
-                      <th className="px-4 py-4 text-left text-xs font-semibold text-dark-text-tertiary uppercase tracking-wide">
+                      <th className="px-4 py-4 text-left text-xs font-semibold text-light-text-tertiary dark:text-dark-text-tertiary uppercase tracking-wide">
                         Category
                       </th>
-                      <th className="px-4 py-4 text-right text-xs font-semibold text-dark-text-tertiary uppercase tracking-wide">
+                      <th className="px-4 py-4 text-right text-xs font-semibold text-light-text-tertiary dark:text-dark-text-tertiary uppercase tracking-wide">
                         Amount
                       </th>
-                      <th className="px-4 py-4 text-center text-xs font-semibold text-dark-text-tertiary uppercase tracking-wide">
+                      <th className="px-4 py-4 text-center text-xs font-semibold text-light-text-tertiary dark:text-dark-text-tertiary uppercase tracking-wide">
                         Status
                       </th>
-                      <th className="px-4 py-4 text-center text-xs font-semibold text-dark-text-tertiary uppercase tracking-wide">
+                      <th className="px-4 py-4 text-center text-xs font-semibold text-light-text-tertiary dark:text-dark-text-tertiary uppercase tracking-wide">
                         Actions
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-dark-border/50">
+                  <tbody className="divide-y divide-light-border/50 dark:divide-dark-border/50">
                     {transactions.map((transaction) => (
                       <tr
                         key={transaction.id}
-                        className="hover:bg-dark-surface-hover cursor-pointer transition-colors"
+                        className="hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover cursor-pointer transition-colors"
                         onClick={() => router.push(`/transactions/${transaction.id}`)}
                       >
                         <td className="px-4 py-4" onClick={(e) => e.stopPropagation()}>
@@ -328,22 +328,22 @@ export default function TransactionsPage() {
                             type="checkbox"
                             checked={selectedIds.has(transaction.id)}
                             onChange={() => handleSelectOne(transaction.id)}
-                            className="rounded border-dark-border bg-dark-background text-primary-500 focus:ring-primary-500"
+                            className="rounded border-light-border dark:border-dark-border bg-light-background dark:bg-dark-background text-primary-500 focus:ring-primary-500"
                           />
                         </td>
                         <td className="px-4 py-4">
-                          <div className="text-dark-text-primary font-medium">
+                          <div className="text-light-text-primary dark:text-dark-text-primary font-medium">
                             {formatDate(transaction.transaction_date)}
                           </div>
                         </td>
                         <td className="px-4 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg bg-dark-background flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-lg bg-light-background dark:bg-dark-background flex items-center justify-center">
                               <span className="material-icons text-primary-500 text-sm">
                                 {transaction.transaction_type === 'credit' ? 'arrow_downward' : 'arrow_upward'}
                               </span>
                             </div>
-                            <span className="font-medium text-dark-text-primary">
+                            <span className="font-medium text-light-text-primary dark:text-dark-text-primary">
                               {transaction.description}
                             </span>
                           </div>
@@ -359,12 +359,12 @@ export default function TransactionsPage() {
                               )}
                             </span>
                           ) : (
-                            <span className="text-dark-text-tertiary text-xs">Uncategorized</span>
+                            <span className="text-light-text-tertiary dark:text-dark-text-tertiary text-xs">Uncategorized</span>
                           )}
                         </td>
                         <td className="px-4 py-4 text-right">
                           <span className={`font-semibold ${
-                            transaction.transaction_type === 'credit' ? 'text-success-500' : 'text-dark-text-primary'
+                            transaction.transaction_type === 'credit' ? 'text-success-500' : 'text-light-text-primary dark:text-dark-text-primary'
                           }`}>
                             {transaction.transaction_type === 'credit' ? '+' : ''}{formatCurrency(transaction.amount)}
                           </span>
@@ -375,8 +375,8 @@ export default function TransactionsPage() {
                           </span>
                         </td>
                         <td className="px-4 py-4 text-center">
-                          <button className="p-2 hover:bg-dark-background rounded-lg transition-colors">
-                            <span className="material-icons text-dark-text-tertiary">more_vert</span>
+                          <button className="p-2 hover:bg-light-background dark:hover:bg-dark-background rounded-lg transition-colors">
+                            <span className="material-icons text-light-text-tertiary dark:text-dark-text-tertiary">more_vert</span>
                           </button>
                         </td>
                       </tr>
@@ -386,8 +386,8 @@ export default function TransactionsPage() {
             </div>
 
               {/* Pagination */}
-              <div className="flex items-center justify-between mt-6 pt-6 border-t border-dark-border px-4">
-                <div className="text-sm text-dark-text-secondary">
+              <div className="flex items-center justify-between mt-6 pt-6 border-t border-light-border dark:border-dark-border px-4">
+                <div className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
                   Showing {(pagination.page - 1) * pagination.limit + 1} to{' '}
                   {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
                   {pagination.total.toLocaleString()} entries
@@ -396,7 +396,7 @@ export default function TransactionsPage() {
                   <button
                     onClick={() => setPagination({ ...pagination, page: pagination.page - 1 })}
                     disabled={pagination.page === 1}
-                    className="w-10 h-10 rounded-lg bg-dark-background text-dark-text-secondary hover:bg-dark-surface-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-10 h-10 rounded-lg bg-light-background dark:bg-dark-background text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <span className="material-icons">arrow_back</span>
                   </button>
@@ -404,17 +404,17 @@ export default function TransactionsPage() {
                     {pagination.page}
                   </button>
                   {pagination.page < pagination.totalPages - 1 && (
-                    <span className="text-dark-text-tertiary px-2">...</span>
+                    <span className="text-light-text-tertiary dark:text-dark-text-tertiary px-2">...</span>
                   )}
                   {pagination.page < pagination.totalPages && (
-                    <button className="w-10 h-10 rounded-lg bg-dark-background text-dark-text-secondary hover:bg-dark-surface-hover transition-colors">
+                    <button className="w-10 h-10 rounded-lg bg-light-background dark:bg-dark-background text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover transition-colors">
                       {pagination.totalPages}
                     </button>
                   )}
                   <button
                     onClick={() => setPagination({ ...pagination, page: pagination.page + 1 })}
                     disabled={pagination.page >= pagination.totalPages}
-                    className="w-10 h-10 rounded-lg bg-dark-background text-dark-text-secondary hover:bg-dark-surface-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-10 h-10 rounded-lg bg-light-background dark:bg-dark-background text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <span className="material-icons">arrow_forward</span>
                   </button>
