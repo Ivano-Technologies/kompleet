@@ -50,7 +50,7 @@ export default function TaxCenterPage() {
       <Link href={calc.href} className="group block">
         <div className={`h-full p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface hover:border-primary-500 transition-all ${muted ? 'opacity-80 hover:opacity-100' : ''}`}>
           <div className="flex items-start gap-3 mb-3">
-            <div className={`p-2 rounded-lg ${muted ? 'bg-gray-100 dark:bg-gray-800' : 'bg-primary-50 dark:bg-primary-900/20'}`}>
+            <div className={`p-2 rounded-lg ${muted ? 'bg-light-background dark:bg-dark-background dark:bg-dark-surface' : 'bg-primary-50 dark:bg-primary-900/20'}`}>
               <Icon className={`w-5 h-5 ${muted ? 'text-light-text-tertiary dark:text-dark-text-tertiary' : 'text-primary-500'}`} />
             </div>
             <div className="flex-1 min-w-0">

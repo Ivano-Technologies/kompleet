@@ -72,7 +72,7 @@ export default function CategoriesPage() {
     deductible: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
     non_deductible: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
     capital_allowance: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-    exempt: 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300',
+    exempt: 'bg-light-background dark:bg-dark-background text-light-text-secondary dark:text-dark-text-secondary dark:bg-dark-surface dark:text-light-text-tertiary dark:text-dark-text-tertiary',
   };
 
   const inputCls = 'w-full px-3 py-2 text-sm rounded-lg border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface text-light-text-primary dark:text-dark-text-primary focus:outline-none focus:border-primary-500';
@@ -176,10 +176,10 @@ export default function CategoriesPage() {
                   </button>
                 </div>
                 <div className="flex flex-wrap gap-1.5 mb-2">
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${typeColor[category.category_type] || 'bg-gray-100 text-gray-700'}`}>
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${typeColor[category.category_type] || 'bg-light-background dark:bg-dark-background text-light-text-secondary dark:text-dark-text-secondary'}`}>
                     {category.category_type}
                   </span>
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${taxColor[category.tax_treatment] || 'bg-gray-100 text-gray-700'}`}>
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${taxColor[category.tax_treatment] || 'bg-light-background dark:bg-dark-background text-light-text-secondary dark:text-dark-text-secondary'}`}>
                     {category.tax_treatment.replace('_', ' ')}
                   </span>
                 </div>

@@ -60,7 +60,7 @@ export default function SettingsPage() {
 
   const Toggle = ({ on, onToggle }: { on: boolean; onToggle: () => void }) => (
     <button onClick={onToggle}
-      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${on ? 'bg-primary-500' : 'bg-gray-300 dark:bg-gray-600'}`}>
+      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${on ? 'bg-primary-500' : 'bg-light-border dark:bg-dark-border dark:bg-light-text-tertiary dark:bg-dark-text-tertiary'}`}>
       <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${on ? 'translate-x-[18px]' : 'translate-x-[3px]'}`} />
     </button>
   );

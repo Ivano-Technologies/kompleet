@@ -192,7 +192,7 @@ export default function MLGovernanceDashboard() {
                           <h3 className="font-semibold text-light-text-primary dark:text-dark-text-primary">{model.modelName}</h3>
                           <Badge variant="outline">{model.version}</Badge>
                           <Badge
-                            className={model.status === 'deployed' ? 'bg-primary-500' : 'bg-gray-400'}
+                            className={model.status === 'deployed' ? 'bg-primary-500' : 'bg-light-text-tertiary'}
                           >
                             {model.status}
                           </Badge>

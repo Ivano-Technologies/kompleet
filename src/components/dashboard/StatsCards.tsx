@@ -18,7 +18,7 @@ export function StatsCards({ stats }: StatsCardsProps) {
       {stats.map((stat, index) => (
         <div
           key={index}
-          className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow"
+          className="bg-light-surface dark:bg-dark-surface rounded-lg border border-light-border dark:border-dark-border p-6 hover:shadow-md transition-shadow"
         >
           <div className="flex items-center justify-between mb-4">
             <span className="text-3xl">{stat.icon}</span>
@@ -29,15 +29,15 @@ export function StatsCards({ stats }: StatsCardsProps) {
                     ? 'text-green-600'
                     : stat.changeType === 'negative'
                     ? 'text-red-600'
-                    : 'text-gray-600'
+                    : 'text-light-text-secondary dark:text-dark-text-secondary'
                 }`}
               >
                 {stat.change}
               </span>
             )}
           </div>
-          <p className="text-sm text-gray-600 mb-1">{stat.label}</p>
-          <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
+          <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-1">{stat.label}</p>
+          <p className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">{stat.value}</p>
         </div>
       ))}
     </div>

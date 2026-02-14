@@ -112,7 +112,7 @@ export default function InvoiceDetailPage() {
 
   const getStatusBadge = (status: string) => {
     const styles: { [key: string]: string } = {
-      draft: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
+      draft: 'bg-light-background dark:bg-dark-background text-light-text-secondary dark:text-dark-text-secondary dark:bg-dark-surface dark:text-light-text-tertiary dark:text-dark-text-tertiary',
       issued: 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300',
       paid: 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-300',
       cancelled: 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-300',

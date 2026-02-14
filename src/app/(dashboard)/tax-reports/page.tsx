@@ -59,10 +59,10 @@ export default function TaxReportsPage() {
     });
 
   const statusStyles: Record<string, string> = {
-    draft: 'bg-gray-100 text-gray-600 dark:bg-gray-800/40 dark:text-gray-400',
+    draft: 'bg-light-background dark:bg-dark-background text-light-text-secondary dark:text-dark-text-secondary dark:bg-dark-surface/40 dark:text-light-text-tertiary dark:text-dark-text-tertiary',
     filed: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
     paid: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-    archived: 'bg-gray-100 text-gray-500 dark:bg-gray-800/40 dark:text-gray-500',
+    archived: 'bg-light-background dark:bg-dark-background text-light-text-tertiary dark:text-dark-text-tertiary dark:bg-dark-surface/40 dark:text-light-text-tertiary dark:text-dark-text-tertiary',
   };
 
   const reportTypeLabels: Record<string, string> = {

@@ -52,10 +52,10 @@ export default function FilingCenterPage() {
   };
 
   const statusStyles: Record<string, { cls: string; Icon: typeof Clock }> = {
-    draft: { cls: 'bg-gray-100 text-gray-600 dark:bg-gray-800/40 dark:text-gray-400', Icon: Clock },
+    draft: { cls: 'bg-light-background dark:bg-dark-background text-light-text-secondary dark:text-dark-text-secondary dark:bg-dark-surface/40 dark:text-light-text-tertiary dark:text-dark-text-tertiary', Icon: Clock },
     generated: { cls: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400', Icon: FileText },
     filed: { cls: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400', Icon: CheckCircle },
-    archived: { cls: 'bg-gray-100 text-gray-500 dark:bg-gray-800/40 dark:text-gray-500', Icon: FileText },
+    archived: { cls: 'bg-light-background dark:bg-dark-background text-light-text-tertiary dark:text-dark-text-tertiary dark:bg-dark-surface/40 dark:text-light-text-tertiary dark:text-dark-text-tertiary', Icon: FileText },
   };
 
   const formTypeStyles: Record<string, string> = {

@@ -152,8 +152,8 @@ export default function TaxReportDetailPage() {
       {/* Print Header */}
       <div className="hidden print:block mb-8 text-center">
         <h1 className="text-2xl font-bold">TAX COMPUTATION REPORT</h1>
-        <p className="text-gray-600">Nigeria Tax Act 2025</p>
-        <p className="text-gray-600">Tax Year {report.tax_year} | {formatDate(report.period_start)} – {formatDate(report.period_end)}</p>
+        <p className="text-light-text-secondary dark:text-dark-text-secondary">Nigeria Tax Act 2025</p>
+        <p className="text-light-text-secondary dark:text-dark-text-secondary">Tax Year {report.tax_year} | {formatDate(report.period_start)} – {formatDate(report.period_end)}</p>
       </div>
 
       {/* Business Classification */}
