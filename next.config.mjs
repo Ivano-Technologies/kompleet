@@ -30,6 +30,21 @@ const nextConfig = {
         hostname: "lh3.googleusercontent.com",
         pathname: "/aida-public/**",
       },
+      {
+        protocol: "https",
+        hostname: "files.manuscdn.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "private-us-east-1.manuscdn.com",
+        pathname: "/**",
+      },
     ],
     formats: ["image/avif", "image/webp"],
   },

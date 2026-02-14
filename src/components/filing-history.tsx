@@ -65,9 +65,9 @@ export default function FilingHistory() {
 
   const getStatusBadge = (status: string) => {
     const badges: Record<string, { color: string; label: string }> = {
-      draft: { color: 'bg-gray-100 text-gray-800', label: 'Draft' },
+      draft: { color: 'bg-light-background dark:bg-dark-background text-light-text-primary dark:text-dark-text-primary', label: 'Draft' },
       generated: { color: 'bg-blue-100 text-blue-800', label: 'Generated' },
-      filed: { color: 'bg-emerald-100 text-emerald-800', label: 'Filed' },
+      filed: { color: 'bg-primary-100 dark:bg-primary-900/20 text-primary-700', label: 'Filed' },
       archived: { color: 'bg-purple-100 text-purple-800', label: 'Archived' }
     };
     
@@ -105,20 +105,20 @@ export default function FilingHistory() {
   };
 
   return (
-    <div className="bg-white rounded-lg">
+    <div className="bg-light-surface dark:bg-dark-surface rounded-lg">
       {/* Header */}
-      <div className="p-6 border-b border-gray-200">
+      <div className="p-6 border-b border-light-border dark:border-dark-border">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">Filing History</h2>
-            <p className="text-sm text-gray-600 mt-1">
+            <h2 className="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary">Filing History</h2>
+            <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mt-1">
               {filings.length} {filings.length === 1 ? 'filing' : 'filings'} found
             </p>
           </div>
           <button
             onClick={exportHistory}
             disabled={filings.length === 0}
-            className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             <Download className="w-4 h-4" />
             Export CSV
@@ -128,11 +128,11 @@ export default function FilingHistory() {
         {/* Filters */}
         <div className="flex gap-4">
           <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-gray-600" />
+            <Filter className="w-4 h-4 text-light-text-secondary dark:text-dark-text-secondary" />
             <select
               value={filterYear}
               onChange={(e) => setFilterYear(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm"
+              className="px-3 py-2 border border-light-border dark:border-dark-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
             >
               <option value="all">All Years</option>
               <option value={2026}>2026</option>
@@ -145,7 +145,7 @@ export default function FilingHistory() {
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm"
+            className="px-3 py-2 border border-light-border dark:border-dark-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm"
           >
             <option value="all">All Form Types</option>
             <option value="PIT">Personal Income Tax (PIT)</option>
@@ -158,14 +158,14 @@ export default function FilingHistory() {
       {/* Filing List */}
       {loading ? (
         <div className="p-12 text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
-          <p className="mt-4 text-gray-600">Loading filing history...</p>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+          <p className="mt-4 text-light-text-secondary dark:text-dark-text-secondary">Loading filing history...</p>
         </div>
       ) : filings.length === 0 ? (
         <div className="p-12 text-center">
-          <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No filings found</h3>
-          <p className="text-gray-600">
+          <FileText className="w-16 h-16 text-light-text-tertiary dark:text-dark-text-tertiary mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-light-text-primary dark:text-dark-text-primary mb-2">No filings found</h3>
+          <p className="text-light-text-secondary dark:text-dark-text-secondary">
             {filterYear !== 'all' || filterType !== 'all'
               ? 'Try adjusting your filters'
               : 'Generate your first tax form to see it here'
@@ -173,24 +173,24 @@ export default function FilingHistory() {
           </p>
         </div>
       ) : (
-        <div className="divide-y divide-gray-200">
+        <div className="divide-y divide-light-border dark:divide-dark-border">
           {filings.map((filing) => (
-            <div key={filing.id} className="p-6 hover:bg-gray-50 transition-colors">
+            <div key={filing.id} className="p-6 hover:bg-light-background dark:bg-dark-background transition-colors">
               <div className="flex items-center justify-between">
                 <div className="flex items-start gap-4 flex-1">
-                  <div className="p-3 bg-emerald-100 rounded-lg border-2 border-emerald-200">
-                    <FileText className="w-6 h-6 text-emerald-600" />
+                  <div className="p-3 bg-primary-100 dark:bg-primary-900/20 rounded-lg border-2 border-primary-200">
+                    <FileText className="w-6 h-6 text-primary-500" />
                   </div>
                   
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-lg font-semibold text-gray-900">
+                      <h3 className="text-lg font-semibold text-light-text-primary dark:text-dark-text-primary">
                         {getFormTypeName(filing.form_type)} - {filing.tax_year}
                       </h3>
                       {getStatusBadge(filing.status)}
                     </div>
                     
-                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                    <div className="flex items-center gap-4 text-sm text-light-text-secondary dark:text-dark-text-secondary">
                       <span className="flex items-center gap-1">
                         <Calendar className="w-4 h-4" />
                         Generated: {new Date(filing.created_at).toLocaleDateString('en-NG')}
@@ -198,11 +198,11 @@ export default function FilingHistory() {
                       {filing.filing_status && filing.filing_status.length > 0 && (
                         <>
                           <span className="flex items-center gap-1">
-                            <CheckCircle className="w-4 h-4 text-emerald-600" />
+                            <CheckCircle className="w-4 h-4 text-primary-500" />
                             Filed: {new Date(filing.filing_status[0].filed_date).toLocaleDateString('en-NG')}
                           </span>
                           {filing.filing_status[0].confirmation_number && (
-                            <span className="text-emerald-600 font-medium">
+                            <span className="text-primary-500 font-medium">
                               Confirmation: {filing.filing_status[0].confirmation_number}
                             </span>
                           )}
@@ -214,7 +214,7 @@ export default function FilingHistory() {
 
                 <button
                   onClick={() => handleDownload(filing)}
-                  className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center gap-2"
+                  className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors flex items-center gap-2"
                 >
                   <Download className="w-4 h-4" />
                   Download

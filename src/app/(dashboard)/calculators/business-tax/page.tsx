@@ -1,7 +1,7 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -165,15 +165,18 @@ export default function BusinessTaxCalculatorPage() {
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="max-w-4xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Business Tax Calculator</h1>
-          <p className="text-muted-foreground">
-            Calculate corporate income tax and development levy under Nigeria Tax Act 2025
-          </p>
+        <div className="mb-8 flex items-center space-x-4">
+          <Calculator className="h-8 w-8 text-light-text-secondary dark:text-dark-text-secondary" />
+          <div>
+            <h1 className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">Business Tax Calculator</h1>
+            <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
+              Calculate corporate income tax and development levy under Nigeria Tax Act 2025
+            </p>
+          </div>
         </div>
 
         {rulesError && (
-          <Alert variant="destructive" className="mb-6">
+          <Alert variant="destructive" className="mb-6 bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-900/30 text-red-800 dark:text-red-200">
             <InfoIcon className="h-4 w-4" />
             <AlertDescription>
               Failed to load tax rules: {rulesError}. Using fallback rates.
@@ -182,14 +185,12 @@ export default function BusinessTaxCalculatorPage() {
         )}
 
         <div className="grid gap-6 md:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Company Information</CardTitle>
-              <CardDescription>Enter your company's financial details</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <div className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
+            <h2 className="text-lg font-semibold text-light-text-primary dark:text-dark-text-primary mb-1">Company Information</h2>
+            <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-4">Enter your company's financial details</p>
+            <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="turnover">Annual Turnover (₦)</Label>
+                <Label htmlFor="turnover" className="text-light-text-secondary dark:text-dark-text-secondary">Annual Turnover (₦)</Label>
                 <Input
                   id="turnover"
                   type="number"
@@ -197,11 +198,12 @@ export default function BusinessTaxCalculatorPage() {
                   value={turnover}
                   onChange={(e) => setTurnover(e.target.value)}
                   disabled={rulesLoading}
+                  className="rounded-lg bg-light-background dark:bg-dark-background border-light-border dark:border-dark-border"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="assets">Total Assets (₦)</Label>
+                <Label htmlFor="assets" className="text-light-text-secondary dark:text-dark-text-secondary">Total Assets (₦)</Label>
                 <Input
                   id="assets"
                   type="number"
@@ -209,11 +211,12 @@ export default function BusinessTaxCalculatorPage() {
                   value={totalAssets}
                   onChange={(e) => setTotalAssets(e.target.value)}
                   disabled={rulesLoading}
+                  className="rounded-lg bg-light-background dark:bg-dark-background border-light-border dark:border-dark-border"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="profit">Assessable Profit (₦)</Label>
+                <Label htmlFor="profit" className="text-light-text-secondary dark:text-dark-text-secondary">Assessable Profit (₦)</Label>
                 <Input
                   id="profit"
                   type="number"
@@ -221,6 +224,7 @@ export default function BusinessTaxCalculatorPage() {
                   value={assessableProfit}
                   onChange={(e) => setAssessableProfit(e.target.value)}
                   disabled={rulesLoading}
+                  className="rounded-lg bg-light-background dark:bg-dark-background border-light-border dark:border-dark-border"
                 />
               </div>
 
@@ -230,17 +234,17 @@ export default function BusinessTaxCalculatorPage() {
                   id="professional"
                   checked={isProfessionalService}
                   onChange={(e) => setIsProfessionalService(e.target.checked)}
-                  className="h-4 w-4"
+                  className="h-4 w-4 rounded border-light-border dark:border-dark-border"
                   disabled={rulesLoading}
                 />
-                <Label htmlFor="professional" className="font-normal">
+                <Label htmlFor="professional" className="font-normal text-light-text-secondary dark:text-dark-text-secondary">
                   Professional service provider (lawyers, accountants, etc.)
                 </Label>
               </div>
 
               <Button 
                 onClick={calculateBusinessTax} 
-                className="w-full"
+                className="w-full btn-primary rounded-lg"
                 disabled={rulesLoading}
               >
                 {rulesLoading ? (
@@ -257,83 +261,77 @@ export default function BusinessTaxCalculatorPage() {
               </Button>
 
               {error && (
-                <Alert variant="destructive">
+                <Alert variant="destructive" className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-900/30 text-red-800 dark:text-red-200">
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Small Company Criteria</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2 text-sm">
-                  <p className="flex items-start">
-                    <InfoIcon className="h-4 w-4 mr-2 mt-0.5 text-blue-500" />
-                    <span>
-                      Turnover ≤ {formatCurrency(rules?.small_company_turnover_threshold?.value?.value || 50_000_000)}
-                    </span>
-                  </p>
-                  <p className="flex items-start">
-                    <InfoIcon className="h-4 w-4 mr-2 mt-0.5 text-blue-500" />
-                    <span>
-                      Total Assets ≤ {formatCurrency(rules?.small_company_assets_threshold?.value?.value || 250_000_000)}
-                    </span>
-                  </p>
-                  <p className="flex items-start">
-                    <InfoIcon className="h-4 w-4 mr-2 mt-0.5 text-blue-500" />
-                    <span>NOT a professional service provider</span>
-                  </p>
-                  <p className="mt-4 text-muted-foreground">
-                    Small companies enjoy 0% income tax and are exempt from development levy.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
+              <h2 className="text-lg font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">Small Company Criteria</h2>
+              <div className="space-y-2 text-sm text-light-text-secondary dark:text-dark-text-secondary">
+                <p className="flex items-start">
+                  <InfoIcon className="h-4 w-4 mr-2 mt-0.5 text-blue-500 dark:text-blue-400" />
+                  <span>
+                    Turnover ≤ {formatCurrency(rules?.small_company_turnover_threshold?.value?.value || 50_000_000)}
+                  </span>
+                </p>
+                <p className="flex items-start">
+                  <InfoIcon className="h-4 w-4 mr-2 mt-0.5 text-blue-500 dark:text-blue-400" />
+                  <span>
+                    Total Assets ≤ {formatCurrency(rules?.small_company_assets_threshold?.value?.value || 250_000_000)}
+                  </span>
+                </p>
+                <p className="flex items-start">
+                  <InfoIcon className="h-4 w-4 mr-2 mt-0.5 text-blue-500 dark:text-blue-400" />
+                  <span>NOT a professional service provider</span>
+                </p>
+                <p className="mt-4 text-light-text-tertiary dark:text-dark-text-tertiary">
+                  Small companies enjoy 0% income tax and are exempt from development levy.
+                </p>
+              </div>
+            </div>
 
             {result && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Tax Calculation Result</CardTitle>
-                  <CardDescription>
-                    {result.isSmallCompany ? 'Small Company' : 'Other Company'}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
+              <div className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
+                <h2 className="text-lg font-semibold text-light-text-primary dark:text-dark-text-primary mb-1">Tax Calculation Result</h2>
+                <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-4">
+                  {result.isSmallCompany ? 'Small Company' : 'Other Company'}
+                </p>
+                <div className="space-y-4">
+                  <div className="space-y-2 p-4 rounded-lg bg-light-background dark:bg-dark-background">
+                    <div className="flex justify-between text-sm text-light-text-secondary dark:text-dark-text-secondary">
                       <span>Assessable Profit:</span>
-                      <span className="font-medium">
+                      <span className="font-medium text-light-text-primary dark:text-dark-text-primary">
                         {formatCurrency(result.breakdown.assessableProfit)}
                       </span>
                     </div>
 
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between text-sm text-light-text-secondary dark:text-dark-text-secondary">
                       <span>Corporate Tax ({result.breakdown.corporateTaxRate}%):</span>
-                      <span className="font-medium">{formatCurrency(result.corporateTax)}</span>
+                      <span className="font-medium text-light-text-primary dark:text-dark-text-primary">{formatCurrency(result.corporateTax)}</span>
                     </div>
 
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between text-sm text-light-text-secondary dark:text-dark-text-secondary">
                       <span>Development Levy ({result.breakdown.developmentLevyRate}%):</span>
-                      <span className="font-medium">{formatCurrency(result.developmentLevy)}</span>
+                      <span className="font-medium text-light-text-primary dark:text-dark-text-primary">{formatCurrency(result.developmentLevy)}</span>
                     </div>
 
-                    <div className="border-t pt-2 flex justify-between font-bold">
+                    <div className="border-t border-light-border dark:border-dark-border pt-2 flex justify-between font-bold text-light-text-primary dark:text-dark-text-primary">
                       <span>Total Tax Payable:</span>
                       <span className="text-lg">{formatCurrency(result.totalTax)}</span>
                     </div>
 
-                    <div className="flex justify-between text-sm text-muted-foreground">
+                    <div className="flex justify-between text-sm text-light-text-tertiary dark:text-dark-text-tertiary">
                       <span>Effective Tax Rate:</span>
                       <span>{result.effectiveTaxRate.toFixed(2)}%</span>
                     </div>
                   </div>
 
                   {result.isSmallCompany && (
-                    <Alert>
+                    <Alert className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-900/30 text-blue-800 dark:text-blue-200">
                       <InfoIcon className="h-4 w-4" />
                       <AlertDescription>
                         Your company qualifies as a small company and enjoys 0% tax rate with no
@@ -358,25 +356,23 @@ export default function BusinessTaxCalculatorPage() {
                       taxDue={result.totalTax}
                       effectiveRate={result.effectiveTaxRate}
                       breakdown={result.breakdown}
-                      className="w-full"
+                      className="w-full btn-secondary rounded-lg"
                     />
 
-                    <Button onClick={handleExportPDF} variant="outline" className="w-full">
+                    <Button onClick={handleExportPDF} variant="outline" className="w-full btn-secondary rounded-lg">
                       <Download className="mr-2 h-4 w-4" />
                       Export as PDF
                     </Button>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             )}
           </div>
         </div>
 
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle>About This Calculator</CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm text-muted-foreground space-y-2">
+        <div className="mt-6 p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
+          <h2 className="text-lg font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">About This Calculator</h2>
+          <div className="text-sm text-light-text-secondary dark:text-dark-text-secondary space-y-2">
             <p>
               This calculator implements the Nigeria Tax Act 2025 provisions for business taxation.
               Tax rates and thresholds are fetched dynamically from the KOMPLEET Tax Rules Engine.
@@ -389,8 +385,8 @@ export default function BusinessTaxCalculatorPage() {
               <strong>Disclaimer:</strong> This is an estimate. Consult a qualified Nigerian tax
               professional for personalized advice.
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );

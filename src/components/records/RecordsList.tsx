@@ -40,7 +40,7 @@ export function RecordsList({ records, onEdit, onDelete }: RecordsListProps) {
           className={`px-4 py-2 rounded-lg font-medium transition-colors ${
             selectedType === 'all'
               ? 'bg-blue-600 text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              : 'bg-light-background dark:bg-dark-background text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-border dark:bg-dark-border'
           }`}
         >
           All
@@ -50,7 +50,7 @@ export function RecordsList({ records, onEdit, onDelete }: RecordsListProps) {
           className={`px-4 py-2 rounded-lg font-medium transition-colors ${
             selectedType === 'income'
               ? 'bg-green-600 text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              : 'bg-light-background dark:bg-dark-background text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-border dark:bg-dark-border'
           }`}
         >
           Income
@@ -60,7 +60,7 @@ export function RecordsList({ records, onEdit, onDelete }: RecordsListProps) {
           className={`px-4 py-2 rounded-lg font-medium transition-colors ${
             selectedType === 'expense'
               ? 'bg-red-600 text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              : 'bg-light-background dark:bg-dark-background text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-border dark:bg-dark-border'
           }`}
         >
           Expenses
@@ -68,41 +68,41 @@ export function RecordsList({ records, onEdit, onDelete }: RecordsListProps) {
       </div>
 
       {/* Records Table */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div className="bg-light-surface dark:bg-dark-surface rounded-lg border border-light-border dark:border-dark-border overflow-hidden">
         <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="bg-light-background dark:bg-dark-background border-b border-light-border dark:border-dark-border">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary uppercase tracking-wider">
                 Date
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary uppercase tracking-wider">
                 Type
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary uppercase tracking-wider">
                 Category
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary uppercase tracking-wider">
                 Description
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-right text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary uppercase tracking-wider">
                 Amount
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-right text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary uppercase tracking-wider">
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <tbody className="divide-y divide-light-border dark:divide-dark-border">
             {filteredRecords.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                <td colSpan={6} className="px-6 py-12 text-center text-light-text-tertiary dark:text-dark-text-tertiary">
                   No records found
                 </td>
               </tr>
             ) : (
               filteredRecords.map((record) => (
-                <tr key={record.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <tr key={record.id} className="hover:bg-light-background dark:bg-dark-background">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-light-text-primary dark:text-dark-text-primary">
                     {formatDate(record.date)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -116,13 +116,13 @@ export function RecordsList({ records, onEdit, onDelete }: RecordsListProps) {
                       {record.type}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-light-text-primary dark:text-dark-text-primary">
                     {record.category}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">
+                  <td className="px-6 py-4 text-sm text-light-text-secondary dark:text-dark-text-secondary max-w-xs truncate">
                     {record.description || '-'}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-light-text-primary dark:text-dark-text-primary">
                     {formatCurrency(record.amount, record.currency)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

@@ -1,7 +1,9 @@
+
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { ArrowLeft, Banknote, Loader2, RefreshCw } from 'lucide-react';
 
 interface BankAccount {
   id: string;
@@ -142,34 +144,39 @@ export default function ConnectBankPage() {
       <div className="mb-8">
         <Link
           href="/transactions"
-          className="text-green-600 hover:text-green-700 font-medium mb-4 inline-block"
+          className="inline-flex items-center gap-2 text-primary-500 hover:text-primary-600 font-medium mb-4"
         >
-          &larr; Back to Transactions
+          <ArrowLeft size={16} />
+          Back to Transactions
         </Link>
-        <h1 className="text-3xl font-bold text-gray-900">Connect Bank Account</h1>
-        <p className="text-gray-600 mt-2">
-          Link your Nigerian bank account to automatically sync transactions
-        </p>
+        <div className="flex items-center gap-4">
+          <Banknote className="w-8 h-8 text-light-text-primary dark:text-dark-text-primary" />
+          <div>
+            <h1 className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">Connect Bank Account</h1>
+            <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
+              Link your Nigerian bank account to automatically sync transactions
+            </p>
+          </div>
+        </div>
       </div>
 
-      {/* Connect Button */}
-      <div className="bg-white rounded-lg p-6 mb-6 border border-gray-200">
+      {/* Connect Button Card */}
+      <div className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface mb-6">
         <div className="flex items-start gap-4">
-          <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-            <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-            </svg>
+          <div className="w-12 h-12 bg-primary-100 dark:bg-primary-900/20 rounded-lg flex items-center justify-center flex-shrink-0">
+            <Banknote className="w-6 h-6 text-primary-600 dark:text-primary-400" />
           </div>
           <div className="flex-1">
-            <h2 className="text-lg font-semibold text-gray-900">Link a New Bank Account</h2>
-            <p className="text-gray-600 text-sm mt-1">
+            <h2 className="text-lg font-semibold text-light-text-primary dark:text-dark-text-primary">Link a New Bank Account</h2>
+            <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mt-1">
               Securely connect your bank through Mono. Your credentials are encrypted and never stored on our servers.
             </p>
             <button
               onClick={handleConnect}
               disabled={connecting}
-              className="mt-4 bg-green-600 text-white px-6 py-2.5 rounded-lg hover:bg-green-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn-primary mt-4"
             >
+              {connecting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {connecting ? 'Connecting...' : 'Connect Bank Account'}
             </button>
           </div>
@@ -178,47 +185,48 @@ export default function ConnectBankPage() {
 
       {/* Messages */}
       {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-red-800 text-sm">{error}</p>
+        <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700/50 rounded-lg">
+          <p className="text-red-800 dark:text-red-300 text-sm">{error}</p>
         </div>
       )}
       {success && (
-        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-          <p className="text-green-800 text-sm">{success}</p>
+        <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700/50 rounded-lg">
+          <p className="text-green-800 dark:text-green-300 text-sm">{success}</p>
         </div>
       )}
 
       {/* Linked Accounts */}
-      <div className="bg-white rounded-lg border border-gray-200">
-        <div className="p-4 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">Linked Accounts</h2>
+      <div className="rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
+        <div className="p-5 border-b border-light-border dark:border-dark-border">
+          <h2 className="text-lg font-semibold text-light-text-primary dark:text-dark-text-primary">Linked Accounts</h2>
         </div>
 
         {loading ? (
-          <div className="p-8 text-center text-gray-500">Loading accounts...</div>
+          <div className="p-8 text-center text-light-text-tertiary dark:text-dark-text-tertiary flex items-center justify-center">
+            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+            Loading accounts...
+          </div>
         ) : accounts.length === 0 ? (
           <div className="p-8 text-center">
-            <p className="text-gray-500">No bank accounts linked yet.</p>
-            <p className="text-gray-400 text-sm mt-1">
+            <p className="text-light-text-secondary dark:text-dark-text-secondary">No bank accounts linked yet.</p>
+            <p className="text-sm text-light-text-tertiary dark:text-dark-text-tertiary mt-1">
               Click &ldquo;Connect Bank Account&rdquo; above to get started.
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-light-border dark:divide-dark-border">
             {accounts.map((account) => (
-              <div key={account.id} className="p-4 flex items-center justify-between">
+              <div key={account.id} className="p-5 flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                    </svg>
+                  <div className="w-10 h-10 bg-light-background dark:bg-dark-background rounded-lg flex items-center justify-center">
+                    <Banknote className="w-5 h-5 text-light-text-secondary dark:text-dark-text-secondary" />
                   </div>
                   <div>
-                    <p className="font-medium text-gray-900">{account.bank_name}</p>
-                    <p className="text-sm text-gray-500">
+                    <p className="font-medium text-light-text-primary dark:text-dark-text-primary">{account.bank_name}</p>
+                    <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
                       {account.account_name} &middot; {maskAccountNumber(account.account_number)}
                     </p>
-                    <p className="text-xs text-gray-400 mt-0.5">
+                    <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary mt-0.5">
                       Last synced: {formatDate(account.last_synced_at)}
                     </p>
                   </div>
@@ -226,7 +234,7 @@ export default function ConnectBankPage() {
 
                 <div className="flex items-center gap-3">
                   <div className="text-right mr-2">
-                    <p className="font-semibold text-gray-900">
+                    <p className="font-semibold text-light-text-primary dark:text-dark-text-primary">
                       {account.currency === 'NGN' ? '\u20A6' : account.currency}{' '}
                       {Number(account.balance).toLocaleString('en-NG', {
                         minimumFractionDigits: 2,
@@ -235,8 +243,8 @@ export default function ConnectBankPage() {
                     <span
                       className={`text-xs px-2 py-0.5 rounded-full ${
                         account.status === 'active'
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-red-100 text-red-700'
+                          ? 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300'
+                          : 'bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-300'
                       }`}
                     >
                       {account.status}
@@ -245,8 +253,9 @@ export default function ConnectBankPage() {
                   <button
                     onClick={() => handleSync(account.id)}
                     disabled={syncing === account.id}
-                    className="px-4 py-2 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium disabled:opacity-50"
+                    className="btn-secondary"
                   >
+                    {syncing === account.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw size={14} className="mr-2"/>}
                     {syncing === account.id ? 'Syncing...' : 'Sync'}
                   </button>
                 </div>
@@ -257,29 +266,29 @@ export default function ConnectBankPage() {
       </div>
 
       {/* Info Section */}
-      <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-blue-900 mb-3">
+      <div className="mt-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/50 rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-200 mb-3">
           How bank connection works
         </h3>
-        <ul className="space-y-2 text-sm text-blue-800">
+        <ul className="space-y-2 text-sm text-blue-800 dark:text-blue-300">
           <li className="flex items-start gap-2">
-            <span className="font-bold text-blue-600 mt-0.5">1.</span>
+            <span className="font-bold text-blue-600 dark:text-blue-400 mt-0.5">1.</span>
             <span>Click &ldquo;Connect Bank Account&rdquo; and select your bank from the secure Mono widget</span>
           </li>
           <li className="flex items-start gap-2">
-            <span className="font-bold text-blue-600 mt-0.5">2.</span>
+            <span className="font-bold text-blue-600 dark:text-blue-400 mt-0.5">2.</span>
             <span>Log in with your internet/mobile banking credentials (encrypted, never stored by us)</span>
           </li>
           <li className="flex items-start gap-2">
-            <span className="font-bold text-blue-600 mt-0.5">3.</span>
+            <span className="font-bold text-blue-600 dark:text-blue-400 mt-0.5">3.</span>
             <span>Your transactions are automatically imported and categorized</span>
           </li>
           <li className="flex items-start gap-2">
-            <span className="font-bold text-blue-600 mt-0.5">4.</span>
+            <span className="font-bold text-blue-600 dark:text-blue-400 mt-0.5">4.</span>
             <span>Click &ldquo;Sync&rdquo; anytime to fetch the latest transactions</span>
           </li>
         </ul>
-        <p className="mt-4 text-xs text-blue-600">
+        <p className="mt-4 text-xs text-blue-600 dark:text-blue-400">
           Powered by Mono &middot; Bank-grade encryption &middot; Read-only access
         </p>
       </div>

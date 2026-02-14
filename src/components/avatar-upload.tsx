@@ -68,7 +68,7 @@ export function AvatarUpload() {
   return (
     <div className="flex flex-col items-center gap-4">
       <div className="relative">
-        <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-200 border-4 border-white">
+        <div className="w-32 h-32 rounded-full overflow-hidden bg-light-border dark:bg-dark-border border-4 border-white">
           {displayAvatarUrl ? (
             <Image
               src={displayAvatarUrl}
@@ -102,7 +102,7 @@ export function AvatarUpload() {
       <button
         onClick={handleClick}
         disabled={uploading}
-        className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+        className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:bg-light-text-tertiary disabled:cursor-not-allowed transition-colors"
       >
         {uploading ? "Uploading..." : "Change Avatar"}
       </button>
@@ -111,7 +111,7 @@ export function AvatarUpload() {
         <p className="text-sm text-red-600">{error}</p>
       )}
 
-      <p className="text-xs text-gray-500 text-center max-w-xs">
+      <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary text-center max-w-xs">
         Upload a profile picture. Max size 5MB. Supported formats: JPG, PNG, GIF
       </p>
     </div>

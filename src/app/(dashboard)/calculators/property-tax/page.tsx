@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -6,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { InfoIcon, Calculator, Download } from 'lucide-react';
+import { InfoIcon, Calculator, Download, Loader2, Building } from 'lucide-react';
 import { generateCalculationPDF } from '@/lib/pdf-generator';
 
 interface MonthlyBreakdown {
@@ -33,10 +34,8 @@ export default function PropertyTaxCalculator() {
   const [rulesLoading, setRulesLoading] = useState(true);
   const [rulesError, setRulesError] = useState('');
   
-  // Tax rules from database
   const [rules, setRules] = useState<Record<string, any>>({});
 
-  // Fetch tax rules on component mount
   useEffect(() => {
     const fetchRules = async () => {
       try {
@@ -74,7 +73,6 @@ export default function PropertyTaxCalculator() {
       const whtAmount = rent * (whtRate / 100);
       const netRent = rent - whtAmount;
 
-      // Generate monthly breakdown
       const monthlyGrossRent = rent / 12;
       const monthlyWHT = whtAmount / 12;
       const monthlyNetRent = netRent / 12;
@@ -98,8 +96,6 @@ export default function PropertyTaxCalculator() {
       };
 
       setResult(calculationResult);
-
-      // Log calculation to audit trail
       logCalculation(calculationResult);
     } catch (error) {
       console.error('Calculation error:', error);
@@ -151,8 +147,8 @@ export default function PropertyTaxCalculator() {
       <div className="container mx-auto p-6">
         <div className="flex items-center justify-center h-64">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading tax rules...</p>
+            <Loader2 className="mx-auto h-12 w-12 animate-spin text-light-text-primary dark:text-dark-text-primary" />
+            <p className="mt-4 text-light-text-secondary dark:text-dark-text-secondary">Loading tax rules...</p>
           </div>
         </div>
       </div>
@@ -161,15 +157,18 @@ export default function PropertyTaxCalculator() {
 
   return (
     <div className="container mx-auto p-6 max-w-4xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Property Tax Calculator</h1>
-        <p className="text-gray-600">
-          Calculate withholding tax (WHT) on rental income under Nigeria Tax Act 2025
-        </p>
+      <div className="mb-8 flex items-center gap-4">
+        <Building className="h-8 w-8 text-light-text-primary dark:text-dark-text-primary" />
+        <div>
+          <h1 className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">Property Tax Calculator</h1>
+          <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
+            Calculate withholding tax (WHT) on rental income under Nigeria Tax Act 2025
+          </p>
+        </div>
       </div>
 
       {rulesError && (
-        <Alert className="mb-6 border-yellow-500 bg-yellow-50">
+        <Alert className="mb-6 border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200">
           <InfoIcon className="h-4 w-4" />
           <AlertDescription>
             {rulesError}. Using fallback rate: 10% WHT.
@@ -177,9 +176,9 @@ export default function PropertyTaxCalculator() {
         </Alert>
       )}
 
-      <Card className="p-6 mb-6">
-        <h2 className="text-xl font-semibold mb-4">Rental Information</h2>
-        <p className="text-sm text-gray-600 mb-4">Enter your rental property details</p>
+      <Card className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface mb-6">
+        <h2 className="text-xl font-semibold mb-4 text-light-text-primary dark:text-dark-text-primary">Rental Information</h2>
+        <p className="text-sm text-light-text-tertiary dark:text-dark-text-tertiary mb-4">Enter your rental property details</p>
 
         <div className="space-y-4">
           <div>
@@ -191,6 +190,7 @@ export default function PropertyTaxCalculator() {
               value={annualRent}
               onChange={(e) => setAnnualRent(e.target.value)}
               disabled={loading}
+              className="rounded-lg"
             />
           </div>
 
@@ -200,7 +200,7 @@ export default function PropertyTaxCalculator() {
               id="propertyType"
               value={propertyType}
               onChange={(e) => setPropertyType(e.target.value)}
-              className="w-full mt-1 p-2 border rounded-md"
+              className="w-full mt-1 p-2 border rounded-lg bg-light-surface dark:bg-dark-surface border-light-border dark:border-dark-border text-light-text-primary dark:text-dark-text-primary"
               disabled={loading}
             >
               <option value="residential">Residential</option>
@@ -215,7 +215,7 @@ export default function PropertyTaxCalculator() {
               id="landlordType"
               value={landlordType}
               onChange={(e) => setLandlordType(e.target.value)}
-              className="w-full mt-1 p-2 border rounded-md"
+              className="w-full mt-1 p-2 border rounded-lg bg-light-surface dark:bg-dark-surface border-light-border dark:border-dark-border text-light-text-primary dark:text-dark-text-primary"
               disabled={loading}
             >
               <option value="individual">Individual</option>
@@ -226,9 +226,9 @@ export default function PropertyTaxCalculator() {
           <Button
             onClick={calculatePropertyTax}
             disabled={loading || !annualRent}
-            className="w-full"
+            className="w-full btn-primary rounded-lg"
           >
-            <Calculator className="mr-2 h-4 w-4" />
+            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Calculator className="mr-2 h-4 w-4" />}
             {loading ? 'Calculating...' : 'Calculate WHT'}
           </Button>
         </div>
@@ -236,10 +236,10 @@ export default function PropertyTaxCalculator() {
 
       {result && (
         <>
-          <Card className="p-6 mb-6 bg-green-50 border-green-200">
-            <h2 className="text-xl font-semibold mb-4">Property Tax (WHT) Result</h2>
+          <Card className="p-5 rounded-xl border border-primary-500/20 bg-primary-500/10 dark:bg-primary-500/10 mb-6">
+            <h2 className="text-xl font-semibold mb-4 text-primary-700 dark:text-primary-300">Property Tax (WHT) Result</h2>
 
-            <div className="space-y-3 mb-6">
+            <div className="space-y-3 mb-6 text-light-text-primary dark:text-dark-text-primary">
               <div className="flex justify-between">
                 <span className="font-medium">Gross Annual Rent:</span>
                 <span>{formatCurrency(result.annualRent)}</span>
@@ -248,17 +248,17 @@ export default function PropertyTaxCalculator() {
                 <span className="font-medium">WHT Rate:</span>
                 <span>{result.whtRate}%</span>
               </div>
-              <div className="flex justify-between border-t pt-3">
+              <div className="flex justify-between border-t border-light-border dark:border-dark-border pt-3">
                 <span className="font-bold text-lg">WHT Amount (Annual):</span>
-                <span className="font-bold text-lg text-red-700">{formatCurrency(result.whtAmount)}</span>
+                <span className="font-bold text-lg text-red-700 dark:text-red-400">{formatCurrency(result.whtAmount)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="font-bold text-lg">Net Rent (After WHT):</span>
-                <span className="font-bold text-lg text-green-700">{formatCurrency(result.netRent)}</span>
+                <span className="font-bold text-lg text-green-700 dark:text-green-400">{formatCurrency(result.netRent)}</span>
               </div>
             </div>
 
-            <Alert className="border-blue-500 bg-blue-100">
+            <Alert className="border-blue-500/50 bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200">
               <InfoIcon className="h-4 w-4" />
               <AlertDescription>
                 <strong>Important:</strong> The tenant is responsible for withholding the WHT and remitting
@@ -267,28 +267,28 @@ export default function PropertyTaxCalculator() {
             </Alert>
           </Card>
 
-          <Card className="p-6 mb-6">
-            <h3 className="font-semibold mb-3">Monthly Breakdown</h3>
+          <Card className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface mb-6">
+            <h3 className="font-semibold mb-3 text-light-text-primary dark:text-dark-text-primary">Monthly Breakdown</h3>
             <div className="overflow-x-auto">
-              <table className="w-full text-sm">
+              <table className="w-full text-sm text-light-text-secondary dark:text-dark-text-secondary">
                 <thead>
-                  <tr className="border-b">
-                    <th className="text-left p-2">Month</th>
-                    <th className="text-right p-2">Gross Rent</th>
-                    <th className="text-right p-2">WHT (10%)</th>
-                    <th className="text-right p-2">Net Rent</th>
+                  <tr className="border-b border-light-border dark:border-dark-border">
+                    <th className="text-left p-2 font-medium">Month</th>
+                    <th className="text-right p-2 font-medium">Gross Rent</th>
+                    <th className="text-right p-2 font-medium">WHT ({result.whtRate}%)</th>
+                    <th className="text-right p-2 font-medium">Net Rent</th>
                   </tr>
                 </thead>
                 <tbody>
                   {result.monthlyBreakdown.map((row) => (
-                    <tr key={row.month} className="border-b">
+                    <tr key={row.month} className="border-b border-light-border dark:border-dark-border">
                       <td className="p-2">{getMonthName(row.month)}</td>
                       <td className="text-right p-2">{formatCurrency(row.grossRent)}</td>
-                      <td className="text-right p-2">{formatCurrency(row.wht)}</td>
-                      <td className="text-right p-2">{formatCurrency(row.netRent)}</td>
+                      <td className="text-right p-2 text-red-600 dark:text-red-400">{formatCurrency(row.wht)}</td>
+                      <td className="text-right p-2 text-green-600 dark:text-green-400">{formatCurrency(row.netRent)}</td>
                     </tr>
                   ))}
-                  <tr className="font-bold border-t-2">
+                  <tr className="font-bold border-t-2 border-light-border dark:border-dark-border text-light-text-primary dark:text-dark-text-primary">
                     <td className="p-2">Total</td>
                     <td className="text-right p-2">{formatCurrency(result.annualRent)}</td>
                     <td className="text-right p-2">{formatCurrency(result.whtAmount)}</td>
@@ -323,7 +323,7 @@ export default function PropertyTaxCalculator() {
               });
             }}
             variant="outline"
-            className="w-full"
+            className="w-full btn-secondary rounded-lg"
           >
             <Download className="mr-2 h-4 w-4" />
             Export as PDF
@@ -331,16 +331,16 @@ export default function PropertyTaxCalculator() {
         </>
       )}
 
-      <Card className="p-6 bg-blue-50 border-blue-200">
-        <h3 className="font-semibold mb-2 flex items-center">
+      <Card className="p-5 rounded-xl mt-6 border-blue-500/20 bg-blue-50 dark:bg-blue-900/10">
+        <h3 className="font-semibold mb-2 flex items-center text-blue-800 dark:text-blue-200">
           <InfoIcon className="mr-2 h-5 w-5" />
           About This Calculator
         </h3>
-        <p className="text-sm text-gray-700 mb-4">
+        <p className="text-sm text-blue-700 dark:text-blue-300/80 mb-4">
           This calculator implements the Nigeria Tax Act 2025 provisions for withholding tax on rent.
           The WHT rate is fetched dynamically from the KOMPLEET Tax Rules Engine.
         </p>
-        <div className="text-sm space-y-2">
+        <div className="text-sm space-y-2 text-blue-700/90 dark:text-blue-300/70">
           <p>
             <strong>WHT on Rent:</strong> {rules.wht_rate?.value?.rate || 10}% of gross rent
           </p>

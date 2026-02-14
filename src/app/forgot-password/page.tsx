@@ -1,15 +1,21 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
-import { KeyRound, Clock, Headphones, ArrowLeft } from 'lucide-react';
+import { useTheme } from '@/contexts/ThemeContext';
 import { createClient } from '@/lib/supabase/client';
+import Link from 'next/link';
+import Image from 'next/image';
+import { ArrowLeft, KeyRound, Mail, Moon, Sun } from 'lucide-react';
+
+const LOGO_URL =
+  'https://files.manuscdn.com/user_upload_by_module/session_file/114473754/ZeGQuujTZDuMQDVT.png';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,9 +27,7 @@ export default function ForgotPasswordPage() {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
       });
-
       if (error) throw error;
-
       setSuccess(true);
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to send reset email';
@@ -35,174 +39,89 @@ export default function ForgotPasswordPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-light-background dark:bg-dark-background p-6">
-        <div className="w-full max-w-md">
-          <div className="solid-card bg-light-surface dark:bg-dark-surface border-light-border dark:border-dark-border p-8 rounded-xl text-center">
-            <div className="w-16 h-16 bg-primary-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <h1 className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary mb-2">Check Your Email</h1>
-            <p className="text-light-text-secondary dark:text-dark-text-secondary mb-6">
-              We've sent a password reset link to <strong className="text-light-text-primary dark:text-dark-text-primary">{email}</strong>
-            </p>
-            <Link 
-              href="/login"
-              className="btn-primary block w-full text-center py-3"
-            >
-              Back to Login
-            </Link>
+      <div className="min-h-screen flex items-center justify-center bg-[rgb(var(--background))] p-6">
+        <div className="w-full max-w-md text-center space-y-6">
+          <div className="w-16 h-16 bg-[rgba(var(--primary-rgb),0.15)] rounded-full flex items-center justify-center mx-auto">
+            <Mail className="w-8 h-8 text-[rgb(var(--primary))]" />
           </div>
+          <h1 className="text-2xl font-bold text-[rgb(var(--text-primary))]">Check Your Email</h1>
+          <p className="text-[rgb(var(--text-secondary))]">
+            We&apos;ve sent a password reset link to <strong className="text-[rgb(var(--text-primary))]">{email}</strong>
+          </p>
+          <Link href="/login" className="btn-primary block w-full text-center py-3">
+            Back to Login
+          </Link>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-light-background dark:bg-dark-background p-6">
-      <div className="w-full max-w-md">
-        {/* Logo - Top Left in Dark Mode, Centered in Light Mode */}
-        <div className="mb-8 dark:mb-6">
-          <Link href="/" className="inline-flex items-center gap-2">
-            <div className="w-10 h-10 bg-primary-500 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-xl">K</span>
-            </div>
-            <span className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">KOMPLEET</span>
-          </Link>
-        </div>
+    <div className="min-h-screen bg-[rgb(var(--background))] text-[rgb(var(--text-primary))] flex flex-col">
+      {/* Top bar */}
+      <div className="flex items-center justify-between p-6">
+        <Link href="/login" className="flex items-center gap-2 text-sm text-[rgb(var(--text-secondary))] hover:text-[rgb(var(--text-primary))] transition-colors">
+          <ArrowLeft className="w-4 h-4" /> Back to Login
+        </Link>
+        <button
+          onClick={toggleTheme}
+          className="p-2 rounded-md border border-[rgb(var(--border))] hover:bg-[rgb(var(--surface))] transition-colors"
+          aria-label="Toggle theme"
+        >
+          {theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+        </button>
+      </div>
 
-        {/* Back to Login - Top Right in Dark Mode */}
-        <div className="hidden dark:block absolute top-6 right-6">
-          <Link 
-            href="/login" 
-            className="text-sm text-dark-text-secondary hover:text-primary-500 transition-colors"
-          >
-            Back to Login
-          </Link>
-        </div>
-
-        {/* Card - Solid Design */}
-        <div className="solid-card bg-light-surface dark:bg-dark-surface border-light-border dark:border-dark-border p-8 rounded-xl">
-          {/* Icon */}
-          <div className="flex justify-center mb-6">
-            <div className="w-16 h-16 bg-primary-500/20 rounded-full flex items-center justify-center">
-              <KeyRound className="w-8 h-8 text-primary-500" />
-            </div>
+      {/* Centered form */}
+      <div className="flex-1 flex items-center justify-center px-6">
+        <div className="w-full max-w-sm space-y-8">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <Image src={LOGO_URL} alt="KOMPLEET" width={32} height={32} className="rounded" />
+            <span className="text-lg font-bold">KOMPLEET</span>
           </div>
 
-          {/* Heading */}
-          <h1 className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary mb-2 text-center dark:text-left">
-            <span className="dark:hidden">Reset your password</span>
-            <span className="hidden dark:inline">Forgot password?</span>
-          </h1>
-          
-          {/* Description */}
-          <p className="text-light-text-secondary dark:text-dark-text-secondary mb-6 text-center dark:text-left">
-            <span className="dark:hidden">
-              Enter the email address associated with your account and we'll send you a link to reset your password.
-            </span>
-            <span className="hidden dark:inline">
-              Enter the email address associated with your KOMPLEET account and we'll send you a link to reset your password.
-            </span>
-          </p>
+          <div className="text-center space-y-2">
+            <div className="w-14 h-14 bg-[rgba(var(--primary-rgb),0.1)] rounded-full flex items-center justify-center mx-auto mb-4">
+              <KeyRound className="w-7 h-7 text-[rgb(var(--primary))]" />
+            </div>
+            <h1 className="text-2xl font-bold">Reset your password</h1>
+            <p className="text-sm text-[rgb(var(--text-secondary))]">
+              Enter your email and we&apos;ll send you a link to reset your password.
+            </p>
+          </div>
 
           {error && (
-            <div className="mb-4 p-3 bg-error-500/10 border border-error-500/20 rounded-lg">
-              <p className="text-error-500 text-sm">{error}</p>
+            <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 rounded-lg">
+              <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
             </div>
           )}
 
           <form onSubmit={handleResetPassword} className="space-y-4">
-            <div>
-              <label 
-                htmlFor="email" 
-                className="block text-sm font-medium text-light-text-secondary dark:text-primary-500 mb-2 dark:uppercase"
-              >
-                Email address
-              </label>
+            <div className="space-y-1.5">
+              <label htmlFor="email" className="text-sm font-medium">Email address</label>
               <input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-4 py-3 bg-light-surface-hover dark:bg-dark-surface-hover border border-light-border dark:border-dark-border rounded-lg text-light-text-primary dark:text-dark-text-primary placeholder-light-text-tertiary dark:placeholder-dark-text-tertiary focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
                 placeholder="name@company.com"
+                className="w-full"
               />
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="btn-primary w-full py-3 disabled:opacity-50 disabled:cursor-not-allowed dark:uppercase"
+              className="btn-primary w-full py-3 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Sending...' : (
-                <>
-                  <span className="dark:hidden">Send reset link</span>
-                  <span className="hidden dark:inline">Send Reset Link</span>
-                </>
-              )}
+              {loading ? 'Sending...' : 'Send Reset Link'}
             </button>
           </form>
 
-          {/* Helper Text - Dark Mode Only */}
-          <div className="hidden dark:block mt-6 space-y-3">
-            <div className="flex items-start gap-2 text-sm text-dark-text-tertiary">
-              <Clock className="w-[18px] h-[18px] text-primary-500 mt-0.5 flex-shrink-0" />
-              <p>Secure link expires in 60 minutes for your protection.</p>
-            </div>
-            <div className="flex items-start gap-2 text-sm text-dark-text-tertiary">
-              <Headphones className="w-[18px] h-[18px] text-primary-500 mt-0.5 flex-shrink-0" />
-              <p>
-                Need help? Contact our support team at{' '}
-                <a href="mailto:support@kompleet.ng" className="text-primary-500 hover:text-primary-400 transition-colors">
-                  support@kompleet.ng
-                </a>
-              </p>
-            </div>
-          </div>
-
-          {/* Back to Login - Light Mode Only */}
-          <div className="dark:hidden mt-6 text-center">
-            <Link 
-              href="/login" 
-              className="text-sm text-light-text-secondary hover:text-primary-500 transition-colors inline-flex items-center gap-1"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              Back to login
-            </Link>
-          </div>
-        </div>
-
-        {/* Footer Links - Light Mode */}
-        <div className="dark:hidden mt-6 text-center">
-          <div className="flex items-center justify-center gap-4 text-xs text-light-text-tertiary">
-            <Link href="/privacy" className="hover:text-primary-500 transition-colors">
-              Privacy Policy
-            </Link>
-            <Link href="/terms" className="hover:text-primary-500 transition-colors">
-              Terms of Service
-            </Link>
-            <Link href="/contact" className="hover:text-primary-500 transition-colors">
-              Contact Support
-            </Link>
-          </div>
-        </div>
-
-        {/* Footer Links - Dark Mode */}
-        <div className="hidden dark:block mt-6 text-center">
-          <div className="flex items-center justify-center gap-6 text-xs text-dark-text-tertiary uppercase font-medium">
-            <Link href="/privacy" className="hover:text-primary-500 transition-colors">
-              Privacy Policy
-            </Link>
-            <Link href="/terms" className="hover:text-primary-500 transition-colors">
-              Terms of Service
-            </Link>
-            <Link href="/security" className="hover:text-primary-500 transition-colors">
-              Security
-            </Link>
-          </div>
+          <p className="text-center text-xs text-[rgb(var(--text-tertiary))]">
+            Secure link expires in 60 minutes for your protection.
+          </p>
         </div>
       </div>
     </div>

@@ -1,10 +1,10 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Mail, RefreshCw, TrendingUp, CheckCircle } from 'lucide-react';
+import { Mail, RefreshCw, TrendingUp, CheckCircle, Loader2, BrainCircuit } from 'lucide-react';
 
 interface CorrectionStats {
   totalCorrections: number;
@@ -23,32 +23,34 @@ interface RecurringPattern {
 
 export default function MLSettingsPage() {
   const [emailConnections, setEmailConnections] = useState({
-    gmail: { connected: false, email: '' },
+    gmail: { connected: true, email: 'hello@untapped.africa' },
     outlook: { connected: false, email: '' }
   });
   const [correctionStats, setCorrectionStats] = useState<CorrectionStats | null>(null);
   const [recurringPatterns, setRecurringPatterns] = useState<RecurringPattern[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isDetecting, setIsDetecting] = useState(false);
 
   async function loadData() {
+    setLoading(true);
     try {
-      // Load correction stats
-      const statsRes = await fetch('/api/ml/corrections');
+      const [statsRes, patternsRes] = await Promise.all([
+        fetch('/api/ml/corrections'),
+        fetch('/api/ml/recurring')
+      ]);
+
       if (statsRes.ok) {
         const stats = await statsRes.json();
         setCorrectionStats(stats);
       }
 
-      // Load recurring patterns
-      const patternsRes = await fetch('/api/ml/recurring');
       if (patternsRes.ok) {
         const data = await patternsRes.json();
         setRecurringPatterns(data.patterns || []);
       }
-
-      setLoading(false);
     } catch (error) {
       console.error('Error loading ML settings:', error);
+    } finally {
       setLoading(false);
     }
   }
@@ -73,8 +75,8 @@ export default function MLSettingsPage() {
   }
 
   async function detectRecurringPatterns() {
+    setIsDetecting(true);
     try {
-      setLoading(true);
       const res = await fetch('/api/ml/recurring', {
         method: 'POST'
       });
@@ -83,54 +85,53 @@ export default function MLSettingsPage() {
         const data = await res.json();
         setRecurringPatterns(data.patterns || []);
       }
-      setLoading(false);
     } catch (error) {
       console.error('Error detecting patterns:', error);
-      setLoading(false);
+    } finally {
+      setIsDetecting(false);
     }
   }
 
   if (loading) {
     return (
-      <div className="space-y-4">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-light-surface dark:bg-dark-surface rounded w-1/4"></div>
-          <div className="h-32 bg-light-surface dark:bg-dark-surface rounded"></div>
-          <div className="h-32 bg-light-surface dark:bg-dark-surface rounded"></div>
-        </div>
+      <div className="flex items-center justify-center h-full">
+        <Loader2 className="w-8 h-8 animate-spin text-primary-500" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl lg:text-3xl font-bold text-light-text-primary dark:text-dark-text-primary">ML & Automation Settings</h1>
-        <p className="text-light-text-secondary dark:text-dark-text-secondary mt-2">
-          Manage email integrations, view ML performance, and configure automation
-        </p>
+    <div className="space-y-8">
+      <div className="flex items-start gap-4">
+        <div className="p-2 bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border rounded-lg">
+           <BrainCircuit className="w-6 h-6 text-light-text-primary dark:text-dark-text-primary" />
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">ML & Automation Settings</h1>
+          <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
+            Manage email integrations, view ML performance, and configure automation.
+          </p>
+        </div>
       </div>
 
       {/* Email Connections */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Mail className="w-5 h-5" />
-            Email Integrations
-          </CardTitle>
-          <CardDescription>
-            Connect your email accounts to automatically import transactions from receipts
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <div className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
+        <div className="flex items-center gap-2 mb-4">
+            <Mail className="w-5 h-5 text-light-text-secondary dark:text-dark-text-secondary" />
+            <h2 className="text-lg font-semibold text-light-text-primary dark:text-dark-text-primary">Email Integrations</h2>
+        </div>
+        <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-6">
+            Connect your email accounts to automatically import transactions from receipts.
+        </p>
+        <div className="space-y-4">
           {/* Gmail */}
-          <div className="flex items-center justify-between p-4 border rounded-lg">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-                <Mail className="w-5 h-5 text-red-600" />
+          <div className="flex items-center justify-between p-4 border border-light-border dark:border-dark-border rounded-lg">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-red-50 dark:bg-red-900/20 rounded-lg flex items-center justify-center">
+                <Mail className="w-5 h-5 text-red-600 dark:text-red-400" />
               </div>
               <div>
-                <p className="font-medium">Gmail</p>
+                <p className="font-medium text-light-text-primary dark:text-dark-text-primary">Gmail</p>
                 {emailConnections.gmail.connected ? (
                   <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">{emailConnections.gmail.email}</p>
                 ) : (
@@ -139,25 +140,25 @@ export default function MLSettingsPage() {
               </div>
             </div>
             {emailConnections.gmail.connected ? (
-              <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                <CheckCircle className="w-3 h-3 mr-1" />
+              <Badge variant="outline" className="bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-900">
+                <CheckCircle className="w-3 h-3 mr-1.5" />
                 Connected
               </Badge>
             ) : (
-              <Button onClick={() => connectEmail('gmail')}>
-                Connect Gmail
+              <Button onClick={() => connectEmail('gmail')} className="btn-secondary">
+                Connect
               </Button>
             )}
           </div>
 
           {/* Outlook */}
-          <div className="flex items-center justify-between p-4 border rounded-lg">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                <Mail className="w-5 h-5 text-blue-600" />
+          <div className="flex items-center justify-between p-4 border border-light-border dark:border-dark-border rounded-lg">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
+                <Mail className="w-5 h-5 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
-                <p className="font-medium">Outlook</p>
+                <p className="font-medium text-light-text-primary dark:text-dark-text-primary">Outlook</p>
                 {emailConnections.outlook.connected ? (
                   <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">{emailConnections.outlook.email}</p>
                 ) : (
@@ -166,111 +167,118 @@ export default function MLSettingsPage() {
               </div>
             </div>
             {emailConnections.outlook.connected ? (
-              <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                <CheckCircle className="w-3 h-3 mr-1" />
+              <Badge variant="outline" className="bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-900">
+                <CheckCircle className="w-3 h-3 mr-1.5" />
                 Connected
               </Badge>
             ) : (
-              <Button onClick={() => connectEmail('outlook')}>
-                Connect Outlook
+              <Button onClick={() => connectEmail('outlook')} className="btn-secondary">
+                Connect
               </Button>
             )}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      {/* ML Performance */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="w-5 h-5" />
-            ML Categorization Performance
-          </CardTitle>
-          <CardDescription>
-            Your corrections help improve the ML model for everyone
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {correctionStats && (
-            <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* ML Performance */}
+        <div className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
+            <div className="flex items-center gap-2 mb-4">
+                <TrendingUp className="w-5 h-5 text-light-text-secondary dark:text-dark-text-secondary" />
+                <h2 className="text-lg font-semibold text-light-text-primary dark:text-dark-text-primary">Categorization Performance</h2>
+            </div>
+            <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-6">
+                Your corrections help improve the ML model for all users.
+            </p>
+          {correctionStats ? (
+            <div className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 bg-light-surface dark:bg-dark-surface rounded-lg">
-                  <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">Total Corrections</p>
-                  <p className="text-2xl font-bold">{correctionStats.totalCorrections}</p>
+                <div className="p-4 bg-light-background dark:bg-dark-background rounded-lg">
+                  <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-1">Total Corrections</p>
+                  <p className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">{correctionStats.totalCorrections}</p>
                 </div>
-                <div className="p-4 bg-light-surface dark:bg-dark-surface rounded-lg">
-                  <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">Model Accuracy</p>
-                  <p className="text-2xl font-bold">87%</p>
+                <div className="p-4 bg-light-background dark:bg-dark-background rounded-lg">
+                  <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-1">Model Accuracy</p>
+                  <p className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">87%</p>
                 </div>
               </div>
 
               {correctionStats.topMiscategorized.length > 0 && (
                 <div>
-                  <p className="font-medium mb-2">Most Common Corrections</p>
+                  <p className="font-medium text-light-text-primary dark:text-dark-text-primary mb-3">Most Common Corrections</p>
                   <div className="space-y-2">
-                    {correctionStats.topMiscategorized.slice(0, 5).map((item, idx) => (
-                      <div key={idx} className="flex items-center justify-between text-sm">
-                        <span className="text-light-text-secondary dark:text-dark-text-secondary">{item.pair}</span>
-                        <Badge variant="secondary">{item.count} times</Badge>
+                    {correctionStats.topMiscategorized.slice(0, 3).map((item, idx) => (
+                      <div key={idx} className="flex items-center justify-between text-sm p-3 bg-light-background dark:bg-dark-background rounded-lg">
+                        <span className="text-light-text-secondary dark:text-dark-text-secondary font-mono text-xs">{item.pair}</span>
+                        <Badge variant="secondary" className="font-normal">{item.count} times</Badge>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
             </div>
+          ) : (
+             <div className="text-center py-10">
+                <p className="text-light-text-tertiary dark:text-dark-text-tertiary">No performance data available.</p>
+            </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Recurring Transactions */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <RefreshCw className="w-5 h-5" />
-            Recurring Transactions
-          </CardTitle>
-          <CardDescription>
-            Automatically detected payment patterns
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <Button onClick={detectRecurringPatterns} disabled={loading}>
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Detect Patterns
-            </Button>
+        {/* Recurring Transactions */}
+        <div className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
+            <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                    <RefreshCw className="w-5 h-5 text-light-text-secondary dark:text-dark-text-secondary" />
+                    <h2 className="text-lg font-semibold text-light-text-primary dark:text-dark-text-primary">Recurring Transactions</h2>
+                </div>
+                <Button onClick={detectRecurringPatterns} disabled={isDetecting} className="btn-secondary">
+                  {isDetecting ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                  )}
+                  Detect
+                </Button>
+            </div>
+            <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-6">
+                Automatically detected payment patterns from your transaction history.
+            </p>
 
+            <div className="space-y-4">
             {recurringPatterns.length > 0 ? (
-              <div className="space-y-2">
-                {recurringPatterns.map((pattern, idx) => (
-                  <div key={idx} className="p-4 border rounded-lg">
-                    <div className="flex items-center justify-between">
+              <div className="space-y-3">
+                {recurringPatterns.slice(0, 3).map((pattern, idx) => (
+                  <div key={idx} className="p-3 border border-light-border dark:border-dark-border bg-light-background dark:bg-dark-background rounded-lg">
+                    <div className="flex items-start justify-between">
                       <div>
-                        <p className="font-medium capitalize">
+                        <p className="font-medium capitalize text-light-text-primary dark:text-dark-text-primary">
                           {pattern.merchant_normalized.replace(/([a-z])([A-Z])/g, '$1 $2')}
                         </p>
-                        <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
-                          Every {pattern.interval_days} days &bull; &#x20A6;{pattern.amount_mean.toLocaleString()}
-                        </p>
-                        <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
-                          Next expected: {new Date(pattern.next_expected_date).toLocaleDateString()}
+                        <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mt-1">
+                          ~&#x20A6;{pattern.amount_mean.toLocaleString()} every {pattern.interval_days} days
                         </p>
                       </div>
-                      <Badge variant="outline">
-                        {Math.round(pattern.confidence * 100)}% confidence
+                      <Badge variant="outline" className="font-normal text-xs">
+                        {Math.round(pattern.confidence * 100)}% sure
                       </Badge>
                     </div>
+                     <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary mt-2">
+                          Next expected: {new Date(pattern.next_expected_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                     </p>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-light-text-tertiary dark:text-dark-text-tertiary text-center py-8">
-                No recurring patterns detected yet. Click &quot;Detect Patterns&quot; to analyze your transactions.
-              </p>
+              <div className="text-center py-10 border-2 border-dashed border-light-border dark:border-dark-border rounded-lg">
+                <p className="text-light-text-tertiary dark:text-dark-text-tertiary text-sm">
+                  No recurring patterns found yet.
+                </p>
+                 <p className="text-light-text-tertiary dark:text-dark-text-tertiary text-xs mt-1">Click &quot;Detect&quot; to analyze your transactions.</p>
+              </div>
             )}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

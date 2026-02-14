@@ -1,390 +1,374 @@
-import { Wallet, ArrowRight, Landmark, Gavel, Shield, ShieldCheck, CheckCircle, Receipt, TrendingUp, ClipboardCheck, Users, Quote, Facebook, Mail, Share2 } from 'lucide-react';
-import Link from 'next/link';
+import {
+  ArrowRight,
+  BarChart3,
+  Bell,
+  Calculator,
+  CheckCircle2,
+  ChevronRight,
+  Clock,
+  FileText,
+  Globe,
+  Shield,
+  Zap,
+} from 'lucide-react';
 import Image from 'next/image';
-import HeroButtons from '@/components/landing/HeroButtons';
+import Link from 'next/link';
+import LandingNav from '@/components/landing/LandingNav';
+import LandingFooter from '@/components/landing/LandingFooter';
+import AnimatedSection from '@/components/landing/AnimatedSection';
+
+const HERO_DASHBOARD =
+  'https://private-us-east-1.manuscdn.com/sessionFile/FHlfXyMgxU2Pt2Bnt6svnm/sandbox/luUcO3vrTWrHIzYBS4i6AR-img-1_1771075989000_na1fn_aGVyby1kYXNoYm9hcmQ.png?x-oss-process=image/resize,w_1920,h_1920/format,webp/quality,q_80&Expires=1798761600&Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly9wcml2YXRlLXVzLWVhc3QtMS5tYW51c2Nkbi5jb20vc2Vzc2lvbkZpbGUvRkhsZlh5TWd4VTJQdDJCbnQ2c3ZubS9zYW5kYm94L2x1VWNPM3ZyVFdySEl6WUJTNGk2QVItaW1nLTFfMTc3MTA3NTk4OTAwMF9uYTFmbl9hR1Z5Ynkxa1lYTm9ZbTloY21RLnBuZz94LW9zcy1wcm9jZXNzPWltYWdlL3Jlc2l6ZSx3XzE5MjAsaF8xOTIwL2Zvcm1hdCx3ZWJwL3F1YWxpdHkscV84MCIsIkNvbmRpdGlvbiI6eyJEYXRlTGVzc1RoYW4iOnsiQVdTOkVwb2NoVGltZSI6MTc5ODc2MTYwMH19fV19&Key-Pair-Id=K2HSFNDJXOU9YS&Signature=Ii9l86B~9b5BPrKcE7Mc7~qGmVeWpSSgK5cd-JwFGo9hg3H6nbwEE1iUzL4EOw4m6sYc0GdJ~lJOmRJ411PNGxqOlhbqxV-yHjB6REgShThfFOG4Z~0ZJqEuD7HmmLdzVb8Cnb5HDIvnz2a5Vr2nZssz-rwQHs9L8MZ5vnm8nnV3R2UEHnc0zWm4XSYP~lr~REGzhKFMCkJj~lBISfEXxygB2pR98hKJtBMeV34FKh5UfWSbdm~rZjc-YyQYI-BkJgjT~R7bupsjyxuWVEy-W3jtiMht-N2oEVRUtYnzGmjzZp-YXvNwIEG2hJNSghzVZUcyQRQnJDRs-0THgsgqgg__';
+const FEATURE_TAX =
+  'https://private-us-east-1.manuscdn.com/sessionFile/FHlfXyMgxU2Pt2Bnt6svnm/sandbox/luUcO3vrTWrHIzYBS4i6AR-img-3_1771075982000_na1fn_ZmVhdHVyZS10YXg.png?x-oss-process=image/resize,w_1920,h_1920/format,webp/quality,q_80&Expires=1798761600&Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly9wcml2YXRlLXVzLWVhc3QtMS5tYW51c2Nkbi5jb20vc2Vzc2lvbkZpbGUvRkhsZlh5TWd4VTJQdDJCbnQ2c3ZubS9zYW5kYm94L2x1VWNPM3ZyVFdySEl6WUJTNGk2QVItaW1nLTNfMTc3MTA3NTk4MjAwMF9uYTFmbl9abVZoZEhWeVpTMTBZWGcucG5nP3gtb3NzLXByb2Nlc3M9aW1hZ2UvcmVzaXplLHdfMTkyMCxoXzE5MjAvZm9ybWF0LHdlYnAvcXVhbGl0eSxxXzgwIiwiQ29uZGl0aW9uIjp7IkRhdGVMZXNzVGhhbiI6eyJBV1M6RXBvY2hUaW1lIjoxNzk4NzYxNjAwfX19XX0_&Key-Pair-Id=K2HSFNDJXOU9YS&Signature=rog3coLl1hZ~ZeODiJJ6uYDqrsJBBFa7enH-zY91mAqcAAORWjt5K9ZQFUNTyGNUOlUqXKEeVdnP8qPsKjm3-A~-HT~PtiW3~dXiGINYH7uNadkq~pFg3yItYqipxVNTX589iU0gSoPCy9MXY6hG-hr-iOraARrk0CgC8rP-vc3EM7PQ9E~LSlOatPulC-~sxzym-FcH~8OVFHw~eCGvpjmUBpYF7EK1uGlDB~CJpZnP-PX3ew~9iQxbC5r3yuJNsUyOj-mrQhEjtTs-f5yolEfFmPBWD84BCtRBxUarINmWbt43cyWa2MZtolv2FGZKlmHsvtpJOLeQFBQEYECUbg__';
+const FEATURE_INVOICE =
+  'https://private-us-east-1.manuscdn.com/sessionFile/FHlfXyMgxU2Pt2Bnt6svnm/sandbox/luUcO3vrTWrHIzYBS4i6AR-img-4_1771075989000_na1fn_ZmVhdHVyZS1pbnZvaWNl.png?x-oss-process=image/resize,w_1920,h_1920/format,webp/quality,q_80&Expires=1798761600&Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly9wcml2YXRlLXVzLWVhc3QtMS5tYW51c2Nkbi5jb20vc2Vzc2lvbkZpbGUvRkhsZlh5TWd4VTJQdDJCbnQ2c3ZubS9zYW5kYm94L2x1VWNPM3ZyVFdySEl6WUJTNGk2QVItaW1nLTRfMTc3MTA3NTk4OTAwMF9uYTFmbl9abVZoZEhWeVpTMXBiblp2YVdObC5wbmc~eC1vc3MtcHJvY2Vzcz1pbWFnZS9yZXNpemUsd18xOTIwLGhfMTkyMC9mb3JtYXQsd2VicC9xdWFsaXR5LHFfODAiLCJDb25kaXRpb24iOnsiRGF0ZUxlc3NUaGFuIjp7IkFXUzpFcG9jaFRpbWUiOjE3OTg3NjE2MDB9fX1dfQ__&Key-Pair-Id=K2HSFNDJXOU9YS&Signature=KPcrSgrJ4Hlsb7QwhAwQnBz1QjEU7zUHj6k0frx7Vw6FGKtCKgQFLbc-Avaah3x3SzsD14yQVPs4gVn9F5CptslUSgdF73oX00HJWdyH02C-QXy4YWVRxqQhRko4hC5J52D1jzD8OxFipOqxvRa9WiW2ibbhTKJiilm-lmawsMchWAM4-U8HYuPn0Ct1Iuo1q0TvYnaYJ2zsv7-HNzsvumOHc5QBUwO~mi-NNj7Go8tm4IFLiZPW1MWAs8kKE5PGCvEtmZooTO~z1wWjd1DQe5lhXw391MnduVxFjxdSADZbOCAI74B-dTkC5w-Prs1yXbngB9dB4rGIVcJNeZGAEQ__';
+const FEATURE_ANALYTICS =
+  'https://private-us-east-1.manuscdn.com/sessionFile/FHlfXyMgxU2Pt2Bnt6svnm/sandbox/luUcO3vrTWrHIzYBS4i6AR-img-5_1771075983000_na1fn_ZmVhdHVyZS1hbmFseXRpY3M.png?x-oss-process=image/resize,w_1920,h_1920/format,webp/quality,q_80&Expires=1798761600&Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly9wcml2YXRlLXVzLWVhc3QtMS5tYW51c2Nkbi5jb20vc2Vzc2lvbkZpbGUvRkhsZlh5TWd4VTJQdDJCbnQ2c3ZubS9zYW5kYm94L2x1VWNPM3ZyVFdySEl6WUJTNGk2QVItaW1nLTVfMTc3MTA3NTk4MzAwMF9uYTFmbl9abVZoZEhWeVpTMWhibUZzZVhScFkzTS5wbmc~eC1vc3MtcHJvY2Vzcz1pbWFnZS9yZXNpemUsd18xOTIwLGhfMTkyMC9mb3JtYXQsd2VicC9xdWFsaXR5LHFfODAiLCJDb25kaXRpb24iOnsiRGF0ZUxlc3NUaGFuIjp7IkFXUzpFcG9jaFRpbWUiOjE3OTg3NjE2MDB9fX1dfQ__&Key-Pair-Id=K2HSFNDJXOU9YS&Signature=Bp9deiyIQL0PC1TCDt7L-INU1HMMhgknbkr8kfvUML525syXfMsrpkYhsC5hcHzvIAm8PP0s5go6AxfoVAzsINW-y7ulbcc~Cj8Bf-nwd-vRI5OEBiquOGA1NIiqkUWDeAJkmehHovwUUlO5B3qxPOrkNuYnfSKU-cInNv7rr9aROrx8OkRva5vz0wm2GXU1yjDI60LNpXsRWc7BVRA0wSZkB-1N2itUe3RGanQpyintqmLJ7GVMNtR-TQbdoK5F0ru8zIrs51hSgVR-uYpSqcXTqerYHFMO8Kj8P4E0ZWEaATho2wm0rYuRyyZJ9YNWe7XzpGEk5zWFXcxGAG5sOw__';
+
+const features = [
+  { icon: Zap, title: 'Automated VAT & WHT', desc: 'Auto-calculate and generate reports for value-added and withholding taxes under the 2025 Nigeria Tax Act.' },
+  { icon: FileText, title: 'Direct Filing', desc: 'Streamlined process to submit directly to FIRS and LIRS portals with pre-filled forms.' },
+  { icon: BarChart3, title: 'Real-time Analytics', desc: 'Gain visibility into revenue, expenses, and tax obligations with interactive dashboards.' },
+  { icon: Clock, title: 'Smart Reminders', desc: 'Never miss a filing deadline with automated notifications and compliance calendar.' },
+  { icon: Globe, title: 'Multi-Currency', desc: 'Bill clients in Naira or USD with real-time CBN exchange rates and automatic conversion.' },
+  { icon: Calculator, title: 'Tax Calculators', desc: 'Built-in calculators for VAT, WHT, stamp duty, capital allowances, and property tax.' },
+  { icon: Shield, title: 'Bank-Grade Security', desc: 'End-to-end encryption, SOC 2 compliance, and role-based access controls.' },
+  { icon: Bell, title: 'Notifications', desc: 'Real-time alerts for invoice payments, tax deadlines, and account activity.' },
+  { icon: FileText, title: 'Professional Invoicing', desc: 'Send branded invoices in seconds with automatic payment tracking and reminders.' },
+];
+
+const stats = [
+  { value: '₦2.5B+', label: 'Processed Monthly' },
+  { value: '100%', label: 'Compliance Rate' },
+  { value: '5,000+', label: 'Active Businesses' },
+  { value: '24/7', label: 'Priority Support' },
+];
+
+const steps = [
+  { step: '01', title: 'Connect Your Accounts', desc: 'Link your bank accounts and import transactions automatically. We support all major Nigerian banks.' },
+  { step: '02', title: 'Categorize & Calculate', desc: 'Our ML engine auto-categorizes transactions and calculates your tax obligations in real-time.' },
+  { step: '03', title: 'File & Report', desc: 'Generate compliant reports and file directly to FIRS/LIRS. Download professional financial statements.' },
+];
+
+const testimonials = [
+  { quote: 'KOMPLEET saved us 20 hours per month on tax calculations. The automated VAT filing alone is worth the subscription.', name: 'Adebayo Ogunlesi', role: 'CEO, TechVentures Lagos' },
+  { quote: 'Finally, a platform that understands Nigerian tax law. The 2025 Tax Act compliance features are exactly what we needed.', name: 'Chioma Nwosu', role: 'CFO, GreenField Agritech' },
+  { quote: 'The invoicing system is professional and the multi-currency support makes billing international clients seamless.', name: 'Emeka Okafor', role: 'Founder, Okafor & Associates' },
+];
+
+const compliance = [
+  { name: 'FIRS', desc: 'Federal Inland Revenue Service' },
+  { name: 'LIRS', desc: 'Lagos Internal Revenue Service' },
+  { name: 'NDPR', desc: 'Nigeria Data Protection Regulation' },
+  { name: 'CAC', desc: 'Corporate Affairs Commission' },
+];
 
 export default function Home() {
   return (
-    <>
-      {/* Navigation - Solid Design */}
-      <nav className="fixed top-0 w-full z-50 solid-nav backdrop-blur-sm bg-white/95 dark:bg-dark-surface/95">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-primary-500 rounded-lg flex items-center justify-center">
-                <Wallet className="w-5 h-5 text-white" />
-              </div>
-              <span className="text-2xl font-bold tracking-tight text-light-text-primary dark:text-dark-text-primary uppercase">Kompleet</span>
-            </div>
-            <div className="hidden md:flex gap-8 items-center h-full">
-              <Link className="text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary hover:text-primary-500 transition-colors py-2" href="#features">Features</Link>
-              <Link className="text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary hover:text-primary-500 transition-colors py-2" href="#compliance">Compliance</Link>
-              <Link className="text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary hover:text-primary-500 transition-colors py-2" href="/pricing">Pricing</Link>
-              <Link className="text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary hover:text-primary-500 transition-colors py-2" href="#resources">Resources</Link>
-              <Link
-                href="/signup"
-                className="btn-primary"
-                aria-label="Get started with Kompleet"
-              >
-                Get Started
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+    <div className="min-h-screen bg-[rgb(var(--background))] text-[rgb(var(--text-primary))]">
+      <LandingNav />
 
-      {/* Hero Section */}
-      <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-white dark:bg-dark-background">
-        <div className="absolute inset-0 hero-glow -z-10"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-          <div className="text-center max-w-4xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary-50 dark:bg-primary-500/10 border border-primary-200 dark:border-primary-500/20 text-primary-600 dark:text-primary-400 text-xs font-bold uppercase tracking-widest mb-6">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-500 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary-500"></span>
-              </span>
-              Trusted by 5,000+ Nigerian SMEs
-            </div>
-            <h1 className="text-5xl lg:text-7xl font-extrabold tracking-tight mb-8 leading-[1.1] text-light-text-primary dark:text-dark-text-primary">
-              Tax Compliance &amp; Financial Management for <span className="text-primary-500">Bold SMEs.</span>
-            </h1>
-            <p className="text-lg lg:text-xl text-light-text-secondary dark:text-dark-text-secondary mb-10 max-w-2xl mx-auto leading-relaxed">
-              Automate your FIRS and LIRS filings, manage professional invoices, and gain real-time insights into your business growth—all in one secure platform.
-            </p>
-            {/* Fixed Button Alignment */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link
-                href="/signup"
-                className="btn-primary px-8 py-4 rounded-lg text-lg font-semibold inline-flex items-center gap-2 min-w-[200px] justify-center"
-                aria-label="Start for free with Kompleet"
-              >
-                Start for Free
-                <ArrowRight className="w-5 h-5" />
-              </Link>
-              <button
-                className="btn-ghost px-8 py-4 rounded-lg text-lg font-semibold border-2 border-light-border dark:border-dark-border hover:bg-light-surface dark:hover:bg-dark-surface min-w-[200px]"
-                aria-label="Watch Kompleet demo video"
-              >
-                Watch Demo
-              </button>
-            </div>
-          </div>
-
-          {/* Hero Dashboard Preview - Solid Card */}
-          <div className="mt-20 relative">
-            <div className="absolute -inset-1 bg-gradient-to-r from-primary-500/10 to-transparent rounded-xl"></div>
-            <div className="relative solid-card bg-light-surface dark:bg-dark-surface overflow-hidden shadow-card-hover p-6">
-              {/* Mock Dashboard UI */}
-              <div className="flex items-center gap-2 mb-6">
-                <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                <span className="ml-4 text-xs text-light-text-tertiary dark:text-dark-text-tertiary font-mono">dashboard.kompleet.app</span>
+      {/* ─── HERO ─── */}
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 hero-glow -z-10" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-8 md:pt-24 md:pb-16">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+            {/* Left: Copy */}
+            <AnimatedSection className="space-y-6">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[rgba(var(--primary-rgb),0.1)] border border-[rgba(var(--primary-rgb),0.2)] text-[rgb(var(--primary))] text-xs font-semibold tracking-wide uppercase">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[rgb(var(--primary))] opacity-75" />
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-[rgb(var(--primary))]" />
+                </span>
+                Trusted by 5,000+ Nigerian SMEs
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div className="solid-card bg-white dark:bg-dark-surface-hover p-4">
-                  <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary mb-1">Revenue (MTD)</p>
-                  <p className="text-xl font-bold text-light-text-primary dark:text-dark-text-primary">₦4,250,000</p>
-                  <p className="text-xs text-success-light dark:text-success-dark mt-1">+12.5% vs last month</p>
-                </div>
-                <div className="solid-card bg-white dark:bg-dark-surface-hover p-4">
-                  <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary mb-1">Tax Obligations</p>
-                  <p className="text-xl font-bold text-light-text-primary dark:text-dark-text-primary">₦637,500</p>
-                  <p className="text-xs text-primary-500 mt-1">VAT + WHT calculated</p>
-                </div>
-                <div className="solid-card bg-white dark:bg-dark-surface-hover p-4">
-                  <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary mb-1">Outstanding Invoices</p>
-                  <p className="text-xl font-bold text-light-text-primary dark:text-dark-text-primary">12</p>
-                  <p className="text-xs text-warning-light dark:text-warning-dark mt-1">3 overdue</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="solid-card bg-white dark:bg-dark-surface-hover p-4 h-32 flex flex-col">
-                  <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary mb-2">Cashflow Trend</p>
-                  <div className="flex-1 flex items-end gap-1">
-                    {[40, 65, 45, 80, 60, 90, 75, 95, 85, 70, 88, 92].map((h, i) => (
-                      <div key={i} className="flex-1 bg-primary-400/60 dark:bg-primary-500/40 rounded-t" style={{ height: `${h}%` }}></div>
-                    ))}
-                  </div>
-                </div>
-                <div className="solid-card bg-white dark:bg-dark-surface-hover p-4 h-32">
-                  <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary mb-2">Compliance Status</p>
-                  <div className="space-y-2 mt-2">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-light-text-secondary dark:text-dark-text-secondary">FIRS Filing</span>
-                      <span className="text-success-light dark:text-success-dark font-medium">Up to date</span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-light-text-secondary dark:text-dark-text-secondary">LIRS Filing</span>
-                      <span className="text-success-light dark:text-success-dark font-medium">Up to date</span>
-                    </div>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-light-text-secondary dark:text-dark-text-secondary">PAYE Returns</span>
-                      <span className="text-warning-light dark:text-warning-dark font-medium">Due in 5 days</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Partners */}
-      <section id="compliance" className="py-12 border-y border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="text-center text-xs font-bold uppercase tracking-widest text-light-text-tertiary dark:text-dark-text-tertiary mb-8">
-            Compliant with the leading institutions
-          </p>
-          <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-70 hover:opacity-100 transition-all">
-            <div className="flex items-center gap-2">
-              <Landmark className="w-8 h-8 text-light-text-primary dark:text-dark-text-primary" />
-              <span className="font-bold text-xl text-light-text-primary dark:text-dark-text-primary">FIRS</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Gavel className="w-8 h-8 text-light-text-primary dark:text-dark-text-primary" />
-              <span className="font-bold text-xl text-light-text-primary dark:text-dark-text-primary">LIRS</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Shield className="w-8 h-8 text-light-text-primary dark:text-dark-text-primary" />
-              <span className="font-bold text-xl text-light-text-primary dark:text-dark-text-primary">NDPR</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="w-8 h-8 text-light-text-primary dark:text-dark-text-primary" />
-              <span className="font-bold text-xl text-light-text-primary dark:text-dark-text-primary">CAC</span>
-            </div>
-          </div>
-        </div>
-      </section>
+              <h1 className="text-4xl md:text-5xl lg:text-[3.5rem] font-bold tracking-tight leading-[1.1]">
+                Tax Compliance &{' '}
+                <span className="text-[rgb(var(--primary))]">Financial Management</span>{' '}
+                Made Simple
+              </h1>
 
-      {/* Features Section - Fixed Grid Alignment */}
-      <section id="features" className="py-24 relative overflow-hidden bg-white dark:bg-dark-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-16 items-start mb-24">
-            <div>
-              <h2 className="text-3xl lg:text-5xl font-bold mb-6 leading-tight text-light-text-primary dark:text-dark-text-primary">
-                Effortless Compliance for the <span className="text-primary-500">Nigerian Market.</span>
-              </h2>
-              <p className="text-light-text-secondary dark:text-dark-text-secondary text-lg mb-8 leading-relaxed">
-                We&apos;ve built KOMPLEET from the ground up to handle the unique regulatory landscape of Nigeria. No more manual calculations or missed deadlines.
+              <p className="text-lg text-[rgb(var(--text-secondary))] max-w-lg leading-relaxed">
+                Automate FIRS and LIRS filings, send professional invoices, and gain real-time insights into your business growth — all in one secure platform.
               </p>
-              <ul className="space-y-4">
-                <li className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-primary-500 mt-1 flex-shrink-0" />
-                  <div>
-                    <h4 className="font-bold text-light-text-primary dark:text-dark-text-primary">Automated VAT &amp; WHT</h4>
-                    <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">Auto-calculate and generate reports for value-added and withholding taxes.</p>
-                  </div>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-primary-500 mt-1 flex-shrink-0" />
-                  <div>
-                    <h4 className="font-bold text-light-text-primary dark:text-dark-text-primary">Direct Filing Integration</h4>
-                    <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">Streamlined process to submit directly to FIRS and LIRS portals.</p>
-                  </div>
-                </li>
-                <li className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-primary-500 mt-1 flex-shrink-0" />
-                  <div>
-                    <h4 className="font-bold text-light-text-primary dark:text-dark-text-primary">Multi-Currency Invoicing</h4>
-                    <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">Bill clients in Naira or USD with real-time exchange rates.</p>
-                  </div>
-                </li>
-              </ul>
-            </div>
-            {/* Fixed Feature Cards Grid - Equal Heights */}
-            <div className="grid grid-cols-2 gap-6 auto-rows-fr">
-              <div className="solid-card p-6 rounded-xl flex flex-col items-center text-center hover-lift h-full">
-                <div className="w-12 h-12 bg-primary-100 dark:bg-primary-500/20 rounded-lg flex items-center justify-center mb-4 flex-shrink-0">
-                  <Receipt className="w-6 h-6 text-primary-500" />
-                </div>
-                <h3 className="font-bold mb-2 text-light-text-primary dark:text-dark-text-primary text-base">Smart Invoices</h3>
-                <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">Send professional invoices in seconds.</p>
-              </div>
-              <div className="solid-card p-6 rounded-xl flex flex-col items-center text-center hover-lift h-full">
-                <div className="w-12 h-12 bg-primary-100 dark:bg-primary-500/20 rounded-lg flex items-center justify-center mb-4 flex-shrink-0">
-                  <TrendingUp className="w-6 h-6 text-primary-500" />
-                </div>
-                <h3 className="font-bold mb-2 text-light-text-primary dark:text-dark-text-primary text-base">Cashflow Radar</h3>
-                <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">Real-time visibility into your runway.</p>
-              </div>
-              <div className="solid-card p-6 rounded-xl flex flex-col items-center text-center hover-lift h-full">
-                <div className="w-12 h-12 bg-primary-100 dark:bg-primary-500/20 rounded-lg flex items-center justify-center mb-4 flex-shrink-0">
-                  <ClipboardCheck className="w-6 h-6 text-primary-500" />
-                </div>
-                <h3 className="font-bold mb-2 text-light-text-primary dark:text-dark-text-primary text-base">Tax Reminders</h3>
-                <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">Never miss a filing deadline again.</p>
-              </div>
-              <div className="solid-card p-6 rounded-xl flex flex-col items-center text-center hover-lift h-full">
-                <div className="w-12 h-12 bg-primary-100 dark:bg-primary-500/20 rounded-lg flex items-center justify-center mb-4 flex-shrink-0">
-                  <Users className="w-6 h-6 text-primary-500" />
-                </div>
-                <h3 className="font-bold mb-2 text-light-text-primary dark:text-dark-text-primary text-base">Payroll Sync</h3>
-                <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">Automate PAYE and pensions.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Stats Section */}
-      <section className="py-20 bg-primary-50 dark:bg-primary-500/5">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="text-center">
-              <div className="text-4xl font-extrabold text-primary-500 mb-2">₦2.5B+</div>
-              <p className="text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary">Processed Monthly</p>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-extrabold text-primary-500 mb-2">100%</div>
-              <p className="text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary">Compliance Rate</p>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-extrabold text-primary-500 mb-2">5,000+</div>
-              <p className="text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary">Active Businesses</p>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl font-extrabold text-primary-500 mb-2">24/7</div>
-              <p className="text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary">Priority Support</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonial Section */}
-      <section className="py-24 bg-white dark:bg-dark-background">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="solid-card p-12 rounded-xl border-l-4 border-l-primary-500 relative">
-            <Quote className="w-16 h-16 text-primary-500/20 absolute top-8 right-8" />
-            <div className="max-w-3xl">
-              <p className="text-2xl font-medium mb-8 leading-relaxed text-light-text-primary dark:text-dark-text-primary italic">
-                &ldquo;KOMPLEET has completely transformed how we handle taxes at our agency. What used to take days of manual spreadsheet work now happens automatically. It&apos;s the first financial tool I&apos;ve used that actually understands the Nigerian context.&rdquo;
-              </p>
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full overflow-hidden bg-light-surface dark:bg-dark-surface">
-                  <Image
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuBv4rOlvEPPq2ML4L6RcNsp9Wk9_ReScHnS8vXDD0ackyu3SE5doR7kxm7jfsVq-_CjZ231ROTCHHxnIG2uY7NYxVXdbw0Ac2ekHzftongeQAhmCgGkJQf7vjUhV8eMyicHsPfI45eNsR3u7xOfUJZ7kP3otC2rp2WBfTK6PmRw_-KPRWwZAjCAXQ-gcq3WteKdU_upUmZh60f4XjwLx3iqPYu4qvt-JZ63jFzSwvTlSJywvfiEBGWYclV61LyPW7Y4Y_maRKpXkYIZ"
-                    alt="Chioma Adebayo"
-                    width={48}
-                    height={48}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div>
-                  <h5 className="font-bold text-light-text-primary dark:text-dark-text-primary">Chioma Adebayo</h5>
-                  <p className="text-sm text-primary-500">CEO, Lagos Creative Hub</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section - Fixed Button Alignment */}
-      <section className="py-24 bg-white dark:bg-dark-background">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-primary-500 rounded-2xl p-12 lg:p-20 text-center relative overflow-hidden">
-            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10"></div>
-            <div className="relative z-10">
-              <h2 className="text-4xl lg:text-5xl font-extrabold text-white mb-6 leading-tight">
-                Ready to automate your business finances?
-              </h2>
-              <p className="text-white/90 text-lg mb-10 max-w-2xl mx-auto">
-                Join the new era of financial management. Compliant, efficient, and built for growth.
-              </p>
-              {/* Fixed Button Alignment */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <div className="flex flex-col sm:flex-row gap-3 pt-2">
                 <Link
                   href="/signup"
-                  className="bg-white text-primary-500 hover:bg-gray-50 px-8 py-4 rounded-lg text-lg font-semibold inline-flex items-center justify-center min-w-[220px] transition-all"
-                  aria-label="Create a free Kompleet account"
+                  className="btn-primary btn-with-icon px-6 py-3 rounded-lg text-base font-semibold"
                 >
-                  Create Free Account
+                  Start for Free <ArrowRight className="w-4 h-4" />
                 </Link>
                 <Link
-                  href="/contact"
-                  className="border-2 border-white text-white hover:bg-white/10 px-8 py-4 rounded-lg text-lg font-semibold inline-flex items-center justify-center min-w-[220px] transition-all"
-                  aria-label="Contact Kompleet sales team"
+                  href="/login"
+                  className="btn-secondary px-6 py-3 rounded-lg text-base font-semibold text-center"
                 >
-                  Contact Sales
+                  Watch Demo
                 </Link>
               </div>
-            </div>
+
+              <div className="flex items-center gap-6 pt-4 text-sm text-[rgb(var(--text-secondary))]">
+                <span className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-[rgb(var(--primary))]" /> No credit card
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-[rgb(var(--primary))]" /> 14-day free trial
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-[rgb(var(--primary))]" /> Cancel anytime
+                </span>
+              </div>
+            </AnimatedSection>
+
+            {/* Right: Dashboard preview */}
+            <AnimatedSection direction="right" delay={0.3} className="relative">
+              <div className="rounded-xl overflow-hidden shadow-2xl border border-[rgb(var(--border))]">
+                <Image
+                  src={HERO_DASHBOARD}
+                  alt="KOMPLEET Dashboard"
+                  width={800}
+                  height={500}
+                  className="w-full h-auto"
+                  priority
+                />
+              </div>
+              <div className="absolute -bottom-4 -left-4 w-24 h-24 bg-[rgba(var(--primary-rgb),0.1)] rounded-full blur-2xl" />
+              <div className="absolute -top-4 -right-4 w-32 h-32 bg-[rgba(var(--primary-rgb),0.05)] rounded-full blur-3xl" />
+            </AnimatedSection>
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-light-surface dark:bg-dark-surface border-t border-light-border dark:border-dark-border py-16">
+      {/* ─── STATS BAR ─── */}
+      <section className="border-y border-[rgb(var(--border))] bg-[rgb(var(--surface))] py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-10 h-10 bg-primary-500 rounded-lg flex items-center justify-center">
-                  <Wallet className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-xl font-bold tracking-tight text-light-text-primary dark:text-dark-text-primary uppercase">Kompleet</span>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            {stats.map((stat) => (
+              <div key={stat.label} className="text-center">
+                <div className="text-2xl md:text-3xl font-bold text-[rgb(var(--primary))]">{stat.value}</div>
+                <div className="text-sm text-[rgb(var(--text-secondary))] mt-1">{stat.label}</div>
               </div>
-              <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-4">
-                The definitive financial operating system for modern Nigerian businesses.
-              </p>
-              <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
-                Registered and compliant with national standards.
-              </p>
-              <div className="flex gap-4 mt-6">
-                <a href="#" className="w-10 h-10 rounded-full bg-light-surface-hover dark:bg-dark-surface-hover flex items-center justify-center hover:bg-primary-500 hover:text-white transition-all" aria-label="Facebook">
-                  <Facebook className="w-[18px] h-[18px]" />
-                </a>
-                <a href="#" className="w-10 h-10 rounded-full bg-light-surface-hover dark:bg-dark-surface-hover flex items-center justify-center hover:bg-primary-500 hover:text-white transition-all" aria-label="Email">
-                  <Mail className="w-[18px] h-[18px]" />
-                </a>
-                <a href="#" className="w-10 h-10 rounded-full bg-light-surface-hover dark:bg-dark-surface-hover flex items-center justify-center hover:bg-primary-500 hover:text-white transition-all" aria-label="Share">
-                  <Share2 className="w-[18px] h-[18px]" />
-                </a>
-              </div>
-            </div>
-            <div>
-              <h4 className="font-bold text-light-text-primary dark:text-dark-text-primary mb-4 uppercase text-xs tracking-widest">Product</h4>
-              <ul className="space-y-3">
-                <li><Link href="#" className="text-sm text-light-text-secondary dark:text-dark-text-secondary hover:text-primary-500 transition-colors">Tax Automation</Link></li>
-                <li><Link href="#" className="text-sm text-light-text-secondary dark:text-dark-text-secondary hover:text-primary-500 transition-colors">Invoicing</Link></li>
-                <li><Link href="#" className="text-sm text-light-text-secondary dark:text-dark-text-secondary hover:text-primary-500 transition-colors">Cashflow Analytics</Link></li>
-                <li><Link href="#" className="text-sm text-light-text-secondary dark:text-dark-text-secondary hover:text-primary-500 transition-colors">Payroll</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold text-light-text-primary dark:text-dark-text-primary mb-4 uppercase text-xs tracking-widest">Company</h4>
-              <ul className="space-y-3">
-                <li><Link href="#" className="text-sm text-light-text-secondary dark:text-dark-text-secondary hover:text-primary-500 transition-colors">About Us</Link></li>
-                <li><Link href="#" className="text-sm text-light-text-secondary dark:text-dark-text-secondary hover:text-primary-500 transition-colors">Compliance</Link></li>
-                <li><Link href="#" className="text-sm text-light-text-secondary dark:text-dark-text-secondary hover:text-primary-500 transition-colors">Careers</Link></li>
-                <li><Link href="#" className="text-sm text-light-text-secondary dark:text-dark-text-secondary hover:text-primary-500 transition-colors">Press</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold text-light-text-primary dark:text-dark-text-primary mb-4 uppercase text-xs tracking-widest">Support</h4>
-              <ul className="space-y-3">
-                <li><Link href="#" className="text-sm text-light-text-secondary dark:text-dark-text-secondary hover:text-primary-500 transition-colors">Help Center</Link></li>
-                <li><Link href="/contact" className="text-sm text-light-text-secondary dark:text-dark-text-secondary hover:text-primary-500 transition-colors">Contact Us</Link></li>
-                <li><Link href="#" className="text-sm text-light-text-secondary dark:text-dark-text-secondary hover:text-primary-500 transition-colors">Developer API</Link></li>
-                <li><Link href="#" className="text-sm text-light-text-secondary dark:text-dark-text-secondary hover:text-primary-500 transition-colors">Legal</Link></li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-light-border dark:border-dark-border pt-8">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-              <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
-                © 2024 KOMPLEET Financial. All rights reserved.
-              </p>
-              <div className="flex gap-6">
-                <Link href="#" className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary hover:text-primary-500 transition-colors">Privacy Policy</Link>
-                <Link href="#" className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary hover:text-primary-500 transition-colors">Terms of Service</Link>
-                <Link href="#" className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary hover:text-primary-500 transition-colors">Cookie Policy</Link>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
-      </footer>
-    </>
+      </section>
+
+      {/* ─── FEATURES GRID ─── */}
+      <section id="features" className="py-20 md:py-28">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16 max-w-2xl mx-auto">
+            <p className="text-sm font-semibold text-[rgb(var(--primary))] uppercase tracking-wider mb-3">Features</p>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Everything Your Business Needs</h2>
+            <p className="text-[rgb(var(--text-secondary))] text-lg">
+              From automated tax calculations to professional invoicing — manage your entire financial workflow in one place.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {features.map((f, i) => {
+              const Icon = f.icon;
+              return (
+                <AnimatedSection key={i} delay={i * 0.05}>
+                  <div className="group p-6 rounded-lg border border-[rgb(var(--border))] hover:border-[rgba(var(--primary-rgb),0.4)] hover:shadow-sm transition-all duration-200 h-full">
+                    <div className="w-10 h-10 rounded-lg bg-[rgba(var(--primary-rgb),0.1)] flex items-center justify-center mb-4 group-hover:bg-[rgba(var(--primary-rgb),0.15)] transition-colors">
+                      <Icon className="w-5 h-5 text-[rgb(var(--primary))]" />
+                    </div>
+                    <h3 className="font-semibold text-base mb-2">{f.title}</h3>
+                    <p className="text-sm text-[rgb(var(--text-secondary))] leading-relaxed">{f.desc}</p>
+                  </div>
+                </AnimatedSection>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── FEATURE SHOWCASE (alternating) ─── */}
+      <section className="py-20 md:py-28 bg-[rgb(var(--surface))]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-24">
+          {/* Tax Compliance */}
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <AnimatedSection direction="left" className="space-y-5">
+              <p className="text-sm font-semibold text-[rgb(var(--primary))] uppercase tracking-wider">Tax Compliance</p>
+              <h3 className="text-3xl font-bold">Automated Tax Filing for Nigerian Businesses</h3>
+              <p className="text-[rgb(var(--text-secondary))] leading-relaxed">
+                KOMPLEET automatically calculates your VAT, WHT, and CIT obligations based on the 2025 Nigeria Tax Act. Generate FIRS-compliant reports and file directly from the platform.
+              </p>
+              <ul className="space-y-3">
+                {['Auto-calculate VAT at 7.5%', 'Withholding tax deduction tracking', 'FIRS & LIRS direct filing integration', 'Audit-ready compliance reports'].map((item) => (
+                  <li key={item} className="flex items-center gap-2.5 text-sm">
+                    <CheckCircle2 className="w-4 h-4 text-[rgb(var(--primary))] shrink-0" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <Link href="/signup" className="btn-secondary btn-with-icon px-4 py-2 rounded-lg text-sm font-semibold inline-flex mt-2">
+                Learn More <ChevronRight className="w-4 h-4" />
+              </Link>
+            </AnimatedSection>
+            <AnimatedSection direction="right">
+              <Image src={FEATURE_TAX} alt="Tax compliance" width={500} height={400} className="w-full max-w-md mx-auto" />
+            </AnimatedSection>
+          </div>
+
+          {/* Invoicing */}
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <AnimatedSection direction="left" className="order-2 lg:order-1">
+              <Image src={FEATURE_INVOICE} alt="Professional invoicing" width={500} height={400} className="w-full max-w-md mx-auto" />
+            </AnimatedSection>
+            <AnimatedSection direction="right" className="space-y-5 order-1 lg:order-2">
+              <p className="text-sm font-semibold text-[rgb(var(--primary))] uppercase tracking-wider">Invoicing</p>
+              <h3 className="text-3xl font-bold">Professional Invoices in Seconds</h3>
+              <p className="text-[rgb(var(--text-secondary))] leading-relaxed">
+                Create, send, and track branded invoices with automatic payment reminders. Support for Naira and USD with real-time exchange rates.
+              </p>
+              <ul className="space-y-3">
+                {['Branded invoice templates', 'Automatic payment tracking', 'Multi-currency support (NGN/USD)', 'Recurring invoice automation'].map((item) => (
+                  <li key={item} className="flex items-center gap-2.5 text-sm">
+                    <CheckCircle2 className="w-4 h-4 text-[rgb(var(--primary))] shrink-0" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <Link href="/signup" className="btn-secondary btn-with-icon px-4 py-2 rounded-lg text-sm font-semibold inline-flex mt-2">
+                Learn More <ChevronRight className="w-4 h-4" />
+              </Link>
+            </AnimatedSection>
+          </div>
+
+          {/* Analytics */}
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <AnimatedSection direction="left" className="space-y-5">
+              <p className="text-sm font-semibold text-[rgb(var(--primary))] uppercase tracking-wider">Analytics</p>
+              <h3 className="text-3xl font-bold">Real-Time Financial Insights</h3>
+              <p className="text-[rgb(var(--text-secondary))] leading-relaxed">
+                Interactive dashboards give you instant visibility into your business performance. Track revenue, expenses, and profitability trends with year-over-year comparisons.
+              </p>
+              <ul className="space-y-3">
+                {['Revenue & expense tracking', 'Profit & loss statements', 'Year-over-year comparison', 'Exportable financial reports'].map((item) => (
+                  <li key={item} className="flex items-center gap-2.5 text-sm">
+                    <CheckCircle2 className="w-4 h-4 text-[rgb(var(--primary))] shrink-0" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <Link href="/signup" className="btn-secondary btn-with-icon px-4 py-2 rounded-lg text-sm font-semibold inline-flex mt-2">
+                Learn More <ChevronRight className="w-4 h-4" />
+              </Link>
+            </AnimatedSection>
+            <AnimatedSection direction="right">
+              <Image src={FEATURE_ANALYTICS} alt="Financial analytics" width={500} height={400} className="w-full max-w-md mx-auto" />
+            </AnimatedSection>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── HOW IT WORKS ─── */}
+      <section id="how-it-works" className="py-20 md:py-28">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16 max-w-2xl mx-auto">
+            <p className="text-sm font-semibold text-[rgb(var(--primary))] uppercase tracking-wider mb-3">How It Works</p>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Get Started in Minutes</h2>
+            <p className="text-[rgb(var(--text-secondary))] text-lg">Three simple steps to automate your financial management.</p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {steps.map((s, i) => (
+              <AnimatedSection key={i} delay={i * 0.15}>
+                <div className="relative p-8 rounded-lg border border-[rgb(var(--border))] solid-card h-full">
+                  <span className="text-5xl font-bold text-[rgba(var(--primary-rgb),0.1)] absolute top-4 right-6">{s.step}</span>
+                  <div className="w-10 h-10 rounded-full bg-[rgb(var(--primary))] text-white flex items-center justify-center text-sm font-bold mb-5">
+                    {i + 1}
+                  </div>
+                  <h3 className="font-semibold text-lg mb-2">{s.title}</h3>
+                  <p className="text-sm text-[rgb(var(--text-secondary))] leading-relaxed">{s.desc}</p>
+                </div>
+              </AnimatedSection>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── COMPLIANCE ─── */}
+      <section id="compliance" className="py-20 md:py-28 bg-[rgb(var(--surface))]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12 max-w-2xl mx-auto">
+            <p className="text-sm font-semibold text-[rgb(var(--primary))] uppercase tracking-wider mb-3">Compliance</p>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Built for Nigerian Regulatory Standards</h2>
+            <p className="text-[rgb(var(--text-secondary))] text-lg">
+              KOMPLEET is designed from the ground up to comply with Nigerian tax laws and financial regulations.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {compliance.map((org) => (
+              <div key={org.name} className="flex flex-col items-center justify-center p-6 rounded-lg border border-[rgb(var(--border))] solid-card hover:border-[rgba(var(--primary-rgb),0.4)] transition-colors text-center">
+                <span className="text-xl font-bold text-[rgb(var(--primary))] mb-1">{org.name}</span>
+                <span className="text-xs text-[rgb(var(--text-secondary))]">{org.desc}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── TESTIMONIALS ─── */}
+      <section className="py-20 md:py-28">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16 max-w-2xl mx-auto">
+            <p className="text-sm font-semibold text-[rgb(var(--primary))] uppercase tracking-wider mb-3">Testimonials</p>
+            <h2 className="text-3xl md:text-4xl font-bold">Trusted by Business Owners</h2>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {testimonials.map((t, i) => (
+              <AnimatedSection key={i} delay={i * 0.1}>
+                <div className="p-6 rounded-lg border border-[rgb(var(--border))] solid-card h-full">
+                  <div className="flex gap-1 mb-4">
+                    {[...Array(5)].map((_, j) => (
+                      <svg key={j} className="w-4 h-4 text-yellow-500 fill-current" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                      </svg>
+                    ))}
+                  </div>
+                  <p className="text-sm text-[rgb(var(--text-secondary))] leading-relaxed mb-4">&ldquo;{t.quote}&rdquo;</p>
+                  <div>
+                    <p className="font-semibold text-sm">{t.name}</p>
+                    <p className="text-xs text-[rgb(var(--text-secondary))]">{t.role}</p>
+                  </div>
+                </div>
+              </AnimatedSection>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── CTA ─── */}
+      <section className="py-20 md:py-28 bg-[rgb(var(--primary))] text-white">
+        <div className="max-w-3xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Automate Your Business Finances?</h2>
+          <p className="text-white/80 text-lg mb-8 max-w-xl mx-auto">
+            Join thousands of Nigerian businesses already saving time and staying compliant with KOMPLEET.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link
+              href="/signup"
+              className="btn-white btn-with-icon px-6 py-3 rounded-lg text-base font-semibold"
+            >
+              Create Free Account <ArrowRight className="w-4 h-4" />
+            </Link>
+            <Link
+              href="/contact"
+              className="border-2 border-white/30 text-white hover:bg-white/10 px-6 py-3 rounded-lg text-base font-semibold text-center transition-all"
+            >
+              Contact Sales
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <LandingFooter />
+    </div>
   );
 }

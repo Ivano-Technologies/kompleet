@@ -1,8 +1,10 @@
+
 'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { ArrowLeft, UploadCloud, File as FileIcon, X, Loader2 } from 'lucide-react';
 
 interface UploadResult {
   success: boolean;
@@ -23,14 +25,12 @@ export default function TransactionUploadPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
-      // Validate file type
       const fileName = selectedFile.name.toLowerCase();
       if (!fileName.endsWith('.csv') && !fileName.endsWith('.xlsx') && !fileName.endsWith('.xls') && !fileName.endsWith('.pdf')) {
         setError('Please select a CSV, Excel, or PDF file');
         return;
       }
       
-      // Validate file size (max 10MB)
       if (selectedFile.size > 10 * 1024 * 1024) {
         setError('File size must be less than 10MB');
         return;
@@ -67,7 +67,6 @@ export default function TransactionUploadPage() {
       if (response.ok) {
         setResult(data);
         setFile(null);
-        // Reset file input
         const fileInput = document.getElementById('file-input') as HTMLInputElement;
         if (fileInput) fileInput.value = '';
       } else {
@@ -111,31 +110,34 @@ export default function TransactionUploadPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      {/* Header */}
       <div className="mb-8">
         <Link
           href="/transactions"
-          className="text-green-600 hover:text-green-700 font-medium mb-4 inline-block"
+          className="text-primary-600 hover:text-primary-700 font-medium mb-4 inline-flex items-center"
         >
-          ← Back to Transactions
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to Transactions
         </Link>
-        <h1 className="text-3xl font-bold text-gray-900">Upload Transactions</h1>
-        <p className="text-gray-600 mt-2">
-          Import transactions from your bank statement (CSV, Excel, or PDF)
-        </p>
+        <div className="flex items-center gap-4">
+            <UploadCloud className="w-8 h-8 text-light-text-primary dark:text-dark-text-primary" />
+            <div>
+                <h1 className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">Upload Transactions</h1>
+                <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
+                  Import transactions from your bank statement (CSV, Excel, or PDF)
+                </p>
+            </div>
+        </div>
       </div>
 
-      {/* Upload Form */}
-      <div className="bg-white rounded-lg p-6 mb-6">
-        {/* Bank Type Selection */}
+      <div className="bg-light-surface dark:bg-dark-surface rounded-xl p-5 border border-light-border dark:border-dark-border mb-6">
         <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2">
             Select Bank
           </label>
           <select
             value={bankType}
             onChange={(e) => setBankType(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-light-border dark:border-dark-border rounded-lg bg-light-background dark:bg-dark-background focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           >
             <option value="auto">Auto-detect</option>
             <option value="gtbank">GTBank</option>
@@ -145,16 +147,15 @@ export default function TransactionUploadPage() {
             <option value="uba">UBA</option>
             <option value="generic">Generic CSV</option>
           </select>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-light-text-tertiary dark:text-dark-text-tertiary mt-1">
             Auto-detect will try to identify your bank from the file format
           </p>
         </div>
 
-        {/* File Upload Area */}
         <div
           onDragOver={handleDragOver}
           onDrop={handleDrop}
-          className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-green-500 transition-colors"
+          className="border-2 border-dashed border-light-border dark:border-dark-border rounded-xl p-8 text-center hover:border-primary-500 transition-colors"
         >
           <input
             id="file-input"
@@ -167,13 +168,11 @@ export default function TransactionUploadPage() {
           {file ? (
             <div className="space-y-4">
               <div className="flex items-center justify-center">
-                <svg className="w-12 h-12 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
+                <FileIcon className="w-12 h-12 text-primary-600" />
               </div>
               <div>
-                <p className="text-lg font-medium text-gray-900">{file.name}</p>
-                <p className="text-sm text-gray-500">
+                <p className="text-lg font-medium text-light-text-primary dark:text-dark-text-primary">{file.name}</p>
+                <p className="text-sm text-light-text-tertiary dark:text-dark-text-tertiary">
                   {(file.size / 1024).toFixed(2)} KB
                 </p>
               </div>
@@ -183,73 +182,69 @@ export default function TransactionUploadPage() {
                   const fileInput = document.getElementById('file-input') as HTMLInputElement;
                   if (fileInput) fileInput.value = '';
                 }}
-                className="text-red-600 hover:text-red-700 text-sm font-medium"
+                className="text-red-600 hover:text-red-700 dark:text-red-500 dark:hover:text-red-400 text-sm font-medium inline-flex items-center"
               >
+                <X className="w-4 h-4 mr-1" />
                 Remove file
               </button>
             </div>
           ) : (
             <div className="space-y-4">
               <div className="flex items-center justify-center">
-                <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                </svg>
+                <UploadCloud className="w-12 h-12 text-light-text-tertiary dark:text-dark-text-tertiary" />
               </div>
               <div>
                 <button
                   onClick={() => document.getElementById('file-input')?.click()}
-                  className="text-green-600 hover:text-green-700 font-medium"
+                  className="text-primary-600 hover:text-primary-700 font-medium"
                 >
                   Click to upload
                 </button>
-                <span className="text-gray-600"> or drag and drop</span>
+                <span className="text-light-text-secondary dark:text-dark-text-secondary"> or drag and drop</span>
               </div>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-light-text-tertiary dark:text-dark-text-tertiary">
                 CSV, Excel, or PDF files up to 10MB
               </p>
             </div>
           )}
         </div>
 
-        {/* Error Message */}
         {error && (
-          <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-800 text-sm">{error}</p>
+          <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/30 rounded-lg">
+            <p className="text-red-800 dark:text-red-400 text-sm">{error}</p>
           </div>
         )}
 
-        {/* Upload Button */}
         <div className="mt-6">
           <button
             onClick={handleUpload}
             disabled={!file || uploading}
-            className="w-full bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full btn-primary"
           >
-            {uploading ? 'Uploading...' : 'Upload Transactions'}
+            {uploading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Uploading...</> : 'Upload Transactions'}
           </button>
         </div>
       </div>
 
-      {/* Upload Result */}
       {result && (
-        <div className={`rounded-lg p-6 ${result.success ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
-          <h3 className={`text-lg font-semibold mb-4 ${result.success ? 'text-green-900' : 'text-red-900'}`}>
+        <div className={`rounded-xl p-6 ${result.success ? 'bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-900/30' : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/30'}`}>
+          <h3 className={`text-lg font-semibold mb-4 ${result.success ? 'text-primary-900 dark:text-primary-300' : 'text-red-900 dark:text-red-300'}`}>
             {result.success ? '✅ Upload Complete' : '❌ Upload Failed'}
           </h3>
           
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-700">Imported:</span>
-              <span className="font-medium text-green-600">{result.imported} transactions</span>
+              <span className="text-light-text-secondary dark:text-dark-text-secondary">Imported:</span>
+              <span className="font-medium text-primary-600 dark:text-primary-400">{result.imported} transactions</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-700">Duplicates skipped:</span>
-              <span className="font-medium text-gray-600">{result.duplicates}</span>
+              <span className="text-light-text-secondary dark:text-dark-text-secondary">Duplicates skipped:</span>
+              <span className="font-medium text-light-text-tertiary dark:text-dark-text-tertiary">{result.duplicates}</span>
             </div>
             {result.errors > 0 && (
               <div className="flex justify-between">
-                <span className="text-gray-700">Errors:</span>
-                <span className="font-medium text-red-600">{result.errors}</span>
+                <span className="text-light-text-secondary dark:text-dark-text-secondary">Errors:</span>
+                <span className="font-medium text-red-600 dark:text-red-400">{result.errors}</span>
               </div>
             )}
           </div>
@@ -258,21 +253,21 @@ export default function TransactionUploadPage() {
             <div className="mt-6 space-y-3">
               <button
                 onClick={() => router.push('/transactions')}
-                className="w-full bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium"
+                className="w-full btn-primary"
               >
                 View Transactions
               </button>
               <div className="flex gap-3">
                 <button
                   onClick={() => router.push('/transactions/review')}
-                  className="flex-1 bg-white text-green-600 border border-green-300 px-4 py-2 rounded-lg hover:bg-green-50 transition-colors text-sm font-medium"
+                  className="flex-1 btn-secondary"
                 >
                   Review Uncategorized
                 </button>
                 {result.duplicates > 0 && (
                   <button
                     onClick={() => router.push('/transactions/duplicates')}
-                    className="flex-1 bg-white text-orange-600 border border-orange-300 px-4 py-2 rounded-lg hover:bg-orange-50 transition-colors text-sm font-medium"
+                    className="flex-1 bg-light-surface dark:bg-dark-surface text-orange-600 dark:text-orange-400 border border-orange-300 dark:border-orange-800 px-4 py-2 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors text-sm font-medium"
                   >
                     Resolve Duplicates ({result.duplicates})
                   </button>
@@ -283,12 +278,11 @@ export default function TransactionUploadPage() {
         </div>
       )}
 
-      {/* Instructions */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-blue-900 mb-3">
+      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-900/30 rounded-xl p-6 mt-6">
+        <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-300 mb-3">
           📋 How to prepare your bank statement
         </h3>
-        <ol className="list-decimal list-inside space-y-2 text-sm text-blue-800">
+        <ol className="list-decimal list-inside space-y-2 text-sm text-blue-800 dark:text-blue-400">
           <li>Download your bank statement in CSV, Excel, or PDF format</li>
           <li>For CSV/Excel: Make sure it includes Date, Description, Amount columns</li>
           <li>For PDF: Upload the statement as-is — AI will extract transactions automatically</li>
@@ -296,9 +290,9 @@ export default function TransactionUploadPage() {
           <li>Upload the file and we'll automatically categorize your transactions</li>
         </ol>
 
-        <div className="mt-4 pt-4 border-t border-blue-200">
-          <p className="text-sm text-blue-800 font-medium mb-2">Supported formats:</p>
-          <ul className="list-disc list-inside space-y-1 text-sm text-blue-700">
+        <div className="mt-4 pt-4 border-t border-blue-200 dark:border-blue-900/50">
+          <p className="text-sm text-blue-800 dark:text-blue-400 font-medium mb-2">Supported formats:</p>
+          <ul className="list-disc list-inside space-y-1 text-sm text-blue-700 dark:text-blue-500">
             <li>PDF bank statements (AI-powered extraction)</li>
             <li>GTBank CSV/Excel export</li>
             <li>Zenith Bank CSV/Excel export</li>

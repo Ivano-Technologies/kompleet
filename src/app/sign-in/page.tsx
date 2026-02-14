@@ -38,12 +38,12 @@ export default function SignInPage() {
       </Link>
 
       {/* Sign-In Card */}
-      <div className="w-full max-w-md bg-white/5 border border-[#0a6746]/20 rounded-2xl p-8">
+      <div className="w-full max-w-md bg-light-surface dark:bg-dark-surface/5 border border-[#0a6746]/20 rounded-2xl p-8">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-white mb-2">
             Welcome back
           </h1>
-          <p className="text-gray-400">
+          <p className="text-light-text-tertiary dark:text-dark-text-tertiary">
             Sign in to your account
           </p>
         </div>
@@ -115,7 +115,7 @@ export default function SignInPage() {
         />
 
         {/* Footer Text */}
-        <p className="text-center text-sm text-gray-400 mt-8">
+        <p className="text-center text-sm text-light-text-tertiary dark:text-dark-text-tertiary mt-8">
           Professional tax compliance platform for Nigerian businesses
         </p>
       </div>
@@ -123,7 +123,7 @@ export default function SignInPage() {
       {/* Back to Home Link */}
       <Link
         href="/"
-        className="mt-6 text-sm text-gray-400 hover:text-gray-300 transition-colors duration-200"
+        className="mt-6 text-sm text-light-text-tertiary dark:text-dark-text-tertiary hover:text-light-text-tertiary dark:text-dark-text-tertiary transition-colors duration-200"
       >
         ← Back to home
       </Link>

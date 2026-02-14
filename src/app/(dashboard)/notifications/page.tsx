@@ -1,345 +1,182 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Bell, Calendar, Clock, CheckCircle, AlertCircle, Settings } from 'lucide-react';
+import { Bell, Calendar, Clock, CheckCircle, AlertCircle, Settings, Loader2 } from 'lucide-react';
+import Link from 'next/link';
 
 interface Deadline {
-  id: string;
-  form_type: string;
-  tax_year: number;
-  deadline_date: string;
-  description: string;
-  status: 'upcoming' | 'due_soon' | 'overdue';
-  days_remaining: number;
+  id: string; form_type: string; tax_year: number; deadline_date: string;
+  description: string; status: 'upcoming' | 'due_soon' | 'overdue'; days_remaining: number;
 }
-
-interface Reminder {
-  id: string;
-  deadline_id: string;
-  reminder_date: string;
-  sent: boolean;
-  email_sent_at?: string;
-}
+interface Reminder { id: string; deadline_id: string; reminder_date: string; sent: boolean; email_sent_at?: string; }
 
 export default function NotificationsPage() {
   const [deadlines, setDeadlines] = useState<Deadline[]>([]);
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [loading, setLoading] = useState(true);
-  const [preferences, setPreferences] = useState({
-    enabled: true,
-    email: true,
-    inApp: true
-  });
+  const [preferences, setPreferences] = useState({ enabled: true, email: true, inApp: true });
 
-  useEffect(() => {
-    fetchNotifications();
-  }, []);
+  useEffect(() => { fetchNotifications(); }, []);
 
   const fetchNotifications = async () => {
     setLoading(true);
     try {
-      // Fetch upcoming deadlines
-      const deadlinesResponse = await fetch('/api/deadlines/upcoming');
-      const deadlinesData = await deadlinesResponse.json();
-      
-      if (deadlinesData.success) {
-        setDeadlines(deadlinesData.deadlines);
-      }
-
-      // Fetch reminder history
-      const remindersResponse = await fetch('/api/reminders/history');
-      const remindersData = await remindersResponse.json();
-      
-      if (remindersData.success) {
-        setReminders(remindersData.reminders);
-      }
-
-      // Fetch preferences
-      const prefsResponse = await fetch('/api/notifications/preferences');
-      const prefsData = await prefsResponse.json();
-      
-      if (prefsData.success) {
-        setPreferences(prefsData.preferences);
-      }
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
-    } finally {
-      setLoading(false);
-    }
+      const [dRes, rRes, pRes] = await Promise.all([
+        fetch('/api/deadlines/upcoming'), fetch('/api/reminders/history'), fetch('/api/notifications/preferences'),
+      ]);
+      const [dData, rData, pData] = await Promise.all([dRes.json(), rRes.json(), pRes.json()]);
+      if (dData.success) setDeadlines(dData.deadlines);
+      if (rData.success) setReminders(rData.reminders);
+      if (pData.success) setPreferences(pData.preferences);
+    } catch (error) { console.error('Error fetching notifications:', error); }
+    finally { setLoading(false); }
   };
 
   const togglePreference = async (key: 'enabled' | 'email' | 'inApp') => {
-    const newPreferences = {
-      ...preferences,
-      [key]: !preferences[key]
-    };
-    
-    setPreferences(newPreferences);
-
-    try {
-      await fetch('/api/notifications/preferences', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newPreferences)
-      });
-    } catch (error) {
-      console.error('Error updating preferences:', error);
-    }
+    const updated = { ...preferences, [key]: !preferences[key] };
+    setPreferences(updated);
+    try { await fetch('/api/notifications/preferences', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(updated) }); }
+    catch (error) { console.error('Error updating preferences:', error); }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'upcoming':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'due_soon':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'overdue':
-        return 'bg-red-100 text-red-800 border-red-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
+  const statusStyle: Record<string, { bg: string; icon: typeof Clock; iconColor: string }> = {
+    upcoming: { bg: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800', icon: Clock, iconColor: 'text-blue-500' },
+    due_soon: { bg: 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800', icon: AlertCircle, iconColor: 'text-yellow-500' },
+    overdue: { bg: 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800', icon: AlertCircle, iconColor: 'text-red-500' },
   };
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'upcoming':
-        return <Clock className="w-5 h-5 text-blue-600" />;
-      case 'due_soon':
-        return <AlertCircle className="w-5 h-5 text-yellow-600" />;
-      case 'overdue':
-        return <AlertCircle className="w-5 h-5 text-red-600" />;
-      default:
-        return <Clock className="w-5 h-5 text-gray-600" />;
-    }
+  const formNames: Record<string, string> = {
+    PIT: 'Personal Income Tax', CIT: 'Company Income Tax',
+    VAT_Q1: 'VAT Return - Q1', VAT_Q2: 'VAT Return - Q2', VAT_Q3: 'VAT Return - Q3', VAT_Q4: 'VAT Return - Q4',
   };
 
-  const getFormTypeName = (formType: string) => {
-    const names: Record<string, string> = {
-      PIT: 'Personal Income Tax (PIT)',
-      CIT: 'Company Income Tax (CIT)',
-      VAT_Q1: 'VAT Return - Q1',
-      VAT_Q2: 'VAT Return - Q2',
-      VAT_Q3: 'VAT Return - Q3',
-      VAT_Q4: 'VAT Return - Q4'
-    };
-    return names[formType] || formType;
-  };
+  const Toggle = ({ on, disabled, onToggle }: { on: boolean; disabled?: boolean; onToggle: () => void }) => (
+    <button onClick={onToggle} disabled={disabled}
+      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${on && !disabled ? 'bg-primary-500' : 'bg-light-border dark:bg-dark-border dark:bg-light-text-tertiary dark:bg-dark-text-tertiary'} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
+      <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${on && !disabled ? 'translate-x-[18px]' : 'translate-x-[3px]'}`} />
+    </button>
+  );
 
   return (
     <div className="space-y-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Notifications</h1>
-              <p className="text-gray-600">Stay on top of your tax filing deadlines</p>
-            </div>
-            <button
-              onClick={() => {/* Open settings modal */}}
-              className="px-4 py-2 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
-            >
-              <Settings className="w-4 h-4" />
-              Settings
-            </button>
+      {/* Header */}
+      <div className="flex items-start justify-between">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <Bell className="w-5 h-5 text-primary-500" />
+            <h1 className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">Notifications</h1>
           </div>
+          <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">Stay on top of your tax filing deadlines</p>
+        </div>
+        <Link href="/settings" className="btn-secondary text-xs px-3 py-1.5 flex items-center gap-1"><Settings className="w-3 h-3" /> Settings</Link>
+      </div>
+
+      {/* Preferences */}
+      <div className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
+        <h2 className="text-sm font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">Notification Preferences</h2>
+        <div className="space-y-3">
+          {([
+            { key: 'enabled' as const, title: 'Enable Notifications', sub: 'Receive deadline reminders', noDisable: true },
+            { key: 'email' as const, title: 'Email Notifications', sub: 'Receive reminders via email' },
+            { key: 'inApp' as const, title: 'In-App Notifications', sub: 'Show notifications in the app' },
+          ]).map((p) => (
+            <div key={p.key} className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-medium text-light-text-primary dark:text-dark-text-primary">{p.title}</h3>
+                <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">{p.sub}</p>
+              </div>
+              <Toggle on={preferences[p.key]} disabled={!p.noDisable && !preferences.enabled} onToggle={() => togglePreference(p.key)} />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Upcoming Deadlines */}
+      <div className="rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface overflow-hidden">
+        <div className="p-5 border-b border-light-border dark:border-dark-border">
+          <div className="flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-primary-500" />
+            <h2 className="text-sm font-semibold text-light-text-primary dark:text-dark-text-primary">Upcoming Deadlines</h2>
+          </div>
+          <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary mt-0.5">{deadlines.length} deadline{deadlines.length !== 1 ? 's' : ''} in the next 30 days</p>
         </div>
 
-        {/* Notification Preferences */}
-        <div className="bg-white rounded-lg p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Notification Preferences</h2>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-medium text-gray-900">Enable Notifications</h3>
-                <p className="text-sm text-gray-600">Receive deadline reminders</p>
-              </div>
-              <button
-                onClick={() => togglePreference('enabled')}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  preferences.enabled ? 'bg-emerald-600' : 'bg-gray-300'
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    preferences.enabled ? 'translate-x-6' : 'translate-x-1'
-                  }`}
-                />
-              </button>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-medium text-gray-900">Email Notifications</h3>
-                <p className="text-sm text-gray-600">Receive reminders via email</p>
-              </div>
-              <button
-                onClick={() => togglePreference('email')}
-                disabled={!preferences.enabled}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  preferences.email && preferences.enabled ? 'bg-emerald-600' : 'bg-gray-300'
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    preferences.email && preferences.enabled ? 'translate-x-6' : 'translate-x-1'
-                  }`}
-                />
-              </button>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-medium text-gray-900">In-App Notifications</h3>
-                <p className="text-sm text-gray-600">Show notifications in the app</p>
-              </div>
-              <button
-                onClick={() => togglePreference('inApp')}
-                disabled={!preferences.enabled}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  preferences.inApp && preferences.enabled ? 'bg-emerald-600' : 'bg-gray-300'
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    preferences.inApp && preferences.enabled ? 'translate-x-6' : 'translate-x-1'
-                  }`}
-                />
-              </button>
-            </div>
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-5 h-5 animate-spin text-primary-500" />
+            <span className="ml-2 text-sm text-light-text-secondary dark:text-dark-text-secondary">Loading...</span>
           </div>
-        </div>
-
-        {/* Upcoming Deadlines */}
-        <div className="bg-white rounded-lg mb-6">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-emerald-600" />
-              Upcoming Deadlines
-            </h2>
-            <p className="text-sm text-gray-600 mt-1">
-              {deadlines.length} {deadlines.length === 1 ? 'deadline' : 'deadlines'} in the next 30 days
-            </p>
+        ) : deadlines.length === 0 ? (
+          <div className="py-12 text-center">
+            <CheckCircle className="w-8 h-8 text-primary-300 mx-auto mb-2" />
+            <h3 className="text-sm font-medium text-light-text-primary dark:text-dark-text-primary mb-0.5">All caught up!</h3>
+            <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">No upcoming deadlines in the next 30 days</p>
           </div>
-
-          {loading ? (
-            <div className="p-12 text-center">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
-              <p className="mt-4 text-gray-600">Loading deadlines...</p>
-            </div>
-          ) : deadlines.length === 0 ? (
-            <div className="p-12 text-center">
-              <CheckCircle className="w-16 h-16 text-emerald-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">All caught up!</h3>
-              <p className="text-gray-600">No upcoming deadlines in the next 30 days</p>
-            </div>
-          ) : (
-            <div className="divide-y divide-gray-200">
-              {deadlines.map((deadline) => (
-                <div key={deadline.id} className="p-6 hover:bg-gray-50 transition-colors">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-4 flex-1">
-                      <div className={`p-3 rounded-lg border-2 ${getStatusColor(deadline.status)}`}>
-                        {getStatusIcon(deadline.status)}
+        ) : (
+          <div className="divide-y divide-light-border dark:divide-dark-border">
+            {deadlines.map((d) => {
+              const s = statusStyle[d.status] || statusStyle.upcoming;
+              const Icon = s.icon;
+              return (
+                <div key={d.id} className="p-4 hover:bg-light-background/50 dark:hover:bg-dark-background/50 transition-colors">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-3 flex-1 min-w-0">
+                      <div className={`p-2 rounded-lg border ${s.bg} shrink-0`}>
+                        <Icon className={`w-4 h-4 ${s.iconColor}`} />
                       </div>
-                      
-                      <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                          {getFormTypeName(deadline.form_type)}
-                        </h3>
-                        <p className="text-sm text-gray-600 mb-2">{deadline.description}</p>
-                        
-                        <div className="flex items-center gap-4 text-sm">
-                          <span className="flex items-center gap-1 text-gray-600">
-                            <Calendar className="w-4 h-4" />
-                            {new Date(deadline.deadline_date).toLocaleDateString('en-NG', {
-                              weekday: 'long',
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric'
-                            })}
+                      <div className="min-w-0">
+                        <h3 className="text-sm font-semibold text-light-text-primary dark:text-dark-text-primary">{formNames[d.form_type] || d.form_type}</h3>
+                        <p className="text-xs text-light-text-secondary dark:text-dark-text-secondary mt-0.5">{d.description}</p>
+                        <div className="flex items-center gap-3 mt-1.5 text-xs">
+                          <span className="flex items-center gap-1 text-light-text-tertiary dark:text-dark-text-tertiary">
+                            <Calendar className="w-3 h-3" />
+                            {new Date(d.deadline_date).toLocaleDateString('en-NG', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
                           </span>
-                          <span className={`font-semibold ${
-                            deadline.days_remaining < 0 ? 'text-red-600' :
-                            deadline.days_remaining <= 7 ? 'text-yellow-600' :
-                            'text-emerald-600'
-                          }`}>
-                            {deadline.days_remaining < 0 
-                              ? `${Math.abs(deadline.days_remaining)} days overdue`
-                              : `${deadline.days_remaining} days remaining`
-                            }
+                          <span className={`font-semibold ${d.days_remaining < 0 ? 'text-red-500' : d.days_remaining <= 7 ? 'text-yellow-500' : 'text-primary-500'}`}>
+                            {d.days_remaining < 0 ? `${Math.abs(d.days_remaining)}d overdue` : `${d.days_remaining}d remaining`}
                           </span>
                         </div>
                       </div>
                     </div>
-
-                    <a
-                      href="/filing"
-                      className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium"
-                    >
-                      File Now
-                    </a>
+                    <Link href="/filing" className="btn-primary text-xs px-3 py-1.5 shrink-0">File Now</Link>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Reminder History */}
-        <div className="bg-white rounded-lg">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-              <Bell className="w-5 h-5 text-emerald-600" />
-              Reminder History
-            </h2>
-            <p className="text-sm text-gray-600 mt-1">
-              Recent reminder notifications sent
-            </p>
+              );
+            })}
           </div>
+        )}
+      </div>
 
-          {reminders.length === 0 ? (
-            <div className="p-12 text-center">
-              <Bell className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No reminders yet</h3>
-              <p className="text-gray-600">Reminders will appear here when sent</p>
-            </div>
-          ) : (
-            <div className="divide-y divide-gray-200">
-              {reminders.slice(0, 10).map((reminder) => (
-                <div key={reminder.id} className="p-4 hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      {reminder.sent ? (
-                        <CheckCircle className="w-5 h-5 text-emerald-600" />
-                      ) : (
-                        <Clock className="w-5 h-5 text-gray-400" />
-                      )}
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">
-                          Reminder sent for {reminder.deadline_id}
-                        </p>
-                        <p className="text-xs text-gray-600">
-                          {reminder.email_sent_at 
-                            ? new Date(reminder.email_sent_at).toLocaleString('en-NG')
-                            : 'Scheduled for ' + new Date(reminder.reminder_date).toLocaleDateString('en-NG')
-                          }
-                        </p>
-                      </div>
-                    </div>
-                    <span className={`text-xs px-2 py-1 rounded-full ${
-                      reminder.sent 
-                        ? 'bg-emerald-100 text-emerald-800' 
-                        : 'bg-gray-100 text-gray-800'
-                    }`}>
-                      {reminder.sent ? 'Sent' : 'Pending'}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+      {/* Reminder History */}
+      <div className="rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface overflow-hidden">
+        <div className="p-5 border-b border-light-border dark:border-dark-border">
+          <div className="flex items-center gap-2">
+            <Bell className="w-4 h-4 text-primary-500" />
+            <h2 className="text-sm font-semibold text-light-text-primary dark:text-dark-text-primary">Reminder History</h2>
+          </div>
         </div>
+        {reminders.length === 0 ? (
+          <div className="py-8 text-center">
+            <Bell className="w-6 h-6 mx-auto mb-2 text-light-text-tertiary dark:text-dark-text-tertiary opacity-40" />
+            <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">No reminders sent yet</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-light-border dark:divide-dark-border">
+            {reminders.map((r) => (
+              <div key={r.id} className="p-4 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  {r.sent ? <CheckCircle className="w-3.5 h-3.5 text-primary-500" /> : <Clock className="w-3.5 h-3.5 text-light-text-tertiary dark:text-dark-text-tertiary" />}
+                  <span className="text-sm text-light-text-primary dark:text-dark-text-primary">
+                    Reminder for {new Date(r.reminder_date).toLocaleDateString('en-NG', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </span>
+                </div>
+                <span className={`text-xs ${r.sent ? 'text-primary-500' : 'text-light-text-tertiary dark:text-dark-text-tertiary'}`}>
+                  {r.sent ? (r.email_sent_at ? `Sent ${new Date(r.email_sent_at).toLocaleDateString('en-NG')}` : 'Sent') : 'Pending'}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

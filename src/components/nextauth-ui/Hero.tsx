@@ -50,7 +50,7 @@ export const Hero = forwardRef<HTMLDivElement, HeroProps>(
 
             {/* Subtitle */}
             {subtitle && (
-              <p className="text-h3 text-gray-400 mb-8 max-w-2xl mx-auto">
+              <p className="text-h3 text-light-text-tertiary dark:text-dark-text-tertiary mb-8 max-w-2xl mx-auto">
                 {subtitle}
               </p>
             )}

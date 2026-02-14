@@ -1,8 +1,21 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import { TrendingUp, TrendingDown, ArrowUp, ArrowDown, Building2, LineChart, Check, ArrowRight } from 'lucide-react';
+import { useEffect, useState, useCallback } from 'react';
+import {
+  TrendingUp,
+  TrendingDown,
+  ArrowUp,
+  ArrowDown,
+  Building2,
+  LineChart,
+  ArrowRight,
+  Download,
+  FileBarChart,
+  Receipt,
+  Wallet,
+  PieChart,
+} from 'lucide-react';
 
 export default function ReportsPage() {
   const [stats, setStats] = useState({
@@ -11,19 +24,17 @@ export default function ReportsPage() {
     totalExpenses: 0,
     netIncome: 0,
   });
-  
-  // Calculate dates once on mount to avoid impure function calls during render
+
   const [dateRange] = useState(() => {
     const today = new Date();
-    const futureDate = new Date(today.getTime() + 30*24*60*60*1000);
+    const futureDate = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
     return {
       start: today.toLocaleDateString('en-NG', { month: 'short', day: 'numeric', year: 'numeric' }),
-      end: futureDate.toLocaleDateString('en-NG', { month: 'short', day: 'numeric', year: 'numeric' })
+      end: futureDate.toLocaleDateString('en-NG', { month: 'short', day: 'numeric', year: 'numeric' }),
     };
   });
-  // Theme is now handled by ThemeProvider and Tailwind dark: classes
 
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
       const response = await fetch('/api/transactions?limit=10000');
       const data = await response.json();
@@ -47,11 +58,11 @@ export default function ReportsPage() {
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchStats();
-  }, []);
+  }, [fetchStats]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-NG', {
@@ -61,244 +72,177 @@ export default function ReportsPage() {
     }).format(amount);
   };
 
-  // Theme classes now use Tailwind dark: variants
+  const kpis = [
+    {
+      label: 'Total Revenue',
+      value: formatCurrency(stats.totalRevenue),
+      change: '+8%',
+      up: true,
+      icon: TrendingUp,
+      color: 'text-green-600 dark:text-green-400',
+      bg: 'bg-green-100 dark:bg-green-900/30',
+    },
+    {
+      label: 'Total Outflow',
+      value: formatCurrency(stats.totalExpenses),
+      change: '-3.2%',
+      up: false,
+      icon: TrendingDown,
+      color: 'text-red-600 dark:text-red-400',
+      bg: 'bg-red-100 dark:bg-red-900/30',
+    },
+    {
+      label: 'Tax Liability',
+      value: formatCurrency(stats.netIncome * 0.3),
+      change: 'Due in 14d',
+      up: false,
+      icon: Building2,
+      color: 'text-amber-600 dark:text-amber-400',
+      bg: 'bg-amber-100 dark:bg-amber-900/30',
+    },
+    {
+      label: 'Close Tax Rate',
+      value: '1.24%',
+      change: '+4%',
+      up: true,
+      icon: LineChart,
+      color: 'text-primary-500',
+      bg: 'bg-primary-500/10',
+    },
+  ];
+
+  const reports = [
+    {
+      title: 'Profit & Loss Statement',
+      desc: 'Revenue and expenses over a specific period. Essential for tax filing and business performance.',
+      href: '/reports/profit-loss',
+      icon: FileBarChart,
+      badge: 'Income Statement',
+      badgeColor: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+      items: ['Revenue breakdown by category', 'Expense categorization', 'Taxable income calculation', 'Profit margin analysis'],
+    },
+    {
+      title: 'Balance Sheet',
+      desc: 'Snapshot of your financial position — assets, liabilities, and equity at a point in time.',
+      href: '/reports/balance-sheet',
+      icon: Wallet,
+      badge: 'Financial Position',
+      badgeColor: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+      items: ['Assets overview', 'Liabilities tracking', 'Equity calculation', 'Financial health metrics'],
+    },
+    {
+      title: 'Cash Flow Statement',
+      desc: 'Track how cash moves in and out of your business. Critical for understanding liquidity.',
+      href: '/reports/cash-flow',
+      icon: PieChart,
+      badge: 'Cash Analysis',
+      badgeColor: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+      items: ['Operating activities', 'Investing activities', 'Financing activities', 'Net cash position'],
+    },
+    {
+      title: 'Tax Summary Report',
+      desc: 'Comprehensive overview of tax obligations — VAT, WHT, and CIT. Ready for FIRS/LIRS submission.',
+      href: '/reports/tax-summary',
+      icon: Receipt,
+      badge: 'Tax Compliance',
+      badgeColor: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+      items: ['VAT calculations', 'Withholding tax summary', 'CIT estimates', 'Filing deadlines'],
+    },
+  ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="max-w-7xl mx-auto mb-8">
-        <div className="flex items-center justify-between mb-2">
-          <h1 className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary">Financial Reports</h1>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
-                {dateRange.start}
-              </span>
-              <span className="text-light-text-tertiary dark:text-dark-text-tertiary">-</span>
-              <span className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
-                {dateRange.end}
-              </span>
-            </div>
-            <button className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-lg px-4 py-2 text-light-text-primary dark:text-dark-text-primary hover:border-primary-500 transition-colors text-sm font-medium">
-              + Export Report
-            </button>
-          </div>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">
+            Financial Reports
+          </h1>
+          <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mt-1">
+            {dateRange.start} — {dateRange.end}
+          </p>
         </div>
-        <p className="text-light-text-secondary dark:text-dark-text-secondary">
-          Analyze your business metrics and growth
-        </p>
+        <button className="btn-secondary text-sm px-3 py-2 flex items-center gap-1.5 self-start">
+          <Download className="w-3.5 h-3.5" /> Export Report
+        </button>
       </div>
 
-      {/* Quick Stats - KPI Cards */}
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        {/* Total Revenue */}
-        <div className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl p-6">
-          <div className="flex items-start justify-between mb-4">
-            <div className="w-12 h-12 rounded-lg bg-success-500/10 flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-success-500" />
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {kpis.map((kpi) => {
+          const Icon = kpi.icon;
+          return (
+            <div
+              key={kpi.label}
+              className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
+                  {kpi.label}
+                </span>
+                <div className={`w-8 h-8 rounded-lg ${kpi.bg} flex items-center justify-center`}>
+                  <Icon className={`w-4 h-4 ${kpi.color}`} />
+                </div>
+              </div>
+              <div className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary mb-1">
+                {kpi.value}
+              </div>
+              <div
+                className={`text-xs font-medium flex items-center gap-1 ${
+                  kpi.up
+                    ? 'text-green-600 dark:text-green-400'
+                    : 'text-light-text-tertiary dark:text-dark-text-tertiary'
+                }`}
+              >
+                {kpi.up && <ArrowUp className="w-3 h-3" />}
+                {!kpi.up && kpi.change.startsWith('-') && <ArrowDown className="w-3 h-3" />}
+                {kpi.change}
+              </div>
             </div>
-            <div className="flex items-center gap-1 text-success-500 text-sm font-semibold">
-              <ArrowUp className="w-3 h-3" />
-              <span>+8%</span>
-            </div>
-          </div>
-          <div className="text-sm text-light-text-tertiary dark:text-dark-text-tertiary mb-2">Total Revenue (MTD)</div>
-          <div className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary">
-            {formatCurrency(stats.totalRevenue)}
-          </div>
-        </div>
-
-        {/* Total Expenses */}
-        <div className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl p-6">
-          <div className="flex items-start justify-between mb-4">
-            <div className="w-12 h-12 rounded-lg bg-error-500/10 flex items-center justify-center">
-              <TrendingDown className="w-5 h-5 text-error-500" />
-            </div>
-            <div className="flex items-center gap-1 text-error-500 text-sm font-semibold">
-              <ArrowDown className="w-3 h-3" />
-              <span>-3.2%</span>
-            </div>
-          </div>
-          <div className="text-sm text-light-text-tertiary dark:text-dark-text-tertiary mb-2">Total Outflow (MTD)</div>
-          <div className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary">
-            {formatCurrency(stats.totalExpenses)}
-          </div>
-        </div>
-
-        {/* Estimated Tax Owed */}
-        <div className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl p-6">
-          <div className="flex items-start justify-between mb-4">
-            <div className="w-12 h-12 rounded-lg bg-warning-500/10 flex items-center justify-center">
-              <Building2 className="w-5 h-5 text-warning-500" />
-            </div>
-            <div className="flex items-center gap-1 text-warning-500 text-sm font-semibold">
-              <span>Due in 14d</span>
-            </div>
-          </div>
-          <div className="text-sm text-light-text-tertiary dark:text-dark-text-tertiary mb-2">Estimated Tax Liability</div>
-          <div className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary">
-            {formatCurrency(stats.netIncome * 0.3)}
-          </div>
-        </div>
-
-        {/* Net Income */}
-        <div className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl p-6">
-          <div className="flex items-start justify-between mb-4">
-            <div className="w-12 h-12 rounded-lg bg-primary-500/10 flex items-center justify-center">
-              <LineChart className="w-5 h-5 text-primary-500" />
-            </div>
-            <div className="flex items-center gap-1 text-primary-500 text-sm font-semibold">
-              <ArrowUp className="w-3 h-3" />
-              <span>+4%</span>
-            </div>
-          </div>
-          <div className="text-sm text-light-text-tertiary dark:text-dark-text-tertiary mb-2">Close Tax Rate</div>
-          <div className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary">
-            1.24%
-          </div>
-        </div>
+          );
+        })}
       </div>
 
-      {/* Report Cards Grid */}
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Profit & Loss Statement */}
-        <Link
-          href="/reports/profit-loss"
-          className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl p-8 hover:border-primary-500 transition-all duration-200 group"
-        >
-          <div className="flex items-start justify-between mb-6">
-            <div className="w-16 h-16 rounded-xl bg-primary-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <span className="text-4xl">📊</span>
-            </div>
-            <div className="bg-success-500/10 text-success-500 text-xs font-bold px-3 py-1 rounded-full uppercase">
-              Income Statement
-            </div>
-          </div>
-          <h2 className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary mb-3">Profit & Loss Statement</h2>
-          <p className="text-light-text-secondary dark:text-dark-text-secondary mb-6 leading-relaxed">
-            View your revenue and expenses over a specific period. Essential for tax filing and
-            business performance analysis.
-          </p>
-          <div className="space-y-3">
-            {['Revenue breakdown by category', 'Expense categorization', 'Taxable income calculation', 'Profit margin analysis'].map((item, idx) => (
-              <div key={idx} className="flex items-center gap-3">
-                <div className="w-5 h-5 rounded-lg bg-success-500/10 flex items-center justify-center">
-                  <Check className="w-3 h-3 text-success-500" />
+      {/* Report Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {reports.map((report) => {
+          const Icon = report.icon;
+          return (
+            <Link
+              key={report.title}
+              href={report.href}
+              className="p-6 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface hover:border-primary-500 transition-all duration-200 group"
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div className="w-10 h-10 rounded-lg bg-primary-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Icon className="w-5 h-5 text-primary-500" />
                 </div>
-                <span className="text-sm text-light-text-secondary dark:text-dark-text-secondary">{item}</span>
+                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${report.badgeColor}`}>
+                  {report.badge}
+                </span>
               </div>
-            ))}
-          </div>
-          <div className="mt-8 flex items-center text-primary-500 font-semibold group-hover:gap-3 gap-2 transition-all">
-            <span>Generate Report</span>
-            <ArrowRight className="w-5 h-5" />
-          </div>
-        </Link>
-
-        {/* Balance Sheet */}
-        <Link
-          href="/reports/balance-sheet"
-          className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl p-8 hover:border-primary-500 transition-all duration-200 group"
-        >
-          <div className="flex items-start justify-between mb-6">
-            <div className="w-16 h-16 rounded-xl bg-warning-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <span className="text-4xl">💼</span>
-            </div>
-            <div className="bg-warning-500/10 text-warning-500 text-xs font-bold px-3 py-1 rounded-full uppercase">
-              Financial Position
-            </div>
-          </div>
-          <h2 className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary mb-3">Balance Sheet</h2>
-          <p className="text-light-text-secondary dark:text-dark-text-secondary mb-6 leading-relaxed">
-            Snapshot of your business's financial position at a specific point in time. Shows assets,
-            liabilities, and equity.
-          </p>
-          <div className="space-y-3">
-            {['Assets overview', 'Liabilities tracking', 'Equity calculation', 'Financial health metrics'].map((item, idx) => (
-              <div key={idx} className="flex items-center gap-3">
-                <div className="w-5 h-5 rounded-full bg-warning-500/10 flex items-center justify-center">
-                  <Check className="w-3 h-3 text-warning-500" />
-                </div>
-                <span className="text-sm text-light-text-secondary dark:text-dark-text-secondary">{item}</span>
+              <h2 className="text-lg font-bold text-light-text-primary dark:text-dark-text-primary mb-2">
+                {report.title}
+              </h2>
+              <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-4 leading-relaxed">
+                {report.desc}
+              </p>
+              <ul className="space-y-1.5 mb-5">
+                {report.items.map((item, i) => (
+                  <li key={i} className="flex items-center gap-2 text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
+                    <span className="w-1 h-1 rounded-full bg-primary-500" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <div className="flex items-center text-primary-500 text-sm font-medium group-hover:gap-2.5 gap-1.5 transition-all">
+                <span>Generate Report</span>
+                <ArrowRight className="w-4 h-4" />
               </div>
-            ))}
-          </div>
-          <div className="mt-8 flex items-center text-primary-500 font-semibold group-hover:gap-3 gap-2 transition-all">
-            <span>Generate Report</span>
-            <ArrowRight className="w-5 h-5" />
-          </div>
-        </Link>
-
-        {/* Cash Flow Statement */}
-        <Link
-          href="/reports/cash-flow"
-          className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl p-8 hover:border-primary-500 transition-all duration-200 group"
-        >
-          <div className="flex items-start justify-between mb-6">
-            <div className="w-16 h-16 rounded-xl bg-success-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <span className="text-4xl">💰</span>
-            </div>
-            <div className="bg-primary-500/10 text-primary-500 text-xs font-bold px-3 py-1 rounded-full uppercase">
-              Cash Analysis
-            </div>
-          </div>
-          <h2 className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary mb-3">Cash Flow Statement</h2>
-          <p className="text-light-text-secondary dark:text-dark-text-secondary mb-6 leading-relaxed">
-            Track how cash moves in and out of your business. Critical for understanding liquidity
-            and operational efficiency.
-          </p>
-          <div className="space-y-3">
-            {['Operating activities', 'Investing activities', 'Financing activities', 'Net cash position'].map((item, idx) => (
-              <div key={idx} className="flex items-center gap-3">
-                <div className="w-5 h-5 rounded-full bg-primary-500/10 flex items-center justify-center">
-                  <Check className="w-3 h-3 text-primary-500" />
-                </div>
-                <span className="text-sm text-light-text-secondary dark:text-dark-text-secondary">{item}</span>
-              </div>
-            ))}
-          </div>
-          <div className="mt-8 flex items-center text-primary-500 font-semibold group-hover:gap-3 gap-2 transition-all">
-            <span>Generate Report</span>
-            <ArrowRight className="w-5 h-5" />
-          </div>
-        </Link>
-
-        {/* Tax Summary Report */}
-        <Link
-          href="/reports/tax-summary"
-          className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl p-8 hover:border-primary-500 transition-all duration-200 group"
-        >
-          <div className="flex items-start justify-between mb-6">
-            <div className="w-16 h-16 rounded-xl bg-error-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <span className="text-4xl">📋</span>
-            </div>
-            <div className="bg-error-500/10 text-error-500 text-xs font-bold px-3 py-1 rounded-full uppercase">
-              Tax Compliance
-            </div>
-          </div>
-          <h2 className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary mb-3">Tax Summary Report</h2>
-          <p className="text-light-text-secondary dark:text-dark-text-secondary mb-6 leading-relaxed">
-            Comprehensive overview of your tax obligations including VAT, WHT, and CIT. Ready for
-            FIRS and LIRS submission.
-          </p>
-          <div className="space-y-3">
-            {['VAT calculations', 'Withholding tax summary', 'CIT estimates', 'Filing deadlines'].map((item, idx) => (
-              <div key={idx} className="flex items-center gap-3">
-                <div className="w-5 h-5 rounded-full bg-error-500/10 flex items-center justify-center">
-                  <Check className="w-3 h-3 text-error-500" />
-                </div>
-                <span className="text-sm text-light-text-secondary dark:text-dark-text-secondary">{item}</span>
-              </div>
-            ))}
-          </div>
-          <div className="mt-8 flex items-center text-primary-500 font-semibold group-hover:gap-3 gap-2 transition-all">
-            <span>Generate Report</span>
-            <ArrowRight className="w-5 h-5" />
-          </div>
-        </Link>
+            </Link>
+          );
+        })}
       </div>
-
-
     </div>
   );
 }

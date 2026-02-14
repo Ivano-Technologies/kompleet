@@ -52,14 +52,14 @@ export default function AdminSourcesPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-8">
+      <div className="min-h-screen bg-light-background dark:bg-dark-background p-8">
         <div className="max-w-7xl mx-auto">
           <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/2 mb-8"></div>
+            <div className="h-8 bg-light-border dark:bg-dark-border rounded w-1/4 mb-4"></div>
+            <div className="h-4 bg-light-border dark:bg-dark-border rounded w-1/2 mb-8"></div>
             <div className="space-y-4">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-32 bg-gray-200 rounded"></div>
+                <div key={i} className="h-32 bg-light-border dark:bg-dark-border rounded"></div>
               ))}
             </div>
           </div>
@@ -70,7 +70,7 @@ export default function AdminSourcesPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 p-8">
+      <div className="min-h-screen bg-light-background dark:bg-dark-background p-8">
         <div className="max-w-7xl mx-auto">
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
             <h3 className="text-red-800 font-semibold">Error</h3>
@@ -82,34 +82,34 @@ export default function AdminSourcesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="min-h-screen bg-light-background dark:bg-dark-background p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary mb-2">
             Regulatory Sources
           </h1>
-          <p className="text-gray-600">
+          <p className="text-light-text-secondary dark:text-dark-text-secondary">
             Manage tax law sources and monitoring schedules
           </p>
         </div>
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="text-sm text-gray-600 mb-1">Total Sources</div>
-            <div className="text-3xl font-bold text-gray-900">
+          <div className="bg-light-surface dark:bg-dark-surface rounded-lg shadow p-6">
+            <div className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-1">Total Sources</div>
+            <div className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary">
               {sources.length}
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="text-sm text-gray-600 mb-1">Primary Sources</div>
+          <div className="bg-light-surface dark:bg-dark-surface rounded-lg shadow p-6">
+            <div className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-1">Primary Sources</div>
             <div className="text-3xl font-bold text-green-600">
               {sources.filter((s) => s.type === 'primary').length}
             </div>
           </div>
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="text-sm text-gray-600 mb-1">Secondary Sources</div>
+          <div className="bg-light-surface dark:bg-dark-surface rounded-lg shadow p-6">
+            <div className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-1">Secondary Sources</div>
             <div className="text-3xl font-bold text-blue-600">
               {sources.filter((s) => s.type === 'secondary').length}
             </div>
@@ -117,18 +117,18 @@ export default function AdminSourcesPage() {
         </div>
 
         {/* Sources List */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">All Sources</h2>
+        <div className="bg-light-surface dark:bg-dark-surface rounded-lg shadow overflow-hidden">
+          <div className="px-6 py-4 border-b border-light-border dark:border-dark-border">
+            <h2 className="text-lg font-semibold text-light-text-primary dark:text-dark-text-primary">All Sources</h2>
           </div>
 
           <div className="divide-y divide-gray-200">
             {sources.map((source) => (
-              <div key={source.id} className="p-6 hover:bg-gray-50">
+              <div key={source.id} className="p-6 hover:bg-light-background dark:bg-dark-background">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-lg font-semibold text-gray-900">
+                      <h3 className="text-lg font-semibold text-light-text-primary dark:text-dark-text-primary">
                         {source.name}
                       </h3>
                       <span
@@ -139,10 +139,10 @@ export default function AdminSourcesPage() {
                     </div>
 
                     {source.description && (
-                      <p className="text-gray-600 mb-3">{source.description}</p>
+                      <p className="text-light-text-secondary dark:text-dark-text-secondary mb-3">{source.description}</p>
                     )}
 
-                    <div className="flex flex-wrap gap-4 text-sm text-gray-500">
+                    <div className="flex flex-wrap gap-4 text-sm text-light-text-tertiary dark:text-dark-text-tertiary">
                       <div>
                         <span className="font-medium">Check Frequency:</span>{' '}
                         Every {source.check_frequency_days} days
@@ -177,7 +177,7 @@ export default function AdminSourcesPage() {
                   </div>
 
                   <div className="flex gap-2">
-                    <button className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                    <button className="px-4 py-2 text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-lg hover:bg-light-background dark:bg-dark-background">
                       Check Now
                     </button>
                     <button className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">

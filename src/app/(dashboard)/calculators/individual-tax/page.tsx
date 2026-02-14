@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -6,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { InfoIcon, Calculator, Loader2, Download } from 'lucide-react';
+import { InfoIcon, Calculator, Loader2, Download, User } from 'lucide-react';
 import { useTaxRules } from '@/hooks/useTaxRules';
 import { logCalculation } from '@/hooks/useAuditLog';
 import { generateCalculationPDF } from '@/lib/pdf-generator';
@@ -37,20 +38,17 @@ export default function IndividualTaxCalculatorPage() {
   const [result, setResult] = useState<IndividualTaxResult | null>(null);
   const [error, setError] = useState<string>('');
 
-  // Fetch tax rules from database
   const { rules, loading: rulesLoading, error: rulesError } = useTaxRules('individual_income_tax');
 
   const calculateIndividualTax = () => {
     setError('');
     setResult(null);
 
-    // Check if rules are loaded
     if (!rules) {
       setError('Tax rules are not loaded yet. Please wait...');
       return;
     }
 
-    // Validation
     const grossIncomeNum = parseFloat(grossIncome);
     const rentPaidNum = parseFloat(rentPaid || '0');
     const interestNum = parseFloat(ownerOccupierInterest || '0');
@@ -70,7 +68,6 @@ export default function IndividualTaxCalculatorPage() {
       return;
     }
 
-    // Get tax brackets from database rules
     const TAX_BRACKETS = [
       {
         from: rules.tax_bracket_1?.value?.from || 0,
@@ -104,19 +101,13 @@ export default function IndividualTaxCalculatorPage() {
       },
     ];
 
-    // Calculate deductions
-    // Rent Relief: N500,000 OR 20% of annual rent paid (whichever is LOWER)
     const rentReliefCap = rules.rent_relief?.value?.cap || 500_000;
     const rentReliefPercentage = (rules.rent_relief?.value?.percentage || 20) / 100;
     const rentRelief = Math.min(rentReliefCap, rentPaidNum * rentReliefPercentage);
 
-    // Owner-Occupier Interest: Fully deductible
     const totalDeductions = rentRelief + interestNum;
-
-    // Taxable income
     const taxableIncome = Math.max(0, grossIncomeNum - totalDeductions);
 
-    // Calculate tax using progressive brackets
     let remainingIncome = taxableIncome;
     let totalTax = 0;
     const bracketResults: TaxBracket[] = [];
@@ -155,7 +146,6 @@ export default function IndividualTaxCalculatorPage() {
 
     setResult(calculationResult);
 
-    // Log calculation for audit trail
     logCalculation(
       'individual_income_tax',
       {
@@ -178,15 +168,18 @@ export default function IndividualTaxCalculatorPage() {
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="max-w-4xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Individual Tax Calculator</h1>
-          <p className="text-muted-foreground">
-            Calculate personal income tax under Nigeria Tax Act 2025
-          </p>
+        <div className="mb-8 flex items-center space-x-4">
+          <User className="h-8 w-8 text-light-text-secondary dark:text-dark-text-secondary" />
+          <div>
+            <h1 className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">Individual Tax Calculator</h1>
+            <p className="text-sm text-light-text-tertiary dark:text-dark-text-tertiary">
+              Calculate personal income tax under Nigeria Tax Act 2025
+            </p>
+          </div>
         </div>
 
         {rulesError && (
-          <Alert variant="destructive" className="mb-6">
+          <Alert variant="destructive" className="mb-6 bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-900/30 text-red-800 dark:text-red-200">
             <InfoIcon className="h-4 w-4" />
             <AlertDescription>
               Failed to load tax rules: {rulesError}. Using fallback rates.
@@ -195,14 +188,14 @@ export default function IndividualTaxCalculatorPage() {
         )}
 
         <div className="grid gap-6 md:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>Income & Deductions</CardTitle>
-              <CardDescription>Enter your annual income and eligible deductions</CardDescription>
+          <div className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
+            <CardHeader className="p-0 mb-5">
+              <CardTitle className="text-light-text-primary dark:text-dark-text-primary">Income & Deductions</CardTitle>
+              <CardDescription className="text-light-text-tertiary dark:text-dark-text-tertiary">Enter your annual income and eligible deductions</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="p-0 space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="income">Annual Gross Income (₦)</Label>
+                <Label htmlFor="income" className="text-light-text-secondary dark:text-dark-text-secondary">Annual Gross Income (₦)</Label>
                 <Input
                   id="income"
                   type="number"
@@ -210,11 +203,12 @@ export default function IndividualTaxCalculatorPage() {
                   value={grossIncome}
                   onChange={(e) => setGrossIncome(e.target.value)}
                   disabled={rulesLoading}
+                  className="rounded-lg bg-light-background dark:bg-dark-background border-light-border dark:border-dark-border"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="rent">Annual Rent Paid (₦)</Label>
+                <Label htmlFor="rent" className="text-light-text-secondary dark:text-dark-text-secondary">Annual Rent Paid (₦)</Label>
                 <Input
                   id="rent"
                   type="number"
@@ -222,15 +216,16 @@ export default function IndividualTaxCalculatorPage() {
                   value={rentPaid}
                   onChange={(e) => setRentPaid(e.target.value)}
                   disabled={rulesLoading}
+                  className="rounded-lg bg-light-background dark:bg-dark-background border-light-border dark:border-dark-border"
                 />
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
                   Relief: ₦{rules?.rent_relief?.value?.cap?.toLocaleString() || '500,000'} or{' '}
                   {rules?.rent_relief?.value?.percentage || 20}% of rent (whichever is lower)
                 </p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="interest">Owner-Occupier Interest (₦)</Label>
+                <Label htmlFor="interest" className="text-light-text-secondary dark:text-dark-text-secondary">Owner-Occupier Interest (₦)</Label>
                 <Input
                   id="interest"
                   type="number"
@@ -238,15 +233,16 @@ export default function IndividualTaxCalculatorPage() {
                   value={ownerOccupierInterest}
                   onChange={(e) => setOwnerOccupierInterest(e.target.value)}
                   disabled={rulesLoading}
+                  className="rounded-lg bg-light-background dark:bg-dark-background border-light-border dark:border-dark-border"
                 />
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
                   Interest on owner-occupier house loans is fully deductible
                 </p>
               </div>
 
               <Button 
                 onClick={calculateIndividualTax} 
-                className="w-full"
+                className="w-full btn-primary rounded-lg"
                 disabled={rulesLoading}
               >
                 {rulesLoading ? (
@@ -263,73 +259,73 @@ export default function IndividualTaxCalculatorPage() {
               </Button>
 
               {error && (
-                <Alert variant="destructive">
+                <Alert variant="destructive" className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-900/30 text-red-800 dark:text-red-200">
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
             </CardContent>
-          </Card>
+          </div>
 
           <div className="space-y-6">
             {result && (
               <>
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Tax Summary</CardTitle>
+                <div className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
+                  <CardHeader className="p-0 mb-5">
+                    <CardTitle className="text-light-text-primary dark:text-dark-text-primary">Tax Summary</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex justify-between text-sm">
+                  <CardContent className="p-0 space-y-3">
+                    <div className="flex justify-between text-sm text-light-text-secondary dark:text-dark-text-secondary">
                       <span>Gross Income:</span>
-                      <span className="font-medium">{formatCurrency(result.grossIncome)}</span>
+                      <span className="font-medium text-light-text-primary dark:text-dark-text-primary">{formatCurrency(result.grossIncome)}</span>
                     </div>
 
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between text-sm text-light-text-secondary dark:text-dark-text-secondary">
                       <span>Total Deductions:</span>
-                      <span className="font-medium">
+                      <span className="font-medium text-light-text-primary dark:text-dark-text-primary">
                         -{formatCurrency(result.totalDeductions)}
                       </span>
                     </div>
 
-                    <div className="flex justify-between text-sm border-t pt-2">
+                    <div className="flex justify-between text-sm border-t border-light-border dark:border-dark-border pt-2 text-light-text-secondary dark:text-dark-text-secondary">
                       <span>Taxable Income:</span>
-                      <span className="font-medium">{formatCurrency(result.taxableIncome)}</span>
+                      <span className="font-medium text-light-text-primary dark:text-dark-text-primary">{formatCurrency(result.taxableIncome)}</span>
                     </div>
 
-                    <div className="flex justify-between font-bold text-lg border-t pt-2">
+                    <div className="flex justify-between font-bold text-lg border-t border-light-border dark:border-dark-border pt-2 text-light-text-primary dark:text-dark-text-primary">
                       <span>Total Tax:</span>
-                      <span className="text-red-600">{formatCurrency(result.totalTax)}</span>
+                      <span className="text-red-600 dark:text-red-400">{formatCurrency(result.totalTax)}</span>
                     </div>
 
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between text-sm text-light-text-secondary dark:text-dark-text-secondary">
                       <span>Net Income:</span>
-                      <span className="font-medium text-green-600">
+                      <span className="font-medium text-primary-600">
                         {formatCurrency(result.netIncome)}
                       </span>
                     </div>
 
-                    <div className="flex justify-between text-sm text-muted-foreground">
+                    <div className="flex justify-between text-sm text-light-text-tertiary dark:text-dark-text-tertiary">
                       <span>Effective Tax Rate:</span>
                       <span>{result.effectiveTaxRate.toFixed(2)}%</span>
                     </div>
                   </CardContent>
-                </Card>
+                </div>
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Tax Bracket Breakdown</CardTitle>
+                <div className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
+                  <CardHeader className="p-0 mb-5">
+                    <CardTitle className="text-light-text-primary dark:text-dark-text-primary">Tax Bracket Breakdown</CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="p-0">
                     <div className="space-y-3">
                       {result.brackets.map((bracket, index) => (
                         <div key={index} className="text-sm">
-                          <div className="flex justify-between font-medium">
+                          <div className="flex justify-between font-medium text-light-text-secondary dark:text-dark-text-secondary">
                             <span>
                               {formatCurrency(bracket.from)} -{' '}
                               {bracket.to ? formatCurrency(bracket.to) : 'Above'}
                             </span>
                             <span>{bracket.rate}%</span>
                           </div>
-                          <div className="flex justify-between text-muted-foreground text-xs">
+                          <div className="flex justify-.between text-light-text-tertiary dark:text-dark-text-tertiary text-xs">
                             <span>Taxable: {formatCurrency(bracket.taxableAmount)}</span>
                             <span>Tax: {formatCurrency(bracket.taxOnBracket)}</span>
                           </div>
@@ -337,7 +333,7 @@ export default function IndividualTaxCalculatorPage() {
                       ))}
                     </div>
                   </CardContent>
-                </Card>
+                </div>
 
                 <SaveCalculationButton
                   taxType="pit"
@@ -356,7 +352,7 @@ export default function IndividualTaxCalculatorPage() {
                     brackets: result.brackets,
                     netIncome: result.netIncome,
                   }}
-                  className="w-full"
+                  className="w-full btn-primary rounded-lg"
                 />
 
                 <Button
@@ -386,7 +382,7 @@ export default function IndividualTaxCalculatorPage() {
                     });
                   }}
                   variant="outline"
-                  className="w-full"
+                  className="w-full btn-secondary rounded-lg"
                 >
                   <Download className="mr-2 h-4 w-4" />
                   Export as PDF
@@ -395,12 +391,12 @@ export default function IndividualTaxCalculatorPage() {
             )}
 
             {!result && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Tax Rates (2025)</CardTitle>
+              <div className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
+                <CardHeader className="p-0 mb-5">
+                  <CardTitle className="text-light-text-primary dark:text-dark-text-primary">Tax Rates (2025)</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 text-sm">
+                <CardContent className="p-0">
+                  <div className="space-y-2 text-sm text-light-text-secondary dark:text-dark-text-secondary">
                     <p className="flex justify-between">
                       <span>First ₦800,000</span>
                       <span className="font-medium">0%</span>
@@ -427,16 +423,16 @@ export default function IndividualTaxCalculatorPage() {
                     </p>
                   </div>
                 </CardContent>
-              </Card>
+              </div>
             )}
           </div>
         </div>
 
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle>About This Calculator</CardTitle>
+        <div className="mt-6 p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
+          <CardHeader className="p-0 mb-5">
+            <CardTitle className="text-light-text-primary dark:text-dark-text-primary">About This Calculator</CardTitle>
           </CardHeader>
-          <CardContent className="text-sm text-muted-foreground space-y-2">
+          <CardContent className="p-0 text-sm text-light-text-tertiary dark:text-dark-text-tertiary space-y-2">
             <p>
               This calculator implements the Nigeria Tax Act 2025 progressive tax rates for
               individuals. Tax rates and deduction limits are fetched dynamically from the KOMPLEET
@@ -451,7 +447,7 @@ export default function IndividualTaxCalculatorPage() {
               professional for personalized advice.
             </p>
           </CardContent>
-        </Card>
+        </div>
       </div>
     </div>
   );

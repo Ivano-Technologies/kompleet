@@ -1,9 +1,11 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { createBrowserClient as createClient } from '@/lib/supabase/client';
 import Image from 'next/image';
+import { Loader2, ArrowLeft, Download, Edit, XCircle, Lock, ShieldCheck } from 'lucide-react';
 
 import type { Database } from '@/lib/supabase/types';
 
@@ -62,10 +64,8 @@ export default function InvoiceDetailPage() {
 
       if (fetchError) throw fetchError;
 
-      // Cast Json types to proper interfaces
       setInvoice(data as Invoice);
 
-      // Generate QR code image if payload exists
       if (data.qr_payload) {
         const response = await fetch('/api/invoices/qr-code', {
           method: 'POST',
@@ -103,7 +103,6 @@ export default function InvoiceDetailPage() {
         throw new Error('Failed to cancel invoice');
       }
 
-      // Refresh invoice data
       await fetchInvoice();
       alert('Invoice cancelled successfully');
     } catch (err: any) {
@@ -112,16 +111,16 @@ export default function InvoiceDetailPage() {
   };
 
   const getStatusBadge = (status: string) => {
-    const styles = {
-      draft: 'bg-gray-100 text-gray-700',
-      issued: 'bg-blue-100 text-blue-700',
-      paid: 'bg-green-100 text-green-700',
-      cancelled: 'bg-red-100 text-red-700',
-      archived: 'bg-purple-100 text-purple-700'
+    const styles: { [key: string]: string } = {
+      draft: 'bg-light-background dark:bg-dark-background text-light-text-secondary dark:text-dark-text-secondary dark:bg-dark-surface dark:text-light-text-tertiary dark:text-dark-text-tertiary',
+      issued: 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300',
+      paid: 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-300',
+      cancelled: 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-300',
+      archived: 'bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-300'
     };
 
     return (
-      <span className={`px-4 py-2 rounded-full text-sm font-medium ${styles[status as keyof typeof styles]}`}>
+      <span className={`px-4 py-2 rounded-full text-sm font-medium ${styles[status]}`}>
         {status.charAt(0).toUpperCase() + status.slice(1)}
       </span>
     );
@@ -129,10 +128,8 @@ export default function InvoiceDetailPage() {
 
   if (loading) {
     return (
-      <div className="max-w-5xl mx-auto p-6">
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
-        </div>
+      <div className="max-w-5xl mx-auto p-6 flex items-center justify-center h-64">
+        <Loader2 className="h-12 w-12 animate-spin text-primary-500" />
       </div>
     );
   }
@@ -140,12 +137,12 @@ export default function InvoiceDetailPage() {
   if (error || !invoice) {
     return (
       <div className="max-w-5xl mx-auto p-6">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-red-700">
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/30 rounded-lg p-6 text-red-700 dark:text-red-300">
           {error || 'Invoice not found'}
         </div>
         <button
           onClick={() => router.push('/invoices')}
-          className="mt-4 px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+          className="mt-4 btn-secondary"
         >
           Back to Invoices
         </button>
@@ -160,20 +157,19 @@ export default function InvoiceDetailPage() {
         <div>
           <button
             onClick={() => router.push('/invoices')}
-            className="text-green-600 hover:text-green-700 mb-4 flex items-center"
+            className="text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-500 mb-4 flex items-center gap-2"
           >
-            ← Back to Invoices
+            <ArrowLeft size={16} />
+            Back to Invoices
           </button>
-          <h1 className="text-3xl font-bold text-gray-900">{invoice.invoice_number}</h1>
-          <p className="text-gray-600 mt-2">Tax Year {invoice.tax_year}</p>
+          <h1 className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">{invoice.invoice_number}</h1>
+          <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mt-1">Tax Year {invoice.tax_year}</p>
         </div>
         <div className="flex items-center gap-4">
           {getStatusBadge(invoice.status)}
           {invoice.is_immutable && (
-            <span className="px-4 py-2 bg-yellow-100 text-yellow-700 rounded-full text-sm font-medium flex items-center gap-2">
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-              </svg>
+            <span className="px-4 py-2 bg-yellow-100 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 rounded-full text-sm font-medium flex items-center gap-2">
+              <Lock size={16} />
               Immutable
             </span>
           )}
@@ -183,63 +179,57 @@ export default function InvoiceDetailPage() {
       {/* Actions */}
       <div className="flex gap-4 mb-8">
         {invoice.status === 'issued' && (
-          <button
-            onClick={handleDownloadPDF}
-            className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
-          >
+          <button onClick={handleDownloadPDF} className="btn-primary">
+            <Download size={16} />
             Download PDF
           </button>
         )}
         {invoice.status === 'draft' && (
-          <button
-            onClick={() => router.push(`/invoices/${invoice.id}/edit`)}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-          >
+          <button onClick={() => router.push(`/invoices/${invoice.id}/edit`)} className="btn-secondary">
+            <Edit size={16} />
             Edit Invoice
           </button>
         )}
         {(invoice.status === 'issued' || invoice.status === 'draft') && (
-          <button
-            onClick={handleCancelInvoice}
-            className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
-          >
+          <button onClick={handleCancelInvoice} className="btn-danger">
+            <XCircle size={16} />
             Cancel Invoice
           </button>
         )}
       </div>
 
       {/* Invoice Details */}
-      <div className="bg-white rounded-lg border border-gray-200 p-8 mb-6">
+      <div className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface mb-6">
         {/* Customer Info */}
         <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Customer Information</h2>
+          <h2 className="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">Customer Information</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <div className="text-sm text-gray-600">Name</div>
-              <div className="text-base font-medium text-gray-900">{invoice.customer_info.name}</div>
+              <div className="text-sm text-light-text-secondary dark:text-dark-text-secondary">Name</div>
+              <div className="text-base font-medium text-light-text-primary dark:text-dark-text-primary">{invoice.customer_info.name}</div>
             </div>
             {invoice.customer_info.email && (
               <div>
-                <div className="text-sm text-gray-600">Email</div>
-                <div className="text-base text-gray-900">{invoice.customer_info.email}</div>
+                <div className="text-sm text-light-text-secondary dark:text-dark-text-secondary">Email</div>
+                <div className="text-base text-light-text-primary dark:text-dark-text-primary">{invoice.customer_info.email}</div>
               </div>
             )}
             {invoice.customer_info.phone && (
               <div>
-                <div className="text-sm text-gray-600">Phone</div>
-                <div className="text-base text-gray-900">{invoice.customer_info.phone}</div>
+                <div className="text-sm text-light-text-secondary dark:text-dark-text-secondary">Phone</div>
+                <div className="text-base text-light-text-primary dark:text-dark-text-primary">{invoice.customer_info.phone}</div>
               </div>
             )}
             {invoice.customer_info.tin && (
               <div>
-                <div className="text-sm text-gray-600">TIN</div>
-                <div className="text-base text-gray-900">{invoice.customer_info.tin}</div>
+                <div className="text-sm text-light-text-secondary dark:text-dark-text-secondary">TIN</div>
+                <div className="text-base text-light-text-primary dark:text-dark-text-primary">{invoice.customer_info.tin}</div>
               </div>
             )}
             {invoice.customer_info.address && (
               <div className="col-span-2">
-                <div className="text-sm text-gray-600">Address</div>
-                <div className="text-base text-gray-900">{invoice.customer_info.address}</div>
+                <div className="text-sm text-light-text-secondary dark:text-dark-text-secondary">Address</div>
+                <div className="text-base text-light-text-primary dark:text-dark-text-primary">{invoice.customer_info.address}</div>
               </div>
             )}
           </div>
@@ -248,36 +238,24 @@ export default function InvoiceDetailPage() {
         {/* Invoice Dates */}
         <div className="mb-8 grid grid-cols-3 gap-4">
           <div>
-            <div className="text-sm text-gray-600">Invoice Date</div>
-            <div className="text-base font-medium text-gray-900">
-              {new Date(invoice.invoice_date).toLocaleDateString('en-NG', { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-              })}
+            <div className="text-sm text-light-text-secondary dark:text-dark-text-secondary">Invoice Date</div>
+            <div className="text-base font-medium text-light-text-primary dark:text-dark-text-primary">
+              {new Date(invoice.invoice_date).toLocaleDateString('en-NG', { year: 'numeric', month: 'long', day: 'numeric' })}
             </div>
           </div>
           {invoice.due_date && (
             <div>
-              <div className="text-sm text-gray-600">Due Date</div>
-              <div className="text-base font-medium text-gray-900">
-                {new Date(invoice.due_date).toLocaleDateString('en-NG', { 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
-                })}
+              <div className="text-sm text-light-text-secondary dark:text-dark-text-secondary">Due Date</div>
+              <div className="text-base font-medium text-light-text-primary dark:text-dark-text-primary">
+                {new Date(invoice.due_date).toLocaleDateString('en-NG', { year: 'numeric', month: 'long', day: 'numeric' })}
               </div>
             </div>
           )}
           {invoice.issued_at && (
             <div>
-              <div className="text-sm text-gray-600">Issued At</div>
-              <div className="text-base font-medium text-gray-900">
-                {new Date(invoice.issued_at).toLocaleDateString('en-NG', { 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
-                })}
+              <div className="text-sm text-light-text-secondary dark:text-dark-text-secondary">Issued At</div>
+              <div className="text-base font-medium text-light-text-primary dark:text-dark-text-primary">
+                {new Date(invoice.issued_at).toLocaleDateString('en-NG', { year: 'numeric', month: 'long', day: 'numeric' })}
               </div>
             </div>
           )}
@@ -285,28 +263,28 @@ export default function InvoiceDetailPage() {
 
         {/* Line Items */}
         <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Line Items</h2>
+          <h2 className="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">Line Items</h2>
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-light-background dark:bg-dark-background border-b border-light-border dark:border-dark-border">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Qty</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Unit Price</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">VAT</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">Amount</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary uppercase">Description</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary uppercase">Qty</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary uppercase">Unit Price</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary uppercase">VAT</th>
+                  <th className="px-4 py-3 text-right text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary uppercase">Amount</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-light-border dark:divide-dark-border">
                 {invoice.line_items.map((item, index) => (
                   <tr key={index}>
-                    <td className="px-4 py-3 text-sm text-gray-900">{item.description}</td>
-                    <td className="px-4 py-3 text-sm text-gray-900 text-right">{item.quantity}</td>
-                    <td className="px-4 py-3 text-sm text-gray-900 text-right">
+                    <td className="px-4 py-3 text-sm text-light-text-primary dark:text-dark-text-primary">{item.description}</td>
+                    <td className="px-4 py-3 text-sm text-light-text-primary dark:text-dark-text-primary text-right">{item.quantity}</td>
+                    <td className="px-4 py-3 text-sm text-light-text-primary dark:text-dark-text-primary text-right">
                       ₦{item.unit_price.toLocaleString('en-NG', { minimumFractionDigits: 2 })}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-900 text-right">{item.vat_rate}%</td>
-                    <td className="px-4 py-3 text-sm font-medium text-gray-900 text-right">
+                    <td className="px-4 py-3 text-sm text-light-text-primary dark:text-dark-text-primary text-right">{item.vat_rate}%</td>
+                    <td className="px-4 py-3 text-sm text-light-text-primary dark:text-dark-text-primary text-right">
                       ₦{item.amount.toLocaleString('en-NG', { minimumFractionDigits: 2 })}
                     </td>
                   </tr>
@@ -317,24 +295,24 @@ export default function InvoiceDetailPage() {
         </div>
 
         {/* Totals */}
-        <div className="border-t border-gray-200 pt-6">
+        <div className="border-t border-light-border dark:border-dark-border pt-6">
           <div className="flex justify-end">
             <div className="w-full md:w-1/2 space-y-3">
-              <div className="flex justify-between text-gray-700">
+              <div className="flex justify-between text-light-text-secondary dark:text-dark-text-secondary">
                 <span>Subtotal:</span>
                 <span className="font-medium">₦{invoice.subtotal.toLocaleString('en-NG', { minimumFractionDigits: 2 })}</span>
               </div>
-              <div className="flex justify-between text-gray-700">
+              <div className="flex justify-between text-light-text-secondary dark:text-dark-text-secondary">
                 <span>VAT (7.5%):</span>
                 <span className="font-medium">₦{invoice.vat_amount.toLocaleString('en-NG', { minimumFractionDigits: 2 })}</span>
               </div>
               {invoice.discount_amount > 0 && (
-                <div className="flex justify-between text-gray-700">
+                <div className="flex justify-between text-light-text-secondary dark:text-dark-text-secondary">
                   <span>Discount:</span>
                   <span className="font-medium">-₦{invoice.discount_amount.toLocaleString('en-NG', { minimumFractionDigits: 2 })}</span>
                 </div>
               )}
-              <div className="flex justify-between text-2xl font-bold text-gray-900 pt-3 border-t border-gray-300">
+              <div className="flex justify-between text-2xl font-bold text-light-text-primary dark:text-dark-text-primary pt-3 border-t border-light-border dark:border-dark-border">
                 <span>Total:</span>
                 <span>₦{invoice.total_amount.toLocaleString('en-NG', { minimumFractionDigits: 2 })}</span>
               </div>
@@ -344,17 +322,17 @@ export default function InvoiceDetailPage() {
 
         {/* Additional Info */}
         {(invoice.payment_terms || invoice.notes) && (
-          <div className="mt-8 pt-6 border-t border-gray-200">
+          <div className="mt-8 pt-6 border-t border-light-border dark:border-dark-border">
             {invoice.payment_terms && (
               <div className="mb-4">
-                <div className="text-sm font-medium text-gray-700 mb-2">Payment Terms</div>
-                <div className="text-sm text-gray-900">{invoice.payment_terms}</div>
+                <div className="text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2">Payment Terms</div>
+                <div className="text-sm text-light-text-primary dark:text-dark-text-primary">{invoice.payment_terms}</div>
               </div>
             )}
             {invoice.notes && (
               <div>
-                <div className="text-sm font-medium text-gray-700 mb-2">Notes</div>
-                <div className="text-sm text-gray-900">{invoice.notes}</div>
+                <div className="text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2">Notes</div>
+                <div className="text-sm text-light-text-primary dark:text-dark-text-primary">{invoice.notes}</div>
               </div>
             )}
           </div>
@@ -363,27 +341,23 @@ export default function InvoiceDetailPage() {
 
       {/* Digital Signature & QR Code */}
       {invoice.signature_hash && (
-        <div className="bg-white rounded-lg border border-gray-200 p-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">Security & Verification</h2>
+        <div className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
+          <h2 className="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-6">Security & Verification</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Digital Signature */}
             <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
-                <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
+              <h3 className="text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-3 flex items-center gap-2">
+                <ShieldCheck size={16} className="text-primary-500" />
                 Digital Signature
               </h3>
-              <div className="bg-gray-50 rounded-lg p-4">
-                <div className="text-xs text-gray-600 mb-1">Signature Hash (SHA-256)</div>
-                <div className="text-xs font-mono text-gray-900 break-all">
+              <div className="bg-light-background dark:bg-dark-background rounded-lg p-4">
+                <div className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary mb-1">Signature Hash (SHA-256)</div>
+                <div className="text-xs font-mono text-light-text-primary dark:text-dark-text-primary break-all">
                   {invoice.signature_hash.substring(0, 64)}...
                 </div>
-                <div className="mt-3 flex items-center gap-2 text-sm text-green-600">
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
+                <div className="mt-3 flex items-center gap-2 text-sm text-primary-500">
+                  <ShieldCheck size={16} />
                   Verified & Immutable
                 </div>
               </div>
@@ -392,10 +366,10 @@ export default function InvoiceDetailPage() {
             {/* QR Code */}
             {qrCodeImage && (
               <div>
-                <h3 className="text-sm font-medium text-gray-700 mb-3">NRS-Compliant QR Code</h3>
-                <div className="bg-gray-50 rounded-lg p-4 flex flex-col items-center">
+                <h3 className="text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-3">NRS-Compliant QR Code</h3>
+                <div className="bg-light-background dark:bg-dark-background rounded-lg p-4 flex flex-col items-center">
                   <img src={qrCodeImage} alt="Invoice QR Code" className="w-48 h-48" />
-                  <div className="mt-3 text-xs text-gray-600 text-center">
+                  <div className="mt-3 text-xs text-light-text-tertiary dark:text-dark-text-tertiary text-center">
                     Scan to verify invoice authenticity
                   </div>
                 </div>

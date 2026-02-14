@@ -14,7 +14,7 @@ const Alert = React.forwardRef<
       'relative w-full rounded-lg border p-4',
       variant === 'destructive'
         ? 'border-red-500 bg-red-50 text-red-900'
-        : 'border-gray-200 bg-white text-gray-900',
+        : 'border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface text-light-text-primary dark:text-dark-text-primary',
       className
     )}
     {...props}
