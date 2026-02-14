@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { createBrowserClient as createClient } from '@/lib/supabase/client';
 import type { Database } from '@/lib/supabase/types';
-import { Plus, Search, FileText, Send, Download } from 'lucide-react';
+import { Plus, Search, FileText, Send, Download, ChevronDown } from 'lucide-react';
 
 type DbInvoice = Database['public']['Tables']['invoices']['Row'];
 
@@ -22,34 +22,22 @@ export default function InvoicesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
-  
-  // Filters
+
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [yearFilter, setYearFilter] = useState<number>(new Date().getFullYear());
+  const [yearFilter] = useState<number>(new Date().getFullYear());
 
-  useEffect(() => {
-    fetchInvoices();
-  }, [statusFilter, yearFilter]);
-
-  useEffect(() => {
-    // Auto-select first invoice when list changes
-    if (invoices.length > 0 && !selectedInvoice) {
-      setSelectedInvoice(invoices[0]);
-    }
-  }, [invoices]);
-
-  const fetchInvoices = async () => {
+  const fetchInvoices = useCallback(async () => {
     setLoading(true);
     setError('');
 
     try {
       const supabase = await createClient();
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-      if (!user) {
-        throw new Error('Not authenticated');
-      }
+      if (!user) throw new Error('Not authenticated');
 
       let query = supabase
         .from('invoices')
@@ -63,7 +51,6 @@ export default function InvoicesPage() {
       }
 
       const { data, error: fetchError } = await query;
-
       if (fetchError) throw fetchError;
 
       setInvoices((data || []) as Invoice[]);
@@ -72,79 +59,107 @@ export default function InvoicesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [statusFilter, yearFilter]);
 
-  const filteredInvoices = invoices.filter(invoice => {
+  useEffect(() => {
+    fetchInvoices();
+  }, [fetchInvoices]);
+
+  useEffect(() => {
+    if (invoices.length > 0 && !selectedInvoice) {
+      setSelectedInvoice(invoices[0]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [invoices]);
+
+  const filteredInvoices = invoices.filter((invoice) => {
     if (!searchQuery) return true;
-    
-    const query = searchQuery.toLowerCase();
+    const q = searchQuery.toLowerCase();
     return (
-      invoice.invoice_number.toLowerCase().includes(query) ||
-      invoice.customer_info.name.toLowerCase().includes(query)
+      invoice.invoice_number.toLowerCase().includes(q) ||
+      invoice.customer_info.name.toLowerCase().includes(q)
     );
   });
 
-  const getStatusBadge = (status: string) => {
-    const styles = {
-      draft: 'bg-gray-500/10 text-gray-400',
-      issued: 'bg-warning-500/10 text-warning-500',
-      paid: 'bg-success-500/10 text-success-500',
-      cancelled: 'bg-error-500/10 text-error-500',
-      archived: 'bg-purple-500/10 text-purple-400'
-    };
-
-    const labels = {
-      draft: 'DRAFT',
-      issued: 'AWAITING PAYMENT',
-      paid: 'PAID',
-      cancelled: 'CANCELLED',
-      archived: 'ARCHIVED'
-    };
-
-    return (
-      <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${styles[status as keyof typeof styles]}`}>
-        {labels[status as keyof typeof labels] || status}
-      </span>
-    );
+  const statusStyles: Record<string, string> = {
+    draft: 'bg-gray-100 text-gray-600 dark:bg-gray-800/40 dark:text-gray-400',
+    issued: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+    paid: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+    cancelled: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+    archived: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
   };
+
+  const statusLabels: Record<string, string> = {
+    draft: 'Draft',
+    issued: 'Awaiting Payment',
+    paid: 'Paid',
+    cancelled: 'Cancelled',
+    archived: 'Archived',
+  };
+
+  const StatusBadge = ({ status }: { status: string }) => (
+    <span
+      className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+        statusStyles[status] || statusStyles.draft
+      }`}
+    >
+      {statusLabels[status] || status}
+    </span>
+  );
 
   return (
     <div className="flex -m-4 lg:-m-6" style={{ minHeight: 'calc(100vh - 3.5rem)' }}>
       {/* Left Sidebar - Invoice List */}
-      <div className="w-96 bg-light-surface dark:bg-dark-surface border-r border-light-border dark:border-dark-border flex flex-col">
+      <div className="w-80 lg:w-96 bg-light-surface dark:bg-dark-surface border-r border-light-border dark:border-dark-border flex flex-col flex-shrink-0">
         {/* Header */}
-        <div className="p-6 border-b border-light-border dark:border-dark-border">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">Invoices</h1>
+        <div className="p-5 border-b border-light-border dark:border-dark-border">
+          <div className="flex items-center justify-between mb-1">
+            <h1 className="text-xl font-bold text-light-text-primary dark:text-dark-text-primary">
+              Invoices
+            </h1>
             <button
               onClick={() => router.push('/invoices/new')}
-              className="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-all duration-200"
+              className="btn-primary text-sm px-3 py-2 flex items-center gap-1.5"
             >
-              <Plus className="w-3.5 h-3.5" />
-              Create New Invoice
+              <Plus className="w-3.5 h-3.5" /> New
             </button>
           </div>
-          <p className="text-light-text-tertiary dark:text-dark-text-tertiary text-sm">
-            Managing {filteredInvoices.length} active transaction{filteredInvoices.length !== 1 ? 's' : ''}
+          <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
+            {filteredInvoices.length} invoice{filteredInvoices.length !== 1 ? 's' : ''}
           </p>
         </div>
 
-        {/* Search */}
-        <div className="p-4 border-b border-light-border dark:border-dark-border">
+        {/* Search + Filter */}
+        <div className="p-3 border-b border-light-border dark:border-dark-border space-y-2">
           <div className="relative">
             <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-light-text-tertiary dark:text-dark-text-tertiary" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search invoices or clients..."
-              className="w-full bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border rounded-lg pl-10 pr-4 py-2 text-light-text-primary dark:text-dark-text-primary placeholder-light-text-tertiary dark:placeholder-dark-text-tertiary focus:outline-none focus:border-primary-500 transition-colors text-sm"
+              placeholder="Search invoices..."
+              className="w-full pl-9 pr-3 py-2 text-sm bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border rounded-lg text-light-text-primary dark:text-dark-text-primary placeholder-light-text-tertiary dark:placeholder-dark-text-tertiary focus:outline-none focus:border-primary-500 transition-colors"
             />
+          </div>
+          <div className="flex gap-1.5 flex-wrap">
+            {['all', 'draft', 'issued', 'paid', 'cancelled'].map((s) => (
+              <button
+                key={s}
+                onClick={() => setStatusFilter(s)}
+                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+                  statusFilter === s
+                    ? 'bg-primary-500 text-white'
+                    : 'bg-light-background dark:bg-dark-background text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover'
+                }`}
+              >
+                {s === 'all' ? 'All' : statusLabels[s]}
+              </button>
+            ))}
           </div>
         </div>
 
         {error && (
-          <div className="mx-4 mt-4 p-3 bg-error-500/10 border border-error-500/20 rounded-lg text-error-500 text-sm">
+          <div className="mx-3 mt-3 p-2.5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-600 dark:text-red-400 text-xs">
             {error}
           </div>
         )}
@@ -152,17 +167,21 @@ export default function InvoicesPage() {
         {/* Invoice List */}
         <div className="flex-1 overflow-y-auto">
           {loading ? (
-            <div className="p-8 text-center text-light-text-tertiary dark:text-dark-text-tertiary">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mx-auto mb-3"></div>
-              Loading invoices...
+            <div className="p-8 text-center">
+              <div className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+              <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
+                Loading invoices...
+              </p>
             </div>
           ) : filteredInvoices.length === 0 ? (
-            <div className="p-8 text-center text-light-text-tertiary dark:text-dark-text-tertiary">
-              <FileText className="w-9 h-9 mb-3 opacity-50" />
-              <p className="text-sm">No invoices found</p>
+            <div className="p-8 text-center">
+              <FileText className="w-8 h-8 mx-auto mb-2 text-light-text-tertiary dark:text-dark-text-tertiary opacity-40" />
+              <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-2">
+                No invoices found
+              </p>
               <button
                 onClick={() => router.push('/invoices/new')}
-                className="mt-4 text-primary-500 hover:text-primary-400 text-sm font-medium"
+                className="text-primary-500 hover:text-primary-400 text-xs font-medium"
               >
                 Create your first invoice →
               </button>
@@ -174,32 +193,38 @@ export default function InvoicesPage() {
                   key={invoice.id}
                   onClick={() => setSelectedInvoice(invoice)}
                   className={`w-full p-4 text-left hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover transition-colors ${
-                    selectedInvoice?.id === invoice.id ? 'bg-light-surface-hover dark:bg-dark-surface-hover border-l-4 border-primary-500' : ''
+                    selectedInvoice?.id === invoice.id
+                      ? 'bg-primary-500/5 dark:bg-primary-500/10 border-l-2 border-primary-500'
+                      : 'border-l-2 border-transparent'
                   }`}
                 >
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-primary-500/10 flex items-center justify-center">
-                        <span className="text-primary-500 font-bold text-sm">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-8 h-8 rounded-lg bg-primary-500/10 flex items-center justify-center flex-shrink-0">
+                        <span className="text-primary-500 font-bold text-xs">
                           {invoice.customer_info.name.substring(0, 2).toUpperCase()}
                         </span>
                       </div>
-                      <div>
-                        <div className="font-semibold text-light-text-primary dark:text-dark-text-primary text-sm">
+                      <div className="min-w-0">
+                        <div className="font-medium text-sm text-light-text-primary dark:text-dark-text-primary truncate">
                           {invoice.customer_info.name}
                         </div>
-                        <div className="text-light-text-tertiary dark:text-dark-text-tertiary text-xs">
+                        <div className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
                           {invoice.invoice_number}
                         </div>
                       </div>
                     </div>
-                    {getStatusBadge(invoice.status)}
+                    <StatusBadge status={invoice.status} />
                   </div>
-                  <div className="flex items-center justify-between mt-3 text-xs">
-                    <span className="text-light-text-tertiary dark:text-dark-text-tertiary">
-                      {new Date(invoice.invoice_date).toLocaleDateString('en-NG')}
+                  <div className="flex items-center justify-between mt-2 pl-10">
+                    <span className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
+                      {new Date(invoice.invoice_date).toLocaleDateString('en-NG', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
                     </span>
-                    <span className="font-bold text-light-text-primary dark:text-dark-text-primary">
+                    <span className="font-semibold text-sm text-light-text-primary dark:text-dark-text-primary">
                       ₦{invoice.total_amount.toLocaleString('en-NG')}
                     </span>
                   </div>
@@ -211,49 +236,87 @@ export default function InvoicesPage() {
       </div>
 
       {/* Right Panel - Invoice Preview */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto bg-light-background dark:bg-dark-background">
         {selectedInvoice ? (
-          <div className="max-w-4xl mx-auto p-8">
-            {/* Invoice Preview Card */}
-            <div className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-2xl p-12">
+          <div className="max-w-3xl mx-auto p-6 lg:p-8">
+            {/* Action Bar */}
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-lg font-bold text-light-text-primary dark:text-dark-text-primary">
+                  {selectedInvoice.invoice_number}
+                </h2>
+                <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary mt-0.5">
+                  Invoice preview
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => router.push(`/invoices/${selectedInvoice.id}`)}
+                  className="btn-primary text-sm px-3 py-2 flex items-center gap-1.5"
+                >
+                  <Send className="w-3.5 h-3.5" /> Send
+                </button>
+                <button
+                  onClick={() =>
+                    window.open(`/api/invoices/${selectedInvoice.id}/pdf`, '_blank')
+                  }
+                  className="btn-secondary text-sm px-3 py-2 flex items-center gap-1.5"
+                >
+                  <Download className="w-3.5 h-3.5" /> PDF
+                </button>
+              </div>
+            </div>
+
+            {/* Invoice Card */}
+            <div className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl p-8 lg:p-10">
               {/* Header */}
-              <div className="flex items-start justify-between mb-12">
+              <div className="flex items-start justify-between mb-10">
                 <div>
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="w-12 h-12 rounded-lg bg-primary-500 flex items-center justify-center">
-                      <span className="text-white font-bold text-lg">K</span>
+                  <div className="flex items-center gap-2.5 mb-3">
+                    <div className="w-10 h-10 rounded-lg bg-primary-500 flex items-center justify-center">
+                      <span className="text-white font-bold">K</span>
                     </div>
-                    <div>
-                      <div className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">KOMPLEET</div>
-                      <div className="text-light-text-tertiary dark:text-dark-text-tertiary text-sm">Plot 42, Lekki Phase 1</div>
-                      <div className="text-light-text-tertiary dark:text-dark-text-tertiary text-sm">Lagos, Nigeria</div>
-                      <div className="text-primary-500 text-sm">billing@kompleet.tax</div>
-                    </div>
+                    <span className="text-xl font-bold text-light-text-primary dark:text-dark-text-primary">
+                      KOMPLEET
+                    </span>
+                  </div>
+                  <div className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary space-y-0.5">
+                    <p>Plot 42, Lekki Phase 1</p>
+                    <p>Lagos, Nigeria</p>
+                    <p className="text-primary-500">billing@kompleet.tax</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-5xl font-bold text-light-text-primary dark:text-dark-text-primary mb-2">INVOICE</div>
-                  <div className="text-primary-500 font-semibold text-lg">{selectedInvoice.invoice_number}</div>
-                  <div className="mt-4 space-y-1 text-sm">
-                    <div className="flex justify-between gap-8">
-                      <span className="text-light-text-tertiary dark:text-dark-text-tertiary">ISSUED:</span>
+                  <div className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary mb-1">
+                    INVOICE
+                  </div>
+                  <div className="text-primary-500 font-semibold text-sm">
+                    {selectedInvoice.invoice_number}
+                  </div>
+                  <div className="mt-3 space-y-1 text-xs">
+                    <div className="flex justify-end gap-4">
+                      <span className="text-light-text-tertiary dark:text-dark-text-tertiary">
+                        Issued:
+                      </span>
                       <span className="text-light-text-primary dark:text-dark-text-primary font-medium">
-                        {new Date(selectedInvoice.invoice_date).toLocaleDateString('en-NG', { 
-                          year: 'numeric', 
-                          month: 'short', 
-                          day: 'numeric' 
-                        }).toUpperCase()}
+                        {new Date(selectedInvoice.invoice_date).toLocaleDateString('en-NG', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric',
+                        })}
                       </span>
                     </div>
                     {selectedInvoice.due_date && (
-                      <div className="flex justify-between gap-8">
-                        <span className="text-light-text-tertiary dark:text-dark-text-tertiary">DUE:</span>
+                      <div className="flex justify-end gap-4">
+                        <span className="text-light-text-tertiary dark:text-dark-text-tertiary">
+                          Due:
+                        </span>
                         <span className="text-light-text-primary dark:text-dark-text-primary font-medium">
-                          {new Date(selectedInvoice.due_date).toLocaleDateString('en-NG', { 
-                            year: 'numeric', 
-                            month: 'short', 
-                            day: 'numeric' 
-                          }).toUpperCase()}
+                          {new Date(selectedInvoice.due_date).toLocaleDateString('en-NG', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                          })}
                         </span>
                       </div>
                     )}
@@ -262,46 +325,65 @@ export default function InvoicesPage() {
               </div>
 
               {/* Client Info */}
-              <div className="mb-12">
-                <div className="text-light-text-tertiary dark:text-dark-text-tertiary text-sm font-semibold mb-2">CLIENT INFORMATION</div>
-                <div className="bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border rounded-xl p-6">
-                  <div className="text-xl font-bold text-light-text-primary dark:text-dark-text-primary mb-1">
+              <div className="mb-8">
+                <p className="text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary mb-2 uppercase tracking-wide">
+                  Bill To
+                </p>
+                <div className="bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border rounded-lg p-4">
+                  <p className="font-semibold text-light-text-primary dark:text-dark-text-primary">
                     {selectedInvoice.customer_info.name}
-                  </div>
+                  </p>
                   {selectedInvoice.customer_info.address && (
-                    <div className="text-light-text-secondary dark:text-dark-text-secondary text-sm mb-1">
+                    <p className="text-xs text-light-text-secondary dark:text-dark-text-secondary mt-0.5">
                       {selectedInvoice.customer_info.address}
-                    </div>
+                    </p>
                   )}
                   {selectedInvoice.customer_info.email && (
-                    <div className="text-light-text-secondary dark:text-dark-text-secondary text-sm">
+                    <p className="text-xs text-light-text-secondary dark:text-dark-text-secondary mt-0.5">
                       {selectedInvoice.customer_info.email}
-                    </div>
+                    </p>
                   )}
-                  <div className="mt-4">
-                    {getStatusBadge(selectedInvoice.status)}
+                  <div className="mt-2">
+                    <StatusBadge status={selectedInvoice.status} />
                   </div>
                 </div>
               </div>
 
               {/* Line Items */}
-              <div className="mb-12">
-                <div className="text-light-text-tertiary dark:text-dark-text-tertiary text-sm font-semibold mb-4">SERVICE DETAILS</div>
-                <table className="w-full">
-                  <thead className="border-b border-light-border dark:border-dark-border">
-                    <tr className="text-left">
-                      <th className="pb-3 text-xs font-semibold text-light-text-tertiary dark:text-dark-text-tertiary uppercase">QTY</th>
-                      <th className="pb-3 text-xs font-semibold text-light-text-tertiary dark:text-dark-text-tertiary uppercase">RATE</th>
-                      <th className="pb-3 text-xs font-semibold text-light-text-tertiary dark:text-dark-text-tertiary uppercase text-right">AMOUNT</th>
+              <div className="mb-8">
+                <p className="text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary mb-3 uppercase tracking-wide">
+                  Service Details
+                </p>
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-light-border dark:border-dark-border">
+                      <th className="pb-2 text-left text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary">
+                        Qty
+                      </th>
+                      <th className="pb-2 text-left text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary">
+                        Rate
+                      </th>
+                      <th className="pb-2 text-right text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary">
+                        Amount
+                      </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-light-border/50 dark:divide-dark-border/50">
-                    {/* Sample line items - replace with actual data */}
-                    <tr>
-                      <td className="py-4 text-light-text-primary dark:text-dark-text-primary">01</td>
-                      <td className="py-4 text-light-text-primary dark:text-dark-text-primary">₦{(selectedInvoice.subtotal || selectedInvoice.total_amount).toLocaleString('en-NG')}</td>
-                      <td className="py-4 text-light-text-primary dark:text-dark-text-primary text-right font-semibold">
-                        ₦{(selectedInvoice.subtotal || selectedInvoice.total_amount).toLocaleString('en-NG')}
+                  <tbody>
+                    <tr className="border-b border-light-border/50 dark:border-dark-border/50">
+                      <td className="py-3 text-light-text-primary dark:text-dark-text-primary">
+                        01
+                      </td>
+                      <td className="py-3 text-light-text-primary dark:text-dark-text-primary">
+                        ₦
+                        {(
+                          selectedInvoice.subtotal || selectedInvoice.total_amount
+                        ).toLocaleString('en-NG')}
+                      </td>
+                      <td className="py-3 text-right font-medium text-light-text-primary dark:text-dark-text-primary">
+                        ₦
+                        {(
+                          selectedInvoice.subtotal || selectedInvoice.total_amount
+                        ).toLocaleString('en-NG')}
                       </td>
                     </tr>
                   </tbody>
@@ -310,53 +392,53 @@ export default function InvoicesPage() {
 
               {/* Totals */}
               <div className="flex justify-end">
-                <div className="w-80 space-y-3">
+                <div className="w-72 space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-light-text-tertiary dark:text-dark-text-tertiary">SUBTOTAL</span>
-                      <span className="text-light-text-primary dark:text-dark-text-primary font-medium">
-                      ₦{(selectedInvoice.subtotal || selectedInvoice.total_amount).toLocaleString('en-NG', { minimumFractionDigits: 2 })}
+                    <span className="text-light-text-tertiary dark:text-dark-text-tertiary">
+                      Subtotal
+                    </span>
+                    <span className="text-light-text-primary dark:text-dark-text-primary font-medium">
+                      ₦
+                      {(
+                        selectedInvoice.subtotal || selectedInvoice.total_amount
+                      ).toLocaleString('en-NG', { minimumFractionDigits: 2 })}
                     </span>
                   </div>
                   {selectedInvoice.vat_amount && selectedInvoice.vat_amount > 0 && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-light-text-tertiary dark:text-dark-text-tertiary">VAT (7.5%)</span>
+                      <span className="text-light-text-tertiary dark:text-dark-text-tertiary">
+                        VAT (7.5%)
+                      </span>
                       <span className="text-light-text-primary dark:text-dark-text-primary font-medium">
-                        ₦{selectedInvoice.vat_amount.toLocaleString('en-NG', { minimumFractionDigits: 2 })}
+                        ₦
+                        {selectedInvoice.vat_amount.toLocaleString('en-NG', {
+                          minimumFractionDigits: 2,
+                        })}
                       </span>
                     </div>
                   )}
-                  <div className="border-t border-light-border dark:border-dark-border pt-3 flex justify-between">
-                    <span className="text-light-text-primary dark:text-dark-text-primary font-bold text-lg">TOTAL AMOUNT</span>
-                    <span className="text-primary-500 font-bold text-2xl">
-                      ₦{selectedInvoice.total_amount.toLocaleString('en-NG', { minimumFractionDigits: 2 })}
+                  <div className="border-t border-light-border dark:border-dark-border pt-2 flex justify-between">
+                    <span className="font-bold text-light-text-primary dark:text-dark-text-primary">
+                      Total
+                    </span>
+                    <span className="text-primary-500 font-bold text-xl">
+                      ₦
+                      {selectedInvoice.total_amount.toLocaleString('en-NG', {
+                        minimumFractionDigits: 2,
+                      })}
                     </span>
                   </div>
                 </div>
               </div>
-
-              {/* Actions */}
-              <div className="mt-12 flex items-center justify-center gap-4">
-                <button
-                  onClick={() => router.push(`/invoices/${selectedInvoice.id}`)}
-                  className="bg-primary-500 hover:bg-primary-600 text-white px-8 py-3 rounded-lg font-medium flex items-center gap-2 transition-all duration-200"
-                >
-                  <Send className="w-3.5 h-3.5" />
-                  SEND TO CLIENT
-                </button>
-                <button
-                  onClick={() => window.open(`/api/invoices/${selectedInvoice.id}/pdf`, '_blank')}
-                  className="bg-dark-background hover:bg-dark-surface-hover border border-dark-border text-dark-text-primary px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-all duration-200"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                </button>
-              </div>
             </div>
           </div>
         ) : (
-          <div className="h-full flex items-center justify-center text-dark-text-tertiary">
+          <div className="h-full flex items-center justify-center">
             <div className="text-center">
-              <FileText className="w-14 h-14 mb-4 opacity-30" />
-              <p>Select an invoice to preview</p>
+              <FileText className="w-10 h-10 mx-auto mb-3 text-light-text-tertiary dark:text-dark-text-tertiary opacity-30" />
+              <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
+                Select an invoice to preview
+              </p>
             </div>
           </div>
         )}
