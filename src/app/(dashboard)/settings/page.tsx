@@ -210,7 +210,14 @@ export default function SettingsPage() {
               { value: 'dark' as const, label: 'Dark', Icon: Moon, iconColor: 'text-blue-400' },
               { value: 'system' as const, label: 'System', Icon: Monitor, iconColor: 'text-light-text-tertiary dark:text-dark-text-tertiary' },
             ]).map((t) => (
-              <button key={t.value} onClick={() => setTheme(t.value)}
+              <button key={t.value} onClick={() => {
+                if (t.value === 'system') {
+                  const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                  setTheme(systemPrefersDark ? 'dark' : 'light');
+                } else {
+                  setTheme(t.value);
+                }
+              }}
                 className={`py-2.5 rounded-lg border-2 transition-all flex items-center justify-center gap-2 text-sm ${
                   theme === t.value
                     ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'

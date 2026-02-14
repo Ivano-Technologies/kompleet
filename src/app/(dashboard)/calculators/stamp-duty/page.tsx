@@ -174,7 +174,7 @@ export default function StampDutyCalculator() {
         <Alert className="mb-6 border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200">
           <InfoIcon className="h-4 w-4" />
           <AlertDescription>
-            {rulesError}. Using fallback rates: Transfer 1.5%, Lease ≤7yrs 0.78%, Lease >7yrs 3%.
+            {rulesError}. Using fallback rates: Transfer 1.5%, Lease ≤7yrs 0.78%, Lease {'>'}7yrs 3%.
           </AlertDescription>
         </Alert>
       )}
@@ -241,7 +241,7 @@ export default function StampDutyCalculator() {
                 className="rounded-lg"
               />
               <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary mt-1">
-                ≤7 years: 0.78% rate | >7 years: 3% rate
+                ≤7 years: 0.78% rate | {'>'}7 years: 3% rate
               </p>
             </div>
           )}
@@ -350,7 +350,7 @@ export default function StampDutyCalculator() {
           <ul className="list-disc list-inside ml-2 space-y-1">
             <li>Property Transfer: {rules.property_transfer_rate?.value?.rate || 1.5}%</li>
             <li>Short-term Lease (≤7 years): {rules.lease_rate_short?.value?.rate || 0.78}%</li>
-            <li>Long-term Lease (>7 years): {rules.lease_rate_long?.value?.rate || 3}%</li>
+            <li>Long-term Lease ({'>'}7 years): {rules.lease_rate_long?.value?.rate || 3}%</li>
             <li>Low-value Exemption: Below ₦{(rules.low_value_exemption?.value?.threshold || 10000000).toLocaleString()}</li>
           </ul>
           <p className="mt-4">

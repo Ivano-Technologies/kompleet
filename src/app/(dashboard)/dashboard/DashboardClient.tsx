@@ -173,7 +173,7 @@ export default function DashboardClient({
                   className="fill-light-text-tertiary dark:fill-dark-text-tertiary"
                 />
                 <Tooltip
-                  formatter={(v: number) => [`₦${v.toLocaleString()}`, '']}
+                  formatter={(v) => [`₦${Number(v).toLocaleString()}`, '']}
                   contentStyle={{
                     backgroundColor: 'var(--tooltip-bg, #fff)',
                     border: '1px solid var(--tooltip-border, #e5e7eb)',
@@ -213,7 +213,7 @@ export default function DashboardClient({
                   ))}
                 </Pie>
                 <Tooltip
-                  formatter={(v: number) => [`₦${v.toLocaleString()}`, '']}
+                  formatter={(v) => [`₦${Number(v).toLocaleString()}`, '']}
                   contentStyle={{
                     backgroundColor: 'var(--tooltip-bg, #fff)',
                     border: '1px solid var(--tooltip-border, #e5e7eb)',

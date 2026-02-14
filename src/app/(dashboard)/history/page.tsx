@@ -383,7 +383,7 @@ export default function HistoryPage() {
                   )}
                   <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-light-text-primary dark:text-dark-text-primary sm:pl-6">{formatDate(calc.created_at)}</td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-light-text-secondary dark:text-dark-text-secondary">{getCalculatorName(calc.calculation_type)}</td>
-                  <td className="whitespace-nowrap px-3 py-4 text-sm text-light-text-secondary dark:text-dark-text-secondary">{calc.calculation_name || '-'}</td>
+                  <td className="whitespace-nowrap px-3 py-4 text-sm text-light-text-secondary dark:text-dark-text-secondary">{calc.calculation_type || '-'}</td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm font-semibold text-light-text-primary dark:text-dark-text-primary">{formatCurrency(getTotalTax(calc.results))}</td>
                   <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                     {comparisonMode ? (

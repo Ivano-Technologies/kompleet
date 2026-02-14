@@ -1,4 +1,4 @@
-'''"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { BarChart, FileText, Loader2, ArrowUp, ArrowDown } from "lucide-react";
@@ -18,7 +18,7 @@ const mockData = {
 };
 
 const YoYEvaluationPage = () => {
-  const [data, setData] = useState(null);
+  const [data, setData] = useState<typeof mockData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -29,7 +29,7 @@ const YoYEvaluationPage = () => {
     }, 1500);
   }, []);
 
-  const calculatePercentageChange = (current, previous) => {
+  const calculatePercentageChange = (current: number, previous: number): string => {
     if (previous === 0) return "N/A";
     return (((current - previous) / previous) * 100).toFixed(2);
   };
@@ -41,6 +41,8 @@ const YoYEvaluationPage = () => {
       </div>
     );
   }
+
+  if (!data) return null;
 
   return (
     <div className="p-6">
@@ -167,4 +169,4 @@ const YoYEvaluationPage = () => {
   );
 };
 
-export default YoYEvaluationPage;'''
+export default YoYEvaluationPage;
