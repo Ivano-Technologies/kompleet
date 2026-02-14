@@ -176,10 +176,17 @@ export default function CategoriesPage() {
                   </button>
                 </div>
                 <div className="flex flex-wrap gap-1.5 mb-2">
+<<<<<<< HEAD
                   <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${typeColor[category.category_type] || 'bg-light-background dark:bg-dark-background text-light-text-secondary dark:text-dark-text-secondary'}`}>
                     {category.category_type}
                   </span>
                   <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${taxColor[category.tax_treatment] || 'bg-light-background dark:bg-dark-background text-light-text-secondary dark:text-dark-text-secondary'}`}>
+=======
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${typeColor[category.category_type] || 'bg-gray-100 text-gray-700'}`}>
+                    {category.category_type}
+                  </span>
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${taxColor[category.tax_treatment] || 'bg-gray-100 text-gray-700'}`}>
+>>>>>>> 0c2ec4ea4 (rebuild: notifications + settings pages with semantic tokens and approved design)
                     {category.tax_treatment.replace('_', ' ')}
                   </span>
                 </div>
