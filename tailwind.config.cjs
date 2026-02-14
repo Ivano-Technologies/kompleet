@@ -1,6 +1,11 @@
 /** @type {import('tailwindcss').Config} */
 // UI Rebuild - Stitch Design System (No Glassmorphism)
-// Updated: February 13, 2026
+// Updated: February 14, 2026 - Fixed spacing/borderRadius conflicts with Tailwind v4
+//
+// IMPORTANT: In Tailwind CSS v4, custom spacing keys like "sm", "md", "lg", "xl", "2xl"
+// override the built-in sizing tokens used by max-w-*, p-*, gap-*, rounded-*, etc.
+// This caused max-w-lg to resolve to 40px instead of 32rem, breaking all layouts.
+// Custom spacing/radius keys have been renamed to avoid conflicts.
 module.exports = {
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
@@ -88,22 +93,23 @@ module.exports = {
         small: ['14px', { lineHeight: '1.4', fontWeight: '400' }],
         caption: ['12px', { lineHeight: '1.4', fontWeight: '400' }],
       },
+      // Design-system spacing aliases — prefixed to avoid colliding with
+      // Tailwind v4 built-in tokens (sm, md, lg, xl, 2xl).
       spacing: {
-        // Consistent Spacing Scale
-        xs: '8px',
-        sm: '16px',
-        md: '24px',
-        lg: '40px',
-        xl: '64px',
-        '2xl': '96px',
+        'k-xs': '8px',
+        'k-sm': '16px',
+        'k-md': '24px',
+        'k-lg': '40px',
+        'k-xl': '64px',
+        'k-2xl': '96px',
       },
+      // Design-system radius aliases — prefixed for the same reason.
       borderRadius: {
-        // Soft, Modern Radius
-        'sm': '4px',
-        'md': '8px',
-        'lg': '12px',
-        'xl': '16px',
-        '2xl': '24px',
+        'k-sm': '4px',
+        'k-md': '8px',
+        'k-lg': '12px',
+        'k-xl': '16px',
+        'k-2xl': '24px',
       },
       boxShadow: {
         // Subtle Shadows (No Glassmorphism)
