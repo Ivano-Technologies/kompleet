@@ -98,7 +98,7 @@ export default function ExportCenterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="space-y-6">
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <div>

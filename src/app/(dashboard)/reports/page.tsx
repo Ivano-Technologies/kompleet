@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { TrendingUp, TrendingDown, ArrowUp, ArrowDown, Building2, LineChart, Check, ArrowRight } from 'lucide-react';
 
 export default function ReportsPage() {
   const [stats, setStats] = useState({
@@ -63,7 +64,7 @@ export default function ReportsPage() {
   // Theme classes now use Tailwind dark: variants
 
   return (
-    <div className="min-h-screen bg-light-background dark:bg-dark-background p-8">
+    <div className="space-y-8">
       {/* Header */}
       <div className="max-w-7xl mx-auto mb-8">
         <div className="flex items-center justify-between mb-2">
@@ -94,10 +95,10 @@ export default function ReportsPage() {
         <div className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl p-6">
           <div className="flex items-start justify-between mb-4">
             <div className="w-12 h-12 rounded-lg bg-success-500/10 flex items-center justify-center">
-              <span className="material-icons text-success-500">trending_up</span>
+              <TrendingUp className="w-5 h-5 text-success-500" />
             </div>
             <div className="flex items-center gap-1 text-success-500 text-sm font-semibold">
-              <span className="material-icons text-xs">arrow_upward</span>
+              <ArrowUp className="w-3 h-3" />
               <span>+8%</span>
             </div>
           </div>
@@ -111,10 +112,10 @@ export default function ReportsPage() {
         <div className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl p-6">
           <div className="flex items-start justify-between mb-4">
             <div className="w-12 h-12 rounded-lg bg-error-500/10 flex items-center justify-center">
-              <span className="material-icons text-error-500">trending_down</span>
+              <TrendingDown className="w-5 h-5 text-error-500" />
             </div>
             <div className="flex items-center gap-1 text-error-500 text-sm font-semibold">
-              <span className="material-icons text-xs">arrow_downward</span>
+              <ArrowDown className="w-3 h-3" />
               <span>-3.2%</span>
             </div>
           </div>
@@ -128,7 +129,7 @@ export default function ReportsPage() {
         <div className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl p-6">
           <div className="flex items-start justify-between mb-4">
             <div className="w-12 h-12 rounded-lg bg-warning-500/10 flex items-center justify-center">
-              <span className="material-icons text-warning-500">account_balance</span>
+              <Building2 className="w-5 h-5 text-warning-500" />
             </div>
             <div className="flex items-center gap-1 text-warning-500 text-sm font-semibold">
               <span>Due in 14d</span>
@@ -144,10 +145,10 @@ export default function ReportsPage() {
         <div className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl p-6">
           <div className="flex items-start justify-between mb-4">
             <div className="w-12 h-12 rounded-lg bg-primary-500/10 flex items-center justify-center">
-              <span className="material-icons text-primary-500">show_chart</span>
+              <LineChart className="w-5 h-5 text-primary-500" />
             </div>
             <div className="flex items-center gap-1 text-primary-500 text-sm font-semibold">
-              <span className="material-icons text-xs">arrow_upward</span>
+              <ArrowUp className="w-3 h-3" />
               <span>+4%</span>
             </div>
           </div>
@@ -182,7 +183,7 @@ export default function ReportsPage() {
             {['Revenue breakdown by category', 'Expense categorization', 'Taxable income calculation', 'Profit margin analysis'].map((item, idx) => (
               <div key={idx} className="flex items-center gap-3">
                 <div className="w-5 h-5 rounded-lg bg-success-500/10 flex items-center justify-center">
-                  <span className="material-icons text-success-500 text-xs">check</span>
+                  <Check className="w-3 h-3 text-success-500" />
                 </div>
                 <span className="text-sm text-light-text-secondary dark:text-dark-text-secondary">{item}</span>
               </div>
@@ -190,7 +191,7 @@ export default function ReportsPage() {
           </div>
           <div className="mt-8 flex items-center text-primary-500 font-semibold group-hover:gap-3 gap-2 transition-all">
             <span>Generate Report</span>
-            <span className="material-icons">arrow_forward</span>
+            <ArrowRight className="w-5 h-5" />
           </div>
         </Link>
 
@@ -216,7 +217,7 @@ export default function ReportsPage() {
             {['Assets overview', 'Liabilities tracking', 'Equity calculation', 'Financial health metrics'].map((item, idx) => (
               <div key={idx} className="flex items-center gap-3">
                 <div className="w-5 h-5 rounded-full bg-warning-500/10 flex items-center justify-center">
-                  <span className="material-icons text-warning-500 text-xs">check</span>
+                  <Check className="w-3 h-3 text-warning-500" />
                 </div>
                 <span className="text-sm text-light-text-secondary dark:text-dark-text-secondary">{item}</span>
               </div>
@@ -224,7 +225,7 @@ export default function ReportsPage() {
           </div>
           <div className="mt-8 flex items-center text-primary-500 font-semibold group-hover:gap-3 gap-2 transition-all">
             <span>Generate Report</span>
-            <span className="material-icons">arrow_forward</span>
+            <ArrowRight className="w-5 h-5" />
           </div>
         </Link>
 
@@ -250,7 +251,7 @@ export default function ReportsPage() {
             {['Operating activities', 'Investing activities', 'Financing activities', 'Net cash position'].map((item, idx) => (
               <div key={idx} className="flex items-center gap-3">
                 <div className="w-5 h-5 rounded-full bg-primary-500/10 flex items-center justify-center">
-                  <span className="material-icons text-primary-500 text-xs">check</span>
+                  <Check className="w-3 h-3 text-primary-500" />
                 </div>
                 <span className="text-sm text-light-text-secondary dark:text-dark-text-secondary">{item}</span>
               </div>
@@ -258,7 +259,7 @@ export default function ReportsPage() {
           </div>
           <div className="mt-8 flex items-center text-primary-500 font-semibold group-hover:gap-3 gap-2 transition-all">
             <span>Generate Report</span>
-            <span className="material-icons">arrow_forward</span>
+            <ArrowRight className="w-5 h-5" />
           </div>
         </Link>
 
@@ -284,7 +285,7 @@ export default function ReportsPage() {
             {['VAT calculations', 'Withholding tax summary', 'CIT estimates', 'Filing deadlines'].map((item, idx) => (
               <div key={idx} className="flex items-center gap-3">
                 <div className="w-5 h-5 rounded-full bg-error-500/10 flex items-center justify-center">
-                  <span className="material-icons text-error-500 text-xs">check</span>
+                  <Check className="w-3 h-3 text-error-500" />
                 </div>
                 <span className="text-sm text-light-text-secondary dark:text-dark-text-secondary">{item}</span>
               </div>
@@ -292,7 +293,7 @@ export default function ReportsPage() {
           </div>
           <div className="mt-8 flex items-center text-primary-500 font-semibold group-hover:gap-3 gap-2 transition-all">
             <span>Generate Report</span>
-            <span className="material-icons">arrow_forward</span>
+            <ArrowRight className="w-5 h-5" />
           </div>
         </Link>
       </div>

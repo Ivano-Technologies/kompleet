@@ -1,3 +1,4 @@
+import { Wallet, ArrowRight, Landmark, Gavel, Shield, ShieldCheck, CheckCircle, Receipt, TrendingUp, ClipboardCheck, Users, Quote, Facebook, Mail, Share2 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import HeroButtons from '@/components/landing/HeroButtons';
@@ -11,7 +12,7 @@ export default function Home() {
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center gap-2">
               <div className="w-10 h-10 bg-primary-500 rounded-lg flex items-center justify-center">
-                <span className="material-icons text-white text-xl">account_balance_wallet</span>
+                <Wallet className="w-5 h-5 text-white" />
               </div>
               <span className="text-2xl font-bold tracking-tight text-light-text-primary dark:text-dark-text-primary uppercase">Kompleet</span>
             </div>
@@ -58,7 +59,7 @@ export default function Home() {
                 aria-label="Start for free with Kompleet"
               >
                 Start for Free
-                <span className="material-icons text-xl">arrow_forward</span>
+                <ArrowRight className="w-5 h-5" />
               </Link>
               <button
                 className="btn-ghost px-8 py-4 rounded-lg text-lg font-semibold border-2 border-light-border dark:border-dark-border hover:bg-light-surface dark:hover:bg-dark-surface min-w-[200px]"
@@ -137,19 +138,19 @@ export default function Home() {
           </p>
           <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-70 hover:opacity-100 transition-all">
             <div className="flex items-center gap-2">
-              <span className="material-icons text-3xl text-light-text-primary dark:text-dark-text-primary">account_balance</span>
+              <Landmark className="w-8 h-8 text-light-text-primary dark:text-dark-text-primary" />
               <span className="font-bold text-xl text-light-text-primary dark:text-dark-text-primary">FIRS</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="material-icons text-3xl text-light-text-primary dark:text-dark-text-primary">gavel</span>
+              <Gavel className="w-8 h-8 text-light-text-primary dark:text-dark-text-primary" />
               <span className="font-bold text-xl text-light-text-primary dark:text-dark-text-primary">LIRS</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="material-icons text-3xl text-light-text-primary dark:text-dark-text-primary">security</span>
+              <Shield className="w-8 h-8 text-light-text-primary dark:text-dark-text-primary" />
               <span className="font-bold text-xl text-light-text-primary dark:text-dark-text-primary">NDPR</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="material-icons text-3xl text-light-text-primary dark:text-dark-text-primary">verified_user</span>
+              <ShieldCheck className="w-8 h-8 text-light-text-primary dark:text-dark-text-primary" />
               <span className="font-bold text-xl text-light-text-primary dark:text-dark-text-primary">CAC</span>
             </div>
           </div>
@@ -169,21 +170,21 @@ export default function Home() {
               </p>
               <ul className="space-y-4">
                 <li className="flex items-start gap-3">
-                  <span className="material-icons text-primary-500 mt-1 flex-shrink-0">check_circle</span>
+                  <CheckCircle className="w-5 h-5 text-primary-500 mt-1 flex-shrink-0" />
                   <div>
                     <h4 className="font-bold text-light-text-primary dark:text-dark-text-primary">Automated VAT &amp; WHT</h4>
                     <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">Auto-calculate and generate reports for value-added and withholding taxes.</p>
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
-                  <span className="material-icons text-primary-500 mt-1 flex-shrink-0">check_circle</span>
+                  <CheckCircle className="w-5 h-5 text-primary-500 mt-1 flex-shrink-0" />
                   <div>
                     <h4 className="font-bold text-light-text-primary dark:text-dark-text-primary">Direct Filing Integration</h4>
                     <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">Streamlined process to submit directly to FIRS and LIRS portals.</p>
                   </div>
                 </li>
                 <li className="flex items-start gap-3">
-                  <span className="material-icons text-primary-500 mt-1 flex-shrink-0">check_circle</span>
+                  <CheckCircle className="w-5 h-5 text-primary-500 mt-1 flex-shrink-0" />
                   <div>
                     <h4 className="font-bold text-light-text-primary dark:text-dark-text-primary">Multi-Currency Invoicing</h4>
                     <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">Bill clients in Naira or USD with real-time exchange rates.</p>
@@ -195,28 +196,28 @@ export default function Home() {
             <div className="grid grid-cols-2 gap-6 auto-rows-fr">
               <div className="solid-card p-6 rounded-xl flex flex-col items-center text-center hover-lift h-full">
                 <div className="w-12 h-12 bg-primary-100 dark:bg-primary-500/20 rounded-lg flex items-center justify-center mb-4 flex-shrink-0">
-                  <span className="material-icons text-primary-500 text-2xl">receipt_long</span>
+                  <Receipt className="w-6 h-6 text-primary-500" />
                 </div>
                 <h3 className="font-bold mb-2 text-light-text-primary dark:text-dark-text-primary text-base">Smart Invoices</h3>
                 <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">Send professional invoices in seconds.</p>
               </div>
               <div className="solid-card p-6 rounded-xl flex flex-col items-center text-center hover-lift h-full">
                 <div className="w-12 h-12 bg-primary-100 dark:bg-primary-500/20 rounded-lg flex items-center justify-center mb-4 flex-shrink-0">
-                  <span className="material-icons text-primary-500 text-2xl">insights</span>
+                  <TrendingUp className="w-6 h-6 text-primary-500" />
                 </div>
                 <h3 className="font-bold mb-2 text-light-text-primary dark:text-dark-text-primary text-base">Cashflow Radar</h3>
                 <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">Real-time visibility into your runway.</p>
               </div>
               <div className="solid-card p-6 rounded-xl flex flex-col items-center text-center hover-lift h-full">
                 <div className="w-12 h-12 bg-primary-100 dark:bg-primary-500/20 rounded-lg flex items-center justify-center mb-4 flex-shrink-0">
-                  <span className="material-icons text-primary-500 text-2xl">assignment_turned_in</span>
+                  <ClipboardCheck className="w-6 h-6 text-primary-500" />
                 </div>
                 <h3 className="font-bold mb-2 text-light-text-primary dark:text-dark-text-primary text-base">Tax Reminders</h3>
                 <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">Never miss a filing deadline again.</p>
               </div>
               <div className="solid-card p-6 rounded-xl flex flex-col items-center text-center hover-lift h-full">
                 <div className="w-12 h-12 bg-primary-100 dark:bg-primary-500/20 rounded-lg flex items-center justify-center mb-4 flex-shrink-0">
-                  <span className="material-icons text-primary-500 text-2xl">groups</span>
+                  <Users className="w-6 h-6 text-primary-500" />
                 </div>
                 <h3 className="font-bold mb-2 text-light-text-primary dark:text-dark-text-primary text-base">Payroll Sync</h3>
                 <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">Automate PAYE and pensions.</p>
@@ -254,7 +255,7 @@ export default function Home() {
       <section className="py-24 bg-white dark:bg-dark-background">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="solid-card p-12 rounded-xl border-l-4 border-l-primary-500 relative">
-            <span className="material-icons text-6xl text-primary-500/20 absolute top-8 right-8">format_quote</span>
+            <Quote className="w-16 h-16 text-primary-500/20 absolute top-8 right-8" />
             <div className="max-w-3xl">
               <p className="text-2xl font-medium mb-8 leading-relaxed text-light-text-primary dark:text-dark-text-primary italic">
                 &ldquo;KOMPLEET has completely transformed how we handle taxes at our agency. What used to take days of manual spreadsheet work now happens automatically. It&apos;s the first financial tool I&apos;ve used that actually understands the Nigerian context.&rdquo;
@@ -320,7 +321,7 @@ export default function Home() {
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-10 h-10 bg-primary-500 rounded-lg flex items-center justify-center">
-                  <span className="material-icons text-white text-xl">account_balance_wallet</span>
+                  <Wallet className="w-5 h-5 text-white" />
                 </div>
                 <span className="text-xl font-bold tracking-tight text-light-text-primary dark:text-dark-text-primary uppercase">Kompleet</span>
               </div>
@@ -332,13 +333,13 @@ export default function Home() {
               </p>
               <div className="flex gap-4 mt-6">
                 <a href="#" className="w-10 h-10 rounded-full bg-light-surface-hover dark:bg-dark-surface-hover flex items-center justify-center hover:bg-primary-500 hover:text-white transition-all" aria-label="Facebook">
-                  <span className="material-icons text-lg">facebook</span>
+                  <Facebook className="w-[18px] h-[18px]" />
                 </a>
                 <a href="#" className="w-10 h-10 rounded-full bg-light-surface-hover dark:bg-dark-surface-hover flex items-center justify-center hover:bg-primary-500 hover:text-white transition-all" aria-label="Email">
-                  <span className="material-icons text-lg">email</span>
+                  <Mail className="w-[18px] h-[18px]" />
                 </a>
                 <a href="#" className="w-10 h-10 rounded-full bg-light-surface-hover dark:bg-dark-surface-hover flex items-center justify-center hover:bg-primary-500 hover:text-white transition-all" aria-label="Share">
-                  <span className="material-icons text-lg">share</span>
+                  <Share2 className="w-[18px] h-[18px]" />
                 </a>
               </div>
             </div>

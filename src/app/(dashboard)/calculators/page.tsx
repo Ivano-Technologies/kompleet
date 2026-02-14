@@ -116,7 +116,7 @@ export default function TaxCenterPage() {
   const phase2Calculators = calculators.filter(c => c.phase === 2);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div>
       <Section spacing="lg">
         {/* Header */}
         <div className="mb-12 text-center">

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Mail, RefreshCw, TrendingUp, CheckCircle, XCircle } from 'lucide-react';
+import { Mail, RefreshCw, TrendingUp, CheckCircle } from 'lucide-react';
 
 interface CorrectionStats {
   totalCorrections: number;
@@ -55,7 +55,6 @@ export default function MLSettingsPage() {
 
   useEffect(() => {
     loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function connectEmail(provider: 'gmail' | 'outlook') {
@@ -66,7 +65,6 @@ export default function MLSettingsPage() {
 
       if (res.ok) {
         const data = await res.json();
-        // Redirect to OAuth authorization
         window.location.href = data.authorization_url;
       }
     } catch (error) {
@@ -94,21 +92,21 @@ export default function MLSettingsPage() {
 
   if (loading) {
     return (
-      <div className="p-8">
+      <div className="space-y-4">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-32 bg-gray-200 rounded"></div>
-          <div className="h-32 bg-gray-200 rounded"></div>
+          <div className="h-8 bg-light-surface dark:bg-dark-surface rounded w-1/4"></div>
+          <div className="h-32 bg-light-surface dark:bg-dark-surface rounded"></div>
+          <div className="h-32 bg-light-surface dark:bg-dark-surface rounded"></div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-8 space-y-6">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">ML & Automation Settings</h1>
-        <p className="text-gray-600 mt-2">
+        <h1 className="text-2xl lg:text-3xl font-bold text-light-text-primary dark:text-dark-text-primary">ML & Automation Settings</h1>
+        <p className="text-light-text-secondary dark:text-dark-text-secondary mt-2">
           Manage email integrations, view ML performance, and configure automation
         </p>
       </div>
@@ -134,9 +132,9 @@ export default function MLSettingsPage() {
               <div>
                 <p className="font-medium">Gmail</p>
                 {emailConnections.gmail.connected ? (
-                  <p className="text-sm text-gray-600">{emailConnections.gmail.email}</p>
+                  <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">{emailConnections.gmail.email}</p>
                 ) : (
-                  <p className="text-sm text-gray-500">Not connected</p>
+                  <p className="text-sm text-light-text-tertiary dark:text-dark-text-tertiary">Not connected</p>
                 )}
               </div>
             </div>
@@ -161,9 +159,9 @@ export default function MLSettingsPage() {
               <div>
                 <p className="font-medium">Outlook</p>
                 {emailConnections.outlook.connected ? (
-                  <p className="text-sm text-gray-600">{emailConnections.outlook.email}</p>
+                  <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">{emailConnections.outlook.email}</p>
                 ) : (
-                  <p className="text-sm text-gray-500">Not connected</p>
+                  <p className="text-sm text-light-text-tertiary dark:text-dark-text-tertiary">Not connected</p>
                 )}
               </div>
             </div>
@@ -196,12 +194,12 @@ export default function MLSettingsPage() {
           {correctionStats && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-600">Total Corrections</p>
+                <div className="p-4 bg-light-surface dark:bg-dark-surface rounded-lg">
+                  <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">Total Corrections</p>
                   <p className="text-2xl font-bold">{correctionStats.totalCorrections}</p>
                 </div>
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-600">Model Accuracy</p>
+                <div className="p-4 bg-light-surface dark:bg-dark-surface rounded-lg">
+                  <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">Model Accuracy</p>
                   <p className="text-2xl font-bold">87%</p>
                 </div>
               </div>
@@ -212,7 +210,7 @@ export default function MLSettingsPage() {
                   <div className="space-y-2">
                     {correctionStats.topMiscategorized.slice(0, 5).map((item, idx) => (
                       <div key={idx} className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">{item.pair}</span>
+                        <span className="text-light-text-secondary dark:text-dark-text-secondary">{item.pair}</span>
                         <Badge variant="secondary">{item.count} times</Badge>
                       </div>
                     ))}
@@ -251,10 +249,10 @@ export default function MLSettingsPage() {
                         <p className="font-medium capitalize">
                           {pattern.merchant_normalized.replace(/([a-z])([A-Z])/g, '$1 $2')}
                         </p>
-                        <p className="text-sm text-gray-600">
-                          Every {pattern.interval_days} days • ₦{pattern.amount_mean.toLocaleString()}
+                        <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
+                          Every {pattern.interval_days} days &bull; &#x20A6;{pattern.amount_mean.toLocaleString()}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
                           Next expected: {new Date(pattern.next_expected_date).toLocaleDateString()}
                         </p>
                       </div>
@@ -266,8 +264,8 @@ export default function MLSettingsPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-gray-500 text-center py-8">
-                No recurring patterns detected yet. Click "Detect Patterns" to analyze your transactions.
+              <p className="text-light-text-tertiary dark:text-dark-text-tertiary text-center py-8">
+                No recurring patterns detected yet. Click &quot;Detect Patterns&quot; to analyze your transactions.
               </p>
             )}
           </div>

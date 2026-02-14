@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { GlassCard } from './glass-card';
 import { cn } from '@/lib/utils';
+import { TrendingUp, TrendingDown } from 'lucide-react';
 
 interface StatCardProps {
   title: string;
@@ -64,9 +65,7 @@ export function StatCard({
               ? 'text-green-600 bg-green-500/10' 
               : 'text-red-600 bg-red-500/10'
           )}>
-            <span className="material-icons text-sm">
-              {trend.direction === 'up' ? 'trending_up' : 'trending_down'}
-            </span>
+            {trend.direction === 'up' ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
             {trend.value}
           </div>
         )}
