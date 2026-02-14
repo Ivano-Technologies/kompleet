@@ -318,7 +318,7 @@ export default function PropertyTaxCalculator() {
                   net_rent: result.netRent,
                 },
                 ruleVersion: 'v1.0.0-2025-tax-act',
-                sources: ['Federal Inland Revenue Service (FIRS)'],
+                sources: ['Nigerian Revenue Service (NRS)'],
                 confidenceLevel: 'High',
               });
             }}
@@ -353,7 +353,7 @@ export default function PropertyTaxCalculator() {
             month in which the rent was paid.
           </p>
           <p className="mt-4">
-            <strong>Data Source:</strong> Federal Inland Revenue Service (FIRS), validated by EY and KPMG analyses.
+            <strong>Data Source:</strong> Nigerian Revenue Service (NRS), validated by EY and KPMG analyses.
             Confidence level: {rules.wht_rate?.confidence || 'high'}.
           </p>
           <p>

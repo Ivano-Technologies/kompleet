@@ -157,7 +157,7 @@ export default function BusinessTaxCalculatorPage() {
         effective_tax_rate: `${result.effectiveTaxRate.toFixed(2)}%`,
       },
       ruleVersion: 'v1.0.0-2025-tax-act',
-      sources: ['Federal Inland Revenue Service (FIRS)', 'EY Analysis', 'KPMG Analysis'],
+      sources: ['Nigerian Revenue Service (NRS)', 'EY Analysis', 'KPMG Analysis'],
       confidenceLevel: 'High',
     });
   };
@@ -378,7 +378,7 @@ export default function BusinessTaxCalculatorPage() {
               Tax rates and thresholds are fetched dynamically from the KOMPLEET Tax Rules Engine.
             </p>
             <p>
-              <strong>Data Source:</strong> Federal Inland Revenue Service (FIRS), validated by EY
+              <strong>Data Source:</strong> Nigerian Revenue Service (NRS), validated by EY
               and KPMG analyses. Confidence level: {rules?.corporate_tax_rate_other?.confidence || 'high'}.
             </p>
             <p>

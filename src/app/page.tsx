@@ -28,7 +28,7 @@ const FEATURE_ANALYTICS =
 
 const features = [
   { icon: Zap, title: 'Automated VAT & WHT', desc: 'Auto-calculate and generate reports for value-added and withholding taxes under the 2025 Nigeria Tax Act.' },
-  { icon: FileText, title: 'Direct Filing', desc: 'Streamlined process to submit directly to FIRS and LIRS portals with pre-filled forms.' },
+  { icon: FileText, title: 'Direct Filing', desc: 'Streamlined process to submit directly to NRS and JTB portals with pre-filled forms.' },
   { icon: BarChart3, title: 'Real-time Analytics', desc: 'Gain visibility into revenue, expenses, and tax obligations with interactive dashboards.' },
   { icon: Clock, title: 'Smart Reminders', desc: 'Never miss a filing deadline with automated notifications and compliance calendar.' },
   { icon: Globe, title: 'Multi-Currency', desc: 'Bill clients in Naira or USD with real-time CBN exchange rates and automatic conversion.' },
@@ -48,7 +48,7 @@ const stats = [
 const steps = [
   { step: '01', title: 'Connect Your Accounts', desc: 'Link your bank accounts and import transactions automatically. We support all major Nigerian banks.' },
   { step: '02', title: 'Categorize & Calculate', desc: 'Our ML engine auto-categorizes transactions and calculates your tax obligations in real-time.' },
-  { step: '03', title: 'File & Report', desc: 'Generate compliant reports and file directly to FIRS/LIRS. Download professional financial statements.' },
+  { step: '03', title: 'File & Report', desc: 'Generate compliant reports and file directly to NRS/JTB. Download professional financial statements.' },
 ];
 
 const testimonials = [
@@ -58,8 +58,8 @@ const testimonials = [
 ];
 
 const compliance = [
-  { name: 'FIRS', desc: 'Federal Inland Revenue Service' },
-  { name: 'LIRS', desc: 'Lagos Internal Revenue Service' },
+  { name: 'NRS', desc: 'Nigerian Revenue Service', url: 'https://taxid.nrs.gov.ng/' },
+  { name: 'JTB', desc: 'Joint Tax Board', url: 'https://www.jtb.gov.ng/' },
   { name: 'NDPR', desc: 'Nigeria Data Protection Regulation' },
   { name: 'CAC', desc: 'Corporate Affairs Commission' },
 ];
@@ -91,7 +91,7 @@ export default function Home() {
               </h1>
 
               <p className="text-lg text-[rgb(var(--text-secondary))] max-w-lg leading-relaxed">
-                Automate FIRS and LIRS filings, send professional invoices, and gain real-time insights into your business growth — all in one secure platform.
+                Automate NRS and JTB filings, send professional invoices, and gain real-time insights into your business growth — all in one secure platform.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
@@ -194,10 +194,10 @@ export default function Home() {
               <p className="text-sm font-semibold text-[rgb(var(--primary))] uppercase tracking-wider">Tax Compliance</p>
               <h3 className="text-3xl font-bold">Automated Tax Filing for Nigerian Businesses</h3>
               <p className="text-[rgb(var(--text-secondary))] leading-relaxed">
-                KOMPLEET automatically calculates your VAT, WHT, and CIT obligations based on the 2025 Nigeria Tax Act. Generate FIRS-compliant reports and file directly from the platform.
+                KOMPLEET automatically calculates your VAT, WHT, and CIT obligations based on the 2025 Nigeria Tax Act. Generate NRS-compliant reports and file directly from the platform.
               </p>
               <ul className="space-y-3">
-                {['Auto-calculate VAT at 7.5%', 'Withholding tax deduction tracking', 'FIRS & LIRS direct filing integration', 'Audit-ready compliance reports'].map((item) => (
+                {['Auto-calculate VAT at 7.5%', 'Withholding tax deduction tracking', 'NRS & JTB direct filing integration', 'Audit-ready compliance reports'].map((item) => (
                   <li key={item} className="flex items-center gap-2.5 text-sm">
                     <CheckCircle2 className="w-4 h-4 text-[rgb(var(--primary))] shrink-0" />
                     {item}
@@ -303,12 +303,28 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {compliance.map((org) => (
-              <div key={org.name} className="flex flex-col items-center justify-center p-6 rounded-lg border border-[rgb(var(--border))] solid-card hover:border-[rgba(var(--primary-rgb),0.4)] transition-colors text-center">
-                <span className="text-xl font-bold text-[rgb(var(--primary))] mb-1">{org.name}</span>
-                <span className="text-xs text-[rgb(var(--text-secondary))]">{org.desc}</span>
-              </div>
-            ))}
+            {compliance.map((org) => {
+              const cardContent = (
+                <>
+                  <span className="text-xl font-bold text-[rgb(var(--primary))] mb-1">{org.name}</span>
+                  <span className="text-xs text-[rgb(var(--text-secondary))]">{org.desc}</span>
+                </>
+              );
+              const cardClass = "flex flex-col items-center justify-center p-6 rounded-lg border border-[rgb(var(--border))] solid-card hover:border-[rgba(var(--primary-rgb),0.4)] transition-colors text-center";
+              
+              if (org.url) {
+                return (
+                  <a key={org.name} href={org.url} target="_blank" rel="noopener noreferrer" className={cardClass}>
+                    {cardContent}
+                  </a>
+                );
+              }
+              return (
+                <div key={org.name} className={cardClass}>
+                  {cardContent}
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>

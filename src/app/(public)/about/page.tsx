@@ -18,7 +18,7 @@ export default function AboutPage() {
             KOMPLEET is the financial operating system built specifically for Nigerian small and medium enterprises. We believe that every business deserves access to professional-grade financial tools, regardless of size.
           </p>
           <p className="text-light-text-secondary dark:text-dark-text-secondary leading-relaxed">
-            Our platform automates tax compliance, invoicing, and financial reporting so business owners can focus on growth instead of paperwork. Built with deep understanding of the Nigerian regulatory landscape, KOMPLEET handles FIRS and LIRS requirements out of the box.
+            Our platform automates tax compliance, invoicing, and financial reporting so business owners can focus on growth instead of paperwork. Built with deep understanding of the Nigerian regulatory landscape, KOMPLEET handles NRS and JTB requirements out of the box.
           </p>
         </div>
 
@@ -43,7 +43,7 @@ export default function AboutPage() {
             Nigeria is home to over 40 million SMEs, contributing more than 48% of GDP and employing over 80% of the workforce. Yet most businesses struggle with manual tax compliance processes, leading to penalties, missed deadlines, and lost productivity.
           </p>
           <p className="text-light-text-secondary dark:text-dark-text-secondary leading-relaxed">
-            Existing financial tools were not designed for the Nigerian context — different tax codes, Naira-specific calculations, FIRS/LIRS filing requirements, and multi-currency invoicing needs. KOMPLEET was built from the ground up to address these challenges.
+            Existing financial tools were not designed for the Nigerian context — different tax codes, Naira-specific calculations, NRS/JTB filing requirements, and multi-currency invoicing needs. KOMPLEET was built from the ground up to address these challenges.
           </p>
         </div>
 
