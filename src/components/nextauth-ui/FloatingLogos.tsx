@@ -25,7 +25,7 @@ const defaultLogos: FloatingLogo[] = [
   { name: 'Access Bank', x: '85%', y: '20%', icon: '💳' },
   { name: 'Zenith Bank', x: '15%', y: '60%', icon: '🏛️' },
   { name: 'UBA', x: '80%', y: '70%', icon: '💰' },
-  { name: 'FIRS', x: '50%', y: '40%', icon: '📊' },
+  { name: 'NRS', x: '50%', y: '40%', icon: '📊' },
   { name: 'First Bank', x: '25%', y: '80%', icon: '🏢' },
   { name: 'Stanbic IBTC', x: '90%', y: '45%', icon: '💼' },
   { name: 'Ecobank', x: '20%', y: '30%', icon: '🌍' },

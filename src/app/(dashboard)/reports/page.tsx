@@ -141,7 +141,7 @@ export default function ReportsPage() {
     },
     {
       title: 'Tax Summary Report',
-      desc: 'Comprehensive overview of tax obligations — VAT, WHT, and CIT. Ready for FIRS/LIRS submission.',
+      desc: 'Comprehensive overview of tax obligations — VAT, WHT, and CIT. Ready for NRS/JTB submission.',
       href: '/reports/tax-summary',
       icon: Receipt,
       badge: 'Tax Compliance',

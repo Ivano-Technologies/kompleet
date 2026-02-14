@@ -13,11 +13,11 @@ const faqs = [
   },
   {
     question: 'What tax types does KOMPLEET support?',
-    answer: 'KOMPLEET supports VAT (Value Added Tax), WHT (Withholding Tax), CIT (Company Income Tax), PAYE (Pay As You Earn), and other Nigerian tax obligations. We calculate amounts automatically based on current FIRS and LIRS rates.',
+    answer: 'KOMPLEET supports VAT (Value Added Tax), WHT (Withholding Tax), CIT (Company Income Tax), PAYE (Pay As You Earn), and other Nigerian tax obligations. We calculate amounts automatically based on current NRS and JTB rates.',
   },
   {
     question: 'Can I file taxes directly through KOMPLEET?',
-    answer: 'KOMPLEET generates all the necessary forms and reports for FIRS and LIRS filing. You can download completed forms ready for submission. Direct e-filing integration is coming soon.',
+    answer: 'KOMPLEET generates all the necessary forms and reports for NRS and JTB filing. You can download completed forms ready for submission. Direct e-filing integration is coming soon.',
   },
   {
     question: 'How does the invoicing feature work?',

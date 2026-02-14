@@ -377,7 +377,7 @@ export default function IndividualTaxCalculatorPage() {
                         effective_tax_rate: `${result.effectiveTaxRate.toFixed(2)}%`,
                       },
                       ruleVersion: 'v1.0.0-2025-tax-act',
-                      sources: ['Federal Inland Revenue Service (FIRS)'],
+                      sources: ['Nigerian Revenue Service (NRS)'],
                       confidenceLevel: 'High',
                     });
                   }}
@@ -439,7 +439,7 @@ export default function IndividualTaxCalculatorPage() {
               Tax Rules Engine.
             </p>
             <p>
-              <strong>Data Source:</strong> Federal Inland Revenue Service (FIRS), validated by EY
+              <strong>Data Source:</strong> Nigerian Revenue Service (NRS), validated by EY
               and KPMG analyses. Confidence level: {rules?.tax_bracket_1?.confidence || 'high'}.
             </p>
             <p>

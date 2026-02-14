@@ -321,7 +321,7 @@ export default function StampDutyCalculator() {
                   stamp_duty: result.stampDuty,
                 },
                 ruleVersion: 'v1.0.0-2025-tax-act',
-                sources: ['Federal Inland Revenue Service (FIRS)'],
+                sources: ['Nigerian Revenue Service (NRS)'],
                 confidenceLevel: 'High',
               });
             }}
@@ -354,7 +354,7 @@ export default function StampDutyCalculator() {
             <li>Low-value Exemption: Below ₦{(rules.low_value_exemption?.value?.threshold || 10000000).toLocaleString()}</li>
           </ul>
           <p className="mt-4">
-            <strong className="text-light-text-primary dark:text-dark-text-primary">Data Source:</strong> Federal Inland Revenue Service (FIRS), validated by EY and KPMG analyses.
+            <strong className="text-light-text-primary dark:text-dark-text-primary">Data Source:</strong> Nigerian Revenue Service (NRS), validated by EY and KPMG analyses.
             Confidence level: {rules.property_transfer_rate?.confidence || 'high'}.
           </p>
           <p>
