@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createBrowserClient as createClient } from '@/lib/supabase/client';
 import { InvoiceLineItem, CustomerInfo } from '@/lib/invoice-service';
+import { FilePlus2, Loader2, Plus, Trash2 } from 'lucide-react';
 
 export default function NewInvoicePage() {
   const router = useRouter();
@@ -238,75 +239,78 @@ export default function NewInvoicePage() {
 
   return (
     <div className="max-w-5xl mx-auto p-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Create New Invoice</h1>
-        <p className="text-gray-600 mt-2">Generate NRS-compliant e-invoices with digital signatures</p>
+      <div className="mb-8 flex items-center gap-4">
+        <FilePlus2 className="h-8 w-8 text-light-text-secondary dark:text-dark-text-secondary" />
+        <div>
+          <h1 className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">Create New Invoice</h1>
+          <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">Generate NRS-compliant e-invoices with digital signatures</p>
+        </div>
       </div>
 
       {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+        <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/30 rounded-lg text-red-700 dark:text-red-400">
           {error}
         </div>
       )}
 
       {/* Customer Information */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Customer Information</h2>
+      <div className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface mb-6">
+        <h2 className="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">Customer Information</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2">
               Customer Name <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               value={customerInfo.name}
               onChange={(e) => setCustomerInfo({ ...customerInfo, name: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-light-border dark:border-dark-border rounded-lg bg-light-background dark:bg-dark-background focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               placeholder="Enter customer name"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+            <label className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2">Email</label>
             <input
               type="email"
               value={customerInfo.email}
               onChange={(e) => setCustomerInfo({ ...customerInfo, email: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-light-border dark:border-dark-border rounded-lg bg-light-background dark:bg-dark-background focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               placeholder="customer@example.com"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+            <label className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2">Phone</label>
             <input
               type="tel"
               value={customerInfo.phone}
               onChange={(e) => setCustomerInfo({ ...customerInfo, phone: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-light-border dark:border-dark-border rounded-lg bg-light-background dark:bg-dark-background focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               placeholder="+234..."
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">TIN</label>
+            <label className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2">TIN</label>
             <input
               type="text"
               value={customerInfo.tin}
               onChange={(e) => setCustomerInfo({ ...customerInfo, tin: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-light-border dark:border-dark-border rounded-lg bg-light-background dark:bg-dark-background focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               placeholder="Tax Identification Number"
             />
           </div>
 
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Address</label>
+            <label className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2">Address</label>
             <textarea
               value={customerInfo.address}
               onChange={(e) => setCustomerInfo({ ...customerInfo, address: e.target.value })}
               rows={3}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-light-border dark:border-dark-border rounded-lg bg-light-background dark:bg-dark-background focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               placeholder="Full address"
             />
           </div>
@@ -314,181 +318,160 @@ export default function NewInvoicePage() {
       </div>
 
       {/* Invoice Details */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Invoice Details</h2>
+      <div className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface mb-6">
+        <h2 className="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">Invoice Details</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Invoice Date <span className="text-red-500">*</span>
-            </label>
+            <label className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2">Invoice Date</label>
             <input
               type="date"
               value={invoiceDate}
               onChange={(e) => setInvoiceDate(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-light-border dark:border-dark-border rounded-lg bg-light-background dark:bg-dark-background focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
+            <label className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2">Due Date</label>
             <input
               type="date"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-light-border dark:border-dark-border rounded-lg bg-light-background dark:bg-dark-background focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Tax Year</label>
+            <label className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2">Payment Terms</label>
             <input
               type="text"
-              value={new Date(invoiceDate).getFullYear()}
-              disabled
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
+              value={paymentTerms}
+              onChange={(e) => setPaymentTerms(e.target.value)}
+              className="w-full px-4 py-2 border border-light-border dark:border-dark-border rounded-lg bg-light-background dark:bg-dark-background focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              placeholder="e.g., Net 30"
             />
           </div>
         </div>
       </div>
 
       {/* Line Items */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold text-gray-900">Line Items</h2>
-          <button
-            onClick={addLineItem}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-          >
-            + Add Item
-          </button>
-        </div>
-
+      <div className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface mb-6">
+        <h2 className="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">Line Items</h2>
+        
         <div className="space-y-4">
           {lineItems.map((item, index) => (
-            <div key={index} className="border border-gray-200 rounded-lg p-4">
-              <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                  <input
-                    type="text"
-                    value={item.description}
-                    onChange={(e) => updateLineItem(index, 'description', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                    placeholder="Product/Service"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Quantity</label>
-                  <input
-                    type="number"
-                    value={item.quantity}
-                    onChange={(e) => updateLineItem(index, 'quantity', Number(e.target.value))}
-                    min="1"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Unit Price (₦)</label>
-                  <input
-                    type="number"
-                    value={item.unit_price}
-                    onChange={(e) => updateLineItem(index, 'unit_price', Number(e.target.value))}
-                    min="0"
-                    step="0.01"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">VAT Rate</label>
-                  <select
-                    value={item.vat_rate}
-                    onChange={(e) => updateLineItem(index, 'vat_rate', Number(e.target.value))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-                  >
-                    <option value={0}>0%</option>
-                    <option value={7.5}>7.5%</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Amount (₦)</label>
-                  <input
-                    type="text"
-                    value={item.amount.toLocaleString('en-NG', { minimumFractionDigits: 2 })}
-                    disabled
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
-                  />
-                </div>
+            <div key={index} className="grid grid-cols-12 gap-4 items-start p-4 rounded-lg bg-light-background dark:bg-dark-background">
+              <div className="col-span-12 md:col-span-4">
+                <label className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2">Description</label>
+                <input
+                  type="text"
+                  value={item.description}
+                  onChange={(e) => updateLineItem(index, 'description', e.target.value)}
+                  className="w-full px-3 py-2 border border-light-border dark:border-dark-border rounded-lg bg-light-surface dark:bg-dark-surface focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  placeholder="Service or product"
+                />
               </div>
 
-              {lineItems.length > 1 && (
+              <div className="col-span-6 md:col-span-1">
+                <label className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2">Qty</label>
+                <input
+                  type="number"
+                  value={item.quantity}
+                  onChange={(e) => updateLineItem(index, 'quantity', parseFloat(e.target.value))}
+                  className="w-full px-3 py-2 border border-light-border dark:border-dark-border rounded-lg bg-light-surface dark:bg-dark-surface focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                />
+              </div>
+
+              <div className="col-span-6 md:col-span-2">
+                <label className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2">Unit Price</label>
+                <input
+                  type="number"
+                  value={item.unit_price}
+                  onChange={(e) => updateLineItem(index, 'unit_price', parseFloat(e.target.value))}
+                  className="w-full px-3 py-2 border border-light-border dark:border-dark-border rounded-lg bg-light-surface dark:bg-dark-surface focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                />
+              </div>
+
+              <div className="col-span-6 md:col-span-1">
+                <label className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2">VAT %</label>
+                <input
+                  type="number"
+                  value={item.vat_rate}
+                  onChange={(e) => updateLineItem(index, 'vat_rate', parseFloat(e.target.value))}
+                  className="w-full px-3 py-2 border border-light-border dark:border-dark-border rounded-lg bg-light-surface dark:bg-dark-surface focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                />
+              </div>
+
+              <div className="col-span-6 md:col-span-2">
+                <label className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2">Discount</label>
+                <input
+                  type="number"
+                  value={item.discount}
+                  onChange={(e) => updateLineItem(index, 'discount', parseFloat(e.target.value))}
+                  className="w-full px-3 py-2 border border-light-border dark:border-dark-border rounded-lg bg-light-surface dark:bg-dark-surface focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                />
+              </div>
+
+              <div className="col-span-10 md:col-span-1">
+                <label className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2">Amount</label>
+                <p className="px-3 py-2 text-light-text-primary dark:text-dark-text-primary font-medium"> {item.amount.toFixed(2)}</p>
+              </div>
+
+              <div className="col-span-2 md:col-span-1 flex items-end">
                 <button
                   onClick={() => removeLineItem(index)}
-                  className="mt-2 text-red-600 hover:text-red-700 text-sm font-medium"
+                  className="p-2 text-light-text-tertiary dark:text-dark-text-tertiary hover:text-red-500 dark:hover:text-red-400 transition-colors"
                 >
-                  Remove Item
+                  <Trash2 className="h-5 w-5" />
                 </button>
-              )}
+              </div>
             </div>
           ))}
         </div>
 
-        {/* Totals */}
-        <div className="mt-6 border-t border-gray-200 pt-4">
-          <div className="flex justify-end">
-            <div className="w-full md:w-1/2 space-y-2">
-              <div className="flex justify-between text-gray-700">
-                <span>Subtotal:</span>
-                <span>₦{totals.subtotal.toLocaleString('en-NG', { minimumFractionDigits: 2 })}</span>
-              </div>
-              <div className="flex justify-between text-gray-700">
-                <span>VAT (7.5%):</span>
-                <span>₦{totals.vatAmount.toLocaleString('en-NG', { minimumFractionDigits: 2 })}</span>
-              </div>
-              {totals.discountAmount > 0 && (
-                <div className="flex justify-between text-gray-700">
-                  <span>Discount:</span>
-                  <span>-₦{totals.discountAmount.toLocaleString('en-NG', { minimumFractionDigits: 2 })}</span>
-                </div>
-              )}
-              <div className="flex justify-between text-xl font-bold text-gray-900 pt-2 border-t border-gray-300">
-                <span>Total:</span>
-                <span>₦{totals.total.toLocaleString('en-NG', { minimumFractionDigits: 2 })}</span>
-              </div>
-            </div>
-          </div>
-        </div>
+        <button
+          onClick={addLineItem}
+          className="mt-4 flex items-center gap-2 text-sm font-medium text-primary-600 hover:text-primary-700"
+        >
+          <Plus className="h-4 w-4" />
+          Add Line Item
+        </button>
       </div>
 
-      {/* Additional Information */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Additional Information</h2>
-        
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Payment Terms</label>
-            <textarea
-              value={paymentTerms}
-              onChange={(e) => setPaymentTerms(e.target.value)}
-              rows={2}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              placeholder="e.g., Payment due within 30 days"
-            />
-          </div>
+      {/* Notes and Totals */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
+          <h2 className="text-lg font-semibold text-light-text-primary dark:text-dark-text-primary mb-3">Notes</h2>
+          <textarea
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            rows={4}
+            className="w-full px-4 py-2 border border-light-border dark:border-dark-border rounded-lg bg-light-background dark:bg-dark-background focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            placeholder="Add any additional notes or terms"
+          />
+        </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={3}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              placeholder="Additional notes or instructions"
-            />
+        <div className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
+          <h2 className="text-lg font-semibold text-light-text-primary dark:text-dark-text-primary mb-3">Totals</h2>
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-light-text-secondary dark:text-dark-text-secondary">Subtotal</span>
+              <span className="font-medium text-light-text-primary dark:text-dark-text-primary">{totals.subtotal.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-light-text-secondary dark:text-dark-text-secondary">Discount</span>
+              <span className="font-medium text-light-text-primary dark:text-dark-text-primary">{totals.discountAmount.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-light-text-secondary dark:text-dark-text-secondary">VAT ({lineItems[0]?.vat_rate || 7.5}%)</span>
+              <span className="font-medium text-light-text-primary dark:text-dark-text-primary">{totals.vatAmount.toFixed(2)}</span>
+            </div>
+            <div className="border-t border-light-border dark:border-dark-border my-2"></div>
+            <div className="flex justify-between text-lg font-bold">
+              <span className="text-light-text-primary dark:text-dark-text-primary">Total</span>
+              <span className="text-primary-600">{totals.total.toFixed(2)}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -496,25 +479,24 @@ export default function NewInvoicePage() {
       {/* Actions */}
       <div className="flex justify-end gap-4">
         <button
-          onClick={() => router.push('/invoices')}
-          disabled={loading}
-          className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+          onClick={() => router.back()}
+          className="btn-secondary"
         >
           Cancel
         </button>
         <button
           onClick={saveDraft}
           disabled={loading}
-          className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50"
+          className="btn-secondary"
         >
-          {loading ? 'Saving...' : 'Save as Draft'}
+          {loading ? <Loader2 className="animate-spin h-5 w-5" /> : 'Save as Draft'}
         </button>
         <button
           onClick={issueInvoice}
           disabled={loading}
-          className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+          className="btn-primary"
         >
-          {loading ? 'Issuing...' : 'Issue Invoice'}
+          {loading ? <Loader2 className="animate-spin h-5 w-5" /> : 'Issue Invoice'}
         </button>
       </div>
     </div>

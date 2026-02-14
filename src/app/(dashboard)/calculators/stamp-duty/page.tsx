@@ -1,12 +1,12 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { InfoIcon, Calculator, Download } from 'lucide-react';
+import { InfoIcon, Calculator, Download, Loader2, FileDigit } from 'lucide-react';
 import { generateCalculationPDF } from '@/lib/pdf-generator';
 
 interface StampDutyResult {
@@ -28,10 +28,8 @@ export default function StampDutyCalculator() {
   const [rulesLoading, setRulesLoading] = useState(true);
   const [rulesError, setRulesError] = useState('');
   
-  // Tax rules from database
   const [rules, setRules] = useState<Record<string, any>>({});
 
-  // Fetch tax rules on component mount
   useEffect(() => {
     const fetchRules = async () => {
       try {
@@ -77,17 +75,14 @@ export default function StampDutyCalculator() {
       let isExempt = false;
       let exemptionReason = '';
 
-      // Check low-value exemption
       if (amountValue < lowValueThreshold) {
         isExempt = true;
         exemptionReason = `Transaction value below ₦${lowValueThreshold.toLocaleString()} threshold`;
       } else {
         if (transactionType === 'transfer') {
-          // Property transfer: 1.5%
           applicableRate = rules.property_transfer_rate?.value?.rate || 1.5;
           stampDuty = amountValue * (applicableRate / 100);
         } else {
-          // Lease: 0.78% (≤7 years) or 3% (>7 years)
           const duration = parseInt(leaseDuration);
           if (duration <= 7) {
             applicableRate = rules.lease_rate_short?.value?.rate || 0.78;
@@ -109,8 +104,6 @@ export default function StampDutyCalculator() {
       };
 
       setResult(calculationResult);
-
-      // Log calculation to audit trail
       logCalculation(calculationResult);
     } catch (error) {
       console.error('Calculation error:', error);
@@ -156,9 +149,9 @@ export default function StampDutyCalculator() {
     return (
       <div className="container mx-auto p-6">
         <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading tax rules...</p>
+          <div className="text-center text-light-text-secondary dark:text-dark-text-secondary">
+            <Loader2 className="animate-spin h-12 w-12 mx-auto text-primary-500" />
+            <p className="mt-4">Loading tax rules...</p>
           </div>
         </div>
       </div>
@@ -167,30 +160,33 @@ export default function StampDutyCalculator() {
 
   return (
     <div className="container mx-auto p-6 max-w-4xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Stamp Duty Calculator</h1>
-        <p className="text-gray-600">
-          Calculate stamp duty on property transactions and lease agreements under Nigeria Tax Act 2025
-        </p>
+      <div className="mb-8 flex items-center gap-4">
+        <FileDigit className="h-8 w-8 text-primary-500" />
+        <div>
+          <h1 className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">Stamp Duty Calculator</h1>
+          <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
+            Calculate stamp duty on property transactions and lease agreements under Nigeria Tax Act 2025
+          </p>
+        </div>
       </div>
 
       {rulesError && (
-        <Alert className="mb-6 border-yellow-500 bg-yellow-50">
+        <Alert className="mb-6 border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200">
           <InfoIcon className="h-4 w-4" />
           <AlertDescription>
-            {rulesError}. Using fallback rates: Transfer 1.5%, Lease ≤7yrs 0.78%, Lease &gt;7yrs 3%.
+            {rulesError}. Using fallback rates: Transfer 1.5%, Lease ≤7yrs 0.78%, Lease >7yrs 3%.
           </AlertDescription>
         </Alert>
       )}
 
-      <Card className="p-6 mb-6">
-        <h2 className="text-xl font-semibold mb-4">Transaction Details</h2>
-        <p className="text-sm text-gray-600 mb-4">Enter your transaction information</p>
+      <div className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface mb-6">
+        <h2 className="text-xl font-semibold mb-1 text-light-text-primary dark:text-dark-text-primary">Transaction Details</h2>
+        <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-4">Enter your transaction information</p>
 
         <div className="space-y-4">
           <div>
-            <Label>Transaction Type</Label>
-            <div className="flex gap-4 mt-2">
+            <Label className="text-light-text-primary dark:text-dark-text-primary">Transaction Type</Label>
+            <div className="flex gap-4 mt-2 text-light-text-secondary dark:text-dark-text-secondary">
               <label className="flex items-center">
                 <input
                   type="radio"
@@ -198,7 +194,7 @@ export default function StampDutyCalculator() {
                   checked={transactionType === 'transfer'}
                   onChange={(e) => setTransactionType(e.target.value as 'transfer')}
                   disabled={loading}
-                  className="mr-2"
+                  className="mr-2 rounded-lg"
                 />
                 Property Transfer (Sale/Purchase)
               </label>
@@ -209,7 +205,7 @@ export default function StampDutyCalculator() {
                   checked={transactionType === 'lease'}
                   onChange={(e) => setTransactionType(e.target.value as 'lease')}
                   disabled={loading}
-                  className="mr-2"
+                  className="mr-2 rounded-lg"
                 />
                 Lease Agreement
               </label>
@@ -217,7 +213,7 @@ export default function StampDutyCalculator() {
           </div>
 
           <div>
-            <Label htmlFor="amount">
+            <Label htmlFor="amount" className="text-light-text-primary dark:text-dark-text-primary">
               {transactionType === 'transfer' ? 'Property Value (₦)' : 'Annual Rent (₦)'}
             </Label>
             <Input
@@ -227,12 +223,13 @@ export default function StampDutyCalculator() {
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               disabled={loading}
+              className="rounded-lg"
             />
           </div>
 
           {transactionType === 'lease' && (
             <div>
-              <Label htmlFor="leaseDuration">Lease Duration (years)</Label>
+              <Label htmlFor="leaseDuration" className="text-light-text-primary dark:text-dark-text-primary">Lease Duration (years)</Label>
               <Input
                 id="leaseDuration"
                 type="number"
@@ -241,9 +238,10 @@ export default function StampDutyCalculator() {
                 onChange={(e) => setLeaseDuration(e.target.value)}
                 disabled={loading}
                 min="1"
+                className="rounded-lg"
               />
-              <p className="text-xs text-gray-500 mt-1">
-                ≤7 years: 0.78% rate | &gt;7 years: 3% rate
+              <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary mt-1">
+                ≤7 years: 0.78% rate | >7 years: 3% rate
               </p>
             </div>
           )}
@@ -251,52 +249,52 @@ export default function StampDutyCalculator() {
           <Button
             onClick={calculateStampDuty}
             disabled={loading || !amount || (transactionType === 'lease' && !leaseDuration)}
-            className="w-full"
+            className="w-full btn-primary rounded-lg"
           >
-            <Calculator className="mr-2 h-4 w-4" />
+            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Calculator className="mr-2 h-4 w-4" />}
             {loading ? 'Calculating...' : 'Calculate Stamp Duty'}
           </Button>
         </div>
-      </Card>
+      </div>
 
       {result && (
-        <Card className={`p-6 mb-6 ${result.isExempt ? 'bg-blue-50 border-blue-200' : 'bg-green-50 border-green-200'}`}>
-          <h2 className="text-xl font-semibold mb-4">Stamp Duty Result</h2>
+        <div className={`p-5 rounded-xl border ${result.isExempt ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'} mb-6`}>
+          <h2 className="text-xl font-semibold mb-4 text-light-text-primary dark:text-dark-text-primary">Stamp Duty Result</h2>
 
           {result.isExempt ? (
-            <Alert className="border-blue-500 bg-blue-100">
+            <Alert className="border-blue-500 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded-lg">
               <InfoIcon className="h-4 w-4" />
               <AlertDescription>
-                <strong>Exempt from Stamp Duty</strong>
+                <strong className="text-light-text-primary dark:text-dark-text-primary">Exempt from Stamp Duty</strong>
                 <br />
-                {result.exemptionReason}
+                <span className="text-light-text-secondary dark:text-dark-text-secondary">{result.exemptionReason}</span>
               </AlertDescription>
             </Alert>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-3 text-light-text-secondary dark:text-dark-text-secondary">
               <div className="flex justify-between">
                 <span className="font-medium">Transaction Type:</span>
-                <span className="capitalize">{result.transactionType}</span>
+                <span className="capitalize font-semibold text-light-text-primary dark:text-dark-text-primary">{result.transactionType}</span>
               </div>
               <div className="flex justify-between">
                 <span className="font-medium">
                   {result.transactionType === 'transfer' ? 'Property Value:' : 'Annual Rent:'}
                 </span>
-                <span>{formatCurrency(result.amount)}</span>
+                <span className="font-semibold text-light-text-primary dark:text-dark-text-primary">{formatCurrency(result.amount)}</span>
               </div>
               {result.leaseDuration && (
                 <div className="flex justify-between">
                   <span className="font-medium">Lease Duration:</span>
-                  <span>{result.leaseDuration} years</span>
+                  <span className="font-semibold text-light-text-primary dark:text-dark-text-primary">{result.leaseDuration} years</span>
                 </div>
               )}
               <div className="flex justify-between">
                 <span className="font-medium">Applicable Rate:</span>
-                <span>{result.applicableRate}%</span>
+                <span className="font-semibold text-light-text-primary dark:text-dark-text-primary">{result.applicableRate}%</span>
               </div>
-              <div className="flex justify-between border-t pt-3">
-                <span className="font-bold text-lg">Stamp Duty Payable:</span>
-                <span className="font-bold text-lg text-green-700">{formatCurrency(result.stampDuty)}</span>
+              <div className="flex justify-between border-t border-light-border dark:border-dark-border pt-3 mt-3">
+                <span className="font-bold text-lg text-light-text-primary dark:text-dark-text-primary">Stamp Duty Payable:</span>
+                <span className="font-bold text-lg text-primary-600 dark:text-primary-400">{formatCurrency(result.stampDuty)}</span>
               </div>
             </div>
           )}
@@ -328,42 +326,42 @@ export default function StampDutyCalculator() {
               });
             }}
             variant="outline"
-            className="w-full mt-4"
+            className="w-full mt-4 btn-secondary rounded-lg"
           >
             <Download className="mr-2 h-4 w-4" />
             Export as PDF
           </Button>
-        </Card>
+        </div>
       )}
 
-      <Card className="p-6 bg-blue-50 border-blue-200">
-        <h3 className="font-semibold mb-2 flex items-center">
-          <InfoIcon className="mr-2 h-5 w-5" />
+      <div className="p-5 rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-dark-surface">
+        <h3 className="font-semibold mb-2 flex items-center text-light-text-primary dark:text-dark-text-primary">
+          <InfoIcon className="mr-2 h-5 w-5 text-blue-500" />
           About This Calculator
         </h3>
-        <p className="text-sm text-gray-700 mb-4">
+        <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-4">
           This calculator implements the Nigeria Tax Act 2025 provisions for stamp duty on property
           transactions and leases. Tax rates are fetched dynamically from the KOMPLEET Tax Rules Engine.
         </p>
-        <div className="text-sm space-y-2">
+        <div className="text-sm space-y-2 text-light-text-secondary dark:text-dark-text-secondary">
           <p>
-            <strong>Stamp Duty Rates:</strong>
+            <strong className="text-light-text-primary dark:text-dark-text-primary">Stamp Duty Rates:</strong>
           </p>
           <ul className="list-disc list-inside ml-2 space-y-1">
             <li>Property Transfer: {rules.property_transfer_rate?.value?.rate || 1.5}%</li>
             <li>Short-term Lease (≤7 years): {rules.lease_rate_short?.value?.rate || 0.78}%</li>
-            <li>Long-term Lease (&gt;7 years): {rules.lease_rate_long?.value?.rate || 3}%</li>
+            <li>Long-term Lease (>7 years): {rules.lease_rate_long?.value?.rate || 3}%</li>
             <li>Low-value Exemption: Below ₦{(rules.low_value_exemption?.value?.threshold || 10000000).toLocaleString()}</li>
           </ul>
           <p className="mt-4">
-            <strong>Data Source:</strong> Federal Inland Revenue Service (FIRS), validated by EY and KPMG analyses.
+            <strong className="text-light-text-primary dark:text-dark-text-primary">Data Source:</strong> Federal Inland Revenue Service (FIRS), validated by EY and KPMG analyses.
             Confidence level: {rules.property_transfer_rate?.confidence || 'high'}.
           </p>
           <p>
-            <strong>Disclaimer:</strong> This is an estimate. Consult a qualified Nigerian tax professional for personalized advice.
+            <strong className="text-light-text-primary dark:text-dark-text-primary">Disclaimer:</strong> This is an estimate. Consult a qualified Nigerian tax professional for personalized advice.
           </p>
         </div>
-      </Card>
+      </div>
     </div>
   );
 }
