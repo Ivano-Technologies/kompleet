@@ -2,29 +2,15 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { ArrowLeft, Printer, Download, BarChart3, Loader2 } from 'lucide-react';
 
-interface LineItem {
-  category: string;
-  amount: number;
-  count: number;
-}
+interface LineItem { category: string; amount: number; count: number; }
 
 interface BalanceSheet {
   period: { asOf: string };
-  assets: {
-    current: { items: LineItem[]; total: number };
-    nonCurrent: { items: LineItem[]; total: number };
-    total: number;
-  };
-  liabilities: {
-    current: { items: LineItem[]; total: number };
-    nonCurrent: { items: LineItem[]; total: number };
-    total: number;
-  };
-  equity: {
-    items: LineItem[];
-    total: number;
-  };
+  assets: { current: { items: LineItem[]; total: number }; nonCurrent: { items: LineItem[]; total: number }; total: number };
+  liabilities: { current: { items: LineItem[]; total: number }; nonCurrent: { items: LineItem[]; total: number }; total: number };
+  equity: { items: LineItem[]; total: number };
   totalLiabilitiesAndEquity: number;
 }
 
@@ -34,95 +20,68 @@ export default function BalanceSheetPage() {
   const [asOfDate, setAsOfDate] = useState('');
 
   const handleGenerate = async () => {
-    if (!asOfDate) {
-      alert('Please select a date');
-      return;
-    }
-
+    if (!asOfDate) { alert('Please select a date'); return; }
     setLoading(true);
     try {
       const response = await fetch(`/api/reports/balance-sheet?asOfDate=${asOfDate}`);
       const data = await response.json();
-
-      if (response.ok) {
-        setStatement(data.statement);
-      } else {
-        alert(data.error || 'Failed to generate statement');
-      }
-    } catch (error) {
-      console.error('Error generating statement:', error);
-      alert('An error occurred');
-    } finally {
-      setLoading(false);
-    }
+      if (response.ok) setStatement(data.statement);
+      else alert(data.error || 'Failed to generate statement');
+    } catch (error) { console.error('Error:', error); alert('An error occurred'); }
+    finally { setLoading(false); }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-NG', {
-      style: 'currency',
-      currency: 'NGN',
-      minimumFractionDigits: 2,
-    }).format(amount);
-  };
+  const fmt = (a: number) => new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', minimumFractionDigits: 2 }).format(a);
+  const fmtDate = (d: string) => new Date(d).toLocaleDateString('en-NG', { year: 'numeric', month: 'long', day: 'numeric' });
 
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('en-NG', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-  };
+  const currentRatio = statement && statement.liabilities.current.total > 0
+    ? (statement.assets.current.total / statement.liabilities.current.total).toFixed(2) : 'N/A';
+  const debtToEquity = statement && statement.equity.total > 0
+    ? (statement.liabilities.total / statement.equity.total).toFixed(2) : 'N/A';
 
-  const currentRatio = statement
-    ? statement.liabilities.current.total > 0
-      ? (statement.assets.current.total / statement.liabilities.current.total).toFixed(2)
-      : 'N/A'
-    : 'N/A';
+  const inputCls = 'w-full px-3 py-2 text-sm rounded-lg border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface text-light-text-primary dark:text-dark-text-primary focus:outline-none focus:border-primary-500';
 
-  const debtToEquity = statement
-    ? statement.equity.total > 0
-      ? (statement.liabilities.total / statement.equity.total).toFixed(2)
-      : 'N/A'
-    : 'N/A';
+  const SectionTable = ({ items, totalLabel, total }: { items: LineItem[]; totalLabel: string; total: number }) => (
+    items.length > 0 ? (
+      <table className="w-full text-sm">
+        <tbody>
+          {items.map((item, i) => (
+            <tr key={i} className="border-b border-light-border/50 dark:border-dark-border/50">
+              <td className="py-1.5 text-light-text-secondary dark:text-dark-text-secondary">{item.category}</td>
+              <td className="py-1.5 text-right font-medium text-light-text-primary dark:text-dark-text-primary">{fmt(item.amount)}</td>
+            </tr>
+          ))}
+          <tr className="font-semibold border-t border-light-border dark:border-dark-border">
+            <td className="py-2 text-light-text-primary dark:text-dark-text-primary">{totalLabel}</td>
+            <td className="py-2 text-right text-light-text-primary dark:text-dark-text-primary">{fmt(total)}</td>
+          </tr>
+        </tbody>
+      </table>
+    ) : <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary italic py-2">None recorded</p>
+  );
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
+    <div className="max-w-5xl mx-auto space-y-6">
       {/* Header */}
-      <div className="mb-6">
-        <Link
-          href="/reports"
-          className="text-green-600 hover:text-green-700 font-medium mb-4 inline-block"
-        >
-          ← Back to Reports
+      <div>
+        <Link href="/reports" className="flex items-center gap-1.5 text-sm text-primary-500 hover:text-primary-400 mb-4">
+          <ArrowLeft className="w-3.5 h-3.5" /> Back to Reports
         </Link>
-        <h1 className="text-3xl font-bold text-gray-900">Balance Sheet</h1>
-        <p className="text-gray-600 mt-1">
-          Statement of Financial Position following Nigerian accounting standards
-        </p>
+        <h1 className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">Balance Sheet</h1>
+        <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mt-1">Statement of Financial Position — Nigerian accounting standards</p>
       </div>
 
       {/* Date Selection */}
-      <div className="bg-white rounded-lg p-6 mb-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Select Date</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
+        <h2 className="text-sm font-semibold text-light-text-primary dark:text-dark-text-primary mb-3">Select Date</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              As of Date
-            </label>
-            <input
-              type="date"
-              value={asOfDate}
-              onChange={(e) => setAsOfDate(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            />
+            <label className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1.5">As of Date</label>
+            <input type="date" value={asOfDate} onChange={(e) => setAsOfDate(e.target.value)} className={inputCls} />
           </div>
           <div className="flex items-end">
-            <button
-              onClick={handleGenerate}
-              disabled={loading}
-              className="w-full bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Generating...' : 'Generate Statement'}
+            <button onClick={handleGenerate} disabled={loading} className="btn-primary w-full text-sm py-2 flex items-center justify-center gap-1.5 disabled:opacity-50">
+              {loading ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Generating...</> : 'Generate Statement'}
             </button>
           </div>
         </div>
@@ -130,237 +89,86 @@ export default function BalanceSheetPage() {
 
       {/* Statement */}
       {statement && (
-        <div className="bg-white rounded-lg p-8">
-          {/* Header */}
-          <div className="text-center mb-8 border-b-2 border-gray-900 pb-4">
-            <h2 className="text-2xl font-bold text-gray-900">BALANCE SHEET</h2>
-            <p className="text-gray-600 mt-2">As of {formatDate(statement.period.asOf)}</p>
+        <div className="p-6 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
+          <div className="text-center mb-6 pb-4 border-b-2 border-light-text-primary dark:border-dark-text-primary">
+            <h2 className="text-lg font-bold text-light-text-primary dark:text-dark-text-primary">BALANCE SHEET</h2>
+            <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary mt-1">As of {fmtDate(statement.period.asOf)}</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Left Column: Assets */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Assets */}
             <div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4 border-b-2 border-gray-900 pb-2">
-                ASSETS
-              </h3>
-
-              {/* Current Assets */}
-              <div className="mb-6">
-                <h4 className="text-lg font-semibold text-gray-800 mb-3">Current Assets</h4>
-                {statement.assets.current.items.length > 0 ? (
-                  <table className="w-full">
-                    <tbody>
-                      {statement.assets.current.items.map((item, idx) => (
-                        <tr key={idx} className="border-b border-gray-200">
-                          <td className="py-2 text-gray-700 text-sm">{item.category}</td>
-                          <td className="py-2 text-right font-medium text-gray-900 text-sm">
-                            {formatCurrency(item.amount)}
-                          </td>
-                        </tr>
-                      ))}
-                      <tr className="font-semibold border-t border-gray-400">
-                        <td className="py-2 text-gray-900">Total Current Assets</td>
-                        <td className="py-2 text-right text-gray-900">
-                          {formatCurrency(statement.assets.current.total)}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                ) : (
-                  <p className="text-gray-500 italic text-sm">No current assets</p>
-                )}
+              <h3 className="text-sm font-bold text-light-text-primary dark:text-dark-text-primary mb-3 pb-1.5 border-b-2 border-light-text-primary dark:border-dark-text-primary">ASSETS</h3>
+              <div className="mb-4">
+                <h4 className="text-xs font-semibold text-light-text-secondary dark:text-dark-text-secondary mb-2 uppercase tracking-wide">Current Assets</h4>
+                <SectionTable items={statement.assets.current.items} totalLabel="Total Current" total={statement.assets.current.total} />
               </div>
-
-              {/* Non-Current Assets */}
-              <div className="mb-6">
-                <h4 className="text-lg font-semibold text-gray-800 mb-3">Non-Current Assets</h4>
-                {statement.assets.nonCurrent.items.length > 0 ? (
-                  <table className="w-full">
-                    <tbody>
-                      {statement.assets.nonCurrent.items.map((item, idx) => (
-                        <tr key={idx} className="border-b border-gray-200">
-                          <td className="py-2 text-gray-700 text-sm">{item.category}</td>
-                          <td className="py-2 text-right font-medium text-gray-900 text-sm">
-                            {formatCurrency(item.amount)}
-                          </td>
-                        </tr>
-                      ))}
-                      <tr className="font-semibold border-t border-gray-400">
-                        <td className="py-2 text-gray-900">Total Non-Current Assets</td>
-                        <td className="py-2 text-right text-gray-900">
-                          {formatCurrency(statement.assets.nonCurrent.total)}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                ) : (
-                  <p className="text-gray-500 italic text-sm">No non-current assets</p>
-                )}
+              <div className="mb-4">
+                <h4 className="text-xs font-semibold text-light-text-secondary dark:text-dark-text-secondary mb-2 uppercase tracking-wide">Non-Current Assets</h4>
+                <SectionTable items={statement.assets.nonCurrent.items} totalLabel="Total Non-Current" total={statement.assets.nonCurrent.total} />
               </div>
-
-              {/* Total Assets */}
-              <div className="border-t-4 border-gray-900 pt-3">
-                <table className="w-full">
-                  <tbody>
-                    <tr className="text-lg font-bold">
-                      <td className="py-3 text-gray-900">TOTAL ASSETS</td>
-                      <td className="py-3 text-right text-gray-900">
-                        {formatCurrency(statement.assets.total)}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+              <div className="border-t-4 border-light-text-primary dark:border-dark-text-primary pt-2">
+                <div className="flex justify-between text-base font-bold text-light-text-primary dark:text-dark-text-primary py-2">
+                  <span>TOTAL ASSETS</span><span>{fmt(statement.assets.total)}</span>
+                </div>
               </div>
             </div>
 
-            {/* Right Column: Liabilities & Equity */}
+            {/* Liabilities & Equity */}
             <div>
-              <h3 className="text-xl font-bold text-gray-900 mb-4 border-b-2 border-gray-900 pb-2">
-                LIABILITIES & EQUITY
-              </h3>
-
-              {/* Current Liabilities */}
-              <div className="mb-6">
-                <h4 className="text-lg font-semibold text-gray-800 mb-3">Current Liabilities</h4>
-                {statement.liabilities.current.items.length > 0 ? (
-                  <table className="w-full">
-                    <tbody>
-                      {statement.liabilities.current.items.map((item, idx) => (
-                        <tr key={idx} className="border-b border-gray-200">
-                          <td className="py-2 text-gray-700 text-sm">{item.category}</td>
-                          <td className="py-2 text-right font-medium text-gray-900 text-sm">
-                            {formatCurrency(item.amount)}
-                          </td>
-                        </tr>
-                      ))}
-                      <tr className="font-semibold border-t border-gray-400">
-                        <td className="py-2 text-gray-900">Total Current Liabilities</td>
-                        <td className="py-2 text-right text-gray-900">
-                          {formatCurrency(statement.liabilities.current.total)}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                ) : (
-                  <p className="text-gray-500 italic text-sm">No current liabilities</p>
-                )}
+              <h3 className="text-sm font-bold text-light-text-primary dark:text-dark-text-primary mb-3 pb-1.5 border-b-2 border-light-text-primary dark:border-dark-text-primary">LIABILITIES & EQUITY</h3>
+              <div className="mb-4">
+                <h4 className="text-xs font-semibold text-light-text-secondary dark:text-dark-text-secondary mb-2 uppercase tracking-wide">Current Liabilities</h4>
+                <SectionTable items={statement.liabilities.current.items} totalLabel="Total Current" total={statement.liabilities.current.total} />
               </div>
-
-              {/* Non-Current Liabilities */}
-              <div className="mb-6">
-                <h4 className="text-lg font-semibold text-gray-800 mb-3">
-                  Non-Current Liabilities
-                </h4>
-                {statement.liabilities.nonCurrent.items.length > 0 ? (
-                  <table className="w-full">
-                    <tbody>
-                      {statement.liabilities.nonCurrent.items.map((item, idx) => (
-                        <tr key={idx} className="border-b border-gray-200">
-                          <td className="py-2 text-gray-700 text-sm">{item.category}</td>
-                          <td className="py-2 text-right font-medium text-gray-900 text-sm">
-                            {formatCurrency(item.amount)}
-                          </td>
-                        </tr>
-                      ))}
-                      <tr className="font-semibold border-t border-gray-400">
-                        <td className="py-2 text-gray-900">Total Non-Current Liabilities</td>
-                        <td className="py-2 text-right text-gray-900">
-                          {formatCurrency(statement.liabilities.nonCurrent.total)}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                ) : (
-                  <p className="text-gray-500 italic text-sm">No non-current liabilities</p>
-                )}
+              <div className="mb-4">
+                <h4 className="text-xs font-semibold text-light-text-secondary dark:text-dark-text-secondary mb-2 uppercase tracking-wide">Non-Current Liabilities</h4>
+                <SectionTable items={statement.liabilities.nonCurrent.items} totalLabel="Total Non-Current" total={statement.liabilities.nonCurrent.total} />
               </div>
-
-              {/* Equity */}
-              <div className="mb-6">
-                <h4 className="text-lg font-semibold text-gray-800 mb-3">Equity</h4>
-                <table className="w-full">
-                  <tbody>
-                    {statement.equity.items.map((item, idx) => (
-                      <tr key={idx} className="border-b border-gray-200">
-                        <td className="py-2 text-gray-700 text-sm">{item.category}</td>
-                        <td className="py-2 text-right font-medium text-gray-900 text-sm">
-                          {formatCurrency(item.amount)}
-                        </td>
-                      </tr>
-                    ))}
-                    <tr className="font-semibold border-t border-gray-400">
-                      <td className="py-2 text-gray-900">Total Equity</td>
-                      <td className="py-2 text-right text-gray-900">
-                        {formatCurrency(statement.equity.total)}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+              <div className="mb-4">
+                <h4 className="text-xs font-semibold text-light-text-secondary dark:text-dark-text-secondary mb-2 uppercase tracking-wide">Equity</h4>
+                <SectionTable items={statement.equity.items} totalLabel="Total Equity" total={statement.equity.total} />
               </div>
-
-              {/* Total Liabilities & Equity */}
-              <div className="border-t-4 border-gray-900 pt-3">
-                <table className="w-full">
-                  <tbody>
-                    <tr className="text-lg font-bold">
-                      <td className="py-3 text-gray-900">TOTAL LIABILITIES & EQUITY</td>
-                      <td className="py-3 text-right text-gray-900">
-                        {formatCurrency(statement.totalLiabilitiesAndEquity)}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+              <div className="border-t-4 border-light-text-primary dark:border-dark-text-primary pt-2">
+                <div className="flex justify-between text-base font-bold text-light-text-primary dark:text-dark-text-primary py-2">
+                  <span>TOTAL L & E</span><span>{fmt(statement.totalLiabilitiesAndEquity)}</span>
+                </div>
               </div>
             </div>
           </div>
 
           {/* Key Ratios */}
-          <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4 pt-6 border-t border-gray-300">
-            <div className="bg-blue-50 rounded-lg p-4">
-              <div className="text-sm text-blue-700 font-medium">Current Ratio</div>
-              <div className="text-2xl font-bold text-blue-900 mt-1">{currentRatio}</div>
-              <div className="text-xs text-blue-600 mt-1">Current Assets / Current Liabilities</div>
-            </div>
-            <div className="bg-green-50 rounded-lg p-4">
-              <div className="text-sm text-green-700 font-medium">Total Assets</div>
-              <div className="text-2xl font-bold text-green-900 mt-1">
-                {formatCurrency(statement.assets.total)}
+          <div className="mt-6 grid grid-cols-3 gap-3 pt-4 border-t border-light-border dark:border-dark-border">
+            {[
+              { label: 'Current Ratio', value: currentRatio, sub: 'Current Assets / Current Liabilities', color: 'text-blue-600 dark:text-blue-400' },
+              { label: 'Total Assets', value: fmt(statement.assets.total), color: 'text-green-600 dark:text-green-400' },
+              { label: 'Debt-to-Equity', value: debtToEquity, sub: 'Total Liabilities / Total Equity', color: 'text-purple-600 dark:text-purple-400' },
+            ].map((m) => (
+              <div key={m.label} className="p-3 rounded-lg bg-light-background dark:bg-dark-background">
+                <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">{m.label}</p>
+                <p className={`text-base font-bold mt-0.5 ${m.color}`}>{m.value}</p>
+                {m.sub && <p className="text-[10px] text-light-text-tertiary dark:text-dark-text-tertiary mt-0.5">{m.sub}</p>}
               </div>
-            </div>
-            <div className="bg-purple-50 rounded-lg p-4">
-              <div className="text-sm text-purple-700 font-medium">Debt-to-Equity Ratio</div>
-              <div className="text-2xl font-bold text-purple-900 mt-1">{debtToEquity}</div>
-              <div className="text-xs text-purple-600 mt-1">Total Liabilities / Total Equity</div>
-            </div>
+            ))}
           </div>
 
           {/* Actions */}
-          <div className="mt-8 flex gap-3 justify-end pt-6 border-t border-gray-300">
-            <button
-              onClick={() => window.print()}
-              className="bg-gray-600 text-white px-6 py-2 rounded-lg hover:bg-gray-700 transition-colors font-medium"
-            >
-              Print Statement
+          <div className="mt-6 flex gap-2 justify-end pt-4 border-t border-light-border dark:border-dark-border">
+            <button onClick={() => window.print()} className="btn-secondary text-sm px-3 py-2 flex items-center gap-1.5">
+              <Printer className="w-3.5 h-3.5" /> Print
             </button>
-            <button
-              onClick={() => window.print()}
-              className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors font-medium"
-            >
-              Export as PDF
+            <button onClick={() => window.print()} className="btn-primary text-sm px-3 py-2 flex items-center gap-1.5">
+              <Download className="w-3.5 h-3.5" /> Export PDF
             </button>
           </div>
         </div>
       )}
 
       {!statement && !loading && (
-        <div className="bg-gray-50 rounded-lg p-12 text-center">
-          <div className="text-6xl mb-4">📊</div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">
-            Generate Your Balance Sheet
-          </h3>
-          <p className="text-gray-600">
-            Select a date above to view your assets, liabilities, and equity
-          </p>
+        <div className="py-12 text-center rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
+          <BarChart3 className="w-8 h-8 mx-auto mb-2 text-light-text-tertiary dark:text-dark-text-tertiary opacity-40" />
+          <h3 className="text-sm font-semibold text-light-text-primary dark:text-dark-text-primary mb-1">Generate Your Balance Sheet</h3>
+          <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">Select a date above to view assets, liabilities, and equity</p>
         </div>
       )}
     </div>

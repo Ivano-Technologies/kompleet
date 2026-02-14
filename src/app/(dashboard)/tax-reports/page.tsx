@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
+import { Plus, FileText, Info } from 'lucide-react';
 
 interface TaxReport {
   id: string;
@@ -25,11 +26,7 @@ export default function TaxReportsPage() {
     reportType?: string;
   }>({});
 
-  useEffect(() => {
-    fetchReports();
-  }, [filter]);
-
-  const fetchReports = async () => {
+  const fetchReports = useCallback(async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams();
@@ -45,217 +42,214 @@ export default function TaxReportsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter]);
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-NG', {
-      style: 'currency',
-      currency: 'NGN',
-    }).format(amount);
-  };
+  useEffect(() => {
+    fetchReports();
+  }, [fetchReports]);
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-NG', {
+  const formatCurrency = (amount: number) =>
+    new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(amount);
+
+  const formatDate = (dateString: string) =>
+    new Date(dateString).toLocaleDateString('en-NG', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
     });
+
+  const statusStyles: Record<string, string> = {
+    draft: 'bg-gray-100 text-gray-600 dark:bg-gray-800/40 dark:text-gray-400',
+    filed: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+    paid: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+    archived: 'bg-gray-100 text-gray-500 dark:bg-gray-800/40 dark:text-gray-500',
   };
 
-  const getStatusBadge = (status: string) => {
-    const styles = {
-      draft: 'bg-gray-100 text-gray-800',
-      filed: 'bg-blue-100 text-blue-800',
-      paid: 'bg-green-100 text-green-800',
-      archived: 'bg-gray-100 text-gray-600',
-    };
-    return (
-      <span
-        className={`px-2 py-1 text-xs font-medium rounded-full ${
-          styles[status as keyof typeof styles] || styles.draft
-        }`}
-      >
-        {status.charAt(0).toUpperCase() + status.slice(1)}
-      </span>
-    );
-  };
-
-  const getReportTypeLabel = (type: string) => {
-    const labels = {
-      income_tax: 'Income Tax',
-      development_levy: 'Development Levy',
-      vat: 'VAT',
-      comprehensive: 'Comprehensive',
-    };
-    return labels[type as keyof typeof labels] || type;
+  const reportTypeLabels: Record<string, string> = {
+    income_tax: 'Income Tax',
+    development_levy: 'Development Levy',
+    vat: 'VAT',
+    comprehensive: 'Comprehensive',
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Tax Reports</h1>
-        <p className="text-gray-600">
-          Generate and manage your tax reports based on Nigeria Tax Act 2025
-        </p>
-      </div>
-
-      {/* Action Bar */}
-      <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">
+            Tax Reports
+          </h1>
+          <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mt-1">
+            Generate and manage reports based on Nigeria Tax Act 2025
+          </p>
+        </div>
         <Link
           href="/tax-reports/generate"
-          className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium"
+          className="btn-primary text-sm px-4 py-2 flex items-center gap-1.5 self-start"
         >
-          + Generate New Tax Report
+          <Plus className="w-3.5 h-3.5" /> Generate Report
         </Link>
+      </div>
 
-        {/* Filters */}
-        <div className="flex gap-3">
-          <select
-            value={filter.taxYear || ''}
-            onChange={(e) =>
-              setFilter({ ...filter, taxYear: e.target.value ? parseInt(e.target.value) : undefined })
-            }
-            className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-          >
-            <option value="">All Years</option>
-            <option value="2026">2026</option>
-            <option value="2025">2025</option>
-            <option value="2024">2024</option>
-          </select>
-
-          <select
-            value={filter.status || ''}
-            onChange={(e) => setFilter({ ...filter, status: e.target.value || undefined })}
-            className="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent"
-          >
-            <option value="">All Status</option>
-            <option value="draft">Draft</option>
-            <option value="filed">Filed</option>
-            <option value="paid">Paid</option>
-            <option value="archived">Archived</option>
-          </select>
-        </div>
+      {/* Filters */}
+      <div className="flex flex-wrap gap-3">
+        <select
+          value={filter.taxYear || ''}
+          onChange={(e) =>
+            setFilter({ ...filter, taxYear: e.target.value ? parseInt(e.target.value) : undefined })
+          }
+          className="px-3 py-2 text-sm rounded-lg border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface text-light-text-primary dark:text-dark-text-primary focus:outline-none focus:border-primary-500"
+        >
+          <option value="">All Years</option>
+          <option value="2026">2026</option>
+          <option value="2025">2025</option>
+          <option value="2024">2024</option>
+        </select>
+        <select
+          value={filter.status || ''}
+          onChange={(e) => setFilter({ ...filter, status: e.target.value || undefined })}
+          className="px-3 py-2 text-sm rounded-lg border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface text-light-text-primary dark:text-dark-text-primary focus:outline-none focus:border-primary-500"
+        >
+          <option value="">All Status</option>
+          <option value="draft">Draft</option>
+          <option value="filed">Filed</option>
+          <option value="paid">Paid</option>
+          <option value="archived">Archived</option>
+        </select>
       </div>
 
       {/* Info Panel */}
-      <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h3 className="font-semibold text-blue-900 mb-2">📋 About Tax Reports</h3>
-        <p className="text-sm text-blue-800">
-          Tax reports are generated based on your transactions and financial data. They comply with the
-          Nigeria Tax Act 2025 and include income tax, development levy, and VAT calculations. Use these
-          reports for filing with the Nigeria Revenue Service (NRS).
+      <div className="flex items-start gap-3 p-4 rounded-lg border border-blue-200 dark:border-blue-800/40 bg-blue-50 dark:bg-blue-900/10">
+        <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+        <p className="text-sm text-blue-800 dark:text-blue-300 leading-relaxed">
+          Tax reports comply with the Nigeria Tax Act 2025 and include income tax, development levy,
+          and VAT calculations. Use these reports for filing with the Nigeria Revenue Service (NRS).
         </p>
       </div>
 
-      {/* Reports List */}
+      {/* Quick Stats */}
+      {reports.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[
+            { label: 'Total Reports', value: reports.length, color: '' },
+            { label: 'Draft', value: reports.filter((r) => r.status === 'draft').length, color: '' },
+            { label: 'Filed', value: reports.filter((r) => r.status === 'filed').length, color: 'text-green-600 dark:text-green-400' },
+            { label: 'Paid', value: reports.filter((r) => r.status === 'paid').length, color: 'text-blue-600 dark:text-blue-400' },
+          ].map((stat) => (
+            <div
+              key={stat.label}
+              className="p-4 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface"
+            >
+              <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
+                {stat.label}
+              </p>
+              <p className={`text-xl font-bold mt-1 ${stat.color || 'text-light-text-primary dark:text-dark-text-primary'}`}>
+                {stat.value}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Reports Table */}
       {loading ? (
-        <div className="text-center py-12">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
-          <p className="mt-4 text-gray-600">Loading reports...</p>
+        <div className="py-12 text-center">
+          <div className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+          <p className="text-sm text-light-text-tertiary dark:text-dark-text-tertiary">
+            Loading reports...
+          </p>
         </div>
       ) : reports.length === 0 ? (
-        <div className="text-center py-12 bg-gray-50 rounded-lg">
-          <p className="text-gray-600 mb-4">No tax reports found</p>
+        <div className="py-12 text-center rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
+          <FileText className="w-8 h-8 mx-auto mb-2 text-light-text-tertiary dark:text-dark-text-tertiary opacity-40" />
+          <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-2">
+            No tax reports found
+          </p>
           <Link
             href="/tax-reports/generate"
-            className="text-green-600 hover:text-green-700 font-medium"
+            className="text-primary-500 hover:text-primary-400 text-sm font-medium"
           >
             Generate your first tax report →
           </Link>
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Tax Year
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Report Type
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Period
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Classification
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Tax Liability
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  ETR
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {reports.map((report) => (
-                <tr key={report.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {report.tax_year}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    {getReportTypeLabel(report.report_type)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    {formatDate(report.period_start)} - {formatDate(report.period_end)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    {report.business_classification}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {formatCurrency(report.total_tax_liability)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    {report.effective_tax_rate.toFixed(2)}%
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">{getStatusBadge(report.status)}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm">
-                    <Link
-                      href={`/tax-reports/${report.id}`}
-                      className="text-green-600 hover:text-green-700 font-medium"
-                    >
-                      View →
-                    </Link>
-                  </td>
+        <div className="rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-light-border dark:border-dark-border bg-light-background dark:bg-dark-background">
+                  <th className="px-4 py-3 text-left text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary uppercase">
+                    Year
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary uppercase">
+                    Type
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary uppercase">
+                    Period
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary uppercase">
+                    Classification
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary uppercase">
+                    Tax Liability
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary uppercase">
+                    ETR
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary uppercase">
+                    Status
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary uppercase">
+                    Action
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* Quick Stats */}
-      {reports.length > 0 && (
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white p-4 rounded-lg shadow">
-            <p className="text-sm text-gray-600">Total Reports</p>
-            <p className="text-2xl font-bold text-gray-900">{reports.length}</p>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow">
-            <p className="text-sm text-gray-600">Draft</p>
-            <p className="text-2xl font-bold text-gray-900">
-              {reports.filter((r) => r.status === 'draft').length}
-            </p>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow">
-            <p className="text-sm text-gray-600">Filed</p>
-            <p className="text-2xl font-bold text-green-600">
-              {reports.filter((r) => r.status === 'filed').length}
-            </p>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow">
-            <p className="text-sm text-gray-600">Paid</p>
-            <p className="text-2xl font-bold text-blue-600">
-              {reports.filter((r) => r.status === 'paid').length}
-            </p>
+              </thead>
+              <tbody className="divide-y divide-light-border/50 dark:divide-dark-border/50">
+                {reports.map((report) => (
+                  <tr
+                    key={report.id}
+                    className="hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover transition-colors"
+                  >
+                    <td className="px-4 py-3 font-medium text-light-text-primary dark:text-dark-text-primary">
+                      {report.tax_year}
+                    </td>
+                    <td className="px-4 py-3 text-light-text-secondary dark:text-dark-text-secondary">
+                      {reportTypeLabels[report.report_type] || report.report_type}
+                    </td>
+                    <td className="px-4 py-3 text-light-text-secondary dark:text-dark-text-secondary whitespace-nowrap">
+                      {formatDate(report.period_start)} – {formatDate(report.period_end)}
+                    </td>
+                    <td className="px-4 py-3 text-light-text-secondary dark:text-dark-text-secondary">
+                      {report.business_classification}
+                    </td>
+                    <td className="px-4 py-3 font-medium text-light-text-primary dark:text-dark-text-primary">
+                      {formatCurrency(report.total_tax_liability)}
+                    </td>
+                    <td className="px-4 py-3 text-light-text-secondary dark:text-dark-text-secondary">
+                      {report.effective_tax_rate.toFixed(2)}%
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                          statusStyles[report.status] || statusStyles.draft
+                        }`}
+                      >
+                        {report.status.charAt(0).toUpperCase() + report.status.slice(1)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <Link
+                        href={`/tax-reports/${report.id}`}
+                        className="text-primary-500 hover:text-primary-400 font-medium text-xs"
+                      >
+                        View →
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}

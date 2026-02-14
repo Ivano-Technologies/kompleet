@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { FileText, Download, Calendar, CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { FileText, Download, Calendar, CheckCircle, Clock, Info } from 'lucide-react';
 
 interface Form {
   id: string;
@@ -23,31 +23,26 @@ export default function FilingCenterPage() {
   const [selectedFormType, setSelectedFormType] = useState<string>('all');
   const [selectedYear, setSelectedYear] = useState<number>(2026);
   const [showGenerateModal, setShowGenerateModal] = useState(false);
-  const [generating, setGenerating] = useState(false);
 
-  useEffect(() => {
-    fetchForms();
-  }, [selectedFormType, selectedYear]);
-
-  const fetchForms = async () => {
+  const fetchForms = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
       if (selectedFormType !== 'all') params.append('formType', selectedFormType);
       if (selectedYear) params.append('taxYear', selectedYear.toString());
-
       const response = await fetch(`/api/forms/list?${params}`);
       const data = await response.json();
-      
-      if (data.success) {
-        setForms(data.forms);
-      }
+      if (data.success) setForms(data.forms);
     } catch (error) {
       console.error('Error fetching forms:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedFormType, selectedYear]);
+
+  useEffect(() => {
+    fetchForms();
+  }, [fetchForms]);
 
   const handleDownload = (form: Form) => {
     const link = document.createElement('a');
@@ -56,192 +51,169 @@ export default function FilingCenterPage() {
     link.click();
   };
 
-  const getStatusBadge = (status: string) => {
-    const badges = {
-      draft: { color: 'bg-gray-100 text-gray-800', icon: Clock },
-      generated: { color: 'bg-blue-100 text-blue-800', icon: FileText },
-      filed: { color: 'bg-green-100 text-green-800', icon: CheckCircle },
-      archived: { color: 'bg-purple-100 text-purple-800', icon: FileText }
-    };
-    
-    const badge = badges[status as keyof typeof badges] || badges.draft;
-    const Icon = badge.icon;
-    
-    return (
-      <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${badge.color}`}>
-        <Icon className="w-3 h-3" />
-        {status.charAt(0).toUpperCase() + status.slice(1)}
-      </span>
-    );
+  const statusStyles: Record<string, { cls: string; Icon: typeof Clock }> = {
+    draft: { cls: 'bg-gray-100 text-gray-600 dark:bg-gray-800/40 dark:text-gray-400', Icon: Clock },
+    generated: { cls: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400', Icon: FileText },
+    filed: { cls: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400', Icon: CheckCircle },
+    archived: { cls: 'bg-gray-100 text-gray-500 dark:bg-gray-800/40 dark:text-gray-500', Icon: FileText },
   };
 
-  const getFormTypeColor = (formType: string) => {
-    const colors = {
-      PIT: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-      CIT: 'bg-blue-100 text-blue-800 border-blue-200',
-      VAT: 'bg-purple-100 text-purple-800 border-purple-200'
-    };
-    return colors[formType as keyof typeof colors] || colors.PIT;
+  const formTypeStyles: Record<string, string> = {
+    PIT: 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800/40',
+    CIT: 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800/40',
+    VAT: 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-800/40',
   };
+
+  const formTypeLabels: Record<string, string> = {
+    PIT: 'Personal Income Tax Return',
+    CIT: 'Company Income Tax Return',
+    VAT: 'VAT Return',
+  };
+
+  const selectCls =
+    'px-3 py-2 text-sm rounded-lg border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface text-light-text-primary dark:text-dark-text-primary focus:outline-none focus:border-primary-500';
 
   return (
     <div className="space-y-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Filing Center</h1>
-          <p className="text-gray-600">Generate and manage your NRS tax forms</p>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">
+            Filing Center
+          </h1>
+          <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mt-1">
+            Generate and manage your NRS tax forms
+          </p>
+        </div>
+        <button
+          onClick={() => setShowGenerateModal(true)}
+          className="btn-primary text-sm px-4 py-2 flex items-center gap-1.5 self-start"
+        >
+          <FileText className="w-3.5 h-3.5" /> Generate New Form
+        </button>
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-wrap gap-3">
+        <select value={selectedFormType} onChange={(e) => setSelectedFormType(e.target.value)} className={selectCls}>
+          <option value="all">All Forms</option>
+          <option value="PIT">Personal Income Tax (PIT)</option>
+          <option value="CIT">Company Income Tax (CIT)</option>
+          <option value="VAT">Value Added Tax (VAT)</option>
+        </select>
+        <select value={selectedYear} onChange={(e) => setSelectedYear(parseInt(e.target.value))} className={selectCls}>
+          <option value={2026}>2026</option>
+          <option value={2025}>2025</option>
+          <option value={2024}>2024</option>
+        </select>
+      </div>
+
+      {/* Filing Workflow Guide */}
+      <div className="p-4 rounded-lg border border-blue-200 dark:border-blue-800/40 bg-blue-50 dark:bg-blue-900/10">
+        <div className="flex items-center gap-2 mb-2">
+          <Info className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+          <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-200">Filing Workflow</h3>
+        </div>
+        <ol className="space-y-1 text-xs text-blue-800 dark:text-blue-300 leading-relaxed">
+          {[
+            'Generate your NRS form by clicking "Generate New Form"',
+            'Download the generated PDF form',
+            'Review the form and ensure all information is accurate',
+            'Submit to the NRS portal or nearest tax office',
+            'Mark as "Filed" and enter your confirmation number',
+          ].map((step, i) => (
+            <li key={i} className="flex items-start gap-2">
+              <span className="font-semibold text-primary-500">{i + 1}.</span>
+              <span>{step}</span>
+            </li>
+          ))}
+        </ol>
+      </div>
+
+      {/* Forms List */}
+      <div className="rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface overflow-hidden">
+        <div className="px-5 py-4 border-b border-light-border dark:border-dark-border">
+          <h2 className="text-base font-semibold text-light-text-primary dark:text-dark-text-primary">
+            Your Forms
+          </h2>
+          <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary mt-0.5">
+            {forms.length} {forms.length === 1 ? 'form' : 'forms'} found
+          </p>
         </div>
 
-        {/* Filters and Actions */}
-        <div className="bg-white rounded-lg p-6 mb-6">
-          <div className="flex flex-wrap gap-4 items-center justify-between">
-            <div className="flex gap-4">
-              {/* Form Type Filter */}
-              <select
-                value={selectedFormType}
-                onChange={(e) => setSelectedFormType(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-              >
-                <option value="all">All Forms</option>
-                <option value="PIT">Personal Income Tax (PIT)</option>
-                <option value="CIT">Company Income Tax (CIT)</option>
-                <option value="VAT">Value Added Tax (VAT)</option>
-              </select>
-
-              {/* Tax Year Filter */}
-              <select
-                value={selectedYear}
-                onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-              >
-                <option value={2026}>2026</option>
-                <option value={2025}>2025</option>
-                <option value={2024}>2024</option>
-              </select>
-            </div>
-
+        {loading ? (
+          <div className="py-12 text-center">
+            <div className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+            <p className="text-sm text-light-text-tertiary dark:text-dark-text-tertiary">Loading forms...</p>
+          </div>
+        ) : forms.length === 0 ? (
+          <div className="py-12 text-center">
+            <FileText className="w-8 h-8 mx-auto mb-2 text-light-text-tertiary dark:text-dark-text-tertiary opacity-40" />
+            <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-1">No forms yet</p>
+            <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary mb-4">
+              Generate your first NRS tax form to get started
+            </p>
             <button
               onClick={() => setShowGenerateModal(true)}
-              className="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium flex items-center gap-2"
+              className="btn-primary text-sm px-4 py-2"
             >
-              <FileText className="w-4 h-4" />
-              Generate New Form
+              Generate Form
             </button>
           </div>
-        </div>
-
-        {/* Filing Workflow Guide */}
-        <div className="bg-gradient-to-r from-emerald-50 to-blue-50 rounded-lg p-6 mb-6 border border-emerald-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-            <AlertCircle className="w-5 h-5 text-emerald-600" />
-            Filing Workflow Guide
-          </h3>
-          <ol className="space-y-2 text-sm text-gray-700">
-            <li className="flex items-start gap-2">
-              <span className="font-semibold text-emerald-600">1.</span>
-              <span>Generate your NRS form by clicking "Generate New Form" and filling in the required information</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="font-semibold text-emerald-600">2.</span>
-              <span>Download the generated PDF form from the list below</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="font-semibold text-emerald-600">3.</span>
-              <span>Review the form carefully and ensure all information is accurate</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="font-semibold text-emerald-600">4.</span>
-              <span>Submit the form to the Nigerian Revenue Service (NRS) portal or your nearest tax office</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="font-semibold text-emerald-600">5.</span>
-              <span>Mark the form as "Filed" once submitted and enter your confirmation number</span>
-            </li>
-          </ol>
-        </div>
-
-        {/* Forms List */}
-        <div className="bg-white rounded-lg">
-          <div className="p-6 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900">Your Forms</h2>
-            <p className="text-sm text-gray-600 mt-1">
-              {forms.length} {forms.length === 1 ? 'form' : 'forms'} found
-            </p>
-          </div>
-
-          {loading ? (
-            <div className="p-12 text-center">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
-              <p className="mt-4 text-gray-600">Loading forms...</p>
-            </div>
-          ) : forms.length === 0 ? (
-            <div className="p-12 text-center">
-              <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No forms yet</h3>
-              <p className="text-gray-600 mb-6">Generate your first NRS tax form to get started</p>
-              <button
-                onClick={() => setShowGenerateModal(true)}
-                className="px-6 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
-              >
-                Generate Form
-              </button>
-            </div>
-          ) : (
-            <div className="divide-y divide-gray-200">
-              {forms.map((form) => (
-                <div key={form.id} className="p-6 hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-start gap-4 flex-1">
-                      <div className={`p-3 rounded-lg border-2 ${getFormTypeColor(form.form_type)}`}>
-                        <FileText className="w-6 h-6" />
+        ) : (
+          <div className="divide-y divide-light-border/50 dark:divide-dark-border/50">
+            {forms.map((form) => {
+              const badge = statusStyles[form.status] || statusStyles.draft;
+              const BadgeIcon = badge.Icon;
+              return (
+                <div
+                  key={form.id}
+                  className="p-5 hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover transition-colors"
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-start gap-3 flex-1 min-w-0">
+                      <div className={`p-2.5 rounded-lg border ${formTypeStyles[form.form_type] || formTypeStyles.PIT}`}>
+                        <FileText className="w-5 h-5" />
                       </div>
-                      
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="text-lg font-semibold text-gray-900">
-                            {form.form_type === 'PIT' && 'Personal Income Tax Return'}
-                            {form.form_type === 'CIT' && 'Company Income Tax Return'}
-                            {form.form_type === 'VAT' && 'VAT Return'}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <h3 className="text-sm font-semibold text-light-text-primary dark:text-dark-text-primary">
+                            {formTypeLabels[form.form_type] || form.form_type}
                           </h3>
-                          {getStatusBadge(form.status)}
-                        </div>
-                        
-                        <div className="flex items-center gap-4 text-sm text-gray-600">
-                          <span className="flex items-center gap-1">
-                            <Calendar className="w-4 h-4" />
-                            Tax Year: {form.tax_year}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-4 h-4" />
-                            Generated: {new Date(form.created_at).toLocaleDateString('en-NG')}
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${badge.cls}`}>
+                            <BadgeIcon className="w-3 h-3" />
+                            {form.status.charAt(0).toUpperCase() + form.status.slice(1)}
                           </span>
                         </div>
-
+                        <div className="flex items-center gap-3 text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-3 h-3" /> Year: {form.tax_year}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" /> {new Date(form.created_at).toLocaleDateString('en-NG')}
+                          </span>
+                        </div>
                         {form.filing_status && form.filing_status.length > 0 && (
-                          <div className="mt-2 text-sm text-emerald-600 font-medium">
-                            Filed on {new Date(form.filing_status[0].filed_date).toLocaleDateString('en-NG')}
-                            {form.filing_status[0].confirmation_number && 
-                              ` • Confirmation: ${form.filing_status[0].confirmation_number}`
-                            }
-                          </div>
+                          <p className="mt-1 text-xs text-primary-500 font-medium">
+                            Filed {new Date(form.filing_status[0].filed_date).toLocaleDateString('en-NG')}
+                            {form.filing_status[0].confirmation_number &&
+                              ` · Ref: ${form.filing_status[0].confirmation_number}`}
+                          </p>
                         )}
                       </div>
                     </div>
-
                     <button
                       onClick={() => handleDownload(form)}
-                      className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center gap-2"
+                      className="btn-primary text-xs px-3 py-1.5 flex items-center gap-1.5 flex-shrink-0"
                     >
-                      <Download className="w-4 h-4" />
-                      Download
+                      <Download className="w-3 h-3" /> Download
                     </button>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
