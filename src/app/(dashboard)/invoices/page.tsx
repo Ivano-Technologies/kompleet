@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createBrowserClient as createClient } from '@/lib/supabase/client';
 import type { Database } from '@/lib/supabase/types';
+import { Plus, Search, FileText, Send, Download } from 'lucide-react';
 
 type DbInvoice = Database['public']['Tables']['invoices']['Row'];
 
@@ -108,7 +109,7 @@ export default function InvoicesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-light-background dark:bg-dark-background flex">
+    <div className="flex -m-4 lg:-m-6" style={{ minHeight: 'calc(100vh - 3.5rem)' }}>
       {/* Left Sidebar - Invoice List */}
       <div className="w-96 bg-light-surface dark:bg-dark-surface border-r border-light-border dark:border-dark-border flex flex-col">
         {/* Header */}
@@ -119,7 +120,7 @@ export default function InvoicesPage() {
               onClick={() => router.push('/invoices/new')}
               className="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-all duration-200"
             >
-              <span className="material-icons text-sm">add</span>
+              <Plus className="w-3.5 h-3.5" />
               Create New Invoice
             </button>
           </div>
@@ -131,7 +132,7 @@ export default function InvoicesPage() {
         {/* Search */}
         <div className="p-4 border-b border-light-border dark:border-dark-border">
           <div className="relative">
-            <span className="material-icons absolute left-3 top-1/2 -translate-y-1/2 text-light-text-tertiary dark:text-dark-text-tertiary text-sm">search</span>
+            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-light-text-tertiary dark:text-dark-text-tertiary" />
             <input
               type="text"
               value={searchQuery}
@@ -157,7 +158,7 @@ export default function InvoicesPage() {
             </div>
           ) : filteredInvoices.length === 0 ? (
             <div className="p-8 text-center text-light-text-tertiary dark:text-dark-text-tertiary">
-              <span className="material-icons text-4xl mb-3 opacity-50">description</span>
+              <FileText className="w-9 h-9 mb-3 opacity-50" />
               <p className="text-sm">No invoices found</p>
               <button
                 onClick={() => router.push('/invoices/new')}
@@ -339,14 +340,14 @@ export default function InvoicesPage() {
                   onClick={() => router.push(`/invoices/${selectedInvoice.id}`)}
                   className="bg-primary-500 hover:bg-primary-600 text-white px-8 py-3 rounded-lg font-medium flex items-center gap-2 transition-all duration-200"
                 >
-                  <span className="material-icons text-sm">send</span>
+                  <Send className="w-3.5 h-3.5" />
                   SEND TO CLIENT
                 </button>
                 <button
                   onClick={() => window.open(`/api/invoices/${selectedInvoice.id}/pdf`, '_blank')}
                   className="bg-dark-background hover:bg-dark-surface-hover border border-dark-border text-dark-text-primary px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-all duration-200"
                 >
-                  <span className="material-icons text-sm">download</span>
+                  <Download className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
@@ -354,7 +355,7 @@ export default function InvoicesPage() {
         ) : (
           <div className="h-full flex items-center justify-center text-dark-text-tertiary">
             <div className="text-center">
-              <span className="material-icons text-6xl mb-4 opacity-30">description</span>
+              <FileText className="w-14 h-14 mb-4 opacity-30" />
               <p>Select an invoice to preview</p>
             </div>
           </div>

@@ -4,6 +4,7 @@ import { useState, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { createSupabaseClient } from '@/lib/supabase/client';
 import Link from 'next/link';
+import { Eye, EyeOff, ArrowRight, ShieldCheck, Lock } from 'lucide-react';
 
 function getPasswordStrength(pw: string) {
   const checks = {
@@ -216,9 +217,7 @@ export default function SignUpPage() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-light-text-tertiary dark:text-dark-text-tertiary hover:text-light-text-secondary dark:hover:text-dark-text-secondary transition-colors"
                 >
-                  <span className="material-icons text-xl">
-                    {showPassword ? 'visibility_off' : 'visibility'}
-                  </span>
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
               <p className="mt-2 text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
@@ -233,7 +232,7 @@ export default function SignUpPage() {
               className="btn-primary w-full py-3 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {loading ? 'Creating account...' : 'Create Free Account'}
-              {!loading && <span className="material-icons text-lg">arrow_forward</span>}
+              {!loading && <ArrowRight className="w-[18px] h-[18px]" />}
             </button>
           </form>
 
@@ -256,7 +255,7 @@ export default function SignUpPage() {
             <div className="flex items-center justify-center gap-6">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 bg-primary-500/20 rounded-full flex items-center justify-center">
-                  <span className="material-icons text-primary-500 text-sm">verified_user</span>
+                  <ShieldCheck className="w-3.5 h-3.5 text-primary-500" />
                 </div>
                 <span className="text-xs font-medium text-light-text-secondary dark:text-dark-text-secondary">
                   NDPR COMPLIANT
@@ -264,7 +263,7 @@ export default function SignUpPage() {
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 bg-primary-500/20 rounded-full flex items-center justify-center">
-                  <span className="material-icons text-primary-500 text-sm">lock</span>
+                  <Lock className="w-3.5 h-3.5 text-primary-500" />
                 </div>
                 <span className="text-xs font-medium text-light-text-secondary dark:text-dark-text-secondary">
                   256-BIT AES

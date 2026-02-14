@@ -303,16 +303,3 @@ textarea::placeholder {
   color: rgb(var(--text-tertiary));
 }
 
-/* ========================================
-   DEPRECATED CLASSES (TO BE REMOVED)
-   ======================================== */
-
-/* Legacy glassmorphism classes - DO NOT USE */
-.glass-nav,
-.glass-card,
-.glass-card-light,
-.glass-sidebar {
-  /* These will be removed in next cleanup */
-  opacity: 0;
-  pointer-events: none;
-}

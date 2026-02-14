@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { ArrowRight, PlayCircle } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -21,7 +22,7 @@ export default function HeroButtons() {
           className="btn-primary btn-with-icon px-8 py-4 rounded-lg font-bold text-lg"
           aria-label="Start for free"
         >
-          Start for Free <span className="material-icons text-xl">arrow_forward</span>
+          Start for Free <ArrowRight className="w-5 h-5" />
         </Link>
         <button
           type="button"
@@ -43,7 +44,7 @@ export default function HeroButtons() {
           </DialogHeader>
           <div className="py-6 text-center">
             <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-4">
-              <span className="material-icons text-primary text-3xl">play_circle</span>
+              <PlayCircle className="w-8 h-8 text-primary" />
             </div>
             <p className="text-slate-300 mb-6">
               We are putting the finishing touches on our demo walkthrough. In the meantime, create a free account to explore KOMPLEET yourself.

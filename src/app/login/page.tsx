@@ -4,6 +4,7 @@ import { useState, FormEvent, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createSupabaseClient } from '@/lib/supabase/client';
 import Link from 'next/link';
+import { Shield, Lock } from 'lucide-react';
 
 function LoginForm() {
   const [email, setEmail] = useState('');
@@ -140,11 +141,11 @@ function LoginForm() {
           <div className="mt-8 pt-6 border-t border-light-border dark:border-dark-border">
             <div className="flex items-center justify-center gap-4 text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
               <div className="flex items-center gap-1">
-                <span className="material-icons text-sm">security</span>
+                <Shield className="w-3.5 h-3.5" />
                 <span>NDPR Compliant</span>
               </div>
               <div className="flex items-center gap-1">
-                <span className="material-icons text-sm">lock</span>
+                <Lock className="w-3.5 h-3.5" />
                 <span>256-bit SSL</span>
               </div>
             </div>

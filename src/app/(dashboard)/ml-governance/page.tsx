@@ -2,7 +2,7 @@
 
 /**
  * ML Governance Dashboard
- * 
+ *
  * Comprehensive dashboard for monitoring ML models, approval workflows,
  * drift detection, and governance KPIs.
  */
@@ -34,22 +34,6 @@ interface Model {
   deployedAt?: string;
 }
 
-interface DriftMetrics {
-  dataDriftScore: number;
-  conceptDriftScore: number;
-  predictionDriftScore: number;
-  alertLevel: string;
-  timestamp: string;
-}
-
-interface ApprovalWorkflow {
-  id: string;
-  modelId: string;
-  status: string;
-  requestedBy: string;
-  requestedAt: string;
-}
-
 // ============================================================================
 // MAIN COMPONENT
 // ============================================================================
@@ -57,29 +41,21 @@ interface ApprovalWorkflow {
 export default function MLGovernanceDashboard() {
   const [kpis, setKpis] = useState<GovernanceKPIs | null>(null);
   const [models, setModels] = useState<Model[]>([]);
-  const [workflows, setWorkflows] = useState<ApprovalWorkflow[]>([]);
-  const [driftAlerts, setDriftAlerts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const loadDashboardData = async () => {
     try {
-      // Load KPIs
       const kpisRes = await fetch('/api/ml-governance/metrics/kpis');
       const kpisData = await kpisRes.json();
       if (kpisData.success) {
         setKpis(kpisData.kpis);
       }
 
-      // Load models
       const modelsRes = await fetch('/api/ml-governance/models?limit=10');
       const modelsData = await modelsRes.json();
       if (modelsData.success) {
         setModels(modelsData.models);
       }
-
-      // TODO: Load workflows and drift alerts
-      // const workflowsRes = await fetch('/api/ml-governance/approvals/pending/current-user');
-      // const driftRes = await fetch('/api/ml-governance/drift/alerts');
 
       setLoading(false);
     } catch (error) {
@@ -94,22 +70,24 @@ export default function MLGovernanceDashboard() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center py-20">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading ML Governance Dashboard...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto mb-4"></div>
+          <p className="text-light-text-secondary dark:text-dark-text-secondary">Loading ML Governance Dashboard...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">ML Governance Dashboard</h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-2xl lg:text-3xl font-bold text-light-text-primary dark:text-dark-text-primary">
+            ML Governance Dashboard
+          </h1>
+          <p className="text-light-text-secondary dark:text-dark-text-secondary mt-1">
             Monitor models, approvals, drift, and compliance
           </p>
         </div>
@@ -120,7 +98,7 @@ export default function MLGovernanceDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+            <CardTitle className="text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary">
               Total Models
             </CardTitle>
           </CardHeader>
@@ -131,7 +109,7 @@ export default function MLGovernanceDashboard() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+            <CardTitle className="text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary">
               Deployed Models
             </CardTitle>
           </CardHeader>
@@ -142,7 +120,7 @@ export default function MLGovernanceDashboard() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+            <CardTitle className="text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary">
               Rollback Success Rate
             </CardTitle>
           </CardHeader>
@@ -153,7 +131,7 @@ export default function MLGovernanceDashboard() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+            <CardTitle className="text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary">
               Avg Rollback Time
             </CardTitle>
           </CardHeader>
@@ -166,7 +144,7 @@ export default function MLGovernanceDashboard() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+            <CardTitle className="text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary">
               Documentation Complete
             </CardTitle>
           </CardHeader>
@@ -195,14 +173,14 @@ export default function MLGovernanceDashboard() {
             <CardContent>
               <div className="space-y-4">
                 {models.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8">
+                  <p className="text-center text-light-text-tertiary dark:text-dark-text-tertiary py-8">
                     No models registered yet
                   </p>
                 ) : (
                   models.map((model) => (
                     <div
                       key={model.id}
-                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent transition-colors"
+                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover transition-colors"
                     >
                       <div className="flex-1">
                         <div className="flex items-center gap-3">
@@ -220,10 +198,10 @@ export default function MLGovernanceDashboard() {
                             {model.status}
                           </Badge>
                         </div>
-                        <p className="text-sm text-muted-foreground mt-1">
+                        <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mt-1">
                           Created: {new Date(model.createdAt).toLocaleDateString()}
                           {model.deployedAt &&
-                            ` • Deployed: ${new Date(model.deployedAt).toLocaleDateString()}`}
+                            ` - Deployed: ${new Date(model.deployedAt).toLocaleDateString()}`}
                         </p>
                       </div>
                       <Button variant="ghost" size="sm">
@@ -245,7 +223,7 @@ export default function MLGovernanceDashboard() {
               <CardDescription>Models awaiting approval for deployment</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-center text-muted-foreground py-8">
+              <p className="text-center text-light-text-tertiary dark:text-dark-text-tertiary py-8">
                 No pending approvals
               </p>
             </CardContent>
@@ -260,7 +238,7 @@ export default function MLGovernanceDashboard() {
               <CardDescription>Models with detected drift or performance issues</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-center text-muted-foreground py-8">
+              <p className="text-center text-light-text-tertiary dark:text-dark-text-tertiary py-8">
                 No drift alerts
               </p>
             </CardContent>
@@ -275,7 +253,7 @@ export default function MLGovernanceDashboard() {
               <CardDescription>Complete audit trail of ML lifecycle events</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-center text-muted-foreground py-8">
+              <p className="text-center text-light-text-tertiary dark:text-dark-text-tertiary py-8">
                 No audit logs available
               </p>
             </CardContent>

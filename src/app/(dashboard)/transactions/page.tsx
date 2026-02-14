@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { Download, Plus, Search, ArrowDown, ArrowUp, MoreVertical, ArrowLeft, ArrowRight } from 'lucide-react';
 
 interface Transaction {
   id: string;
@@ -161,7 +162,7 @@ export default function TransactionsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-light-background dark:bg-dark-background">
+    <div>
       {/* Header */}
       <div className="bg-light-background dark:bg-dark-background border-b border-light-border dark:border-dark-border px-8 py-6">
         <div className="flex items-center justify-between mb-6">
@@ -184,7 +185,7 @@ export default function TransactionsPage() {
               disabled={exporting}
               className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-lg px-4 py-3 text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary hover:border-primary-500 transition-all font-medium disabled:opacity-50 flex items-center gap-2"
             >
-              <span className="material-icons text-sm">file_download</span>
+              <Download className="w-3.5 h-3.5" />
               {exporting ? 'Exporting...' : 'Export'}
             </button>
             <div id="export-menu" className="hidden absolute right-0 mt-2 w-48 bg-light-surface dark:bg-dark-surface rounded-lg border border-light-border dark:border-dark-border shadow-xl z-10">
@@ -203,7 +204,7 @@ export default function TransactionsPage() {
             </div>
           </div>
           <button className="bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-all duration-200 shadow-lg hover:shadow-xl">
-            <span className="material-icons">add</span>
+            <Plus className="w-5 h-5" />
             Add New
           </button>
           </div>
@@ -212,7 +213,7 @@ export default function TransactionsPage() {
         {/* Search and Filters */}
         <div className="flex items-center gap-4">
           <div className="flex-1 relative">
-            <span className="material-icons absolute left-4 top-1/2 -translate-y-1/2 text-light-text-tertiary dark:text-dark-text-tertiary">search</span>
+            <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-light-text-tertiary dark:text-dark-text-tertiary" />
             <input
               type="text"
               placeholder="Search transactions, vendors, amounts..."
@@ -339,9 +340,11 @@ export default function TransactionsPage() {
                         <td className="px-4 py-4">
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-lg bg-light-background dark:bg-dark-background flex items-center justify-center">
-                              <span className="material-icons text-primary-500 text-sm">
-                                {transaction.transaction_type === 'credit' ? 'arrow_downward' : 'arrow_upward'}
-                              </span>
+                              {transaction.transaction_type === 'credit' ? (
+                                <ArrowDown className="w-3.5 h-3.5 text-primary-500" />
+                              ) : (
+                                <ArrowUp className="w-3.5 h-3.5 text-primary-500" />
+                              )}
                             </div>
                             <span className="font-medium text-light-text-primary dark:text-dark-text-primary">
                               {transaction.description}
@@ -376,7 +379,7 @@ export default function TransactionsPage() {
                         </td>
                         <td className="px-4 py-4 text-center">
                           <button className="p-2 hover:bg-light-background dark:hover:bg-dark-background rounded-lg transition-colors">
-                            <span className="material-icons text-light-text-tertiary dark:text-dark-text-tertiary">more_vert</span>
+                            <MoreVertical className="w-5 h-5 text-light-text-tertiary dark:text-dark-text-tertiary" />
                           </button>
                         </td>
                       </tr>
@@ -398,7 +401,7 @@ export default function TransactionsPage() {
                     disabled={pagination.page === 1}
                     className="w-10 h-10 rounded-lg bg-light-background dark:bg-dark-background text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <span className="material-icons">arrow_back</span>
+                    <ArrowLeft className="w-5 h-5" />
                   </button>
                   <button className="w-10 h-10 rounded-lg bg-primary-500 text-white font-medium hover:bg-primary-600 transition-colors">
                     {pagination.page}
@@ -416,7 +419,7 @@ export default function TransactionsPage() {
                     disabled={pagination.page >= pagination.totalPages}
                     className="w-10 h-10 rounded-lg bg-light-background dark:bg-dark-background text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <span className="material-icons">arrow_forward</span>
+                    <ArrowRight className="w-5 h-5" />
                   </button>
                 </div>
               </div>

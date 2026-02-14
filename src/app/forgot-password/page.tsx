@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { KeyRound, Clock, Headphones, ArrowLeft } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
 export default function ForgotPasswordPage() {
@@ -86,7 +87,7 @@ export default function ForgotPasswordPage() {
           {/* Icon */}
           <div className="flex justify-center mb-6">
             <div className="w-16 h-16 bg-primary-500/20 rounded-full flex items-center justify-center">
-              <span className="material-icons text-primary-500 text-3xl">lock_reset</span>
+              <KeyRound className="w-8 h-8 text-primary-500" />
             </div>
           </div>
 
@@ -148,11 +149,11 @@ export default function ForgotPasswordPage() {
           {/* Helper Text - Dark Mode Only */}
           <div className="hidden dark:block mt-6 space-y-3">
             <div className="flex items-start gap-2 text-sm text-dark-text-tertiary">
-              <span className="material-icons text-primary-500 text-lg mt-0.5">schedule</span>
+              <Clock className="w-[18px] h-[18px] text-primary-500 mt-0.5 flex-shrink-0" />
               <p>Secure link expires in 60 minutes for your protection.</p>
             </div>
             <div className="flex items-start gap-2 text-sm text-dark-text-tertiary">
-              <span className="material-icons text-primary-500 text-lg mt-0.5">support_agent</span>
+              <Headphones className="w-[18px] h-[18px] text-primary-500 mt-0.5 flex-shrink-0" />
               <p>
                 Need help? Contact our support team at{' '}
                 <a href="mailto:support@kompleet.ng" className="text-primary-500 hover:text-primary-400 transition-colors">
@@ -168,7 +169,7 @@ export default function ForgotPasswordPage() {
               href="/login" 
               className="text-sm text-light-text-secondary hover:text-primary-500 transition-colors inline-flex items-center gap-1"
             >
-              <span className="material-icons text-sm">arrow_back</span>
+              <ArrowLeft className="w-3.5 h-3.5" />
               Back to login
             </Link>
           </div>

@@ -1,4 +1,6 @@
 import { cn } from '@/lib/utils';
+import { CheckCircle, Clock, XCircle, AlertTriangle, Pencil } from 'lucide-react';
+import { ReactNode } from 'react';
 
 interface StatusBadgeProps {
   status: 'success' | 'pending' | 'failed' | 'overdue' | 'paid' | 'draft';
@@ -13,35 +15,35 @@ interface StatusBadgeProps {
  * Used for transactions, invoices, and other status indicators.
  */
 export function StatusBadge({ status, label, className }: StatusBadgeProps) {
-  const statusConfig = {
+  const statusConfig: Record<string, { className: string; icon: ReactNode; defaultLabel: string }> = {
     success: {
       className: 'status-success',
-      icon: 'check_circle',
+      icon: <CheckCircle className="w-3 h-3" />,
       defaultLabel: 'Success'
     },
     pending: {
       className: 'status-pending',
-      icon: 'schedule',
+      icon: <Clock className="w-3 h-3" />,
       defaultLabel: 'Pending'
     },
     failed: {
       className: 'status-failed',
-      icon: 'cancel',
+      icon: <XCircle className="w-3 h-3" />,
       defaultLabel: 'Failed'
     },
     overdue: {
       className: 'status-overdue',
-      icon: 'warning',
+      icon: <AlertTriangle className="w-3 h-3" />,
       defaultLabel: 'Overdue'
     },
     paid: {
       className: 'status-success',
-      icon: 'check_circle',
+      icon: <CheckCircle className="w-3 h-3" />,
       defaultLabel: 'Paid'
     },
     draft: {
       className: 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20',
-      icon: 'edit',
+      icon: <Pencil className="w-3 h-3" />,
       defaultLabel: 'Draft'
     }
   };
@@ -55,7 +57,7 @@ export function StatusBadge({ status, label, className }: StatusBadgeProps) {
       config.className,
       className
     )}>
-      <span className="material-icons text-xs">{config.icon}</span>
+      {config.icon}
       {displayLabel}
     </span>
   );

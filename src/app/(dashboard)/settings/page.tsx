@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { createBrowserClient as createClient } from '@/lib/supabase/client';
 import { useTheme } from '@/contexts/ThemeContext';
+import { Bell, CheckCircle, AlertCircle, Pencil, Shield, Lock, Sun, Moon } from 'lucide-react';
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
@@ -88,7 +89,7 @@ export default function SettingsPage() {
   // Theme classes now use Tailwind dark: variants
 
   return (
-    <div className="min-h-screen bg-light-background dark:bg-dark-background">
+    <div>
       {/* Header */}
       <div className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border border-b px-8 py-6">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
@@ -99,7 +100,7 @@ export default function SettingsPage() {
             </p>
           </div>
           <button className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-lg px-4 py-2 text-light-text-primary dark:text-dark-text-primary hover:border-primary-500 transition-colors">
-            <span className="material-icons text-sm">notifications</span>
+            <Bell className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
@@ -109,13 +110,13 @@ export default function SettingsPage() {
         {/* Success/Error Messages */}
         {success && (
           <div className="mb-6 p-4 bg-success-500/10 border border-success-500/20 rounded-lg text-success-500 flex items-center gap-3">
-            <span className="material-icons">check_circle</span>
+            <CheckCircle className="w-5 h-5" />
             <span>{success}</span>
           </div>
         )}
         {error && (
           <div className="mb-6 p-4 bg-error-500/10 border border-error-500/20 rounded-lg text-error-500 flex items-center gap-3">
-            <span className="material-icons">error</span>
+            <AlertCircle className="w-5 h-5" />
             <span>{error}</span>
           </div>
         )}
@@ -144,7 +145,7 @@ export default function SettingsPage() {
                   </div>
                 )}
                 <button className="absolute bottom-0 right-0 w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center hover:bg-primary-600 transition-colors">
-                  <span className="material-icons text-white text-sm">edit</span>
+                  <Pencil className="w-3.5 h-3.5 text-white" />
                 </button>
               </div>
               <div>
@@ -226,7 +227,7 @@ export default function SettingsPage() {
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
-                  <span className="material-icons text-primary-500">security</span>
+                  <Shield className="w-5 h-5 text-primary-500" />
                   <h3 className="font-semibold text-light-text-primary dark:text-dark-text-primary">TWO-FACTOR AUTHENTICATION</h3>
                 </div>
                 <p className="text-light-text-secondary dark:text-dark-text-secondary text-sm">
@@ -249,7 +250,7 @@ export default function SettingsPage() {
             {twoFactorEnabled && (
               <div className="mt-4 p-4 bg-success-500/10 border border-success-500/20 rounded-lg">
                 <p className={`text-success-500 text-sm flex items-center gap-2`}>
-                  <span className="material-icons text-sm">check_circle</span>
+                  <CheckCircle className="w-3.5 h-3.5" />
                   2FA is currently enabled on your account
                 </p>
               </div>
@@ -261,7 +262,7 @@ export default function SettingsPage() {
             <div className="flex items-start justify-between mb-4">
               <div>
                 <div className="flex items-center gap-3 mb-2">
-                  <span className="material-icons text-warning-500">lock</span>
+                  <Lock className="w-5 h-5 text-warning-500" />
                   <h3 className="font-semibold text-light-text-primary dark:text-dark-text-primary">PASSWORD</h3>
                 </div>
                 <p className="text-light-text-secondary dark:text-dark-text-secondary text-sm">
@@ -355,9 +356,9 @@ export default function SettingsPage() {
                 }`}
               >
                 <div className="flex items-center justify-center gap-3">
-                  <span className="material-icons text-warning-500">light_mode</span>
+                  <Sun className="w-5 h-5 text-warning-500" />
                   <span className="font-semibold text-light-text-primary dark:text-dark-text-primary">Solid Light</span>
-                  {theme === 'light' && <span className="material-icons text-primary-500 text-sm">check_circle</span>}
+                  {theme === 'light' && <CheckCircle className="w-3.5 h-3.5 text-primary-500" />}
                 </div>
               </button>
               <button
@@ -369,9 +370,9 @@ export default function SettingsPage() {
                 }`}
               >
                 <div className="flex items-center justify-center gap-3">
-                  <span className="material-icons text-primary-500">dark_mode</span>
+                  <Moon className="w-5 h-5 text-primary-500" />
                   <span className="font-semibold text-light-text-primary dark:text-dark-text-primary">Solid Dark</span>
-                  {theme === 'dark' && <span className="material-icons text-primary-500 text-sm">check_circle</span>}
+                  {theme === 'dark' && <CheckCircle className="w-3.5 h-3.5 text-primary-500" />}
                 </div>
               </button>
             </div>
