@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @config "../../tailwind.config.cjs";
+@source "../../src/**/*.{js,ts,jsx,tsx,mdx}";
 
 /* KOMPLEET Design System - Solid Surfaces (No Glassmorphism) */
 /* Updated: February 13, 2026 - UI Rebuild */
@@ -34,11 +35,9 @@ html.dark,
 }
 
 /* Base Styles */
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
-}
+/* Note: Tailwind's preflight handles box-sizing, padding, and margin resets.
+   A global * { padding: 0; margin: 0 } override was removed because it
+   conflicts with Tailwind utility classes (px-*, py-*, mx-*, etc.). */
 
 html,
 body {
@@ -62,11 +61,13 @@ body {
   outline-offset: 2px;
 }
 
-/* Smooth Transitions */
-* {
-  transition-property: background-color, border-color, color;
-  transition-duration: 200ms;
-  transition-timing-function: ease;
+/* Smooth Transitions - scoped to avoid interfering with Tailwind utilities */
+@layer base {
+  body {
+    transition-property: background-color, border-color, color;
+    transition-duration: 200ms;
+    transition-timing-function: ease;
+  }
 }
 
 .no-transition * {
