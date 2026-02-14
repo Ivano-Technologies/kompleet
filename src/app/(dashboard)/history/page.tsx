@@ -1,15 +1,14 @@
+
 'use client';
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CalculationDetailModal } from '@/components/CalculationDetailModal';
 import { CalculationComparisonModal } from '@/components/CalculationComparisonModal';
 import { useCalculationHistory } from '@/hooks/useCalculationHistory';
-import { Trash2, Eye, Download, Search, Filter, FileSpreadsheet } from 'lucide-react';
+import { Trash2, Eye, Download, Search, Filter, FileSpreadsheet, Loader2, History } from 'lucide-react';
 import { exportToExcel } from '@/lib/excel-exporter';
 import type { CalculationHistory } from '@/types/calculation-history';
 
@@ -162,68 +161,73 @@ export default function HistoryPage() {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">Calculation History</h1>
-            <p className="text-muted-foreground">
-              View and manage all your past tax calculations
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => exportToExcel(data)}
-              disabled={data.length === 0}
-            >
-              <FileSpreadsheet className="mr-2 h-4 w-4" />
-              Export to Excel
-            </Button>
-            <Button
-              variant={comparisonMode ? 'default' : 'outline'}
-              onClick={() => {
-                if (comparisonMode) {
-                  resetComparison();
-                } else {
-                  setComparisonMode(true);
-                  setBulkDeleteMode(false);
-                }
-              }}
-              disabled={data.length < 2}
-            >
-              {comparisonMode ? 'Exit Compare Mode' : 'Compare'}
-            </Button>
-            <Button
-              variant={bulkDeleteMode ? 'default' : 'outline'}
-              onClick={() => {
-                if (bulkDeleteMode) {
-                  setBulkDeleteMode(false);
-                  setSelectedIds(new Set());
-                } else {
-                  setBulkDeleteMode(true);
-                  setComparisonMode(false);
-                }
-              }}
-            >
-              {bulkDeleteMode ? 'Exit Bulk Mode' : 'Bulk Delete'}
-            </Button>
-          </div>
+      <header className="mb-8 flex items-center gap-4">
+        <div className="rounded-lg bg-light-background dark:bg-dark-background p-2">
+           <History className="h-6 w-6 text-light-text-primary dark:text-dark-text-primary" />
         </div>
+        <div>
+          <h1 className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">Calculation History</h1>
+          <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
+            View and manage all your past tax calculations
+          </p>
+        </div>
+      </header>
+
+      <div className="mb-6 flex justify-end gap-2">
+          <Button
+            variant="outline"
+            onClick={() => exportToExcel(data)}
+            disabled={data.length === 0}
+            className="btn-secondary"
+          >
+            <FileSpreadsheet className="mr-2 h-4 w-4" />
+            Export to Excel
+          </Button>
+          <Button
+            variant={comparisonMode ? 'default' : 'outline'}
+            onClick={() => {
+              if (comparisonMode) {
+                resetComparison();
+              } else {
+                setComparisonMode(true);
+                setBulkDeleteMode(false);
+              }
+            }}
+            disabled={data.length < 2}
+            className={comparisonMode ? 'btn-primary' : 'btn-secondary'}
+          >
+            {comparisonMode ? 'Exit Compare Mode' : 'Compare'}
+          </Button>
+          <Button
+            variant={bulkDeleteMode ? 'default' : 'outline'}
+            onClick={() => {
+              if (bulkDeleteMode) {
+                setBulkDeleteMode(false);
+                setSelectedIds(new Set());
+              } else {
+                setBulkDeleteMode(true);
+                setComparisonMode(false);
+              }
+            }}
+            className={bulkDeleteMode ? 'btn-primary' : 'btn-secondary'}
+          >
+            {bulkDeleteMode ? 'Exit Bulk Mode' : 'Bulk Delete'}
+          </Button>
       </div>
 
       {/* Comparison Mode Banner */}
       {comparisonMode && (
-        <Card className="p-4 mb-6 bg-purple-50 border-purple-200">
+        <div className="p-4 mb-6 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
           <div className="flex items-center justify-between">
             <div>
-              <p className="font-medium">Comparison Mode Active</p>
-              <p className="text-sm text-muted-foreground">
+              <p className="font-medium text-light-text-primary dark:text-dark-text-primary">Comparison Mode Active</p>
+              <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
                 {!comparisonCalcs[0] 
                   ? 'Select first calculation to compare'
                   : 'Select second calculation to compare'}
               </p>
               {comparisonCalcs[0] && (
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary mt-1">
                   First: {getCalculatorName(comparisonCalcs[0].calculation_type)} - {formatDate(comparisonCalcs[0].created_at)}
                 </p>
               )}
@@ -232,26 +236,28 @@ export default function HistoryPage() {
               variant="outline"
               size="sm"
               onClick={resetComparison}
+              className="btn-secondary"
             >
               Cancel
             </Button>
           </div>
-        </Card>
+        </div>
       )}
 
       {/* Bulk Actions */}
       {bulkDeleteMode && (
-        <Card className="p-4 mb-6 bg-blue-50 border-blue-200">
+        <div className="p-4 mb-6 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={selectAll}
+                className="btn-secondary"
               >
                 {selectedIds.size === data.length ? 'Deselect All' : 'Select All'}
               </Button>
-              <span className="text-sm text-muted-foreground">
+              <span className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
                 {selectedIds.size} selected
               </span>
             </div>
@@ -272,23 +278,24 @@ export default function HistoryPage() {
                   setBulkDeleteMode(false);
                   setSelectedIds(new Set());
                 }}
+                className="btn-secondary"
               >
                 Cancel
               </Button>
             </div>
           </div>
-        </Card>
+        </div>
       )}
 
       {/* Filters */}
-      <Card className="p-6 mb-6">
+      <div className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface mb-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* Calculator Type Filter */}
           <div>
-            <Label htmlFor="type-filter">Calculator Type</Label>
+            <Label htmlFor="type-filter" className="text-light-text-secondary dark:text-dark-text-secondary">Calculator Type</Label>
             <select
               id="type-filter"
-              className="w-full mt-1 rounded-md border border-input bg-background px-3 py-2"
+              className="w-full mt-1 rounded-lg border border-light-border dark:border-dark-border bg-light-background dark:bg-dark-background px-3 py-2 text-light-text-primary dark:text-dark-text-primary"
               value={filters.type}
               onChange={(e) => handleFilterChange('type', e.target.value)}
             >
@@ -302,10 +309,10 @@ export default function HistoryPage() {
 
           {/* Date Range Filter */}
           <div>
-            <Label htmlFor="date-filter">Date Range</Label>
+            <Label htmlFor="date-filter" className="text-light-text-secondary dark:text-dark-text-secondary">Date Range</Label>
             <select
               id="date-filter"
-              className="w-full mt-1 rounded-md border border-input bg-background px-3 py-2"
+              className="w-full mt-1 rounded-lg border border-light-border dark:border-dark-border bg-light-background dark:bg-dark-background px-3 py-2 text-light-text-primary dark:text-dark-text-primary"
               onChange={(e) => handleDateRangeChange(e.target.value)}
             >
               {dateRanges.map((range) => (
@@ -316,187 +323,125 @@ export default function HistoryPage() {
             </select>
           </div>
 
-          {/* Search */}
+          {/* Search Filter */}
           <div className="md:col-span-2">
-            <Label htmlFor="search">Search</Label>
+            <Label htmlFor="search-filter" className="text-light-text-secondary dark:text-dark-text-secondary">Search</Label>
             <div className="relative mt-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-light-text-tertiary dark:text-dark-text-tertiary" />
               <Input
-                id="search"
-                placeholder="Search by amount..."
-                className="pl-10"
+                id="search-filter"
+                type="text"
+                placeholder="Search by name or result..."
+                className="pl-10 w-full rounded-lg border-light-border dark:border-dark-border bg-light-background dark:bg-dark-background text-light-text-primary dark:text-dark-text-primary"
                 value={filters.search}
                 onChange={(e) => handleFilterChange('search', e.target.value)}
               />
             </div>
           </div>
         </div>
-      </Card>
+      </div>
 
-      {/* Error Alert */}
+      {/* Loading and Error States */}
+      {loading && (
+        <div className="flex justify-center items-center p-10">
+          <Loader2 className="h-8 w-8 animate-spin text-primary-500" />
+        </div>
+      )}
       {error && (
-        <Alert variant="destructive" className="mb-6">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
+        <div className="p-4 mb-6 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/30">
+            <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+        </div>
       )}
 
-      {/* Data Table */}
-      <Card>
-        {loading ? (
-          <div className="p-8 text-center">
-            <p className="text-muted-foreground">Loading calculations...</p>
-          </div>
-        ) : data.length === 0 ? (
-          <div className="p-8 text-center">
-            <p className="text-muted-foreground">
-              No calculations found. Start by using one of our calculators!
-            </p>
-          </div>
-        ) : (
-          <>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="border-b bg-muted/50">
-                  <tr>
-                    {bulkDeleteMode && (
-                      <th className="px-4 py-3 text-center text-sm font-medium w-12">
-                        <input
-                          type="checkbox"
-                          checked={selectedIds.size === data.length && data.length > 0}
-                          onChange={selectAll}
-                          className="h-4 w-4"
-                        />
-                      </th>
+      {/* History Table */}
+      {!loading && !error && (
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-light-border dark:divide-dark-border">
+            <thead className="bg-light-background dark:bg-dark-background">
+              <tr>
+                {bulkDeleteMode && (
+                  <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-light-text-primary dark:text-dark-text-primary sm:pl-6">
+                    <input type="checkbox" className="rounded border-light-border dark:border-dark-border" onChange={selectAll} checked={selectedIds.size === data.length && data.length > 0} />
+                  </th>
+                )}
+                <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-light-text-primary dark:text-dark-text-primary sm:pl-6">Date</th>
+                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-light-text-primary dark:text-dark-text-primary">Type</th>
+                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-light-text-primary dark:text-dark-text-primary">Name</th>
+                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-light-text-primary dark:text-dark-text-primary">Total Tax</th>
+                <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
+                  <span className="sr-only">Actions</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-light-border dark:divide-dark-border bg-light-surface dark:bg-dark-surface">
+              {data.map((calc) => (
+                <tr key={calc.id} className={`${(comparisonMode || bulkDeleteMode) && selectedIds.has(calc.id) ? 'bg-primary-500/10' : ''}`}>
+                  {bulkDeleteMode && (
+                    <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-light-text-primary dark:text-dark-text-primary sm:pl-6">
+                      <input type="checkbox" className="rounded border-light-border dark:border-dark-border" checked={selectedIds.has(calc.id)} onChange={() => toggleSelection(calc.id)} />
+                    </td>
+                  )}
+                  <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-light-text-primary dark:text-dark-text-primary sm:pl-6">{formatDate(calc.created_at)}</td>
+                  <td className="whitespace-nowrap px-3 py-4 text-sm text-light-text-secondary dark:text-dark-text-secondary">{getCalculatorName(calc.calculation_type)}</td>
+                  <td className="whitespace-nowrap px-3 py-4 text-sm text-light-text-secondary dark:text-dark-text-secondary">{calc.calculation_type || '-'}</td>
+                  <td className="whitespace-nowrap px-3 py-4 text-sm font-semibold text-light-text-primary dark:text-dark-text-primary">{formatCurrency(getTotalTax(calc.results))}</td>
+                  <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                    {comparisonMode ? (
+                      <Button variant="outline" size="sm" onClick={() => handleComparisonSelect(calc)} disabled={!!comparisonCalcs[1] || comparisonCalcs[0]?.id === calc.id} className="btn-secondary">Select</Button>
+                    ) : (
+                      <div className="flex gap-2 justify-end">
+                        <Button variant="ghost" size="icon" onClick={() => handleViewDetail(calc)}><Eye className="h-4 w-4" /></Button>
+                        <Button variant="ghost" size="icon" onClick={() => handleDelete(calc.id)}><Trash2 className="h-4 w-4 text-red-500" /></Button>
+                      </div>
                     )}
-                    <th className="px-4 py-3 text-left text-sm font-medium">
-                      Date
-                    </th>
-                    <th className="px-4 py-3 text-left text-sm font-medium">
-                      Calculator
-                    </th>
-                    <th className="px-4 py-3 text-right text-sm font-medium">
-                      Amount
-                    </th>
-                    <th className="px-4 py-3 text-right text-sm font-medium">
-                      Tax
-                    </th>
-                    <th className="px-4 py-3 text-center text-sm font-medium">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.map((calculation) => (
-                    <tr key={calculation.id} className="border-b hover:bg-muted/50">
-                      {bulkDeleteMode && (
-                        <td className="px-4 py-3 text-center">
-                          <input
-                            type="checkbox"
-                            checked={selectedIds.has(calculation.id)}
-                            onChange={() => toggleSelection(calculation.id)}
-                            className="h-4 w-4"
-                          />
-                        </td>
-                      )}
-                      <td className="px-4 py-3 text-sm">
-                        {formatDate(calculation.created_at)}
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        {getCalculatorName(calculation.calculation_type)}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-right">
-                        {formatCurrency(
-                          calculation.inputs.turnover ||
-                            calculation.inputs.income ||
-                            calculation.inputs.amount ||
-                            calculation.inputs.asset_cost ||
-                            0
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-right font-semibold">
-                        {formatCurrency(getTotalTax(calculation.results))}
-                      </td>
-                      <td className="px-4 py-3 text-right space-x-2">
-                        {comparisonMode ? (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleComparisonSelect(calculation)}
-                          >
-                            Select
-                          </Button>
-                        ) : (
-                          <>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleViewDetail(calculation)}
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDelete(calculation.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
-            {/* Pagination */}
-            <div className="p-4 border-t flex items-center justify-between">
-              <p className="text-sm text-muted-foreground">
-                Showing {filters.offset + 1} to{' '}
-                {Math.min(filters.offset + filters.limit, total)} of {total}{' '}
-                calculations
-              </p>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={filters.offset === 0}
-                  onClick={() =>
-                    setFilters((prev) => ({
-                      ...prev,
-                      offset: Math.max(0, prev.offset - prev.limit),
-                    }))
-                  }
-                >
-                  Previous
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={filters.offset + filters.limit >= total}
-                  onClick={() =>
-                    setFilters((prev) => ({
-                      ...prev,
-                      offset: prev.offset + prev.limit,
-                    }))
-                  }
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
-          </>
-        )}
-      </Card>
+      {/* No Data State */}
+      {!loading && !error && data.length === 0 && (
+        <div className="text-center py-16 rounded-xl border border-dashed border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
+          <p className="text-light-text-secondary dark:text-dark-text-secondary">No calculation history found.</p>
+        </div>
+      )}
 
-      {/* Detail Modal */}
+      {/* Pagination */}
+      {!loading && !error && total > filters.limit && (
+        <div className="mt-6 flex justify-between items-center">
+          <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
+            Showing {filters.offset + 1} to {Math.min(filters.offset + filters.limit, total)} of {total} results
+          </p>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setFilters(prev => ({ ...prev, offset: Math.max(0, prev.offset - prev.limit) }))}
+              disabled={filters.offset === 0}
+              className="btn-secondary"
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setFilters(prev => ({ ...prev, offset: prev.offset + prev.limit }))}
+              disabled={filters.offset + filters.limit >= total}
+              className="btn-secondary"
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Modals */}
       <CalculationDetailModal
         calculation={selectedCalculation}
         open={showDetailModal}
         onClose={() => setShowDetailModal(false)}
       />
-
       <CalculationComparisonModal
         calculation1={comparisonCalcs[0]}
         calculation2={comparisonCalcs[1]}

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -6,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { InfoIcon, Calculator, CheckCircle2, XCircle, Loader2, Download } from 'lucide-react';
+import { InfoIcon, Calculator, CheckCircle2, XCircle, Loader2, Download, Landmark } from 'lucide-react';
 import { useTaxRules } from '@/hooks/useTaxRules';
 import { logCalculation } from '@/hooks/useAuditLog';
 import { generateCalculationPDF } from '@/lib/pdf-generator';
@@ -30,20 +31,17 @@ export default function VATCalculatorPage() {
   const [result, setResult] = useState<VATResult | null>(null);
   const [error, setError] = useState<string>('');
 
-  // Fetch VAT rules from database
   const { rules, loading: rulesLoading, error: rulesError } = useTaxRules('vat');
 
   const calculateVAT = () => {
     setError('');
     setResult(null);
 
-    // Check if rules are loaded
     if (!rules) {
       setError('Tax rules are not loaded yet. Please wait...');
       return;
     }
 
-    // Validation
     const amountNum = parseFloat(amount);
     const turnoverNum = parseFloat(turnover || '0');
     const assetsNum = parseFloat(totalAssets || '0');
@@ -63,22 +61,18 @@ export default function VATCalculatorPage() {
       return;
     }
 
-    // Get VAT rate and thresholds from database
     const VAT_RATE = (rules.standard_rate?.value?.rate || 7.5) / 100;
     const SMALL_BUSINESS_TURNOVER_THRESHOLD = rules.small_business_exemption_turnover?.value?.threshold || 100_000_000;
     const SMALL_BUSINESS_ASSETS_THRESHOLD = rules.small_business_exemption_assets?.value?.threshold || 250_000_000;
 
-    // Check VAT exemptions
     let isExempt = false;
     let exemptionReason: string | null = null;
 
-    // Rent exemption
     if (isRentTransaction) {
       isExempt = true;
       exemptionReason = 'Rent transactions are exempt from VAT';
     }
 
-    // Small business exemption
     if (
       !isExempt &&
       turnoverNum < SMALL_BUSINESS_TURNOVER_THRESHOLD &&
@@ -98,12 +92,10 @@ export default function VATCalculatorPage() {
       grossAmount = amountNum;
     } else {
       if (calculationType === 'add') {
-        // Add VAT to amount
         netAmount = amountNum;
         vatAmount = amountNum * VAT_RATE;
         grossAmount = netAmount + vatAmount;
       } else {
-        // Extract VAT from amount
         grossAmount = amountNum;
         netAmount = amountNum / (1 + VAT_RATE);
         vatAmount = grossAmount - netAmount;
@@ -121,7 +113,6 @@ export default function VATCalculatorPage() {
 
     setResult(calculationResult);
 
-    // Log calculation for audit trail
     logCalculation(
       'vat',
       {
@@ -146,15 +137,18 @@ export default function VATCalculatorPage() {
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="max-w-4xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">VAT Calculator</h1>
-          <p className="text-muted-foreground">
-            Calculate Value Added Tax under Nigeria Tax Act 2025
-          </p>
+        <div className="flex items-center gap-4 mb-8">
+          <Landmark className="h-8 w-8 text-light-text-secondary dark:text-dark-text-secondary" />
+          <div>
+            <h1 className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">VAT Calculator</h1>
+            <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
+              Calculate Value Added Tax under Nigeria Tax Act 2025
+            </p>
+          </div>
         </div>
 
         {rulesError && (
-          <Alert variant="destructive" className="mb-6">
+          <Alert variant="destructive" className="mb-6 bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-900/30 text-red-700 dark:text-red-300">
             <InfoIcon className="h-4 w-4" />
             <AlertDescription>
               Failed to load tax rules: {rulesError}. Using fallback rates.
@@ -163,22 +157,22 @@ export default function VATCalculatorPage() {
         )}
 
         <div className="grid gap-6 md:grid-cols-2">
-          <Card>
+          <Card className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
             <CardHeader>
-              <CardTitle>Transaction Details</CardTitle>
-              <CardDescription>Enter transaction and business information</CardDescription>
+              <CardTitle className="text-light-text-primary dark:text-dark-text-primary">Transaction Details</CardTitle>
+              <CardDescription className="text-light-text-tertiary dark:text-dark-text-tertiary">Enter transaction and business information</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>Calculation Type</Label>
-                <div className="flex gap-4">
+                <Label className="text-light-text-secondary dark:text-dark-text-secondary">Calculation Type</Label>
+                <div className="flex gap-4 text-light-text-primary dark:text-dark-text-primary">
                   <label className="flex items-center space-x-2">
                     <input
                       type="radio"
                       value="add"
                       checked={calculationType === 'add'}
                       onChange={(e) => setCalculationType('add')}
-                      className="h-4 w-4"
+                      className="h-4 w-4 rounded-lg"
                       disabled={rulesLoading}
                     />
                     <span>Add VAT</span>
@@ -189,7 +183,7 @@ export default function VATCalculatorPage() {
                       value="extract"
                       checked={calculationType === 'extract'}
                       onChange={(e) => setCalculationType('extract')}
-                      className="h-4 w-4"
+                      className="h-4 w-4 rounded-lg"
                       disabled={rulesLoading}
                     />
                     <span>Extract VAT</span>
@@ -198,7 +192,7 @@ export default function VATCalculatorPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="amount">
+                <Label htmlFor="amount" className="text-light-text-secondary dark:text-dark-text-secondary">
                   {calculationType === 'add' ? 'Net Amount (₦)' : 'Gross Amount (₦)'}
                 </Label>
                 <Input
@@ -208,11 +202,12 @@ export default function VATCalculatorPage() {
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
                   disabled={rulesLoading}
+                  className="rounded-lg bg-light-background dark:bg-dark-background border-light-border dark:border-dark-border"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="turnover">Annual Turnover (₦)</Label>
+                <Label htmlFor="turnover" className="text-light-text-secondary dark:text-dark-text-secondary">Annual Turnover (₦)</Label>
                 <Input
                   id="turnover"
                   type="number"
@@ -220,14 +215,15 @@ export default function VATCalculatorPage() {
                   value={turnover}
                   onChange={(e) => setTurnover(e.target.value)}
                   disabled={rulesLoading}
+                  className="rounded-lg bg-light-background dark:bg-dark-background border-light-border dark:border-dark-border"
                 />
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
                   For small business exemption check
                 </p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="assets">Total Assets (₦)</Label>
+                <Label htmlFor="assets" className="text-light-text-secondary dark:text-dark-text-secondary">Total Assets (₦)</Label>
                 <Input
                   id="assets"
                   type="number"
@@ -235,8 +231,9 @@ export default function VATCalculatorPage() {
                   value={totalAssets}
                   onChange={(e) => setTotalAssets(e.target.value)}
                   disabled={rulesLoading}
+                  className="rounded-lg bg-light-background dark:bg-dark-background border-light-border dark:border-dark-border"
                 />
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
                   For small business exemption check
                 </p>
               </div>
@@ -247,17 +244,17 @@ export default function VATCalculatorPage() {
                   id="rent"
                   checked={isRentTransaction}
                   onChange={(e) => setIsRentTransaction(e.target.checked)}
-                  className="h-4 w-4"
+                  className="h-4 w-4 rounded-lg"
                   disabled={rulesLoading}
                 />
-                <Label htmlFor="rent" className="font-normal">
+                <Label htmlFor="rent" className="font-normal text-light-text-primary dark:text-dark-text-primary">
                   This is a rent transaction (exempt from VAT)
                 </Label>
               </div>
 
               <Button 
                 onClick={calculateVAT} 
-                className="w-full"
+                className="w-full btn-primary rounded-lg"
                 disabled={rulesLoading}
               >
                 {rulesLoading ? (
@@ -274,7 +271,7 @@ export default function VATCalculatorPage() {
               </Button>
 
               {error && (
-                <Alert variant="destructive">
+                <Alert variant="destructive" className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-900/30 text-red-700 dark:text-red-300">
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
@@ -282,37 +279,37 @@ export default function VATCalculatorPage() {
           </Card>
 
           <div className="space-y-6">
-            <Card>
+            <Card className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
               <CardHeader>
-                <CardTitle>VAT Information</CardTitle>
+                <CardTitle className="text-light-text-primary dark:text-dark-text-primary">VAT Information</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3 text-sm">
                   <div className="flex items-start">
-                    <InfoIcon className="h-4 w-4 mr-2 mt-0.5 text-blue-500" />
+                    <InfoIcon className="h-4 w-4 mr-2 mt-0.5 text-blue-500 dark:text-blue-400" />
                     <div>
-                      <p className="font-medium">Standard VAT Rate</p>
-                      <p className="text-muted-foreground">
+                      <p className="font-medium text-light-text-primary dark:text-dark-text-primary">Standard VAT Rate</p>
+                      <p className="text-light-text-secondary dark:text-dark-text-secondary">
                         {rules?.standard_rate?.value?.rate || 7.5}% (unchanged from previous law)
                       </p>
                     </div>
                   </div>
 
                   <div className="flex items-start">
-                    <CheckCircle2 className="h-4 w-4 mr-2 mt-0.5 text-green-500" />
+                    <CheckCircle2 className="h-4 w-4 mr-2 mt-0.5 text-green-500 dark:text-green-400" />
                     <div>
-                      <p className="font-medium">Small Business Exemption</p>
-                      <p className="text-muted-foreground">
-                        Turnover {'<'} ₦{((rules?.small_business_exemption_turnover?.value?.threshold || 100_000_000) / 1_000_000).toFixed(0)}M AND Assets {'<'} ₦{((rules?.small_business_exemption_assets?.value?.threshold || 250_000_000) / 1_000_000).toFixed(0)}M
+                      <p className="font-medium text-light-text-primary dark:text-dark-text-primary">Small Business Exemption</p>
+                      <p className="text-light-text-secondary dark:text-dark-text-secondary">
+                        Turnover &lt; ₦100M and Assets &lt; ₦250M
                       </p>
                     </div>
                   </div>
 
                   <div className="flex items-start">
-                    <XCircle className="h-4 w-4 mr-2 mt-0.5 text-orange-500" />
+                    <XCircle className="h-4 w-4 mr-2 mt-0.5 text-orange-500 dark:text-orange-400" />
                     <div>
-                      <p className="font-medium">Rent Exemption</p>
-                      <p className="text-muted-foreground">
+                      <p className="font-medium text-light-text-primary dark:text-dark-text-primary">Rent Exemption</p>
+                      <p className="text-light-text-secondary dark:text-dark-text-secondary">
                         Rent (land or building) is exempt from VAT
                       </p>
                     </div>
@@ -322,34 +319,34 @@ export default function VATCalculatorPage() {
             </Card>
 
             {result && (
-              <Card>
+              <Card className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
                 <CardHeader>
-                  <CardTitle>VAT Calculation Result</CardTitle>
+                  <CardTitle className="text-light-text-primary dark:text-dark-text-primary">VAT Calculation Result</CardTitle>
                   {result.isExempt && (
-                    <Alert className="mt-2">
+                    <Alert className="mt-2 bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-900/30 text-green-700 dark:text-green-300">
                       <CheckCircle2 className="h-4 w-4" />
                       <AlertDescription>{result.exemptionReason}</AlertDescription>
                     </Alert>
                   )}
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="space-y-3 text-light-text-primary dark:text-dark-text-primary">
                   <div className="flex justify-between text-sm">
-                    <span>Net Amount:</span>
+                    <span className="text-light-text-secondary dark:text-dark-text-secondary">Net Amount:</span>
                     <span className="font-medium">{formatCurrency(result.netAmount)}</span>
                   </div>
 
                   <div className="flex justify-between text-sm">
-                    <span>VAT ({result.vatRate}%):</span>
+                    <span className="text-light-text-secondary dark:text-dark-text-secondary">VAT ({result.vatRate}%):</span>
                     <span className="font-medium">{formatCurrency(result.vatAmount)}</span>
                   </div>
 
-                  <div className="border-t pt-2 flex justify-between font-bold text-lg">
+                  <div className="border-t border-light-border dark:border-dark-border pt-2 flex justify-between font-bold text-lg">
                     <span>Gross Amount:</span>
                     <span>{formatCurrency(result.grossAmount)}</span>
                   </div>
 
                   {!result.isExempt && (
-                    <Alert>
+                    <Alert className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-900/30 text-blue-700 dark:text-blue-300">
                       <InfoIcon className="h-4 w-4" />
                       <AlertDescription>
                         VAT of {formatCurrency(result.vatAmount)} {calculationType === 'add' ? 'added to' : 'extracted from'} the amount
@@ -378,7 +375,7 @@ export default function VATCalculatorPage() {
                       netAmount: result.netAmount,
                       vatAmount: result.vatAmount,
                     }}
-                    className="w-full mt-4"
+                    className="w-full mt-4 btn-primary rounded-lg"
                   />
 
                   <Button
@@ -412,7 +409,7 @@ export default function VATCalculatorPage() {
                       });
                     }}
                     variant="outline"
-                    className="w-full mt-4"
+                    className="w-full mt-4 btn-secondary rounded-lg"
                   >
                     <Download className="mr-2 h-4 w-4" />
                     Export as PDF
@@ -423,11 +420,11 @@ export default function VATCalculatorPage() {
           </div>
         </div>
 
-        <Card className="mt-6">
+        <Card className="mt-6 p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
           <CardHeader>
-            <CardTitle>About This Calculator</CardTitle>
+            <CardTitle className="text-light-text-primary dark:text-dark-text-primary">About This Calculator</CardTitle>
           </CardHeader>
-          <CardContent className="text-sm text-muted-foreground space-y-2">
+          <CardContent className="text-sm text-light-text-secondary dark:text-dark-text-secondary space-y-2">
             <p>
               This calculator implements the Nigeria Tax Act 2025 VAT provisions. VAT rates and
               exemption thresholds are fetched dynamically from the KOMPLEET Tax Rules Engine.

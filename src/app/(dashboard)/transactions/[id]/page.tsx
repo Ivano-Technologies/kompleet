@@ -171,7 +171,7 @@ export default function TransactionDetailsPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="text-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
-          <p className="text-gray-600 mt-4">Loading transaction...</p>
+          <p className="text-light-text-secondary dark:text-dark-text-secondary mt-4">Loading transaction...</p>
         </div>
       </div>
     );
@@ -207,8 +207,8 @@ export default function TransactionDetailsPage() {
         </Link>
         <div className="flex justify-between items-start">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Transaction Details</h1>
-            <p className="text-gray-600 mt-1">
+            <h1 className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary">Transaction Details</h1>
+            <p className="text-light-text-secondary dark:text-dark-text-secondary mt-1">
               {formatDate(transaction.transaction_date)}
             </p>
           </div>
@@ -243,7 +243,7 @@ export default function TransactionDetailsPage() {
                     setError(null);
                   }}
                   disabled={saving}
-                  className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50"
+                  className="bg-light-text-tertiary dark:bg-dark-text-tertiary text-white px-4 py-2 rounded-lg hover:bg-dark-surface transition-colors disabled:opacity-50"
                 >
                   Cancel
                 </button>
@@ -261,10 +261,10 @@ export default function TransactionDetailsPage() {
       )}
 
       {/* Transaction Details */}
-      <div className="bg-white rounded-lg p-6 space-y-6">
+      <div className="bg-light-surface dark:bg-dark-surface rounded-lg p-6 space-y-6">
         {/* Amount */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2">
             Amount
           </label>
           {editing ? (
@@ -272,7 +272,7 @@ export default function TransactionDetailsPage() {
               <select
                 value={formData.transaction_type}
                 onChange={(e) => setFormData({ ...formData, transaction_type: e.target.value as 'debit' | 'credit' })}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="px-4 py-2 border border-light-border dark:border-dark-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               >
                 <option value="debit">Debit (-)</option>
                 <option value="credit">Credit (+)</option>
@@ -282,7 +282,7 @@ export default function TransactionDetailsPage() {
                 value={formData.amount}
                 onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
                 step="0.01"
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="flex-1 px-4 py-2 border border-light-border dark:border-dark-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               />
             </div>
           ) : (
@@ -297,7 +297,7 @@ export default function TransactionDetailsPage() {
 
         {/* Description */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2">
             Description
           </label>
           {editing ? (
@@ -305,16 +305,16 @@ export default function TransactionDetailsPage() {
               type="text"
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-light-border dark:border-dark-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             />
           ) : (
-            <p className="text-gray-900">{transaction.description}</p>
+            <p className="text-light-text-primary dark:text-dark-text-primary">{transaction.description}</p>
           )}
         </div>
 
         {/* Date */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2">
             Date
           </label>
           {editing ? (
@@ -322,23 +322,23 @@ export default function TransactionDetailsPage() {
               type="date"
               value={formData.transaction_date}
               onChange={(e) => setFormData({ ...formData, transaction_date: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-light-border dark:border-dark-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             />
           ) : (
-            <p className="text-gray-900">{formatDate(transaction.transaction_date)}</p>
+            <p className="text-light-text-primary dark:text-dark-text-primary">{formatDate(transaction.transaction_date)}</p>
           )}
         </div>
 
         {/* Category */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2">
             Category
           </label>
           {editing ? (
             <select
               value={formData.category_id}
               onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-light-border dark:border-dark-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             >
               <option value="">Uncategorized</option>
               {categories.map((cat) => (
@@ -352,23 +352,23 @@ export default function TransactionDetailsPage() {
               <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
                 {transaction.category.name}
               </span>
-              <span className="text-sm text-gray-500">
+              <span className="text-sm text-light-text-tertiary dark:text-dark-text-tertiary">
                 {transaction.category.category_type} • {transaction.category.tax_treatment}
               </span>
               {transaction.confidence_score !== undefined && transaction.confidence_score < 100 && (
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-light-text-tertiary dark:text-dark-text-tertiary">
                   ({transaction.confidence_score}% confidence)
                 </span>
               )}
             </div>
           ) : (
-            <p className="text-gray-400">Uncategorized</p>
+            <p className="text-light-text-tertiary dark:text-dark-text-tertiary">Uncategorized</p>
           )}
         </div>
 
         {/* Notes */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2">
             Notes
           </label>
           {editing ? (
@@ -376,13 +376,13 @@ export default function TransactionDetailsPage() {
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               rows={3}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-light-border dark:border-dark-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               placeholder="Add notes about this transaction..."
             />
           ) : transaction.notes ? (
-            <p className="text-gray-900">{transaction.notes}</p>
+            <p className="text-light-text-primary dark:text-dark-text-primary">{transaction.notes}</p>
           ) : (
-            <p className="text-gray-400">No notes</p>
+            <p className="text-light-text-tertiary dark:text-dark-text-tertiary">No notes</p>
           )}
         </div>
 
@@ -394,17 +394,17 @@ export default function TransactionDetailsPage() {
                 type="checkbox"
                 checked={formData.is_reconciled}
                 onChange={(e) => setFormData({ ...formData, is_reconciled: e.target.checked })}
-                className="rounded border-gray-300 text-green-600 focus:ring-green-500 mr-2"
+                className="rounded border-light-border dark:border-dark-border text-green-600 focus:ring-green-500 mr-2"
               />
-              <span className="text-sm font-medium text-gray-700">Mark as reconciled</span>
+              <span className="text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary">Mark as reconciled</span>
             </label>
           ) : (
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-gray-700">Reconciled:</span>
+              <span className="text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary">Reconciled:</span>
               <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                 transaction.is_reconciled
                   ? 'bg-green-100 text-green-800'
-                  : 'bg-gray-100 text-gray-800'
+                  : 'bg-light-background dark:bg-dark-background text-light-text-primary dark:text-dark-text-primary'
               }`}>
                 {transaction.is_reconciled ? 'Yes' : 'No'}
               </span>
@@ -413,28 +413,28 @@ export default function TransactionDetailsPage() {
         </div>
 
         {/* Additional Info */}
-        <div className="pt-6 border-t border-gray-200 space-y-2">
+        <div className="pt-6 border-t border-light-border dark:border-dark-border space-y-2">
           {transaction.balance !== undefined && (
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Balance after transaction:</span>
-              <span className="font-medium text-gray-900">{formatCurrency(transaction.balance)}</span>
+              <span className="text-light-text-secondary dark:text-dark-text-secondary">Balance after transaction:</span>
+              <span className="font-medium text-light-text-primary dark:text-dark-text-primary">{formatCurrency(transaction.balance)}</span>
             </div>
           )}
           {transaction.reference && (
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Reference:</span>
-              <span className="font-medium text-gray-900">{transaction.reference}</span>
+              <span className="text-light-text-secondary dark:text-dark-text-secondary">Reference:</span>
+              <span className="font-medium text-light-text-primary dark:text-dark-text-primary">{transaction.reference}</span>
             </div>
           )}
           {transaction.source && (
             <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Source:</span>
-              <span className="font-medium text-gray-900">{transaction.source}</span>
+              <span className="text-light-text-secondary dark:text-dark-text-secondary">Source:</span>
+              <span className="font-medium text-light-text-primary dark:text-dark-text-primary">{transaction.source}</span>
             </div>
           )}
           <div className="flex justify-between text-sm">
-            <span className="text-gray-600">Created:</span>
-            <span className="font-medium text-gray-900">
+            <span className="text-light-text-secondary dark:text-dark-text-secondary">Created:</span>
+            <span className="font-medium text-light-text-primary dark:text-dark-text-primary">
               {new Date(transaction.created_at).toLocaleString('en-NG')}
             </span>
           </div>

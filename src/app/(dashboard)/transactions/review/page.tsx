@@ -216,7 +216,7 @@ export default function TransactionReviewPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="text-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
-          <p className="text-gray-600 mt-4">Loading transactions...</p>
+          <p className="text-light-text-secondary dark:text-dark-text-secondary mt-4">Loading transactions...</p>
         </div>
       </div>
     );
@@ -262,13 +262,13 @@ export default function TransactionReviewPage() {
         </Link>
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Review Transactions</h1>
-            <p className="text-gray-600 mt-1">
+            <h1 className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary">Review Transactions</h1>
+            <p className="text-light-text-secondary dark:text-dark-text-secondary mt-1">
               {currentIndex + 1} of {transactions.length} transactions to review
             </p>
           </div>
           <div className="text-right">
-            <div className="text-sm text-gray-600">Progress</div>
+            <div className="text-sm text-light-text-secondary dark:text-dark-text-secondary">Progress</div>
             <div className="text-2xl font-bold text-green-600">
               {Math.round(((currentIndex) / transactions.length) * 100)}%
             </div>
@@ -276,7 +276,7 @@ export default function TransactionReviewPage() {
         </div>
         
         {/* Progress Bar */}
-        <div className="mt-4 bg-gray-200 rounded-full h-2">
+        <div className="mt-4 bg-light-background dark:bg-dark-background rounded-full h-2">
           <div
             className="bg-green-600 h-2 rounded-full transition-all duration-300"
             style={{ width: `${((currentIndex) / transactions.length) * 100}%` }}
@@ -285,13 +285,13 @@ export default function TransactionReviewPage() {
       </div>
 
       {/* Current Transaction */}
-      <div className="bg-white rounded-lg p-6 mb-6">
+      <div className="bg-light-surface dark:bg-dark-surface rounded-lg p-6 mb-6">
         <div className="flex justify-between items-start mb-4">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-1">
+            <h2 className="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-1">
               {currentTransaction.description}
             </h2>
-            <p className="text-sm text-gray-600">{formatDate(currentTransaction.transaction_date)}</p>
+            <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">{formatDate(currentTransaction.transaction_date)}</p>
           </div>
           <div className={`text-2xl font-bold ${
             currentTransaction.transaction_type === 'credit' ? 'text-green-600' : 'text-red-600'
@@ -316,19 +316,19 @@ export default function TransactionReviewPage() {
       {/* Suggested Categories */}
       {suggestions.length > 0 && (
         <div className="mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-3">Suggested Categories</h3>
+          <h3 className="text-lg font-semibold text-light-text-primary dark:text-dark-text-primary mb-3">Suggested Categories</h3>
           <div className="space-y-3">
             {suggestions.map((suggestion) => (
               <button
                 key={suggestion.category.id}
                 onClick={() => handleAcceptSuggestion(suggestion.category.id)}
                 disabled={processing}
-                className="w-full bg-white border-2 border-gray-200 rounded-lg p-4 hover:border-green-500 hover:bg-green-50 transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-light-surface dark:bg-dark-surface border-2 border-light-border dark:border-dark-border rounded-lg p-4 hover:border-green-500 hover:bg-green-50 transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <div className="flex justify-between items-start mb-2">
                   <div>
-                    <div className="font-semibold text-gray-900">{suggestion.category.name}</div>
-                    <div className="text-sm text-gray-600">
+                    <div className="font-semibold text-light-text-primary dark:text-dark-text-primary">{suggestion.category.name}</div>
+                    <div className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
                       {suggestion.category.category_type} • {suggestion.category.tax_treatment}
                     </div>
                   </div>
@@ -341,7 +341,7 @@ export default function TransactionReviewPage() {
                     </svg>
                   </div>
                 </div>
-                <div className="text-xs text-gray-500">{suggestion.reason}</div>
+                <div className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">{suggestion.reason}</div>
               </button>
             ))}
           </div>
@@ -349,13 +349,13 @@ export default function TransactionReviewPage() {
       )}
 
       {/* Custom Category Selection */}
-      <div className="bg-white rounded-lg p-6 mb-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-3">Or Choose a Category</h3>
+      <div className="bg-light-surface dark:bg-dark-surface rounded-lg p-6 mb-6">
+        <h3 className="text-lg font-semibold text-light-text-primary dark:text-dark-text-primary mb-3">Or Choose a Category</h3>
         <div className="flex gap-3">
           <select
             value={customCategoryId}
             onChange={(e) => setCustomCategoryId(e.target.value)}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            className="flex-1 px-4 py-2 border border-light-border dark:border-dark-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
           >
             <option value="">Select a category...</option>
             {categories.map((cat) => (
@@ -379,11 +379,11 @@ export default function TransactionReviewPage() {
         <button
           onClick={handleSkip}
           disabled={processing}
-          className="text-gray-600 hover:text-gray-800 font-medium disabled:opacity-50"
+          className="text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:text-dark-text-primary font-medium disabled:opacity-50"
         >
           Skip for now →
         </button>
-        <div className="text-sm text-gray-500">
+        <div className="text-sm text-light-text-tertiary dark:text-dark-text-tertiary">
           {transactions.length - currentIndex - 1} remaining
         </div>
       </div>

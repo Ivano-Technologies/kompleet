@@ -51,7 +51,7 @@ export function ComplianceHealthMeter({ data }: ComplianceHealthMeterProps) {
           <div className={`text-5xl font-bold ${healthStatus.color}`}>
             {taxReadinessScore}%
           </div>
-          <div className="text-sm text-gray-300 mt-1">Tax Readiness</div>
+          <div className="text-sm text-light-text-tertiary dark:text-dark-text-tertiary mt-1">Tax Readiness</div>
         </div>
       </div>
 
@@ -66,19 +66,19 @@ export function ComplianceHealthMeter({ data }: ComplianceHealthMeterProps) {
           <div className="text-2xl font-bold text-white">
             {categorizedTransactions}/{totalTransactions}
           </div>
-          <div className="text-xs text-gray-400 mt-1">Categorized</div>
+          <div className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary mt-1">Categorized</div>
         </div>
         <div className="text-center p-3 rounded-lg bg-surface border border-border">
           <div className="text-2xl font-bold text-white">
             {reconciliationRate}%
           </div>
-          <div className="text-xs text-gray-400 mt-1">Reconciled</div>
+          <div className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary mt-1">Reconciled</div>
         </div>
       </div>
 
       {/* Action Hint */}
       {taxReadinessScore < 80 && (
-        <div className="mt-4 text-xs text-center text-gray-400">
+        <div className="mt-4 text-xs text-center text-light-text-tertiary dark:text-dark-text-tertiary">
           {taxReadinessScore < 40 
             ? 'Categorize more transactions to improve your score'
             : 'Keep categorizing and reconciling to reach excellent status'}

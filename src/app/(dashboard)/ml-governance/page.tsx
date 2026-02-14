@@ -1,3 +1,4 @@
+
 'use client';
 
 /**
@@ -12,6 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Loader2, ShieldCheck } from 'lucide-react';
 
 // ============================================================================
 // TYPES
@@ -72,7 +74,7 @@ export default function MLGovernanceDashboard() {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto mb-4"></div>
+          <Loader2 className="animate-spin h-12 w-12 text-primary-500 mx-auto mb-4" />
           <p className="text-light-text-secondary dark:text-dark-text-secondary">Loading ML Governance Dashboard...</p>
         </div>
       </div>
@@ -83,73 +85,76 @@ export default function MLGovernanceDashboard() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-light-text-primary dark:text-dark-text-primary">
-            ML Governance Dashboard
-          </h1>
-          <p className="text-light-text-secondary dark:text-dark-text-secondary mt-1">
-            Monitor models, approvals, drift, and compliance
-          </p>
+        <div className="flex items-center gap-4">
+            <ShieldCheck className="h-8 w-8 text-primary-500" />
+            <div>
+                <h1 className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">
+                    ML Governance Dashboard
+                </h1>
+                <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
+                    Monitor models, approvals, drift, and compliance
+                </p>
+            </div>
         </div>
-        <Button>Register New Model</Button>
+        <Button className="btn-primary rounded-lg">Register New Model</Button>
       </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <Card>
+        <Card className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary">
               Total Models
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{kpis?.totalModels || 0}</div>
+            <div className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary">{kpis?.totalModels || 0}</div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary">
               Deployed Models
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-green-600">{kpis?.deployedModels || 0}</div>
+            <div className="text-3xl font-bold text-primary-600 dark:text-primary-500">{kpis?.deployedModels || 0}</div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary">
               Rollback Success Rate
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{kpis?.rollbackSuccessRate || 100}%</div>
+            <div className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary">{kpis?.rollbackSuccessRate || 100}%</div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary">
               Avg Rollback Time
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">
+            <div className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary">
               {kpis ? Math.round(kpis.avgRollbackTimeMs / 1000) : 0}s
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary">
               Documentation Complete
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{kpis?.documentationCompleteness || 0}%</div>
+            <div className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary">{kpis?.documentationCompleteness || 0}%</div>
           </CardContent>
         </Card>
       </div>
@@ -165,10 +170,10 @@ export default function MLGovernanceDashboard() {
 
         {/* Models Tab */}
         <TabsContent value="models" className="space-y-4">
-          <Card>
+          <Card className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
             <CardHeader>
-              <CardTitle>Model Registry</CardTitle>
-              <CardDescription>All registered ML models and their versions</CardDescription>
+              <CardTitle className="text-light-text-primary dark:text-dark-text-primary">Model Registry</CardTitle>
+              <CardDescription className="text-light-text-secondary dark:text-dark-text-secondary">All registered ML models and their versions</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -180,20 +185,14 @@ export default function MLGovernanceDashboard() {
                   models.map((model) => (
                     <div
                       key={model.id}
-                      className="flex items-center justify-between p-4 border rounded-lg hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover transition-colors"
+                      className="flex items-center justify-between p-4 border border-light-border dark:border-dark-border rounded-lg hover:bg-light-background dark:hover:bg-dark-background transition-colors"
                     >
                       <div className="flex-1">
                         <div className="flex items-center gap-3">
-                          <h3 className="font-semibold">{model.modelName}</h3>
+                          <h3 className="font-semibold text-light-text-primary dark:text-dark-text-primary">{model.modelName}</h3>
                           <Badge variant="outline">{model.version}</Badge>
                           <Badge
-                            variant={
-                              model.status === 'deployed'
-                                ? 'default'
-                                : model.status === 'approved'
-                                ? 'secondary'
-                                : 'outline'
-                            }
+                            className={model.status === 'deployed' ? 'bg-primary-500' : 'bg-light-text-tertiary'}
                           >
                             {model.status}
                           </Badge>
@@ -204,7 +203,7 @@ export default function MLGovernanceDashboard() {
                             ` - Deployed: ${new Date(model.deployedAt).toLocaleDateString()}`}
                         </p>
                       </div>
-                      <Button variant="ghost" size="sm">
+                      <Button variant="ghost" size="sm" className="rounded-lg">
                         View Details
                       </Button>
                     </div>
@@ -217,10 +216,10 @@ export default function MLGovernanceDashboard() {
 
         {/* Approvals Tab */}
         <TabsContent value="approvals" className="space-y-4">
-          <Card>
+          <Card className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
             <CardHeader>
-              <CardTitle>Pending Approvals</CardTitle>
-              <CardDescription>Models awaiting approval for deployment</CardDescription>
+              <CardTitle className="text-light-text-primary dark:text-dark-text-primary">Pending Approvals</CardTitle>
+              <CardDescription className="text-light-text-secondary dark:text-dark-text-secondary">Models awaiting approval for deployment</CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-center text-light-text-tertiary dark:text-dark-text-tertiary py-8">
@@ -232,10 +231,10 @@ export default function MLGovernanceDashboard() {
 
         {/* Drift Monitoring Tab */}
         <TabsContent value="drift" className="space-y-4">
-          <Card>
+          <Card className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
             <CardHeader>
-              <CardTitle>Drift Alerts</CardTitle>
-              <CardDescription>Models with detected drift or performance issues</CardDescription>
+              <CardTitle className="text-light-text-primary dark:text-dark-text-primary">Drift Alerts</CardTitle>
+              <CardDescription className="text-light-text-secondary dark:text-dark-text-secondary">Models with detected drift or performance issues</CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-center text-light-text-tertiary dark:text-dark-text-tertiary py-8">
@@ -247,10 +246,10 @@ export default function MLGovernanceDashboard() {
 
         {/* Audit Logs Tab */}
         <TabsContent value="audit" className="space-y-4">
-          <Card>
+          <Card className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
             <CardHeader>
-              <CardTitle>Audit Logs</CardTitle>
-              <CardDescription>Complete audit trail of ML lifecycle events</CardDescription>
+              <CardTitle className="text-light-text-primary dark:text-dark-text-primary">Audit Logs</CardTitle>
+              <CardDescription className="text-light-text-secondary dark:text-dark-text-secondary">Complete audit trail of ML lifecycle events</CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-center text-light-text-tertiary dark:text-dark-text-tertiary py-8">

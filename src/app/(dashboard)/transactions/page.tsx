@@ -1,9 +1,21 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Download, Plus, Search, ArrowDown, ArrowUp, MoreVertical, ArrowLeft, ArrowRight } from 'lucide-react';
+import {
+  ArrowDown,
+  ArrowLeft,
+  ArrowRight,
+  ArrowUp,
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  MoreVertical,
+  Plus,
+  Search,
+  Upload,
+} from 'lucide-react';
 
 interface Transaction {
   id: string;
@@ -46,12 +58,9 @@ export default function TransactionsPage() {
     endDate: '',
   });
   const [exporting, setExporting] = useState(false);
+  const [showExportMenu, setShowExportMenu] = useState(false);
 
-  useEffect(() => {
-    fetchTransactions();
-  }, [pagination.page, filters]);
-
-  const fetchTransactions = async () => {
+  const fetchTransactions = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({
@@ -75,13 +84,18 @@ export default function TransactionsPage() {
     } finally {
       setLoading(false);
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pagination.page, filters]);
+
+  useEffect(() => {
+    fetchTransactions();
+  }, [fetchTransactions]);
 
   const handleSelectAll = () => {
     if (selectedIds.size === transactions.length) {
       setSelectedIds(new Set());
     } else {
-      setSelectedIds(new Set(transactions.map(t => t.id)));
+      setSelectedIds(new Set(transactions.map((t) => t.id)));
     }
   };
 
@@ -97,7 +111,6 @@ export default function TransactionsPage() {
 
   const handleBulkDelete = async () => {
     if (selectedIds.size === 0) return;
-    
     if (!confirm(`Delete ${selectedIds.size} transaction(s)?`)) return;
 
     try {
@@ -133,6 +146,7 @@ export default function TransactionsPage() {
 
   const handleExport = async (format: 'csv' | 'json') => {
     setExporting(true);
+    setShowExportMenu(false);
     try {
       const params = new URLSearchParams({
         format,
@@ -142,7 +156,7 @@ export default function TransactionsPage() {
       });
 
       const response = await fetch(`/api/transactions/export?${params}`);
-      
+
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
@@ -162,270 +176,294 @@ export default function TransactionsPage() {
   };
 
   return (
-    <div>
+    <div className="space-y-6">
       {/* Header */}
-      <div className="bg-light-background dark:bg-dark-background border-b border-light-border dark:border-dark-border px-8 py-6">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <h1 className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary">Transactions</h1>
-            <span className="text-sm font-semibold text-light-text-tertiary dark:text-dark-text-tertiary bg-light-surface dark:bg-dark-surface px-3 py-1 rounded-full border border-light-border dark:border-dark-border">
-              {pagination.total.toLocaleString()} TOTAL
-            </span>
-          </div>
-          <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">
+            Transactions
+          </h1>
+          <span className="text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary bg-light-surface dark:bg-dark-surface px-2.5 py-1 rounded-full border border-light-border dark:border-dark-border">
+            {pagination.total.toLocaleString()} total
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
           <Link
             href="/transactions/review"
-            className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-lg px-4 py-3 text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary hover:border-primary-500 transition-all font-medium"
+            className="btn-secondary text-sm px-3 py-2 hidden lg:flex items-center gap-1.5"
           >
             Review Uncategorized
           </Link>
           <div className="relative">
             <button
-              onClick={() => document.getElementById('export-menu')?.classList.toggle('hidden')}
+              onClick={() => setShowExportMenu(!showExportMenu)}
               disabled={exporting}
-              className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-lg px-4 py-3 text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary hover:border-primary-500 transition-all font-medium disabled:opacity-50 flex items-center gap-2"
+              className="btn-secondary text-sm px-3 py-2 flex items-center gap-1.5 disabled:opacity-50"
             >
               <Download className="w-3.5 h-3.5" />
               {exporting ? 'Exporting...' : 'Export'}
             </button>
-            <div id="export-menu" className="hidden absolute right-0 mt-2 w-48 bg-light-surface dark:bg-dark-surface rounded-lg border border-light-border dark:border-dark-border shadow-xl z-10">
-              <button
-                onClick={() => { handleExport('csv'); document.getElementById('export-menu')?.classList.add('hidden'); }}
-                className="block w-full text-left px-4 py-2 hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover rounded-t-lg text-light-text-primary dark:text-dark-text-primary"
-              >
-                Export as CSV
-              </button>
-              <button
-                onClick={() => { handleExport('json'); document.getElementById('export-menu')?.classList.add('hidden'); }}
-                className="block w-full text-left px-4 py-2 hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover rounded-b-lg text-light-text-primary dark:text-dark-text-primary"
-              >
-                Export as JSON
-              </button>
-            </div>
+            {showExportMenu && (
+              <div className="absolute right-0 mt-1 w-44 bg-light-surface dark:bg-dark-surface rounded-lg border border-light-border dark:border-dark-border shadow-lg z-20">
+                <button
+                  onClick={() => handleExport('csv')}
+                  className="block w-full text-left px-4 py-2.5 text-sm hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover rounded-t-lg text-light-text-primary dark:text-dark-text-primary"
+                >
+                  Export as CSV
+                </button>
+                <button
+                  onClick={() => handleExport('json')}
+                  className="block w-full text-left px-4 py-2.5 text-sm hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover rounded-b-lg text-light-text-primary dark:text-dark-text-primary"
+                >
+                  Export as JSON
+                </button>
+              </div>
+            )}
           </div>
-          <button className="bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 transition-all duration-200 shadow-lg hover:shadow-xl">
-            <Plus className="w-5 h-5" />
-            Add New
-          </button>
-          </div>
-        </div>
-
-        {/* Search and Filters */}
-        <div className="flex items-center gap-4">
-          <div className="flex-1 relative">
-            <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-light-text-tertiary dark:text-dark-text-tertiary" />
-            <input
-              type="text"
-              placeholder="Search transactions, vendors, amounts..."
-              value={filters.search}
-              onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-              className="w-full bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-lg pl-12 pr-4 py-3 text-light-text-primary dark:text-dark-text-primary placeholder-light-text-tertiary dark:placeholder-dark-text-tertiary focus:outline-none focus:border-primary-500 transition-colors"
-            />
-          </div>
-          <select
-            value={filters.type}
-            onChange={(e) => setFilters({ ...filters, type: e.target.value })}
-            className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-lg px-4 py-3 text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary hover:border-primary-500 transition-all focus:outline-none focus:border-primary-500"
-          >
-            <option value="">All Status</option>
-            <option value="credit">Credit</option>
-            <option value="debit">Debit</option>
-          </select>
-          <input
-            type="date"
-            value={filters.startDate}
-            onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
-            className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-lg px-4 py-3 text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary hover:border-primary-500 transition-all focus:outline-none focus:border-primary-500"
-          />
-          <input
-            type="date"
-            value={filters.endDate}
-            onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
-            className="bg-dark-surface border border-dark-border rounded-lg px-4 py-3 text-dark-text-secondary hover:text-dark-primary hover:border-primary-500 transition-all focus:outline-none focus:border-primary-500"
-          />
           <Link
             href="/transactions/upload"
-            className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-lg px-4 py-3 text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary hover:border-primary-500 transition-all font-medium whitespace-nowrap"
+            className="btn-secondary text-sm px-3 py-2 flex items-center gap-1.5"
           >
-            Upload
+            <Upload className="w-3.5 h-3.5" /> Upload
           </Link>
+          <button className="btn-primary text-sm px-3 py-2 flex items-center gap-1.5">
+            <Plus className="w-3.5 h-3.5" /> Add New
+          </button>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="p-8 space-y-6">
+      {/* Search and Filters */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+        <div className="flex-1 relative">
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-light-text-tertiary dark:text-dark-text-tertiary" />
+          <input
+            type="text"
+            placeholder="Search transactions..."
+            value={filters.search}
+            onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+            className="w-full pl-10 pr-4 py-2.5 text-sm bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-lg text-light-text-primary dark:text-dark-text-primary placeholder-light-text-tertiary dark:placeholder-dark-text-tertiary focus:outline-none focus:border-primary-500 transition-colors"
+          />
+        </div>
+        <select
+          value={filters.type}
+          onChange={(e) => setFilters({ ...filters, type: e.target.value })}
+          className="px-3 py-2.5 text-sm bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-lg text-light-text-secondary dark:text-dark-text-secondary focus:outline-none focus:border-primary-500"
+        >
+          <option value="">All Types</option>
+          <option value="credit">Credit</option>
+          <option value="debit">Debit</option>
+        </select>
+        <input
+          type="date"
+          value={filters.startDate}
+          onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
+          className="px-3 py-2.5 text-sm bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-lg text-light-text-secondary dark:text-dark-text-secondary focus:outline-none focus:border-primary-500"
+        />
+        <input
+          type="date"
+          value={filters.endDate}
+          onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
+          className="px-3 py-2.5 text-sm bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-lg text-light-text-secondary dark:text-dark-text-secondary focus:outline-none focus:border-primary-500"
+        />
+      </div>
 
-        {selectedIds.size > 0 && (
-          <div className="bg-primary-500/10 border border-primary-500/20 rounded-xl p-4 flex items-center justify-between">
-            <span className="text-primary-500 font-medium">
-              {selectedIds.size} transaction{selectedIds.size !== 1 ? 's' : ''} selected
-            </span>
-            <button
-              onClick={handleBulkDelete}
-              className="bg-error-500 hover:bg-error-600 text-white px-4 py-2 rounded-lg transition-colors"
-            >
-              Delete Selected
-            </button>
+      {/* Bulk Actions */}
+      {selectedIds.size > 0 && (
+        <div className="bg-primary-500/10 border border-primary-500/20 rounded-lg p-3 flex items-center justify-between">
+          <span className="text-sm text-primary-500 font-medium">
+            {selectedIds.size} transaction{selectedIds.size !== 1 ? 's' : ''} selected
+          </span>
+          <button
+            onClick={handleBulkDelete}
+            className="text-sm bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg transition-colors"
+          >
+            Delete Selected
+          </button>
+        </div>
+      )}
+
+      {/* Transactions Table */}
+      <div className="rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface overflow-hidden">
+        {loading ? (
+          <div className="p-12 text-center">
+            <div className="w-6 h-6 border-2 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+            <p className="text-sm text-light-text-tertiary dark:text-dark-text-tertiary">
+              Loading transactions...
+            </p>
           </div>
-        )}
-
-        {/* Transactions Table */}
-        <div className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl overflow-hidden">
-          {loading ? (
-            <div className="p-12 text-center text-light-text-tertiary dark:text-dark-text-tertiary">Loading transactions...</div>
-          ) : transactions.length === 0 ? (
-            <div className="p-12 text-center">
-              <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">No transactions found</p>
-              <Link
-                href="/transactions/upload"
-                className="text-primary-500 hover:text-primary-400 font-medium"
-              >
-                Upload your first bank statement →
-              </Link>
-            </div>
-          ) : (
-            <>
-              <div className="overflow-x-auto p-6">
-                <table className="w-full">
-                  <thead className="border-b border-light-border dark:border-dark-border">
-                    <tr>
-                      <th className="px-4 py-4 text-left">
+        ) : transactions.length === 0 ? (
+          <div className="p-12 text-center">
+            <p className="text-light-text-secondary dark:text-dark-text-secondary mb-3">
+              No transactions found
+            </p>
+            <Link
+              href="/transactions/upload"
+              className="text-primary-500 hover:text-primary-400 text-sm font-medium"
+            >
+              Upload your first bank statement →
+            </Link>
+          </div>
+        ) : (
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-light-border dark:border-dark-border">
+                    <th className="px-5 py-3 text-left w-10">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.size === transactions.length && transactions.length > 0}
+                        onChange={handleSelectAll}
+                        className="rounded border-light-border dark:border-dark-border"
+                      />
+                    </th>
+                    <th className="px-5 py-3 text-left text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary">
+                      Date
+                    </th>
+                    <th className="px-5 py-3 text-left text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary">
+                      Description
+                    </th>
+                    <th className="px-5 py-3 text-left text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary hidden md:table-cell">
+                      Category
+                    </th>
+                    <th className="px-5 py-3 text-right text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary">
+                      Amount
+                    </th>
+                    <th className="px-5 py-3 text-center text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary hidden sm:table-cell">
+                      Status
+                    </th>
+                    <th className="px-5 py-3 text-center text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary w-10">
+                      
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {transactions.map((transaction) => (
+                    <tr
+                      key={transaction.id}
+                      className="border-b border-light-border/50 dark:border-dark-border/50 last:border-0 hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover cursor-pointer transition-colors"
+                      onClick={() => router.push(`/transactions/${transaction.id}`)}
+                    >
+                      <td className="px-5 py-3.5" onClick={(e) => e.stopPropagation()}>
                         <input
                           type="checkbox"
-                          checked={selectedIds.size === transactions.length}
-                          onChange={handleSelectAll}
-                          className="rounded border-light-border dark:border-dark-border bg-light-background dark:bg-dark-background text-primary-500 focus:ring-primary-500"
+                          checked={selectedIds.has(transaction.id)}
+                          onChange={() => handleSelectOne(transaction.id)}
+                          className="rounded border-light-border dark:border-dark-border"
                         />
-                      </th>
-                      <th className="px-4 py-4 text-left text-xs font-semibold text-light-text-tertiary dark:text-dark-text-tertiary uppercase tracking-wide">
-                        Date
-                      </th>
-                      <th className="px-4 py-4 text-left text-xs font-semibold text-light-text-tertiary dark:text-dark-text-tertiary uppercase tracking-wide">
-                        Description
-                      </th>
-                      <th className="px-4 py-4 text-left text-xs font-semibold text-light-text-tertiary dark:text-dark-text-tertiary uppercase tracking-wide">
-                        Category
-                      </th>
-                      <th className="px-4 py-4 text-right text-xs font-semibold text-light-text-tertiary dark:text-dark-text-tertiary uppercase tracking-wide">
-                        Amount
-                      </th>
-                      <th className="px-4 py-4 text-center text-xs font-semibold text-light-text-tertiary dark:text-dark-text-tertiary uppercase tracking-wide">
-                        Status
-                      </th>
-                      <th className="px-4 py-4 text-center text-xs font-semibold text-light-text-tertiary dark:text-dark-text-tertiary uppercase tracking-wide">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-light-border/50 dark:divide-dark-border/50">
-                    {transactions.map((transaction) => (
-                      <tr
-                        key={transaction.id}
-                        className="hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover cursor-pointer transition-colors"
-                        onClick={() => router.push(`/transactions/${transaction.id}`)}
-                      >
-                        <td className="px-4 py-4" onClick={(e) => e.stopPropagation()}>
-                          <input
-                            type="checkbox"
-                            checked={selectedIds.has(transaction.id)}
-                            onChange={() => handleSelectOne(transaction.id)}
-                            className="rounded border-light-border dark:border-dark-border bg-light-background dark:bg-dark-background text-primary-500 focus:ring-primary-500"
-                          />
-                        </td>
-                        <td className="px-4 py-4">
-                          <div className="text-light-text-primary dark:text-dark-text-primary font-medium">
-                            {formatDate(transaction.transaction_date)}
+                      </td>
+                      <td className="px-5 py-3.5 text-light-text-secondary dark:text-dark-text-secondary text-xs">
+                        {formatDate(transaction.transaction_date)}
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-8 h-8 rounded-lg bg-primary-500/10 flex items-center justify-center flex-shrink-0">
+                            {transaction.transaction_type === 'credit' ? (
+                              <ArrowDown className="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
+                            ) : (
+                              <ArrowUp className="w-3.5 h-3.5 text-red-500 dark:text-red-400" />
+                            )}
                           </div>
-                        </td>
-                        <td className="px-4 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg bg-light-background dark:bg-dark-background flex items-center justify-center">
-                              {transaction.transaction_type === 'credit' ? (
-                                <ArrowDown className="w-3.5 h-3.5 text-primary-500" />
-                              ) : (
-                                <ArrowUp className="w-3.5 h-3.5 text-primary-500" />
-                              )}
-                            </div>
-                            <span className="font-medium text-light-text-primary dark:text-dark-text-primary">
-                              {transaction.description}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-4">
-                          {transaction.category ? (
-                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-success-500/10 text-success-500">
-                              {transaction.category.name}
-                              {transaction.confidence_score !== undefined && transaction.confidence_score < 100 && (
-                                <span className="ml-1">
+                          <span className="font-medium text-sm text-light-text-primary dark:text-dark-text-primary truncate">
+                            {transaction.description}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-5 py-3.5 hidden md:table-cell">
+                        {transaction.category ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                            {transaction.category.name}
+                            {transaction.confidence_score !== undefined &&
+                              transaction.confidence_score < 100 && (
+                                <span className="ml-1 opacity-60">
                                   ({transaction.confidence_score}%)
                                 </span>
                               )}
-                            </span>
-                          ) : (
-                            <span className="text-light-text-tertiary dark:text-dark-text-tertiary text-xs">Uncategorized</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-4 text-right">
-                          <span className={`font-semibold ${
-                            transaction.transaction_type === 'credit' ? 'text-success-500' : 'text-light-text-primary dark:text-dark-text-primary'
-                          }`}>
-                            {transaction.transaction_type === 'credit' ? '+' : ''}{formatCurrency(transaction.amount)}
                           </span>
-                        </td>
-                        <td className="px-4 py-4 text-center">
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-success-500/10 text-success-500">
-                            {transaction.is_reconciled ? 'SUCCESSFUL' : 'PENDING'}
+                        ) : (
+                          <span className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
+                            Uncategorized
                           </span>
-                        </td>
-                        <td className="px-4 py-4 text-center">
-                          <button className="p-2 hover:bg-light-background dark:hover:bg-dark-background rounded-lg transition-colors">
-                            <MoreVertical className="w-5 h-5 text-light-text-tertiary dark:text-dark-text-tertiary" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                        )}
+                      </td>
+                      <td className="px-5 py-3.5 text-right">
+                        <span
+                          className={`font-semibold text-sm ${
+                            transaction.transaction_type === 'credit'
+                              ? 'text-green-600 dark:text-green-400'
+                              : 'text-light-text-primary dark:text-dark-text-primary'
+                          }`}
+                        >
+                          {transaction.transaction_type === 'credit' ? '+' : ''}
+                          {formatCurrency(transaction.amount)}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5 text-center hidden sm:table-cell">
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                            transaction.is_reconciled
+                              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                              : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                          }`}
+                        >
+                          {transaction.is_reconciled ? 'Reconciled' : 'Pending'}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5 text-center" onClick={(e) => e.stopPropagation()}>
+                        <button className="p-1.5 hover:bg-light-background dark:hover:bg-dark-background rounded-lg transition-colors">
+                          <MoreVertical className="w-4 h-4 text-light-text-tertiary dark:text-dark-text-tertiary" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
 
-              {/* Pagination */}
-              <div className="flex items-center justify-between mt-6 pt-6 border-t border-light-border dark:border-dark-border px-4">
-                <div className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
-                  Showing {(pagination.page - 1) * pagination.limit + 1} to{' '}
-                  {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
-                  {pagination.total.toLocaleString()} entries
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setPagination({ ...pagination, page: pagination.page - 1 })}
-                    disabled={pagination.page === 1}
-                    className="w-10 h-10 rounded-lg bg-light-background dark:bg-dark-background text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <ArrowLeft className="w-5 h-5" />
-                  </button>
-                  <button className="w-10 h-10 rounded-lg bg-primary-500 text-white font-medium hover:bg-primary-600 transition-colors">
-                    {pagination.page}
-                  </button>
-                  {pagination.page < pagination.totalPages - 1 && (
-                    <span className="text-light-text-tertiary dark:text-dark-text-tertiary px-2">...</span>
-                  )}
-                  {pagination.page < pagination.totalPages && (
-                    <button className="w-10 h-10 rounded-lg bg-light-background dark:bg-dark-background text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover transition-colors">
+            {/* Pagination */}
+            <div className="flex items-center justify-between px-5 py-3 border-t border-light-border dark:border-dark-border">
+              <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
+                Showing {(pagination.page - 1) * pagination.limit + 1} to{' '}
+                {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
+                {pagination.total.toLocaleString()} entries
+              </p>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setPagination({ ...pagination, page: pagination.page - 1 })}
+                  disabled={pagination.page === 1}
+                  className="p-1.5 rounded-md hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <span className="px-3 py-1 text-xs font-medium bg-primary-500 text-white rounded-md">
+                  {pagination.page}
+                </span>
+                {pagination.totalPages > 1 && pagination.page < pagination.totalPages && (
+                  <>
+                    {pagination.page < pagination.totalPages - 1 && (
+                      <span className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary px-1">
+                        ...
+                      </span>
+                    )}
+                    <button
+                      onClick={() => setPagination({ ...pagination, page: pagination.totalPages })}
+                      className="px-3 py-1 text-xs rounded-md hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover transition-colors"
+                    >
                       {pagination.totalPages}
                     </button>
-                  )}
-                  <button
-                    onClick={() => setPagination({ ...pagination, page: pagination.page + 1 })}
-                    disabled={pagination.page >= pagination.totalPages}
-                    className="w-10 h-10 rounded-lg bg-light-background dark:bg-dark-background text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <ArrowRight className="w-5 h-5" />
-                  </button>
-                </div>
+                  </>
+                )}
+                <button
+                  onClick={() => setPagination({ ...pagination, page: pagination.page + 1 })}
+                  disabled={pagination.page >= pagination.totalPages}
+                  className="p-1.5 rounded-md hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
               </div>
-            </>
-          )}
-        </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
