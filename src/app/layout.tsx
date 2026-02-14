@@ -12,6 +12,10 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: 'KOMPLEET - Tax Compliance Platform',
   description: 'Kompleet records. Kompleet filings. Kompleet compliance.',
+  icons: {
+    icon: '/favicon.png',
+    apple: '/favicon.png',
+  },
 };
 
 export default function RootLayout({
