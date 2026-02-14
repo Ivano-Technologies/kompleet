@@ -51,7 +51,7 @@ export function ComplianceHealthMeter({ data }: ComplianceHealthMeterProps) {
           <div className={`text-5xl font-bold ${healthStatus.color}`}>
             {taxReadinessScore}%
           </div>
-          <div className="text-sm text-gray-300 mt-1">Tax Readiness</div>
+          <div className="text-sm text-light-text-tertiary dark:text-dark-text-tertiary mt-1">Tax Readiness</div>
         </div>
       </div>
 

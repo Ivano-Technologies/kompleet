@@ -67,7 +67,7 @@ export default function FilingHistory() {
     const badges: Record<string, { color: string; label: string }> = {
       draft: { color: 'bg-light-background dark:bg-dark-background text-light-text-primary dark:text-dark-text-primary', label: 'Draft' },
       generated: { color: 'bg-blue-100 text-blue-800', label: 'Generated' },
-      filed: { color: 'bg-emerald-100 text-emerald-800', label: 'Filed' },
+      filed: { color: 'bg-primary-100 dark:bg-primary-900/20 text-primary-700', label: 'Filed' },
       archived: { color: 'bg-purple-100 text-purple-800', label: 'Archived' }
     };
     
@@ -163,7 +163,7 @@ export default function FilingHistory() {
         </div>
       ) : filings.length === 0 ? (
         <div className="p-12 text-center">
-          <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <FileText className="w-16 h-16 text-light-text-tertiary dark:text-dark-text-tertiary mx-auto mb-4" />
           <h3 className="text-lg font-medium text-light-text-primary dark:text-dark-text-primary mb-2">No filings found</h3>
           <p className="text-light-text-secondary dark:text-dark-text-secondary">
             {filterYear !== 'all' || filterType !== 'all'
@@ -178,7 +178,7 @@ export default function FilingHistory() {
             <div key={filing.id} className="p-6 hover:bg-light-background dark:bg-dark-background transition-colors">
               <div className="flex items-center justify-between">
                 <div className="flex items-start gap-4 flex-1">
-                  <div className="p-3 bg-emerald-100 rounded-lg border-2 border-primary-200">
+                  <div className="p-3 bg-primary-100 dark:bg-primary-900/20 rounded-lg border-2 border-primary-200">
                     <FileText className="w-6 h-6 text-primary-500" />
                   </div>
                   

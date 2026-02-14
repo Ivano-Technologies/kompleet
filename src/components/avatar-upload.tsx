@@ -102,7 +102,7 @@ export function AvatarUpload() {
       <button
         onClick={handleClick}
         disabled={uploading}
-        className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+        className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:bg-light-text-tertiary disabled:cursor-not-allowed transition-colors"
       >
         {uploading ? "Uploading..." : "Change Avatar"}
       </button>
