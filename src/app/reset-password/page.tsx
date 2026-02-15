@@ -23,16 +23,39 @@ export default function ResetPasswordPage() {
   const router = useRouter();
 
   useEffect(() => {
+    const supabase = createBrowserClient();
+
+    // Listen for auth state changes — Supabase fires PASSWORD_RECOVERY
+    // when a recovery session is established via the callback
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && session)) {
+          setValidSession(true);
+          setError(null);
+        }
+      }
+    );
+
+    // Also check if we already have a valid session (e.g., page was refreshed)
     const checkSession = async () => {
-      const supabase = createBrowserClient();
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         setValidSession(true);
       } else {
-        setError('Invalid or expired reset link. Please request a new password reset.');
+        // Wait briefly — the callback may still be setting cookies
+        setTimeout(async () => {
+          const { data: { session: retrySession } } = await supabase.auth.getSession();
+          if (retrySession) {
+            setValidSession(true);
+          } else {
+            setError('Invalid or expired reset link. Please request a new password reset.');
+          }
+        }, 1500);
       }
     };
     checkSession();
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
