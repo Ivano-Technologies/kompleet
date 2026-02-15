@@ -40,11 +40,14 @@ const nextConfig = {
         hostname: "images.unsplash.com",
         pathname: "/**",
       },
+<<<<<<< HEAD
       {
         protocol: "https",
         hostname: "private-us-east-1.manuscdn.com",
         pathname: "/**",
       },
+=======
+>>>>>>> e7fcd05d8 (ui-rebuild-v2: foundation - docs, logo, image config)
     ],
     formats: ["image/avif", "image/webp"],
   },
