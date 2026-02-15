@@ -13,7 +13,13 @@ import type { NextRequest } from 'next/server';
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get('code');
-  const redirect = requestUrl.searchParams.get('redirect') || '/dashboard';
+  // Support both 'next' and 'redirect' query params for the target page
+  const next = requestUrl.searchParams.get('next')
+    || requestUrl.searchParams.get('redirect')
+    || '/dashboard';
+
+  // Validate redirect target to prevent open redirect attacks
+  const safeNext = next.startsWith('/') ? next : '/dashboard';
 
   if (code) {
     try {
@@ -34,7 +40,7 @@ export async function GET(request: NextRequest) {
           },
         },
       });
-      
+
       // Exchange the code for a session
       const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
@@ -49,10 +55,8 @@ export async function GET(request: NextRequest) {
         return NextResponse.redirect(new URL('/login?error=no_session', requestUrl.origin));
       }
 
-      console.log('OAuth session created successfully for user:', data.user?.email);
-
       // Redirect to the target page
-      return NextResponse.redirect(new URL(redirect, requestUrl.origin));
+      return NextResponse.redirect(new URL(safeNext, requestUrl.origin));
     } catch (err) {
       console.error('Unexpected error in auth callback:', err);
       return NextResponse.redirect(new URL('/login?error=unexpected', requestUrl.origin));
