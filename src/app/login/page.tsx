@@ -21,6 +21,29 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirectTo') || '/dashboard';
+  
+  // Handle error messages from auth callback
+  const callbackError = searchParams.get('error');
+  const callbackMessage = searchParams.get('message');
+  
+  // Set error message from URL params on mount
+  useState(() => {
+    if (callbackError) {
+      const errorMessages: Record<string, string> = {
+        'auth_failed': 'Authentication failed. Please try again.',
+        'expired_link': callbackMessage || 'This link has expired. Please request a new one.',
+        'link_used': callbackMessage || 'This link has already been used. Please request a new one.',
+        'no_session': 'Failed to create session. Please try again.',
+        'missing_code': 'Invalid authentication link.',
+        'access_denied': 'Access was denied. Please try again.',
+        'server_error': 'Server error occurred. Please try again later.',
+        'temporarily_unavailable': 'Service temporarily unavailable. Please try again later.',
+        'invalid_request': 'Invalid request. Please try again.',
+        'unexpected': 'An unexpected error occurred. Please try again.',
+      };
+      setError(errorMessages[callbackError] || callbackMessage || 'Authentication error occurred.');
+    }
+  });
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -115,7 +138,13 @@ function LoginForm() {
               <p className="text-sm text-[rgb(var(--text-secondary))]">Enter your credentials to access your account</p>
             </div>
 
-            {error && (
+            {error && callbackError && (
+              <div className="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/30 rounded-lg">
+                <p className="text-amber-700 dark:text-amber-400 text-sm">{error}</p>
+              </div>
+            )}
+            
+            {error && !callbackError && (
               <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 rounded-lg">
                 <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
               </div>
