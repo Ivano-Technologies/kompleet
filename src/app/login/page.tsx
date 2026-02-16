@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, FormEvent, Suspense } from 'react';
+import { useState, useEffect, FormEvent, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createSupabaseClient } from '@/lib/supabase/client';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -23,13 +23,12 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get('redirectTo') || '/dashboard';
-  
+
   // Handle error messages from auth callback
   const callbackError = searchParams.get('error');
   const callbackMessage = searchParams.get('message');
-  
-  // Set error message from URL params on mount
-  useState(() => {
+
+  useEffect(() => {
     if (callbackError) {
       const errorMessages: Record<string, string> = {
         'auth_failed': 'Authentication failed. Please try again.',
@@ -45,7 +44,7 @@ function LoginForm() {
       };
       setError(errorMessages[callbackError] || callbackMessage || 'Authentication error occurred.');
     }
-  });
+  }, [callbackError, callbackMessage]);
 
   const isCoolingDown = cooldownUntil !== null && Date.now() < cooldownUntil;
 
@@ -70,7 +69,6 @@ function LoginForm() {
       const data = await res.json();
 
       if (res.status === 429) {
-        // Rate limited by server
         const retryAfterSec = data.retryAfterSec || 60;
         setCooldownUntil(Date.now() + retryAfterSec * 1000);
         setError(`Too many login attempts. Please try again in ${Math.ceil(retryAfterSec / 60)} minute(s).`);
@@ -82,9 +80,8 @@ function LoginForm() {
         const attempts = failedAttempts + 1;
         setFailedAttempts(attempts);
 
-        // Client-side cooldown after 3 consecutive failures
         if (attempts >= 3) {
-          const cooldownSec = Math.min(attempts * 30, 300); // 30s, 60s, 90s... max 5min
+          const cooldownSec = Math.min(attempts * 30, 300);
           setCooldownUntil(Date.now() + cooldownSec * 1000);
           setError(`Too many failed attempts. Please wait ${cooldownSec} seconds before trying again.`);
         } else {
@@ -99,7 +96,8 @@ function LoginForm() {
       setFailedAttempts(0);
       setCooldownUntil(null);
 
-      // Set session via Supabase client to sync cookies
+      // Set session via the SSR browser client — this writes to cookies,
+      // making the session visible to server components and middleware.
       if (data.session) {
         const supabase = createSupabaseClient();
         await supabase.auth.setSession({

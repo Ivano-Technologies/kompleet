@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, FormEvent, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { createBrowserClient } from '@/lib/supabase/client';
 import { useTheme } from '@/contexts/ThemeContext';
 import Link from 'next/link';
@@ -11,7 +11,7 @@ import { AlertCircle, CheckCircle2, Eye, EyeOff, KeyRound, Moon, Sun } from 'luc
 const LOGO_URL =
   'https://files.manuscdn.com/user_upload_by_module/session_file/114473754/ZeGQuujTZDuMQDVT.png';
 
-type PageState = 'loading' | 'valid' | 'expired' | 'already_logged_in' | 'success' | 'error';
+type PageState = 'loading' | 'valid' | 'expired' | 'success' | 'error';
 
 export default function ResetPasswordClient() {
   const [password, setPassword] = useState('');
@@ -22,40 +22,20 @@ export default function ResetPasswordClient() {
   const [loading, setLoading] = useState(false);
   const { theme, toggleTheme } = useTheme();
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   useEffect(() => {
     const checkSession = async () => {
       try {
         const supabase = createBrowserClient();
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-        if (sessionError) {
-          console.error('Session check error:', sessionError);
-          setError('Failed to verify reset link. Please try again.');
-          setPageState('error');
-          return;
-        }
-
-        if (!session) {
-          // No session means the reset link is invalid or expired
+        if (userError || !user) {
           setError('This reset link is invalid or has expired.');
           setPageState('expired');
           return;
         }
 
-        // Check if this is a password recovery session
-        // Supabase sets user.aud to 'authenticated' for regular sessions
-        // and includes recovery metadata for password reset sessions
-        const isRecoverySession = session.user.aud === 'authenticated';
-        
-        if (!isRecoverySession) {
-          // User is already logged in with a regular session
-          setPageState('already_logged_in');
-          return;
-        }
-
-        // Valid password reset session
+        // Valid session — user can set a new password
         setPageState('valid');
       } catch (err) {
         console.error('Unexpected error checking session:', err);
@@ -150,29 +130,6 @@ export default function ResetPasswordClient() {
           </Link>
           <Link href="/login" className="text-sm text-[rgb(var(--text-secondary))] hover:text-[rgb(var(--text-primary))] transition-colors">
             Back to Login
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  // Already logged in state
-  if (pageState === 'already_logged_in') {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[rgb(var(--background))] p-6">
-        <div className="w-full max-w-sm text-center space-y-6">
-          <div className="w-16 h-16 bg-[rgba(var(--primary-rgb),0.15)] rounded-full flex items-center justify-center mx-auto">
-            <AlertCircle className="w-8 h-8 text-[rgb(var(--primary))]" />
-          </div>
-          <h1 className="text-2xl font-bold text-[rgb(var(--text-primary))]">Already Logged In</h1>
-          <p className="text-[rgb(var(--text-secondary))]">
-            You're already logged in. If you want to change your password, please go to Settings.
-          </p>
-          <Link href="/settings" className="btn-primary block w-full text-center py-3">
-            Go to Settings
-          </Link>
-          <Link href="/dashboard" className="text-sm text-[rgb(var(--text-secondary))] hover:text-[rgb(var(--text-primary))] transition-colors">
-            Back to Dashboard
           </Link>
         </div>
       </div>

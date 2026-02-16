@@ -1,62 +1,46 @@
 /**
  * Supabase Client (Browser-Only)
  * ==============================
- * Creates a Supabase client for browser/client-side use only.
- * 
- * DEPENDENCIES:
- *   - @supabase/supabase-js (only)
- *   - NO @supabase/ssr
- *   - NO cookies
- *   - NO middleware
+ * Creates a cookie-based Supabase client for browser/client-side use.
+ *
+ * Uses @supabase/ssr's createBrowserClient which stores sessions in cookies
+ * (not localStorage). This ensures the server-side client (which also reads
+ * cookies) can see the same session — fixing the auth mismatch that caused
+ * login failures.
  *
  * USAGE:
  *   import { createSupabaseClient } from '@/lib/supabase/client';
  *   const supabase = createSupabaseClient();
  *   const { data } = await supabase.from('profiles').select();
- *
- * NOTE:
- *   This creates a new client instance each time.
- *   For React components, consider memoizing or using context (future phase).
  */
 
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { createBrowserClient as createSSRBrowserClient } from '@supabase/ssr';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
 // ============================================================
 // ENVIRONMENT VALIDATION
 // ============================================================
 
-/**
- * Gets the Supabase URL from environment variables.
- * Throws if not configured.
- */
 function getSupabaseUrl(): string {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-
   if (!url) {
     throw new Error(
       'Missing NEXT_PUBLIC_SUPABASE_URL environment variable. ' +
       'Please add it to your .env.local file.'
     );
   }
-
   return url;
 }
 
-/**
- * Gets the Supabase anon key from environment variables.
- * Throws if not configured.
- */
 function getSupabaseAnonKey(): string {
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
   if (!key) {
     throw new Error(
       'Missing NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable. ' +
       'Please add it to your .env.local file.'
     );
   }
-
   return key;
 }
 
@@ -64,89 +48,30 @@ function getSupabaseAnonKey(): string {
 // CLIENT CREATION
 // ============================================================
 
-/**
- * Typed Supabase client for this project.
- */
 export type TypedSupabaseClient = SupabaseClient<Database>;
 
 /**
- * Creates a new Supabase client instance.
- * 
+ * Creates a cookie-based Supabase browser client.
+ *
  * This client:
- * - Uses the anon (public) key
- * - Respects Row Level Security policies
- * - Stores session in localStorage (browser default)
+ * - Uses @supabase/ssr for cookie-based session storage
+ * - Sessions are stored in cookies (readable by server components)
  * - Auto-refreshes tokens
- *
- * @example
- * const supabase = createSupabaseClient();
- * 
- * // Query data
- * const { data, error } = await supabase
- *   .from('transactions')
- *   .select('*');
- *
- * // Auth
- * const { data: { user } } = await supabase.auth.getUser();
+ * - Compatible with the server-side createServerClient
  */
 export function createSupabaseClient(): TypedSupabaseClient {
-  return createClient<Database>(
+  return createSSRBrowserClient<Database>(
     getSupabaseUrl(),
-    getSupabaseAnonKey(),
-    {
-      auth: {
-        // Use localStorage for session persistence (browser default)
-        persistSession: true,
-        // Auto-refresh tokens before expiry
-        autoRefreshToken: true,
-        // Detect session from URL (for OAuth callbacks)
-        detectSessionInUrl: true,
-      },
-    }
+    getSupabaseAnonKey()
   );
 }
-
-/**
- * Creates a Supabase client with custom options.
- * Use this for specific configurations.
- *
- * @example
- * const supabase = createSupabaseClientWithOptions({
- *   auth: { persistSession: false }
- * });
- */
-export function createSupabaseClientWithOptions(
-  options?: Parameters<typeof createClient<Database>>[2]
-): TypedSupabaseClient {
-  return createClient<Database>(
-    getSupabaseUrl(),
-    getSupabaseAnonKey(),
-    options
-  );
-}
-
-// ============================================================
-// RE-EXPORTS
-// ============================================================
 
 // ============================================================
 // ALIASES FOR BACKWARDS COMPATIBILITY
 // ============================================================
 
-/**
- * Alias for createSupabaseClient for backwards compatibility.
- * Use createSupabaseClient in new code.
- */
 export { createSupabaseClient as createClient };
-
-/**
- * Alias for createBrowserClient (legacy naming)
- */
 export { createSupabaseClient as createBrowserClient };
-
-// ============================================================
-// RE-EXPORTS
-// ============================================================
 
 // Re-export types from supabase-js for convenience
 export type { SupabaseClient, Session, User } from '@supabase/supabase-js';
