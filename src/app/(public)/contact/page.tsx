@@ -77,8 +77,8 @@ export default function ContactPage() {
           <div className="space-y-6">
             <div className="bg-light-surface dark:bg-dark-surface rounded-lg p-6">
               <h3 className="font-semibold text-light-text-primary dark:text-dark-text-primary mb-3">Email Us</h3>
-              <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-1">General: <a href="mailto:hello@techivano.com" className="text-blue-600 hover:underline">hello@techivano.com</a></p>
-              <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">Support: <a href="mailto:support@techivano.com" className="text-blue-600 hover:underline">support@techivano.com</a></p>
+              <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-1">General: <a href="mailto:info@ivanotechnologies.com" className="text-blue-600 hover:underline">info@ivanotechnologies.com</a></p>
+              <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">Support: <a href="mailto:support@ivanotechnologies.com" className="text-blue-600 hover:underline">support@ivanotechnologies.com</a></p>
             </div>
             <div className="bg-light-surface dark:bg-dark-surface rounded-lg p-6">
               <h3 className="font-semibold text-light-text-primary dark:text-dark-text-primary mb-3">Office</h3>

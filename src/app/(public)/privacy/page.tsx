@@ -121,7 +121,7 @@ export default function PrivacyPage() {
               <li><strong>Withdraw Consent:</strong> Withdraw your consent at any time</li>
             </ul>
             <p className="text-light-text-secondary dark:text-dark-text-secondary">
-              To exercise any of these rights, please contact us at <a href="mailto:privacy@techivano.com" className="text-blue-600 hover:underline">privacy@techivano.com</a>.
+              To exercise any of these rights, please contact us at <a href="mailto:support@ivanotechnologies.com" className="text-blue-600 hover:underline">support@ivanotechnologies.com</a>.
             </p>
           </section>
 
@@ -200,8 +200,8 @@ export default function PrivacyPage() {
             </p>
             <div className="bg-light-background dark:bg-dark-background p-6 rounded-lg">
               <p className="text-light-text-secondary dark:text-dark-text-secondary mb-2"><strong>Ivano Technologies Ltd</strong></p>
-              <p className="text-light-text-secondary dark:text-dark-text-secondary mb-2">Email: <a href="mailto:privacy@techivano.com" className="text-blue-600 hover:underline">privacy@techivano.com</a></p>
-              <p className="text-light-text-secondary dark:text-dark-text-secondary mb-2">Support: <a href="mailto:support@techivano.com" className="text-blue-600 hover:underline">support@techivano.com</a></p>
+              <p className="text-light-text-secondary dark:text-dark-text-secondary mb-2">Email: <a href="mailto:support@ivanotechnologies.com" className="text-blue-600 hover:underline">support@ivanotechnologies.com</a></p>
+              <p className="text-light-text-secondary dark:text-dark-text-secondary mb-2">Support: <a href="mailto:support@ivanotechnologies.com" className="text-blue-600 hover:underline">support@ivanotechnologies.com</a></p>
               <p className="text-light-text-secondary dark:text-dark-text-secondary">Location: Nigeria</p>
             </div>
           </section>

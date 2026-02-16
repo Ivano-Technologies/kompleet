@@ -93,7 +93,7 @@ export default function CookiesPage() {
             <h2 className="text-2xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">6. Contact</h2>
             <p className="text-light-text-secondary dark:text-dark-text-secondary">
               If you have questions about our use of cookies, contact us at{' '}
-              <a href="mailto:privacy@techivano.com" className="text-blue-600 hover:underline">privacy@techivano.com</a>.
+              <a href="mailto:support@ivanotechnologies.com" className="text-blue-600 hover:underline">support@ivanotechnologies.com</a>.
             </p>
           </section>
         </div>

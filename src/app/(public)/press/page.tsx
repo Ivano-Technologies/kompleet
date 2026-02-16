@@ -24,7 +24,7 @@ export default function PressPage() {
             <h2 className="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">Press Contact</h2>
             <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">For press inquiries, interviews, and media requests:</p>
             <p className="text-light-text-secondary dark:text-dark-text-secondary">
-              <a href="mailto:press@techivano.com" className="text-blue-600 hover:underline">press@techivano.com</a>
+              <a href="mailto:info@ivanotechnologies.com" className="text-blue-600 hover:underline">info@ivanotechnologies.com</a>
             </p>
           </div>
           <div className="bg-light-surface dark:bg-dark-surface rounded-lg p-8">
@@ -33,7 +33,7 @@ export default function PressPage() {
               Our brand kit including logos, color specifications, and usage guidelines is available upon request.
             </p>
             <p className="text-sm text-light-text-tertiary dark:text-dark-text-tertiary">
-              Contact <a href="mailto:press@techivano.com" className="text-blue-600 hover:underline">press@techivano.com</a> to request the media kit.
+              Contact <a href="mailto:info@ivanotechnologies.com" className="text-blue-600 hover:underline">info@ivanotechnologies.com</a> to request the media kit.
             </p>
           </div>
         </div>

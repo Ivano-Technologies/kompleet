@@ -287,7 +287,7 @@ export default function TermsPage() {
             
             <h3 className="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-3">13.1 Informal Resolution</h3>
             <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              If you have any dispute with us, please contact us first at <a href="mailto:support@techivano.com" className="text-blue-600 hover:underline">support@techivano.com</a> to attempt to resolve the issue informally.
+              If you have any dispute with us, please contact us first at <a href="mailto:support@ivanotechnologies.com" className="text-blue-600 hover:underline">support@ivanotechnologies.com</a> to attempt to resolve the issue informally.
             </p>
 
             <h3 className="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-3">13.2 Governing Law</h3>
@@ -352,8 +352,8 @@ export default function TermsPage() {
             </p>
             <div className="bg-light-background dark:bg-dark-background p-6 rounded-lg">
               <p className="text-light-text-secondary dark:text-dark-text-secondary mb-2"><strong>Ivano Technologies Ltd</strong></p>
-              <p className="text-light-text-secondary dark:text-dark-text-secondary mb-2">Email: <a href="mailto:support@techivano.com" className="text-blue-600 hover:underline">support@techivano.com</a></p>
-              <p className="text-light-text-secondary dark:text-dark-text-secondary mb-2">Legal: <a href="mailto:legal@techivano.com" className="text-blue-600 hover:underline">legal@techivano.com</a></p>
+              <p className="text-light-text-secondary dark:text-dark-text-secondary mb-2">Email: <a href="mailto:support@ivanotechnologies.com" className="text-blue-600 hover:underline">support@ivanotechnologies.com</a></p>
+              <p className="text-light-text-secondary dark:text-dark-text-secondary mb-2">Legal: <a href="mailto:info@ivanotechnologies.com" className="text-blue-600 hover:underline">info@ivanotechnologies.com</a></p>
               <p className="text-light-text-secondary dark:text-dark-text-secondary mb-2">Website: <a href="https://techivano.com" className="text-blue-600 hover:underline">https://techivano.com</a></p>
               <p className="text-light-text-secondary dark:text-dark-text-secondary">Location: Nigeria</p>
             </div>

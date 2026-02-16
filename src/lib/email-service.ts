@@ -90,7 +90,7 @@ export function generate7DayReminderEmail(
     </div>
     
     <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
-      Need help? Contact our support team at <a href="mailto:support@kompleet.com" style="color: #10b981;">support@kompleet.com</a>
+      Need help? Contact our support team at <a href="mailto:support@ivanotechnologies.com" style="color: #10b981;">support@ivanotechnologies.com</a>
     </p>
   </div>
   
@@ -129,7 +129,7 @@ Go to Filing Center: https://kompleet.com/filing
 
 ⚠️ Important: Late filing may result in penalties as prescribed by the Nigeria Tax Act 2025.
 
-Need help? Contact our support team at support@kompleet.com
+Need help? Contact our support team at support@ivanotechnologies.com
 
 ---
 This is an automated reminder from KOMPLEET Platform
@@ -203,7 +203,7 @@ export function generate3DayReminderEmail(
     </div>
     
     <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
-      Need urgent assistance? Contact us at <a href="mailto:support@kompleet.com" style="color: #ef4444;">support@kompleet.com</a>
+      Need urgent assistance? Contact us at <a href="mailto:support@ivanotechnologies.com" style="color: #ef4444;">support@ivanotechnologies.com</a>
     </p>
   </div>
   
@@ -232,7 +232,7 @@ Don't wait until the last minute! Generate and submit your tax form today to avo
 
 File Now: https://kompleet.com/filing
 
-Need urgent assistance? Contact us at support@kompleet.com
+Need urgent assistance? Contact us at support@ivanotechnologies.com
 
 ---
 This is an automated urgent reminder from KOMPLEET Platform
@@ -305,7 +305,7 @@ export function generate1DayReminderEmail(
     </div>
     
     <div style="background: #fef3c7; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #f59e0b;">
-      <p style="margin: 0; color: #78350f;"><strong>Need Help?</strong> Our support team is standing by. Email <a href="mailto:support@kompleet.com" style="color: #dc2626;">support@kompleet.com</a> or call our hotline.</p>
+      <p style="margin: 0; color: #78350f;"><strong>Need Help?</strong> Our support team is standing by. Email <a href="mailto:support@ivanotechnologies.com" style="color: #dc2626;">support@ivanotechnologies.com</a> or call our hotline.</p>
     </div>
   </div>
   
@@ -333,7 +333,7 @@ Late filing will result in penalties and interest charges. Don't risk it - file 
 FILE NOW: https://kompleet.com/filing
 
 Need Help? Our support team is standing by.
-Email: support@kompleet.com
+Email: support@ivanotechnologies.com
 
 ---
 This is your FINAL automated reminder from KOMPLEET Platform
@@ -370,7 +370,7 @@ export async function sendEmail(
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        from: 'KOMPLEET <noreply@kompleet.com>',
+        from: 'KOMPLEET <noreply@ivanotechnologies.com>',
         to: [to],
         subject: template.subject,
         html: template.html,
