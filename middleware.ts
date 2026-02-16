@@ -69,7 +69,7 @@ export const config = {
   matcher: [
     // Apply to all API routes
     '/api/:path*',
-    // Exclude static files and internal Next.js routes
-    '/((?!_next/static|_next/image|favicon.ico).*)',
+    // Exclude static files, internal Next.js routes, and well-known files
+    '/((?!_next/static|_next/image|favicon.ico|\.well-known).*)',
   ],
 };
