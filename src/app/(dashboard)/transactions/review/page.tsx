@@ -41,6 +41,7 @@ export default function TransactionReviewPage() {
   const [suggestions, setSuggestions] = useState<SuggestedCategory[]>([]);
   const [customCategoryId, setCustomCategoryId] = useState<string>('');
   const [processing, setProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchUncategorizedTransactions();
@@ -61,13 +62,17 @@ export default function TransactionReviewPage() {
       const data = await response.json();
       
       if (response.ok) {
-        const uncategorized = data.transactions.filter((t: Transaction) => 
+        const uncategorized = data.transactions.filter((t: Transaction) =>
           !t.category || (t.confidence_score !== undefined && t.confidence_score < 80)
         );
         setTransactions(uncategorized);
+        setError(null);
+      } else {
+        setError(data.error || 'Failed to load transactions for review');
       }
     } catch (error) {
       console.error('Error fetching transactions:', error);
+      setError('Failed to load transactions. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -252,6 +257,12 @@ export default function TransactionReviewPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
+      {error && (
+        <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 rounded-lg flex justify-between items-center">
+          <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
+          <button onClick={() => setError(null)} className="text-red-400 hover:text-red-600 dark:hover:text-red-300 text-lg leading-none">&times;</button>
+        </div>
+      )}
       {/* Header */}
       <div className="mb-6">
         <Link

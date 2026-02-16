@@ -1,25 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient as createClient } from '@/lib/supabase/server';
 import { withRateLimit } from '@/lib/with-rate-limit';
+import { withAudit } from '@/lib/with-audit';
+import { z } from 'zod';
 
 export const runtime = 'nodejs';
+
+const exportQuerySchema = z.object({
+  format: z.enum(['csv', 'json']).default('csv'),
+  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format').optional(),
+  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format').optional(),
+  type: z.enum(['debit', 'credit']).optional(),
+});
 
 async function handleGET(request: NextRequest) {
   try {
     const supabase = await createClient();
-    
+
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get query parameters
+    // Validate query parameters
     const searchParams = request.nextUrl.searchParams;
-    const format = searchParams.get('format') || 'csv';
-    const startDate = searchParams.get('startDate');
-    const endDate = searchParams.get('endDate');
-    const type = searchParams.get('type');
+    const raw = Object.fromEntries(searchParams.entries());
+    const parsed = exportQuerySchema.safeParse(raw);
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Invalid query parameters', details: parsed.error.flatten() },
+        { status: 400 }
+      );
+    }
+
+    const { format, startDate, endDate, type } = parsed.data;
 
     // Build query
     let query = supabase
@@ -46,6 +62,15 @@ async function handleGET(request: NextRequest) {
     if (error) {
       console.error('Error fetching transactions:', error);
       return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
+    // Enforce size limit to prevent memory exhaustion
+    const MAX_EXPORT = 50000;
+    if (transactions && transactions.length > MAX_EXPORT) {
+      return NextResponse.json(
+        { error: `Export limited to ${MAX_EXPORT.toLocaleString()} transactions. Please use date filters to narrow your results.` },
+        { status: 400 }
+      );
     }
 
     if (format === 'csv') {
@@ -101,4 +126,4 @@ async function handleGET(request: NextRequest) {
   }
 }
 
-export const GET = withRateLimit(handleGET);
+export const GET = withRateLimit(withAudit(handleGET, { action: 'export', resourceType: 'transactions' }));

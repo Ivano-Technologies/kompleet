@@ -9,6 +9,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
 import { withRateLimit } from '@/lib/with-rate-limit';
+import { updateCalculationSchema } from '@/lib/schemas/calculations';
 
 interface RouteContext {
   params: Promise<{
@@ -76,46 +77,18 @@ async function handlePATCH(request: NextRequest, context: RouteContext) {
       );
     }
 
-    // Parse request body
+    // Parse and validate request body
     const body = await request.json();
+    const parsed = updateCalculationSchema.safeParse(body);
 
-    // Build update object (only allow specific fields)
-    const allowedUpdates = [
-      'input_data',
-      'gross_amount',
-      'deductions',
-      'taxable_amount',
-      'tax_due',
-      'effective_rate',
-      'breakdown',
-    ];
-
-    const updates: Record<string, any> = {};
-    for (const key of allowedUpdates) {
-      if (body[key] !== undefined) {
-        updates[key] = body[key];
-      }
-    }
-
-    // Validate amounts if provided
-    if (
-      (updates.gross_amount !== undefined && updates.gross_amount < 0) ||
-      (updates.taxable_amount !== undefined && updates.taxable_amount < 0) ||
-      (updates.tax_due !== undefined && updates.tax_due < 0) ||
-      (updates.deductions !== undefined && updates.deductions < 0)
-    ) {
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Validation error', message: 'Amounts must be non-negative' },
+        { error: 'Validation error', details: parsed.error.flatten() },
         { status: 400 }
       );
     }
 
-    if (Object.keys(updates).length === 0) {
-      return NextResponse.json(
-        { error: 'Validation error', message: 'No valid fields to update' },
-        { status: 400 }
-      );
-    }
+    const updates = parsed.data;
 
     // Update calculation (RLS ensures user_id match AND is_final = false)
     const { data: calculation, error: updateError } = await supabase

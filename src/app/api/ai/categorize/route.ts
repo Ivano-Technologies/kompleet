@@ -2,26 +2,45 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withRateLimit } from '@/lib/with-rate-limit';
 import { llmCategorize } from '@/lib/services/llm-categorization-service';
 import { categorizeTransaction, type Category } from '@/lib/services/categorization-service';
+import { createServerClient } from '@/lib/supabase/server';
 import { createClient } from '@supabase/supabase-js';
+import { z } from 'zod';
 
-const supabaseAdmin = createClient(
+const categorizeSchema = z.object({
+  merchant: z.string().min(1, 'Merchant is required').max(500),
+  amount: z.number(),
+  type: z.enum(['debit', 'credit']).optional(),
+  channel: z.string().optional(),
+  timestamp: z.string().optional(),
+});
+
+// Admin client only for ml_inference_logs insert (user may not have insert permission)
+const getAdminClient = () => createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
 async function handlePOST(request: NextRequest) {
   try {
-    const body = await request.json();
+    // Auth check
+    const supabase = await createServerClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-    if (!body.merchant || body.amount === undefined) {
+    const body = await request.json();
+    const parsed = categorizeSchema.safeParse(body);
+
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Missing required fields: merchant, amount' },
+        { error: 'Invalid input', details: parsed.error.flatten() },
         { status: 400 }
       );
     }
 
-    // Fetch user's categories for context
-    const { data: categories } = await supabaseAdmin
+    // Fetch user's categories for context (using per-request client with RLS)
+    const { data: categories } = await supabase
       .from('categories')
       .select('id, name, category_type, tax_treatment, keywords');
 
@@ -33,14 +52,14 @@ async function handlePOST(request: NextRequest) {
 
     // Step 1: Try rules-based categorization first (free, fast)
     const rulesResult = categorizeTransaction(
-      body.merchant,
+      parsed.data.merchant,
       (categories || []) as Category[]
     );
 
     // If rules-based is confident enough, use it
     if (rulesResult.confidenceScore >= 70) {
       console.log('[Categorization] Rules-based hit', {
-        merchant: body.merchant,
+        merchant: parsed.data.merchant,
         category: rulesResult.categoryName,
         confidence: rulesResult.confidenceScore,
       });
@@ -67,28 +86,28 @@ async function handlePOST(request: NextRequest) {
 
     const llmResult = await llmCategorize(
       {
-        merchant: body.merchant,
-        amount: body.amount,
-        type: body.type,
-        channel: body.channel,
-        timestamp: body.timestamp,
+        merchant: parsed.data.merchant,
+        amount: parsed.data.amount,
+        type: parsed.data.type,
+        channel: parsed.data.channel,
+        timestamp: parsed.data.timestamp,
       },
       categoryOptions
     );
 
     console.log('[Categorization] LLM result', {
-      merchant: body.merchant,
+      merchant: parsed.data.merchant,
       category: llmResult.category,
       confidence: llmResult.confidence,
       inference_id: llmResult.inference_id,
     });
 
-    // Log inference (non-blocking)
-    supabaseAdmin.from('ml_inference_logs').insert({
-      user_id: body.user_id || null,
+    // Log inference (non-blocking) — use admin client for cross-table insert
+    getAdminClient().from('ml_inference_logs').insert({
+      user_id: user.id,
       model_version: 'gpt-4o-mini',
       provider: 'openai',
-      input: { merchant: body.merchant, amount: body.amount },
+      input: { merchant: parsed.data.merchant, amount: parsed.data.amount },
       output: { category: llmResult.category, confidence: llmResult.confidence },
       confidence: llmResult.confidence,
       latency_ms: 0,

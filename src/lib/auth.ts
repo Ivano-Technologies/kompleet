@@ -22,5 +22,10 @@ export async function requireAuth() {
     redirect('/login');
   }
 
+  // Redirect unverified users to email verification page
+  if (!user.email_confirmed_at) {
+    redirect('/verify-email');
+  }
+
   return user;
 }

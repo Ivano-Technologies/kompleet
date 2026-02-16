@@ -1,18 +1,23 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { createBrowserClient as createClient } from '@/lib/supabase/client';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Settings, CheckCircle, AlertCircle, Pencil, Shield, Lock, Sun, Moon, Monitor, Bell, Loader2, Trash2 } from 'lucide-react';
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
   const [profile, setProfile] = useState({ firstName: '', lastName: '', email: '', bio: '', avatar: '' });
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [showPasswordChange, setShowPasswordChange] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({ current: '', new: '', confirm: '' });
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const [language, setLanguage] = useState('English (US)');
   const [timezone, setTimezone] = useState('GMT+01:00, West Africa Time');
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
@@ -50,10 +55,50 @@ export default function SettingsPage() {
     finally { setLoading(false); }
   };
 
-  const handleDeleteAccount = () => {
-    if (confirm('Are you sure you want to permanently delete your account? This action cannot be undone.')) {
-      alert('Account deletion would be processed here');
-    }
+  const handleChangePassword = async () => {
+    setPasswordLoading(true); setError(''); setSuccess('');
+    try {
+      const res = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          currentPassword: passwordForm.current,
+          newPassword: passwordForm.new,
+          confirmPassword: passwordForm.confirm,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || 'Failed to change password');
+      } else {
+        setSuccess('Password updated successfully!');
+        setShowPasswordChange(false);
+        setPasswordForm({ current: '', new: '', confirm: '' });
+        setTimeout(() => setSuccess(''), 3000);
+      }
+    } catch { setError('An unexpected error occurred'); }
+    finally { setPasswordLoading(false); }
+  };
+
+  const handleDeleteAccount = async () => {
+    const confirmText = prompt('Type DELETE to permanently delete your account. This action cannot be undone.');
+    if (confirmText !== 'DELETE') return;
+
+    setDeleteLoading(true); setError('');
+    try {
+      const res = await fetch('/api/auth/delete-account', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirmText: 'DELETE' }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || 'Failed to delete account');
+      } else {
+        router.push('/login');
+      }
+    } catch { setError('An unexpected error occurred'); }
+    finally { setDeleteLoading(false); }
   };
 
   const inputCls = 'w-full px-3 py-2 text-sm rounded-lg border border-light-border dark:border-dark-border bg-light-background dark:bg-dark-background text-light-text-primary dark:text-dark-text-primary placeholder-light-text-tertiary dark:placeholder-dark-text-tertiary focus:outline-none focus:border-primary-500 transition-colors';
@@ -173,10 +218,12 @@ export default function SettingsPage() {
         </div>
         {showPasswordChange && (
           <div className="space-y-3 mt-4 pt-4 border-t border-light-border dark:border-dark-border">
-            <input type="password" placeholder="Current password" className={inputCls} />
-            <input type="password" placeholder="New password" className={inputCls} />
-            <input type="password" placeholder="Confirm new password" className={inputCls} />
-            <button className="btn-primary text-sm px-4 py-2">Update Password</button>
+            <input type="password" placeholder="Current password" value={passwordForm.current} onChange={(e) => setPasswordForm({ ...passwordForm, current: e.target.value })} className={inputCls} />
+            <input type="password" placeholder="New password (min 8 characters)" value={passwordForm.new} onChange={(e) => setPasswordForm({ ...passwordForm, new: e.target.value })} className={inputCls} />
+            <input type="password" placeholder="Confirm new password" value={passwordForm.confirm} onChange={(e) => setPasswordForm({ ...passwordForm, confirm: e.target.value })} className={inputCls} />
+            <button onClick={handleChangePassword} disabled={passwordLoading || !passwordForm.current || !passwordForm.new || !passwordForm.confirm} className="btn-primary text-sm px-4 py-2 flex items-center gap-1.5 disabled:opacity-50">
+              {passwordLoading ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Updating...</> : 'Update Password'}
+            </button>
           </div>
         )}
       </div>
@@ -259,8 +306,8 @@ export default function SettingsPage() {
             <h3 className="text-sm font-medium text-light-text-primary dark:text-dark-text-primary">Delete Account</h3>
             <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">Permanently remove your account and all data</p>
           </div>
-          <button onClick={handleDeleteAccount} className="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-1">
-            <Trash2 className="w-3 h-3" /> Delete
+          <button onClick={handleDeleteAccount} disabled={deleteLoading} className="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-1 disabled:opacity-50">
+            {deleteLoading ? <><Loader2 className="w-3 h-3 animate-spin" /> Deleting...</> : <><Trash2 className="w-3 h-3" /> Delete</>}
           </button>
         </div>
       </div>

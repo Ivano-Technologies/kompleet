@@ -21,6 +21,7 @@ export default function CategoriesPage() {
   const [editForm, setEditForm] = useState<Partial<Category>>({});
   const [newKeyword, setNewKeyword] = useState('');
   const [filter, setFilter] = useState<string>('all');
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => { fetchCategories(); }, []);
 
@@ -29,9 +30,15 @@ export default function CategoriesPage() {
     try {
       const response = await fetch('/api/categories');
       const data = await response.json();
-      if (response.ok) setCategories(data.categories || []);
+      if (response.ok) {
+        setCategories(data.categories || []);
+        setError(null);
+      } else {
+        setError(data.error || 'Failed to load categories');
+      }
     } catch (error) {
       console.error('Error fetching categories:', error);
+      setError('Failed to load categories. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -59,9 +66,14 @@ export default function CategoriesPage() {
         await fetchCategories();
         setEditingId(null);
         setEditForm({});
+        setError(null);
+      } else {
+        const data = await response.json().catch(() => ({}));
+        setError(data.error || 'Failed to save category');
       }
     } catch (error) {
       console.error('Error saving category:', error);
+      setError('Failed to save category. Please try again.');
     }
   };
 
@@ -116,6 +128,12 @@ export default function CategoriesPage() {
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 rounded-lg flex justify-between items-center">
+          <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
+          <button onClick={() => setError(null)} className="text-red-400 hover:text-red-600 dark:hover:text-red-300 text-lg leading-none">&times;</button>
+        </div>
+      )}
       {/* Header */}
       <div className="flex justify-between items-start">
         <div>

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient as createClient } from '@/lib/supabase/server';
 import { createInvoice } from '@/lib/invoice-service';
 import { withRateLimit } from '@/lib/with-rate-limit';
+import { withAudit } from '@/lib/with-audit';
+import { createInvoiceSchema } from '@/lib/schemas/invoices';
 
 async function handlePOST(request: NextRequest) {
   try {
@@ -13,6 +15,15 @@ async function handlePOST(request: NextRequest) {
     }
 
     const body = await request.json();
+    const parsed = createInvoiceSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Invalid input', details: parsed.error.flatten() },
+        { status: 400 }
+      );
+    }
+
     const {
       tax_year,
       customer_info,
@@ -21,19 +32,19 @@ async function handlePOST(request: NextRequest) {
       due_date,
       payment_terms,
       notes
-    } = body;
+    } = parsed.data;
 
     // Create invoice
     const invoice = await createInvoice({
       user_id: user.id,
-      tax_year,
+      tax_year: tax_year ?? new Date().getFullYear(),
       customer_info,
       line_items,
       invoice_date,
       due_date,
       payment_terms,
       notes
-    });
+    } as any);
 
     return NextResponse.json({
       invoice_id: invoice.id,
@@ -45,4 +56,4 @@ async function handlePOST(request: NextRequest) {
   }
 }
 
-export const POST = withRateLimit(handlePOST);
+export const POST = withRateLimit(withAudit(handlePOST, { action: 'create', resourceType: 'invoices' }));
