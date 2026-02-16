@@ -17,6 +17,8 @@ function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [failedAttempts, setFailedAttempts] = useState(0);
+  const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
   const { theme, toggleTheme } = useTheme();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -45,25 +47,65 @@ function LoginForm() {
     }
   });
 
+  const isCoolingDown = cooldownUntil !== null && Date.now() < cooldownUntil;
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
+
+    if (isCoolingDown) {
+      setError('Too many attempts. Please wait before trying again.');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const supabase = createSupabaseClient();
-      const { data, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
       });
 
-      if (authError) {
-        setError(authError.message);
+      const data = await res.json();
+
+      if (res.status === 429) {
+        // Rate limited by server
+        const retryAfterSec = data.retryAfterSec || 60;
+        setCooldownUntil(Date.now() + retryAfterSec * 1000);
+        setError(`Too many login attempts. Please try again in ${Math.ceil(retryAfterSec / 60)} minute(s).`);
         setLoading(false);
         return;
       }
 
+      if (!res.ok) {
+        const attempts = failedAttempts + 1;
+        setFailedAttempts(attempts);
+
+        // Client-side cooldown after 3 consecutive failures
+        if (attempts >= 3) {
+          const cooldownSec = Math.min(attempts * 30, 300); // 30s, 60s, 90s... max 5min
+          setCooldownUntil(Date.now() + cooldownSec * 1000);
+          setError(`Too many failed attempts. Please wait ${cooldownSec} seconds before trying again.`);
+        } else {
+          setError(data.error || 'Invalid email or password.');
+        }
+
+        setLoading(false);
+        return;
+      }
+
+      // Success — reset counters
+      setFailedAttempts(0);
+      setCooldownUntil(null);
+
+      // Set session via Supabase client to sync cookies
       if (data.session) {
+        const supabase = createSupabaseClient();
+        await supabase.auth.setSession({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+        });
         router.push(redirectTo);
         router.refresh();
       }
@@ -194,10 +236,10 @@ function LoginForm() {
 
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || isCoolingDown}
                 className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? 'Signing in...' : 'Sign In'}
+                {loading ? 'Signing in...' : isCoolingDown ? 'Please wait...' : 'Sign In'}
               </button>
             </form>
 

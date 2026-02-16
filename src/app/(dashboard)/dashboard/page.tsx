@@ -1,6 +1,15 @@
 import { createServerClient } from '@/lib/supabase/server';
 import { requireServerUser } from '@/lib/supabase/session';
+import { getDashboardSummary, getTransactionTotals } from '@/lib/supabase/queries';
+import { getMonthlyIncomeExpenses } from '@/lib/dashboard/data-aggregation';
 import DashboardClient from './DashboardClient';
+
+const TAX_COLORS: Record<string, string> = {
+  vat: '#166534', wht: '#22c55e', cit: '#86efac', pit: '#bbf7d0',
+};
+const TAX_LABELS: Record<string, string> = {
+  vat: 'VAT', wht: 'WHT', cit: 'CIT', pit: 'PIT',
+};
 
 /**
  * KOMPLEET Dashboard - Financial Health Overview
@@ -8,51 +17,109 @@ import DashboardClient from './DashboardClient';
  */
 export default async function DashboardPage() {
   const supabase = await createServerClient();
-  await requireServerUser(supabase);
+  const user = await requireServerUser(supabase);
 
-  // Mock data - replace with actual Supabase queries
+  const currentYear = new Date().getFullYear();
+
+  // Fetch real data in parallel (including previous year for YoY comparison)
+  const [summaryResult, monthlyData, prevYearResult] = await Promise.all([
+    getDashboardSummary(supabase as any, currentYear),
+    getMonthlyIncomeExpenses(user.id, 8),
+    getTransactionTotals(supabase as any, currentYear - 1),
+  ]);
+
+  const summary = summaryResult.data;
+  const totalIncome = summary?.totalIncome ?? 0;
+  const totalExpenses = summary?.totalExpenses ?? 0;
+
+  // Calculate YoY percentage changes
+  const prevIncome = prevYearResult.data?.income ?? 0;
+  const prevExpenses = prevYearResult.data?.expenses ?? 0;
+  const prevProfit = prevIncome - prevExpenses;
+  const currentProfit = totalIncome - totalExpenses;
+
+  const revenueChange = prevIncome > 0
+    ? Math.round(((totalIncome - prevIncome) / prevIncome) * 100)
+    : 0;
+  const profitChange = prevProfit > 0
+    ? Math.round(((currentProfit - prevProfit) / prevProfit) * 100)
+    : 0;
+
+  // Calculate next tax due date (Nigerian tax calendar: VAT due 21st of following month)
+  const now = new Date();
+  const nextVATDue = new Date(now.getFullYear(), now.getMonth() + 1, 21);
+  if (nextVATDue <= now) {
+    nextVATDue.setMonth(nextVATDue.getMonth() + 1);
+  }
+  const taxDueDate = nextVATDue.toLocaleDateString('en-NG', { month: 'short', day: 'numeric' });
+
+  // Query outstanding invoices (safe — returns null if table missing)
+  const { data: invoiceData } = await supabase
+    .from('invoices')
+    .select('amount_due')
+    .eq('user_id', user.id)
+    .eq('status', 'sent');
+
+  const outstandingInvoices = invoiceData?.reduce((sum: number, inv: any) => sum + Number(inv.amount_due), 0) ?? 0;
+  const pendingCount = invoiceData?.length ?? 0;
+
+  // Tax breakdown from tax_calculations
+  const { data: taxData } = await supabase
+    .from('tax_calculations')
+    .select('tax_type, tax_due')
+    .eq('user_id', user.id)
+    .eq('tax_year', currentYear)
+    .eq('is_final', true);
+
+  const taxMap = new Map<string, number>();
+  (taxData ?? []).forEach((t: any) => {
+    taxMap.set(t.tax_type, (taxMap.get(t.tax_type) ?? 0) + Number(t.tax_due));
+  });
+
+  const taxBreakdown = Array.from(taxMap.entries()).map(([type, value]) => ({
+    name: TAX_LABELS[type] || type.toUpperCase(),
+    value: Math.round(value),
+    color: TAX_COLORS[type] || '#94a3b8',
+  }));
+
+  const estimatedTax = taxBreakdown.reduce((sum, t) => sum + t.value, 0)
+    || Math.round(totalIncome * 0.30);
+
   const kpiData = {
-    totalRevenue: 18800000,
-    revenueChange: 12.5,
-    estimatedTax: 1000000,
-    taxDueDate: 'Mar 21',
-    outstandingInvoices: 4200000,
-    pendingCount: 8,
-    netProfit: 7600000,
-    profitChange: 8.3,
+    totalRevenue: Math.round(totalIncome),
+    revenueChange,
+    estimatedTax,
+    taxDueDate,
+    outstandingInvoices: Math.round(outstandingInvoices),
+    pendingCount,
+    netProfit: Math.round(currentProfit),
+    profitChange,
   };
 
-  const revenueData = [
-    { month: 'Jul', revenue: 1800000, expenses: 1200000 },
-    { month: 'Aug', revenue: 2100000, expenses: 1350000 },
-    { month: 'Sep', revenue: 1950000, expenses: 1100000 },
-    { month: 'Oct', revenue: 2400000, expenses: 1500000 },
-    { month: 'Nov', revenue: 2800000, expenses: 1600000 },
-    { month: 'Dec', revenue: 3200000, expenses: 1800000 },
-    { month: 'Jan', revenue: 2600000, expenses: 1400000 },
-    { month: 'Feb', revenue: 2900000, expenses: 1550000 },
-  ];
+  const revenueData = monthlyData.map(item => ({
+    month: item.month.split(' ')[0],
+    revenue: item.income,
+    expenses: item.expenses,
+  }));
 
-  const taxBreakdown = [
-    { name: 'VAT', value: 425000, color: '#166534' },
-    { name: 'WHT', value: 180000, color: '#22c55e' },
-    { name: 'CIT', value: 320000, color: '#86efac' },
-    { name: 'Stamp Duty', value: 75000, color: '#bbf7d0' },
-  ];
-
-  const recentTransactions = [
-    { id: 'TXN-001', desc: 'Payment from Dangote Industries', amount: 2500000, type: 'credit', date: 'Feb 14, 2026', status: 'completed' },
-    { id: 'TXN-002', desc: 'Office rent - Victoria Island', amount: -850000, type: 'debit', date: 'Feb 13, 2026', status: 'completed' },
-    { id: 'TXN-003', desc: 'Invoice #INV-045 - TechCorp', amount: 1200000, type: 'credit', date: 'Feb 12, 2026', status: 'pending' },
-    { id: 'TXN-004', desc: 'FIRS VAT Payment Q4', amount: -425000, type: 'debit', date: 'Feb 11, 2026', status: 'completed' },
-    { id: 'TXN-005', desc: 'Payment from MTN Nigeria', amount: 3800000, type: 'credit', date: 'Feb 10, 2026', status: 'completed' },
-  ];
+  const recentTransactions = (summary?.recentTransactions ?? []).map((t: any) => ({
+    id: t.id,
+    desc: t.description,
+    amount: t.transaction_type === 'credit' ? Number(t.amount) : -Number(t.amount),
+    type: t.transaction_type,
+    date: new Date(t.transaction_date).toLocaleDateString('en-US', {
+      month: 'short', day: 'numeric', year: 'numeric',
+    }),
+    status: t.is_verified ? 'completed' : 'pending',
+  }));
 
   return (
     <DashboardClient
       kpiData={kpiData}
       revenueData={revenueData}
-      taxBreakdown={taxBreakdown}
+      taxBreakdown={taxBreakdown.length > 0
+        ? taxBreakdown
+        : [{ name: 'Estimated', value: estimatedTax, color: '#166534' }]}
       recentTransactions={recentTransactions}
     />
   );

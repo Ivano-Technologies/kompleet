@@ -4,20 +4,29 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, UploadCloud, File as FileIcon, X, Loader2 } from 'lucide-react';
+import { ArrowLeft, UploadCloud, File as FileIcon, X, Loader2, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { SUPPORTED_BANKS } from '@/lib/transaction-import/bank-configs';
 
 interface UploadResult {
   success: boolean;
-  message: string;
+  sessionId?: string;
   imported: number;
   duplicates: number;
+  pendingReview?: number;
   errors: number;
+  balanceValidation?: {
+    valid: boolean;
+    openingBalance?: number;
+    closingBalance?: number;
+    discrepancy?: number;
+  };
+  error?: string;
 }
 
 export default function TransactionUploadPage() {
   const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
-  const [bankType, setBankType] = useState<string>('auto');
+  const [bankCode, setBankCode] = useState<string>('');
   const [uploading, setUploading] = useState(false);
   const [result, setResult] = useState<UploadResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -30,12 +39,12 @@ export default function TransactionUploadPage() {
         setError('Please select a CSV, Excel, or PDF file');
         return;
       }
-      
+
       if (selectedFile.size > 10 * 1024 * 1024) {
         setError('File size must be less than 10MB');
         return;
       }
-      
+
       setFile(selectedFile);
       setError(null);
       setResult(null);
@@ -47,6 +56,10 @@ export default function TransactionUploadPage() {
       setError('Please select a file');
       return;
     }
+    if (!bankCode) {
+      setError('Please select a bank');
+      return;
+    }
 
     setUploading(true);
     setError(null);
@@ -55,22 +68,22 @@ export default function TransactionUploadPage() {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('bankType', bankType);
+      formData.append('bankCode', bankCode);
 
-      const response = await fetch('/api/transactions/upload', {
+      const response = await fetch('/api/transactions/upload-v2', {
         method: 'POST',
         body: formData,
       });
 
-      const data: UploadResult = await response.json();
+      const data = await response.json();
 
-      if (response.ok) {
-        setResult(data);
+      if (response.ok && data.success) {
+        setResult(data as UploadResult);
         setFile(null);
         const fileInput = document.getElementById('file-input') as HTMLInputElement;
         if (fileInput) fileInput.value = '';
       } else {
-        setError(data.message || 'Upload failed');
+        setError(data.error || data.message || 'Upload failed');
       }
     } catch (err) {
       setError('Upload failed. Please try again.');
@@ -88,7 +101,7 @@ export default function TransactionUploadPage() {
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     const droppedFile = e.dataTransfer.files[0];
     if (droppedFile) {
       const fileName = droppedFile.name.toLowerCase();
@@ -101,7 +114,7 @@ export default function TransactionUploadPage() {
         setError('File size must be less than 10MB');
         return;
       }
-      
+
       setFile(droppedFile);
       setError(null);
       setResult(null);
@@ -135,20 +148,17 @@ export default function TransactionUploadPage() {
             Select Bank
           </label>
           <select
-            value={bankType}
-            onChange={(e) => setBankType(e.target.value)}
+            value={bankCode}
+            onChange={(e) => setBankCode(e.target.value)}
             className="w-full px-4 py-2 border border-light-border dark:border-dark-border rounded-lg bg-light-background dark:bg-dark-background focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           >
-            <option value="auto">Auto-detect</option>
-            <option value="gtbank">GTBank</option>
-            <option value="zenith">Zenith Bank</option>
-            <option value="access">Access Bank</option>
-            <option value="firstbank">First Bank</option>
-            <option value="uba">UBA</option>
-            <option value="generic">Generic CSV</option>
+            <option value="">Select your bank...</option>
+            {SUPPORTED_BANKS.map(bank => (
+              <option key={bank.code} value={bank.code}>{bank.name}</option>
+            ))}
           </select>
           <p className="text-sm text-light-text-tertiary dark:text-dark-text-tertiary mt-1">
-            Auto-detect will try to identify your bank from the file format
+            Select the bank that issued this statement
           </p>
         </div>
 
@@ -164,7 +174,7 @@ export default function TransactionUploadPage() {
             onChange={handleFileChange}
             className="hidden"
           />
-          
+
           {file ? (
             <div className="space-y-4">
               <div className="flex items-center justify-center">
@@ -218,7 +228,7 @@ export default function TransactionUploadPage() {
         <div className="mt-6">
           <button
             onClick={handleUpload}
-            disabled={!file || uploading}
+            disabled={!file || !bankCode || uploading}
             className="w-full btn-primary"
           >
             {uploading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Uploading...</> : 'Upload Transactions'}
@@ -228,10 +238,10 @@ export default function TransactionUploadPage() {
 
       {result && (
         <div className={`rounded-xl p-6 ${result.success ? 'bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-900/30' : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/30'}`}>
-          <h3 className={`text-lg font-semibold mb-4 ${result.success ? 'text-primary-900 dark:text-primary-300' : 'text-red-900 dark:text-red-300'}`}>
-            {result.success ? '✅ Upload Complete' : '❌ Upload Failed'}
+          <h3 className={`text-lg font-semibold mb-4 flex items-center gap-2 ${result.success ? 'text-primary-900 dark:text-primary-300' : 'text-red-900 dark:text-red-300'}`}>
+            {result.success ? <><CheckCircle2 className="w-5 h-5" /> Upload Complete</> : 'Upload Failed'}
           </h3>
-          
+
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-light-text-secondary dark:text-dark-text-secondary">Imported:</span>
@@ -241,11 +251,30 @@ export default function TransactionUploadPage() {
               <span className="text-light-text-secondary dark:text-dark-text-secondary">Duplicates skipped:</span>
               <span className="font-medium text-light-text-tertiary dark:text-dark-text-tertiary">{result.duplicates}</span>
             </div>
+            {(result.pendingReview ?? 0) > 0 && (
+              <div className="flex justify-between">
+                <span className="text-light-text-secondary dark:text-dark-text-secondary">Pending review:</span>
+                <span className="font-medium text-amber-600 dark:text-amber-400">{result.pendingReview}</span>
+              </div>
+            )}
             {result.errors > 0 && (
               <div className="flex justify-between">
                 <span className="text-light-text-secondary dark:text-dark-text-secondary">Errors:</span>
                 <span className="font-medium text-red-600 dark:text-red-400">{result.errors}</span>
               </div>
+            )}
+            {result.balanceValidation && !result.balanceValidation.valid && (
+              <div className="mt-3 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/30 rounded-lg flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
+                <p className="text-amber-700 dark:text-amber-400 text-xs">
+                  Balance validation mismatch detected. Please review your transactions for accuracy.
+                </p>
+              </div>
+            )}
+            {result.sessionId && (
+              <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary mt-2">
+                Session: {result.sessionId}
+              </p>
             )}
           </div>
 
@@ -264,12 +293,12 @@ export default function TransactionUploadPage() {
                 >
                   Review Uncategorized
                 </button>
-                {result.duplicates > 0 && (
+                {(result.duplicates > 0 || (result.pendingReview ?? 0) > 0) && (
                   <button
                     onClick={() => router.push('/transactions/duplicates')}
                     className="flex-1 bg-light-surface dark:bg-dark-surface text-orange-600 dark:text-orange-400 border border-orange-300 dark:border-orange-800 px-4 py-2 rounded-lg hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors text-sm font-medium"
                   >
-                    Resolve Duplicates ({result.duplicates})
+                    Resolve Duplicates ({result.duplicates + (result.pendingReview ?? 0)})
                   </button>
                 )}
               </div>
@@ -280,26 +309,22 @@ export default function TransactionUploadPage() {
 
       <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-900/30 rounded-xl p-6 mt-6">
         <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-300 mb-3">
-          📋 How to prepare your bank statement
+          How to prepare your bank statement
         </h3>
         <ol className="list-decimal list-inside space-y-2 text-sm text-blue-800 dark:text-blue-400">
           <li>Download your bank statement in CSV, Excel, or PDF format</li>
           <li>For CSV/Excel: Make sure it includes Date, Description, Amount columns</li>
           <li>For PDF: Upload the statement as-is — AI will extract transactions automatically</li>
           <li>Select your bank from the dropdown above</li>
-          <li>Upload the file and we'll automatically categorize your transactions</li>
+          <li>Upload the file and we&apos;ll automatically categorize your transactions</li>
         </ol>
 
         <div className="mt-4 pt-4 border-t border-blue-200 dark:border-blue-900/50">
-          <p className="text-sm text-blue-800 dark:text-blue-400 font-medium mb-2">Supported formats:</p>
+          <p className="text-sm text-blue-800 dark:text-blue-400 font-medium mb-2">Supported banks:</p>
           <ul className="list-disc list-inside space-y-1 text-sm text-blue-700 dark:text-blue-500">
-            <li>PDF bank statements (AI-powered extraction)</li>
-            <li>GTBank CSV/Excel export</li>
-            <li>Zenith Bank CSV/Excel export</li>
-            <li>Access Bank CSV/Excel export</li>
-            <li>First Bank CSV/Excel export</li>
-            <li>UBA CSV/Excel export</li>
-            <li>Generic CSV with Date, Description, Amount columns</li>
+            {SUPPORTED_BANKS.map(bank => (
+              <li key={bank.code}>{bank.name}</li>
+            ))}
           </ul>
         </div>
       </div>

@@ -2,6 +2,13 @@ import { withRateLimit } from '@/lib/with-rate-limit';
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient as createClient } from '@/lib/supabase/server';
 import { generatePITForm, generateCITForm, generateVATForm } from '@/lib/nrs-forms';
+import { z } from 'zod';
+
+const formGenerateSchema = z.object({
+  formType: z.enum(['PIT', 'CIT', 'VAT']),
+  taxYear: z.number().int().min(2000).max(2100),
+  formData: z.record(z.string(), z.any()),
+});
 
 async function handlePOST(request: NextRequest) {
   try {
@@ -14,36 +21,29 @@ async function handlePOST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { formType, taxYear, formData } = body;
+    const parsed = formGenerateSchema.safeParse(body);
 
-    // Validate required fields
-    if (!formType || !taxYear || !formData) {
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Missing required fields: formType, taxYear, formData' },
+        { error: 'Invalid input', details: parsed.error.flatten() },
         { status: 400 }
       );
     }
 
-    // Validate form type
-    if (!['PIT', 'CIT', 'VAT'].includes(formType)) {
-      return NextResponse.json(
-        { error: 'Invalid form type. Must be PIT, CIT, or VAT' },
-        { status: 400 }
-      );
-    }
+    const { formType, taxYear, formData } = parsed.data;
 
     // Generate PDF based on form type
     let pdf;
     try {
       switch (formType) {
         case 'PIT':
-          pdf = generatePITForm(formData);
+          pdf = generatePITForm(formData as any);
           break;
         case 'CIT':
-          pdf = generateCITForm(formData);
+          pdf = generateCITForm(formData as any);
           break;
         case 'VAT':
-          pdf = generateVATForm(formData);
+          pdf = generateVATForm(formData as any);
           break;
         default:
           throw new Error('Invalid form type');

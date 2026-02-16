@@ -59,6 +59,7 @@ export default function TransactionsPage() {
   });
   const [exporting, setExporting] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchTransactions = useCallback(async () => {
     setLoading(true);
@@ -78,9 +79,13 @@ export default function TransactionsPage() {
       if (response.ok) {
         setTransactions(data.transactions);
         setPagination(data.pagination);
+        setError(null);
+      } else {
+        setError(data.error || 'Failed to load transactions');
       }
     } catch (error) {
       console.error('Error fetching transactions:', error);
+      setError('Failed to load transactions. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -122,10 +127,15 @@ export default function TransactionsPage() {
 
       if (response.ok) {
         setSelectedIds(new Set());
+        setError(null);
         fetchTransactions();
+      } else {
+        const data = await response.json().catch(() => ({}));
+        setError(data.error || 'Failed to delete transactions');
       }
     } catch (error) {
       console.error('Error deleting transactions:', error);
+      setError('Failed to delete transactions. Please try again.');
     }
   };
 
@@ -167,9 +177,13 @@ export default function TransactionsPage() {
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
+      } else {
+        const data = await response.json().catch(() => ({}));
+        setError(data.error || 'Export failed');
       }
     } catch (error) {
       console.error('Export error:', error);
+      setError('Export failed. Please try again.');
     } finally {
       setExporting(false);
     }
@@ -177,6 +191,12 @@ export default function TransactionsPage() {
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 rounded-lg flex justify-between items-center">
+          <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
+          <button onClick={() => setError(null)} className="text-red-400 hover:text-red-600 dark:hover:text-red-300 text-lg leading-none">&times;</button>
+        </div>
+      )}
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">

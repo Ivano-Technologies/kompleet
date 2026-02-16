@@ -2,35 +2,40 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withRateLimit } from '@/lib/with-rate-limit';
 import { llmBatchCategorize } from '@/lib/services/llm-categorization-service';
 import { categorizeTransaction, type Category } from '@/lib/services/categorization-service';
-import { createClient } from '@supabase/supabase-js';
+import { createServerClient } from '@/lib/supabase/server';
+import { z } from 'zod';
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+const batchCategorizeSchema = z.object({
+  transactions: z.array(z.object({
+    merchant: z.string().min(1),
+    amount: z.number(),
+    type: z.enum(['debit', 'credit']).optional(),
+    channel: z.string().optional(),
+    timestamp: z.string().optional(),
+  })).min(1).max(100),
+});
 
 async function handlePOST(request: NextRequest) {
   try {
-    const body = await request.json();
+    // Auth check
+    const supabase = await createServerClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-    if (!body.transactions || !Array.isArray(body.transactions)) {
+    const body = await request.json();
+    const parsed = batchCategorizeSchema.safeParse(body);
+
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Missing or invalid transactions array' },
+        { error: 'Invalid input', details: parsed.error.flatten() },
         { status: 400 }
       );
     }
 
-    for (const txn of body.transactions) {
-      if (!txn.merchant || txn.amount === undefined) {
-        return NextResponse.json(
-          { error: 'Each transaction must have merchant and amount' },
-          { status: 400 }
-        );
-      }
-    }
-
-    // Fetch categories for context
-    const { data: categories } = await supabaseAdmin
+    // Fetch categories for context (using per-request client with RLS)
+    const { data: categories } = await supabase
       .from('categories')
       .select('id, name, category_type, tax_treatment, keywords');
 
@@ -41,7 +46,7 @@ async function handlePOST(request: NextRequest) {
     }));
 
     // Step 1: Rules-based categorization for all transactions
-    const rulesResults = body.transactions.map((txn: { merchant: string }) =>
+    const rulesResults = parsed.data.transactions.map((txn: { merchant: string }) =>
       categorizeTransaction(txn.merchant, (categories || []) as Category[])
     );
 
@@ -57,11 +62,11 @@ async function handlePOST(request: NextRequest) {
 
     if (needsLLM.length > 0 && apiKey) {
       const llmInputs = needsLLM.map(i => ({
-        merchant: body.transactions[i].merchant,
-        amount: body.transactions[i].amount,
-        type: body.transactions[i].type,
-        channel: body.transactions[i].channel,
-        timestamp: body.transactions[i].timestamp,
+        merchant: parsed.data.transactions[i].merchant,
+        amount: parsed.data.transactions[i].amount,
+        type: parsed.data.transactions[i].type,
+        channel: parsed.data.transactions[i].channel,
+        timestamp: parsed.data.transactions[i].timestamp,
       }));
 
       const batchResults = await llmBatchCategorize(llmInputs, categoryOptions);
@@ -71,7 +76,7 @@ async function handlePOST(request: NextRequest) {
     }
 
     // Step 4: Merge results
-    const results = body.transactions.map((_: unknown, i: number) => {
+    const results = parsed.data.transactions.map((_: unknown, i: number) => {
       if (llmResults[i]) {
         return {
           category: llmResults[i].category,
@@ -89,8 +94,8 @@ async function handlePOST(request: NextRequest) {
     });
 
     console.log('[Batch Categorization]', {
-      total: body.transactions.length,
-      rules_handled: body.transactions.length - needsLLM.length,
+      total: parsed.data.transactions.length,
+      rules_handled: parsed.data.transactions.length - needsLLM.length,
       llm_handled: Object.keys(llmResults).length,
       llm_skipped: needsLLM.length - Object.keys(llmResults).length,
     });

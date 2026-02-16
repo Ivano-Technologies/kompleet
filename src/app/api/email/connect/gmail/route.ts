@@ -2,9 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAuthorizationUrl } from '@/lib/email/gmail';
 import { randomBytes } from 'crypto';
 import { withRateLimit } from '@/lib/with-rate-limit';
+import { createServerClient } from '@/lib/supabase/server';
 
 async function handlePOST(request: NextRequest) {
   try {
+    // Auth check
+    const supabase = await createServerClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     // Generate state token for CSRF protection
     const state = randomBytes(32).toString('hex');
     

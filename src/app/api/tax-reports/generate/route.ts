@@ -2,6 +2,26 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient as createClient } from '@/lib/supabase/server';
 import { TaxComputationService } from '@/lib/services/tax-computation-service';
 import { withRateLimit } from '@/lib/with-rate-limit';
+import { z } from 'zod';
+
+const taxReportSchema = z.object({
+  reportType: z.string().min(1),
+  taxYear: z.number().int().min(2000).max(2100),
+  periodStart: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (YYYY-MM-DD)'),
+  periodEnd: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (YYYY-MM-DD)'),
+  businessType: z.string().optional(),
+  turnover: z.number().min(0).optional(),
+  totalAssets: z.number().min(0).optional(),
+  isProfessionalService: z.boolean().optional(),
+  totalRevenue: z.number().min(0).optional(),
+  totalExpenses: z.number().min(0).optional(),
+  capitalGains: z.number().min(0).optional(),
+  capitalLosses: z.number().min(0).optional(),
+  nonDeductibleExpenses: z.number().min(0).optional(),
+  annualIncome: z.number().min(0).optional(),
+  rentPaid: z.number().min(0).optional(),
+  ownerOccupierInterest: z.number().min(0).optional(),
+});
 
 export const runtime = 'nodejs';
 
@@ -16,6 +36,15 @@ async function handlePOST(request: NextRequest) {
     }
 
     const body = await request.json();
+    const parsed = taxReportSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Invalid input', details: parsed.error.flatten() },
+        { status: 400 }
+      );
+    }
+
     const {
       reportType,
       taxYear,
@@ -33,15 +62,7 @@ async function handlePOST(request: NextRequest) {
       annualIncome,
       rentPaid,
       ownerOccupierInterest,
-    } = body;
-
-    // Validate required fields
-    if (!reportType || !taxYear || !periodStart || !periodEnd) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      );
-    }
+    } = parsed.data;
 
     // Prepare computation input
     const computationInput = {
@@ -60,7 +81,7 @@ async function handlePOST(request: NextRequest) {
     };
 
     // Compute tax
-    const computation = TaxComputationService.computeTax(computationInput);
+    const computation = TaxComputationService.computeTax(computationInput as any);
 
     // Save tax report to database
     const { data: taxReport, error: saveError } = await supabase

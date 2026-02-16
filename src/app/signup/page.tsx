@@ -73,12 +73,8 @@ export default function SignUpPage() {
 
       if (data.user) {
         setSuccess(true);
-        if (data.session) {
-          setTimeout(() => {
-            router.push('/dashboard');
-            router.refresh();
-          }, 2000);
-        }
+        // Always show "check your email" — do not auto-redirect to dashboard.
+        // Users must verify their email before accessing the app.
       }
     } catch {
       setError('An unexpected error occurred. Please try again.');

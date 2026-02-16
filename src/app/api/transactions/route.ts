@@ -1,44 +1,52 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient as createClient } from '@/lib/supabase/server';
 import { withRateLimit } from '@/lib/with-rate-limit';
+import { withAudit } from '@/lib/with-audit';
+import { z } from 'zod';
 
 export const runtime = 'nodejs';
 
-interface TransactionFilters {
-  startDate?: string;
-  endDate?: string;
-  categoryId?: string;
-  type?: 'debit' | 'credit';
-  search?: string;
-  page?: number;
-  limit?: number;
-}
+const getQuerySchema = z.object({
+  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (YYYY-MM-DD)').optional(),
+  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (YYYY-MM-DD)').optional(),
+  categoryId: z.string().uuid('Invalid category ID').optional(),
+  type: z.enum(['debit', 'credit']).optional(),
+  search: z.string().max(200).optional(),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(50),
+});
+
+const deleteBodySchema = z.object({
+  ids: z.array(z.string().uuid('Invalid transaction ID')).min(1).max(500),
+});
 
 async function handleGET(request: NextRequest): Promise<NextResponse> {
   try {
     const supabase = await createClient();
-    
+
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
+
     if (authError || !user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
-    
-    // Parse query parameters
+
+    // Parse and validate query parameters
     const searchParams = request.nextUrl.searchParams;
-    const filters: TransactionFilters = {
-      startDate: searchParams.get('startDate') || undefined,
-      endDate: searchParams.get('endDate') || undefined,
-      categoryId: searchParams.get('categoryId') || undefined,
-      type: (searchParams.get('type') as 'debit' | 'credit') || undefined,
-      search: searchParams.get('search') || undefined,
-      page: parseInt(searchParams.get('page') || '1'),
-      limit: parseInt(searchParams.get('limit') || '50'),
-    };
+    const raw = Object.fromEntries(searchParams.entries());
+    const parsed = getQuerySchema.safeParse(raw);
+
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Invalid query parameters', details: parsed.error.flatten() },
+        { status: 400 }
+      );
+    }
+
+    const filters = parsed.data;
     
     // Build query
     let query = supabase
@@ -71,8 +79,8 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
     }
     
     // Apply pagination
-    const from = (filters.page! - 1) * filters.limit!;
-    const to = from + filters.limit! - 1;
+    const from = (filters.page - 1) * filters.limit;
+    const to = from + filters.limit - 1;
     
     query = query
       .order('transaction_date', { ascending: false })
@@ -95,7 +103,7 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
         page: filters.page,
         limit: filters.limit,
         total: count || 0,
-        totalPages: Math.ceil((count || 0) / filters.limit!),
+        totalPages: Math.ceil((count || 0) / filters.limit),
       },
     });
     
@@ -122,14 +130,17 @@ async function handleDELETE(request: NextRequest): Promise<NextResponse> {
       );
     }
     
-    const { ids } = await request.json();
-    
-    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+    const body = await request.json();
+    const parsed = deleteBodySchema.safeParse(body);
+
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'No transaction IDs provided' },
+        { error: 'Invalid request', details: parsed.error.flatten() },
         { status: 400 }
       );
     }
+
+    const { ids } = parsed.data;
     
     // Delete transactions (RLS ensures user can only delete their own)
     const { error } = await supabase
@@ -161,4 +172,4 @@ async function handleDELETE(request: NextRequest): Promise<NextResponse> {
 }
 
 export const GET = withRateLimit(handleGET);
-export const DELETE = withRateLimit(handleDELETE);
+export const DELETE = withRateLimit(withAudit(handleDELETE, { action: 'delete', resourceType: 'transactions' }));

@@ -7,10 +7,10 @@ import { createServerClient as createClient } from '@/lib/supabase/server';
 // CSV Export
 // =====================================================
 
-export async function exportTransactionsCSV(userId: string, taxYear?: number) {
+// Shared data fetcher — used by individual exports and bulk ZIP
+async function fetchTransactions(userId: string, taxYear?: number) {
   const supabase = await createClient();
 
-  // Build query
   let query = supabase
     .from('transactions')
     .select('*')
@@ -26,6 +26,12 @@ export async function exportTransactionsCSV(userId: string, taxYear?: number) {
   if (error) {
     throw new Error(`Failed to fetch transactions: ${error.message}`);
   }
+
+  return transactions || [];
+}
+
+export async function exportTransactionsCSV(userId: string, taxYear?: number, preloadedData?: any[]) {
+  const transactions = preloadedData ?? await fetchTransactions(userId, taxYear);
 
   // Generate CSV
   const headers = ['Date', 'Type', 'Category', 'Description', 'Amount', 'Tax Year'];
@@ -50,25 +56,8 @@ export async function exportTransactionsCSV(userId: string, taxYear?: number) {
 // Excel Export
 // =====================================================
 
-export async function exportTransactionsExcel(userId: string, taxYear?: number) {
-  const supabase = await createClient();
-
-  // Build query
-  let query = supabase
-    .from('transactions')
-    .select('*')
-    .eq('user_id', userId)
-    .order('date', { ascending: false });
-
-  if (taxYear) {
-    query = query.eq('tax_year', taxYear);
-  }
-
-  const { data: transactions, error } = await query;
-
-  if (error) {
-    throw new Error(`Failed to fetch transactions: ${error.message}`);
-  }
+export async function exportTransactionsExcel(userId: string, taxYear?: number, preloadedData?: any[]) {
+  const transactions = preloadedData ?? await fetchTransactions(userId, taxYear);
 
   // Create workbook
   const workbook = new ExcelJS.Workbook();
@@ -126,19 +115,8 @@ export async function exportTransactionsExcel(userId: string, taxYear?: number) 
 // Word Document Export
 // =====================================================
 
-export async function exportFinancialStatementWord(userId: string, taxYear: number, statementType: 'balance_sheet' | 'pnl' | 'tax_summary') {
-  const supabase = await createClient();
-
-  // Fetch transactions for the year
-  const { data: transactions, error } = await supabase
-    .from('transactions')
-    .select('*')
-    .eq('user_id', userId)
-    .eq('tax_year', taxYear);
-
-  if (error) {
-    throw new Error(`Failed to fetch transactions: ${error.message}`);
-  }
+export async function exportFinancialStatementWord(userId: string, taxYear: number, statementType: 'balance_sheet' | 'pnl' | 'tax_summary', preloadedData?: any[]) {
+  const transactions = preloadedData ?? await fetchTransactions(userId, taxYear);
 
   // Calculate totals
   const income = transactions?.filter(t => t.type === 'income').reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
@@ -362,6 +340,9 @@ export async function exportFinancialStatementWord(userId: string, taxYear: numb
 // =====================================================
 
 export async function createBulkExportZIP(userId: string, taxYear?: number): Promise<Buffer> {
+  // Fetch transactions ONCE — eliminates N+1 query (was 3-5 separate DB calls)
+  const transactions = await fetchTransactions(userId, taxYear);
+
   return new Promise(async (resolve, reject) => {
     try {
       const archive = archiver('zip', { zlib: { level: 9 } });
@@ -371,23 +352,23 @@ export async function createBulkExportZIP(userId: string, taxYear?: number): Pro
       archive.on('end', () => resolve(Buffer.concat(chunks)));
       archive.on('error', (err) => reject(err));
 
-      // Add transactions CSV
-      const csvBuffer = await exportTransactionsCSV(userId, taxYear);
+      // Add transactions CSV (using preloaded data)
+      const csvBuffer = await exportTransactionsCSV(userId, taxYear, transactions);
       archive.append(csvBuffer, { name: 'transactions.csv' });
 
-      // Add transactions Excel
-      const excelBuffer = await exportTransactionsExcel(userId, taxYear);
+      // Add transactions Excel (using preloaded data)
+      const excelBuffer = await exportTransactionsExcel(userId, taxYear, transactions);
       archive.append(excelBuffer, { name: 'transactions.xlsx' });
 
-      // Add financial statements (Word)
+      // Add financial statements (Word) — using preloaded data
       if (taxYear) {
-        const balanceSheetBuffer = await exportFinancialStatementWord(userId, taxYear, 'balance_sheet');
+        const balanceSheetBuffer = await exportFinancialStatementWord(userId, taxYear, 'balance_sheet', transactions);
         archive.append(balanceSheetBuffer, { name: `balance_sheet_${taxYear}.docx` });
 
-        const pnlBuffer = await exportFinancialStatementWord(userId, taxYear, 'pnl');
+        const pnlBuffer = await exportFinancialStatementWord(userId, taxYear, 'pnl', transactions);
         archive.append(pnlBuffer, { name: `profit_loss_${taxYear}.docx` });
 
-        const taxSummaryBuffer = await exportFinancialStatementWord(userId, taxYear, 'tax_summary');
+        const taxSummaryBuffer = await exportFinancialStatementWord(userId, taxYear, 'tax_summary', transactions);
         archive.append(taxSummaryBuffer, { name: `tax_summary_${taxYear}.docx` });
       }
 

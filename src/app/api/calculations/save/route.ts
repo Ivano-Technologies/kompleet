@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
 import { withRateLimit } from '@/lib/with-rate-limit';
+import { saveCalculationSchema } from '@/lib/schemas/calculations';
 
 async function handlePOST(request: NextRequest) {
   try {
@@ -25,63 +26,19 @@ async function handlePOST(request: NextRequest) {
       );
     }
 
-    // Parse request body
+    // Parse and validate request body
     const body = await request.json();
+    const parsed = saveCalculationSchema.safeParse(body);
 
-    // Validate required fields
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: 'Validation error', details: parsed.error.flatten() },
+        { status: 400 }
+      );
+    }
+
     const { tax_type, tax_year, input_data, gross_amount, taxable_amount, tax_due, breakdown } =
-      body;
-
-    if (
-      !tax_type ||
-      !tax_year ||
-      !input_data ||
-      gross_amount === undefined ||
-      taxable_amount === undefined ||
-      tax_due === undefined ||
-      !breakdown
-    ) {
-      return NextResponse.json(
-        {
-          error: 'Validation error',
-          message: 'Missing required fields: tax_type, tax_year, input_data, amounts, breakdown',
-        },
-        { status: 400 }
-      );
-    }
-
-    // Validate tax_type
-    const validTaxTypes = ['pit', 'cit', 'vat', 'wht'];
-    if (!validTaxTypes.includes(tax_type)) {
-      return NextResponse.json(
-        {
-          error: 'Validation error',
-          message: `Invalid tax_type. Must be one of: ${validTaxTypes.join(', ')}`,
-        },
-        { status: 400 }
-      );
-    }
-
-    // Validate tax_year
-    if (tax_year < 2000 || tax_year > 2100) {
-      return NextResponse.json(
-        { error: 'Validation error', message: 'tax_year must be between 2000 and 2100' },
-        { status: 400 }
-      );
-    }
-
-    // Validate amounts are non-negative
-    if (
-      gross_amount < 0 ||
-      taxable_amount < 0 ||
-      tax_due < 0 ||
-      (body.deductions !== undefined && body.deductions < 0)
-    ) {
-      return NextResponse.json(
-        { error: 'Validation error', message: 'Amounts must be non-negative' },
-        { status: 400 }
-      );
-    }
+      parsed.data;
 
     // Insert calculation
     const { data: calculation, error: insertError } = await supabase
@@ -90,15 +47,15 @@ async function handlePOST(request: NextRequest) {
         user_id: user.id,
         tax_type,
         tax_year,
-        calculation_date: body.calculation_date || new Date().toISOString().split('T')[0],
+        calculation_date: parsed.data.calculation_date || new Date().toISOString().split('T')[0],
         input_data,
         gross_amount,
-        deductions: body.deductions || 0,
+        deductions: parsed.data.deductions ?? 0,
         taxable_amount,
         tax_due,
-        effective_rate: body.effective_rate || null,
+        effective_rate: parsed.data.effective_rate ?? null,
         breakdown,
-        is_final: body.is_final || false,
+        is_final: parsed.data.is_final ?? false,
       })
       .select()
       .single();

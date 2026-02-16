@@ -1,4 +1,5 @@
 import { withRateLimit } from '@/lib/with-rate-limit';
+import { withAudit } from '@/lib/with-audit';
 /**
  * Transaction Upload API v2 (Sprint 5)
  * POST /api/transactions/upload-v2
@@ -235,5 +236,5 @@ async function handlePOST(request: NextRequest) {
   }
 }
 
-// Apply rate limiting
-export const POST = withRateLimit(handlePOST, { limit: 20 });
+// Apply rate limiting + audit logging
+export const POST = withRateLimit(withAudit(handlePOST, { action: 'import', resourceType: 'transactions' }), { limit: 20 });

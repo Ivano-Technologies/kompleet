@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient as createClient } from '@/lib/supabase/server';
 import { withRateLimit } from '@/lib/with-rate-limit';
+import { z } from 'zod';
+
+const preferencesSchema = z.object({
+  enabled: z.boolean(),
+  email: z.boolean(),
+  inApp: z.boolean(),
+});
 
 async function handleGET(request: NextRequest) {
   try {
@@ -61,15 +68,16 @@ async function handlePOST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { enabled, email, inApp } = body;
+    const parsed = preferencesSchema.safeParse(body);
 
-    // Validate preferences
-    if (typeof enabled !== 'boolean' || typeof email !== 'boolean' || typeof inApp !== 'boolean') {
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Invalid preferences format' },
+        { error: 'Invalid input', details: parsed.error.flatten() },
         { status: 400 }
       );
     }
+
+    const { enabled, email, inApp } = parsed.data;
 
     // Update user's notification preferences
     const { error: updateError } = await supabase
