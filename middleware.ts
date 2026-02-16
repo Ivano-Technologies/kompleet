@@ -1,75 +1,92 @@
 /**
- * Next.js Middleware - CORS Configuration for Mobile App
- * 
- * This middleware adds CORS headers to all API routes to allow
- * the KOMPLEET mobile app to make cross-origin requests.
- * 
- * Security considerations:
- * - Only allows specific origins (mobile app and localhost for development)
- * - Includes credentials for authentication
- * - Allows standard HTTP methods
- * - Allows Authorization header for JWT tokens
+ * Next.js Middleware
+ *
+ * 1. Refreshes Supabase auth session on every request (keeps cookies fresh)
+ * 2. Adds CORS headers for mobile app cross-origin requests
  */
 
+import { createServerClient } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export function middleware(request: NextRequest) {
-  // Get the origin from the request
-  const origin = request.headers.get('origin') || '';
-
-  // Define allowed origins
+function addCorsHeaders(response: NextResponse, origin: string) {
   const allowedOrigins = [
-    'http://localhost:8081', // Expo development server
-    'exp://localhost:8081', // Expo Go app
-    process.env.NEXT_PUBLIC_MOBILE_APP_URL, // Production mobile app URL (if needed)
-  ].filter(Boolean); // Remove undefined values
+    'http://localhost:8081',
+    'exp://localhost:8081',
+    process.env.NEXT_PUBLIC_MOBILE_APP_URL,
+  ].filter(Boolean);
 
-  // Check if origin is allowed (for mobile app, allow all origins in development)
-  const isAllowedOrigin = 
-    allowedOrigins.includes(origin) || 
-    origin.startsWith('exp://') || // Expo Go
-    origin.startsWith('http://localhost') || // Local development
-    origin.startsWith('http://192.168.') || // Local network
-    origin.startsWith('http://10.0.'); // Local network
+  const isAllowedOrigin =
+    allowedOrigins.includes(origin) ||
+    origin.startsWith('exp://') ||
+    origin.startsWith('http://localhost') ||
+    origin.startsWith('http://192.168.') ||
+    origin.startsWith('http://10.0.');
 
-  // Handle preflight OPTIONS request
-  if (request.method === 'OPTIONS') {
-    const response = new NextResponse(null, { status: 204 });
-    
-    if (isAllowedOrigin) {
-      response.headers.set('Access-Control-Allow-Origin', origin);
-      response.headers.set('Access-Control-Allow-Credentials', 'true');
-    }
-    
-    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-    response.headers.set('Access-Control-Max-Age', '86400'); // 24 hours
-    
-    return response;
-  }
-
-  // Handle actual request
-  const response = NextResponse.next();
-
-  // Add CORS headers to response
   if (isAllowedOrigin) {
     response.headers.set('Access-Control-Allow-Origin', origin);
     response.headers.set('Access-Control-Allow-Credentials', 'true');
   }
-  
+
   response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
   response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
 
   return response;
 }
 
-// Configure which routes this middleware applies to
+export async function middleware(request: NextRequest) {
+  const origin = request.headers.get('origin') || '';
+
+  // Handle preflight OPTIONS — no need to refresh session
+  if (request.method === 'OPTIONS') {
+    const response = new NextResponse(null, { status: 204 });
+    addCorsHeaders(response, origin);
+    response.headers.set('Access-Control-Max-Age', '86400');
+    return response;
+  }
+
+  // Create a response that we'll pass through the Supabase session refresh
+  let supabaseResponse = NextResponse.next({ request });
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          // Set cookies on the request (for downstream server components)
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value)
+          );
+          // Recreate the response with the updated request
+          supabaseResponse = NextResponse.next({ request });
+          // Set cookies on the response (for the browser)
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options)
+          );
+        },
+      },
+    }
+  );
+
+  // Refresh the session — this reads the auth cookie, refreshes if expired,
+  // and writes updated tokens back via setAll above.
+  // IMPORTANT: Do NOT use getSession() here — getUser() validates the token
+  // server-side and is the secure way to refresh.
+  await supabase.auth.getUser();
+
+  // Add CORS headers
+  addCorsHeaders(supabaseResponse, origin);
+
+  return supabaseResponse;
+}
+
 export const config = {
   matcher: [
-    // Apply to all API routes
-    '/api/:path*',
-    // Exclude static files and internal Next.js routes
-    '/((?!_next/static|_next/image|favicon.ico).*)',
+    // Match all routes except static assets
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };

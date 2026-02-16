@@ -97,7 +97,7 @@ export async function GET(request: NextRequest) {
     }
     
     // Standard OAuth/email confirmation flow
-    const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+    const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code!);
 
     if (exchangeError) {
       console.error('Auth callback exchange error:', exchangeError.message);

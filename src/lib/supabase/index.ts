@@ -27,7 +27,6 @@
 
 export {
   createSupabaseClient,
-  createSupabaseClientWithOptions,
   type TypedSupabaseClient,
   type SupabaseClient,
   type Session,
