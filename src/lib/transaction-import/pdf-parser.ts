@@ -3,7 +3,7 @@
  * Extracts transactions from PDF bank statements using pdf-parse + LLM
  */
 
-import { PDFParse } from 'pdf-parse';
+import PDFParse from 'pdf-parse';
 import OpenAI from 'openai';
 import { ParsedTransaction, ParseResult, ParseError } from './csv-parser';
 
