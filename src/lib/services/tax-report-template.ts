@@ -270,7 +270,7 @@ export function generateProfessionalTaxReport(data: TaxReportData): jsPDF {
   yPosition = addTaxpayerInfo(doc, yPosition, data.taxpayerName, data.tin, data.generatedDate);
 
   // Add calculation sections
-  yPosition = addCalculationSection(doc, yPosition, data.sections);
+  addCalculationSection(doc, yPosition, data.sections);
 
   // Add footer
   addReportFooter(doc, data.disclaimer);

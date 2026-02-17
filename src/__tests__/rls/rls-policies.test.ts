@@ -4,7 +4,7 @@
  * Tests multi-user data isolation and unauthorized access prevention
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 
 /**
  * Mock Supabase client for RLS testing
