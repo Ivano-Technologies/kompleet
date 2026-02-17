@@ -1,6 +1,45 @@
+/**
+ * LLM-based Transaction Categorization Service
+ * Uses OpenAI GPT-4o-mini for intelligent categorization
+ * HIGH-002: Enhanced with retry logic and exponential backoff
+ */
+
 import OpenAI from 'openai';
 
 let _openai: OpenAI | null = null;
+
+/**
+ * HIGH-002: Retry logic with exponential backoff for API calls
+ */
+async function callWithRetry<T>(
+  fn: () => Promise<T>,
+  maxRetries: number = 3,
+  baseDelay: number = 1000
+): Promise<T> {
+  let lastError: Error | null = null;
+  
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error as Error;
+      
+      // Don't retry on client errors (4xx)
+      if (error instanceof OpenAI.APIError && error.status && error.status < 500) {
+        throw error;
+      }
+      
+      // Calculate delay with exponential backoff
+      const delay = baseDelay * Math.pow(2, attempt);
+      console.log(`Attempt ${attempt + 1} failed, retrying in ${delay}ms...`);
+      
+      // Wait before retrying
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+  
+  throw lastError || new Error('Max retries exceeded');
+}
 
 function getOpenAI(): OpenAI {
   if (!_openai) {
@@ -39,6 +78,7 @@ interface CategoryOption {
 
 /**
  * Categorize a single transaction using OpenAI
+ * HIGH-002: Enhanced with retry logic
  */
 export async function llmCategorize(
   input: LLMCategorizationInput,
@@ -50,7 +90,8 @@ export async function llmCategorize(
 
   const startTime = Date.now();
 
-  const completion = await getOpenAI().chat.completions.create({
+  // HIGH-002: Use retry logic for LLM calls
+  const completion = await callWithRetry(() => getOpenAI().chat.completions.create({
     model: 'gpt-4o-mini',
     temperature: 0.1,
     max_tokens: 200,
@@ -80,7 +121,7 @@ Respond with JSON: {"category": "exact category name", "confidence": number, "re
       },
     ],
     response_format: { type: 'json_object' },
-  });
+  }));
 
   const latencyMs = Date.now() - startTime;
   const content = completion.choices[0]?.message?.content || '{}';
@@ -96,6 +137,7 @@ Respond with JSON: {"category": "exact category name", "confidence": number, "re
 
 /**
  * Categorize multiple transactions in a single LLM call (batch)
+ * HIGH-002: Enhanced with retry logic
  */
 export async function llmBatchCategorize(
   transactions: LLMCategorizationInput[],
@@ -111,7 +153,8 @@ export async function llmBatchCategorize(
 
   const startTime = Date.now();
 
-  const completion = await getOpenAI().chat.completions.create({
+  // HIGH-002: Use retry logic for batch LLM calls
+  const completion = await callWithRetry(() => getOpenAI().chat.completions.create({
     model: 'gpt-4o-mini',
     temperature: 0.1,
     max_tokens: transactions.length * 100,
@@ -138,7 +181,7 @@ Respond with JSON: {"results": [{"index": 1, "category": "name", "confidence": n
       },
     ],
     response_format: { type: 'json_object' },
-  });
+  }));
 
   const latencyMs = Date.now() - startTime;
   const content = completion.choices[0]?.message?.content || '{"results":[]}';
