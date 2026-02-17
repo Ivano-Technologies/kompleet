@@ -5,7 +5,7 @@
  */
 
 import { llmCategorize, LLMCategorizationInput, LLMCategorizationResult } from './llm-categorization-service';
-import { categorizationService } from './categorization-service';
+import { categorizeTransaction, Category as RuleCategory } from './categorization-service';
 
 export interface EnsembleCategorizationInput {
   merchant: string;
@@ -64,19 +64,22 @@ async function ruleCategorize(
   categories: CategoryOption[]
 ): Promise<{ category: string; confidence: number; reasoning: string } | null> {
   try {
-    // Use existing rule-based categorization service
-    const result = await categorizationService.categorizeTransaction({
-      description: input.merchant,
-      amount: input.amount,
-      type: input.type || 'debit',
-      channel: input.channel,
-      timestamp: input.timestamp
-    });
+    // Convert CategoryOption to RuleCategory format
+    const ruleCategories: RuleCategory[] = categories.map(c => ({
+      id: c.name.toLowerCase().replace(/\s+/g, '_'),
+      name: c.name,
+      category_type: c.type as 'income' | 'expense' | 'asset' | 'liability',
+      tax_treatment: c.tax_treatment as 'deductible' | 'non_deductible' | 'capital_allowance' | 'exempt',
+      keywords: [] // Keywords would need to be provided or configured
+    }));
 
-    if (result && result.category && result.category !== 'Uncategorized') {
+    // Use existing rule-based categorization service
+    const result = categorizeTransaction(input.merchant, ruleCategories);
+
+    if (result && result.categoryName && result.categoryName !== 'Uncategorized') {
       return {
-        category: result.category,
-        confidence: result.confidence || 60, // Rule-based typically has medium confidence
+        category: result.categoryName,
+        confidence: result.confidenceScore || 60,
         reasoning: `Matched by rule-based system using keywords and patterns`
       };
     }
