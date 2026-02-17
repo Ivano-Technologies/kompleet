@@ -1,6 +1,7 @@
 /**
  * Transaction Normalizer
  * Standardizes parsed transactions for database storage
+ * MED-001: Enhanced to preserve raw merchant data and extracted metadata
  */
 
 import { ParsedTransaction } from './csv-parser';
@@ -18,52 +19,101 @@ export interface NormalizedTransaction {
 }
 
 /**
+ * MED-001: Enhanced merchant normalization with metadata preservation
+ */
+interface MerchantNormalizationResult {
+  normalized: string;
+  metadata: {
+    rawMerchant: string;
+    removedPrefixes: string[];
+    extractedReferences: string[];
+    extractedDates: string[];
+    extractedTimes: string[];
+  };
+}
+
+/**
  * Normalize a single transaction
+ * MED-001: Enhanced to preserve raw merchant and extracted metadata
  */
 export function normalizeTransaction(
   transaction: ParsedTransaction,
   bankCode: string
 ): NormalizedTransaction {
+  const merchantResult = normalizeMerchantWithMetadata(transaction.merchant);
+
   return {
     date: transaction.date,
-    merchant: normalizeMerchant(transaction.merchant),
+    merchant: merchantResult.normalized,
     amount: Math.abs(transaction.amount),
     type: transaction.type,
     balance: transaction.balance,
     reference: transaction.reference,
     metadata: {
       bankCode,
-      rawMerchant: transaction.merchant,
+      ...merchantResult.metadata,
       rawData: transaction.rawData,
     },
   };
 }
 
 /**
- * Normalize merchant name
+ * MED-001: Normalize merchant name and preserve extracted metadata
  * - Remove extra whitespace
  * - Standardize common patterns
- * - Extract meaningful merchant name from transaction details
+ * - Extract and preserve prefixes, references, dates, times
  */
-function normalizeMerchant(merchant: string): string {
-  if (!merchant) return 'Unknown';
+function normalizeMerchantWithMetadata(merchant: string): MerchantNormalizationResult {
+  if (!merchant) {
+    return {
+      normalized: 'Unknown',
+      metadata: {
+        rawMerchant: '',
+        removedPrefixes: [],
+        extractedReferences: [],
+        extractedDates: [],
+        extractedTimes: []
+      }
+    };
+  }
 
   let normalized = merchant.trim();
+  const rawMerchant = normalized;
+  const removedPrefixes: string[] = [];
+  const extractedReferences: string[] = [];
+  const extractedDates: string[] = [];
+  const extractedTimes: string[] = [];
 
   // Remove multiple spaces
   normalized = normalized.replace(/\s+/g, ' ');
 
-  // Remove common prefixes
-  normalized = normalized.replace(/^(POS|ATM|WEB|MOBILE|TRANSFER|PAYMENT|PURCHASE)\s*/i, '');
+  // Extract and remove common prefixes
+  const prefixes = ['POS', 'ATM', 'WEB', 'MOBILE', 'TRANSFER', 'PAYMENT', 'PURCHASE'];
+  prefixes.forEach(prefix => {
+    const regex = new RegExp(`^${prefix}\\s*`, 'i');
+    if (regex.test(normalized)) {
+      removedPrefixes.push(prefix);
+      normalized = normalized.replace(regex, '');
+    }
+  });
 
-  // Remove transaction reference patterns
-  normalized = normalized.replace(/\b[A-Z0-9]{10,}\b/g, '');
+  // Extract transaction reference patterns (10+ alphanumeric characters)
+  normalized = normalized.replace(/\b[A-Z0-9]{10,}\b/g, (match) => {
+    extractedReferences.push(match);
+    return '';
+  });
 
-  // Remove date patterns
-  normalized = normalized.replace(/\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}/g, '');
+  // Extract date patterns
+  normalized = normalized.replace(/\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}/g, (match) => {
+    extractedDates.push(match);
+    return '';
+  });
 
-  // Remove time patterns
-  normalized = normalized.replace(/\d{1,2}:\d{2}(:\d{2})?/g, '');
+  // Extract time patterns
+  normalized = normalized.replace(/\d{1,2}:\d{2}(:\d{2})?/g, (match) => {
+    extractedTimes.push(match);
+    return '';
+  });
 
   // Remove extra whitespace again
   normalized = normalized.replace(/\s+/g, ' ').trim();
@@ -75,7 +125,23 @@ function normalizeMerchant(merchant: string): string {
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
 
-  return normalized || 'Unknown';
+  return {
+    normalized: normalized || 'Unknown',
+    metadata: {
+      rawMerchant,
+      removedPrefixes,
+      extractedReferences,
+      extractedDates,
+      extractedTimes
+    }
+  };
+}
+
+/**
+ * Legacy function for backward compatibility
+ */
+function normalizeMerchant(merchant: string): string {
+  return normalizeMerchantWithMetadata(merchant).normalized;
 }
 
 /**
