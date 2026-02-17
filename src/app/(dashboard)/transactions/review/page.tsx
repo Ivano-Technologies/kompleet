@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
@@ -43,18 +43,7 @@ export default function TransactionReviewPage() {
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchUncategorizedTransactions();
-    fetchCategories();
-  }, []);
-
-  useEffect(() => {
-    if (transactions.length > 0 && categories.length > 0) {
-      generateSuggestions(transactions[currentIndex]);
-    }
-  }, [currentIndex, transactions, categories]);
-
-  const fetchUncategorizedTransactions = async () => {
+  const fetchUncategorizedTransactions = useCallback(async () => {
     try {
       const params = new URLSearchParams({ uncategorized: 'true', limit: '100' });
       if (sessionId) params.set('sessionId', sessionId);
@@ -76,9 +65,9 @@ export default function TransactionReviewPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [sessionId]);
 
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
       const response = await fetch('/api/categories');
       const data = await response.json();
@@ -88,7 +77,12 @@ export default function TransactionReviewPage() {
     } catch (error) {
       console.error('Error fetching categories:', error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchUncategorizedTransactions();
+    fetchCategories();
+  }, [fetchUncategorizedTransactions, fetchCategories]);
 
   const generateSuggestions = (transaction: Transaction) => {
     if (!transaction) return;

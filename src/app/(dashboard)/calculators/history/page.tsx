@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -37,11 +37,7 @@ export default function CalculationHistoryPage() {
   const [filter, setFilter] = useState<'all' | 'pit' | 'cit' | 'vat' | 'wht'>('all');
   const [yearFilter, setYearFilter] = useState<number | 'all'>('all');
 
-  useEffect(() => {
-    fetchCalculations();
-  }, [filter, yearFilter]);
-
-  const fetchCalculations = async () => {
+  const fetchCalculations = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -64,7 +60,11 @@ export default function CalculationHistoryPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter, yearFilter]);
+
+  useEffect(() => {
+    fetchCalculations();
+  }, [fetchCalculations]);
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this calculation?')) return;
