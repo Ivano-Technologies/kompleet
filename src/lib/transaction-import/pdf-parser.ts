@@ -1,10 +1,12 @@
 /**
  * PDF Bank Statement Parser
  * Extracts transactions from PDF bank statements using pdf-parse + LLM
+ * CRIT-005: Added OCR fallback for scanned/image-based PDFs
  */
 
 import { PDFParse } from 'pdf-parse';
 import OpenAI from 'openai';
+import { createWorker } from 'tesseract.js';
 import { ParsedTransaction, ParseResult, ParseError } from './csv-parser';
 
 let _openai: OpenAI | null = null;
@@ -24,7 +26,26 @@ function getOpenAI(): OpenAI {
 }
 
 /**
+ * Extract text using OCR for scanned/image-based PDFs
+ * CRIT-005: OCR fallback implementation
+ */
+async function extractTextWithOCR(buffer: Buffer): Promise<string> {
+  console.log('Attempting OCR extraction...');
+  try {
+    const worker = await createWorker('eng');
+    const { data: { text } } = await worker.recognize(buffer);
+    await worker.terminate();
+    console.log(`OCR extracted ${text.length} characters`);
+    return text;
+  } catch (error) {
+    console.error('OCR extraction failed:', error);
+    return '';
+  }
+}
+
+/**
  * Parse PDF bank statement — extracts text then uses LLM to structure transactions
+ * CRIT-005: Enhanced with OCR fallback for scanned PDFs
  */
 export async function parsePDF(
   fileBuffer: Buffer,
@@ -36,8 +57,14 @@ export async function parsePDF(
     // Step 1: Extract raw text from PDF
     const parser = new PDFParse({ data: fileBuffer });
     const textResult = await parser.getText();
-    const rawText = textResult.text;
+    let rawText = textResult.text;
     await parser.destroy();
+
+    // CRIT-005: If no text found or very little text, try OCR
+    if (!rawText || rawText.trim().length < 50) {
+      console.log('No text found in PDF, attempting OCR...');
+      rawText = await extractTextWithOCR(fileBuffer);
+    }
 
     if (!rawText || rawText.trim().length < 50) {
       return {
@@ -47,7 +74,7 @@ export async function parsePDF(
             rowNumber: 0,
             errorType: 'EMPTY_PDF',
             errorMessage:
-              'Could not extract text from PDF. The file may be image-based or password-protected.',
+              'Could not extract text from PDF. File may be corrupted, password-protected, or require advanced OCR.',
             rawData: {},
           },
         ],
@@ -137,6 +164,7 @@ export async function parsePDF(
 
 /**
  * Use LLM to extract transactions from PDF text chunk
+ * HIGH-002: Added retry logic with exponential backoff
  */
 async function extractTransactionsWithLLM(
   text: string,
@@ -153,14 +181,16 @@ async function extractTransactionsWithLLM(
       ? `This is chunk ${chunkIndex + 1} of ${totalChunks} from a multi-page statement.`
       : '';
 
-  const completion = await getOpenAI().chat.completions.create({
-    model: 'gpt-4o-mini',
-    temperature: 0,
-    max_tokens: 4000,
-    messages: [
-      {
-        role: 'system',
-        content: `You are a bank statement parser specializing in Nigerian bank statements. Extract ALL transactions from the provided text.
+  // HIGH-002: Use retry logic for LLM calls
+  const completion = await callWithRetry(() =>
+    getOpenAI().chat.completions.create({
+      model: 'gpt-4o-mini',
+      temperature: 0,
+      max_tokens: 4000,
+      messages: [
+        {
+          role: 'system',
+          content: `You are a bank statement parser specializing in Nigerian bank statements. Extract ALL transactions from the provided text.
 
 ${bankContext}
 ${chunkContext}
@@ -177,20 +207,21 @@ Rules:
 - If a value is missing, use 0 for amounts/balance and empty string for text fields
 
 Return ONLY valid JSON. No markdown, no code blocks.`,
-      },
-      {
-        role: 'user',
-        content: `Extract all transactions from this bank statement text:
+        },
+        {
+          role: 'user',
+          content: `Extract all transactions from this bank statement text:
 
 ---
 ${text}
 ---
 
 Return JSON: {"transactions": [{"date": "YYYY-MM-DD", "description": "merchant/narration", "amount": number, "type": "debit"|"credit", "balance": number, "reference": "ref or empty string"}]}`,
-      },
-    ],
-    response_format: { type: 'json_object' },
-  });
+        },
+      ],
+      response_format: { type: 'json_object' },
+    })
+  );
 
   const content = completion.choices[0]?.message?.content || '{"transactions":[]}';
   const parsed = JSON.parse(content);
@@ -225,6 +256,39 @@ Return JSON: {"transactions": [{"date": "YYYY-MM-DD", "description": "merchant/n
         rawData: { source: 'pdf', extractionIndex: i, original: t },
       })
     );
+}
+
+/**
+ * HIGH-002: Retry logic with exponential backoff for API calls
+ */
+async function callWithRetry<T>(
+  fn: () => Promise<T>,
+  maxRetries: number = 3,
+  baseDelay: number = 1000
+): Promise<T> {
+  let lastError: Error | null = null;
+  
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error as Error;
+      
+      // Don't retry on client errors (4xx)
+      if (error instanceof OpenAI.APIError && error.status && error.status < 500) {
+        throw error;
+      }
+      
+      // Calculate delay with exponential backoff
+      const delay = baseDelay * Math.pow(2, attempt);
+      console.log(`Attempt ${attempt + 1} failed, retrying in ${delay}ms...`);
+      
+      // Wait before retrying
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+  
+  throw lastError || new Error('Max retries exceeded');
 }
 
 /**
