@@ -5,7 +5,7 @@
  * Allows compliance team to view and manage tax rule versions
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import type { TaxRule } from '@/types/tax';
 
 export default function AdminRulesPage() {
@@ -14,11 +14,7 @@ export default function AdminRulesPage() {
   const [error, setError] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState<string>('all');
 
-  useEffect(() => {
-    fetchRules();
-  }, [selectedType]);
-
-  const fetchRules = async () => {
+  const fetchRules = useCallback(async () => {
     try {
       setLoading(true);
       const url =
@@ -39,7 +35,11 @@ export default function AdminRulesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedType]);
+
+  useEffect(() => {
+    fetchRules();
+  }, [fetchRules]);
 
   const getConfidenceBadge = (level: string) => {
     const colors = {
