@@ -5,7 +5,16 @@
  */
 
 // Define available roles
-export type Role = 'owner' | 'admin' | 'user' | 'viewer';
+export type Role = 'owner' | 'admin' | 'tax_consultant' | 'user' | 'viewer';
+
+// Human-readable role labels
+export const ROLE_LABELS: Record<Role, string> = {
+  owner: 'Owner',
+  admin: 'Admin',
+  tax_consultant: 'Tax Consultant',
+  user: 'User',
+  viewer: 'Viewer',
+};
 
 // Define granular permissions
 export type Permission =
@@ -68,6 +77,17 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     'admin:view_audit_logs',
     'settings:read',
     'settings:write',
+  ],
+
+  // Tax Consultant: Read access + reports/calculations, no data modification
+  tax_consultant: [
+    'calculators:read',
+    'calculators:write',
+    'transactions:read',
+    'reports:read',
+    'reports:generate',
+    'export:data',
+    'settings:read',
   ],
 
   // User: Standard user with full data access, no admin
