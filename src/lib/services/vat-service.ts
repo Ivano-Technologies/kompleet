@@ -41,7 +41,7 @@ export interface VATSummary {
   recoverableVAT: number;
   
   // Net VAT payable
-  netVATPay able: number;
+  netVATPayable: number;
   
   // Breakdown by category
   breakdown: VATBreakdownItem[];
