@@ -4,6 +4,8 @@
  */
 
 import Papa from 'papaparse';
+import * as chardet from 'chardet';
+import * as iconv from 'iconv-lite';
 import { BankConfig } from './bank-configs';
 
 export interface ParsedTransaction {
@@ -28,6 +30,43 @@ export interface ParseError {
   errorType: string;
   errorMessage: string;
   rawData: Record<string, any>;
+}
+
+/**
+ * Detect encoding and decode buffer to string
+ * Handles UTF-8 BOM, Latin-1, Windows-1252, and other encodings
+ */
+function detectAndDecode(buffer: Buffer): string {
+  // Check for UTF-8 BOM (Byte Order Mark)
+  if (buffer.length >= 3 && buffer[0] === 0xEF && buffer[1] === 0xBB && buffer[2] === 0xBF) {
+    console.log('Detected UTF-8 BOM, stripping...');
+    return buffer.slice(3).toString('utf-8');
+  }
+
+  // Detect encoding using chardet
+  const detected = chardet.detect(buffer);
+  const encoding = detected || 'utf-8';
+  
+  console.log(`Detected encoding: ${encoding}`);
+
+  // Decode using detected encoding
+  try {
+    return iconv.decode(buffer, encoding);
+  } catch (error) {
+    console.warn(`Failed to decode with ${encoding}, falling back to UTF-8`);
+    return buffer.toString('utf-8');
+  }
+}
+
+/**
+ * Parse CSV file from buffer with automatic encoding detection
+ */
+export async function parseCSVFromBuffer(
+  fileBuffer: Buffer,
+  bankConfig: BankConfig
+): Promise<ParseResult> {
+  const fileContent = detectAndDecode(fileBuffer);
+  return parseCSV(fileContent, bankConfig);
 }
 
 /**
@@ -177,10 +216,11 @@ function extractTransaction(
 }
 
 /**
- * Parse date string to ISO format
+ * Parse date string to ISO format with validation (CRIT-002)
+ * Validates dates to prevent invalid dates like Feb 29, 2023
  */
 function parseDate(dateStr: string, format: string): string | null {
-  if (!dateStr) return null;
+  if (!dateStr || dateStr.trim() === '') return null;
 
   const cleaned = dateStr.trim();
   let day: number, month: number, year: number;
@@ -201,6 +241,22 @@ function parseDate(dateStr: string, format: string): string | null {
       year = parseInt(parts[0], 10);
       month = parseInt(parts[1], 10);
       day = parseInt(parts[2], 10);
+    } else if (format === 'DD-MMM-YYYY') {
+      const parts = cleaned.split('-');
+      day = parseInt(parts[0], 10);
+      const monthStr = parts[1];
+      year = parseInt(parts[2], 10);
+      
+      const months: Record<string, number> = {
+        JAN: 1, FEB: 2, MAR: 3, APR: 4, MAY: 5, JUN: 6,
+        JUL: 7, AUG: 8, SEP: 9, OCT: 10, NOV: 11, DEC: 12
+      };
+      
+      month = months[monthStr?.toUpperCase()];
+      if (!month) {
+        console.error(`Invalid month: ${monthStr}`);
+        return null;
+      }
     } else {
       return null;
     }
@@ -214,16 +270,41 @@ function parseDate(dateStr: string, format: string): string | null {
       return null;
     }
 
+    // Create date and validate it's actually valid
+    // This catches cases like Feb 31, Feb 29 on non-leap years, etc.
+    const parsedDate = new Date(year, month - 1, day);
+    
+    // Check if the date components match what we parsed
+    if (parsedDate.getDate() !== day || parsedDate.getMonth() !== month - 1 || parsedDate.getFullYear() !== year) {
+      console.error(`Invalid date: ${dateStr} - Date doesn't exist in calendar`);
+      return null;
+    }
+
+    // Additional sanity checks
+    const now = new Date();
+    const minDate = new Date('1990-01-01');
+    
+    if (parsedDate > now) {
+      console.warn(`Suspicious date in future: ${dateStr}, parsed as ${parsedDate.toISOString()}`);
+    }
+    
+    if (parsedDate < minDate) {
+      console.warn(`Suspicious date too far in past: ${dateStr}, parsed as ${parsedDate.toISOString()}`);
+    }
+
     // Convert to ISO format
-    const isoDate = new Date(year, month - 1, day).toISOString().split('T')[0];
+    const isoDate = parsedDate.toISOString().split('T')[0];
     return isoDate;
   } catch (error) {
+    console.error(`Error parsing date "${dateStr}":`, error);
     return null;
   }
 }
 
 /**
- * Parse amount string to number
+ * Parse amount string to number with support for European formats (CRIT-003)
+ * Handles formats like 1.234,56 (European) and 1,234.56 (US)
+ * Also handles CR/DR suffixes and parentheses for negative amounts
  */
 function parseAmount(amountStr: string | number | undefined): number {
   if (amountStr === undefined || amountStr === null || amountStr === '') {
@@ -234,14 +315,49 @@ function parseAmount(amountStr: string | number | undefined): number {
     return amountStr;
   }
 
-  // Remove currency symbols and commas
-  const cleaned = amountStr
-    .toString()
-    .replace(/[₦NGN,\s]/gi, '')
-    .trim();
+  let cleaned = amountStr.toString().trim();
+  
+  // Check for negative indicators
+  const isNegative = cleaned.includes('(') || cleaned.toUpperCase().endsWith('CR');
+  
+  // Remove parentheses and CR/DR suffixes
+  cleaned = cleaned
+    .replace(/[()]/g, '')
+    .replace(/\s*CR\s*$/i, '')
+    .replace(/\s*DR\s*$/i, '');
+  
+  // Remove currency symbols
+  cleaned = cleaned.replace(/[₦\$€£¥NGN]/gi, '').trim();
 
   if (!cleaned) {
     return 0;
+  }
+
+  // Handle scientific notation (e.g., 1.23E+09)
+  if (/\d+\.?\d*[Ee][+-]?\d+/.test(cleaned)) {
+    const amount = parseFloat(cleaned);
+    if (!isNaN(amount)) {
+      return isNegative ? -Math.abs(amount) : amount;
+    }
+  }
+
+  // Determine decimal separator
+  const lastComma = cleaned.lastIndexOf(',');
+  const lastDot = cleaned.lastIndexOf('.');
+
+  // European format: 1.234,56 (comma is decimal separator)
+  if (lastComma > lastDot && lastComma > 0) {
+    const afterComma = cleaned.substring(lastComma + 1);
+    // If there are 1-2 digits after comma, it's likely decimal separator
+    if (afterComma.length <= 2 && /^\d+$/.test(afterComma)) {
+      cleaned = cleaned.replace(/\./g, '').replace(',', '.');
+    } else {
+      // Otherwise, remove commas
+      cleaned = cleaned.replace(/,/g, '');
+    }
+  } else {
+    // US format: 1,234.56 (comma is thousands separator)
+    cleaned = cleaned.replace(/,/g, '');
   }
 
   const amount = parseFloat(cleaned);
@@ -250,5 +366,5 @@ function parseAmount(amountStr: string | number | undefined): number {
     throw new Error(`Invalid amount: "${amountStr}"`);
   }
 
-  return amount;
+  return isNegative ? -Math.abs(amount) : amount;
 }
