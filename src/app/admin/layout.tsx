@@ -1,5 +1,4 @@
 import { requireAuth } from '@/lib/auth';
-import { createServerClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 
 export default async function AdminLayout({
@@ -9,15 +8,10 @@ export default async function AdminLayout({
 }) {
   const user = await requireAuth();
 
-  // Verify user has admin or owner role
-  const supabase = await createServerClient();
-  const { data: profile } = await supabase
-    .from('users')
-    .select('role')
-    .eq('id', user.id)
-    .single();
+  // Read role from app_metadata (admin-only writable)
+  const role = user.app_metadata?.role;
 
-  if (!profile?.role || !['owner', 'admin'].includes(profile.role)) {
+  if (!role || !['owner', 'admin'].includes(role)) {
     redirect('/dashboard');
   }
 
