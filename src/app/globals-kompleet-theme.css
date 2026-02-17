@@ -1,0 +1,431 @@
+/* KOMPLEET Design System - Navy Blue & Jade Green Theme */
+/* Updated: February 17, 2026 - Professional Tax Compliance Branding */
+
+:root {
+  /* Brand Colors - Navy Blue & Jade Green */
+  --navy-blue: 0 31 63; /* #001F3F - Primary Navy */
+  --navy-blue-rgb: 0, 31, 63;
+  --jade-green: 45 134 89; /* #2D8659 - Primary Jade */
+  --jade-green-rgb: 45, 134, 89;
+  --jade-light: 212 237 226; /* #D4EDE2 - Light Jade */
+  --jade-light-rgb: 212, 237, 226;
+  
+  /* Light Theme (Default) */
+  --background: 255 255 255; /* #FFFFFF - Pure White */
+  --surface: 248 249 250; /* #F8F9FA - Off White */
+  --surface-hover: 241 245 249; /* #F1F5F9 - Light Blue Gray */
+  --border: 226 232 240; /* #E2E8F0 - Light Gray */
+  --border-hover: 203 213 225; /* #CBD5E1 - Medium Gray */
+  --text-primary: 15 23 42; /* #0F172A - Dark Slate */
+  --text-secondary: 71 85 105; /* #475569 - Slate */
+  --text-tertiary: 148 163 184; /* #94A3B8 - Light Slate */
+  
+  /* Status Colors */
+  --success: 34 197 94; /* #22C55E - Green */
+  --warning: 234 179 8; /* #EAB308 - Amber */
+  --error: 239 68 68; /* #EF4444 - Red */
+  --info: 59 130 246; /* #3B82F6 - Blue */
+}
+
+/* Dark Theme */
+html.dark,
+:root.dark {
+  /* Background & Surfaces - Dark Navy Base */
+  --background: 5 10 15; /* #050A0F - Very Dark Navy */
+  --surface: 15 28 42; /* #0F1C2A - Dark Navy */
+  --surface-hover: 25 42 62; /* #192A3E - Navy Hover */
+  --border: 45 70 100; /* #2D4664 - Navy Border */
+  --border-hover: 65 95 135; /* #415F87 - Navy Border Hover */
+  
+  /* Text - Light Colors */
+  --text-primary: 240 248 255; /* #F0F8FF - Alice Blue */
+  --text-secondary: 176 224 230; /* #B0E0E6 - Powder Blue */
+  --text-tertiary: 135 206 235; /* #87CEFA - Sky Blue */
+  
+  /* Status Colors - Adjusted for Dark Mode */
+  --success: 52 211 153; /* #34D399 - Emerald */
+  --warning: 251 191 36; /* #FBBF24 - Amber */
+  --error: 248 113 113; /* #F87171 - Light Red */
+  --info: 96 165 250; /* #60A5FA - Light Blue */
+}
+
+/* ========================================
+   BASE STYLES
+   ======================================== */
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+body {
+  color: rgb(var(--text-primary));
+  background: rgb(var(--background));
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
+  letter-spacing: -0.01em;
+}
+
+/* Focus Styles - Navy Blue */
+*:focus-visible {
+  outline: 2px solid rgb(var(--navy-blue));
+  outline-offset: 2px;
+}
+
+/* Smooth Transitions */
+@layer base {
+  body {
+    transition-property: background-color, border-color, color;
+    transition-duration: 200ms;
+    transition-timing-function: ease;
+  }
+}
+
+/* ========================================
+   NAVIGATION & LAYOUT
+   ======================================== */
+
+/* Navigation Bar */
+.solid-nav {
+  background: rgb(var(--surface));
+  border-bottom: 2px solid rgb(var(--jade-green));
+}
+
+html.dark .solid-nav {
+  background: rgb(var(--surface));
+  border-bottom: 2px solid rgb(var(--jade-green));
+}
+
+/* Sidebar */
+.solid-sidebar {
+  background: rgb(var(--surface));
+  border-right: 2px solid rgb(var(--navy-blue));
+}
+
+html.dark .solid-sidebar {
+  background: rgb(var(--surface));
+  border-right: 2px solid rgb(var(--jade-green));
+}
+
+/* ========================================
+   CARDS & SURFACES
+   ======================================== */
+
+/* Card - Solid with Navy Border */
+.solid-card {
+  background: rgb(var(--background));
+  border: 1px solid rgb(var(--border));
+  border-radius: 12px;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05);
+  transition: all 200ms ease;
+}
+
+.solid-card:hover {
+  border-color: rgb(var(--jade-green));
+  box-shadow: 0 4px 12px 0 rgba(var(--jade-green-rgb), 0.1);
+}
+
+/* Card with Jade Accent */
+.card-jade-accent {
+  background: rgb(var(--background));
+  border: 1px solid rgb(var(--border));
+  border-left: 4px solid rgb(var(--jade-green));
+  border-radius: 12px;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05);
+}
+
+/* Card with Navy Accent */
+.card-navy-accent {
+  background: rgb(var(--background));
+  border: 1px solid rgb(var(--border));
+  border-left: 4px solid rgb(var(--navy-blue));
+  border-radius: 12px;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05);
+}
+
+/* ========================================
+   BUTTONS
+   ======================================== */
+
+/* Primary Button - Jade Green */
+.btn-primary {
+  background-color: rgb(var(--jade-green));
+  color: white;
+  font-weight: 600;
+  padding: 12px 24px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 200ms ease;
+  box-shadow: 0 2px 8px 0 rgba(var(--jade-green-rgb), 0.25);
+}
+
+.btn-primary:hover {
+  background-color: rgb(35 110 73); /* Darker jade */
+  box-shadow: 0 4px 12px 0 rgba(var(--jade-green-rgb), 0.35);
+  transform: translateY(-1px);
+}
+
+.btn-primary:focus-visible {
+  outline: 2px solid rgb(var(--jade-green));
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(var(--jade-green-rgb), 0.2);
+}
+
+/* Secondary Button - Navy Blue */
+.btn-secondary {
+  background-color: rgb(var(--navy-blue));
+  color: white;
+  font-weight: 600;
+  padding: 12px 24px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: all 200ms ease;
+  box-shadow: 0 2px 8px 0 rgba(var(--navy-blue-rgb), 0.25);
+}
+
+.btn-secondary:hover {
+  background-color: rgb(0 20 40); /* Darker navy */
+  box-shadow: 0 4px 12px 0 rgba(var(--navy-blue-rgb), 0.35);
+  transform: translateY(-1px);
+}
+
+.btn-secondary:focus-visible {
+  outline: 2px solid rgb(var(--navy-blue));
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(var(--navy-blue-rgb), 0.2);
+}
+
+/* Outline Button */
+.btn-outline {
+  background-color: transparent;
+  border: 2px solid rgb(var(--jade-green));
+  color: rgb(var(--jade-green));
+  font-weight: 600;
+  padding: 10px 22px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 200ms ease;
+}
+
+.btn-outline:hover {
+  background-color: rgba(var(--jade-green-rgb), 0.05);
+  border-color: rgb(35 110 73);
+}
+
+/* Ghost Button */
+.btn-ghost {
+  background-color: rgba(var(--jade-green-rgb), 0.08);
+  color: rgb(var(--jade-green));
+  border: 1px solid rgba(var(--jade-green-rgb), 0.2);
+  font-weight: 600;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 200ms ease;
+}
+
+.btn-ghost:hover {
+  background-color: rgba(var(--jade-green-rgb), 0.15);
+  border-color: rgb(var(--jade-green));
+}
+
+/* ========================================
+   FORM ELEMENTS
+   ======================================== */
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+select,
+textarea {
+  background: rgb(var(--surface));
+  border: 1px solid rgb(var(--border));
+  color: rgb(var(--text-primary));
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: all 200ms ease;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: rgb(var(--jade-green));
+  box-shadow: 0 0 0 3px rgba(var(--jade-green-rgb), 0.1);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: rgb(var(--text-tertiary));
+}
+
+/* ========================================
+   BADGES & STATUS
+   ======================================== */
+
+.badge-jade {
+  background: rgba(var(--jade-green-rgb), 0.1);
+  color: rgb(var(--jade-green));
+  border: 1px solid rgba(var(--jade-green-rgb), 0.2);
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge-navy {
+  background: rgba(var(--navy-blue-rgb), 0.1);
+  color: rgb(var(--navy-blue));
+  border: 1px solid rgba(var(--navy-blue-rgb), 0.2);
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-success {
+  background: rgba(var(--success), 0.1);
+  color: rgb(var(--success));
+  border: 1px solid rgba(var(--success), 0.2);
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-warning {
+  background: rgba(var(--warning), 0.1);
+  color: rgb(var(--warning));
+  border: 1px solid rgba(var(--warning), 0.2);
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-error {
+  background: rgba(var(--error), 0.1);
+  color: rgb(var(--error));
+  border: 1px solid rgba(var(--error), 0.2);
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ========================================
+   GRADIENTS & EFFECTS
+   ======================================== */
+
+.gradient-jade-navy {
+  background: linear-gradient(135deg, rgb(var(--jade-green)) 0%, rgb(var(--navy-blue)) 100%);
+}
+
+.gradient-navy-jade {
+  background: linear-gradient(135deg, rgb(var(--navy-blue)) 0%, rgb(var(--jade-green)) 100%);
+}
+
+.text-gradient-primary {
+  background: linear-gradient(135deg, rgb(var(--jade-green)) 0%, rgb(var(--navy-blue)) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Hero Glow - Jade Green */
+.hero-glow {
+  background: radial-gradient(circle at 50% 50%, rgba(var(--jade-green-rgb), 0.1) 0%, transparent 70%);
+}
+
+/* ========================================
+   TABLES
+   ======================================== */
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead {
+  background: rgba(var(--jade-green-rgb), 0.05);
+  border-bottom: 2px solid rgb(var(--jade-green));
+}
+
+thead th {
+  color: rgb(var(--navy-blue));
+  font-weight: 700;
+  padding: 12px 16px;
+  text-align: left;
+}
+
+tbody tr {
+  border-bottom: 1px solid rgb(var(--border));
+  transition: background-color 200ms ease;
+}
+
+tbody tr:hover {
+  background: rgba(var(--jade-green-rgb), 0.03);
+}
+
+tbody td {
+  padding: 12px 16px;
+  color: rgb(var(--text-primary));
+}
+
+/* ========================================
+   UTILITY CLASSES
+   ========================================*/
+
+.text-balance {
+  text-wrap: balance;
+}
+
+.hover-lift {
+  transition: transform 200ms ease, box-shadow 200ms ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+}
+
+.hover-scale {
+  transition: transform 200ms ease;
+}
+
+.hover-scale:hover {
+  transform: scale(1.02);
+}
+
+/* Dividers */
+.divider-jade {
+  border-top: 2px solid rgb(var(--jade-green));
+}
+
+.divider-navy {
+  border-top: 2px solid rgb(var(--navy-blue));
+}
+
+/* Accent Text */
+.text-jade {
+  color: rgb(var(--jade-green));
+}
+
+.text-navy {
+  color: rgb(var(--navy-blue));
+}
+
+/* Background Accents */
+.bg-jade-light {
+  background: rgb(var(--jade-light));
+}
+
+.bg-navy-light {
+  background: rgba(var(--navy-blue-rgb), 0.05);
+}
