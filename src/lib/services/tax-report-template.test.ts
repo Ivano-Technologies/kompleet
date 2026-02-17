@@ -66,7 +66,7 @@ describe('Tax Report Template Service', () => {
   });
 
   it('should include all calculation sections', () => {
-    const doc = generateProfessionalTaxReport(mockTaxReportData);
+    generateProfessionalTaxReport(mockTaxReportData);
     expect(mockTaxReportData.sections.length).toBe(3);
     expect(mockTaxReportData.sections[0].title).toBe('INCOME SUMMARY');
     expect(mockTaxReportData.sections[1].title).toBe('TAX CALCULATION');
@@ -80,7 +80,7 @@ describe('Tax Report Template Service', () => {
   });
 
   it('should include report header with tax year', () => {
-    const doc = generateProfessionalTaxReport(mockTaxReportData);
+    generateProfessionalTaxReport(mockTaxReportData);
     expect(mockTaxReportData.taxYear).toBe(2026);
     expect(mockTaxReportData.reportType).toBe('PIT');
   });

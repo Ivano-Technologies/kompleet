@@ -8,18 +8,9 @@
  * 4. Cross-user access is prevented
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect } from 'vitest';
 
 const BASE_URL = process.env.API_BASE_URL || 'http://localhost:3000';
-
-// Mock user IDs for testing
-const USER_1_ID = 'test-user-1-id';
-const USER_2_ID = 'test-user-2-id';
-
-// Mock tokens (in real tests, these would be JWT tokens)
-const VALID_TOKEN_USER_1 = 'mock-token-user-1';
-const VALID_TOKEN_USER_2 = 'mock-token-user-2';
-const INVALID_TOKEN = 'invalid-token';
 
 describe('API Authentication Tests', () => {
   describe('Protected Endpoints - Authentication Required', () => {
