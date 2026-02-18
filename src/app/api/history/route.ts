@@ -5,6 +5,17 @@ import { withRateLimit } from '@/lib/with-rate-limit';
 async function handleGET(request: NextRequest) {
   try {
     const supabase = await createServerClient();
+
+    // Check authentication
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Unauthorized', message: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
     const searchParams = request.nextUrl.searchParams;
 
     // Get query parameters
@@ -15,10 +26,11 @@ async function handleGET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20');
     const offset = parseInt(searchParams.get('offset') || '0');
 
-    // Build query
+    // Build query - filter by authenticated user
     let query = supabase
       .from('audit_logs')
       .select('*', { count: 'exact' })
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false });
 
     // Apply filters
@@ -46,9 +58,9 @@ async function handleGET(request: NextRequest) {
     const { data, error, count } = await query;
 
     if (error) {
-      console.error('Error fetching history:', error);
+      console.error('[history] Error fetching history:', error);
       return NextResponse.json(
-        { error: 'Failed to fetch calculation history' },
+        { error: 'Failed to fetch calculation history', message: error.message },
         { status: 500 }
       );
     }
@@ -70,9 +82,9 @@ async function handleGET(request: NextRequest) {
       offset,
     });
   } catch (error) {
-    console.error('Unexpected error:', error);
+    console.error('[history] Unexpected error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', message: 'Failed to fetch history' },
       { status: 500 }
     );
   }

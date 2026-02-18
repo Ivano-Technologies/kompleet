@@ -4,13 +4,24 @@ import { withRateLimit } from '@/lib/with-rate-limit';
 
 async function handlePOST(request: NextRequest) {
   try {
+    const supabase = await createServerClient();
+
+    // Check authentication
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Unauthorized', message: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const {
       calculationType,
       inputData,
       outputData,
       ruleVersionId,
-      userId,
     } = body;
 
     if (!calculationType || !inputData || !outputData) {
@@ -19,8 +30,6 @@ async function handlePOST(request: NextRequest) {
         { status: 400 }
       );
     }
-
-    const supabase = await createServerClient();
 
     // If no ruleVersionId provided, get the active one
     let versionId = ruleVersionId;
@@ -34,7 +43,7 @@ async function handlePOST(request: NextRequest) {
       versionId = activeVersion?.id;
     }
 
-    // Insert audit log
+    // Insert audit log with authenticated user
     const { data, error } = await supabase
       .from('audit_logs')
       .insert({
@@ -42,7 +51,7 @@ async function handlePOST(request: NextRequest) {
         input_data: inputData,
         output_data: outputData,
         rule_version_id: versionId,
-        user_id: userId || null,
+        user_id: user.id,
       })
       .select()
       .single();
@@ -59,11 +68,12 @@ async function handlePOST(request: NextRequest) {
       success: true,
       auditLogId: data.id,
       message: 'Calculation logged successfully',
+      userId: user.id,
     });
   } catch (error) {
-    console.error('Unexpected error:', error);
+    console.error('[audit-log] Unexpected error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', message: 'Failed to create audit log' },
       { status: 500 }
     );
   }
