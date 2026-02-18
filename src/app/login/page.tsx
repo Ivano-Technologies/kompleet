@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, FormEvent, Suspense } from 'react';
+import { useState, useEffect, useMemo, FormEvent, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createSupabaseClient } from '@/lib/supabase/client';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -46,7 +46,29 @@ function LoginForm() {
     }
   }, [callbackError, callbackMessage]);
 
-  const isCoolingDown = cooldownUntil !== null && Date.now() < cooldownUntil;
+  const [isCoolingDown, setIsCoolingDown] = useState(false);
+
+  useEffect(() => {
+    if (cooldownUntil === null) {
+      setIsCoolingDown(false);
+      return;
+    }
+
+    const checkCooldown = () => {
+      const now = Date.now();
+      if (now < cooldownUntil) {
+        setIsCoolingDown(true);
+      } else {
+        setIsCoolingDown(false);
+        setCooldownUntil(null);
+      }
+    };
+
+    checkCooldown();
+    const interval = setInterval(checkCooldown, 1000);
+
+    return () => clearInterval(interval);
+  }, [cooldownUntil]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();

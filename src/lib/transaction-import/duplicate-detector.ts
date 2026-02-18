@@ -1,8 +1,10 @@
 /**
  * Duplicate Detection Algorithm
  * Multi-factor matching with fuzzy merchant comparison
+ * HIGH-001: Optimized with Locality-Sensitive Hashing (LSH) for large datasets
  */
 
+import { createHash } from 'crypto';
 import { NormalizedTransaction } from './normalizer';
 
 export interface DuplicateMatch {
@@ -14,11 +16,81 @@ export interface DuplicateMatch {
 
 export type MatchFactor = 'date' | 'amount' | 'merchant' | 'reference' | 'balance';
 
-const SIMILARITY_THRESHOLD = 0.85; // 85% similarity required
+const SIMILARITY_THRESHOLD = parseFloat(process.env.DUPLICATE_SIMILARITY_THRESHOLD || '0.85');
 const FUZZY_MERCHANT_THRESHOLD = 0.80; // 80% merchant name similarity
+const LSH_OPTIMIZATION_THRESHOLD = 1000; // Use LSH for datasets larger than this
+
+interface LSHBucket {
+  [hash: string]: (NormalizedTransaction & { id?: string })[];
+}
 
 /**
- * Find duplicate transactions
+ * HIGH-001: Create transaction hash for LSH bucketing
+ * Groups similar transactions together for efficient comparison
+ */
+function createTransactionHash(tx: NormalizedTransaction): string {
+  // Extract date (YYYY-MM-DD format)
+  const date = tx.date.substring(0, 10);
+  
+  // Bucket amount to nearest 100
+  const amountBucket = Math.round(tx.amount / 100) * 100;
+  
+  // Create hash combining date and amount bucket
+  return `${date}_${amountBucket}`;
+}
+
+/**
+ * HIGH-001: Optimized duplicate detection using LSH for large datasets
+ * Falls back to O(n²) for small datasets where overhead isn't worth it
+ */
+export function findDuplicatesOptimized(
+  existingTransactions: (NormalizedTransaction & { id?: string })[],
+  newTransactions: NormalizedTransaction[]
+): DuplicateMatch[] {
+  // For small datasets, use the simple O(n²) approach
+  if (existingTransactions.length < LSH_OPTIMIZATION_THRESHOLD) {
+    return findDuplicates(existingTransactions, newTransactions);
+  }
+
+  console.log(`Using LSH optimization for ${existingTransactions.length} existing transactions`);
+  
+  // Build LSH buckets for existing transactions
+  const buckets: LSHBucket = {};
+  
+  existingTransactions.forEach(tx => {
+    const hash = createTransactionHash(tx);
+    if (!buckets[hash]) {
+      buckets[hash] = [];
+    }
+    buckets[hash].push(tx);
+  });
+
+  console.log(`Created ${Object.keys(buckets).length} LSH buckets`);
+
+  // Find duplicates by checking only same-bucket transactions
+  const duplicates: DuplicateMatch[] = [];
+
+  newTransactions.forEach(newTx => {
+    const hash = createTransactionHash(newTx);
+    const candidates = buckets[hash] || [];
+
+    // Only compare against transactions in the same bucket
+    candidates.forEach(existingTx => {
+      const match = compareTransactions(existingTx, newTx);
+
+      if (match.similarityScore >= SIMILARITY_THRESHOLD) {
+        duplicates.push(match);
+      }
+    });
+  });
+
+  console.log(`Found ${duplicates.length} duplicates using LSH`);
+  return duplicates;
+}
+
+/**
+ * Find duplicate transactions (original O(n²) algorithm)
+ * Used for small datasets or when LSH optimization isn't beneficial
  */
 export function findDuplicates(
   existingTransactions: (NormalizedTransaction & { id?: string })[],

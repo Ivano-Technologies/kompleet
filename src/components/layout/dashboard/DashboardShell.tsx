@@ -5,7 +5,7 @@ import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';
 
 interface DashboardShellProps {
-  user: { email?: string | null; id: string };
+  user: { email?: string | null; id: string; role?: string };
   children: ReactNode;
 }
 
@@ -16,6 +16,7 @@ export function DashboardShell({ user, children }: DashboardShellProps) {
     <div className="flex h-screen bg-light-background dark:bg-dark-background overflow-hidden">
       <Sidebar
         userEmail={user.email || undefined}
+        userRole={user.role}
         isMobileOpen={mobileMenuOpen}
         onMobileClose={() => setMobileMenuOpen(false)}
       />

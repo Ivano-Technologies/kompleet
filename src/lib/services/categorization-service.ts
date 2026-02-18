@@ -1,7 +1,10 @@
 /**
  * Transaction Categorization Service
  * Rule-based categorization using keyword matching
+ * MED-002: Enhanced with Porter stemming for better keyword matching
  */
+
+import { PorterStemmer } from 'natural';
 
 export interface Category {
   id: string;
@@ -18,7 +21,26 @@ export interface CategorizationResult {
 }
 
 /**
+ * MED-002: Stem a single word using Porter Stemmer
+ */
+function stemWord(word: string): string {
+  return PorterStemmer.stem(word.toLowerCase());
+}
+
+/**
+ * MED-002: Stem a description into an array of stemmed words
+ */
+function stemDescription(description: string): string[] {
+  return description
+    .toLowerCase()
+    .split(/\W+/)
+    .filter(w => w.length > 2)
+    .map(stemWord);
+}
+
+/**
  * Categorize a transaction based on its description
+ * MED-002: Enhanced with stemming for better matching
  */
 export function categorizeTransaction(
   description: string,
@@ -33,15 +55,20 @@ export function categorizeTransaction(
   }
   
   const descLower = description.toLowerCase();
+  const descStems = stemDescription(description);
   let bestMatch: { category: Category; score: number } | null = null;
   
   for (const category of categories) {
     let matchScore = 0;
     let matchedKeywords = 0;
     
+    // Pre-compute stemmed keywords for this category
+    const keywordStems = category.keywords.map(k => stemWord(k.toLowerCase()));
+    
     for (const keyword of category.keywords) {
       const keywordLower = keyword.toLowerCase();
       
+      // Exact and substring matching (original logic)
       if (descLower.includes(keywordLower)) {
         matchedKeywords++;
         
@@ -62,6 +89,13 @@ export function categorizeTransaction(
           matchScore += 40;
         }
       }
+    }
+    
+    // MED-002: Stemming-based matching
+    const stemMatches = descStems.filter(stem => keywordStems.includes(stem));
+    if (stemMatches.length > 0) {
+      matchedKeywords += stemMatches.length;
+      matchScore += 50 * stemMatches.length; // Stem matches get medium score
     }
     
     if (matchedKeywords > 0) {
