@@ -1,2 +1,0 @@
--- Row Level Security policies (must exist after tables)
--- Add RLS policies here
