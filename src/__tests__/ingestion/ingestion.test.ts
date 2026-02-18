@@ -2,7 +2,7 @@
  * Comprehensive test suite for ingestion pipeline
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { detectFileType, isSupportedFileType } from '@/lib/ingestion/detectFileType';
 import { detectEncryption } from '@/lib/ingestion/detectEncryption';
 import { normalizeTransactions } from '@/lib/ingestion/normalizeTransactions';
@@ -17,7 +17,7 @@ describe('Ingestion Pipeline', () => {
       expect(detectFileType(pdfBuffer, 'test.pdf')).toBe('pdf');
     });
 
-    it('should detect Excel files', () => {
+    it('should detect Excel files by extension', () => {
       const xlsxBuffer = Buffer.from([0x50, 0x4b, 0x03, 0x04]); // ZIP header
       expect(detectFileType(xlsxBuffer, 'test.xlsx')).toBe('xlsx');
     });
@@ -48,7 +48,6 @@ describe('Ingestion Pipeline', () => {
 
   describe('Encryption Detection', () => {
     it('should detect encrypted PDFs', () => {
-      // PDF with encryption dictionary
       const encryptedPdf = Buffer.from('%PDF-1.4\n/Encrypt');
       const result = detectEncryption(encryptedPdf, 'pdf');
       expect(result.isEncrypted).toBe(true);
@@ -71,60 +70,48 @@ describe('Ingestion Pipeline', () => {
     it('should normalize dates', () => {
       const transactions = [
         {
-          id: '1',
           date: '15/02/2026',
-          amount: 1000,
+          amount: '1000',
           type: 'debit',
           description: 'Payment',
-          user_id: 'user1',
-          source_file_id: 'file1',
         },
       ];
 
-      const normalized = normalizeTransactions(transactions);
+      const { transactions: normalized } = normalizeTransactions(transactions as any, 'csv', 'user1', 'file1');
       expect(normalized[0].date).toMatch(/2026-02-15/);
     });
 
     it('should normalize amounts', () => {
       const transactions = [
         {
-          id: '1',
           date: '2026-02-15',
           amount: '₦1,000.50',
           type: 'debit',
           description: 'Payment',
-          user_id: 'user1',
-          source_file_id: 'file1',
         },
       ];
 
-      const normalized = normalizeTransactions(transactions);
+      const { transactions: normalized } = normalizeTransactions(transactions as any, 'csv', 'user1', 'file1');
       expect(normalized[0].amount).toBe(1000.5);
     });
 
     it('should detect transaction types', () => {
       const transactions = [
         {
-          id: '1',
           date: '2026-02-15',
-          amount: -1000,
+          amount: '-1000',
           type: 'unknown',
           description: 'Payment',
-          user_id: 'user1',
-          source_file_id: 'file1',
         },
         {
-          id: '2',
           date: '2026-02-15',
-          amount: 1000,
+          amount: '1000',
           type: 'unknown',
           description: 'Deposit',
-          user_id: 'user1',
-          source_file_id: 'file1',
         },
       ];
 
-      const normalized = normalizeTransactions(transactions);
+      const { transactions: normalized } = normalizeTransactions(transactions as any, 'csv', 'user1', 'file1');
       expect(normalized[0].type).toBe('debit');
       expect(normalized[1].type).toBe('credit');
     });
@@ -132,17 +119,14 @@ describe('Ingestion Pipeline', () => {
     it('should sanitize descriptions', () => {
       const transactions = [
         {
-          id: '1',
           date: '2026-02-15',
-          amount: 1000,
+          amount: '1000',
           type: 'debit',
           description: 'Payment to 1234567890123456',
-          user_id: 'user1',
-          source_file_id: 'file1',
         },
       ];
 
-      const normalized = normalizeTransactions(transactions);
+      const { transactions: normalized } = normalizeTransactions(transactions as any, 'csv', 'user1', 'file1');
       expect(normalized[0].description).not.toContain('1234567890123456');
     });
   });
@@ -378,19 +362,19 @@ describe('Ingestion Pipeline', () => {
       ];
 
       // Normalize
-      let processed = normalizeTransactions(transactions);
+      const { transactions: processed } = normalizeTransactions(transactions as any, 'csv', 'user1', 'file1');
       expect(processed).toHaveLength(3);
 
       // Deduplicate
-      processed = deduplicateTransactions(processed);
-      expect(processed).toHaveLength(2); // One duplicate removed
+      const deduplicated = deduplicateTransactions(processed);
+      expect(deduplicated).toHaveLength(2); // One duplicate removed
 
       // Validate
-      const { valid } = validateTransactions(processed);
+      const { valid } = validateTransactions(deduplicated);
       expect(valid).toHaveLength(2);
 
       // Sanitize
-      const sanitized = sanitizeTransactions(valid);
+      const sanitized = sanitizeTransactions(deduplicated);
       expect(sanitized).toHaveLength(2);
       expect(sanitized[0].description).not.toContain('1234567890123456');
     });

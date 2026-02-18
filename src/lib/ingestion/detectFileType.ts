@@ -7,10 +7,24 @@ export type FileType = 'pdf' | 'xlsx' | 'xls' | 'csv' | 'zip' | 'unknown';
 
 /**
  * Detect file type from buffer (magic bytes) and filename
- * Magic bytes take precedence over file extension
+ * For ZIP-based formats (XLSX, XLS), use filename extension to disambiguate
  */
 export function detectFileType(buffer: Buffer, fileName: string): FileType {
-  // Check magic bytes first (most reliable)
+  // For ZIP-based files, check extension first to disambiguate XLSX vs ZIP
+  if (buffer.length >= 4 && buffer[0] === 0x50 && buffer[1] === 0x4b && buffer[2] === 0x03 && buffer[3] === 0x04) {
+    const ext = fileName.toLowerCase().split('.').pop() || '';
+    if (ext === 'xlsx') return 'xlsx';
+    if (ext === 'xls') return 'xls';
+    if (ext === 'zip') return 'zip';
+    // Default to checking content for XLSX
+    const bufferStr = buffer.toString('utf8', 0, Math.min(buffer.length, 1000));
+    if (bufferStr.includes('xl/') || bufferStr.includes('workbook')) {
+      return 'xlsx';
+    }
+    return 'zip';
+  }
+
+  // Check magic bytes for other formats
   const magicType = detectByMagicBytes(buffer);
   if (magicType !== 'unknown') {
     return magicType;
