@@ -81,6 +81,7 @@ export async function POST(request: NextRequest) {
         source_file_id: tx.source_file_id,
         raw_data: tx.raw_data,
         created_at: tx.created_at,
+        updated_at: tx.updated_at || new Date(),
       })),
       userContext
     );
