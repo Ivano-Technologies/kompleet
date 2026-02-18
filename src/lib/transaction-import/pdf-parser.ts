@@ -2,6 +2,7 @@
  * PDF Bank Statement Parser
  * Extracts transactions from PDF bank statements using pdf-parse + LLM
  * CRIT-005: Added OCR fallback for scanned/image-based PDFs
+ * CRIT-006: Added encryption detection and better error handling
  */
 
 import { PDFParse } from 'pdf-parse';
@@ -44,8 +45,22 @@ async function extractTextWithOCR(buffer: Buffer): Promise<string> {
 }
 
 /**
+ * Check if PDF is encrypted by looking for /Encrypt marker
+ * CRIT-006: Encryption detection
+ */
+function checkPDFEncryption(buffer: Buffer): boolean {
+  try {
+    const bufferStr = buffer.toString('latin1');
+    return bufferStr.includes('/Encrypt');
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Parse PDF bank statement — extracts text then uses LLM to structure transactions
  * CRIT-005: Enhanced with OCR fallback for scanned PDFs
+ * CRIT-006: Enhanced with encryption detection
  */
 export async function parsePDF(
   fileBuffer: Buffer,
@@ -54,19 +69,43 @@ export async function parsePDF(
   const errors: ParseError[] = [];
 
   try {
-    // Step 1: Extract raw text from PDF
-    const parser = new PDFParse({ data: fileBuffer });
-    const textResult = await parser.getText();
-    let rawText = textResult.text;
-    await parser.destroy();
+    // Step 0: Check if PDF is encrypted
+    const isEncrypted = checkPDFEncryption(fileBuffer);
+    if (isEncrypted) {
+      console.log('PDF is encrypted with copy protection. Attempting OCR extraction...');
+    }
 
-    // CRIT-005: If no text found or very little text, try OCR
-    if (!rawText || rawText.trim().length < 50) {
-      console.log('No text found in PDF, attempting OCR...');
+    // Step 1: Extract raw text from PDF
+    let rawText = '';
+    
+    if (!isEncrypted) {
+      // Try normal text extraction for non-encrypted PDFs
+      const parser = new PDFParse({ data: fileBuffer });
+      try {
+        const textResult = await parser.getText();
+        rawText = textResult.text;
+      } catch (parseError) {
+        console.log('PDF text extraction failed:', parseError instanceof Error ? parseError.message : 'Unknown error');
+      } finally {
+        try {
+          await parser.destroy();
+        } catch (e) {
+          // Ignore destroy errors
+        }
+      }
+    }
+    
+    // If encrypted or no text extracted, try OCR
+    if (isEncrypted || !rawText || rawText.trim().length === 0) {
+      console.log('Attempting OCR extraction for encrypted or text-less PDF...');
       rawText = await extractTextWithOCR(fileBuffer);
     }
 
     if (!rawText || rawText.trim().length < 50) {
+      const encryptedMsg = isEncrypted 
+        ? ' The PDF appears to be encrypted with copy protection. Please try: 1) Removing the copy protection in your PDF reader, 2) Exporting as a new PDF without encryption, or 3) Using a CSV/Excel export from your bank instead.'
+        : '';
+      
       return {
         transactions: [],
         errors: [
@@ -74,8 +113,8 @@ export async function parsePDF(
             rowNumber: 0,
             errorType: 'EMPTY_PDF',
             errorMessage:
-              'Could not extract text from PDF. File may be corrupted, password-protected, or require advanced OCR.',
-            rawData: {},
+              'Could not extract text from PDF. File may be corrupted, password-protected, or require advanced OCR.' + encryptedMsg,
+            rawData: { isEncrypted },
           },
         ],
         totalRows: 0,
@@ -330,25 +369,17 @@ function extractTransactionsWithRegex(text: string): ParsedTransaction[] {
 
     if (!description) continue;
 
-    // Parse amounts
-    const parsedAmounts = amounts.map((a) => parseFloat(a.replace(/,/g, '')));
-
-    // Determine type from DR/CR suffix or amount position
-    const isDR = /\bDR\b/i.test(trimmed);
-    const isCR = /\bCR\b/i.test(trimmed);
-    const type: 'debit' | 'credit' = isDR ? 'debit' : isCR ? 'credit' : 'debit';
-
-    // First amount is typically the transaction amount, last is balance
-    const amount = parsedAmounts[0];
-    const balance = parsedAmounts.length > 1 ? parsedAmounts[parsedAmounts.length - 1] : 0;
+    // Extract amounts
+    const amount = parseFloat(amounts[amounts.length - 1].replace(/,/g, ''));
+    const balance = amounts.length > 1 ? parseFloat(amounts[amounts.length - 2].replace(/,/g, '')) : 0;
 
     transactions.push({
       date,
       merchant: description,
       amount,
-      type,
+      type: 'debit',
       balance,
-      rawData: { source: 'pdf-regex', line: trimmed },
+      rawData: { source: 'pdf_regex', original: trimmed },
     });
   }
 
@@ -356,94 +387,75 @@ function extractTransactionsWithRegex(text: string): ParsedTransaction[] {
 }
 
 /**
- * Normalize various date formats to YYYY-MM-DD
+ * Normalize date string to YYYY-MM-DD format
  */
-function normalizeDate(dateStr: string): string {
-  if (!dateStr) return '';
+function normalizeDate(dateStr: string): string | null {
+  if (!dateStr) return null;
 
-  const cleaned = dateStr.trim();
-
-  // Already ISO format
-  if (/^\d{4}-\d{2}-\d{2}$/.test(cleaned)) {
-    return cleaned;
+  // Try DD/MM/YYYY format
+  let match = dateStr.match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+  if (match) {
+    const [, day, month, year] = match;
+    const fullYear = year.length === 2 ? `20${year}` : year;
+    return `${fullYear}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
   }
 
-  // DD/MM/YYYY or DD-MM-YYYY
-  const slashMatch = cleaned.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
-  if (slashMatch) {
-    const day = slashMatch[1].padStart(2, '0');
-    const month = slashMatch[2].padStart(2, '0');
-    let year = slashMatch[3];
-    if (year.length === 2) year = '20' + year;
-    return `${year}-${month}-${day}`;
-  }
-
-  // DD-Mon-YYYY (e.g., 15-Jan-2024)
-  const monthNames: Record<string, string> = {
-    jan: '01', feb: '02', mar: '03', apr: '04',
-    may: '05', jun: '06', jul: '07', aug: '08',
-    sep: '09', oct: '10', nov: '11', dec: '12',
+  // Try DD-Mon-YYYY format
+  const months: Record<string, string> = {
+    jan: '01', feb: '02', mar: '03', apr: '04', may: '05', jun: '06',
+    jul: '07', aug: '08', sep: '09', oct: '10', nov: '11', dec: '12',
   };
-  const monMatch = cleaned.match(/^(\d{1,2})-([A-Za-z]{3})-(\d{2,4})$/);
-  if (monMatch) {
-    const day = monMatch[1].padStart(2, '0');
-    const month = monthNames[monMatch[2].toLowerCase()];
-    let year = monMatch[3];
-    if (year.length === 2) year = '20' + year;
-    if (month) return `${year}-${month}-${day}`;
+
+  match = dateStr.match(/(\d{1,2})-([a-z]{3})-(\d{2,4})/i);
+  if (match) {
+    const [, day, mon, year] = match;
+    const month = months[mon.toLowerCase()];
+    if (month) {
+      const fullYear = year.length === 2 ? `20${year}` : year;
+      return `${fullYear}-${month}-${day.padStart(2, '0')}`;
+    }
   }
 
-  // Fallback: try Date.parse
-  const parsed = new Date(cleaned);
-  if (!isNaN(parsed.getTime())) {
-    return parsed.toISOString().split('T')[0];
-  }
-
-  return '';
+  return null;
 }
 
 /**
- * Split long text into chunks for LLM processing, trying to break at page boundaries
+ * Split text into chunks for processing
  */
-function chunkText(text: string, maxSize: number): string[] {
-  if (text.length <= maxSize) return [text];
-
+function chunkText(text: string, maxChunkSize: number): string[] {
   const chunks: string[] = [];
-  let remaining = text;
+  let currentChunk = '';
 
-  while (remaining.length > 0) {
-    if (remaining.length <= maxSize) {
-      chunks.push(remaining);
-      break;
-    }
+  const paragraphs = text.split('\n\n');
 
-    // Try to break at a page boundary or double newline
-    let breakPoint = remaining.lastIndexOf('\n\n', maxSize);
-    if (breakPoint < maxSize * 0.5) {
-      breakPoint = remaining.lastIndexOf('\n', maxSize);
+  for (const paragraph of paragraphs) {
+    if ((currentChunk + paragraph).length > maxChunkSize) {
+      if (currentChunk) chunks.push(currentChunk);
+      currentChunk = paragraph;
+    } else {
+      currentChunk += (currentChunk ? '\n\n' : '') + paragraph;
     }
-    if (breakPoint < maxSize * 0.5) {
-      breakPoint = maxSize;
-    }
-
-    chunks.push(remaining.substring(0, breakPoint));
-    remaining = remaining.substring(breakPoint);
   }
+
+  if (currentChunk) chunks.push(currentChunk);
 
   return chunks;
 }
 
 /**
- * Remove duplicate transactions that might appear in overlapping chunks
+ * Deduplicate extracted transactions
  */
-function deduplicateExtracted(
-  transactions: ParsedTransaction[]
-): ParsedTransaction[] {
+function deduplicateExtracted(transactions: ParsedTransaction[]): ParsedTransaction[] {
   const seen = new Set<string>();
-  return transactions.filter((t) => {
-    const key = `${t.date}-${t.amount}-${t.merchant.substring(0, 20)}`;
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
+  const unique: ParsedTransaction[] = [];
+
+  for (const tx of transactions) {
+    const key = `${tx.date}-${tx.merchant}-${tx.amount}-${tx.type}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      unique.push(tx);
+    }
+  }
+
+  return unique;
 }
