@@ -114,8 +114,8 @@ export async function categorizeTransaction(
 ): Promise<CategoryPrediction> {
   const prompt = buildCategorizationPrompt(transaction, userContext);
 
-  const message = await openai.messages.create({
-    model: 'claude-3-5-sonnet-20241022',
+  const completion = await openai.chat.completions.create({
+    model: 'gpt-4-turbo-preview',
     max_tokens: 500,
     messages: [
       {
@@ -125,8 +125,7 @@ export async function categorizeTransaction(
     ],
   });
 
-  const responseText =
-    message.content[0].type === 'text' ? message.content[0].text : '';
+  const responseText = completion.choices[0]?.message?.content || '';
 
   // Parse the response
   const result = parseCategorizationResponse(responseText, transaction.id);
