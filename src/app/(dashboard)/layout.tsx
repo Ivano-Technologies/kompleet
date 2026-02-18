@@ -8,7 +8,7 @@ export default async function DashboardRouteGroupLayout({
 }) {
   const user = await requireAuth();
   return (
-    <DashboardShell user={{ email: user.email, id: user.id }}>
+    <DashboardShell user={{ email: user.email, id: user.id, role: user.app_metadata?.role }}>
       {children}
     </DashboardShell>
   );

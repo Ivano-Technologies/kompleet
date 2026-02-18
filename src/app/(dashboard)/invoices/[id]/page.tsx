@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { createBrowserClient as createClient } from '@/lib/supabase/client';
 import Image from 'next/image';
@@ -39,11 +39,7 @@ export default function InvoiceDetailPage() {
   const [error, setError] = useState('');
   const [qrCodeImage, setQrCodeImage] = useState('');
 
-  useEffect(() => {
-    fetchInvoice();
-  }, [invoiceId]);
-
-  const fetchInvoice = async () => {
+  const fetchInvoice = useCallback(async () => {
     setLoading(true);
     setError('');
 
@@ -83,7 +79,11 @@ export default function InvoiceDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [invoiceId]);
+
+  useEffect(() => {
+    fetchInvoice();
+  }, [fetchInvoice]);
 
   const handleDownloadPDF = () => {
     window.open(`/api/invoices/${invoiceId}/pdf`, '_blank');
