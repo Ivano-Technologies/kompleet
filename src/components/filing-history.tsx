@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { FileText, Download, Calendar, CheckCircle, Filter } from 'lucide-react';
 
 interface FilingRecord {
@@ -23,11 +23,7 @@ export default function FilingHistory() {
   const [filterYear, setFilterYear] = useState<number | 'all'>('all');
   const [filterType, setFilterType] = useState<string>('all');
 
-  useEffect(() => {
-    fetchFilingHistory();
-  }, [filterYear, filterType]);
-
-  const fetchFilingHistory = async () => {
+  const fetchFilingHistory = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -45,7 +41,11 @@ export default function FilingHistory() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filterYear, filterType]);
+
+  useEffect(() => {
+    fetchFilingHistory();
+  }, [fetchFilingHistory]);
 
   const handleDownload = (filing: FilingRecord) => {
     const link = document.createElement('a');

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 
@@ -54,12 +54,7 @@ export default function TransactionDetailsPage() {
     is_reconciled: false,
   });
 
-  useEffect(() => {
-    fetchTransaction();
-    fetchCategories();
-  }, [id]);
-
-  const fetchTransaction = async () => {
+  const fetchTransaction = useCallback(async () => {
     try {
       const response = await fetch(`/api/transactions/${id}`);
       const data = await response.json();
@@ -84,9 +79,9 @@ export default function TransactionDetailsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
 
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
       const response = await fetch('/api/categories');
       const data = await response.json();
@@ -96,7 +91,12 @@ export default function TransactionDetailsPage() {
     } catch (err) {
       console.error('Failed to fetch categories:', err);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchTransaction();
+    fetchCategories();
+  }, [fetchTransaction, fetchCategories]);
 
   const handleSave = async () => {
     setSaving(true);

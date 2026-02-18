@@ -27,6 +27,7 @@ import {
   User,
   Shield,
   ClipboardList,
+  Users,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -100,13 +101,20 @@ const navItems: NavItem[] = [
   },
 ];
 
+const adminItems: NavItem[] = [
+  { href: '/admin/team', label: 'Team', icon: Users },
+  { href: '/admin/rules', label: 'Tax Rules', icon: Shield },
+  { href: '/admin/sources', label: 'Sources', icon: FileText },
+];
+
 interface SidebarProps {
   userEmail?: string;
+  userRole?: string;
   isMobileOpen: boolean;
   onMobileClose: () => void;
 }
 
-export function Sidebar({ userEmail, isMobileOpen, onMobileClose }: SidebarProps) {
+export function Sidebar({ userEmail, userRole, isMobileOpen, onMobileClose }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
@@ -230,6 +238,34 @@ export function Sidebar({ userEmail, isMobileOpen, onMobileClose }: SidebarProps
             </div>
           );
         })}
+
+        {/* Admin Section — visible to owner and admin roles */}
+        {(userRole === 'owner' || userRole === 'admin') && (
+          <div className="mt-4 pt-3 border-t border-light-border dark:border-dark-border">
+            <p className="px-3 mb-1 text-xs font-semibold uppercase tracking-wider text-light-text-tertiary dark:text-dark-text-tertiary">
+              Admin
+            </p>
+            {adminItems.map((item) => {
+              const Icon = item.icon;
+              const active = isActive(item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={onMobileClose}
+                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                    active
+                      ? 'bg-primary-500 text-white'
+                      : 'text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover hover:text-light-text-primary dark:hover:text-dark-text-primary'
+                  }`}
+                >
+                  <Icon className="w-[18px] h-[18px] shrink-0" />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </nav>
 
       {/* User Section */}

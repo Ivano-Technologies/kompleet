@@ -57,34 +57,8 @@ export function withAuth<T extends Request | NextRequest = Request>(
         );
       }
 
-      // Fetch user profile to get role
-      const { data: profile, error: profileError } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', user.id)
-        .single();
-
-      if (profileError || !profile) {
-        // If profile doesn't exist, default to 'user' role
-        const authenticatedUser: AuthenticatedUser = {
-          id: user.id,
-          email: user.email || '',
-          role: 'user',
-        };
-
-        // Skip permission check if no profile (backward compatibility)
-        if (!options.requiredPermission && !options.requiredPermissions && !options.anyPermissions) {
-          return await handler(request, authenticatedUser, context);
-        }
-
-        // If permissions required but no profile, deny access
-        return NextResponse.json(
-          { error: 'Forbidden', message: 'User profile not found' },
-          { status: 403 }
-        );
-      }
-
-      const userRole = (profile.role || 'user') as Role;
+      // Read role from app_metadata (set by admin only, not user-writable)
+      const userRole = (user.app_metadata?.role || 'user') as Role;
 
       const authenticatedUser: AuthenticatedUser = {
         id: user.id,
