@@ -19,6 +19,8 @@ import type { NextRequest } from 'next/server';
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get('code');
+  const token = requestUrl.searchParams.get('token');
+  const type = requestUrl.searchParams.get('type');
   const redirect = requestUrl.searchParams.get('redirect') || '/dashboard';
   const error = requestUrl.searchParams.get('error');
   const errorDescription = requestUrl.searchParams.get('error_description');
@@ -41,9 +43,12 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  // No code present - invalid callback
-  if (!code) {
-    console.error('Auth callback called without code parameter');
+  // Check if this is a password recovery flow
+  const isPasswordRecovery = type === 'recovery' && token;
+  
+  // No code and not a recovery token - invalid callback
+  if (!code && !isPasswordRecovery) {
+    console.error('Auth callback called without code or recovery token');
     return NextResponse.redirect(new URL('/login?error=missing_code', requestUrl.origin));
   }
 
@@ -66,8 +71,33 @@ export async function GET(request: NextRequest) {
       },
     });
     
-    // Exchange the code for a session
-    const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+    // Handle password recovery flow
+    if (isPasswordRecovery) {
+      console.log('Password recovery flow initiated');
+      
+      // Verify the recovery token by exchanging it
+      const { data: recoveryData, error: recoveryError } = await supabase.auth.exchangeCodeForSession(token);
+      
+      if (recoveryError) {
+        console.error('Password recovery token error:', recoveryError.message);
+        
+        if (recoveryError.message.includes('expired')) {
+          return NextResponse.redirect(
+            new URL('/login?error=expired_link&message=Password reset link has expired. Please request a new one.', requestUrl.origin)
+          );
+        }
+        
+        return NextResponse.redirect(
+          new URL('/login?error=invalid_recovery_link&message=Invalid password reset link. Please request a new one.', requestUrl.origin)
+        );
+      }
+      
+      // Redirect to reset-password page with the session established
+      return NextResponse.redirect(new URL('/reset-password', requestUrl.origin));
+    }
+    
+    // Standard OAuth/email confirmation flow
+    const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code!);
 
     if (exchangeError) {
       console.error('Auth callback exchange error:', exchangeError.message);

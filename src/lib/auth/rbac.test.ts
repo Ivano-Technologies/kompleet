@@ -35,8 +35,8 @@ describe('RBAC System', () => {
   // ─── ROLE_PERMISSIONS constant ────────────────────────────────────────────
 
   describe('ROLE_PERMISSIONS', () => {
-    it('should define permissions for all four roles', () => {
-      const roles: Role[] = ['owner', 'admin', 'user', 'viewer'];
+    it('should define permissions for all five roles', () => {
+      const roles: Role[] = ['owner', 'admin', 'tax_consultant', 'user', 'viewer'];
       for (const role of roles) {
         expect(ROLE_PERMISSIONS[role]).toBeDefined();
         expect(Array.isArray(ROLE_PERMISSIONS[role])).toBe(true);
@@ -92,6 +92,44 @@ describe('RBAC System', () => {
 
     it('should have export:bulk', () => {
       expect(hasPermission('admin', 'export:bulk')).toBe(true);
+    });
+  });
+
+  // ─── Tax Consultant role ──────────────────────────────────────────────────
+
+  describe('Tax Consultant role', () => {
+    it('should have 7 permissions', () => {
+      expect(ROLE_PERMISSIONS.tax_consultant).toHaveLength(7);
+    });
+
+    it('should have read + reports/calculations permissions', () => {
+      const expectedPermissions: Permission[] = [
+        'calculators:read',
+        'calculators:write',
+        'transactions:read',
+        'reports:read',
+        'reports:generate',
+        'export:data',
+        'settings:read',
+      ];
+      for (const perm of expectedPermissions) {
+        expect(hasPermission('tax_consultant', perm)).toBe(true);
+      }
+    });
+
+    it('should NOT have write/delete/import transaction permissions', () => {
+      expect(hasPermission('tax_consultant', 'transactions:write')).toBe(false);
+      expect(hasPermission('tax_consultant', 'transactions:delete')).toBe(false);
+      expect(hasPermission('tax_consultant', 'transactions:import')).toBe(false);
+    });
+
+    it('should NOT have any admin:* permissions', () => {
+      expect(hasPermission('tax_consultant', 'admin:access')).toBe(false);
+      expect(hasPermission('tax_consultant', 'admin:manage_users')).toBe(false);
+    });
+
+    it('should NOT have settings:write', () => {
+      expect(hasPermission('tax_consultant', 'settings:write')).toBe(false);
     });
   });
 

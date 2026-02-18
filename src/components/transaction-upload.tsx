@@ -68,6 +68,7 @@ export function TransactionUpload() {
       const response = await fetch('/api/transactions/upload-v2', {
         method: 'POST',
         body: formData,
+        credentials: 'include', // Include cookies for authentication
       });
 
       const data = await response.json();

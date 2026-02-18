@@ -17,7 +17,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    // Set mounted flag
     setMounted(true);
+    return () => setMounted(false);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
     
     // Check localStorage first
     const storedTheme = localStorage.getItem('kompleet-theme') as Theme | null;
@@ -32,7 +38,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       setThemeState(initialTheme);
       document.documentElement.classList.toggle('dark', initialTheme === 'dark');
     }
-  }, []);
+  }, [mounted]);
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);

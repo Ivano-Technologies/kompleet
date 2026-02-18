@@ -26,7 +26,9 @@ export function useTaxRules(ruleType: string) {
         setLoading(true);
         setError(null);
 
-        const response = await fetch(`/api/tax-rules?type=${ruleType}`);
+        const response = await fetch(`/api/tax-rules?type=${ruleType}`, {
+          credentials: 'include', // Include cookies for authentication
+        });
         
         if (!response.ok) {
           throw new Error(`Failed to fetch tax rules: ${response.statusText}`);

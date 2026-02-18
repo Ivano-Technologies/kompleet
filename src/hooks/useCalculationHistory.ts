@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type {
   CalculationHistory,
   CalculationHistoryFilters,
@@ -11,18 +11,7 @@ export function useCalculationHistory(filters: CalculationHistoryFilters = {}) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchHistory();
-  }, [
-    filters.type,
-    filters.from,
-    filters.to,
-    filters.search,
-    filters.limit,
-    filters.offset,
-  ]);
-
-  const fetchHistory = async () => {
+  const fetchHistory = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -49,7 +38,18 @@ export function useCalculationHistory(filters: CalculationHistoryFilters = {}) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [
+    filters.type,
+    filters.from,
+    filters.to,
+    filters.search,
+    filters.limit,
+    filters.offset,
+  ]);
+
+  useEffect(() => {
+    fetchHistory();
+  }, [fetchHistory]);
 
   const deleteCalculation = async (id: string) => {
     try {
