@@ -46,10 +46,29 @@ function LoginForm() {
     }
   }, [callbackError, callbackMessage]);
 
-  const isCoolingDown = useMemo(
-    () => cooldownUntil !== null && Date.now() < cooldownUntil,
-    [cooldownUntil]
-  );
+  const [isCoolingDown, setIsCoolingDown] = useState(false);
+
+  useEffect(() => {
+    if (cooldownUntil === null) {
+      setIsCoolingDown(false);
+      return;
+    }
+
+    const checkCooldown = () => {
+      const now = Date.now();
+      if (now < cooldownUntil) {
+        setIsCoolingDown(true);
+      } else {
+        setIsCoolingDown(false);
+        setCooldownUntil(null);
+      }
+    };
+
+    checkCooldown();
+    const interval = setInterval(checkCooldown, 1000);
+
+    return () => clearInterval(interval);
+  }, [cooldownUntil]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
