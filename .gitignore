@@ -1,6 +1,9 @@
 node_modules/
+# Secrets
 .env
 .env.local
+.env.production
+.env.development
 .cache/
 .nvm/
 .npm/
