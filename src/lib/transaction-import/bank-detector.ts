@@ -112,7 +112,7 @@ export async function detectBankFromCSV(
 
       // Check header match (most reliable indicator)
       const headerMatch = calculateHeaderMatch(headers, patterns.headers);
-      score += headerMatch * 50; // Headers are worth 50 points
+      score += headerMatch * 80; // Headers are worth 80 points (increased from 50)
       if (headerMatch > 0.7) {
         features.push(`Headers match (${Math.round(headerMatch * 100)}%)`);
       }
@@ -187,13 +187,21 @@ function calculateHeaderMatch(fileHeaders: string[], expectedHeaders: string[]):
   // Count how many expected headers are present in the file
   let matches = 0;
   for (const expected of normalizedExpectedHeaders) {
-    if (normalizedFileHeaders.some(file => file === expected || file.includes(expected))) {
-      matches++;
+    // Try exact match first, then partial match
+    const exactMatch = normalizedFileHeaders.some(file => file === expected);
+    const partialMatch = normalizedFileHeaders.some(file => 
+      file.includes(expected) || expected.includes(file)
+    );
+    
+    if (exactMatch) {
+      matches += 1.0; // Full credit for exact match
+    } else if (partialMatch) {
+      matches += 0.8; // Partial credit for partial match
     }
   }
 
   // Return the ratio of matched headers
-  return matches / normalizedExpectedHeaders.length;
+  return Math.min(matches / normalizedExpectedHeaders.length, 1.0);
 }
 
 /**
