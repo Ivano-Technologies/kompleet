@@ -17,7 +17,7 @@ interface RateLimitOptions {
   window?: number; // window duration in milliseconds
 }
 
-interface RateLimitResult {
+export interface RateLimitResult {
   success: boolean;
   remaining: number;
   reset: Date;

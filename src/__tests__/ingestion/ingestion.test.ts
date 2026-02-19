@@ -3,6 +3,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
+import type { Transaction } from '@/lib/ingestion/types';
 import { detectFileType, isSupportedFileType } from '@/lib/ingestion/detectFileType';
 import { detectEncryption } from '@/lib/ingestion/detectEncryption';
 import { normalizeTransactions } from '@/lib/ingestion/normalizeTransactions';
@@ -42,7 +43,7 @@ describe('Ingestion Pipeline', () => {
       expect(isSupportedFileType('xlsx')).toBe(true);
       expect(isSupportedFileType('csv')).toBe(true);
       expect(isSupportedFileType('zip')).toBe(true);
-      expect(isSupportedFileType('doc')).toBe(false);
+      expect(isSupportedFileType('doc' as any)).toBe(false);
     });
   });
 
@@ -154,7 +155,7 @@ describe('Ingestion Pipeline', () => {
         },
       ];
 
-      const deduplicated = deduplicateTransactions(transactions);
+      const deduplicated = deduplicateTransactions(transactions as Transaction[]);
       expect(deduplicated).toHaveLength(1);
     });
 
@@ -180,7 +181,7 @@ describe('Ingestion Pipeline', () => {
         },
       ];
 
-      const deduplicated = deduplicateTransactions(transactions);
+      const deduplicated = deduplicateTransactions(transactions as Transaction[]);
       expect(deduplicated).toHaveLength(2);
     });
   });
@@ -199,7 +200,7 @@ describe('Ingestion Pipeline', () => {
         },
       ];
 
-      const { valid, errors } = validateTransactions(transactions);
+      const { valid, errors } = validateTransactions(transactions as Transaction[]);
       expect(valid).toHaveLength(1);
       expect(errors).toHaveLength(0);
     });
@@ -217,7 +218,7 @@ describe('Ingestion Pipeline', () => {
         },
       ];
 
-      const { valid, errors } = validateTransactions(transactions);
+      const { valid, errors } = validateTransactions(transactions as Transaction[]);
       expect(valid).toHaveLength(0);
       expect(errors.length).toBeGreaterThan(0);
     });
@@ -235,7 +236,7 @@ describe('Ingestion Pipeline', () => {
         },
       ];
 
-      const { valid, errors } = validateTransactions(transactions);
+      const { valid, errors } = validateTransactions(transactions as Transaction[]);
       expect(valid).toHaveLength(0);
       expect(errors.some(e => e.errorType === 'AMOUNT_OUT_OF_RANGE')).toBe(true);
     });
@@ -253,7 +254,7 @@ describe('Ingestion Pipeline', () => {
         },
       ];
 
-      const { valid, errors } = validateTransactions(transactions);
+      const { valid, errors } = validateTransactions(transactions as Transaction[]);
       expect(valid).toHaveLength(0);
       expect(errors.some(e => e.errorType === 'INVALID_TYPE')).toBe(true);
     });
@@ -273,7 +274,7 @@ describe('Ingestion Pipeline', () => {
         },
       ];
 
-      const sanitized = sanitizeTransactions(transactions);
+      const sanitized = sanitizeTransactions(transactions as Transaction[]);
       expect(sanitized[0].description).not.toContain('1234567890123456');
     });
 
@@ -290,7 +291,7 @@ describe('Ingestion Pipeline', () => {
         },
       ];
 
-      const sanitized = sanitizeTransactions(transactions);
+      const sanitized = sanitizeTransactions(transactions as Transaction[]);
       expect(sanitized[0].description).not.toContain('user@example.com');
     });
 
@@ -307,7 +308,7 @@ describe('Ingestion Pipeline', () => {
         },
       ];
 
-      const sanitized = sanitizeTransactions(transactions);
+      const sanitized = sanitizeTransactions(transactions as Transaction[]);
       expect(sanitized[0].description).not.toContain('08012345678');
     });
 
@@ -324,7 +325,7 @@ describe('Ingestion Pipeline', () => {
         },
       ];
 
-      const sanitized = sanitizeTransactions(transactions);
+      const sanitized = sanitizeTransactions(transactions as Transaction[]);
       expect(sanitized[0].description).not.toContain('GB82WEST12345698765432');
     });
   });

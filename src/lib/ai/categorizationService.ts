@@ -171,7 +171,7 @@ Categorize the following transaction:
 - Amount: ${transaction.amount} ${transaction.currency || 'NGN'}
 - Type: ${transaction.type}
 - Description: ${transaction.description}
-- Counterparty: ${transaction.counterparty || 'Unknown'}
+- Counterparty: ${transaction.description || 'Unknown'}
 
 Available categories:
 ${categories}
@@ -247,8 +247,8 @@ Respond in JSON format:
   ]
 }`;
 
-  const message = await openai.messages.create({
-    model: 'claude-3-5-sonnet-20241022',
+  const completion = await openai.chat.completions.create({
+    model: 'gpt-4-turbo-preview',
     max_tokens: 300,
     messages: [
       {
@@ -258,8 +258,7 @@ Respond in JSON format:
     ],
   });
 
-  const responseText =
-    message.content[0].type === 'text' ? message.content[0].text : '';
+  const responseText = completion.choices[0]?.message?.content || '';
 
   try {
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
