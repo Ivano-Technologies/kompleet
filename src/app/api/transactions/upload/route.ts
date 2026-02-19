@@ -3,6 +3,8 @@ import { createServerClient as createClient } from '@/lib/supabase/server';
 import { parseCSV, parseExcel, detectBankType, removeDuplicates, type ParsedTransaction } from '@/lib/parsers/bank-statement-parser';
 import { categorizeTransaction, type Category } from '@/lib/services/categorization-service';
 import { withRateLimit } from '@/lib/with-rate-limit';
+import * as XLSX from 'xlsx';
+import { PDFParse } from 'pdf-parse';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60; // 60 seconds for large files
@@ -54,28 +56,51 @@ async function handlePOST(request: NextRequest): Promise<NextResponse<UploadResp
     const fileName = file.name.toLowerCase();
     const isCSV = fileName.endsWith('.csv');
     const isExcel = fileName.endsWith('.xlsx') || fileName.endsWith('.xls');
+    const isPDF = fileName.endsWith('.pdf');
     
-    if (!isCSV && !isExcel) {
+    if (!isCSV && !isExcel && !isPDF) {
       return NextResponse.json(
-        { success: false, message: 'Invalid file type. Only CSV and Excel files are supported', imported: 0, duplicates: 0, errors: 0 },
+        { success: false, message: 'Invalid file type. Only CSV, Excel, and PDF files are supported', imported: 0, duplicates: 0, errors: 0 },
         { status: 400 }
       );
     }
     
-    // Read file content
-    const fileContent = await file.text();
-    
-    // Parse transactions
+    // Parse transactions based on file type
     let parsedTransactions: ParsedTransaction[];
     
     if (isCSV) {
+      // Read CSV as text
+      const fileContent = await file.text();
       const detectedBank = bankType === 'auto' ? detectBankType(fileContent) : bankType;
       parsedTransactions = parseCSV(fileContent, detectedBank as any);
+    } else if (isExcel) {
+      // Read Excel as binary
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      const workbook = XLSX.read(buffer, { type: 'buffer' });
+      const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+      const csvContent = XLSX.utils.sheet_to_csv(firstSheet);
+      
+      const detectedBank = bankType === 'auto' ? detectBankType(csvContent) : bankType;
+      parsedTransactions = parseCSV(csvContent, detectedBank as any);
+    } else if (isPDF) {
+      // Read PDF as binary
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      const parser = new PDFParse({ data: buffer });
+      const pdfData = await parser.getText();
+      const pdfText = pdfData.text;
+      await parser.destroy();
+      
+      // Try to detect bank from PDF content
+      const detectedBank = bankType === 'auto' ? detectBankType(pdfText) : bankType;
+      
+      // Convert PDF text to CSV-like format (this is a simple approach)
+      // For better results, you may need bank-specific PDF parsers
+      parsedTransactions = parseCSV(pdfText, detectedBank as any);
     } else {
-      // For Excel, we'd need a library like xlsx
-      // For now, treat as CSV (user should export Excel to CSV)
       return NextResponse.json(
-        { success: false, message: 'Excel support coming soon. Please export to CSV format', imported: 0, duplicates: 0, errors: 0 },
+        { success: false, message: 'Unsupported file type', imported: 0, duplicates: 0, errors: 0 },
         { status: 400 }
       );
     }
