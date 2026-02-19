@@ -305,6 +305,36 @@ export const BANK_CONFIGS: Record<string, BankConfig> = {
     },
   },
 
+  // Moniepoint (formerly TeamApt)
+  MON: {
+    code: 'MON',
+    name: 'Moniepoint',
+    csvConfig: {
+      delimiter: ',',
+      encoding: 'utf-8',
+      dateColumn: 'Date',
+      merchantColumn: 'Narration',
+      debitColumn: 'Debit',
+      creditColumn: 'Credit',
+      balanceColumn: 'Balance',
+      referenceColumn: 'Reference',
+      dateFormat: 'DD/MM/YYYY',
+      skipRows: 0,
+      hasHeader: true,
+    },
+    excelConfig: {
+      sheetName: 0,
+      headerRow: 1,
+      dateColumn: 'A',
+      merchantColumn: 'B',
+      debitColumn: 'C',
+      creditColumn: 'D',
+      balanceColumn: 'E',
+      referenceColumn: 'F',
+      dateFormat: 'DD/MM/YYYY',
+    },
+  },
+
   // Wema Bank
   WEM: {
     code: 'WEM',
