@@ -79,16 +79,19 @@ DROP POLICY IF EXISTS "Users can view bank configs" ON public.bank_configs;
 DROP POLICY IF EXISTS "Users can view own audit logs" ON public.audit_logs;
 
 -- Profiles: Users can only access their own profile
+DROP POLICY IF EXISTS "profiles_select_own" ON public.profiles;
 CREATE POLICY "profiles_select_own"
   ON public.profiles FOR SELECT
   TO authenticated
   USING (auth.uid() = id);
 
+DROP POLICY IF EXISTS "profiles_insert_own" ON public.profiles;
 CREATE POLICY "profiles_insert_own"
   ON public.profiles FOR INSERT
   TO authenticated
   WITH CHECK (auth.uid() = id);
 
+DROP POLICY IF EXISTS "profiles_update_own" ON public.profiles;
 CREATE POLICY "profiles_update_own"
   ON public.profiles FOR UPDATE
   TO authenticated
@@ -96,46 +99,54 @@ CREATE POLICY "profiles_update_own"
   WITH CHECK (auth.uid() = id);
 
 -- Transactions: Users can only access their own transactions
+DROP POLICY IF EXISTS "transactions_select_own" ON public.transactions;
 CREATE POLICY "transactions_select_own"
   ON public.transactions FOR SELECT
   TO authenticated
   USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "transactions_insert_own" ON public.transactions;
 CREATE POLICY "transactions_insert_own"
   ON public.transactions FOR INSERT
   TO authenticated
   WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "transactions_update_own" ON public.transactions;
 CREATE POLICY "transactions_update_own"
   ON public.transactions FOR UPDATE
   TO authenticated
   USING (auth.uid() = user_id)
   WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "transactions_delete_own" ON public.transactions;
 CREATE POLICY "transactions_delete_own"
   ON public.transactions FOR DELETE
   TO authenticated
   USING (auth.uid() = user_id);
 
 -- Categories: All authenticated users can read
+DROP POLICY IF EXISTS "categories_select_all" ON public.categories;
 CREATE POLICY "categories_select_all"
   ON public.categories FOR SELECT
   TO authenticated
   USING (true);
 
 -- Bank configs: All authenticated users can read active configs
+DROP POLICY IF EXISTS "bank_configs_select_active" ON public.bank_configs;
 CREATE POLICY "bank_configs_select_active"
   ON public.bank_configs FOR SELECT
   TO authenticated
   USING (is_active = true);
 
 -- Audit logs: Users can only view their own logs
+DROP POLICY IF EXISTS "audit_logs_select_own" ON public.audit_logs;
 CREATE POLICY "audit_logs_select_own"
   ON public.audit_logs FOR SELECT
   TO authenticated
   USING (auth.uid() = user_id);
 
 -- Clerk users: Users can only view their own record
+DROP POLICY IF EXISTS "clerk_users_select_own" ON public.clerk_users;
 CREATE POLICY "clerk_users_select_own"
   ON public.clerk_users FOR SELECT
   TO authenticated
