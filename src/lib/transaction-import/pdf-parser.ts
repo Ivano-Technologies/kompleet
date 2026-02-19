@@ -80,18 +80,13 @@ export async function parsePDF(
     
     if (!isEncrypted) {
       // Try normal text extraction for non-encrypted PDFs
-      const parser = new PDFParse({ data: fileBuffer });
       try {
-        const textResult = await parser.getText();
-        rawText = textResult.text;
+        const parser = new PDFParse({ data: fileBuffer });
+        const pdfData = await parser.getText();
+        rawText = pdfData.text;
+        await parser.destroy();
       } catch (parseError) {
         console.log('PDF text extraction failed:', parseError instanceof Error ? parseError.message : 'Unknown error');
-      } finally {
-        try {
-          await parser.destroy();
-        } catch (e) {
-          // Ignore destroy errors
-        }
       }
     }
     

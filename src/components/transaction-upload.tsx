@@ -96,7 +96,7 @@ export function TransactionUpload() {
           Import Bank Statement
         </h2>
         <p className="text-muted">
-          Upload your bank statement (CSV or Excel) to automatically import transactions
+          Upload your bank statement (CSV, Excel, or PDF) to automatically import transactions
         </p>
       </div>
 
@@ -132,7 +132,7 @@ export function TransactionUpload() {
       >
         <input
           type="file"
-          accept=".csv,.xlsx,.xls"
+          accept=".csv,.xlsx,.xls,.pdf"
           onChange={handleFileChange}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
           disabled={uploading}
