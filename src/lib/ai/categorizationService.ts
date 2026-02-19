@@ -1,10 +1,12 @@
 /**
  * AI Categorization Service
- * Uses OpenAI to categorize transactions with confidence scoring
+ * Uses AI providers (Kimi, OpenAI, or fallback rules) to categorize transactions
+ * with automatic fallback support
  */
 
-import OpenAI from 'openai';
 import { Transaction } from '@/lib/ingestion/types';
+import { getProviderWithFallback } from './providers/factory';
+import type { CategoryPrediction as ProviderPrediction } from './providers/types';
 
 export interface CategoryPrediction {
   transactionId: string;
@@ -51,8 +53,11 @@ const TRANSACTION_CATEGORIES = [
   'Uncategorized',
 ];
 
-let _openai: OpenAI | null = null;
-function getOpenAI(): OpenAI {
+/**
+ * @deprecated Old OpenAI client - use provider abstraction instead
+ */
+let _openai: any | null = null;
+function getOpenAI(): any {
   if (!_openai) {
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
@@ -120,29 +125,31 @@ export async function categorizeTransaction(
     previousCategories?: Record<string, string>;
   }
 ): Promise<CategoryPrediction> {
-  const prompt = buildCategorizationPrompt(transaction, userContext);
+  try {
+    const provider = await getProviderWithFallback();
+    
+    const prediction = await provider.categorize({
+      description: transaction.description,
+      amount: transaction.amount,
+      transactionType: transaction.transaction_type as 'credit' | 'debit',
+      date: transaction.transaction_date,
+    });
 
-  const completion = await getOpenAI().chat.completions.create({
-    model: 'gpt-4-turbo-preview',
-    max_tokens: 500,
-    messages: [
-      {
-        role: 'user',
-        content: prompt,
-      },
-    ],
-  });
-
-  const responseText = completion.choices[0]?.message?.content || '';
-
-  // Parse the response
-  const result = parseCategorizationResponse(responseText, transaction.id);
-
-  return result;
+    return {
+      transactionId: transaction.id,
+      category: prediction.category,
+      confidence: prediction.confidence,
+      reasoning: prediction.reasoning,
+      alternativeCategories: prediction.alternativeCategories,
+    };
+  } catch (error) {
+    console.error('Categorization failed:', error);
+    throw error;
+  }
 }
 
 /**
- * Build the categorization prompt
+ * @deprecated Old prompt builder - no longer used with provider abstraction
  */
 function buildCategorizationPrompt(
   transaction: Transaction,
@@ -203,7 +210,7 @@ Rules:
 }
 
 /**
- * Parse the categorization response
+ * @deprecated Old response parser - no longer used with provider abstraction
  */
 function parseCategorizationResponse(
   responseText: string,
