@@ -53,20 +53,7 @@ const TRANSACTION_CATEGORIES = [
   'Uncategorized',
 ];
 
-/**
- * @deprecated Old OpenAI client - use provider abstraction instead
- */
-let _openai: any | null = null;
-function getOpenAI(): any {
-  if (!_openai) {
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey) {
-      throw new Error('OpenAI API key not configured. Set OPENAI_API_KEY in environment variables.');
-    }
-    _openai = new OpenAI({ apiKey });
-  }
-  return _openai;
-}
+// Deprecated OpenAI client removed - now using provider abstraction
 
 /**
  * Categorize transactions using AI
@@ -131,8 +118,8 @@ export async function categorizeTransaction(
     const prediction = await provider.categorize({
       description: transaction.description,
       amount: transaction.amount,
-      transactionType: transaction.transaction_type as 'credit' | 'debit',
-      date: transaction.transaction_date,
+      transactionType: transaction.type as 'credit' | 'debit',
+      date: transaction.date,
     });
 
     return {
@@ -245,46 +232,33 @@ function parseCategorizationResponse(
 
 /**
  * Get category suggestions based on description
+ * Uses AI provider abstraction for suggestions
  */
 export async function getCategorySuggestions(
   description: string,
   limit: number = 5
 ): Promise<Array<{ category: string; confidence: number }>> {
-  const prompt = `Given the transaction description: "${description}"
-  
-Suggest the top ${limit} most likely transaction categories from this list:
-${TRANSACTION_CATEGORIES.join(', ')}
-
-Respond in JSON format:
-{
-  "suggestions": [
-    {"category": "category name", "confidence": 0.0-1.0}
-  ]
-}`;
-
-  const completion = await getOpenAI().chat.completions.create({
-    model: 'gpt-4-turbo-preview',
-    max_tokens: 300,
-    messages: [
-      {
-        role: 'user',
-        content: prompt,
-      },
-    ],
-  });
-
-  const responseText = completion.choices[0]?.message?.content || '';
-
   try {
-    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      return [];
-    }
+    const provider = await getProviderWithFallback();
+    
+    const prediction = await provider.categorize({
+      description,
+      amount: 0, // Not relevant for suggestions
+      transactionType: 'debit', // Default
+    });
 
-    const parsed = JSON.parse(jsonMatch[0]);
-    return (parsed.suggestions || []).slice(0, limit);
+    // Return the main category plus alternatives
+    const suggestions = [
+      { category: prediction.category, confidence: prediction.confidence / 100 },
+      ...(prediction.alternativeCategories || []).map(alt => ({
+        category: alt.category,
+        confidence: alt.confidence / 100,
+      })),
+    ];
+
+    return suggestions.slice(0, limit);
   } catch (error) {
-    console.error('Failed to parse suggestions:', error);
+    console.error('Failed to get category suggestions:', error);
     return [];
   }
 }
