@@ -300,6 +300,10 @@ export function parseExcel(
 /**
  * Detect bank type from CSV content
  */
+/**
+ * Detect bank type from CSV data
+ * @deprecated Use detectBankFromCSV from bank-detector.ts for more robust detection
+ */
 export function detectBankType(csvData: string): keyof typeof BANK_CONFIGS {
   const firstLine = csvData.split('\n')[0].toLowerCase();
   
@@ -313,6 +317,8 @@ export function detectBankType(csvData: string): keyof typeof BANK_CONFIGS {
     return 'firstbank';
   } else if (firstLine.includes('uba') || firstLine.includes('united bank')) {
     return 'uba';
+  } else if (firstLine.includes('moniepoint') || firstLine.includes('teamapt')) {
+    return 'moniepoint';
   }
   
   return 'generic';
