@@ -18,7 +18,11 @@
     "format": "prettier --write .",
     "prepare": "husky",
     "precommit": "pnpm lint && pnpm typecheck && pnpm test",
-    "ci": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
+    "ci": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
+    "prisma:pull": "prisma db pull",
+    "prisma:generate": "prisma generate",
+    "prisma:studio": "prisma studio",
+    "postinstall": "prisma generate || true"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.1",
@@ -26,6 +30,7 @@
     "@azure/identity": "^4.13.0",
     "@microsoft/microsoft-graph-client": "^3.0.7",
     "@mono.co/connect.js": "^2.1.0",
+    "@prisma/client": "^7.4.0",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-select": "^2.2.6",
     "@radix-ui/react-tabs": "^1.1.13",
@@ -99,6 +104,7 @@
     "lint-staged": "^15.2.0",
     "postcss": "^8.5.6",
     "prettier": "^3.8.1",
+    "prisma": "^7.4.0",
     "rimraf": "^6.1.2",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3",
