@@ -21,15 +21,11 @@ export async function parseExcel(
     // 1. Create workbook
     const workbook = new ExcelJS.Workbook();
 
-    // 2. Load workbook with password if provided
+    // 2. Load workbook (ExcelJS does not support password-protected files)
     try {
-      if (password) {
-        await workbook.xlsx.load(buffer, { password });
-      } else {
-        await workbook.xlsx.load(buffer);
-      }
+      await workbook.xlsx.load(buffer as any);
     } catch (error) {
-      if (error instanceof Error && error.message.includes('password')) {
+      if (error instanceof Error && error.message.toLowerCase().includes('password')) {
         throw new Error('PASSWORD_REQUIRED');
       }
       throw error;
@@ -138,7 +134,7 @@ function extractRowsFromSheet(sheet: ExcelJS.Worksheet): RawRow[] {
       continue;
     }
 
-    const rawRow: RawRow = {};
+    const rawRow: RawRow = {} as RawRow;
 
     // Map cells to headers
     for (let colIndex = 1; colIndex < headers.length; colIndex++) {

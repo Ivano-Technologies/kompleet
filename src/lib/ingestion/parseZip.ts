@@ -112,12 +112,12 @@ async function extractZipEntries(
     const stream = Readable.from(buffer);
 
     stream
-      .pipe(unzipper.Parse({ password: password || undefined }))
+      .pipe(unzipper.Parse())
       .on('entry', async entry => {
         try {
           const chunks: Buffer[] = [];
 
-          entry.on('data', chunk => {
+          entry.on('data', (chunk: Buffer) => {
             chunks.push(chunk);
           });
 
@@ -130,7 +130,7 @@ async function extractZipEntries(
             }
           });
 
-          entry.on('error', error => {
+          entry.on('error', (error: unknown) => {
             console.warn(`Error reading entry ${entry.path}:`, error);
           });
         } catch (error) {

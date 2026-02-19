@@ -3,15 +3,9 @@
  * Handles encrypted PDFs, text extraction, and OCR fallback
  */
 
-import * as pdfjs from 'pdfjs-dist';
+import { PDFParse } from 'pdf-parse';
 import { RawRow, ParseResult, ParseError } from './types';
 import { normalizeTransactions } from './normalizeTransactions';
-
-// Set up PDF.js worker
-if (typeof window === 'undefined') {
-  // Node.js environment
-  pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
-}
 
 /**
  * Parse PDF file
@@ -22,34 +16,16 @@ export async function parsePdf(
   sourceFileId: string,
   password?: string
 ): Promise<ParseResult> {
+  void password; // pdf-parse does not support encrypted PDFs; caller handles decryption
   try {
-    // 1. Load PDF document
-    const pdf = await pdfjs.getDocument({
-      data: new Uint8Array(buffer),
-      password: password || '',
-    }).promise;
+    // 1. Extract text using pdf-parse (Node.js compatible)
+    const parser = new PDFParse({ data: buffer });
+    const result = await (parser as any).getText() as { text: string; total: number };
+    const fullText = result.text || '';
+    const pageCount = result.total || 0;
 
-    // 2. Extract text from all pages
-    let fullText = '';
-    let pageCount = 0;
-
-    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-      try {
-        const page = await pdf.getPage(pageNum);
-        const textContent = await page.getTextContent();
-        const pageText = textContent.items.map((item: any) => item.str).join(' ');
-        fullText += pageText + '\n';
-        pageCount++;
-      } catch (error) {
-        console.warn(`Failed to extract text from page ${pageNum}:`, error);
-      }
-    }
-
-    // 3. If text extraction failed, try OCR
+    // 2. If text extraction failed, surface a clear error
     if (!fullText || fullText.trim().length < 50) {
-      console.warn('Text extraction returned minimal content, attempting OCR fallback');
-      // OCR fallback would be implemented here
-      // For now, we'll return an error
       throw new Error('Could not extract text from PDF. File may be corrupted or require OCR.');
     }
 

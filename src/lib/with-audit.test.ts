@@ -26,7 +26,7 @@ vi.mock('@/lib/supabase/server', () => ({
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-function makeRequest(overrides: RequestInit = {}): NextRequest {
+function makeRequest(overrides: any = {}): NextRequest {
   return new NextRequest('http://localhost:3000/api/test', {
     method: 'POST',
     headers: {
