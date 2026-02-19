@@ -1405,6 +1405,7 @@ grant truncate on table "public"."tax_rules" to "service_role";
 grant update on table "public"."tax_rules" to "service_role";
 
 
+  drop policy if exists "Allow service role to manage audit logs" on "public"."audit_logs";
   create policy "Allow service role to manage audit logs"
   on "public"."audit_logs"
   as permissive
@@ -1415,6 +1416,7 @@ with check (true);
 
 
 
+  drop policy if exists "Users can insert their own audit logs" on "public"."audit_logs";
   create policy "Users can insert their own audit logs"
   on "public"."audit_logs"
   as permissive
@@ -1424,6 +1426,7 @@ with check ((auth.uid() = user_id));
 
 
 
+  drop policy if exists "Users can read their own audit logs" on "public"."audit_logs";
   create policy "Users can read their own audit logs"
   on "public"."audit_logs"
   as permissive
@@ -1433,6 +1436,7 @@ using ((auth.uid() = user_id));
 
 
 
+  drop policy if exists "Bank configs are viewable by authenticated users" on "public"."bank_configs";
   create policy "Bank configs are viewable by authenticated users"
   on "public"."bank_configs"
   as permissive
@@ -1442,6 +1446,7 @@ using (true);
 
 
 
+  drop policy if exists "categories_all_service_role" on "public"."categories";
   create policy "categories_all_service_role"
   on "public"."categories"
   as permissive
@@ -1452,6 +1457,7 @@ with check (true);
 
 
 
+  drop policy if exists "categories_select_authenticated" on "public"."categories";
   create policy "categories_select_authenticated"
   on "public"."categories"
   as permissive
@@ -1461,6 +1467,7 @@ using (true);
 
 
 
+  drop policy if exists "clerk_users_insert_own" on "public"."clerk_users";
   create policy "clerk_users_insert_own"
   on "public"."clerk_users"
   as permissive
@@ -1470,6 +1477,7 @@ with check (((clerk_user_id)::text = ((current_setting('request.jwt.claims'::tex
 
 
 
+  drop policy if exists "clerk_users_select_own" on "public"."clerk_users";
   create policy "clerk_users_select_own"
   on "public"."clerk_users"
   as permissive
@@ -1479,6 +1487,7 @@ using (((clerk_user_id)::text = ((current_setting('request.jwt.claims'::text, tr
 
 
 
+  drop policy if exists "clerk_users_service_role" on "public"."clerk_users";
   create policy "clerk_users_service_role"
   on "public"."clerk_users"
   as permissive
@@ -1489,6 +1498,7 @@ with check (true);
 
 
 
+  drop policy if exists "clerk_users_update_own" on "public"."clerk_users";
   create policy "clerk_users_update_own"
   on "public"."clerk_users"
   as permissive
@@ -1498,6 +1508,7 @@ using (((clerk_user_id)::text = ((current_setting('request.jwt.claims'::text, tr
 
 
 
+  drop policy if exists "Users can delete own uploads" on "public"."file_uploads";
   create policy "Users can delete own uploads"
   on "public"."file_uploads"
   as permissive
@@ -1507,6 +1518,7 @@ using ((auth.uid() = user_id));
 
 
 
+  drop policy if exists "Users can insert own uploads" on "public"."file_uploads";
   create policy "Users can insert own uploads"
   on "public"."file_uploads"
   as permissive
@@ -1516,6 +1528,7 @@ with check ((auth.uid() = user_id));
 
 
 
+  drop policy if exists "Users can update own uploads" on "public"."file_uploads";
   create policy "Users can update own uploads"
   on "public"."file_uploads"
   as permissive
@@ -1525,6 +1538,7 @@ using ((auth.uid() = user_id));
 
 
 
+  drop policy if exists "Users can view own uploads" on "public"."file_uploads";
   create policy "Users can view own uploads"
   on "public"."file_uploads"
   as permissive
@@ -1534,6 +1548,7 @@ using ((auth.uid() = user_id));
 
 
 
+  drop policy if exists "Users can create own financial statements" on "public"."financial_statements";
   create policy "Users can create own financial statements"
   on "public"."financial_statements"
   as permissive
@@ -1543,6 +1558,7 @@ with check ((auth.uid() = user_id));
 
 
 
+  drop policy if exists "Users can delete own financial statements" on "public"."financial_statements";
   create policy "Users can delete own financial statements"
   on "public"."financial_statements"
   as permissive
@@ -1552,6 +1568,7 @@ using ((auth.uid() = user_id));
 
 
 
+  drop policy if exists "Users can update own financial statements" on "public"."financial_statements";
   create policy "Users can update own financial statements"
   on "public"."financial_statements"
   as permissive
@@ -1561,6 +1578,7 @@ using ((auth.uid() = user_id));
 
 
 
+  drop policy if exists "Users can view own financial statements" on "public"."financial_statements";
   create policy "Users can view own financial statements"
   on "public"."financial_statements"
   as permissive
@@ -1570,6 +1588,7 @@ using ((auth.uid() = user_id));
 
 
 
+  drop policy if exists "Users can delete own draft invoices" on "public"."invoices";
   create policy "Users can delete own draft invoices"
   on "public"."invoices"
   as permissive
@@ -1579,6 +1598,7 @@ using (((auth.uid() = user_id) AND (status = 'draft'::text)));
 
 
 
+  drop policy if exists "Users can insert own invoices" on "public"."invoices";
   create policy "Users can insert own invoices"
   on "public"."invoices"
   as permissive
@@ -1588,6 +1608,7 @@ with check ((auth.uid() = user_id));
 
 
 
+  drop policy if exists "Users can update own invoices" on "public"."invoices";
   create policy "Users can update own invoices"
   on "public"."invoices"
   as permissive
@@ -1598,6 +1619,7 @@ with check ((auth.uid() = user_id));
 
 
 
+  drop policy if exists "Users can view own invoices" on "public"."invoices";
   create policy "Users can view own invoices"
   on "public"."invoices"
   as permissive
@@ -1607,6 +1629,7 @@ using ((auth.uid() = user_id));
 
 
 
+  drop policy if exists "Allow service role to manage profiles" on "public"."profiles";
   create policy "Allow service role to manage profiles"
   on "public"."profiles"
   as permissive
@@ -1617,6 +1640,7 @@ with check (true);
 
 
 
+  drop policy if exists "Enable insert for authenticated users only" on "public"."profiles";
   create policy "Enable insert for authenticated users only"
   on "public"."profiles"
   as permissive
@@ -1626,6 +1650,7 @@ with check ((auth.uid() = id));
 
 
 
+  drop policy if exists "Users can read their own profile" on "public"."profiles";
   create policy "Users can read their own profile"
   on "public"."profiles"
   as permissive
@@ -1635,6 +1660,7 @@ using ((auth.uid() = id));
 
 
 
+  drop policy if exists "Users can update own profile" on "public"."profiles";
   create policy "Users can update own profile"
   on "public"."profiles"
   as permissive
@@ -1645,6 +1671,7 @@ with check ((auth.uid() = id));
 
 
 
+  drop policy if exists "Users can update their own profile" on "public"."profiles";
   create policy "Users can update their own profile"
   on "public"."profiles"
   as permissive
@@ -1655,6 +1682,7 @@ with check ((auth.uid() = id));
 
 
 
+  drop policy if exists "Users can view own profile" on "public"."profiles";
   create policy "Users can view own profile"
   on "public"."profiles"
   as permissive
@@ -1664,6 +1692,7 @@ using ((auth.uid() = id));
 
 
 
+  drop policy if exists "profiles_insert_clerk" on "public"."profiles";
   create policy "profiles_insert_clerk"
   on "public"."profiles"
   as permissive
@@ -1673,6 +1702,7 @@ with check ((((clerk_user_id)::text = ((current_setting('request.jwt.claims'::te
 
 
 
+  drop policy if exists "profiles_select_clerk" on "public"."profiles";
   create policy "profiles_select_clerk"
   on "public"."profiles"
   as permissive
@@ -1682,6 +1712,7 @@ using ((((clerk_user_id)::text = ((current_setting('request.jwt.claims'::text, t
 
 
 
+  drop policy if exists "profiles_update_clerk" on "public"."profiles";
   create policy "profiles_update_clerk"
   on "public"."profiles"
   as permissive
@@ -1691,6 +1722,7 @@ using ((((clerk_user_id)::text = ((current_setting('request.jwt.claims'::text, t
 
 
 
+  drop policy if exists "Allow authenticated users to insert review queue" on "public"."review_queue";
   create policy "Allow authenticated users to insert review queue"
   on "public"."review_queue"
   as permissive
@@ -1700,6 +1732,7 @@ with check (true);
 
 
 
+  drop policy if exists "Allow authenticated users to read review queue" on "public"."review_queue";
   create policy "Allow authenticated users to read review queue"
   on "public"."review_queue"
   as permissive
@@ -1709,6 +1742,7 @@ using (true);
 
 
 
+  drop policy if exists "Allow service role to manage review queue" on "public"."review_queue";
   create policy "Allow service role to manage review queue"
   on "public"."review_queue"
   as permissive
@@ -1719,6 +1753,7 @@ with check (true);
 
 
 
+  drop policy if exists "Allow authenticated users to read rule versions" on "public"."rule_versions";
   create policy "Allow authenticated users to read rule versions"
   on "public"."rule_versions"
   as permissive
@@ -1728,6 +1763,7 @@ using (true);
 
 
 
+  drop policy if exists "Allow service role to manage rule versions" on "public"."rule_versions";
   create policy "Allow service role to manage rule versions"
   on "public"."rule_versions"
   as permissive
@@ -1738,6 +1774,7 @@ with check (true);
 
 
 
+  drop policy if exists "Allow authenticated users to read sources" on "public"."sources";
   create policy "Allow authenticated users to read sources"
   on "public"."sources"
   as permissive
@@ -1747,6 +1784,7 @@ using (true);
 
 
 
+  drop policy if exists "Allow service role to manage sources" on "public"."sources";
   create policy "Allow service role to manage sources"
   on "public"."sources"
   as permissive
@@ -1757,6 +1795,7 @@ with check (true);
 
 
 
+  drop policy if exists "Users can delete own draft filings" on "public"."tax_filings";
   create policy "Users can delete own draft filings"
   on "public"."tax_filings"
   as permissive
@@ -1766,6 +1805,7 @@ using (((auth.uid() = user_id) AND (status = 'draft'::public.filing_status)));
 
 
 
+  drop policy if exists "Users can insert own filings" on "public"."tax_filings";
   create policy "Users can insert own filings"
   on "public"."tax_filings"
   as permissive
@@ -1775,6 +1815,7 @@ with check ((auth.uid() = user_id));
 
 
 
+  drop policy if exists "Users can update own filings" on "public"."tax_filings";
   create policy "Users can update own filings"
   on "public"."tax_filings"
   as permissive
@@ -1785,6 +1826,7 @@ with check ((auth.uid() = user_id));
 
 
 
+  drop policy if exists "Users can view own filings" on "public"."tax_filings";
   create policy "Users can view own filings"
   on "public"."tax_filings"
   as permissive
@@ -1794,6 +1836,7 @@ using ((auth.uid() = user_id));
 
 
 
+  drop policy if exists "Users can delete own tax reports" on "public"."tax_reports";
   create policy "Users can delete own tax reports"
   on "public"."tax_reports"
   as permissive
@@ -1803,6 +1846,7 @@ using ((auth.uid() = user_id));
 
 
 
+  drop policy if exists "Users can insert own tax reports" on "public"."tax_reports";
   create policy "Users can insert own tax reports"
   on "public"."tax_reports"
   as permissive
@@ -1812,6 +1856,7 @@ with check ((auth.uid() = user_id));
 
 
 
+  drop policy if exists "Users can update own tax reports" on "public"."tax_reports";
   create policy "Users can update own tax reports"
   on "public"."tax_reports"
   as permissive
@@ -1822,6 +1867,7 @@ with check ((auth.uid() = user_id));
 
 
 
+  drop policy if exists "Users can view own tax reports" on "public"."tax_reports";
   create policy "Users can view own tax reports"
   on "public"."tax_reports"
   as permissive
@@ -1831,6 +1877,7 @@ using ((auth.uid() = user_id));
 
 
 
+  drop policy if exists "Allow authenticated users to read tax rules" on "public"."tax_rules";
   create policy "Allow authenticated users to read tax rules"
   on "public"."tax_rules"
   as permissive
@@ -1840,6 +1887,7 @@ using (true);
 
 
 
+  drop policy if exists "Allow service role to manage tax rules" on "public"."tax_rules";
   create policy "Allow service role to manage tax rules"
   on "public"."tax_rules"
   as permissive
@@ -1850,6 +1898,7 @@ with check (true);
 
 
 
+  drop policy if exists "transactions_all_service_role" on "public"."transactions";
   create policy "transactions_all_service_role"
   on "public"."transactions"
   as permissive
@@ -1860,6 +1909,7 @@ with check (true);
 
 
 
+  drop policy if exists "transactions_delete_clerk" on "public"."transactions";
   create policy "transactions_delete_clerk"
   on "public"."transactions"
   as permissive
@@ -1869,6 +1919,7 @@ using ((((clerk_user_id)::text = ((current_setting('request.jwt.claims'::text, t
 
 
 
+  drop policy if exists "transactions_delete_own" on "public"."transactions";
   create policy "transactions_delete_own"
   on "public"."transactions"
   as permissive
@@ -1878,6 +1929,7 @@ using ((auth.uid() = user_id));
 
 
 
+  drop policy if exists "transactions_insert_clerk" on "public"."transactions";
   create policy "transactions_insert_clerk"
   on "public"."transactions"
   as permissive
@@ -1887,6 +1939,7 @@ with check ((((clerk_user_id)::text = ((current_setting('request.jwt.claims'::te
 
 
 
+  drop policy if exists "transactions_insert_own" on "public"."transactions";
   create policy "transactions_insert_own"
   on "public"."transactions"
   as permissive
@@ -1896,6 +1949,7 @@ with check ((auth.uid() = user_id));
 
 
 
+  drop policy if exists "transactions_select_clerk" on "public"."transactions";
   create policy "transactions_select_clerk"
   on "public"."transactions"
   as permissive
@@ -1905,6 +1959,7 @@ using ((((clerk_user_id)::text = ((current_setting('request.jwt.claims'::text, t
 
 
 
+  drop policy if exists "transactions_select_own" on "public"."transactions";
   create policy "transactions_select_own"
   on "public"."transactions"
   as permissive
@@ -1914,6 +1969,7 @@ using ((auth.uid() = user_id));
 
 
 
+  drop policy if exists "transactions_update_clerk" on "public"."transactions";
   create policy "transactions_update_clerk"
   on "public"."transactions"
   as permissive
@@ -1923,6 +1979,7 @@ using ((((clerk_user_id)::text = ((current_setting('request.jwt.claims'::text, t
 
 
 
+  drop policy if exists "transactions_update_own" on "public"."transactions";
   create policy "transactions_update_own"
   on "public"."transactions"
   as permissive
@@ -1955,6 +2012,7 @@ CREATE TRIGGER update_tax_rules_updated_at BEFORE UPDATE ON public.tax_rules FOR
 CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 
+  drop policy if exists "Users can delete own bank statements" on "storage"."objects";
   create policy "Users can delete own bank statements"
   on "storage"."objects"
   as permissive
@@ -1964,6 +2022,7 @@ using (((bucket_id = 'bank-statements'::text) AND ((storage.foldername(name))[1]
 
 
 
+  drop policy if exists "Users can upload own bank statements" on "storage"."objects";
   create policy "Users can upload own bank statements"
   on "storage"."objects"
   as permissive
@@ -1973,6 +2032,7 @@ with check (((bucket_id = 'bank-statements'::text) AND ((storage.foldername(name
 
 
 
+  drop policy if exists "Users can upload own documents" on "storage"."objects";
   create policy "Users can upload own documents"
   on "storage"."objects"
   as permissive
@@ -1982,6 +2042,7 @@ with check (((bucket_id = 'documents'::text) AND ((storage.foldername(name))[1] 
 
 
 
+  drop policy if exists "Users can view own bank statements" on "storage"."objects";
   create policy "Users can view own bank statements"
   on "storage"."objects"
   as permissive
@@ -1991,6 +2052,7 @@ using (((bucket_id = 'bank-statements'::text) AND ((storage.foldername(name))[1]
 
 
 
+  drop policy if exists "Users can view own documents" on "storage"."objects";
   create policy "Users can view own documents"
   on "storage"."objects"
   as permissive
