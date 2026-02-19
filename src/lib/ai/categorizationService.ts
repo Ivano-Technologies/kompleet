@@ -51,9 +51,17 @@ const TRANSACTION_CATEGORIES = [
   'Uncategorized',
 ];
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+let _openai: OpenAI | null = null;
+function getOpenAI(): OpenAI {
+  if (!_openai) {
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      throw new Error('OpenAI API key not configured. Set OPENAI_API_KEY in environment variables.');
+    }
+    _openai = new OpenAI({ apiKey });
+  }
+  return _openai;
+}
 
 /**
  * Categorize transactions using AI
@@ -114,7 +122,7 @@ export async function categorizeTransaction(
 ): Promise<CategoryPrediction> {
   const prompt = buildCategorizationPrompt(transaction, userContext);
 
-  const completion = await openai.chat.completions.create({
+  const completion = await getOpenAI().chat.completions.create({
     model: 'gpt-4-turbo-preview',
     max_tokens: 500,
     messages: [
@@ -247,7 +255,7 @@ Respond in JSON format:
   ]
 }`;
 
-  const completion = await openai.chat.completions.create({
+  const completion = await getOpenAI().chat.completions.create({
     model: 'gpt-4-turbo-preview',
     max_tokens: 300,
     messages: [
