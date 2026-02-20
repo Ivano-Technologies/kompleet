@@ -163,7 +163,7 @@ function LoginForm() {
               <span className="w-1.5 h-1.5 rounded-full bg-white/60" /> 5,000+ businesses
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-white/60" /> FIRS compliant
+              <span className="w-1.5 h-1.5 rounded-full bg-white/60" /> NRS compliant
             </span>
           </div>
         </div>
