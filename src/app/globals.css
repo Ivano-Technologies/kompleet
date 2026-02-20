@@ -29,9 +29,9 @@ html.dark,
   --surface-hover: 20 33 26; /* #14211A */
   --border: 26 46 38; /* #1A2E26 */
   --border-hover: 42 74 58; /* #2A4A3A */
-  --text-primary: 236 253 245; /* #ECFDF5 */
-  --text-secondary: 167 243 208; /* #A7F3D0 */
-  --text-tertiary: 110 231 183; /* #6EE7B7 */
+  --text-primary: 227 241 255; /* #E3F1FF */
+  --text-secondary: 186 216 245; /* #BAD8F5 */
+  --text-tertiary: 147 197 235; /* #93C5EB */
 }
 
 /* Base Styles */

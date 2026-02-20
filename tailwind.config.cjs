@@ -58,9 +58,9 @@ module.exports = {
           border: '#1A2E26',
           'border-hover': '#2A4A3A',
           text: {
-            primary: '#ECFDF5',
-            secondary: '#A7F3D0',
-            tertiary: '#6EE7B7',
+            primary: '#E3F1FF',
+            secondary: '#BAD8F5',
+            tertiary: '#93C5EB',
           },
         },
         
