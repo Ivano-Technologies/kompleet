@@ -7,8 +7,8 @@
 
 :root {
   /* Brand Colors */
-  --primary: 10 103 71; /* #0A6847 - Nigerian Green */
-  --primary-rgb: 10, 103, 71;
+  --primary: 64 142 224; /* #408ee0 - Professional Blue */
+  --primary-rgb: 64, 142, 224;
   
   /* Light Theme (Default) */
   --background: 255 255 255; /* #FFFFFF */
@@ -202,7 +202,7 @@ html.dark .solid-nav {
 }
 
 .btn-primary:hover {
-  background-color: #085a3c;
+  background-color: #2d7bc7;
   box-shadow: 0 4px 6px -1px rgba(var(--primary-rgb), 0.3);
 }
 
