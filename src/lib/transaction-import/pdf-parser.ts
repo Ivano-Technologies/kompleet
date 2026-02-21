@@ -83,7 +83,7 @@ export async function parsePDF(
       try {
         const parser = new PDFParse({ data: fileBuffer });
         const pdfData = await parser.getText();
-        rawText = pdfData.text;
+        rawText = (pdfData?.text != null && typeof pdfData.text === 'string') ? pdfData.text : '';
         await parser.destroy();
       } catch (parseError) {
         console.log('PDF text extraction failed:', parseError instanceof Error ? parseError.message : 'Unknown error');
