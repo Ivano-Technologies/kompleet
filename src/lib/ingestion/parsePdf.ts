@@ -20,9 +20,9 @@ export async function parsePdf(
   try {
     // 1. Extract text using pdf-parse (Node.js compatible)
     const parser = new PDFParse({ data: buffer });
-    const result = await (parser as any).getText() as { text: string; total: number };
-    const fullText = result.text || '';
-    const pageCount = result.total || 0;
+    const result = await (parser as any).getText() as { text?: string; total?: number } | undefined;
+    const fullText = (result?.text != null && typeof result.text === 'string') ? result.text : '';
+    const pageCount = (result?.total != null && typeof result.total === 'number') ? result.total : 0;
 
     // 2. If text extraction failed, surface a clear error
     if (!fullText || fullText.trim().length < 50) {

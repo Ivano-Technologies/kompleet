@@ -1,0 +1,91 @@
+﻿
+> kompleet-platform@0.1.0 test C:\Users\Windows\OneDrive\Documents\Antigravity\Projects\kompleet-platform
+> vitest run --passWithNoTests "--run"
+
+
+ RUN  v4.0.18 C:/Users/Windows/OneDrive/Documents/Antigravity/Projects/kompleet-platform
+
+stdout | tests/critical-path-integration.test.ts
+Ô£à All critical path integration tests defined
+
+ Ô£ô tests/rate-limit.test.ts (6 tests) 178ms
+stdout | src/__tests__/transaction-import/pdf-parser.test.ts > PDF Parser > returns ParseResult shape with transactions and errors arrays
+PDF text extraction failed: Cannot read properties of undefined (reading 'text')
+Attempting OCR extraction for encrypted or text-less PDF...
+Attempting OCR extraction...
+
+stdout | src/__tests__/transaction-import/pdf-parser.test.ts > PDF Parser > returns ParseResult shape with transactions and errors arrays
+OCR extracted 0 characters
+
+ Ô£ô src/__tests__/transaction-import/pdf-parser.test.ts (3 tests) 161ms
+ Ô£ô tests/critical-path-integration.test.ts (11 tests) 607ms
+     Ô£ô should generate Income Statement from transactions  398ms
+ Ô£ô src/lib/services/tax-report-template.test.ts (11 tests) 218ms
+ Ô£ô tests/sprint9-10.test.ts (26 tests) 1539ms
+       Ô£ô should generate invoice in under 2 seconds  1502ms
+ Ô£ô src/__tests__/api/transactions-upload.test.ts (2 tests) 2237ms
+     Ô£ô returns 401 when not authenticated  2232ms
+ Ô£ô src/lib/services/vat-service.test.ts (26 tests) 76ms
+ Ô£ô src/lib/with-audit.test.ts (6 tests) 102ms
+ Ô£ô src/lib/supabase/__tests__/client.test.ts (5 tests) 82ms
+ Ô£ô tests/sprint7.test.ts (19 tests) 149ms
+ Ô£ô tests/sprint8.test.ts (30 tests) 5356ms
+     Ô£ô should export 10,000 transactions within 10 seconds  5012ms
+ Ô£ô src/lib/rate-limit.test.ts (18 tests) 62ms
+ Ô£ô src/components/__tests__/App.test.tsx (1 test) 130ms
+ Ô£ô src/lib/with-rate-limit.test.ts (6 tests) 66ms
+ Ô£ô src/lib/schemas/calculations.test.ts (20 tests) 37ms
+ Ô£ô src/lib/schemas/invoices.test.ts (15 tests) 32ms
+ Ô£ô src/lib/auth/rbac.test.ts (41 tests) 39ms
+ Ô£ô src/__tests__/ingestion/ingestion.test.ts (24 tests) 30ms
+ Ô£ô src/lib/supabase/__tests__/queries.test.ts (9 tests) 30ms
+ Ô£ô src/lib/services/categorization-service.test.ts (16 tests) 59ms
+ Ô£ô src/__tests__/rls/rls-policies.test.ts (34 tests) 31ms
+ Ô£ô src/lib/supabase/queries.test.ts (10 tests) 25ms
+ Ô£ô tests/ml-system.test.ts (12 tests) 23ms
+ Ô£ô src/lib/supabase/session.test.ts (13 tests) 22ms
+ Ô£ô src/lib/dashboard/data-aggregation.test.ts (7 tests) 23ms
+ Ô£ô src/lib/env-validation.test.ts (7 tests) 21ms
+stdout | src/__tests__/api/auth.test.ts > API Authentication Tests > Protected Endpoints - Authentication Required > should reject audit-log POST without authentication
+Ôèÿ Skipping: Requires Supabase test instance in CI
+
+stdout | src/__tests__/api/auth.test.ts > API Authentication Tests > Protected Endpoints - Authentication Required > should reject history GET without authentication
+Ôèÿ Skipping: Requires Supabase test instance in CI
+
+stdout | src/__tests__/api/auth.test.ts > API Authentication Tests > Protected Endpoints - Authentication Required > should reject history/[id] DELETE without authentication
+Ôèÿ Skipping: Requires Supabase test instance in CI
+
+stdout | src/__tests__/api/auth.test.ts > API Authentication Tests > Audit Log Endpoint - /api/audit-log > should create audit log for authenticated user
+Ôèÿ Skipping: Requires valid Supabase auth token in CI
+
+stdout | src/__tests__/api/auth.test.ts > API Authentication Tests > Audit Log Endpoint - /api/audit-log > should reject audit log creation with invalid user ID in body
+Ôèÿ Skipping: Requires Supabase test instance in CI
+
+stdout | src/__tests__/api/auth.test.ts > API Authentication Tests > History Endpoint - /api/history > should return only authenticated user's history
+Ôèÿ Skipping: Requires Supabase test instance in CI
+
+stdout | src/__tests__/api/auth.test.ts > API Authentication Tests > History Endpoint - /api/history > should filter history by type parameter
+Ôèÿ Skipping: Requires Supabase test instance in CI
+
+stdout | src/__tests__/api/auth.test.ts > API Authentication Tests > History Endpoint - /api/history > should return paginated results
+Ôèÿ Skipping: Requires Supabase test instance in CI
+
+stdout | src/__tests__/api/auth.test.ts > API Authentication Tests > History Item Endpoint - /api/history/[id] > should prevent unauthorized deletion
+Ôèÿ Skipping: Requires Supabase test instance in CI
+
+stdout | src/__tests__/api/auth.test.ts > API Authentication Tests > History Item Endpoint - /api/history/[id] > should prevent cross-user access
+Ôèÿ Skipping: Requires Supabase test instance in CI
+
+ Ô£ô src/__tests__/api/auth.test.ts (13 tests) 21ms
+ Ô£ô src/__tests__/transaction-import/bank-adapter.test.ts (11 tests) 23ms
+ Ô£ô src/lib/auth.test.ts (4 tests) 17ms
+ Ô£ô tests/rbac.test.ts (12 tests) 17ms
+ Ô£ô src/__tests__/bank-detector.test.ts (7 tests) 29ms
+ Ô£ô tests/smoke.test.ts (1 test) 5ms
+ Ô£ô src/test/smoke.test.ts (1 test) 4ms
+
+ Test Files  33 passed (33)
+      Tests  427 passed (427)
+   Start at  15:29:05
+   Duration  25.14s (transform 5.84s, setup 13.91s, import 13.02s, tests 11.45s, environment 94.91s)
+
