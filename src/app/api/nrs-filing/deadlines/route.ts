@@ -4,8 +4,8 @@
  * Returns tax filing deadlines
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient as createClient } from '@/lib/supabase/server';
+import { NextRequest, NextResponse } from "next/server";
+import { createServerClient as createClient } from "@/lib/supabase/server";
 import {
   getFilingDeadlines,
   getUpcomingDeadlines,
@@ -13,27 +13,33 @@ import {
   getDeadlineStatus,
   daysUntilDeadline,
   formatDeadline,
-} from '@/lib/nrs-filing/deadline-manager';
-import { withRateLimit } from '@/lib/with-rate-limit';
+} from "@/lib/nrs-filing/deadline-manager";
+import { withRateLimit } from "@/lib/with-rate-limit";
 
-export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic';
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 async function handleGET(request: NextRequest) {
   try {
     const supabase = await createClient();
 
     // Check authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Get query parameters
     const searchParams = request.nextUrl.searchParams;
-    const taxYear = parseInt(searchParams.get('taxYear') || new Date().getFullYear().toString(), 10);
-    const filter = searchParams.get('filter'); // 'upcoming', 'overdue', or null for all
+    const taxYear = parseInt(
+      searchParams.get("taxYear") || new Date().getFullYear().toString(),
+      10,
+    );
+    const filter = searchParams.get("filter"); // 'upcoming', 'overdue', or null for all
 
     // Get all deadlines for the tax year
     const allDeadlines = getFilingDeadlines(taxYear);
@@ -41,9 +47,9 @@ async function handleGET(request: NextRequest) {
     // Filter deadlines based on request
     let filteredDeadlines = allDeadlines;
 
-    if (filter === 'upcoming') {
+    if (filter === "upcoming") {
       filteredDeadlines = getUpcomingDeadlines(allDeadlines, 30);
-    } else if (filter === 'overdue') {
+    } else if (filter === "overdue") {
       filteredDeadlines = getOverdueDeadlines(allDeadlines);
     }
 
@@ -68,12 +74,11 @@ async function handleGET(request: NextRequest) {
       stats,
       taxYear,
     });
-
   } catch (error) {
-    console.error('Get filing deadlines error:', error);
+    console.error("Get filing deadlines error:", error);
     return NextResponse.json(
-      { error: 'Failed to fetch filing deadlines' },
-      { status: 500 }
+      { error: "Failed to fetch filing deadlines" },
+      { status: 500 },
     );
   }
 }

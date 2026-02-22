@@ -1,8 +1,11 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { withRateLimit } from '@/lib/with-rate-limit';
-import { createServerClient as createClient } from '@/lib/supabase/server';
-import { getTransactions, syncAccount } from '@/lib/services/mono-service';
-import { categorizeTransaction, type Category } from '@/lib/services/categorization-service';
+import { NextRequest, NextResponse } from "next/server";
+import { withRateLimit } from "@/lib/with-rate-limit";
+import { createServerClient as createClient } from "@/lib/supabase/server";
+import { getTransactions, syncAccount } from "@/lib/services/mono-service";
+import {
+  categorizeTransaction,
+  type Category,
+} from "@/lib/services/categorization-service";
 
 /**
  * POST /api/banking/mono/sync
@@ -11,42 +14,45 @@ import { categorizeTransaction, type Category } from '@/lib/services/categorizat
 async function handlePOST(request: NextRequest) {
   try {
     const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { bankAccountId } = await request.json();
 
     if (!bankAccountId) {
       return NextResponse.json(
-        { error: 'Missing bankAccountId' },
-        { status: 400 }
+        { error: "Missing bankAccountId" },
+        { status: 400 },
       );
     }
 
     // Get the bank account record
     const { data: bankAccount, error: fetchError } = await supabase
-      .from('bank_accounts')
-      .select('*')
-      .eq('id', bankAccountId)
-      .eq('user_id', user.id)
-      .eq('provider', 'mono')
+      .from("bank_accounts")
+      .select("*")
+      .eq("id", bankAccountId)
+      .eq("user_id", user.id)
+      .eq("provider", "mono")
       .single();
 
     if (fetchError || !bankAccount) {
       return NextResponse.json(
-        { error: 'Bank account not found' },
-        { status: 404 }
+        { error: "Bank account not found" },
+        { status: 404 },
       );
     }
 
     const monoAccountId = bankAccount.metadata?.mono_account_id;
     if (!monoAccountId) {
       return NextResponse.json(
-        { error: 'Invalid Mono account configuration' },
-        { status: 400 }
+        { error: "Invalid Mono account configuration" },
+        { status: 400 },
       );
     }
 
@@ -68,46 +74,48 @@ async function handlePOST(request: NextRequest) {
     // Fetch transactions from Mono
     const { transactions: monoTransactions, total } = await getTransactions(
       monoAccountId,
-      { start: startDate, end: endDate, limit: 500 }
+      { start: startDate, end: endDate, limit: 500 },
     );
 
     // Fetch user's categories for auto-categorization
     const { data: categories } = await supabase
-      .from('categories')
-      .select('id, name, category_type, tax_treatment, keywords');
+      .from("categories")
+      .select("id, name, category_type, tax_treatment, keywords");
 
     // Get existing external IDs to skip duplicates
     const { data: existingTxns } = await supabase
-      .from('transactions')
-      .select('external_id')
-      .eq('bank_account_id', bankAccountId);
+      .from("transactions")
+      .select("external_id")
+      .eq("bank_account_id", bankAccountId);
 
-    const existingIds = new Set((existingTxns || []).map(t => t.external_id));
+    const existingIds = new Set((existingTxns || []).map((t) => t.external_id));
 
     // Filter out already-synced transactions
-    const newTransactions = monoTransactions.filter(t => !existingIds.has(t.id));
+    const newTransactions = monoTransactions.filter(
+      (t) => !existingIds.has(t.id),
+    );
 
     if (newTransactions.length === 0) {
       // Update last synced timestamp
       await supabase
-        .from('bank_accounts')
+        .from("bank_accounts")
         .update({ last_synced_at: new Date().toISOString() })
-        .eq('id', bankAccountId);
+        .eq("id", bankAccountId);
 
       return NextResponse.json({
         success: true,
         synced: 0,
         total,
-        message: 'No new transactions found',
+        message: "No new transactions found",
       });
     }
 
     // Process and store new transactions
-    const transactionsToInsert = newTransactions.map(t => {
+    const transactionsToInsert = newTransactions.map((t) => {
       // Auto-categorize using rules engine
       const catResult = categorizeTransaction(
         t.narration,
-        (categories || []) as Category[]
+        (categories || []) as Category[],
       );
 
       return {
@@ -115,7 +123,7 @@ async function handlePOST(request: NextRequest) {
         external_id: t.id,
         type: t.type,
         amount: (t.amount / 100).toFixed(2), // kobo to Naira
-        currency: 'NGN',
+        currency: "NGN",
         description: t.narration,
         date: t.date,
         category: catResult.categoryName || null,
@@ -126,55 +134,55 @@ async function handlePOST(request: NextRequest) {
         metadata: {
           mono_category: t.category,
           balance_after: t.balance / 100,
-          source: 'mono_sync',
+          source: "mono_sync",
         },
       };
     });
 
     // Batch insert (max 500 at a time)
     const { error: insertError } = await supabase
-      .from('transactions')
+      .from("transactions")
       .insert(transactionsToInsert);
 
     if (insertError) {
-      console.error('[Mono Sync] Insert error:', insertError);
+      console.error("[Mono Sync] Insert error:", insertError);
       return NextResponse.json(
-        { error: 'Failed to store transactions' },
-        { status: 500 }
+        { error: "Failed to store transactions" },
+        { status: 500 },
       );
     }
 
     // Update bank account last sync time and balance
     const latestBalance = monoTransactions[0]?.balance;
     await supabase
-      .from('bank_accounts')
+      .from("bank_accounts")
       .update({
         last_synced_at: new Date().toISOString(),
         ...(latestBalance !== undefined && {
           balance: (latestBalance / 100).toFixed(2),
         }),
       })
-      .eq('id', bankAccountId);
+      .eq("id", bankAccountId);
 
     return NextResponse.json({
       success: true,
       synced: transactionsToInsert.length,
       total,
-      categorized: transactionsToInsert.filter(t => t.is_categorized).length,
+      categorized: transactionsToInsert.filter((t) => t.is_categorized).length,
     });
   } catch (error) {
-    console.error('[Mono Sync Error]', error);
+    console.error("[Mono Sync Error]", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Sync failed' },
-      { status: 500 }
+      { error: error instanceof Error ? error.message : "Sync failed" },
+      { status: 500 },
     );
   }
 }
 
 /** Format date as DD-MM-YYYY for Mono API */
 function formatMonoDate(date: Date): string {
-  const d = date.getDate().toString().padStart(2, '0');
-  const m = (date.getMonth() + 1).toString().padStart(2, '0');
+  const d = date.getDate().toString().padStart(2, "0");
+  const m = (date.getMonth() + 1).toString().padStart(2, "0");
   const y = date.getFullYear();
   return `${d}-${m}-${y}`;
 }

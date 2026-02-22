@@ -1,15 +1,21 @@
-'use client';
+"use client";
 
-import React, { useState, useRef } from 'react';
-import { Upload, AlertCircle, CheckCircle, Loader } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import PasswordPrompt from './PasswordPrompt';
-import UploadProgress from './UploadProgress';
-import UploadSuccess from './UploadSuccess';
-import UploadError from './UploadError';
+import React, { useState, useRef } from "react";
+import { Upload, AlertCircle, CheckCircle, Loader } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import PasswordPrompt from "./PasswordPrompt";
+import UploadProgress from "./UploadProgress";
+import UploadSuccess from "./UploadSuccess";
+import UploadError from "./UploadError";
 
-export type UploadState = 'idle' | 'uploading' | 'password_required' | 'parsing' | 'success' | 'error';
+export type UploadState =
+  | "idle"
+  | "uploading"
+  | "password_required"
+  | "parsing"
+  | "success"
+  | "error";
 
 interface UploadWidgetProps {
   onSuccess?: (transactionCount: number) => void;
@@ -32,10 +38,10 @@ export default function UploadWidget({
   onSuccess,
   onError,
   maxFileSize = 100 * 1024 * 1024, // 100 MB
-  acceptedFormats = ['pdf', 'xlsx', 'xls', 'csv', 'zip'],
+  acceptedFormats = ["pdf", "xlsx", "xls", "csv", "zip"],
 }: UploadWidgetProps) {
   const [uploadState, setUploadState] = useState<UploadWidgetState>({
-    state: 'idle',
+    state: "idle",
     progress: 0,
     requiresPassword: false,
     passwordAttempts: 0,
@@ -47,36 +53,36 @@ export default function UploadWidget({
   // Handle file selection
   const handleFileSelect = async (file: File) => {
     // Validate file type
-    const ext = file.name.toLowerCase().split('.').pop() || '';
+    const ext = file.name.toLowerCase().split(".").pop() || "";
     if (!acceptedFormats.includes(ext)) {
-      setUploadState(prev => ({
+      setUploadState((prev) => ({
         ...prev,
-        state: 'error',
-        error: `Invalid file type. Only ${acceptedFormats.join(', ').toUpperCase()} files are supported.`,
+        state: "error",
+        error: `Invalid file type. Only ${acceptedFormats.join(", ").toUpperCase()} files are supported.`,
       }));
       onError?.(
-        `Invalid file type. Only ${acceptedFormats.join(', ').toUpperCase()} files are supported.`
+        `Invalid file type. Only ${acceptedFormats.join(", ").toUpperCase()} files are supported.`,
       );
       return;
     }
 
     // Validate file size
     if (file.size > maxFileSize) {
-      setUploadState(prev => ({
+      setUploadState((prev) => ({
         ...prev,
-        state: 'error',
+        state: "error",
         error: `File size exceeds ${(maxFileSize / 1024 / 1024).toFixed(0)} MB limit (${(file.size / 1024 / 1024).toFixed(2)} MB).`,
       }));
       onError?.(
-        `File size exceeds ${(maxFileSize / 1024 / 1024).toFixed(0)} MB limit (${(file.size / 1024 / 1024).toFixed(2)} MB).`
+        `File size exceeds ${(maxFileSize / 1024 / 1024).toFixed(0)} MB limit (${(file.size / 1024 / 1024).toFixed(2)} MB).`,
       );
       return;
     }
 
     // Start upload
-    setUploadState(prev => ({
+    setUploadState((prev) => ({
       ...prev,
-      state: 'uploading',
+      state: "uploading",
       file,
       progress: 0,
       error: undefined,
@@ -89,58 +95,59 @@ export default function UploadWidget({
   const uploadFile = async (file: File, password?: string) => {
     try {
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append("file", file);
       if (password) {
-        formData.append('password', password);
+        formData.append("password", password);
       }
 
       // Simulate progress
       const progressInterval = setInterval(() => {
-        setUploadState(prev => ({
+        setUploadState((prev) => ({
           ...prev,
           progress: Math.min(prev.progress + Math.random() * 30, 90),
         }));
       }, 500);
 
-      const response = await fetch('/api/ingest', {
-        method: 'POST',
+      const response = await fetch("/api/ingest", {
+        method: "POST",
         body: formData,
       });
 
       clearInterval(progressInterval);
-      setUploadState(prev => ({ ...prev, progress: 100 }));
+      setUploadState((prev) => ({ ...prev, progress: 100 }));
 
       const data = await response.json();
 
       if (!response.ok) {
         if (data.requiresPassword) {
-          setUploadState(prev => ({
+          setUploadState((prev) => ({
             ...prev,
-            state: 'password_required',
+            state: "password_required",
             requiresPassword: true,
             passwordAttempts: 0,
           }));
           return;
         }
 
-        throw new Error(data.message || 'Upload failed');
+        throw new Error(data.message || "Upload failed");
       }
 
       if (data.success) {
-        setUploadState(prev => ({
+        setUploadState((prev) => ({
           ...prev,
-          state: 'success',
+          state: "success",
           transactionCount: data.transactionCount,
         }));
         onSuccess?.(data.transactionCount);
       } else {
-        throw new Error(data.message || 'Upload failed');
+        throw new Error(data.message || "Upload failed");
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      setUploadState(prev => ({
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      setUploadState((prev) => ({
         ...prev,
-        state: 'error',
+        state: "error",
         error: errorMessage,
       }));
       onError?.(errorMessage);
@@ -150,17 +157,17 @@ export default function UploadWidget({
   // Handle password submission
   const handlePasswordSubmit = async (password: string) => {
     if (uploadState.passwordAttempts >= 3) {
-      setUploadState(prev => ({
+      setUploadState((prev) => ({
         ...prev,
-        state: 'error',
-        error: 'Too many failed password attempts. Please try again later.',
+        state: "error",
+        error: "Too many failed password attempts. Please try again later.",
       }));
       return;
     }
 
-    setUploadState(prev => ({
+    setUploadState((prev) => ({
       ...prev,
-      state: 'uploading',
+      state: "uploading",
       passwordAttempts: prev.passwordAttempts + 1,
     }));
 
@@ -169,9 +176,9 @@ export default function UploadWidget({
 
   // Handle password cancel
   const handlePasswordCancel = () => {
-    setUploadState(prev => ({
+    setUploadState((prev) => ({
       ...prev,
-      state: 'idle',
+      state: "idle",
       file: undefined,
       requiresPassword: false,
       passwordAttempts: 0,
@@ -208,9 +215,9 @@ export default function UploadWidget({
 
   // Handle retry
   const handleRetry = () => {
-    setUploadState(prev => ({
+    setUploadState((prev) => ({
       ...prev,
-      state: 'idle',
+      state: "idle",
       file: undefined,
       error: undefined,
       progress: 0,
@@ -220,9 +227,9 @@ export default function UploadWidget({
 
   // Handle upload another
   const handleUploadAnother = () => {
-    setUploadState(prev => ({
+    setUploadState((prev) => ({
       ...prev,
-      state: 'idle',
+      state: "idle",
       file: undefined,
       transactionCount: undefined,
       progress: 0,
@@ -231,7 +238,7 @@ export default function UploadWidget({
   };
 
   // Render based on state
-  if (uploadState.state === 'password_required' && uploadState.file) {
+  if (uploadState.state === "password_required" && uploadState.file) {
     return (
       <PasswordPrompt
         fileName={uploadState.file.name}
@@ -244,24 +251,27 @@ export default function UploadWidget({
     );
   }
 
-  if (uploadState.state === 'uploading' || uploadState.state === 'parsing') {
+  if (uploadState.state === "uploading" || uploadState.state === "parsing") {
     return <UploadProgress progress={uploadState.progress} />;
   }
 
-  if (uploadState.state === 'success' && uploadState.transactionCount !== undefined) {
+  if (
+    uploadState.state === "success" &&
+    uploadState.transactionCount !== undefined
+  ) {
     return (
       <UploadSuccess
         transactionCount={uploadState.transactionCount}
         onReview={() => {
           // Navigate to review page
-          window.location.href = '/transactions/review';
+          window.location.href = "/transactions/review";
         }}
         onUploadAnother={handleUploadAnother}
       />
     );
   }
 
-  if (uploadState.state === 'error') {
+  if (uploadState.state === "error") {
     return <UploadError error={uploadState.error} onRetry={handleRetry} />;
   }
 
@@ -276,7 +286,8 @@ export default function UploadWidget({
               Upload your bank statement
             </h2>
             <p className="text-slate-600 dark:text-slate-400">
-              PDF, Excel, or CSV. Your file is processed securely and deleted after reading.
+              PDF, Excel, or CSV. Your file is processed securely and deleted
+              after reading.
             </p>
           </div>
 
@@ -284,8 +295,8 @@ export default function UploadWidget({
           <div
             className={`border-2 border-dashed rounded-lg p-8 text-center transition-all ${
               dragOverRef.current
-                ? 'border-green-500 bg-green-50 dark:bg-green-950/20'
-                : 'border-slate-300 dark:border-slate-700 hover:border-green-500 dark:hover:border-green-600'
+                ? "border-green-500 bg-green-50 dark:bg-green-950/20"
+                : "border-slate-300 dark:border-slate-700 hover:border-green-500 dark:hover:border-green-600"
             }`}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -305,7 +316,9 @@ export default function UploadWidget({
             <p className="text-slate-700 dark:text-slate-300 font-medium mb-2">
               Drag and drop your file here
             </p>
-            <p className="text-slate-500 dark:text-slate-400 text-sm mb-4">or</p>
+            <p className="text-slate-500 dark:text-slate-400 text-sm mb-4">
+              or
+            </p>
 
             <Button
               onClick={() => fileInputRef.current?.click()}
@@ -319,7 +332,10 @@ export default function UploadWidget({
           {/* File info */}
           <div className="mt-6 space-y-3 text-sm text-slate-600 dark:text-slate-400">
             <p>Max file size: {(maxFileSize / 1024 / 1024).toFixed(0)} MB</p>
-            <p>Accepted formats: {acceptedFormats.map(f => f.toUpperCase()).join(', ')}</p>
+            <p>
+              Accepted formats:{" "}
+              {acceptedFormats.map((f) => f.toUpperCase()).join(", ")}
+            </p>
           </div>
 
           {/* Security note */}

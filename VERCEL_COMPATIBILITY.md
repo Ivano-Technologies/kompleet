@@ -9,6 +9,7 @@ This document outlines the Vercel-specific considerations for the Kompleet Platf
 The application uses both Edge and Node.js runtimes appropriately:
 
 #### Edge Runtime (Middleware)
+
 - **File**: `src/middleware.ts`
 - **Runtime**: Vercel Edge (automatically detected)
 - **Constraints**:
@@ -21,6 +22,7 @@ The application uses both Edge and Node.js runtimes appropriately:
   - No Node.js-specific APIs
 
 #### Node.js Runtime (Routes & Components)
+
 - **Files**: Server Components, Route Handlers, Server Actions
 - **Runtime**: Node.js 18.x (Vercel default)
 - **Constraints**: None (full Node.js API access)
@@ -87,37 +89,43 @@ npm run test       # Unit tests
 ## Edge Function Limitations
 
 ### What Works on Edge
+
 ✅ Supabase client (auth, database queries)  
 ✅ Fetch API  
 ✅ Web Crypto API  
 ✅ Next.js cookies, headers  
-✅ JSON parsing/stringifying  
+✅ JSON parsing/stringifying
 
 ### What Doesn't Work on Edge
+
 ❌ Node.js `fs` module  
 ❌ Node.js `crypto` module  
 ❌ Native modules (bcrypt, sharp, etc.)  
 ❌ Child processes  
-❌ File system access  
+❌ File system access
 
 ### Current Implementation Status
+
 ✅ **Middleware**: Fully Edge-compatible  
 ✅ **Server Components**: Node.js runtime (no Edge constraints)  
-✅ **Route Handlers**: Node.js runtime (no Edge constraints)  
+✅ **Route Handlers**: Node.js runtime (no Edge constraints)
 
 ## Vercel-Specific Features
 
 ### Automatic HTTPS
+
 - All Vercel deployments use HTTPS by default
 - No additional SSL configuration needed
 - Supabase redirect URLs must use `https://`
 
 ### Preview Deployments
+
 - Every Git push creates a preview deployment
 - Preview URLs: `https://kompleet-platform-git-[branch]-[team].vercel.app`
 - Use preview environment variables for testing
 
 ### Production Deployments
+
 - Triggered by pushes to `main` branch (default)
 - Production URL: `https://kompleet-platform.vercel.app` (or custom domain)
 - Use production environment variables
@@ -129,18 +137,21 @@ npm run test       # Unit tests
 Configure these in Supabase Dashboard → Authentication → URL Configuration:
 
 **Production**:
+
 ```
 https://your-domain.com/auth/callback
 https://your-domain.com/auth/confirm
 ```
 
 **Preview** (wildcard for all preview deployments):
+
 ```
 https://*-your-team.vercel.app/auth/callback
 https://*-your-team.vercel.app/auth/confirm
 ```
 
 **Development**:
+
 ```
 http://localhost:3000/auth/callback
 http://localhost:3000/auth/confirm
@@ -149,6 +160,7 @@ http://localhost:3000/auth/confirm
 ### Cookie Configuration
 
 Vercel automatically handles cookies for auth:
+
 - Secure flag: Enabled on HTTPS (automatic)
 - SameSite: Lax (default)
 - Domain: Automatic (matches deployment URL)
@@ -156,11 +168,13 @@ Vercel automatically handles cookies for auth:
 ## Performance Optimization
 
 ### Edge Caching
+
 - Static assets cached at Edge locations globally
 - API routes can opt into caching with headers
 - Middleware runs at Edge (low latency)
 
 ### Serverless Functions
+
 - Server Components and Route Handlers run as serverless functions
 - Cold start: ~100-300ms (acceptable for most use cases)
 - Warm instances reused for subsequent requests
@@ -196,10 +210,12 @@ Before deploying to Vercel:
 ## Monitoring
 
 ### Vercel Analytics
+
 - Enable in Vercel Dashboard → Analytics
 - Tracks page views, performance, Web Vitals
 
 ### Vercel Logs
+
 - Access in Vercel Dashboard → Deployments → [Deployment] → Logs
 - Shows serverless function logs
 - Useful for debugging production issues

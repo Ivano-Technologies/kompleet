@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { withRateLimit } from '@/lib/with-rate-limit';
-import { createServerClient as createClient } from '@/lib/supabase/server';
-import { exchangeToken, getAccountInfo } from '@/lib/services/mono-service';
+import { NextRequest, NextResponse } from "next/server";
+import { withRateLimit } from "@/lib/with-rate-limit";
+import { createServerClient as createClient } from "@/lib/supabase/server";
+import { exchangeToken, getAccountInfo } from "@/lib/services/mono-service";
 
 /**
  * POST /api/banking/mono/exchange
@@ -10,18 +10,21 @@ import { exchangeToken, getAccountInfo } from '@/lib/services/mono-service';
 async function handlePOST(request: NextRequest) {
   try {
     const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const { code } = await request.json();
 
     if (!code) {
       return NextResponse.json(
-        { error: 'Missing auth code from Mono Connect' },
-        { status: 400 }
+        { error: "Missing auth code from Mono Connect" },
+        { status: 400 },
       );
     }
 
@@ -33,17 +36,17 @@ async function handlePOST(request: NextRequest) {
 
     // Store in bank_accounts table
     const { data: bankAccount, error: dbError } = await supabase
-      .from('bank_accounts')
+      .from("bank_accounts")
       .upsert(
         {
           user_id: user.id,
-          provider: 'mono',
+          provider: "mono",
           account_number: accountInfo.accountNumber,
           account_name: accountInfo.name,
           bank_name: accountInfo.institution.name,
           balance: (accountInfo.balance / 100).toFixed(2), // kobo to Naira
-          currency: accountInfo.currency || 'NGN',
-          status: 'active',
+          currency: accountInfo.currency || "NGN",
+          status: "active",
           last_synced_at: new Date().toISOString(),
           metadata: {
             mono_account_id: monoAccountId,
@@ -52,16 +55,16 @@ async function handlePOST(request: NextRequest) {
             auth_method: accountInfo.authMethod,
           },
         },
-        { onConflict: 'user_id,provider,account_number' }
+        { onConflict: "user_id,provider,account_number" },
       )
       .select()
       .single();
 
     if (dbError) {
-      console.error('[Mono Exchange] DB error:', dbError);
+      console.error("[Mono Exchange] DB error:", dbError);
       return NextResponse.json(
-        { error: 'Failed to save bank account' },
-        { status: 500 }
+        { error: "Failed to save bank account" },
+        { status: 500 },
       );
     }
 
@@ -76,10 +79,15 @@ async function handlePOST(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('[Mono Exchange Error]', error);
+    console.error("[Mono Exchange Error]", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Failed to link bank account' },
-      { status: 500 }
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Failed to link bank account",
+      },
+      { status: 500 },
     );
   }
 }

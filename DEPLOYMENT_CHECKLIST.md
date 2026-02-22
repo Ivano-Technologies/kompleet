@@ -10,11 +10,11 @@ This checklist outlines the required environment variables, secrets, and pre-lau
 
 These variables must be set in your Vercel production environment.
 
-| Variable | Description | Example Value |
-|---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL. | `https://frlcvkmjuhnjcicwywrh.supabase.co` |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase project's public `anon` key. | `eyJhbGciOi...` |
-| `SUPABASE_SERVICE_ROLE_KEY` | Your Supabase project's `service_role` key. **CRITICAL**: Keep this secret. | `eyJhbGciOi...` |
+| Variable                        | Description                                                                 | Example Value                              |
+| ------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------ |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Your Supabase project URL.                                                  | `https://frlcvkmjuhnjcicwywrh.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase project's public `anon` key.                                  | `eyJhbGciOi...`                            |
+| `SUPABASE_SERVICE_ROLE_KEY`     | Your Supabase project's `service_role` key. **CRITICAL**: Keep this secret. | `eyJhbGciOi...`                            |
 
 **Security Note**: `SUPABASE_SERVICE_ROLE_KEY` must **NEVER** be exposed to the client-side. It should only be used in server-side environments.
 
@@ -24,11 +24,11 @@ These variables must be set in your Vercel production environment.
 
 These secrets are used for various integrations and must be configured securely.
 
-| Secret | Description | Where to Find |
-|---|---|---|
-| `OPENAI_API_KEY` | For AI-powered features (e.g., transaction categorization). | OpenAI Dashboard |
-| `STRIPE_SECRET_KEY` | For payment processing and subscription management. | Stripe Dashboard |
-| `SENDGRID_API_KEY` | For sending transactional emails (e.g., password resets). | SendGrid Dashboard |
+| Secret              | Description                                                 | Where to Find      |
+| ------------------- | ----------------------------------------------------------- | ------------------ |
+| `OPENAI_API_KEY`    | For AI-powered features (e.g., transaction categorization). | OpenAI Dashboard   |
+| `STRIPE_SECRET_KEY` | For payment processing and subscription management.         | Stripe Dashboard   |
+| `SENDGRID_API_KEY`  | For sending transactional emails (e.g., password resets).   | SendGrid Dashboard |
 
 ---
 
@@ -36,11 +36,11 @@ These secrets are used for various integrations and must be configured securely.
 
 These flags can be used to enable or disable features in production.
 
-| Flag | Description | Recommended Value |
-|---|---|---|
-| `ENABLE_EMAIL_CONFIRMATION` | If `true`, users must confirm their email to log in. | `true` |
-| `ENABLE_LEAKED_PASSWORD_PROTECTION` | If `true`, checks passwords against HaveIBeenPwned.org. | `true` |
-| `LOG_LEVEL` | Sets the application log level. | `info` |
+| Flag                                | Description                                             | Recommended Value |
+| ----------------------------------- | ------------------------------------------------------- | ----------------- |
+| `ENABLE_EMAIL_CONFIRMATION`         | If `true`, users must confirm their email to log in.    | `true`            |
+| `ENABLE_LEAKED_PASSWORD_PROTECTION` | If `true`, checks passwords against HaveIBeenPwned.org. | `true`            |
+| `LOG_LEVEL`                         | Sets the application log level.                         | `info`            |
 
 ---
 

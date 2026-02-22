@@ -4,13 +4,20 @@
  * Provides robust categorization with confidence-based recommendations
  */
 
-import { llmCategorize, LLMCategorizationInput, LLMCategorizationResult } from './llm-categorization-service';
-import { categorizeTransaction, Category as RuleCategory } from './categorization-service';
+import {
+  llmCategorize,
+  LLMCategorizationInput,
+  LLMCategorizationResult,
+} from "./llm-categorization-service";
+import {
+  categorizeTransaction,
+  Category as RuleCategory,
+} from "./categorization-service";
 
 export interface EnsembleCategorizationInput {
   merchant: string;
   amount: number;
-  type?: 'debit' | 'credit';
+  type?: "debit" | "credit";
   channel?: string;
   timestamp?: string;
   description?: string;
@@ -19,8 +26,8 @@ export interface EnsembleCategorizationInput {
 export interface EnsembleCategorizationResult {
   category: string;
   confidence: number; // 0-100
-  method: 'LLM' | 'RULE' | 'ML' | 'FALLBACK';
-  recommendation: 'AUTO_ACCEPT' | 'SUGGEST' | 'MANUAL_REVIEW';
+  method: "LLM" | "RULE" | "ML" | "FALLBACK";
+  recommendation: "AUTO_ACCEPT" | "SUGGEST" | "MANUAL_REVIEW";
   reasoning: string;
   alternatives?: Array<{
     category: string;
@@ -38,21 +45,23 @@ interface CategoryOption {
 
 // Confidence thresholds (can be overridden via environment variables)
 const CONFIDENCE_THRESHOLDS = {
-  AUTO_ACCEPT: parseFloat(process.env.LLM_AUTO_ACCEPT_THRESHOLD || '80'),
-  SUGGEST: parseFloat(process.env.LLM_SUGGEST_THRESHOLD || '50'),
-  MANUAL_REVIEW: 0
+  AUTO_ACCEPT: parseFloat(process.env.LLM_AUTO_ACCEPT_THRESHOLD || "80"),
+  SUGGEST: parseFloat(process.env.LLM_SUGGEST_THRESHOLD || "50"),
+  MANUAL_REVIEW: 0,
 };
 
 /**
  * Determine recommendation based on confidence threshold
  */
-function getRecommendation(confidence: number): 'AUTO_ACCEPT' | 'SUGGEST' | 'MANUAL_REVIEW' {
+function getRecommendation(
+  confidence: number,
+): "AUTO_ACCEPT" | "SUGGEST" | "MANUAL_REVIEW" {
   if (confidence >= CONFIDENCE_THRESHOLDS.AUTO_ACCEPT) {
-    return 'AUTO_ACCEPT';
+    return "AUTO_ACCEPT";
   } else if (confidence >= CONFIDENCE_THRESHOLDS.SUGGEST) {
-    return 'SUGGEST';
+    return "SUGGEST";
   } else {
-    return 'MANUAL_REVIEW';
+    return "MANUAL_REVIEW";
   }
 }
 
@@ -61,32 +70,40 @@ function getRecommendation(confidence: number): 'AUTO_ACCEPT' | 'SUGGEST' | 'MAN
  */
 async function ruleCategorize(
   input: EnsembleCategorizationInput,
-  categories: CategoryOption[]
+  categories: CategoryOption[],
 ): Promise<{ category: string; confidence: number; reasoning: string } | null> {
   try {
     // Convert CategoryOption to RuleCategory format
-    const ruleCategories: RuleCategory[] = categories.map(c => ({
-      id: c.name.toLowerCase().replace(/\s+/g, '_'),
+    const ruleCategories: RuleCategory[] = categories.map((c) => ({
+      id: c.name.toLowerCase().replace(/\s+/g, "_"),
       name: c.name,
-      category_type: c.type as 'income' | 'expense' | 'asset' | 'liability',
-      tax_treatment: c.tax_treatment as 'deductible' | 'non_deductible' | 'capital_allowance' | 'exempt',
-      keywords: [] // Keywords would need to be provided or configured
+      category_type: c.type as "income" | "expense" | "asset" | "liability",
+      tax_treatment: c.tax_treatment as
+        | "deductible"
+        | "non_deductible"
+        | "capital_allowance"
+        | "exempt",
+      keywords: [], // Keywords would need to be provided or configured
     }));
 
     // Use existing rule-based categorization service
     const result = categorizeTransaction(input.merchant, ruleCategories);
 
-    if (result && result.categoryName && result.categoryName !== 'Uncategorized') {
+    if (
+      result &&
+      result.categoryName &&
+      result.categoryName !== "Uncategorized"
+    ) {
       return {
         category: result.categoryName,
         confidence: result.confidenceScore || 60,
-        reasoning: `Matched by rule-based system using keywords and patterns`
+        reasoning: `Matched by rule-based system using keywords and patterns`,
       };
     }
 
     return null;
   } catch (error) {
-    console.error('Rule categorization failed:', error);
+    console.error("Rule categorization failed:", error);
     return null;
   }
 }
@@ -95,20 +112,20 @@ async function ruleCategorize(
  * Categorize using ML model
  */
 async function mlCategorize(
-  input: EnsembleCategorizationInput
+  input: EnsembleCategorizationInput,
 ): Promise<{ category: string; confidence: number; reasoning: string } | null> {
   try {
-    const mlServiceUrl = process.env.ML_SERVICE_URL || 'http://localhost:5000';
-    
+    const mlServiceUrl = process.env.ML_SERVICE_URL || "http://localhost:5000";
+
     const response = await fetch(`${mlServiceUrl}/categorize`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         merchant: input.merchant,
         amount: input.amount,
         channel: input.channel,
-        timestamp: input.timestamp
-      })
+        timestamp: input.timestamp,
+      }),
     });
 
     if (!response.ok) {
@@ -119,18 +136,19 @@ async function mlCategorize(
 
     if (result && result.category) {
       // Convert ML confidence (0-1) to percentage (0-100)
-      const confidence = (result.adjusted_confidence || result.confidence || 0.5) * 100;
-      
+      const confidence =
+        (result.adjusted_confidence || result.confidence || 0.5) * 100;
+
       return {
         category: result.category,
         confidence: Math.round(confidence),
-        reasoning: `ML model prediction (merchant confidence: ${(result.merchant_confidence * 100).toFixed(0)}%)`
+        reasoning: `ML model prediction (merchant confidence: ${(result.merchant_confidence * 100).toFixed(0)}%)`,
       };
     }
 
     return null;
   } catch (error) {
-    console.error('ML categorization failed:', error);
+    console.error("ML categorization failed:", error);
     return null;
   }
 }
@@ -140,9 +158,13 @@ async function mlCategorize(
  */
 export async function ensembleCategorize(
   input: EnsembleCategorizationInput,
-  categories: CategoryOption[]
+  categories: CategoryOption[],
 ): Promise<EnsembleCategorizationResult> {
-  const alternatives: Array<{ category: string; confidence: number; method: string }> = [];
+  const alternatives: Array<{
+    category: string;
+    confidence: number;
+    method: string;
+  }> = [];
   const inferenceId = `ensemble-${Date.now()}-${Math.random().toString(36).substring(7)}`;
 
   // Step 1: Try LLM categorization (highest quality, but slowest and most expensive)
@@ -152,7 +174,7 @@ export async function ensembleCategorize(
       amount: input.amount,
       type: input.type,
       channel: input.channel,
-      timestamp: input.timestamp
+      timestamp: input.timestamp,
     };
 
     const llmResult = await llmCategorize(llmInput, categories);
@@ -162,10 +184,10 @@ export async function ensembleCategorize(
       return {
         category: llmResult.category,
         confidence: llmResult.confidence,
-        method: 'LLM',
-        recommendation: 'AUTO_ACCEPT',
+        method: "LLM",
+        recommendation: "AUTO_ACCEPT",
         reasoning: llmResult.reasoning,
-        inference_id: inferenceId
+        inference_id: inferenceId,
       };
     }
 
@@ -173,7 +195,7 @@ export async function ensembleCategorize(
     alternatives.push({
       category: llmResult.category,
       confidence: llmResult.confidence,
-      method: 'LLM'
+      method: "LLM",
     });
 
     // If LLM has medium confidence, try other methods for validation
@@ -185,11 +207,11 @@ export async function ensembleCategorize(
         return {
           category: llmResult.category,
           confidence: Math.min(100, llmResult.confidence + 10),
-          method: 'LLM',
+          method: "LLM",
           recommendation: getRecommendation(llmResult.confidence + 10),
           reasoning: `${llmResult.reasoning} (validated by rule-based system)`,
           alternatives,
-          inference_id: inferenceId
+          inference_id: inferenceId,
         };
       }
 
@@ -197,7 +219,7 @@ export async function ensembleCategorize(
         alternatives.push({
           category: ruleResult.category,
           confidence: ruleResult.confidence,
-          method: 'RULE'
+          method: "RULE",
         });
       }
 
@@ -205,16 +227,18 @@ export async function ensembleCategorize(
       return {
         category: llmResult.category,
         confidence: llmResult.confidence,
-        method: 'LLM',
-        recommendation: 'SUGGEST',
+        method: "LLM",
+        recommendation: "SUGGEST",
         reasoning: llmResult.reasoning,
         alternatives,
-        inference_id: inferenceId
+        inference_id: inferenceId,
       };
     }
-
   } catch (error) {
-    console.error('LLM categorization failed, falling back to rule-based:', error);
+    console.error(
+      "LLM categorization failed, falling back to rule-based:",
+      error,
+    );
   }
 
   // Step 2: Try rule-based categorization (fast, deterministic)
@@ -229,11 +253,11 @@ export async function ensembleCategorize(
         return {
           category: ruleResult.category,
           confidence: Math.min(100, ruleResult.confidence + 15),
-          method: 'RULE',
+          method: "RULE",
           recommendation: getRecommendation(ruleResult.confidence + 15),
           reasoning: `${ruleResult.reasoning} (validated by ML model)`,
           alternatives,
-          inference_id: inferenceId
+          inference_id: inferenceId,
         };
       }
 
@@ -241,18 +265,18 @@ export async function ensembleCategorize(
         alternatives.push({
           category: mlResult.category,
           confidence: mlResult.confidence,
-          method: 'ML'
+          method: "ML",
         });
       }
 
       return {
         category: ruleResult.category,
         confidence: ruleResult.confidence,
-        method: 'RULE',
+        method: "RULE",
         recommendation: getRecommendation(ruleResult.confidence),
         reasoning: ruleResult.reasoning,
         alternatives,
-        inference_id: inferenceId
+        inference_id: inferenceId,
       };
     }
 
@@ -260,12 +284,11 @@ export async function ensembleCategorize(
       alternatives.push({
         category: ruleResult.category,
         confidence: ruleResult.confidence,
-        method: 'RULE'
+        method: "RULE",
       });
     }
-
   } catch (error) {
-    console.error('Rule categorization failed, falling back to ML:', error);
+    console.error("Rule categorization failed, falling back to ML:", error);
   }
 
   // Step 3: Try ML categorization (good for known patterns)
@@ -276,27 +299,26 @@ export async function ensembleCategorize(
       return {
         category: mlResult.category,
         confidence: mlResult.confidence,
-        method: 'ML',
+        method: "ML",
         recommendation: getRecommendation(mlResult.confidence),
         reasoning: mlResult.reasoning,
         alternatives,
-        inference_id: inferenceId
+        inference_id: inferenceId,
       };
     }
-
   } catch (error) {
-    console.error('ML categorization failed, using fallback:', error);
+    console.error("ML categorization failed, using fallback:", error);
   }
 
   // Step 4: Fallback - return uncategorized with manual review recommendation
   return {
-    category: 'Uncategorized',
+    category: "Uncategorized",
     confidence: 0,
-    method: 'FALLBACK',
-    recommendation: 'MANUAL_REVIEW',
-    reasoning: 'All categorization methods failed or returned low confidence',
+    method: "FALLBACK",
+    recommendation: "MANUAL_REVIEW",
+    reasoning: "All categorization methods failed or returned low confidence",
     alternatives,
-    inference_id: inferenceId
+    inference_id: inferenceId,
   };
 }
 
@@ -305,7 +327,7 @@ export async function ensembleCategorize(
  */
 export async function ensembleBatchCategorize(
   inputs: EnsembleCategorizationInput[],
-  categories: CategoryOption[]
+  categories: CategoryOption[],
 ): Promise<EnsembleCategorizationResult[]> {
   // Process in parallel with concurrency limit
   const CONCURRENCY_LIMIT = 5;
@@ -314,7 +336,7 @@ export async function ensembleBatchCategorize(
   for (let i = 0; i < inputs.length; i += CONCURRENCY_LIMIT) {
     const batch = inputs.slice(i, i + CONCURRENCY_LIMIT);
     const batchResults = await Promise.all(
-      batch.map(input => ensembleCategorize(input, categories))
+      batch.map((input) => ensembleCategorize(input, categories)),
     );
     results.push(...batchResults);
   }

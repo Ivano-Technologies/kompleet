@@ -227,18 +227,21 @@ KOMPLEET must submit annual compliance reports to the NDPC as required by regula
 Organizations should use this checklist to verify NDPR compliance before deploying ML models processing personal data.
 
 ### Lawful Basis
+
 - [ ] Lawful basis identified and documented
 - [ ] Justification for lawful basis provided
 - [ ] Consent obtained and recorded (if applicable)
 - [ ] Lawful Basis Assessment approved by Compliance Officer
 
 ### Data Minimization
+
 - [ ] Data Minimization Assessment completed
 - [ ] Only necessary data collected
 - [ ] Purpose clearly specified and documented
 - [ ] Purpose limitation enforced
 
 ### Data Subject Rights
+
 - [ ] Access request procedures documented
 - [ ] Rectification procedures documented
 - [ ] Erasure procedures documented
@@ -247,12 +250,14 @@ Organizations should use this checklist to verify NDPR compliance before deployi
 - [ ] Human review procedures documented (if automated decisions)
 
 ### Privacy Impact Assessment
+
 - [ ] PIA trigger assessment completed
 - [ ] PIA completed (if required)
 - [ ] Risks identified and mitigated
 - [ ] PIA approved by Compliance Officer
 
 ### Security
+
 - [ ] Security Assessment completed
 - [ ] Encryption implemented
 - [ ] Access controls configured
@@ -260,15 +265,18 @@ Organizations should use this checklist to verify NDPR compliance before deployi
 - [ ] Security testing conducted
 
 ### Transparency
+
 - [ ] Privacy notice provided to data subjects
 - [ ] Model transparency information available
 - [ ] Explainability procedures documented
 
 ### Data Processing Agreements
+
 - [ ] DPAs executed with all processors
 - [ ] Processor compliance verified
 
 ### Training
+
 - [ ] All personnel completed NDPR training
 - [ ] Training records maintained
 
@@ -284,4 +292,4 @@ Compliance with NDPR is essential for lawful operation of ML systems processing 
 **Last Updated:** February 6, 2026  
 **Next Review:** February 6, 2027
 
-*These procedures are part of the KOMPLEET ML Governance framework and must be followed for all ML systems processing personal data.*
+_These procedures are part of the KOMPLEET ML Governance framework and must be followed for all ML systems processing personal data._

@@ -19,21 +19,25 @@ The KOMPLEET platform uses **Prisma ORM** alongside Supabase for complex server-
 ### Use Prisma When:
 
 ✅ **Complex Server-Side Queries**
+
 - Multi-table joins with complex conditions
 - Aggregations and grouping operations
 - Batch operations on large datasets
 
 ✅ **Database Transactions**
+
 - Multiple operations that must succeed or fail together
 - Atomic updates across multiple tables
 - Financial calculations requiring ACID guarantees
 
 ✅ **Type-Safe Server Operations**
+
 - API routes that need compile-time type checking
 - Background jobs and cron tasks
 - Data migrations and seeding
 
 ✅ **Performance-Critical Operations**
+
 - Bulk inserts/updates (>100 records)
 - Complex analytical queries
 - Report generation
@@ -41,16 +45,19 @@ The KOMPLEET platform uses **Prisma ORM** alongside Supabase for complex server-
 ### Use Supabase Client When:
 
 ✅ **Client-Side Operations**
+
 - User-facing queries in React components
 - Real-time subscriptions
 - File uploads to Supabase Storage
 
 ✅ **RLS-Protected Operations**
+
 - User-specific data access
 - Multi-tenant data isolation
 - Permission-based queries
 
 ✅ **Simple CRUD Operations**
+
 - Single-table queries
 - Basic filtering and sorting
 - User profile updates
@@ -153,7 +160,7 @@ Create a singleton Prisma client instance:
 ```typescript
 // src/lib/prisma.ts
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from "@prisma/client";
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
@@ -162,16 +169,19 @@ const globalForPrisma = globalThis as unknown as {
 export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
-    log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+    log:
+      process.env.NODE_ENV === "development"
+        ? ["query", "error", "warn"]
+        : ["error"],
   });
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
 ```
 
 ### 2. Basic Queries
 
 ```typescript
-import { prisma } from '@/lib/prisma';
+import { prisma } from "@/lib/prisma";
 
 // Find all transactions for a user
 const transactions = await prisma.transactions.findMany({
@@ -183,7 +193,7 @@ const transactions = await prisma.transactions.findMany({
     },
   },
   orderBy: {
-    date: 'desc',
+    date: "desc",
   },
 });
 
@@ -192,11 +202,11 @@ const transaction = await prisma.transactions.create({
   data: {
     user_id: userId,
     source_file_id: fileId,
-    date: new Date('2026-01-15'),
-    description: 'Salary Payment',
+    date: new Date("2026-01-15"),
+    description: "Salary Payment",
     amount: 450000,
-    type: 'credit',
-    currency: 'NGN',
+    type: "credit",
+    currency: "NGN",
   },
 });
 
@@ -204,9 +214,9 @@ const transaction = await prisma.transactions.create({
 const updated = await prisma.transactions.update({
   where: { id: transactionId },
   data: {
-    category: 'Income',
+    category: "Income",
     confidence_score: 0.95,
-    categorization_method: 'LLM',
+    categorization_method: "LLM",
   },
 });
 ```
@@ -216,10 +226,10 @@ const updated = await prisma.transactions.update({
 ```typescript
 // Aggregate spending by category
 const categorySpending = await prisma.transactions.groupBy({
-  by: ['category'],
+  by: ["category"],
   where: {
     user_id: userId,
-    type: 'debit',
+    type: "debit",
     date: {
       gte: startDate,
       lte: endDate,
@@ -233,7 +243,7 @@ const categorySpending = await prisma.transactions.groupBy({
   },
   orderBy: {
     _sum: {
-      amount: 'desc',
+      amount: "desc",
     },
   },
 });
@@ -278,7 +288,7 @@ const result = await prisma.$transaction(async (tx) => {
   await tx.activity_logs.create({
     data: {
       user_id: userId,
-      action: 'transaction_created',
+      action: "transaction_created",
       transaction_id: transaction.id,
     },
   });
@@ -294,16 +304,18 @@ const result = await prisma.$transaction(async (tx) => {
 ### 1. Use Prisma for Server-Side Only
 
 ❌ **Don't** use Prisma in client components:
+
 ```typescript
 // ❌ Bad: Client component
-'use client';
-import { prisma } from '@/lib/prisma'; // This will fail!
+"use client";
+import { prisma } from "@/lib/prisma"; // This will fail!
 ```
 
 ✅ **Do** use Prisma in API routes and server components:
+
 ```typescript
 // ✅ Good: API route
-import { prisma } from '@/lib/prisma';
+import { prisma } from "@/lib/prisma";
 
 export async function GET(request: Request) {
   const transactions = await prisma.transactions.findMany();
@@ -347,9 +359,9 @@ try {
   const transaction = await prisma.transactions.create({ data });
 } catch (error) {
   if (error instanceof Prisma.PrismaClientKnownRequestError) {
-    if (error.code === 'P2002') {
+    if (error.code === "P2002") {
       // Unique constraint violation
-      throw new Error('Transaction already exists');
+      throw new Error("Transaction already exists");
     }
   }
   throw error;
@@ -360,28 +372,28 @@ try {
 
 ## Prisma vs Supabase Comparison
 
-| Feature | Prisma | Supabase Client |
-|---|---|---|
-| **Type Safety** | ✅ Full compile-time | ✅ Runtime with generated types |
-| **Performance** | ✅ Direct DB connection | ⚠️ HTTP overhead |
-| **RLS Support** | ❌ Manual implementation | ✅ Automatic |
-| **Real-time** | ❌ Not supported | ✅ Built-in subscriptions |
-| **Transactions** | ✅ Full ACID support | ⚠️ Limited |
-| **Complex Queries** | ✅ Excellent | ⚠️ Limited |
-| **Client-Side** | ❌ Server-only | ✅ Works everywhere |
-| **File Storage** | ❌ Not supported | ✅ Built-in |
+| Feature             | Prisma                   | Supabase Client                 |
+| ------------------- | ------------------------ | ------------------------------- |
+| **Type Safety**     | ✅ Full compile-time     | ✅ Runtime with generated types |
+| **Performance**     | ✅ Direct DB connection  | ⚠️ HTTP overhead                |
+| **RLS Support**     | ❌ Manual implementation | ✅ Automatic                    |
+| **Real-time**       | ❌ Not supported         | ✅ Built-in subscriptions       |
+| **Transactions**    | ✅ Full ACID support     | ⚠️ Limited                      |
+| **Complex Queries** | ✅ Excellent             | ⚠️ Limited                      |
+| **Client-Side**     | ❌ Server-only           | ✅ Works everywhere             |
+| **File Storage**    | ❌ Not supported         | ✅ Built-in                     |
 
 ---
 
 ## Scripts
 
-| Script | Command | Description |
-|---|---|---|
-| **Pull Schema** | `npx prisma db pull` | Introspect Supabase and update schema |
-| **Generate Client** | `npx prisma generate` | Generate Prisma Client from schema |
-| **Studio** | `npx prisma studio` | Open Prisma Studio (database GUI) |
-| **Format Schema** | `npx prisma format` | Format prisma/schema.prisma |
-| **Validate Schema** | `npx prisma validate` | Validate schema syntax |
+| Script              | Command               | Description                           |
+| ------------------- | --------------------- | ------------------------------------- |
+| **Pull Schema**     | `npx prisma db pull`  | Introspect Supabase and update schema |
+| **Generate Client** | `npx prisma generate` | Generate Prisma Client from schema    |
+| **Studio**          | `npx prisma studio`   | Open Prisma Studio (database GUI)     |
+| **Format Schema**   | `npx prisma format`   | Format prisma/schema.prisma           |
+| **Validate Schema** | `npx prisma validate` | Validate schema syntax                |
 
 ---
 
@@ -392,6 +404,7 @@ try {
 **Problem**: `Cannot find module '@prisma/client'`
 
 **Solution**:
+
 ```bash
 npx prisma generate
 ```
@@ -401,6 +414,7 @@ npx prisma generate
 **Problem**: Prisma schema doesn't match database
 
 **Solution**:
+
 ```bash
 npx prisma db pull
 npx prisma generate
@@ -411,6 +425,7 @@ npx prisma generate
 **Problem**: `Can't reach database server`
 
 **Solution**:
+
 1. Check `DATABASE_URL` in `.env`
 2. Ensure you're using the **direct connection** URL (not pooled)
 3. Verify database is accessible from your location

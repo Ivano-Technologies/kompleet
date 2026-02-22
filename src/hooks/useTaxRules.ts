@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 interface TaxRule {
   value: any;
@@ -27,23 +27,23 @@ export function useTaxRules(ruleType: string) {
         setError(null);
 
         const response = await fetch(`/api/tax-rules?type=${ruleType}`, {
-          credentials: 'include', // Include cookies for authentication
+          credentials: "include", // Include cookies for authentication
         });
-        
+
         if (!response.ok) {
           throw new Error(`Failed to fetch tax rules: ${response.statusText}`);
         }
 
         const data: TaxRulesResponse = await response.json();
-        
+
         if (!data.success) {
-          throw new Error('Failed to load tax rules');
+          throw new Error("Failed to load tax rules");
         }
 
         setRules(data.rules);
       } catch (err) {
-        console.error('Error fetching tax rules:', err);
-        setError(err instanceof Error ? err.message : 'Unknown error');
+        console.error("Error fetching tax rules:", err);
+        setError(err instanceof Error ? err.message : "Unknown error");
       } finally {
         setLoading(false);
       }

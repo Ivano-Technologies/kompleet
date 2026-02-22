@@ -8,14 +8,14 @@
 
 ## Endpoints Overview
 
-| Method | Endpoint | Description | Rate Limited |
-|--------|----------|-------------|--------------|
-| POST | `/api/calculations/save` | Save a new calculation | ✅ 30/min |
-| GET | `/api/calculations` | Get all user's calculations | ❌ |
-| GET | `/api/calculations/[id]` | Get a specific calculation | ❌ |
-| PATCH | `/api/calculations/[id]` | Update a calculation (if not finalized) | ❌ |
-| DELETE | `/api/calculations/[id]` | Delete a calculation (if not finalized) | ❌ |
-| POST | `/api/calculations/[id]/finalize` | Mark calculation as final (lock it) | ❌ |
+| Method | Endpoint                          | Description                             | Rate Limited |
+| ------ | --------------------------------- | --------------------------------------- | ------------ |
+| POST   | `/api/calculations/save`          | Save a new calculation                  | ✅ 30/min    |
+| GET    | `/api/calculations`               | Get all user's calculations             | ❌           |
+| GET    | `/api/calculations/[id]`          | Get a specific calculation              | ❌           |
+| PATCH  | `/api/calculations/[id]`          | Update a calculation (if not finalized) | ❌           |
+| DELETE | `/api/calculations/[id]`          | Delete a calculation (if not finalized) | ❌           |
+| POST   | `/api/calculations/[id]/finalize` | Mark calculation as final (lock it)     | ❌           |
 
 ---
 
@@ -99,6 +99,7 @@ curl -X POST https://your-domain.com/api/calculations/save \
 ### Error Responses
 
 **400 Bad Request** - Missing or invalid fields
+
 ```json
 {
   "error": "Validation error",
@@ -107,6 +108,7 @@ curl -X POST https://your-domain.com/api/calculations/save \
 ```
 
 **401 Unauthorized** - Not authenticated
+
 ```json
 {
   "error": "Unauthorized",
@@ -115,6 +117,7 @@ curl -X POST https://your-domain.com/api/calculations/save \
 ```
 
 **429 Too Many Requests** - Rate limit exceeded
+
 ```json
 {
   "error": "Too many requests",
@@ -134,13 +137,13 @@ Retrieve all tax calculations for the authenticated user with optional filters.
 
 ### Query Parameters
 
-| Parameter | Type | Description | Default |
-|-----------|------|-------------|---------|
-| `tax_type` | string | Filter by tax type ('pit', 'cit', 'vat', 'wht') | none |
-| `tax_year` | number | Filter by tax year | none |
-| `is_final` | boolean | Filter by finalized status ('true', 'false') | none |
-| `limit` | number | Number of results per page (max 100) | 50 |
-| `offset` | number | Pagination offset | 0 |
+| Parameter  | Type    | Description                                     | Default |
+| ---------- | ------- | ----------------------------------------------- | ------- |
+| `tax_type` | string  | Filter by tax type ('pit', 'cit', 'vat', 'wht') | none    |
+| `tax_year` | number  | Filter by tax year                              | none    |
+| `is_final` | boolean | Filter by finalized status ('true', 'false')    | none    |
+| `limit`    | number  | Number of results per page (max 100)            | 50      |
+| `offset`   | number  | Pagination offset                               | 0       |
 
 ### Example Requests
 
@@ -243,6 +246,7 @@ GET /api/calculations/550e8400-e29b-41d4-a716-446655440000
 ### Error Response
 
 **404 Not Found** - Calculation doesn't exist or access denied
+
 ```json
 {
   "error": "Not found",
@@ -308,6 +312,7 @@ Content-Type: application/json
 ### Error Responses
 
 **403 Forbidden** - Calculation is finalized
+
 ```json
 {
   "error": "Forbidden",
@@ -316,6 +321,7 @@ Content-Type: application/json
 ```
 
 **400 Bad Request** - No valid fields to update
+
 ```json
 {
   "error": "Validation error",
@@ -350,6 +356,7 @@ DELETE /api/calculations/550e8400-e29b-41d4-a716-446655440000
 ### Error Response
 
 **403 Forbidden** - Calculation is finalized
+
 ```json
 {
   "error": "Forbidden",
@@ -389,6 +396,7 @@ POST /api/calculations/550e8400-e29b-41d4-a716-446655440000/finalize
 ### Error Response
 
 **400 Bad Request** - Already finalized
+
 ```json
 {
   "error": "Already finalized",
@@ -404,9 +412,9 @@ POST /api/calculations/550e8400-e29b-41d4-a716-446655440000/finalize
 
 ```typescript
 async function saveTaxCalculation(data: CalculationInput) {
-  const response = await fetch('/api/calculations/save', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+  const response = await fetch("/api/calculations/save", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
 
@@ -422,7 +430,7 @@ async function saveTaxCalculation(data: CalculationInput) {
 const handleSave = async () => {
   try {
     const result = await saveTaxCalculation({
-      tax_type: 'pit',
+      tax_type: "pit",
       tax_year: 2026,
       input_data: formData,
       gross_amount: grossIncome * 100, // Convert to kobo
@@ -431,7 +439,7 @@ const handleSave = async () => {
       breakdown: calculationBreakdown,
     });
 
-    toast.success('Calculation saved!');
+    toast.success("Calculation saved!");
     router.push(`/calculators/history/${result.calculation.id}`);
   } catch (error) {
     toast.error(error.message);
@@ -479,23 +487,28 @@ function CalculationHistory() {
 ## Security & Best Practices
 
 ### Row Level Security (RLS)
+
 All queries are automatically filtered by `user_id` via Supabase RLS policies. Users can only access their own calculations.
 
 ### Amount Storage
+
 - ✅ Store amounts in **kobo** (1/100 Naira) to avoid floating point issues
 - Convert for display: `amount_naira = amount_kobo / 100`
 - Format for UI: `new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(amount_naira)`
 
 ### Finalization
+
 - Finalized calculations cannot be modified or deleted (protected by RLS)
 - Use for calculations that have been filed with FIRS
 - Show clear warning before finalizing
 
 ### Rate Limiting
+
 - Save endpoint: 30 requests per minute per user
 - Use debouncing on "Save" button clicks to prevent accidental spam
 
 ### Error Handling
+
 - Always handle 401 (unauthorized) by redirecting to login
 - Handle 403 (forbidden) by showing "Cannot modify finalized calculation"
 - Handle 429 (rate limit) by showing retry countdown

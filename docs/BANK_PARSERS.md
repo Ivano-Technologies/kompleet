@@ -10,19 +10,19 @@ The KOMPLEET platform supports automatic parsing and import of bank statements f
 
 The platform currently supports the following Nigerian banks:
 
-| Bank Code | Bank Name | CSV Support | Excel Support | Auto-Detection |
-|---|---|---|---|---|
-| GTB | GTBank (Guaranty Trust Bank) | ✅ | ✅ | ✅ |
-| ZEN | Zenith Bank | ✅ | ✅ | ✅ |
-| ACC | Access Bank | ✅ | ✅ | ✅ |
-| FBN | First Bank of Nigeria | ✅ | ✅ | ✅ |
-| UBA | United Bank for Africa | ✅ | ✅ | ✅ |
-| ECO | Ecobank | ✅ | ✅ | ✅ |
-| SBT | Stanbic IBTC | ✅ | ✅ | ✅ |
-| FID | Fidelity Bank | ✅ | ✅ | ✅ |
-| UNB | Union Bank | ✅ | ✅ | ✅ |
-| **MON** | **Moniepoint** | ✅ | ✅ | ✅ |
-| WEM | Wema Bank | ✅ | ✅ | ✅ |
+| Bank Code | Bank Name                    | CSV Support | Excel Support | Auto-Detection |
+| --------- | ---------------------------- | ----------- | ------------- | -------------- |
+| GTB       | GTBank (Guaranty Trust Bank) | ✅          | ✅            | ✅             |
+| ZEN       | Zenith Bank                  | ✅          | ✅            | ✅             |
+| ACC       | Access Bank                  | ✅          | ✅            | ✅             |
+| FBN       | First Bank of Nigeria        | ✅          | ✅            | ✅             |
+| UBA       | United Bank for Africa       | ✅          | ✅            | ✅             |
+| ECO       | Ecobank                      | ✅          | ✅            | ✅             |
+| SBT       | Stanbic IBTC                 | ✅          | ✅            | ✅             |
+| FID       | Fidelity Bank                | ✅          | ✅            | ✅             |
+| UNB       | Union Bank                   | ✅          | ✅            | ✅             |
+| **MON**   | **Moniepoint**               | ✅          | ✅            | ✅             |
+| WEM       | Wema Bank                    | ✅          | ✅            | ✅             |
 
 ---
 
@@ -43,7 +43,7 @@ A bank is only identified if the total confidence score is **70% or higher**.
 ### Example Usage
 
 ```typescript
-import { detectBank } from '@/lib/transaction-import/bank-detector';
+import { detectBank } from "@/lib/transaction-import/bank-detector";
 
 const fileBuffer = await file.arrayBuffer();
 const buffer = Buffer.from(fileBuffer);
@@ -51,10 +51,12 @@ const buffer = Buffer.from(fileBuffer);
 const result = await detectBank(buffer, file.name);
 
 if (result.bankCode && result.confidence >= 70) {
-  console.log(`Detected: ${result.bankCode} (${result.confidence}% confidence)`);
-  console.log(`Matched features: ${result.matchedFeatures.join(', ')}`);
+  console.log(
+    `Detected: ${result.bankCode} (${result.confidence}% confidence)`,
+  );
+  console.log(`Matched features: ${result.matchedFeatures.join(", ")}`);
 } else {
-  console.log('Could not detect bank automatically');
+  console.log("Could not detect bank automatically");
 }
 ```
 
@@ -137,8 +139,8 @@ NEW: {
 
 Create at least two sample CSV files in `tests/fixtures/banks/`:
 
--   `newbank_sample1.csv`
--   `newbank_sample2.csv`
+- `newbank_sample1.csv`
+- `newbank_sample2.csv`
 
 These files should contain realistic transaction data in the bank's format.
 
@@ -147,13 +149,16 @@ These files should contain realistic transaction data in the bank's format.
 Add test cases to `src/__tests__/bank-detector.test.ts`:
 
 ```typescript
-it('should detect New Bank from CSV file', async () => {
-  const filePath = join(process.cwd(), 'tests/fixtures/banks/newbank_sample1.csv');
+it("should detect New Bank from CSV file", async () => {
+  const filePath = join(
+    process.cwd(),
+    "tests/fixtures/banks/newbank_sample1.csv",
+  );
   const fileBuffer = readFileSync(filePath);
-  
-  const result = await detectBankFromCSV(fileBuffer, 'newbank_sample1.csv');
-  
-  expect(result.bankCode).toBe('NEW');
+
+  const result = await detectBankFromCSV(fileBuffer, "newbank_sample1.csv");
+
+  expect(result.bankCode).toBe("NEW");
   expect(result.confidence).toBeGreaterThanOrEqual(70);
 });
 ```
@@ -181,9 +186,10 @@ Date,Narration,Debit,Credit,Balance,Reference
 ### Detection Confidence
 
 Moniepoint files are detected with high confidence (typically 80-90%) based on:
--   Header pattern matching
--   "Moniepoint" or "TeamApt" in filename or content
--   Reference number pattern (MPT prefix)
+
+- Header pattern matching
+- "Moniepoint" or "TeamApt" in filename or content
+- Reference number pattern (MPT prefix)
 
 ---
 
@@ -230,8 +236,8 @@ If the confidence score is below 70%:
 
 ## Future Enhancements
 
--   Support for PDF bank statements
--   Multi-currency transaction parsing
--   Automatic duplicate detection across uploads
--   Bank statement validation and error reporting
--   Support for more Nigerian banks (Polaris, Sterling, etc.)
+- Support for PDF bank statements
+- Multi-currency transaction parsing
+- Automatic duplicate detection across uploads
+- Bank statement validation and error reporting
+- Support for more Nigerian banks (Polaris, Sterling, etc.)

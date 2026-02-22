@@ -2,7 +2,7 @@
  * Supabase Module Exports
  * =======================
  * Central export point for all Supabase utilities.
- * 
+ *
  * ARCHITECTURE:
  *   - Browser-only (no SSR)
  *   - No @supabase/ssr dependency
@@ -10,10 +10,10 @@
  *   - Explicit client parameter pattern
  *
  * USAGE:
- *   import { 
+ *   import {
  *     createSupabaseClient,
  *     signInWithEmail,
- *     getTransactions 
+ *     getTransactions
  *   } from '@/lib/supabase';
  *
  *   const supabase = createSupabaseClient();
@@ -31,7 +31,7 @@ export {
   type SupabaseClient,
   type Session,
   type User,
-} from './client';
+} from "./client";
 
 // ============================================================
 // AUTH
@@ -60,7 +60,7 @@ export {
   type AuthResult,
   type SignInResult,
   type SignUpResult,
-} from './auth';
+} from "./auth";
 
 // ============================================================
 // QUERIES
@@ -97,7 +97,7 @@ export {
   type TransactionFilters,
   type TransactionQueryParams,
   type TransactionWithCategory,
-} from './queries';
+} from "./queries";
 
 // ============================================================
 // DATABASE TYPES
@@ -149,4 +149,4 @@ export type {
   AICategoryOverrideUpdate,
   AIAuditLog,
   AIAuditLogInsert,
-} from './types';
+} from "./types";

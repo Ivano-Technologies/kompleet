@@ -3,10 +3,10 @@
  * Drag-and-drop file upload with bank selection
  */
 
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { SUPPORTED_BANKS } from '@/lib/transaction-import/bank-configs';
+import { useState } from "react";
+import { SUPPORTED_BANKS } from "@/lib/transaction-import/bank-configs";
 
 interface UploadResult {
   success: boolean;
@@ -19,7 +19,7 @@ interface UploadResult {
 }
 
 export function TransactionUpload() {
-  const [selectedBank, setSelectedBank] = useState<string>('');
+  const [selectedBank, setSelectedBank] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [result, setResult] = useState<UploadResult | null>(null);
@@ -28,9 +28,9 @@ export function TransactionUpload() {
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (e.type === 'dragenter' || e.type === 'dragover') {
+    if (e.type === "dragenter" || e.type === "dragover") {
       setDragActive(true);
-    } else if (e.type === 'dragleave') {
+    } else if (e.type === "dragleave") {
       setDragActive(false);
     }
   };
@@ -53,7 +53,7 @@ export function TransactionUpload() {
 
   const handleUpload = async () => {
     if (!file || !selectedBank) {
-      alert('Please select a bank and choose a file');
+      alert("Please select a bank and choose a file");
       return;
     }
 
@@ -62,13 +62,13 @@ export function TransactionUpload() {
 
     try {
       const formData = new FormData();
-      formData.append('file', file);
-      formData.append('bankCode', selectedBank);
+      formData.append("file", file);
+      formData.append("bankCode", selectedBank);
 
-      const response = await fetch('/api/transactions/upload-v2', {
-        method: 'POST',
+      const response = await fetch("/api/transactions/upload-v2", {
+        method: "POST",
         body: formData,
-        credentials: 'include', // Include cookies for authentication
+        credentials: "include", // Include cookies for authentication
       });
 
       const data = await response.json();
@@ -77,12 +77,12 @@ export function TransactionUpload() {
         setResult(data);
         setFile(null);
       } else {
-        setResult({ success: false, error: data.error || 'Upload failed' });
+        setResult({ success: false, error: data.error || "Upload failed" });
       }
     } catch (error) {
       setResult({
         success: false,
-        error: error instanceof Error ? error.message : 'Upload failed',
+        error: error instanceof Error ? error.message : "Upload failed",
       });
     } finally {
       setUploading(false);
@@ -96,7 +96,8 @@ export function TransactionUpload() {
           Import Bank Statement
         </h2>
         <p className="text-muted">
-          Upload your bank statement (CSV, Excel, or PDF) to automatically import transactions
+          Upload your bank statement (CSV, Excel, or PDF) to automatically
+          import transactions
         </p>
       </div>
 
@@ -123,7 +124,7 @@ export function TransactionUpload() {
       {/* File Upload */}
       <div
         className={`relative border-2 border-dashed rounded-lg p-8 text-center ${
-          dragActive ? 'border-primary bg-primary/10' : 'border-border'
+          dragActive ? "border-primary bg-primary/10" : "border-border"
         }`}
         onDragEnter={handleDrag}
         onDragLeave={handleDrag}
@@ -164,19 +165,23 @@ export function TransactionUpload() {
         disabled={!file || !selectedBank || uploading}
         className="w-full px-6 py-3 bg-primary text-background font-semibold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 transition-opacity"
       >
-        {uploading ? 'Uploading...' : 'Upload and Import'}
+        {uploading ? "Uploading..." : "Upload and Import"}
       </button>
 
       {/* Result */}
       {result && (
         <div
           className={`p-4 rounded-lg ${
-            result.success ? 'bg-success/10 border border-success' : 'bg-error/10 border border-error'
+            result.success
+              ? "bg-success/10 border border-success"
+              : "bg-error/10 border border-error"
           }`}
         >
           {result.success ? (
             <div>
-              <h3 className="font-semibold text-foreground mb-2">Import Successful!</h3>
+              <h3 className="font-semibold text-foreground mb-2">
+                Import Successful!
+              </h3>
               <ul className="text-sm text-muted space-y-1">
                 <li>✓ Imported: {result.imported} transactions</li>
                 <li>⚠ Duplicates skipped: {result.duplicates}</li>

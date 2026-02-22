@@ -1,2 +1,2 @@
 // Centralized database access point
-export * from './repository';
+export * from "./repository";

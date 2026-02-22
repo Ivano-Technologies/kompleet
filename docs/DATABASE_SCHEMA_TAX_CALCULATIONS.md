@@ -60,9 +60,11 @@ CREATE TABLE IF NOT EXISTS public.tax_calculations (
 ## Field Descriptions
 
 ### Primary Key
+
 - **`id`** (UUID): Unique calculation ID, auto-generated
 
 ### Ownership & Context
+
 - **`user_id`** (UUID): Foreign key to `profiles.id`, owner of this calculation
 - **`tax_type`** (ENUM): Type of tax calculation
   - `'pit'` - Personal Income Tax
@@ -73,11 +75,13 @@ CREATE TABLE IF NOT EXISTS public.tax_calculations (
 - **`calculation_date`** (DATE): When calculation was performed, defaults to today
 
 ### Input Data
+
 - **`input_data`** (JSONB): Flexible storage for calculation inputs
   - Structure varies by tax_type
   - Examples below
 
 ### Calculation Results
+
 - **`gross_amount`** (BIGINT): Gross income/revenue in kobo
 - **`deductions`** (BIGINT): Total deductions in kobo
 - **`taxable_amount`** (BIGINT): Amount subject to tax in kobo
@@ -88,6 +92,7 @@ CREATE TABLE IF NOT EXISTS public.tax_calculations (
 > Convert for display: `amount_in_naira = amount_in_kobo / 100`
 
 ### Breakdown
+
 - **`breakdown`** (JSONB): Detailed calculation breakdown
   - Band-by-band calculations (PIT)
   - Component breakdowns (CIT: tax + levy)
@@ -95,12 +100,14 @@ CREATE TABLE IF NOT EXISTS public.tax_calculations (
   - Examples below
 
 ### Status
+
 - **`is_final`** (BOOLEAN): If `true`, calculation is locked and cannot be modified
   - Set to `true` when user marks calculation as "filed" or "finalized"
   - Prevents accidental edits to filed calculations
   - RLS policies prevent UPDATE/DELETE when `is_final = true`
 
 ### Timestamps
+
 - **`created_at`** (TIMESTAMPTZ): When the calculation was created (auto-set)
 
 ---
@@ -112,6 +119,7 @@ CREATE TABLE IF NOT EXISTS public.tax_calculations (
 ### Policies
 
 1. **SELECT**: Users can only view their own calculations
+
    ```sql
    CREATE POLICY "tax_calculations_select_own" ON public.tax_calculations
      FOR SELECT TO authenticated
@@ -119,6 +127,7 @@ CREATE TABLE IF NOT EXISTS public.tax_calculations (
    ```
 
 2. **INSERT**: Users can only create calculations for themselves
+
    ```sql
    CREATE POLICY "tax_calculations_insert_own" ON public.tax_calculations
      FOR INSERT TO authenticated
@@ -126,6 +135,7 @@ CREATE TABLE IF NOT EXISTS public.tax_calculations (
    ```
 
 3. **UPDATE**: Users can only edit their own non-finalized calculations
+
    ```sql
    CREATE POLICY "tax_calculations_update_own" ON public.tax_calculations
      FOR UPDATE TO authenticated
@@ -167,11 +177,11 @@ CREATE TABLE IF NOT EXISTS public.tax_calculations (
   "effective_rate": 0.1909,
   "breakdown": {
     "bands": [
-      {"min": 0, "max": 30000000, "rate": 0.07, "tax": 2100000},
-      {"min": 30000000, "max": 60000000, "rate": 0.11, "tax": 3300000},
-      {"min": 60000000, "max": 120000000, "rate": 0.15, "tax": 9000000},
-      {"min": 120000000, "max": 240000000, "rate": 0.19, "tax": 22800000},
-      {"min": 240000000, "rate": 0.21, "tax": 226800000}
+      { "min": 0, "max": 30000000, "rate": 0.07, "tax": 2100000 },
+      { "min": 30000000, "max": 60000000, "rate": 0.11, "tax": 3300000 },
+      { "min": 60000000, "max": 120000000, "rate": 0.15, "tax": 9000000 },
+      { "min": 120000000, "max": 240000000, "rate": 0.19, "tax": 22800000 },
+      { "min": 240000000, "rate": 0.21, "tax": 226800000 }
     ],
     "personalRelief": 21500000,
     "rentRelief": 50000000,
@@ -201,10 +211,10 @@ CREATE TABLE IF NOT EXISTS public.tax_calculations (
   "deductions": 0,
   "taxable_amount": 2000000000,
   "tax_due": 680000000,
-  "effective_rate": 0.3400,
+  "effective_rate": 0.34,
   "breakdown": {
     "companyIncomeTax": {
-      "rate": 0.30,
+      "rate": 0.3,
       "amount": 600000000
     },
     "developmentLevy": {
@@ -236,7 +246,7 @@ CREATE TABLE IF NOT EXISTS public.tax_calculations (
   "deductions": 0,
   "taxable_amount": 15000000000,
   "tax_due": 1125000000,
-  "effective_rate": 0.0750,
+  "effective_rate": 0.075,
   "breakdown": {
     "isExempt": false,
     "exemptReason": null,
@@ -259,12 +269,12 @@ CREATE TABLE IF NOT EXISTS public.tax_calculations (
 ### Create (Save) a Calculation
 
 ```typescript
-import { createServerClient } from '@/lib/supabase/server';
+import { createServerClient } from "@/lib/supabase/server";
 
 export async function saveTaxCalculation(
   userId: string,
   calculationData: {
-    tax_type: 'pit' | 'cit' | 'vat' | 'wht';
+    tax_type: "pit" | "cit" | "vat" | "wht";
     tax_year: number;
     input_data: any;
     gross_amount: number; // in kobo
@@ -273,12 +283,12 @@ export async function saveTaxCalculation(
     tax_due: number;
     effective_rate: number;
     breakdown: any;
-  }
+  },
 ) {
   const supabase = await createServerClient();
 
   const { data, error } = await supabase
-    .from('tax_calculations')
+    .from("tax_calculations")
     .insert({
       user_id: userId,
       ...calculationData,
@@ -297,24 +307,24 @@ export async function saveTaxCalculation(
 export async function getUserCalculations(
   userId: string,
   filters?: {
-    tax_type?: 'pit' | 'cit' | 'vat' | 'wht';
+    tax_type?: "pit" | "cit" | "vat" | "wht";
     tax_year?: number;
-  }
+  },
 ) {
   const supabase = await createServerClient();
 
   let query = supabase
-    .from('tax_calculations')
-    .select('*')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false });
+    .from("tax_calculations")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
 
   if (filters?.tax_type) {
-    query = query.eq('tax_type', filters.tax_type);
+    query = query.eq("tax_type", filters.tax_type);
   }
 
   if (filters?.tax_year) {
-    query = query.eq('tax_year', filters.tax_year);
+    query = query.eq("tax_year", filters.tax_year);
   }
 
   const { data, error } = await query;
@@ -337,14 +347,14 @@ export async function updateTaxCalculation(
     tax_due: number;
     effective_rate: number;
     breakdown: any;
-  }>
+  }>,
 ) {
   const supabase = await createServerClient();
 
   const { data, error } = await supabase
-    .from('tax_calculations')
+    .from("tax_calculations")
     .update(updates)
-    .eq('id', calculationId)
+    .eq("id", calculationId)
     .select()
     .single();
 
@@ -360,9 +370,9 @@ export async function finalizeCalculation(calculationId: string) {
   const supabase = await createServerClient();
 
   const { data, error } = await supabase
-    .from('tax_calculations')
+    .from("tax_calculations")
     .update({ is_final: true })
-    .eq('id', calculationId)
+    .eq("id", calculationId)
     .select()
     .single();
 
@@ -378,9 +388,9 @@ export async function deleteCalculation(calculationId: string) {
   const supabase = await createServerClient();
 
   const { error } = await supabase
-    .from('tax_calculations')
+    .from("tax_calculations")
     .delete()
-    .eq('id', calculationId);
+    .eq("id", calculationId);
 
   if (error) throw error;
 }
@@ -417,20 +427,24 @@ CREATE INDEX IF NOT EXISTS idx_tax_calculations_created_at
 ## Best Practices
 
 ### Amount Storage
+
 - ✅ **DO**: Store amounts in **kobo** (smallest currency unit)
 - ❌ **DON'T**: Store amounts as floats or decimals for currency
 
 ### JSONB Fields
+
 - ✅ **DO**: Validate JSON structure in application code before saving
 - ✅ **DO**: Keep JSONB structure consistent per tax_type
 - ❌ **DON'T**: Store excessive data in JSONB (>100KB)
 
 ### Finalization
+
 - ✅ **DO**: Set `is_final = true` only when user explicitly confirms
 - ✅ **DO**: Show clear warning before finalizing (cannot be undone)
 - ❌ **DON'T**: Auto-finalize calculations
 
 ### Queries
+
 - ✅ **DO**: Always filter by `user_id` first (uses RLS)
 - ✅ **DO**: Use indexes for large datasets
 - ✅ **DO**: Limit results for pagination (e.g., `.limit(20)`)
@@ -439,11 +453,11 @@ CREATE INDEX IF NOT EXISTS idx_tax_calculations_created_at
 
 ## Migration Status
 
-| Migration File | Description | Status |
-|----------------|-------------|--------|
-| `002_enums.sql` | Created `tax_type` enum | ✅ Applied |
+| Migration File   | Description                      | Status     |
+| ---------------- | -------------------------------- | ---------- |
+| `002_enums.sql`  | Created `tax_type` enum          | ✅ Applied |
 | `003_tables.sql` | Created `tax_calculations` table | ✅ Applied |
-| `004_rls.sql` | Enabled RLS + policies | ✅ Applied |
+| `004_rls.sql`    | Enabled RLS + policies           | ✅ Applied |
 
 ---
 

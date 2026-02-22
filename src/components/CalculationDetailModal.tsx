@@ -1,9 +1,14 @@
-'use client';
+"use client";
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Download, X } from 'lucide-react';
-import type { CalculationHistory } from '@/types/calculation-history';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Download, X } from "lucide-react";
+import type { CalculationHistory } from "@/types/calculation-history";
 
 interface CalculationDetailModalProps {
   calculation: CalculationHistory | null;
@@ -21,30 +26,30 @@ export function CalculationDetailModal({
   if (!calculation) return null;
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-NG', {
-      style: 'currency',
-      currency: 'NGN',
+    return new Intl.NumberFormat("en-NG", {
+      style: "currency",
+      currency: "NGN",
     }).format(value);
   };
 
   const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('en-NG', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    return new Date(date).toLocaleDateString("en-NG", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   const getCalculatorName = (type: string) => {
     const names: Record<string, string> = {
-      business_tax: 'Business Tax',
-      individual_income_tax: 'Individual Income Tax',
-      vat: 'VAT',
-      capital_allowance: 'Capital Allowances',
-      stamp_duty: 'Stamp Duty',
-      property_tax: 'Property Tax',
+      business_tax: "Business Tax",
+      individual_income_tax: "Individual Income Tax",
+      vat: "VAT",
+      capital_allowance: "Capital Allowances",
+      stamp_duty: "Stamp Duty",
+      property_tax: "Property Tax",
     };
     return names[type] || type;
   };
@@ -54,7 +59,9 @@ export function CalculationDetailModal({
       <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center justify-between">
-            <DialogTitle>{getCalculatorName(calculation.calculation_type)}</DialogTitle>
+            <DialogTitle>
+              {getCalculatorName(calculation.calculation_type)}
+            </DialogTitle>
             <Button variant="ghost" size="icon" onClick={onClose}>
               <X className="h-4 w-4" />
             </Button>
@@ -72,10 +79,12 @@ export function CalculationDetailModal({
               {Object.entries(calculation.inputs).map(([key, value]) => (
                 <div key={key} className="flex justify-between">
                   <span className="text-sm font-medium capitalize">
-                    {key.replace(/_/g, ' ')}:
+                    {key.replace(/_/g, " ")}:
                   </span>
                   <span className="text-sm">
-                    {typeof value === 'number' ? formatCurrency(value) : String(value)}
+                    {typeof value === "number"
+                      ? formatCurrency(value)
+                      : String(value)}
                   </span>
                 </div>
               ))}
@@ -89,10 +98,12 @@ export function CalculationDetailModal({
               {Object.entries(calculation.results).map(([key, value]) => (
                 <div key={key} className="flex justify-between">
                   <span className="text-sm font-medium capitalize">
-                    {key.replace(/_/g, ' ')}:
+                    {key.replace(/_/g, " ")}:
                   </span>
                   <span className="text-sm font-semibold">
-                    {typeof value === 'number' ? formatCurrency(value) : String(value)}
+                    {typeof value === "number"
+                      ? formatCurrency(value)
+                      : String(value)}
                   </span>
                 </div>
               ))}

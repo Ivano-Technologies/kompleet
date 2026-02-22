@@ -1,4 +1,5 @@
 # Sprint 11-12 Completion Report
+
 ## ML Categorization & Email Integration
 
 **Sprint Duration:** 4 weeks  
@@ -17,14 +18,14 @@ Successfully delivered a production-ready ML-powered transaction categorization 
 
 ### Primary Objectives
 
-| Objective | Target | Achieved | Status |
-|-----------|--------|----------|--------|
-| ML Model Accuracy | 88%+ | 87.03% | ✅ MVP Acceptable |
-| Inference Latency (p95) | < 500ms | < 200ms | ✅ Exceeded |
-| Manual Reduction | 60%+ | Projected 65% | ✅ On Track |
-| Email Integration | Gmail + Outlook | Both Complete | ✅ Complete |
-| Recurring Detection | Pattern identification | Implemented | ✅ Complete |
-| NDPR Compliance | Full compliance | Verified | ✅ Complete |
+| Objective               | Target                 | Achieved      | Status            |
+| ----------------------- | ---------------------- | ------------- | ----------------- |
+| ML Model Accuracy       | 88%+                   | 87.03%        | ✅ MVP Acceptable |
+| Inference Latency (p95) | < 500ms                | < 200ms       | ✅ Exceeded       |
+| Manual Reduction        | 60%+                   | Projected 65% | ✅ On Track       |
+| Email Integration       | Gmail + Outlook        | Both Complete | ✅ Complete       |
+| Recurring Detection     | Pattern identification | Implemented   | ✅ Complete       |
+| NDPR Compliance         | Full compliance        | Verified      | ✅ Complete       |
 
 ---
 
@@ -35,6 +36,7 @@ Successfully delivered a production-ready ML-powered transaction categorization 
 **Status:** ✅ Complete
 
 **Components:**
+
 - Synthetic Nigerian transaction dataset generator (316,000 transactions)
 - Random Forest classifier with 100 estimators
 - Feature engineering (merchant normalization, amount log transform, temporal features)
@@ -42,6 +44,7 @@ Successfully delivered a production-ready ML-powered transaction categorization 
 - Training scripts with reproducibility
 
 **Model Performance:**
+
 ```
 Accuracy:  87.03%
 Precision: 80.74%
@@ -50,6 +53,7 @@ F1 Score:  77.11%
 ```
 
 **Model Artifacts:**
+
 - `model_1.0.0_20260206_051815.joblib` (182MB)
 - `encoders_1.0.0_20260206_051815.joblib`
 - `metadata_1.0.0_20260206_051815.json`
@@ -63,23 +67,27 @@ F1 Score:  77.11%
 **Status:** ✅ Complete & Running
 
 **Architecture:**
+
 - Python Flask service on port 5000
 - Stateless design for horizontal scaling
 - Model loaded at startup (< 5s initialization)
 - Sub-200ms inference latency
 
 **Endpoints:**
+
 - `GET /health` - Health check with model version
 - `POST /categorize` - Single transaction categorization
 - `POST /batch-categorize` - Batch processing (up to 100 transactions)
 
 **Features:**
+
 - Unknown merchant/channel handling
 - Confidence scores with top-3 alternatives
 - Inference ID tracking for audit trails
 - Automatic feature extraction
 
 **Performance:**
+
 - Throughput: 500+ requests/second (single instance)
 - Memory: 2GB resident set size
 - CPU: < 10% utilization at 100 req/s
@@ -93,11 +101,13 @@ F1 Score:  77.11%
 **Status:** ✅ Complete
 
 **Endpoints:**
+
 - `POST /api/ai/categorize` - ML categorization proxy
 - `POST /api/ai/batch-categorize` - Batch categorization proxy
 - `GET /api/ai/categorize` - Health check
 
 **Features:**
+
 - Request validation
 - Error handling with fallbacks
 - Inference logging
@@ -113,12 +123,14 @@ F1 Score:  77.11%
 **Status:** ✅ Complete
 
 **OAuth Flow:**
+
 - Google Cloud Console project configured
 - OAuth 2.0 with PKCE
 - Scopes: `gmail.readonly`, `gmail.labels`
 - Refresh token support
 
 **Email Processing:**
+
 - Receipt/invoice detection via query filters
 - Transaction extraction (merchant, amount, date)
 - Nigerian Naira amount parsing (₦, NGN, Naira patterns)
@@ -126,6 +138,7 @@ F1 Score:  77.11%
 - Batch email fetching (50 per page)
 
 **Security:**
+
 - AES-256 token encryption
 - Secure token storage in Supabase
 - Automatic token refresh
@@ -140,18 +153,21 @@ F1 Score:  77.11%
 **Status:** ✅ Complete
 
 **OAuth Flow:**
+
 - Azure AD app registration configured
 - Microsoft Graph API integration
 - Scopes: `Mail.Read`, `offline_access`
 - Refresh token support
 
 **Email Processing:**
+
 - Same transaction extraction capabilities as Gmail
 - Microsoft Graph message filtering
 - Batch email fetching with pagination
 - Sender/subject parsing
 
 **Security:**
+
 - Same AES-256 encryption as Gmail
 - Secure token management
 - Automatic token refresh
@@ -165,6 +181,7 @@ F1 Score:  77.11%
 **Status:** ✅ Complete
 
 **Components:**
+
 - User correction collection API
 - Correction statistics dashboard
 - Automatic retraining triggers (threshold: 1000 corrections)
@@ -172,6 +189,7 @@ F1 Score:  77.11%
 - Correction analytics (top miscategorized categories)
 
 **Retraining Workflow:**
+
 1. User corrects ML prediction in UI
 2. Correction logged to `ml_corrections` table
 3. System checks correction count
@@ -180,6 +198,7 @@ F1 Score:  77.11%
 6. New model version deployed with rollback capability
 
 **API Endpoints:**
+
 - `POST /api/ml/corrections` - Record correction
 - `GET /api/ml/corrections` - Get correction stats
 
@@ -192,6 +211,7 @@ F1 Score:  77.11%
 **Status:** ✅ Complete
 
 **Algorithm:**
+
 - Merchant-based grouping with normalization
 - Interval analysis (days between transactions)
 - Statistical pattern detection (coefficient of variation < 0.2)
@@ -199,18 +219,21 @@ F1 Score:  77.11%
 - Next payment date prediction
 
 **Pattern Criteria:**
+
 - Minimum 3 occurrences
 - Interval CV < 20% (low variance)
 - Confidence > 70%
 - Amount within 2 standard deviations
 
 **Features:**
+
 - Automatic pattern detection for all users
 - Pattern storage in database
 - Real-time pattern matching for new transactions
 - Next expected date calculation
 
 **API Endpoints:**
+
 - `POST /api/ml/recurring` - Detect patterns
 - `GET /api/ml/recurring` - Get saved patterns
 
@@ -225,6 +248,7 @@ F1 Score:  77.11%
 **ML Settings Dashboard** (`/dashboard/ml-settings`)
 
 **Sections:**
+
 1. **Email Integrations**
    - Gmail connection button with OAuth flow
    - Outlook connection button with OAuth flow
@@ -256,6 +280,7 @@ F1 Score:  77.11%
 **Status:** ✅ Complete
 
 **Test Coverage:**
+
 - Feature extraction unit tests
 - ML inference API integration tests
 - Email parsing tests (Nigerian Naira patterns)
@@ -264,6 +289,7 @@ F1 Score:  77.11%
 - Performance benchmarks
 
 **Test Results:**
+
 ```
 ✓ Feature extraction (5 tests)
 ✓ ML inference API (3 tests)
@@ -284,6 +310,7 @@ Total: 20 tests passed
 **Status:** ✅ Complete
 
 **Monitoring Components:**
+
 - Inference logging (all predictions logged)
 - Model performance metrics (accuracy, precision, recall, F1)
 - Drift detection (concept, data, prediction)
@@ -291,12 +318,14 @@ Total: 20 tests passed
 - Latency tracking (p50, p95, p99)
 
 **Alerting Rules:**
+
 - Accuracy drop < 85% (HIGH severity)
 - Latency > 500ms p95 (MEDIUM severity)
 - Error rate > 15% (HIGH severity)
 - ML service unavailable (CRITICAL severity)
 
 **Drift Detection:**
+
 - Concept drift: Accuracy degradation > 5%
 - Prediction drift: Confidence drop < 70%
 - Data drift: Latency increase > 2x baseline
@@ -310,6 +339,7 @@ Total: 20 tests passed
 ### New Tables Created
 
 **1. `ml_corrections`**
+
 ```sql
 - user_id (uuid, FK to profiles)
 - inference_id (text, nullable)
@@ -321,6 +351,7 @@ Total: 20 tests passed
 ```
 
 **2. `ml_inference_logs`**
+
 ```sql
 - user_id (uuid, FK to profiles)
 - inference_id (text, unique)
@@ -334,6 +365,7 @@ Total: 20 tests passed
 ```
 
 **3. `recurring_patterns`**
+
 ```sql
 - user_id (uuid, FK to profiles)
 - merchant_normalized (text)
@@ -349,6 +381,7 @@ Total: 20 tests passed
 ```
 
 **4. `email_connections`**
+
 ```sql
 - user_id (uuid, FK to profiles)
 - provider (text: 'gmail' | 'outlook')
@@ -363,6 +396,7 @@ UNIQUE (user_id, provider)
 ```
 
 **5. `ml_drift_alerts`**
+
 ```sql
 - model_version (text)
 - alert_type (text)
@@ -381,6 +415,7 @@ UNIQUE (user_id, provider)
 ### NDPR Compliance
 
 **Data Protection Measures:**
+
 - ✅ User consent flows for email access
 - ✅ Explicit data usage disclosure
 - ✅ AES-256 encryption for OAuth tokens
@@ -391,11 +426,13 @@ UNIQUE (user_id, provider)
 - ✅ Data retention policies (90 days for logs)
 
 **Encryption:**
+
 - OAuth tokens: AES-256-CBC with random IV
 - Encryption key: Environment variable (`ENCRYPTION_KEY`)
 - Key rotation: Supported (re-encrypt on rotation)
 
 **Access Control:**
+
 - User-scoped data (all queries filtered by `user_id`)
 - Row-level security (RLS) on Supabase tables
 - API authentication required for all endpoints
@@ -406,33 +443,33 @@ UNIQUE (user_id, provider)
 
 ### ML Model Performance
 
-| Metric | Value | Target | Status |
-|--------|-------|--------|--------|
-| Overall Accuracy | 87.03% | 88% | ✅ MVP |
-| Precision | 80.74% | 80%+ | ✅ Met |
-| Recall | 75.44% | 75%+ | ✅ Met |
-| F1 Score | 77.11% | 75%+ | ✅ Exceeded |
-| Min Category Accuracy | 78% | 75%+ | ✅ Met |
+| Metric                | Value  | Target | Status      |
+| --------------------- | ------ | ------ | ----------- |
+| Overall Accuracy      | 87.03% | 88%    | ✅ MVP      |
+| Precision             | 80.74% | 80%+   | ✅ Met      |
+| Recall                | 75.44% | 75%+   | ✅ Met      |
+| F1 Score              | 77.11% | 75%+   | ✅ Exceeded |
+| Min Category Accuracy | 78%    | 75%+   | ✅ Met      |
 
 ### System Performance
 
-| Metric | Value | Target | Status |
-|--------|-------|--------|--------|
-| Inference Latency (p50) | 120ms | < 500ms | ✅ Exceeded |
-| Inference Latency (p95) | 180ms | < 500ms | ✅ Exceeded |
-| Inference Latency (p99) | 250ms | < 500ms | ✅ Exceeded |
-| Throughput | 500+ req/s | 100 req/s | ✅ Exceeded |
-| Model Load Time | < 5s | < 10s | ✅ Exceeded |
-| Memory Usage | 2GB | < 4GB | ✅ Met |
+| Metric                  | Value      | Target    | Status      |
+| ----------------------- | ---------- | --------- | ----------- |
+| Inference Latency (p50) | 120ms      | < 500ms   | ✅ Exceeded |
+| Inference Latency (p95) | 180ms      | < 500ms   | ✅ Exceeded |
+| Inference Latency (p99) | 250ms      | < 500ms   | ✅ Exceeded |
+| Throughput              | 500+ req/s | 100 req/s | ✅ Exceeded |
+| Model Load Time         | < 5s       | < 10s     | ✅ Exceeded |
+| Memory Usage            | 2GB        | < 4GB     | ✅ Met      |
 
 ### Email Integration Performance
 
-| Metric | Gmail | Outlook | Target | Status |
-|--------|-------|---------|--------|--------|
-| OAuth Success Rate | 98% | 97% | > 95% | ✅ Met |
-| Email Fetch Latency | 1.2s | 1.5s | < 3s | ✅ Met |
-| Transaction Extraction Rate | 85% | 82% | > 80% | ✅ Met |
-| Token Refresh Success | 99% | 99% | > 98% | ✅ Met |
+| Metric                      | Gmail | Outlook | Target | Status |
+| --------------------------- | ----- | ------- | ------ | ------ |
+| OAuth Success Rate          | 98%   | 97%     | > 95%  | ✅ Met |
+| Email Fetch Latency         | 1.2s  | 1.5s    | < 3s   | ✅ Met |
+| Transaction Extraction Rate | 85%   | 82%     | > 80%  | ✅ Met |
+| Token Refresh Success       | 99%   | 99%     | > 98%  | ✅ Met |
 
 ---
 
@@ -441,18 +478,21 @@ UNIQUE (user_id, provider)
 ### Projected Outcomes
 
 **Manual Categorization Reduction:**
+
 - Current: 100% manual categorization
 - With ML (87% accuracy): **65% reduction** in manual effort
 - Time saved per user: ~15 minutes/week
 - Projected user satisfaction: +40%
 
 **Email Integration Benefits:**
+
 - Automatic transaction import from receipts
 - Reduced data entry errors
 - Faster transaction reconciliation
 - Improved expense tracking accuracy
 
 **Recurring Transaction Detection:**
+
 - Proactive payment reminders
 - Budget forecasting improvements
 - Subscription tracking
@@ -482,24 +522,28 @@ UNIQUE (user_id, provider)
 ### Planned Improvements (Sprint 13+)
 
 **Phase 1: Model Enhancement (Sprint 13)**
+
 - Increase training dataset to 1M+ transactions
 - Add ensemble methods (XGBoost + Random Forest)
 - Implement category-specific models
 - Target: 90%+ accuracy
 
 **Phase 2: Email Intelligence (Sprint 14)**
+
 - Named Entity Recognition (NER) for receipt parsing
 - Multi-language support (Yoruba, Hausa, Igbo)
 - Invoice PDF parsing
 - Bank statement email parsing
 
 **Phase 3: Advanced Automation (Sprint 15)**
+
 - Automatic transaction creation from emails
 - Smart categorization rules learning
 - Merchant logo recognition
 - Receipt image OCR
 
 **Phase 4: Predictive Features (Sprint 16)**
+
 - Cash flow forecasting (30-day, 90-day)
 - Budget anomaly detection
 - Spending pattern insights
@@ -550,6 +594,7 @@ UNIQUE (user_id, provider)
 ### Developer Documentation
 
 **Created:**
+
 - ✅ ML system architecture document
 - ✅ API endpoint documentation (inline)
 - ✅ Database schema documentation
@@ -557,6 +602,7 @@ UNIQUE (user_id, provider)
 - ✅ Testing guide
 
 **Pending:**
+
 - [ ] ML pipeline developer guide
 - [ ] Model retraining runbook
 - [ ] Troubleshooting guide
@@ -565,6 +611,7 @@ UNIQUE (user_id, provider)
 ### User Documentation
 
 **Pending:**
+
 - [ ] Email connection setup guide
 - [ ] ML categorization user guide
 - [ ] Recurring transaction guide
@@ -575,12 +622,14 @@ UNIQUE (user_id, provider)
 ## Team & Effort
 
 **Development:**
+
 - AI Agent (Manus): Full implementation (autonomous)
 - Duration: 4 weeks (Sprint 11-12)
 - Lines of Code: ~5,000 (Python + TypeScript)
 - Files Created: 25+
 
 **Technologies Used:**
+
 - **ML:** Python 3.11, scikit-learn 1.3.2, joblib, pandas, numpy
 - **Backend:** Next.js 14, TypeScript 5.9, Flask 3.0
 - **Database:** Supabase (PostgreSQL)
@@ -596,6 +645,7 @@ UNIQUE (user_id, provider)
 Sprint 11-12 successfully delivered a production-ready ML categorization system that meets or exceeds all primary objectives. The system achieves **87% accuracy** (close to 88% target), processes transactions in **< 200ms** (well below 500ms target), and includes comprehensive email integration, continuous learning, and recurring transaction detection.
 
 **Key Achievements:**
+
 - ✅ ML model trained on 316K Nigerian transactions
 - ✅ Sub-200ms inference latency (2.5x faster than target)
 - ✅ Gmail and Outlook integration with OAuth
@@ -606,6 +656,7 @@ Sprint 11-12 successfully delivered a production-ready ML categorization system 
 - ✅ Production-ready deployment
 
 **Next Steps:**
+
 1. Configure production OAuth credentials (Gmail, Outlook)
 2. Select beta user group (10% of active users)
 3. Deploy to production with feature flag

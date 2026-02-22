@@ -11,7 +11,7 @@ export interface Transaction {
   date: string; // ISO 8601 format: YYYY-MM-DD
   description: string; // Transaction narration/merchant
   amount: number; // Absolute value (always positive)
-  type: 'debit' | 'credit'; // Transaction direction
+  type: "debit" | "credit"; // Transaction direction
 
   // Optional fields
   currency?: string; // ISO 4217 code (default: NGN)
@@ -22,7 +22,7 @@ export interface Transaction {
   // AI Categorization fields
   category?: string; // Assigned category
   confidence_score?: number; // 0.0 to 1.0
-  categorization_method?: 'LLM' | 'RULE' | 'ML' | 'MANUAL';
+  categorization_method?: "LLM" | "RULE" | "ML" | "MANUAL";
   requires_review?: boolean; // true if confidence < 0.65
 
   // Metadata
@@ -40,7 +40,7 @@ export interface ParseResult {
   fileMetadata?: {
     fileName: string;
     fileSize: number;
-    fileType: 'pdf' | 'xlsx' | 'xls' | 'csv' | 'zip';
+    fileType: "pdf" | "xlsx" | "xls" | "csv" | "zip";
     isEncrypted: boolean;
     pageCount?: number;
     sheetName?: string;
@@ -79,7 +79,7 @@ export interface SanitizedTransaction {
 
 export interface EncryptionInfo {
   isEncrypted: boolean;
-  encryptionType?: 'password' | 'certificate' | 'unknown';
+  encryptionType?: "password" | "certificate" | "unknown";
   requiresPassword: boolean;
 }
 

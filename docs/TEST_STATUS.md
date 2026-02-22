@@ -19,19 +19,19 @@
 
 ### ✅ Passing Test Suites (11 files, 122 tests)
 
-| Test File | Tests | Status | Notes |
-|-----------|-------|--------|-------|
-| tests/rbac.test.ts | 12/12 | ✅ PASS | RBAC permission system |
-| tests/rate-limit.test.ts | 6/6 | ✅ PASS | Rate limiting functionality |
-| tests/sprint8.test.ts | 30/30 | ✅ PASS | Multi-year data, export, audit (FIXED) |
-| tests/sprint9-10.test.ts | 26/26 | ✅ PASS | E-invoicing compliance (FIXED) |
-| tests/calculators.test.ts | ~15 | ✅ PASS | Business tax, PIT, VAT calculators |
-| tests/forms.test.ts | ~10 | ✅ PASS | Form validation |
-| tests/data-migration.test.ts | ~8 | ✅ PASS | Year-to-year data migration |
-| tests/export.test.ts | ~7 | ✅ PASS | CSV/Excel export |
-| tests/yoy-analysis.test.ts | ~5 | ✅ PASS | Year-over-year comparison |
-| src/lib/tax/cit.test.ts | ~5 | ✅ PASS | CIT calculation logic |
-| src/lib/tax/pit.test.ts | ~5 | ✅ PASS | PIT calculation logic |
+| Test File                    | Tests | Status  | Notes                                  |
+| ---------------------------- | ----- | ------- | -------------------------------------- |
+| tests/rbac.test.ts           | 12/12 | ✅ PASS | RBAC permission system                 |
+| tests/rate-limit.test.ts     | 6/6   | ✅ PASS | Rate limiting functionality            |
+| tests/sprint8.test.ts        | 30/30 | ✅ PASS | Multi-year data, export, audit (FIXED) |
+| tests/sprint9-10.test.ts     | 26/26 | ✅ PASS | E-invoicing compliance (FIXED)         |
+| tests/calculators.test.ts    | ~15   | ✅ PASS | Business tax, PIT, VAT calculators     |
+| tests/forms.test.ts          | ~10   | ✅ PASS | Form validation                        |
+| tests/data-migration.test.ts | ~8    | ✅ PASS | Year-to-year data migration            |
+| tests/export.test.ts         | ~7    | ✅ PASS | CSV/Excel export                       |
+| tests/yoy-analysis.test.ts   | ~5    | ✅ PASS | Year-over-year comparison              |
+| src/lib/tax/cit.test.ts      | ~5    | ✅ PASS | CIT calculation logic                  |
+| src/lib/tax/pit.test.ts      | ~5    | ✅ PASS | PIT calculation logic                  |
 
 **Subtotal**: 122+ tests passing
 
@@ -43,6 +43,7 @@
 **Error**: `ECONNREFUSED ::1:5000` and `127.0.0.1:5000`
 
 **Failing Tests**:
+
 1. ML categorization endpoint
 2. ML batch categorization
 3. ML model health check
@@ -53,6 +54,7 @@
 **Impact**: Low - ML service integration tests, not core functionality
 
 **Fix Options**:
+
 1. **Mock the ML service** (recommended for MVP):
    ```typescript
    vi.mock('@/lib/ml-service', () => ({
@@ -76,6 +78,7 @@
 **Error**: `expected undefined to be 'professional'`
 
 **Failing Tests**:
+
 1. updateUserProfile - subscription_tier field assertion
 2. updateUserProfile - full_name field assertion (possibly)
 
@@ -84,6 +87,7 @@
 **Impact**: Medium - User profile management functionality
 
 **Fix**:
+
 1. Check if `subscription_tier` field exists in `users` table schema
 2. If missing, add migration:
    ```sql
@@ -100,6 +104,7 @@
 #### 1. tests/sprint7.test.ts (12/19 failing)
 
 **Reason**: Tests Phase 2/3 features not yet implemented:
+
 - F-07: NRS Tax Form PDF Generation
   - `src/lib/nrs-forms` - generatePITForm, generateCITForm, generateVATForm
   - `src/lib/form-validation` - validatePITForm, validateCITForm, validateVATForm
@@ -121,6 +126,7 @@
 #### 2. tests/critical-path-integration.test.ts
 
 **Reason**: Tests Phase 2 Dashboard features not yet implemented:
+
 - F-06: Financial Statement Generator
   - `@/lib/financial-statements/income-statement` - generateIncomeStatement
   - `@/lib/financial-statements/balance-sheet` - generateBalanceSheet
@@ -150,9 +156,9 @@
 
 ### Previously Excluded (Now Fixed ✅)
 
-- ~~tests/sprint6*.test.ts~~ - Removed (file doesn't exist)
-- ~~tests/sprint8*.test.ts~~ - **FIXED** (timeout issue resolved)
-- ~~tests/sprint9-10*.test.ts~~ - **FIXED** (assertion logic corrected)
+- ~~tests/sprint6\*.test.ts~~ - Removed (file doesn't exist)
+- ~~tests/sprint8\*.test.ts~~ - **FIXED** (timeout issue resolved)
+- ~~tests/sprint9-10\*.test.ts~~ - **FIXED** (assertion logic corrected)
 
 ---
 
@@ -227,28 +233,33 @@
 ## Test Execution Commands
 
 ### Run All Tests (with exclusions)
+
 ```bash
 pnpm test
 ```
 
 ### Run Specific Test Suite
+
 ```bash
 pnpm vitest run tests/rbac.test.ts
 pnpm vitest run tests/sprint8.test.ts
 ```
 
 ### Run Excluded Tests (for development)
+
 ```bash
 pnpm vitest run tests/sprint7.test.ts
 pnpm vitest run tests/critical-path-integration.test.ts
 ```
 
 ### Watch Mode (development)
+
 ```bash
 pnpm test:watch
 ```
 
 ### Coverage Report
+
 ```bash
 pnpm vitest run --coverage
 ```
@@ -294,6 +305,7 @@ The CI pipeline runs all non-excluded tests on every push:
 ## Changelog
 
 ### February 11, 2026
+
 - ✅ Fixed sprint8.test.ts (30/30 passing) - Added 15s timeout to performance test
 - ✅ Fixed sprint9-10.test.ts (26/26 passing) - Fixed boolean coercion in assertion
 - ✅ Removed sprint6, sprint8, sprint9-10 from exclusions
@@ -302,10 +314,12 @@ The CI pipeline runs all non-excluded tests on every push:
 - 📊 Test pass rate: 95.5% (128/134)
 
 ### February 10, 2026
+
 - ✅ Created RBAC test suite (12 tests passing)
 - ✅ Created rate limiting test suite (6 tests passing)
 
 ### February 8, 2026
+
 - 📋 Initial test suite setup
 - 📋 Excluded failing tests to unblock MVP work
 

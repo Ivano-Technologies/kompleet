@@ -1,13 +1,13 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { rateLimit } from '../src/lib/rate-limit';
+import { describe, it, expect, beforeEach } from "vitest";
+import { rateLimit } from "../src/lib/rate-limit";
 
-describe('Rate Limiting', () => {
+describe("Rate Limiting", () => {
   beforeEach(() => {
     // Note: In a real test environment, you'd want to clear the rate limit store
     // For now, we'll use unique identifiers per test
   });
 
-  it('should allow requests under the limit', () => {
+  it("should allow requests under the limit", () => {
     const identifier = `test-user-${Date.now()}`;
 
     // First request should succeed
@@ -18,7 +18,7 @@ describe('Rate Limiting', () => {
     expect(result.reset).toBeInstanceOf(Date);
   });
 
-  it('should block requests over the limit', () => {
+  it("should block requests over the limit", () => {
     const identifier = `test-user-${Date.now()}-2`;
     const limit = 5;
 
@@ -34,7 +34,7 @@ describe('Rate Limiting', () => {
     expect(blockedResult.remaining).toBe(0);
   });
 
-  it('should return correct remaining count', () => {
+  it("should return correct remaining count", () => {
     const identifier = `test-user-${Date.now()}-3`;
     const limit = 10;
 
@@ -51,7 +51,7 @@ describe('Rate Limiting', () => {
     expect(result.remaining).toBe(7);
   });
 
-  it('should use default limit from environment variable', () => {
+  it("should use default limit from environment variable", () => {
     const identifier = `test-user-${Date.now()}-4`;
 
     // Default limit should be 60 (from RATE_LIMIT_REQUESTS_PER_MINUTE)
@@ -61,7 +61,7 @@ describe('Rate Limiting', () => {
     expect(result.remaining).toBeGreaterThanOrEqual(59);
   });
 
-  it('should reset after the window expires', () => {
+  it("should reset after the window expires", () => {
     const identifier = `test-user-${Date.now()}-5`;
     const limit = 2;
     const window = 100; // 100ms window for faster test
@@ -86,7 +86,7 @@ describe('Rate Limiting', () => {
     });
   });
 
-  it('should include reset timestamp', () => {
+  it("should include reset timestamp", () => {
     const identifier = `test-user-${Date.now()}-6`;
 
     const result = rateLimit(identifier, { limit: 10, window: 60000 });

@@ -48,22 +48,22 @@ Nigerian users struggle with:
 
 ## 2. Market & Localization Requirements (Nigeria-Specific)
 
-| Area | Requirement |
-|------|-------------|
+| Area                      | Requirement                                                                                                                                                    |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Currency & Categories** | Default currency: ₦ (Naira). Preloaded categories: Transport (okada, fuel), Airtime/Data, Market/Inventory, VAT (7.5%), Utilities, Logistics, Office Supplies. |
-| **Offline-First** | All features must work offline: Scan, Save, Edit, Queue sync. Sync happens automatically when network is restored. |
-| **Language** | English (default). Architecture must support adding Nigerian Pidgin, Hausa. |
+| **Offline-First**         | All features must work offline: Scan, Save, Edit, Queue sync. Sync happens automatically when network is restored.                                             |
+| **Language**              | English (default). Architecture must support adding Nigerian Pidgin, Hausa.                                                                                    |
 
 ---
 
 ## 3. Personas (Operational Context)
 
-| Persona | Context |
-|---------|---------|
-| **Chidi – SME Owner** | Android 10, low data. Wants VAT-ready expense records. Mostly offline during workday. |
-| **Aisha – Freelancer** | Mid-range Android/iPhone. Wants client reimbursement records. Needs PDF exports. |
-| **Emeka – Field Worker** | Low-end Android. GPS mileage tracking. Battery sensitive. |
-| **Fatima – Individual** | Household expenses. Simple UI. Budget awareness (future phase). |
+| Persona                  | Context                                                                               |
+| ------------------------ | ------------------------------------------------------------------------------------- |
+| **Chidi – SME Owner**    | Android 10, low data. Wants VAT-ready expense records. Mostly offline during workday. |
+| **Aisha – Freelancer**   | Mid-range Android/iPhone. Wants client reimbursement records. Needs PDF exports.      |
+| **Emeka – Field Worker** | Low-end Android. GPS mileage tracking. Battery sensitive.                             |
+| **Fatima – Individual**  | Household expenses. Simple UI. Budget awareness (future phase).                       |
 
 ---
 
@@ -122,15 +122,15 @@ Nigerian users struggle with:
 
 ## 5. Non-Functional Requirements
 
-| Area | Requirement |
-|------|-------------|
-| Offline | 100% usable offline |
-| Performance | OCR < 2 seconds |
-| Battery | <5% drain per hour active use |
-| Devices | Android 8+, 2GB RAM |
-| Sync | <10 seconds |
-| Accessibility | Large text, screen readers |
-| Dark Mode | Required |
+| Area          | Requirement                   |
+| ------------- | ----------------------------- |
+| Offline       | 100% usable offline           |
+| Performance   | OCR < 2 seconds               |
+| Battery       | <5% drain per hour active use |
+| Devices       | Android 8+, 2GB RAM           |
+| Sync          | <10 seconds                   |
+| Accessibility | Large text, screen readers    |
+| Dark Mode     | Required                      |
 
 ---
 
@@ -185,8 +185,8 @@ Report {
 
 ## 10. MVP vs Phase 2
 
-| Phase 1 (MVP) | Phase 2 |
-|---------------|---------|
+| Phase 1 (MVP)                         | Phase 2                                   |
+| ------------------------------------- | ----------------------------------------- |
 | Scan, OCR, Log, Offline, Export, Sync | Teams, Biometric auth, Advanced analytics |
 
 ---
@@ -492,15 +492,15 @@ using (
 
 ## Engineering Constraints
 
-| Constraint | Approach |
-|------------|----------|
-| Offline-first | SQLite + sync queue; write local first; sync when online |
-| Android 8+ | Target SDK in Expo; avoid higher API-only APIs |
-| Low memory | Stream/resize images; avoid loading full receipt in memory |
-| Battery efficient | Sync on foreground/resume; location significant-change |
-| NDPR | Consent table + UI; data deletion flow |
-| Strict TypeScript | `strict: true`; shared or duplicated types |
-| No breaking changes | New tables/routes only; existing flows unchanged |
+| Constraint          | Approach                                                   |
+| ------------------- | ---------------------------------------------------------- |
+| Offline-first       | SQLite + sync queue; write local first; sync when online   |
+| Android 8+          | Target SDK in Expo; avoid higher API-only APIs             |
+| Low memory          | Stream/resize images; avoid loading full receipt in memory |
+| Battery efficient   | Sync on foreground/resume; location significant-change     |
+| NDPR                | Consent table + UI; data deletion flow                     |
+| Strict TypeScript   | `strict: true`; shared or duplicated types                 |
+| No breaking changes | New tables/routes only; existing flows unchanged           |
 
 ---
 
@@ -525,16 +525,16 @@ using (
 
 ## File / Area Map
 
-| Area | Location |
-|------|----------|
-| Supabase migration | `supabase/migrations/YYYYMMDD_expense_tracking.sql` |
-| Mobile app | `apps/mobile/` |
-| Shared types (optional) | `packages/shared/src/types/` |
-| Web expense pages | `src/app/(dashboard)/expenses/*`, `reports/expense-reports/*` |
-| Web expense API | `src/app/api/expenses/*`, `src/app/api/expense-reports/*` |
-| NDPR consent API | `src/app/api/ndpr-consent/*` or auth/onboarding |
-| Edge Functions | `supabase/functions/ocr-fallback`, `export-pdf` (if used) |
-| Receipt storage | Supabase bucket `receipts` + RLS |
+| Area                    | Location                                                      |
+| ----------------------- | ------------------------------------------------------------- |
+| Supabase migration      | `supabase/migrations/YYYYMMDD_expense_tracking.sql`           |
+| Mobile app              | `apps/mobile/`                                                |
+| Shared types (optional) | `packages/shared/src/types/`                                  |
+| Web expense pages       | `src/app/(dashboard)/expenses/*`, `reports/expense-reports/*` |
+| Web expense API         | `src/app/api/expenses/*`, `src/app/api/expense-reports/*`     |
+| NDPR consent API        | `src/app/api/ndpr-consent/*` or auth/onboarding               |
+| Edge Functions          | `supabase/functions/ocr-fallback`, `export-pdf` (if used)     |
+| Receipt storage         | Supabase bucket `receipts` + RLS                              |
 
 ---
 
@@ -546,4 +546,4 @@ using (
 
 ---
 
-*End of document. Save or download this file as needed.*
+_End of document. Save or download this file as needed._

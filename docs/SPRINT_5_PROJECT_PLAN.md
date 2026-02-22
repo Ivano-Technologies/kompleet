@@ -1,4 +1,5 @@
 # Sprint 5: Transaction Management System
+
 ## Comprehensive Project Plan
 
 **Project:** KOMPLEET Platform - Transaction Upload & Parsing Module  
@@ -19,6 +20,7 @@ Sprint 5 implements the Transaction Management System, the most critical blocker
 **Business Impact:** Unblocks ₦7.8M MRR revenue potential and enables beta user onboarding (target: 100 users).
 
 **Success Criteria:**
+
 - Users can upload CSV/Excel files from 10+ Nigerian banks
 - 95%+ transaction parsing accuracy
 - Duplicate detection prevents data corruption
@@ -48,6 +50,7 @@ PDF bank statement parsing with OCR (deferred to Sprint 8), real-time bank API i
 ### In Scope
 
 **CSV Parser Engine**
+
 - Support for 10 major Nigerian banks (GTBank, Zenith, Access, First Bank, UBA, Ecobank, Stanbic IBTC, Fidelity, Union Bank, Wema)
 - Automatic format detection and column mapping
 - Date format normalization (DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD)
@@ -55,6 +58,7 @@ PDF bank statement parsing with OCR (deferred to Sprint 8), real-time bank API i
 - Debit/Credit detection and amount normalization
 
 **Excel Parser Engine**
+
 - .xlsx (Office Open XML) support
 - .xls (Excel 97-2003) support
 - Multi-sheet detection and selection
@@ -62,6 +66,7 @@ PDF bank statement parsing with OCR (deferred to Sprint 8), real-time bank API i
 - Formula evaluation for calculated cells
 
 **Transaction Normalization**
+
 - Bank-specific parser adapters (10 banks)
 - Merchant name standardization
 - Transaction type classification (debit, credit, transfer, fee)
@@ -69,24 +74,28 @@ PDF bank statement parsing with OCR (deferred to Sprint 8), real-time bank API i
 - Balance tracking and validation
 
 **Duplicate Detection**
+
 - Multi-factor matching algorithm (date, amount, merchant, reference)
 - Fuzzy matching for merchant names (85% similarity threshold)
 - User confirmation workflow for potential duplicates
 - Automatic merge for exact matches
 
 **Balance Validation**
+
 - Opening balance verification
 - Running balance calculation
 - Closing balance reconciliation
 - Discrepancy alerts and resolution
 
 **Import History & Audit Trail**
+
 - Import session tracking (file name, date, user, status)
 - Transaction count and amount summaries
 - Error logs with line numbers
 - Rollback capability for failed imports
 
 **User Interface**
+
 - Drag-and-drop file upload
 - Bank selection dropdown
 - Import progress indicator
@@ -108,6 +117,7 @@ PDF bank statement parsing with OCR (deferred to Sprint 8), real-time bank API i
 ### System Components
 
 **Frontend (Next.js + React)**
+
 - Upload UI component with drag-and-drop
 - Bank selector with logo display
 - Progress tracker with real-time updates
@@ -115,12 +125,14 @@ PDF bank statement parsing with OCR (deferred to Sprint 8), real-time bank API i
 - Import history table with filters
 
 **Backend (Next.js API Routes)**
+
 - `/api/transactions/upload` - File upload endpoint
 - `/api/transactions/parse` - Parser orchestration
 - `/api/transactions/validate` - Duplicate detection
 - `/api/transactions/import-history` - Audit trail retrieval
 
 **Parser Service (Node.js)**
+
 - CSV parser (using `papaparse` library)
 - Excel parser (using `xlsx` library)
 - Bank adapter factory pattern
@@ -128,6 +140,7 @@ PDF bank statement parsing with OCR (deferred to Sprint 8), real-time bank API i
 - Validation engine
 
 **Database (PostgreSQL via Supabase)**
+
 - `transactions` table (existing)
 - `import_sessions` table (new)
 - `import_errors` table (new)
@@ -135,14 +148,14 @@ PDF bank statement parsing with OCR (deferred to Sprint 8), real-time bank API i
 
 ### Technology Stack
 
-| Component | Technology | Justification |
-|-----------|------------|---------------|
-| CSV Parsing | papaparse 5.4.1 | Industry standard, handles malformed data |
-| Excel Parsing | xlsx 0.18.5 | Supports .xlsx and .xls, formula evaluation |
-| File Upload | Next.js API + Formidable | Multipart form handling, 10MB limit |
-| Duplicate Detection | Levenshtein distance | Fuzzy string matching for merchant names |
-| Validation | Zod 3.22.4 | Type-safe schema validation |
-| UI Components | shadcn/ui + Tailwind | Consistent with existing design system |
+| Component           | Technology               | Justification                               |
+| ------------------- | ------------------------ | ------------------------------------------- |
+| CSV Parsing         | papaparse 5.4.1          | Industry standard, handles malformed data   |
+| Excel Parsing       | xlsx 0.18.5              | Supports .xlsx and .xls, formula evaluation |
+| File Upload         | Next.js API + Formidable | Multipart form handling, 10MB limit         |
+| Duplicate Detection | Levenshtein distance     | Fuzzy string matching for merchant names    |
+| Validation          | Zod 3.22.4               | Type-safe schema validation                 |
+| UI Components       | shadcn/ui + Tailwind     | Consistent with existing design system      |
 
 ### Database Schema
 
@@ -203,6 +216,7 @@ CREATE INDEX idx_duplicate_candidates_status ON duplicate_candidates(status);
 ### Phase 1: Foundation & Setup (Days 1-2)
 
 **Task 1.1: Database Schema Implementation**
+
 - **Duration:** 4 hours
 - **Assignee:** Backend Developer
 - **Description:** Create `import_sessions`, `import_errors`, and `duplicate_candidates` tables with proper indexes, foreign keys, and RLS policies
@@ -214,6 +228,7 @@ CREATE INDEX idx_duplicate_candidates_status ON duplicate_candidates(status);
   - Indexes improve query performance (< 50ms)
 
 **Task 1.2: Install Parser Libraries**
+
 - **Duration:** 1 hour
 - **Assignee:** Backend Developer
 - **Description:** Install and configure `papaparse`, `xlsx`, and `formidable` libraries with TypeScript definitions
@@ -225,6 +240,7 @@ CREATE INDEX idx_duplicate_candidates_status ON duplicate_candidates(status);
   - No security vulnerabilities (npm audit)
 
 **Task 1.3: Bank Configuration Data**
+
 - **Duration:** 3 hours
 - **Assignee:** Backend Developer + Product Manager
 - **Description:** Research and document CSV/Excel formats for 10 Nigerian banks, create bank configuration JSON with column mappings
@@ -240,6 +256,7 @@ CREATE INDEX idx_duplicate_candidates_status ON duplicate_candidates(status);
 ### Phase 2: CSV/Excel Parsing Engine (Days 3-4)
 
 **Task 2.1: CSV Parser Core**
+
 - **Duration:** 6 hours
 - **Assignee:** Backend Developer
 - **Description:** Implement CSV parser using papaparse with error handling, encoding detection (UTF-8, Windows-1252), and delimiter auto-detection
@@ -252,6 +269,7 @@ CREATE INDEX idx_duplicate_candidates_status ON duplicate_candidates(status);
   - Supports multiple encodings
 
 **Task 2.2: Excel Parser Core**
+
 - **Duration:** 6 hours
 - **Assignee:** Backend Developer
 - **Description:** Implement Excel parser using xlsx library with multi-sheet support, formula evaluation, and date parsing
@@ -264,6 +282,7 @@ CREATE INDEX idx_duplicate_candidates_status ON duplicate_candidates(status);
   - Converts Excel dates to ISO format
 
 **Task 2.3: Bank Adapter Factory**
+
 - **Duration:** 8 hours
 - **Assignee:** Backend Developer
 - **Description:** Implement adapter pattern for bank-specific parsers, create base adapter class, implement 10 bank-specific adapters
@@ -280,6 +299,7 @@ CREATE INDEX idx_duplicate_candidates_status ON duplicate_candidates(status);
 ### Phase 3: Transaction Normalization (Days 5-6)
 
 **Task 3.1: Transaction Normalizer**
+
 - **Duration:** 6 hours
 - **Assignee:** Backend Developer
 - **Description:** Implement transaction normalization logic for date formats, currency parsing, merchant name standardization, and amount normalization
@@ -292,6 +312,7 @@ CREATE INDEX idx_duplicate_candidates_status ON duplicate_candidates(status);
   - Handles negative amounts for debits
 
 **Task 3.2: Balance Validator**
+
 - **Duration:** 4 hours
 - **Assignee:** Backend Developer
 - **Description:** Implement balance validation logic with opening balance verification, running balance calculation, and closing balance reconciliation
@@ -304,6 +325,7 @@ CREATE INDEX idx_duplicate_candidates_status ON duplicate_candidates(status);
   - Alerts user to balance mismatches
 
 **Task 3.3: Duplicate Detection Algorithm**
+
 - **Duration:** 8 hours
 - **Assignee:** Backend Developer
 - **Description:** Implement multi-factor duplicate detection using date, amount, merchant, and reference number matching with Levenshtein distance for fuzzy matching
@@ -320,6 +342,7 @@ CREATE INDEX idx_duplicate_candidates_status ON duplicate_candidates(status);
 ### Phase 4: API Endpoints (Days 7-8)
 
 **Task 4.1: File Upload Endpoint**
+
 - **Duration:** 4 hours
 - **Assignee:** Backend Developer
 - **Description:** Implement `/api/transactions/upload` endpoint with multipart form handling, file size validation (10MB limit), and virus scanning
@@ -332,6 +355,7 @@ CREATE INDEX idx_duplicate_candidates_status ON duplicate_candidates(status);
   - Stores file temporarily (24-hour TTL)
 
 **Task 4.2: Parse Endpoint**
+
 - **Duration:** 6 hours
 - **Assignee:** Backend Developer
 - **Description:** Implement `/api/transactions/parse` endpoint that orchestrates bank adapter selection, parsing, normalization, and validation
@@ -344,6 +368,7 @@ CREATE INDEX idx_duplicate_candidates_status ON duplicate_candidates(status);
   - Returns parsed transactions and errors
 
 **Task 4.3: Duplicate Validation Endpoint**
+
 - **Duration:** 4 hours
 - **Assignee:** Backend Developer
 - **Description:** Implement `/api/transactions/validate` endpoint for duplicate detection and user confirmation workflow
@@ -356,6 +381,7 @@ CREATE INDEX idx_duplicate_candidates_status ON duplicate_candidates(status);
   - Updates duplicate_candidates table
 
 **Task 4.4: Import History Endpoint**
+
 - **Duration:** 3 hours
 - **Assignee:** Backend Developer
 - **Description:** Implement `/api/transactions/import-history` endpoint for retrieving import sessions with pagination and filtering
@@ -372,6 +398,7 @@ CREATE INDEX idx_duplicate_candidates_status ON duplicate_candidates(status);
 ### Phase 5: User Interface (Days 9-10)
 
 **Task 5.1: Upload UI Component**
+
 - **Duration:** 6 hours
 - **Assignee:** Frontend Developer
 - **Description:** Create drag-and-drop file upload component with bank selector, file validation, and progress indicator
@@ -384,6 +411,7 @@ CREATE INDEX idx_duplicate_candidates_status ON duplicate_candidates(status);
   - Error messages with retry button
 
 **Task 5.2: Duplicate Resolution UI**
+
 - **Duration:** 5 hours
 - **Assignee:** Frontend Developer
 - **Description:** Create duplicate resolution interface with side-by-side comparison, similarity score display, and bulk actions
@@ -396,6 +424,7 @@ CREATE INDEX idx_duplicate_candidates_status ON duplicate_candidates(status);
   - Undo capability
 
 **Task 5.3: Import History Dashboard**
+
 - **Duration:** 5 hours
 - **Assignee:** Frontend Developer
 - **Description:** Create import history page with session list, error logs, and export capability
@@ -408,6 +437,7 @@ CREATE INDEX idx_duplicate_candidates_status ON duplicate_candidates(status);
   - CSV export button
 
 **Task 5.4: Integration & Polish**
+
 - **Duration:** 4 hours
 - **Assignee:** Frontend Developer
 - **Description:** Integrate upload flow into existing transaction page, add loading states, error boundaries, and success notifications
@@ -424,6 +454,7 @@ CREATE INDEX idx_duplicate_candidates_status ON duplicate_candidates(status);
 ### Phase 6: Testing & Quality Assurance (Days 10-11)
 
 **Task 6.1: Unit Testing**
+
 - **Duration:** 6 hours
 - **Assignee:** Backend Developer + Frontend Developer
 - **Description:** Write unit tests for parsers, normalizers, validators, and UI components with 90%+ code coverage
@@ -436,6 +467,7 @@ CREATE INDEX idx_duplicate_candidates_status ON duplicate_candidates(status);
   - CI/CD integration
 
 **Task 6.2: Integration Testing**
+
 - **Duration:** 4 hours
 - **Assignee:** QA Engineer
 - **Description:** Test end-to-end upload workflows with real bank statement samples from 10 banks
@@ -448,6 +480,7 @@ CREATE INDEX idx_duplicate_candidates_status ON duplicate_candidates(status);
   - Error handling validated
 
 **Task 6.3: Performance Testing**
+
 - **Duration:** 3 hours
 - **Assignee:** Backend Developer
 - **Description:** Load test upload endpoint with files up to 10MB and 10,000 transactions
@@ -460,6 +493,7 @@ CREATE INDEX idx_duplicate_candidates_status ON duplicate_candidates(status);
   - No memory leaks
 
 **Task 6.4: User Acceptance Testing**
+
 - **Duration:** 5 hours
 - **Assignee:** Product Manager + Beta Users
 - **Description:** Conduct UAT with 5 beta users uploading real bank statements
@@ -479,19 +513,19 @@ CREATE INDEX idx_duplicate_candidates_status ON duplicate_candidates(status);
 
 **Core Team (3 FTE)**
 
-| Role | Name | Allocation | Responsibilities |
-|------|------|------------|------------------|
-| Backend Developer | TBD | 100% (80 hours) | Parser engine, API endpoints, database |
-| Frontend Developer | TBD | 100% (80 hours) | Upload UI, duplicate resolution, import history |
-| QA Engineer | TBD | 50% (40 hours) | Testing, quality assurance, UAT coordination |
+| Role               | Name | Allocation      | Responsibilities                                |
+| ------------------ | ---- | --------------- | ----------------------------------------------- |
+| Backend Developer  | TBD  | 100% (80 hours) | Parser engine, API endpoints, database          |
+| Frontend Developer | TBD  | 100% (80 hours) | Upload UI, duplicate resolution, import history |
+| QA Engineer        | TBD  | 50% (40 hours)  | Testing, quality assurance, UAT coordination    |
 
 **Supporting Team (Part-Time)**
 
-| Role | Name | Allocation | Responsibilities |
-|------|------|------------|------------------|
+| Role            | Name  | Allocation     | Responsibilities                             |
+| --------------- | ----- | -------------- | -------------------------------------------- |
 | Product Manager | Kezie | 25% (20 hours) | Requirements, UAT, stakeholder communication |
-| DevOps Engineer | TBD | 10% (8 hours) | CI/CD, deployment, monitoring setup |
-| UX Designer | TBD | 10% (8 hours) | UI review, accessibility audit |
+| DevOps Engineer | TBD   | 10% (8 hours)  | CI/CD, deployment, monitoring setup          |
+| UX Designer     | TBD   | 10% (8 hours)  | UI review, accessibility audit               |
 
 **Total Effort:** 236 hours (29.5 person-days)
 
@@ -501,24 +535,24 @@ CREATE INDEX idx_duplicate_candidates_status ON duplicate_candidates(status);
 
 ### Sprint Schedule (10 Working Days)
 
-| Day | Phase | Key Deliverables | Milestone |
-|-----|-------|------------------|-----------|
-| 1-2 | Foundation | Database schema, libraries, bank configs | ✓ Setup Complete |
-| 3-4 | Parsing Engine | CSV parser, Excel parser, bank adapters | ✓ Parsers Ready |
-| 5-6 | Normalization | Transaction normalizer, balance validator, duplicate detector | ✓ Validation Ready |
-| 7-8 | API Endpoints | Upload, parse, validate, import history APIs | ✓ Backend Complete |
-| 9-10 | User Interface | Upload UI, duplicate resolution, import history | ✓ Frontend Complete |
-| 10-11 | Testing & QA | Unit tests, integration tests, UAT | ✓ Sprint Complete |
+| Day   | Phase          | Key Deliverables                                              | Milestone           |
+| ----- | -------------- | ------------------------------------------------------------- | ------------------- |
+| 1-2   | Foundation     | Database schema, libraries, bank configs                      | ✓ Setup Complete    |
+| 3-4   | Parsing Engine | CSV parser, Excel parser, bank adapters                       | ✓ Parsers Ready     |
+| 5-6   | Normalization  | Transaction normalizer, balance validator, duplicate detector | ✓ Validation Ready  |
+| 7-8   | API Endpoints  | Upload, parse, validate, import history APIs                  | ✓ Backend Complete  |
+| 9-10  | User Interface | Upload UI, duplicate resolution, import history               | ✓ Frontend Complete |
+| 10-11 | Testing & QA   | Unit tests, integration tests, UAT                            | ✓ Sprint Complete   |
 
 ### Critical Path
 
 ```
-Database Schema (Day 1) 
-  → CSV/Excel Parsers (Day 3-4) 
-    → Bank Adapters (Day 4) 
-      → Normalizer & Validator (Day 5-6) 
-        → API Endpoints (Day 7-8) 
-          → UI Components (Day 9-10) 
+Database Schema (Day 1)
+  → CSV/Excel Parsers (Day 3-4)
+    → Bank Adapters (Day 4)
+      → Normalizer & Validator (Day 5-6)
+        → API Endpoints (Day 7-8)
+          → UI Components (Day 9-10)
             → Testing (Day 10-11)
 ```
 
@@ -526,14 +560,14 @@ Database Schema (Day 1)
 
 ### Key Milestones
 
-| Milestone | Date | Success Criteria |
-|-----------|------|------------------|
-| **M1: Setup Complete** | Feb 11, 2026 | Database schema deployed, libraries installed, bank configs documented |
-| **M2: Parsers Ready** | Feb 13, 2026 | CSV/Excel parsers functional, 10 bank adapters implemented |
-| **M3: Validation Ready** | Feb 15, 2026 | Transaction normalization, balance validation, duplicate detection working |
-| **M4: Backend Complete** | Feb 17, 2026 | All API endpoints deployed and tested |
-| **M5: Frontend Complete** | Feb 19, 2026 | Upload UI, duplicate resolution, import history functional |
-| **M6: Sprint Complete** | Feb 21, 2026 | All tests passed, UAT successful, production-ready |
+| Milestone                 | Date         | Success Criteria                                                           |
+| ------------------------- | ------------ | -------------------------------------------------------------------------- |
+| **M1: Setup Complete**    | Feb 11, 2026 | Database schema deployed, libraries installed, bank configs documented     |
+| **M2: Parsers Ready**     | Feb 13, 2026 | CSV/Excel parsers functional, 10 bank adapters implemented                 |
+| **M3: Validation Ready**  | Feb 15, 2026 | Transaction normalization, balance validation, duplicate detection working |
+| **M4: Backend Complete**  | Feb 17, 2026 | All API endpoints deployed and tested                                      |
+| **M5: Frontend Complete** | Feb 19, 2026 | Upload UI, duplicate resolution, import history functional                 |
+| **M6: Sprint Complete**   | Feb 21, 2026 | All tests passed, UAT successful, production-ready                         |
 
 ---
 
@@ -542,9 +576,10 @@ Database Schema (Day 1)
 ### High-Risk Items
 
 **Risk 1: Bank Format Variations**
+
 - **Probability:** HIGH (80%)
 - **Impact:** MEDIUM (delays parsing accuracy)
-- **Mitigation:** 
+- **Mitigation:**
   - Collect 3+ sample files per bank for testing
   - Implement flexible column mapping with fuzzy matching
   - Add manual column mapping UI as fallback
@@ -552,6 +587,7 @@ Database Schema (Day 1)
 - **Contingency:** If formats vary significantly, prioritize 5 major banks (GTBank, Zenith, Access, First Bank, UBA) and defer others to Sprint 8
 
 **Risk 2: Duplicate Detection False Positives**
+
 - **Probability:** MEDIUM (50%)
 - **Impact:** MEDIUM (user frustration, data integrity issues)
 - **Mitigation:**
@@ -562,6 +598,7 @@ Database Schema (Day 1)
 - **Contingency:** If false positive rate > 20%, disable automatic merging and require manual review for all duplicates
 
 **Risk 3: Performance Degradation with Large Files**
+
 - **Probability:** MEDIUM (40%)
 - **Impact:** HIGH (poor user experience, timeouts)
 - **Mitigation:**
@@ -572,6 +609,7 @@ Database Schema (Day 1)
 - **Contingency:** If performance < 30 seconds for 10,000 transactions, reduce file size limit to 5MB and recommend splitting large files
 
 **Risk 4: Resource Availability**
+
 - **Probability:** MEDIUM (30%)
 - **Impact:** HIGH (sprint delay)
 - **Mitigation:**
@@ -584,18 +622,21 @@ Database Schema (Day 1)
 ### Medium-Risk Items
 
 **Risk 5: Excel Formula Evaluation Errors**
+
 - **Probability:** MEDIUM (40%)
 - **Impact:** LOW (affects calculated cells only)
 - **Mitigation:** Test with sample files containing formulas, fall back to raw values if evaluation fails
 - **Contingency:** Display warning to users about formula limitations, recommend CSV export from Excel
 
 **Risk 6: Balance Validation Discrepancies**
+
 - **Probability:** MEDIUM (50%)
 - **Impact:** MEDIUM (user confusion, trust issues)
 - **Mitigation:** Implement tolerance (₦0.01), provide detailed reconciliation report, allow users to override
 - **Contingency:** Make balance validation optional with warning if disabled
 
 **Risk 7: Encoding Issues (Non-UTF-8 Files)**
+
 - **Probability:** LOW (20%)
 - **Impact:** MEDIUM (parsing failures)
 - **Mitigation:** Auto-detect encoding (UTF-8, Windows-1252, ISO-8859-1), provide encoding selector in UI
@@ -607,49 +648,49 @@ Database Schema (Day 1)
 
 ### Labor Costs
 
-| Role | Rate (₦/hour) | Hours | Cost (₦) |
-|------|---------------|-------|----------|
-| Backend Developer | 15,000 | 80 | 1,200,000 |
-| Frontend Developer | 15,000 | 80 | 1,200,000 |
-| QA Engineer | 10,000 | 40 | 400,000 |
-| Product Manager | 20,000 | 20 | 400,000 |
-| DevOps Engineer | 18,000 | 8 | 144,000 |
-| UX Designer | 12,000 | 8 | 96,000 |
-| **Total Labor** | | **236** | **3,440,000** |
+| Role               | Rate (₦/hour) | Hours   | Cost (₦)      |
+| ------------------ | ------------- | ------- | ------------- |
+| Backend Developer  | 15,000        | 80      | 1,200,000     |
+| Frontend Developer | 15,000        | 80      | 1,200,000     |
+| QA Engineer        | 10,000        | 40      | 400,000       |
+| Product Manager    | 20,000        | 20      | 400,000       |
+| DevOps Engineer    | 18,000        | 8       | 144,000       |
+| UX Designer        | 12,000        | 8       | 96,000        |
+| **Total Labor**    |               | **236** | **3,440,000** |
 
 ### Infrastructure Costs
 
-| Item | Cost (₦) | Notes |
-|------|----------|-------|
-| Supabase Storage (10GB) | 5,000 | Temporary file storage |
-| Vercel Pro Plan | 20,000 | Increased bandwidth for file uploads |
-| Testing Infrastructure | 10,000 | Load testing tools |
-| **Total Infrastructure** | **35,000** | |
+| Item                     | Cost (₦)   | Notes                                |
+| ------------------------ | ---------- | ------------------------------------ |
+| Supabase Storage (10GB)  | 5,000      | Temporary file storage               |
+| Vercel Pro Plan          | 20,000     | Increased bandwidth for file uploads |
+| Testing Infrastructure   | 10,000     | Load testing tools                   |
+| **Total Infrastructure** | **35,000** |                                      |
 
 ### Software Licenses
 
-| Item | Cost (₦) | Notes |
-|------|----------|-------|
-| npm Libraries | 0 | All open-source |
-| Development Tools | 0 | Existing licenses |
-| **Total Software** | **0** | |
+| Item               | Cost (₦) | Notes             |
+| ------------------ | -------- | ----------------- |
+| npm Libraries      | 0        | All open-source   |
+| Development Tools  | 0        | Existing licenses |
+| **Total Software** | **0**    |                   |
 
 ### Contingency
 
-| Item | Cost (₦) | Notes |
-|------|----------|-------|
-| Contingency (15%) | 521,250 | For scope changes, delays |
-| **Total Contingency** | **521,250** | |
+| Item                  | Cost (₦)    | Notes                     |
+| --------------------- | ----------- | ------------------------- |
+| Contingency (15%)     | 521,250     | For scope changes, delays |
+| **Total Contingency** | **521,250** |                           |
 
 ### Total Sprint 5 Budget
 
-| Category | Cost (₦) | Percentage |
-|----------|----------|------------|
-| Labor | 3,440,000 | 86% |
-| Infrastructure | 35,000 | 1% |
-| Software | 0 | 0% |
-| Contingency | 521,250 | 13% |
-| **TOTAL** | **3,996,250** | **100%** |
+| Category       | Cost (₦)      | Percentage |
+| -------------- | ------------- | ---------- |
+| Labor          | 3,440,000     | 86%        |
+| Infrastructure | 35,000        | 1%         |
+| Software       | 0             | 0%         |
+| Contingency    | 521,250       | 13%        |
+| **TOTAL**      | **3,996,250** | **100%**   |
 
 **Budget Status:** Within Phase 1 allocation (₦10M total, ₦4M for Sprint 5)
 
@@ -659,41 +700,41 @@ Database Schema (Day 1)
 
 ### Functional Metrics
 
-| Metric | Target | Measurement Method |
-|--------|--------|-------------------|
-| Parsing Accuracy | 95%+ | Manual validation of 100 transactions per bank |
-| Duplicate Detection Precision | 90%+ | False positive rate < 10% |
-| Duplicate Detection Recall | 95%+ | False negative rate < 5% |
-| Balance Validation Accuracy | 99%+ | Discrepancy rate < 1% |
-| Supported Banks | 10 | GTBank, Zenith, Access, First Bank, UBA, Ecobank, Stanbic IBTC, Fidelity, Union Bank, Wema |
+| Metric                        | Target | Measurement Method                                                                         |
+| ----------------------------- | ------ | ------------------------------------------------------------------------------------------ |
+| Parsing Accuracy              | 95%+   | Manual validation of 100 transactions per bank                                             |
+| Duplicate Detection Precision | 90%+   | False positive rate < 10%                                                                  |
+| Duplicate Detection Recall    | 95%+   | False negative rate < 5%                                                                   |
+| Balance Validation Accuracy   | 99%+   | Discrepancy rate < 1%                                                                      |
+| Supported Banks               | 10     | GTBank, Zenith, Access, First Bank, UBA, Ecobank, Stanbic IBTC, Fidelity, Union Bank, Wema |
 
 ### Performance Metrics
 
-| Metric | Target | Measurement Method |
-|--------|--------|-------------------|
-| Upload Time (1MB file) | < 5 seconds | Performance testing |
-| Parse Time (1,000 transactions) | < 10 seconds | Performance testing |
-| Parse Time (10,000 transactions) | < 30 seconds | Performance testing |
-| API Response Time (p95) | < 500ms | Application monitoring |
-| Memory Usage | < 512MB | Load testing |
+| Metric                           | Target       | Measurement Method     |
+| -------------------------------- | ------------ | ---------------------- |
+| Upload Time (1MB file)           | < 5 seconds  | Performance testing    |
+| Parse Time (1,000 transactions)  | < 10 seconds | Performance testing    |
+| Parse Time (10,000 transactions) | < 30 seconds | Performance testing    |
+| API Response Time (p95)          | < 500ms      | Application monitoring |
+| Memory Usage                     | < 512MB      | Load testing           |
 
 ### User Experience Metrics
 
-| Metric | Target | Measurement Method |
-|--------|--------|-------------------|
-| Upload Success Rate | 95%+ | Analytics tracking |
-| User Satisfaction | 4/5+ | UAT survey |
-| Error Rate | < 5% | Error tracking |
-| Support Tickets | < 10 | Support system |
+| Metric              | Target | Measurement Method |
+| ------------------- | ------ | ------------------ |
+| Upload Success Rate | 95%+   | Analytics tracking |
+| User Satisfaction   | 4/5+   | UAT survey         |
+| Error Rate          | < 5%   | Error tracking     |
+| Support Tickets     | < 10   | Support system     |
 
 ### Business Metrics
 
-| Metric | Target | Measurement Method |
-|--------|--------|-------------------|
-| Beta User Onboarding | 100 users | User registration |
-| Transactions Imported | 50,000+ | Database query |
-| Feature Adoption | 80%+ | Usage analytics |
-| Time to First Import | < 5 minutes | User flow tracking |
+| Metric                | Target      | Measurement Method |
+| --------------------- | ----------- | ------------------ |
+| Beta User Onboarding  | 100 users   | User registration  |
+| Transactions Imported | 50,000+     | Database query     |
+| Feature Adoption      | 80%+        | Usage analytics    |
+| Time to First Import  | < 5 minutes | User flow tracking |
 
 ---
 
@@ -702,16 +743,19 @@ Database Schema (Day 1)
 ### External Dependencies
 
 **Bank Statement Samples**
+
 - Collect 3+ sample CSV/Excel files from each of 10 banks
 - Obtain permission to use real (anonymized) data for testing
 - Document format variations and edge cases
 
 **User Access**
+
 - Recruit 5 beta users for UAT
 - Schedule UAT sessions (Feb 20-21)
 - Prepare UAT scripts and feedback forms
 
 **Infrastructure**
+
 - Increase Supabase storage quota to 10GB
 - Upgrade Vercel plan for increased bandwidth
 - Configure file upload size limits (10MB)
@@ -719,12 +763,14 @@ Database Schema (Day 1)
 ### Internal Dependencies
 
 **Existing Features**
+
 - Transaction table schema (already exists)
 - User authentication (Supabase Auth)
 - Transaction list UI (existing page)
 - Category management (for auto-categorization after import)
 
 **Upcoming Features**
+
 - Financial statement generation (Sprint 6) - will use imported transactions
 - NRS filing (Sprint 7) - requires transaction data
 - E-invoicing (Sprint 9-10) - may integrate with transaction import
@@ -736,6 +782,7 @@ Database Schema (Day 1)
 ### Testing Strategy
 
 **Unit Testing (90%+ Coverage)**
+
 - Parser functions (CSV, Excel, bank adapters)
 - Normalizer functions (date, currency, merchant)
 - Validator functions (balance, duplicates)
@@ -743,18 +790,21 @@ Database Schema (Day 1)
 - UI components (upload form, duplicate resolver)
 
 **Integration Testing**
+
 - End-to-end upload workflow (10 banks)
 - Duplicate detection with real data
 - Balance validation with reconciliation
 - Error handling and recovery
 
 **Performance Testing**
+
 - Load test with 10MB files
 - Stress test with 10,000 transactions
 - Concurrent user simulation (50 users)
 - Memory leak detection
 
 **User Acceptance Testing**
+
 - 5 beta users upload real bank statements
 - Feedback survey (satisfaction, ease of use, bugs)
 - Bug prioritization and fixes
@@ -784,6 +834,7 @@ Database Schema (Day 1)
 **Duration:** 15 minutes  
 **Attendees:** Core team (Backend Dev, Frontend Dev, QA Engineer)  
 **Format:**
+
 - What did you complete yesterday?
 - What will you work on today?
 - Any blockers or dependencies?
@@ -793,6 +844,7 @@ Database Schema (Day 1)
 **Frequency:** Every Friday at 5:00 PM WAT  
 **Audience:** Product Manager, Stakeholders  
 **Content:**
+
 - Progress vs. plan (% complete)
 - Milestones achieved
 - Risks and issues
@@ -804,6 +856,7 @@ Database Schema (Day 1)
 **Duration:** 1 hour  
 **Attendees:** Full team + stakeholders  
 **Agenda:**
+
 - Demo of completed features
 - UAT results presentation
 - Metrics review (accuracy, performance, satisfaction)
@@ -817,6 +870,7 @@ Database Schema (Day 1)
 **Level 3:** CTO / Executive Team
 
 **Escalation Triggers:**
+
 - Critical bug blocking progress
 - Resource unavailability
 - Scope change request
@@ -833,6 +887,7 @@ Database Schema (Day 1)
 **Duration:** 1 hour  
 **Attendees:** Core team  
 **Agenda:**
+
 - What went well?
 - What could be improved?
 - Action items for Sprint 6
@@ -864,22 +919,23 @@ Database Schema (Day 1)
 
 ### Supported Banks
 
-| Bank | Code | CSV Format | Excel Format | Notes |
-|------|------|------------|--------------|-------|
-| GTBank | GTB | ✓ | ✓ | Uses merged cells for headers |
-| Zenith Bank | ZEN | ✓ | ✓ | Includes running balance |
-| Access Bank | ACC | ✓ | ✓ | Multiple date formats |
-| First Bank | FBN | ✓ | ✓ | Separate debit/credit columns |
-| UBA | UBA | ✓ | ✓ | Includes transaction fees |
-| Ecobank | ECO | ✓ | ✓ | Multi-currency support |
-| Stanbic IBTC | SBT | ✓ | ✓ | PDF-like formatting in Excel |
-| Fidelity Bank | FID | ✓ | ✓ | Includes reference numbers |
-| Union Bank | UNB | ✓ | ✓ | Older Excel format (.xls) |
-| Wema Bank | WEM | ✓ | ✓ | Minimal columns |
+| Bank          | Code | CSV Format | Excel Format | Notes                         |
+| ------------- | ---- | ---------- | ------------ | ----------------------------- |
+| GTBank        | GTB  | ✓          | ✓            | Uses merged cells for headers |
+| Zenith Bank   | ZEN  | ✓          | ✓            | Includes running balance      |
+| Access Bank   | ACC  | ✓          | ✓            | Multiple date formats         |
+| First Bank    | FBN  | ✓          | ✓            | Separate debit/credit columns |
+| UBA           | UBA  | ✓          | ✓            | Includes transaction fees     |
+| Ecobank       | ECO  | ✓          | ✓            | Multi-currency support        |
+| Stanbic IBTC  | SBT  | ✓          | ✓            | PDF-like formatting in Excel  |
+| Fidelity Bank | FID  | ✓          | ✓            | Includes reference numbers    |
+| Union Bank    | UNB  | ✓          | ✓            | Older Excel format (.xls)     |
+| Wema Bank     | WEM  | ✓          | ✓            | Minimal columns               |
 
 ### Column Mapping Examples
 
 **GTBank CSV Format:**
+
 ```
 Date,Transaction Details,Value Date,Debit,Credit,Balance
 01/02/2026,TRANSFER TO JOHN DOE,01/02/2026,50000.00,,450000.00
@@ -887,6 +943,7 @@ Date,Transaction Details,Value Date,Debit,Credit,Balance
 ```
 
 **Zenith Bank CSV Format:**
+
 ```
 Tran Date,Value Date,Narration,Debit,Credit,Balance,Ref
 2026-02-01,2026-02-01,TRF TO JANE SMITH,50000,0,450000,ZEN20260201001
@@ -899,12 +956,12 @@ Tran Date,Value Date,Narration,Debit,Credit,Balance,Ref
 
 ### Matching Factors
 
-| Factor | Weight | Threshold | Description |
-|--------|--------|-----------|-------------|
-| Date Match | 30% | ±1 day | Exact or adjacent dates |
-| Amount Match | 40% | Exact | Identical transaction amounts |
-| Merchant Match | 25% | 85% similarity | Levenshtein distance on merchant names |
-| Reference Match | 5% | Exact | Bank reference numbers (if available) |
+| Factor          | Weight | Threshold      | Description                            |
+| --------------- | ------ | -------------- | -------------------------------------- |
+| Date Match      | 30%    | ±1 day         | Exact or adjacent dates                |
+| Amount Match    | 40%    | Exact          | Identical transaction amounts          |
+| Merchant Match  | 25%    | 85% similarity | Levenshtein distance on merchant names |
+| Reference Match | 5%     | Exact          | Bank reference numbers (if available)  |
 
 ### Similarity Score Calculation
 
@@ -914,42 +971,42 @@ function calculateSimilarity(
   new: Transaction
 ): number {
   let score = 0;
-  
+
   // Date match (30%)
   const daysDiff = Math.abs(
     (new.date.getTime() - existing.date.getTime()) / (1000 * 60 * 60 * 24)
   );
   if (daysDiff === 0) score += 0.30;
   else if (daysDiff === 1) score += 0.20;
-  
+
   // Amount match (40%)
   if (new.amount === existing.amount) score += 0.40;
-  
+
   // Merchant match (25%)
   const merchantSimilarity = levenshteinSimilarity(
     new.merchant.toLowerCase(),
     existing.merchant.toLowerCase()
   );
   score += 0.25 * merchantSimilarity;
-  
+
   // Reference match (5%)
-  if (new.reference && existing.reference && 
+  if (new.reference && existing.reference &&
       new.reference === existing.reference) {
     score += 0.05;
   }
-  
+
   return score;
 }
 ```
 
 ### Decision Rules
 
-| Similarity Score | Action | User Confirmation |
-|------------------|--------|-------------------|
-| 100% | Auto-merge | No (log only) |
-| 85-99% | Flag as duplicate | Yes (recommended merge) |
-| 70-84% | Flag as potential | Yes (manual review) |
-| < 70% | Keep both | No |
+| Similarity Score | Action            | User Confirmation       |
+| ---------------- | ----------------- | ----------------------- |
+| 100%             | Auto-merge        | No (log only)           |
+| 85-99%           | Flag as duplicate | Yes (recommended merge) |
+| 70-84%           | Flag as potential | Yes (manual review)     |
+| < 70%            | Keep both         | No                      |
 
 ---
 
@@ -958,6 +1015,7 @@ function calculateSimilarity(
 ### Error Categories
 
 **Parsing Errors**
+
 - Invalid file format (not CSV/Excel)
 - Corrupted file (cannot read)
 - Missing required columns
@@ -965,6 +1023,7 @@ function calculateSimilarity(
 - Encoding issues (non-UTF-8)
 
 **Validation Errors**
+
 - Balance mismatch (opening/closing)
 - Duplicate transactions detected
 - Invalid date format
@@ -972,6 +1031,7 @@ function calculateSimilarity(
 - Missing mandatory fields
 
 **System Errors**
+
 - File size exceeds limit (> 10MB)
 - Upload timeout (> 60 seconds)
 - Database connection failure
@@ -1004,13 +1064,13 @@ function calculateSimilarity(
 
 ### User-Facing Error Messages
 
-| Error Code | User Message | Action |
-|------------|--------------|--------|
-| INVALID_FILE_FORMAT | "This file format is not supported. Please upload a CSV or Excel file." | Show supported formats |
-| FILE_TOO_LARGE | "File size exceeds 10MB limit. Please split into smaller files." | Suggest file splitting |
-| MISSING_COLUMNS | "Required columns not found. Please select your bank from the dropdown." | Show bank selector |
-| BALANCE_MISMATCH | "Opening/closing balance doesn't match. Review discrepancies below." | Show reconciliation report |
-| DUPLICATE_DETECTED | "5 duplicate transactions found. Review and merge or keep both." | Show duplicate resolver |
+| Error Code          | User Message                                                             | Action                     |
+| ------------------- | ------------------------------------------------------------------------ | -------------------------- |
+| INVALID_FILE_FORMAT | "This file format is not supported. Please upload a CSV or Excel file."  | Show supported formats     |
+| FILE_TOO_LARGE      | "File size exceeds 10MB limit. Please split into smaller files."         | Suggest file splitting     |
+| MISSING_COLUMNS     | "Required columns not found. Please select your bank from the dropdown." | Show bank selector         |
+| BALANCE_MISMATCH    | "Opening/closing balance doesn't match. Review discrepancies below."     | Show reconciliation report |
+| DUPLICATE_DETECTED  | "5 duplicate transactions found. Review and merge or keep both."         | Show duplicate resolver    |
 
 ---
 

@@ -1,14 +1,18 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient as createClient } from '@/lib/supabase/server';
-import { TaxComputationService } from '@/lib/services/tax-computation-service';
-import { withRateLimit } from '@/lib/with-rate-limit';
-import { z } from 'zod';
+import { NextRequest, NextResponse } from "next/server";
+import { createServerClient as createClient } from "@/lib/supabase/server";
+import { TaxComputationService } from "@/lib/services/tax-computation-service";
+import { withRateLimit } from "@/lib/with-rate-limit";
+import { z } from "zod";
 
 const taxReportSchema = z.object({
   reportType: z.string().min(1),
   taxYear: z.number().int().min(2000).max(2100),
-  periodStart: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (YYYY-MM-DD)'),
-  periodEnd: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format (YYYY-MM-DD)'),
+  periodStart: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format (YYYY-MM-DD)"),
+  periodEnd: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format (YYYY-MM-DD)"),
   businessType: z.string().optional(),
   turnover: z.number().min(0).optional(),
   totalAssets: z.number().min(0).optional(),
@@ -23,16 +27,19 @@ const taxReportSchema = z.object({
   ownerOccupierInterest: z.number().min(0).optional(),
 });
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 async function handlePOST(request: NextRequest) {
   try {
     const supabase = await createClient();
-    
+
     // Check authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
@@ -40,8 +47,8 @@ async function handlePOST(request: NextRequest) {
 
     if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Invalid input', details: parsed.error.flatten() },
-        { status: 400 }
+        { error: "Invalid input", details: parsed.error.flatten() },
+        { status: 400 },
       );
     }
 
@@ -66,7 +73,7 @@ async function handlePOST(request: NextRequest) {
 
     // Prepare computation input
     const computationInput = {
-      businessType: businessType || 'other_company',
+      businessType: businessType || "other_company",
       turnover: turnover || 0,
       totalAssets: totalAssets || 0,
       isProfessionalService: isProfessionalService || false,
@@ -81,11 +88,13 @@ async function handlePOST(request: NextRequest) {
     };
 
     // Compute tax
-    const computation = TaxComputationService.computeTax(computationInput as any);
+    const computation = TaxComputationService.computeTax(
+      computationInput as any,
+    );
 
     // Save tax report to database
     const { data: taxReport, error: saveError } = await supabase
-      .from('tax_reports')
+      .from("tax_reports")
       .insert({
         user_id: user.id,
         report_type: reportType,
@@ -103,22 +112,22 @@ async function handlePOST(request: NextRequest) {
         total_tax_liability: computation.totalTaxLiability,
         effective_tax_rate: computation.effectiveTaxRate,
         computation_data: computation,
-        status: 'draft',
+        status: "draft",
       })
       .select()
       .single();
 
     if (saveError) {
-      console.error('Error saving tax report:', saveError);
+      console.error("Error saving tax report:", saveError);
       return NextResponse.json({ error: saveError.message }, { status: 400 });
     }
 
     return NextResponse.json({ report: taxReport, computation });
   } catch (error: any) {
-    console.error('Error in POST /api/tax-reports/generate:', error);
+    console.error("Error in POST /api/tax-reports/generate:", error);
     return NextResponse.json(
-      { error: error.message || 'Internal server error' },
-      { status: 500 }
+      { error: error.message || "Internal server error" },
+      { status: 500 },
     );
   }
 }

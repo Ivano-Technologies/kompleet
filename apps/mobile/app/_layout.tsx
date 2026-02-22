@@ -1,7 +1,8 @@
-import { Stack } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { NDPRConsentGate } from '@/lib/ndpr/NDPRConsentGate';
-import { initDb } from '@/lib/db/init';
+import { Stack } from "expo-router";
+import { useEffect, useState } from "react";
+import { NDPRConsentGate } from "@/lib/ndpr/NDPRConsentGate";
+import { initDb } from "@/lib/db/init";
+import { logger } from "@/lib/logger";
 
 export default function RootLayout() {
   const [dbReady, setDbReady] = useState(false);
@@ -9,8 +10,11 @@ export default function RootLayout() {
   useEffect(() => {
     initDb()
       .then(() => setDbReady(true))
-      .catch((e) => {
-        console.error('DB init failed', e);
+      .catch((e: unknown) => {
+        logger.error("DB init failed", {
+          error: e instanceof Error ? e.message : String(e),
+          operation: "initDb",
+        });
         setDbReady(true); // still show app so user sees error state
       });
   }, []);
@@ -23,7 +27,10 @@ export default function RootLayout() {
     <NDPRConsentGate>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="receipt-edit/[id]" options={{ title: 'Edit expense' }} />
+        <Stack.Screen
+          name="receipt-edit/[id]"
+          options={{ title: "Edit expense" }}
+        />
       </Stack>
     </NDPRConsentGate>
   );

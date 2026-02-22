@@ -9,7 +9,7 @@ interface Transaction {
   transaction_date: string;
   description: string;
   amount: number;
-  transaction_type: 'debit' | 'credit';
+  transaction_type: "debit" | "credit";
   category?: {
     id: string;
     name: string;
@@ -70,7 +70,7 @@ export class FinancialStatementsService {
   static generateProfitLoss(
     transactions: Transaction[],
     startDate: string,
-    endDate: string
+    endDate: string,
   ): ProfitLossStatement {
     // Filter transactions by date range
     const filtered = transactions.filter((t) => {
@@ -80,10 +80,10 @@ export class FinancialStatementsService {
 
     // Separate revenue and expenses
     const revenueTransactions = filtered.filter(
-      (t) => t.category?.category_type === 'income'
+      (t) => t.category?.category_type === "income",
     );
     const expenseTransactions = filtered.filter(
-      (t) => t.category?.category_type === 'expense'
+      (t) => t.category?.category_type === "expense",
     );
 
     // Group by category
@@ -91,13 +91,19 @@ export class FinancialStatementsService {
     const expenseItems = this.groupByCategory(expenseTransactions);
 
     // Calculate totals
-    const totalRevenue = revenueItems.reduce((sum, item) => sum + item.amount, 0);
-    const totalExpenses = expenseItems.reduce((sum, item) => sum + item.amount, 0);
+    const totalRevenue = revenueItems.reduce(
+      (sum, item) => sum + item.amount,
+      0,
+    );
+    const totalExpenses = expenseItems.reduce(
+      (sum, item) => sum + item.amount,
+      0,
+    );
     const netIncome = totalRevenue - totalExpenses;
 
     // Calculate taxable income (exclude non-deductible expenses)
     const deductibleExpenses = expenseItems
-      .filter((item) => item.taxTreatment !== 'non_deductible')
+      .filter((item) => item.taxTreatment !== "non_deductible")
       .reduce((sum, item) => sum + item.amount, 0);
     const taxableIncome = totalRevenue - deductibleExpenses;
 
@@ -115,7 +121,7 @@ export class FinancialStatementsService {
    */
   static generateBalanceSheet(
     transactions: Transaction[],
-    asOfDate: string
+    asOfDate: string,
   ): BalanceSheet {
     // Filter transactions up to the specified date
     const filtered = transactions.filter((t) => {
@@ -125,64 +131,94 @@ export class FinancialStatementsService {
 
     // Separate by category type
     const assetTransactions = filtered.filter(
-      (t) => t.category?.category_type === 'asset'
+      (t) => t.category?.category_type === "asset",
     );
     const liabilityTransactions = filtered.filter(
-      (t) => t.category?.category_type === 'liability'
+      (t) => t.category?.category_type === "liability",
     );
 
     // Group assets (current vs non-current based on common categories)
-    const currentAssetCategories = ['Cash', 'Bank Account', 'Accounts Receivable', 'Inventory'];
+    const currentAssetCategories = [
+      "Cash",
+      "Bank Account",
+      "Accounts Receivable",
+      "Inventory",
+    ];
     const currentAssets = assetTransactions.filter((t) =>
-      currentAssetCategories.includes(t.category?.name || '')
+      currentAssetCategories.includes(t.category?.name || ""),
     );
     const nonCurrentAssets = assetTransactions.filter(
-      (t) => !currentAssetCategories.includes(t.category?.name || '')
+      (t) => !currentAssetCategories.includes(t.category?.name || ""),
     );
 
     // Group liabilities (current vs non-current)
-    const currentLiabilityCategories = ['Accounts Payable', 'Short-term Loan', 'Accrued Expenses'];
+    const currentLiabilityCategories = [
+      "Accounts Payable",
+      "Short-term Loan",
+      "Accrued Expenses",
+    ];
     const currentLiabilities = liabilityTransactions.filter((t) =>
-      currentLiabilityCategories.includes(t.category?.name || '')
+      currentLiabilityCategories.includes(t.category?.name || ""),
     );
     const nonCurrentLiabilities = liabilityTransactions.filter(
-      (t) => !currentLiabilityCategories.includes(t.category?.name || '')
+      (t) => !currentLiabilityCategories.includes(t.category?.name || ""),
     );
 
     // Group by category
     const currentAssetItems = this.groupByCategory(currentAssets);
     const nonCurrentAssetItems = this.groupByCategory(nonCurrentAssets);
     const currentLiabilityItems = this.groupByCategory(currentLiabilities);
-    const nonCurrentLiabilityItems = this.groupByCategory(nonCurrentLiabilities);
+    const nonCurrentLiabilityItems = this.groupByCategory(
+      nonCurrentLiabilities,
+    );
 
     // Calculate totals
-    const totalCurrentAssets = currentAssetItems.reduce((sum, item) => sum + item.amount, 0);
-    const totalNonCurrentAssets = nonCurrentAssetItems.reduce((sum, item) => sum + item.amount, 0);
+    const totalCurrentAssets = currentAssetItems.reduce(
+      (sum, item) => sum + item.amount,
+      0,
+    );
+    const totalNonCurrentAssets = nonCurrentAssetItems.reduce(
+      (sum, item) => sum + item.amount,
+      0,
+    );
     const totalAssets = totalCurrentAssets + totalNonCurrentAssets;
 
-    const totalCurrentLiabilities = currentLiabilityItems.reduce((sum, item) => sum + item.amount, 0);
+    const totalCurrentLiabilities = currentLiabilityItems.reduce(
+      (sum, item) => sum + item.amount,
+      0,
+    );
     const totalNonCurrentLiabilities = nonCurrentLiabilityItems.reduce(
       (sum, item) => sum + item.amount,
-      0
+      0,
     );
-    const totalLiabilities = totalCurrentLiabilities + totalNonCurrentLiabilities;
+    const totalLiabilities =
+      totalCurrentLiabilities + totalNonCurrentLiabilities;
 
     // Calculate equity (Assets - Liabilities)
     const equity = totalAssets - totalLiabilities;
     const equityItems: LineItem[] = [
-      { category: 'Owner\'s Equity', amount: equity, count: 1 },
+      { category: "Owner's Equity", amount: equity, count: 1 },
     ];
 
     return {
       period: { asOf: asOfDate },
       assets: {
         current: { items: currentAssetItems, total: totalCurrentAssets },
-        nonCurrent: { items: nonCurrentAssetItems, total: totalNonCurrentAssets },
+        nonCurrent: {
+          items: nonCurrentAssetItems,
+          total: totalNonCurrentAssets,
+        },
         total: totalAssets,
       },
       liabilities: {
-        current: { items: currentLiabilityItems, total: totalCurrentLiabilities },
-        nonCurrent: { items: nonCurrentLiabilityItems, total: totalNonCurrentLiabilities },
+        current: {
+          items: currentLiabilityItems,
+          total: totalCurrentLiabilities,
+        },
+        nonCurrent: {
+          items: nonCurrentLiabilityItems,
+          total: totalNonCurrentLiabilities,
+        },
         total: totalLiabilities,
       },
       equity: {
@@ -200,7 +236,7 @@ export class FinancialStatementsService {
     const grouped = new Map<string, LineItem>();
 
     transactions.forEach((t) => {
-      const categoryName = t.category?.name || 'Uncategorized';
+      const categoryName = t.category?.name || "Uncategorized";
       const existing = grouped.get(categoryName);
 
       if (existing) {
@@ -224,9 +260,9 @@ export class FinancialStatementsService {
    * Format currency for Nigerian Naira
    */
   static formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('en-NG', {
-      style: 'currency',
-      currency: 'NGN',
+    return new Intl.NumberFormat("en-NG", {
+      style: "currency",
+      currency: "NGN",
       minimumFractionDigits: 2,
     }).format(amount);
   }
@@ -236,14 +272,16 @@ export class FinancialStatementsService {
    */
   static calculateRatios(pl: ProfitLossStatement, bs: BalanceSheet) {
     return {
-      profitMargin: pl.revenue.total > 0 ? (pl.netIncome / pl.revenue.total) * 100 : 0,
+      profitMargin:
+        pl.revenue.total > 0 ? (pl.netIncome / pl.revenue.total) * 100 : 0,
       currentRatio:
         bs.liabilities.current.total > 0
           ? bs.assets.current.total / bs.liabilities.current.total
           : 0,
       debtToEquity:
         bs.equity.total > 0 ? bs.liabilities.total / bs.equity.total : 0,
-      returnOnAssets: bs.assets.total > 0 ? (pl.netIncome / bs.assets.total) * 100 : 0,
+      returnOnAssets:
+        bs.assets.total > 0 ? (pl.netIncome / bs.assets.total) * 100 : 0,
     };
   }
 }

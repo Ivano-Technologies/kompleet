@@ -4,35 +4,36 @@
  * Creates and manages AI categorization providers with fallback support
  */
 
-import { AIProvider, ProviderConfig } from './types';
-import { OpenAIProvider } from './openai-provider';
-import { ClaudeProvider } from './claude-provider';
-import { KimiProvider } from './kimi-provider';
-import { FallbackProvider } from './fallback-provider';
+import { AIProvider, ProviderConfig } from "./types";
+import { OpenAIProvider } from "./openai-provider";
+import { ClaudeProvider } from "./claude-provider";
+import { KimiProvider } from "./kimi-provider";
+import { FallbackProvider } from "./fallback-provider";
 
 /**
  * Provider priority order
  * The factory will try providers in this order until one succeeds
  */
-const DEFAULT_PROVIDER_ORDER: Array<'openai' | 'claude' | 'kimi' | 'fallback'> = [
-  'openai',   // Primary: OpenAI GPT-4 Turbo
-  'claude',   // Secondary 1: Anthropic Claude 3.5 Sonnet
-  'kimi',     // Secondary 2: Moonshot AI Kimi 2.5
-  'fallback', // Tertiary: Rule-based fallback (always available)
-];
+const DEFAULT_PROVIDER_ORDER: Array<"openai" | "claude" | "kimi" | "fallback"> =
+  [
+    "openai", // Primary: OpenAI GPT-4 Turbo
+    "claude", // Secondary 1: Anthropic Claude 3.5 Sonnet
+    "kimi", // Secondary 2: Moonshot AI Kimi 2.5
+    "fallback", // Tertiary: Rule-based fallback (always available)
+  ];
 
 /**
  * Create a provider instance based on configuration
  */
 function createProvider(config: ProviderConfig): AIProvider {
   switch (config.provider) {
-    case 'openai':
+    case "openai":
       return new OpenAIProvider(config.apiKey, config.model);
-    case 'claude':
+    case "claude":
       return new ClaudeProvider(config.apiKey, config.model);
-    case 'kimi':
+    case "kimi":
       return new KimiProvider(config.apiKey, config.model);
-    case 'fallback':
+    case "fallback":
       return new FallbackProvider();
     default:
       throw new Error(`Unknown provider: ${config.provider}`);
@@ -44,12 +45,17 @@ function createProvider(config: ProviderConfig): AIProvider {
  */
 export async function getPrimaryProvider(): Promise<AIProvider> {
   // Check environment variable for preferred provider
-  const preferredProvider = process.env.AI_PROVIDER as 'openai' | 'claude' | 'kimi' | 'fallback' | undefined;
-  
+  const preferredProvider = process.env.AI_PROVIDER as
+    | "openai"
+    | "claude"
+    | "kimi"
+    | "fallback"
+    | undefined;
+
   if (preferredProvider) {
     const provider = createProvider({ provider: preferredProvider });
     const isAvailable = await provider.isAvailable();
-    
+
     if (isAvailable) {
       return provider;
     }
@@ -59,14 +65,14 @@ export async function getPrimaryProvider(): Promise<AIProvider> {
   for (const providerType of DEFAULT_PROVIDER_ORDER) {
     const provider = createProvider({ provider: providerType });
     const isAvailable = await provider.isAvailable();
-    
+
     if (isAvailable) {
       return provider;
     }
   }
 
   // This should never happen since fallback is always available
-  throw new Error('No AI provider available');
+  throw new Error("No AI provider available");
 }
 
 /**
@@ -74,7 +80,7 @@ export async function getPrimaryProvider(): Promise<AIProvider> {
  * If the primary provider fails, it will automatically try the next available provider
  */
 export class ProviderWithFallback implements AIProvider {
-  name = 'provider-with-fallback';
+  name = "provider-with-fallback";
   private providers: AIProvider[] = [];
 
   constructor(providers?: AIProvider[]) {
@@ -92,7 +98,7 @@ export class ProviderWithFallback implements AIProvider {
     for (const providerType of DEFAULT_PROVIDER_ORDER) {
       const provider = createProvider({ provider: providerType });
       const isAvailable = await provider.isAvailable();
-      
+
       if (isAvailable) {
         this.providers.push(provider);
       }
@@ -112,10 +118,15 @@ export class ProviderWithFallback implements AIProvider {
     for (const provider of this.providers) {
       try {
         const result = await provider.categorize(request);
-        
+
         // If confidence is too low, try the next provider
-        if (result.confidence < 50 && this.providers.indexOf(provider) < this.providers.length - 1) {
-          console.log(`Low confidence (${result.confidence}%) from ${provider.name}, trying next provider`);
+        if (
+          result.confidence < 50 &&
+          this.providers.indexOf(provider) < this.providers.length - 1
+        ) {
+          console.log(
+            `Low confidence (${result.confidence}%) from ${provider.name}, trying next provider`,
+          );
           continue;
         }
 
@@ -128,7 +139,9 @@ export class ProviderWithFallback implements AIProvider {
     }
 
     // All providers failed
-    throw new Error(`All providers failed. Last error: ${lastError?.message || 'Unknown error'}`);
+    throw new Error(
+      `All providers failed. Last error: ${lastError?.message || "Unknown error"}`,
+    );
   }
 }
 

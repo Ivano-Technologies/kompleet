@@ -5,8 +5,8 @@
  * Redirects unauthenticated users to /login with a returnTo parameter.
  */
 
-import { redirect } from 'next/navigation';
-import { createServerClient } from '@/lib/supabase/server';
+import { redirect } from "next/navigation";
+import { createServerClient } from "@/lib/supabase/server";
 
 /**
  * Require an authenticated user. Redirects to /login if not authenticated.
@@ -19,12 +19,12 @@ export async function requireAuth() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect('/login');
+    redirect("/login");
   }
 
   // Redirect unverified users to email verification page
   if (!user.email_confirmed_at) {
-    redirect('/verify-email');
+    redirect("/verify-email");
   }
 
   return user;

@@ -3,6 +3,7 @@
 ## Current Status
 
 Your GitHub Actions CI workflow is configured to run on:
+
 - ✅ Pull requests to main
 - ✅ Pushes to main (just happened!)
 
@@ -15,6 +16,7 @@ Since you just pushed commit `bb7247467`, the workflow should be running now.
 ### 1.1 Open GitHub Actions
 
 Visit:
+
 ```
 https://github.com/Ivano-Technologies/KOMPLEET-PLATFORM/actions
 ```
@@ -22,11 +24,13 @@ https://github.com/Ivano-Technologies/KOMPLEET-PLATFORM/actions
 ### 1.2 Look for Latest Workflow Run
 
 You should see a workflow run for commit `bb7247467` with title:
+
 ```
 docs: add deployment fix guide and update gitignore
 ```
 
 **Check the status:**
+
 - 🟡 **In Progress** (yellow dot) - Workflow is running
 - ✅ **Success** (green checkmark) - All jobs passed
 - ❌ **Failure** (red X) - Some jobs failed
@@ -34,6 +38,7 @@ docs: add deployment fix guide and update gitignore
 ### 1.3 Click on the Workflow Run
 
 Click on the latest run to see details of:
+
 - Build job
 - Test job
 - Lint job
@@ -68,6 +73,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
 #### Get Supabase Credentials
 
 1. Open Supabase Dashboard:
+
    ```
    https://supabase.com/dashboard/project/frlcvkmjuhnjcicwywrh
    ```
@@ -122,6 +128,7 @@ Click on the failed run.
 ### 4.1 Wait for Workflow to Complete
 
 **Expected timeline:**
+
 - Build job: 2-3 minutes
 - Test job: 1-2 minutes
 - Lint job: 30 seconds
@@ -131,6 +138,7 @@ Click on the failed run.
 ### 4.2 Check All Jobs Pass
 
 All three jobs should show ✅ green checkmark:
+
 - ✅ build
 - ✅ test
 - ✅ lint
@@ -150,6 +158,7 @@ Check if Vercel is connected to GitHub:
 3. Click: **Settings** → **Git**
 
 **Look for:**
+
 - ✅ **Connected**: GitHub repository shown
 - ❌ **Not connected**: Need to connect
 
@@ -158,6 +167,7 @@ Check if Vercel is connected to GitHub:
 Vercel should **auto-deploy** when you push to main.
 
 **Check deployments:**
+
 1. Vercel Dashboard → kompleet-platform → **Deployments**
 2. Look for deployment with commit `bb72474`
 3. Status should be:
@@ -195,6 +205,7 @@ Or connect Vercel to GitHub:
 ### Issue 1: Build Job Fails (Missing Secrets)
 
 **Error in logs:**
+
 ```
 Error: NEXT_PUBLIC_SUPABASE_URL is required
 ```
@@ -206,6 +217,7 @@ Error: NEXT_PUBLIC_SUPABASE_URL is required
 ### Issue 2: Test Job Fails
 
 **Error in logs:**
+
 ```
 6 failed tests
 ```
@@ -217,9 +229,10 @@ Error: NEXT_PUBLIC_SUPABASE_URL is required
 **Or**, update workflow to allow test failures:
 
 Edit `.github/workflows/ci.yml`:
+
 ```yaml
 - run: pnpm test
-  continue-on-error: true  # Add this line
+  continue-on-error: true # Add this line
 ```
 
 ---
@@ -227,11 +240,13 @@ Edit `.github/workflows/ci.yml`:
 ### Issue 3: Lint Job Fails
 
 **Error in logs:**
+
 ```
 ESLint errors found
 ```
 
 **Fix**: Run linting locally and fix errors:
+
 ```bash
 pnpm lint --fix
 git add .
@@ -246,6 +261,7 @@ git push origin main
 ### Email Notifications
 
 GitHub sends emails when workflows:
+
 - ❌ Fail
 - ✅ Succeed (after failure)
 
@@ -280,6 +296,7 @@ Builds the Next.js application with production config.
 **Expected to FAIL or PASS with warnings** ⚠️
 
 6 tests fail due to:
+
 - ML service connection (3 tests)
 - Supabase queries (3 tests)
 
@@ -308,21 +325,25 @@ Runs ESLint on all code.
 ### Check workflow status (CLI)
 
 First, authenticate GitHub CLI:
+
 ```bash
 gh auth login
 ```
 
 Then check workflow runs:
+
 ```bash
 gh run list --limit 5
 ```
 
 View latest run details:
+
 ```bash
 gh run view
 ```
 
 Watch workflow in real-time:
+
 ```bash
 gh run watch
 ```

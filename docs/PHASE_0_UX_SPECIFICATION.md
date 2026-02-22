@@ -150,6 +150,7 @@ User can:
 ```
 
 **Components:**
+
 - Drag-and-drop zone (glassmorphism effect)
 - Browse button (primary CTA)
 - File format hints
@@ -158,6 +159,7 @@ User can:
 - Lock icon (trust signal)
 
 **Interactions:**
+
 - Hover: Drag zone highlights
 - Drag over: Zone becomes active
 - File selected: Immediately upload (no confirmation)
@@ -199,6 +201,7 @@ User can:
 ```
 
 **Components:**
+
 - Lock icon (security signal)
 - Title: "This file is password protected"
 - Helper text: Explain password usage
@@ -211,6 +214,7 @@ User can:
 - Support link
 
 **Interactions:**
+
 - Focus on password field: Auto-focus on modal open
 - Type password: No character count visible
 - Show/hide toggle: Reveals/masks password
@@ -248,12 +252,14 @@ User can:
 ```
 
 **Steps:**
+
 1. Uploading file (0-20%)
 2. Unlocking statement (20-40%) [only if encrypted]
 3. Reading transactions (40-80%)
 4. Preparing your data (80-100%)
 
 **Components:**
+
 - Progress bar (smooth animation)
 - Percentage indicator
 - Step list with icons:
@@ -264,6 +270,7 @@ User can:
 - Estimated time remaining (optional)
 
 **Interactions:**
+
 - Auto-advance steps as backend processes
 - Cancel: Stop upload, return to upload screen
 - Timeout (>30s): Show "Taking longer than expected" message
@@ -299,6 +306,7 @@ User can:
 ```
 
 **Components:**
+
 - Success checkmark (animated)
 - Transaction count
 - Summary statistics (optional)
@@ -306,6 +314,7 @@ User can:
 - Secondary CTA: "Upload another statement"
 
 **Interactions:**
+
 - Primary CTA: Navigate to /transactions/review
 - Secondary CTA: Return to upload screen
 
@@ -343,6 +352,7 @@ User can:
 ```
 
 **Components:**
+
 - Error icon (animated)
 - Error title
 - Possible causes (bullet list)
@@ -352,6 +362,7 @@ User can:
 - Error details (for debugging)
 
 **Interactions:**
+
 - Try Again: Return to upload screen
 - Contact Support: Open support form with error details pre-filled
 
@@ -362,6 +373,7 @@ User can:
 ### Component: UploadWidget.tsx
 
 **Props:**
+
 ```typescript
 interface UploadWidgetProps {
   onSuccess?: (transactionCount: number) => void;
@@ -372,14 +384,15 @@ interface UploadWidgetProps {
 ```
 
 **State:**
+
 ```typescript
 enum UploadState {
-  IDLE = 'idle',
-  UPLOADING = 'uploading',
-  PARSING = 'parsing',
-  SUCCESS = 'success',
-  ERROR = 'error',
-  PASSWORD_REQUIRED = 'password_required',
+  IDLE = "idle",
+  UPLOADING = "uploading",
+  PARSING = "parsing",
+  SUCCESS = "success",
+  ERROR = "error",
+  PASSWORD_REQUIRED = "password_required",
 }
 
 interface UploadWidgetState {
@@ -394,6 +407,7 @@ interface UploadWidgetState {
 ```
 
 **Behavior:**
+
 - Drag-and-drop file selection
 - File validation (size, format)
 - Upload to /api/ingest
@@ -406,6 +420,7 @@ interface UploadWidgetState {
 ### Component: PasswordPrompt.tsx
 
 **Props:**
+
 ```typescript
 interface PasswordPromptProps {
   fileName: string;
@@ -419,6 +434,7 @@ interface PasswordPromptProps {
 ```
 
 **Behavior:**
+
 - Auto-focus on password field
 - Show/hide password toggle
 - Submit on Enter key
@@ -432,16 +448,18 @@ interface PasswordPromptProps {
 ### Component: UploadStatus.tsx
 
 **Props:**
+
 ```typescript
 interface UploadStatusProps {
   progress: number; // 0-100
-  currentStep: 'uploading' | 'unlocking' | 'reading' | 'preparing';
+  currentStep: "uploading" | "unlocking" | "reading" | "preparing";
   onCancel: () => void;
   estimatedTimeRemaining?: number; // seconds
 }
 ```
 
 **Behavior:**
+
 - Smooth progress bar animation
 - Step indicator with icons
 - Cancel button
@@ -454,6 +472,7 @@ interface UploadStatusProps {
 ### Responsive Breakpoints
 
 **Mobile (< 640px):**
+
 - Full-width upload zone
 - Larger touch targets (min 44px)
 - Modal takes full screen (with padding)
@@ -461,11 +480,13 @@ interface UploadStatusProps {
 - Stacked buttons
 
 **Tablet (640px - 1024px):**
+
 - 80% width, centered
 - Same components as desktop
 - Slightly larger touch targets
 
 **Desktop (> 1024px):**
+
 - 600px max-width, centered
 - Standard touch targets
 - Side-by-side buttons
@@ -518,6 +539,7 @@ interface UploadStatusProps {
 ## 6. MICROCOPY & MESSAGING
 
 ### Tone
+
 - **Friendly:** Avoid technical jargon
 - **Reassuring:** Emphasize security and privacy
 - **Clear:** Specific, actionable guidance
@@ -525,21 +547,22 @@ interface UploadStatusProps {
 
 ### Key Messages
 
-| Scenario | Message |
-|----------|---------|
-| **Upload entry** | "PDF, Excel, or CSV. Your file is processed securely and deleted after reading." |
-| **Security note** | "🔒 We never store your bank statement or password." |
-| **Password prompt** | "Enter the password used to open this statement. We use it only to unlock the file and never store it." |
-| **Wrong password** | "That password didn't work. Try again." |
-| **Success** | "Statement imported successfully. We found {{count}} transactions." |
-| **Error** | "We couldn't read this file. Try re-exporting the statement from your bank or upload a different format." |
-| **Support link** | "Need help? Contact support." |
+| Scenario            | Message                                                                                                   |
+| ------------------- | --------------------------------------------------------------------------------------------------------- |
+| **Upload entry**    | "PDF, Excel, or CSV. Your file is processed securely and deleted after reading."                          |
+| **Security note**   | "🔒 We never store your bank statement or password."                                                      |
+| **Password prompt** | "Enter the password used to open this statement. We use it only to unlock the file and never store it."   |
+| **Wrong password**  | "That password didn't work. Try again."                                                                   |
+| **Success**         | "Statement imported successfully. We found {{count}} transactions."                                       |
+| **Error**           | "We couldn't read this file. Try re-exporting the statement from your bank or upload a different format." |
+| **Support link**    | "Need help? Contact support."                                                                             |
 
 ---
 
 ## 7. DESIGN TOKENS
 
 ### Colors
+
 - **Primary:** #1B5E3F (Kompleet green)
 - **Success:** #22C55E (Green)
 - **Error:** #EF4444 (Red)
@@ -548,17 +571,20 @@ interface UploadStatusProps {
 - **Background:** #FFFFFF (Light) / #1F2937 (Dark)
 
 ### Typography
+
 - **Headline:** 24px, bold, color-primary
 - **Subheading:** 16px, medium, color-neutral
 - **Body:** 14px, regular, color-neutral
 - **Caption:** 12px, regular, color-neutral-light
 
 ### Spacing
+
 - **Padding:** 16px, 24px, 32px
 - **Gap:** 12px, 16px, 24px
 - **Border radius:** 8px, 12px, 16px
 
 ### Effects
+
 - **Glassmorphism:** backdrop-filter: blur(10px), opacity 0.8
 - **Shadow:** 0 4px 12px rgba(0, 0, 0, 0.1)
 - **Transition:** 200ms ease-in-out

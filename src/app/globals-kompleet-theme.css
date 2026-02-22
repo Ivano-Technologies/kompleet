@@ -9,7 +9,7 @@
   --jade-green-rgb: 45, 134, 89;
   --jade-light: 212 237 226; /* #D4EDE2 - Light Jade */
   --jade-light-rgb: 212, 237, 226;
-  
+
   /* Light Theme (Default) */
   --background: 255 255 255; /* #FFFFFF - Pure White */
   --surface: 248 249 250; /* #F8F9FA - Off White */
@@ -19,7 +19,7 @@
   --text-primary: 15 23 42; /* #0F172A - Dark Slate */
   --text-secondary: 71 85 105; /* #475569 - Slate */
   --text-tertiary: 148 163 184; /* #94A3B8 - Light Slate */
-  
+
   /* Status Colors */
   --success: 34 197 94; /* #22C55E - Green */
   --warning: 234 179 8; /* #EAB308 - Amber */
@@ -36,12 +36,12 @@ html.dark,
   --surface-hover: 25 42 62; /* #192A3E - Navy Hover */
   --border: 45 70 100; /* #2D4664 - Navy Border */
   --border-hover: 65 95 135; /* #415F87 - Navy Border Hover */
-  
+
   /* Text - Light Colors */
   --text-primary: 240 248 255; /* #F0F8FF - Alice Blue */
   --text-secondary: 176 224 230; /* #B0E0E6 - Powder Blue */
   --text-tertiary: 135 206 235; /* #87CEFA - Sky Blue */
-  
+
   /* Status Colors - Adjusted for Dark Mode */
   --success: 52 211 153; /* #34D399 - Emerald */
   --warning: 251 191 36; /* #FBBF24 - Amber */
@@ -62,7 +62,14 @@ body {
 body {
   color: rgb(var(--text-primary));
   background: rgb(var(--background));
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family:
+    "Inter",
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.6;
@@ -325,15 +332,27 @@ textarea::placeholder {
    ======================================== */
 
 .gradient-jade-navy {
-  background: linear-gradient(135deg, rgb(var(--jade-green)) 0%, rgb(var(--navy-blue)) 100%);
+  background: linear-gradient(
+    135deg,
+    rgb(var(--jade-green)) 0%,
+    rgb(var(--navy-blue)) 100%
+  );
 }
 
 .gradient-navy-jade {
-  background: linear-gradient(135deg, rgb(var(--navy-blue)) 0%, rgb(var(--jade-green)) 100%);
+  background: linear-gradient(
+    135deg,
+    rgb(var(--navy-blue)) 0%,
+    rgb(var(--jade-green)) 100%
+  );
 }
 
 .text-gradient-primary {
-  background: linear-gradient(135deg, rgb(var(--jade-green)) 0%, rgb(var(--navy-blue)) 100%);
+  background: linear-gradient(
+    135deg,
+    rgb(var(--jade-green)) 0%,
+    rgb(var(--navy-blue)) 100%
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -341,7 +360,11 @@ textarea::placeholder {
 
 /* Hero Glow - Jade Green */
 .hero-glow {
-  background: radial-gradient(circle at 50% 50%, rgba(var(--jade-green-rgb), 0.1) 0%, transparent 70%);
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(var(--jade-green-rgb), 0.1) 0%,
+    transparent 70%
+  );
 }
 
 /* ========================================
@@ -388,7 +411,9 @@ tbody td {
 }
 
 .hover-lift {
-  transition: transform 200ms ease, box-shadow 200ms ease;
+  transition:
+    transform 200ms ease,
+    box-shadow 200ms ease;
 }
 
 .hover-lift:hover {

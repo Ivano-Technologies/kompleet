@@ -9,7 +9,7 @@ export interface Entitlements {
 
 export const getEntitlements = (planId: string): Entitlements => {
   switch (planId) {
-    case 'free':
+    case "free":
       return {
         canExportPDF: false,
         canExportMultiYear: false,
@@ -17,7 +17,7 @@ export const getEntitlements = (planId: string): Entitlements => {
         maxExportsPerMonth: 5,
         customBranding: false,
       };
-    case 'pro':
+    case "pro":
       return {
         canExportPDF: true,
         canExportMultiYear: true,
@@ -25,7 +25,7 @@ export const getEntitlements = (planId: string): Entitlements => {
         maxExportsPerMonth: 100,
         customBranding: false,
       };
-    case 'enterprise':
+    case "enterprise":
       return {
         canExportPDF: true,
         canExportMultiYear: true,

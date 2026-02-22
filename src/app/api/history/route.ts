@@ -1,49 +1,52 @@
-import { createServerClient } from '@/lib/supabase/server';
-import { NextRequest, NextResponse } from 'next/server';
-import { withRateLimit } from '@/lib/with-rate-limit';
+import { createServerClient } from "@/lib/supabase/server";
+import { NextRequest, NextResponse } from "next/server";
+import { withRateLimit } from "@/lib/with-rate-limit";
 
 async function handleGET(request: NextRequest) {
   try {
     const supabase = await createServerClient();
 
     // Check authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
 
     if (authError || !user) {
       return NextResponse.json(
-        { error: 'Unauthorized', message: 'Authentication required' },
-        { status: 401 }
+        { error: "Unauthorized", message: "Authentication required" },
+        { status: 401 },
       );
     }
 
     const searchParams = request.nextUrl.searchParams;
 
     // Get query parameters
-    const type = searchParams.get('type');
-    const from = searchParams.get('from');
-    const to = searchParams.get('to');
-    const search = searchParams.get('search');
-    const limit = parseInt(searchParams.get('limit') || '20');
-    const offset = parseInt(searchParams.get('offset') || '0');
+    const type = searchParams.get("type");
+    const from = searchParams.get("from");
+    const to = searchParams.get("to");
+    const search = searchParams.get("search");
+    const limit = parseInt(searchParams.get("limit") || "20");
+    const offset = parseInt(searchParams.get("offset") || "0");
 
     // Build query - filter by authenticated user
     let query = supabase
-      .from('audit_logs')
-      .select('*', { count: 'exact' })
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
+      .from("audit_logs")
+      .select("*", { count: "exact" })
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
 
     // Apply filters
     if (type) {
-      query = query.eq('calculator_type', type);
+      query = query.eq("calculator_type", type);
     }
 
     if (from) {
-      query = query.gte('created_at', from);
+      query = query.gte("created_at", from);
     }
 
     if (to) {
-      query = query.lte('created_at', to);
+      query = query.lte("created_at", to);
     }
 
     if (search) {
@@ -58,10 +61,13 @@ async function handleGET(request: NextRequest) {
     const { data, error, count } = await query;
 
     if (error) {
-      console.error('[history] Error fetching history:', error);
+      console.error("[history] Error fetching history:", error);
       return NextResponse.json(
-        { error: 'Failed to fetch calculation history', message: error.message },
-        { status: 500 }
+        {
+          error: "Failed to fetch calculation history",
+          message: error.message,
+        },
+        { status: 500 },
       );
     }
 
@@ -82,10 +88,10 @@ async function handleGET(request: NextRequest) {
       offset,
     });
   } catch (error) {
-    console.error('[history] Unexpected error:', error);
+    console.error("[history] Unexpected error:", error);
     return NextResponse.json(
-      { error: 'Internal server error', message: 'Failed to fetch history' },
-      { status: 500 }
+      { error: "Internal server error", message: "Failed to fetch history" },
+      { status: 500 },
     );
   }
 }

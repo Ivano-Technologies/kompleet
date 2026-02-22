@@ -4,9 +4,9 @@
  * with automatic fallback support
  */
 
-import { Transaction } from '@/lib/ingestion/types';
-import { getProviderWithFallback } from './providers/factory';
-import type { CategoryPrediction as ProviderPrediction } from './providers/types';
+import { Transaction } from "@/lib/ingestion/types";
+import { getProviderWithFallback } from "./providers/factory";
+import type { CategoryPrediction as ProviderPrediction } from "./providers/types";
 
 export interface CategoryPrediction {
   transactionId: string;
@@ -26,31 +26,31 @@ export interface CategorizationResult {
 
 // Standard transaction categories for Nigerian businesses
 const TRANSACTION_CATEGORIES = [
-  'Revenue',
-  'Sales',
-  'Refunds',
-  'Cost of Goods Sold',
-  'Salaries & Wages',
-  'Rent & Utilities',
-  'Office Supplies',
-  'Marketing & Advertising',
-  'Professional Services',
-  'Travel & Transportation',
-  'Meals & Entertainment',
-  'Insurance',
-  'Taxes & Levies',
-  'Loan Repayment',
-  'Equipment & Fixed Assets',
-  'Maintenance & Repairs',
-  'Telecommunications',
-  'Bank Fees',
-  'Interest Income',
-  'Interest Expense',
-  'Dividends',
-  'Other Income',
-  'Other Expense',
-  'Transfer',
-  'Uncategorized',
+  "Revenue",
+  "Sales",
+  "Refunds",
+  "Cost of Goods Sold",
+  "Salaries & Wages",
+  "Rent & Utilities",
+  "Office Supplies",
+  "Marketing & Advertising",
+  "Professional Services",
+  "Travel & Transportation",
+  "Meals & Entertainment",
+  "Insurance",
+  "Taxes & Levies",
+  "Loan Repayment",
+  "Equipment & Fixed Assets",
+  "Maintenance & Repairs",
+  "Telecommunications",
+  "Bank Fees",
+  "Interest Income",
+  "Interest Expense",
+  "Dividends",
+  "Other Income",
+  "Other Expense",
+  "Transfer",
+  "Uncategorized",
 ];
 
 // Deprecated OpenAI client removed - now using provider abstraction
@@ -64,7 +64,7 @@ export async function categorizeTransactions(
     businessType?: string;
     industry?: string;
     previousCategories?: Record<string, string>;
-  }
+  },
 ): Promise<CategorizationResult> {
   const predictions: CategoryPrediction[] = [];
   let successCount = 0;
@@ -76,12 +76,15 @@ export async function categorizeTransactions(
       predictions.push(prediction);
       successCount++;
     } catch (error) {
-      console.error(`Failed to categorize transaction ${transaction.id}:`, error);
+      console.error(
+        `Failed to categorize transaction ${transaction.id}:`,
+        error,
+      );
       predictions.push({
         transactionId: transaction.id,
-        category: 'Uncategorized',
+        category: "Uncategorized",
         confidence: 0,
-        reasoning: 'Failed to categorize',
+        reasoning: "Failed to categorize",
       });
       failureCount++;
     }
@@ -89,7 +92,8 @@ export async function categorizeTransactions(
 
   const averageConfidence =
     predictions.length > 0
-      ? predictions.reduce((sum, p) => sum + p.confidence, 0) / predictions.length
+      ? predictions.reduce((sum, p) => sum + p.confidence, 0) /
+        predictions.length
       : 0;
 
   return {
@@ -110,15 +114,15 @@ export async function categorizeTransaction(
     businessType?: string;
     industry?: string;
     previousCategories?: Record<string, string>;
-  }
+  },
 ): Promise<CategoryPrediction> {
   try {
     const provider = await getProviderWithFallback();
-    
+
     const prediction = await provider.categorize({
       description: transaction.description,
       amount: transaction.amount,
-      transactionType: transaction.type as 'credit' | 'debit',
+      transactionType: transaction.type as "credit" | "debit",
       date: transaction.date,
     });
 
@@ -130,7 +134,7 @@ export async function categorizeTransaction(
       alternativeCategories: prediction.alternativeCategories,
     };
   } catch (error) {
-    console.error('Categorization failed:', error);
+    console.error("Categorization failed:", error);
     throw error;
   }
 }
@@ -144,11 +148,11 @@ function buildCategorizationPrompt(
     businessType?: string;
     industry?: string;
     previousCategories?: Record<string, string>;
-  }
+  },
 ): string {
-  const categories = TRANSACTION_CATEGORIES.join(', ');
+  const categories = TRANSACTION_CATEGORIES.join(", ");
 
-  let contextInfo = '';
+  let contextInfo = "";
   if (userContext?.businessType) {
     contextInfo += `\nBusiness Type: ${userContext.businessType}`;
   }
@@ -157,12 +161,15 @@ function buildCategorizationPrompt(
   }
 
   const previousExamples =
-    userContext?.previousCategories && Object.keys(userContext.previousCategories).length > 0
-      ? `\nPrevious categorizations (for reference):\n${Object.entries(userContext.previousCategories)
+    userContext?.previousCategories &&
+    Object.keys(userContext.previousCategories).length > 0
+      ? `\nPrevious categorizations (for reference):\n${Object.entries(
+          userContext.previousCategories,
+        )
           .slice(0, 5)
           .map(([desc, cat]) => `- "${desc}" → ${cat}`)
-          .join('\n')}`
-      : '';
+          .join("\n")}`
+      : "";
 
   return `You are an expert accountant helping to categorize business transactions for a Nigerian company.
 
@@ -170,10 +177,10 @@ ${contextInfo}${previousExamples}
 
 Categorize the following transaction:
 - Date: ${transaction.date}
-- Amount: ${transaction.amount} ${transaction.currency || 'NGN'}
+- Amount: ${transaction.amount} ${transaction.currency || "NGN"}
 - Type: ${transaction.type}
 - Description: ${transaction.description}
-- Counterparty: ${transaction.description || 'Unknown'}
+- Counterparty: ${transaction.description || "Unknown"}
 
 Available categories:
 ${categories}
@@ -201,31 +208,31 @@ Rules:
  */
 function parseCategorizationResponse(
   responseText: string,
-  transactionId: string
+  transactionId: string,
 ): CategoryPrediction {
   try {
     // Extract JSON from response
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      throw new Error('No JSON found in response');
+      throw new Error("No JSON found in response");
     }
 
     const parsed = JSON.parse(jsonMatch[0]);
 
     return {
       transactionId,
-      category: parsed.category || 'Uncategorized',
+      category: parsed.category || "Uncategorized",
       confidence: Math.min(Math.max(parsed.confidence || 0, 0), 1),
-      reasoning: parsed.reasoning || '',
+      reasoning: parsed.reasoning || "",
       alternativeCategories: parsed.alternatives || [],
     };
   } catch (error) {
-    console.error('Failed to parse categorization response:', error);
+    console.error("Failed to parse categorization response:", error);
     return {
       transactionId,
-      category: 'Uncategorized',
+      category: "Uncategorized",
       confidence: 0,
-      reasoning: 'Failed to parse AI response',
+      reasoning: "Failed to parse AI response",
     };
   }
 }
@@ -236,21 +243,24 @@ function parseCategorizationResponse(
  */
 export async function getCategorySuggestions(
   description: string,
-  limit: number = 5
+  limit: number = 5,
 ): Promise<Array<{ category: string; confidence: number }>> {
   try {
     const provider = await getProviderWithFallback();
-    
+
     const prediction = await provider.categorize({
       description,
       amount: 0, // Not relevant for suggestions
-      transactionType: 'debit', // Default
+      transactionType: "debit", // Default
     });
 
     // Return the main category plus alternatives
     const suggestions = [
-      { category: prediction.category, confidence: prediction.confidence / 100 },
-      ...(prediction.alternativeCategories || []).map(alt => ({
+      {
+        category: prediction.category,
+        confidence: prediction.confidence / 100,
+      },
+      ...(prediction.alternativeCategories || []).map((alt) => ({
         category: alt.category,
         confidence: alt.confidence / 100,
       })),
@@ -258,7 +268,7 @@ export async function getCategorySuggestions(
 
     return suggestions.slice(0, limit);
   } catch (error) {
-    console.error('Failed to get category suggestions:', error);
+    console.error("Failed to get category suggestions:", error);
     return [];
   }
 }

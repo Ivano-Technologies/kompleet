@@ -1,7 +1,7 @@
-import { createServerClient } from '@/lib/supabase/server';
-import { requireServerUser } from '@/lib/supabase/session';
-import { getTransactionTotals } from '@/lib/supabase/queries';
-import ReportsClient from './ReportsClient';
+import { createServerClient } from "@/lib/supabase/server";
+import { requireServerUser } from "@/lib/supabase/session";
+import { getTransactionTotals } from "@/lib/supabase/queries";
+import ReportsClient from "./ReportsClient";
 
 export default async function ReportsPage() {
   const supabase = await createServerClient();
@@ -13,7 +13,8 @@ export default async function ReportsPage() {
   const stats = {
     totalRevenue: totalsResult.data?.income ?? 0,
     totalExpenses: totalsResult.data?.expenses ?? 0,
-    netIncome: (totalsResult.data?.income ?? 0) - (totalsResult.data?.expenses ?? 0),
+    netIncome:
+      (totalsResult.data?.income ?? 0) - (totalsResult.data?.expenses ?? 0),
   };
 
   return <ReportsClient stats={stats} />;

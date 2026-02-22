@@ -1,96 +1,110 @@
-import { withRateLimit } from '@/lib/with-rate-limit';
-import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient as createClient } from '@/lib/supabase/server';
-import { FinancialStatementsService } from '@/lib/services/financial-statements-service';
+import { withRateLimit } from "@/lib/with-rate-limit";
+import { NextRequest, NextResponse } from "next/server";
+import { createServerClient as createClient } from "@/lib/supabase/server";
+import { FinancialStatementsService } from "@/lib/services/financial-statements-service";
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 async function handlePOST(request: NextRequest) {
   try {
     const supabase = await createClient();
-    
+
     // Check authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
     const { statementType, startDate, endDate, asOfDate } = body;
 
     if (!statementType) {
-      return NextResponse.json({ error: 'statementType is required' }, { status: 400 });
+      return NextResponse.json(
+        { error: "statementType is required" },
+        { status: 400 },
+      );
     }
 
     // Fetch transactions
     const { data: transactions, error } = await supabase
-      .from('transactions')
-      .select(`
+      .from("transactions")
+      .select(
+        `
         *,
         category:categories(id, name, category_type, tax_treatment)
-      `)
-      .eq('user_id', user.id)
-      .order('transaction_date', { ascending: true });
+      `,
+      )
+      .eq("user_id", user.id)
+      .order("transaction_date", { ascending: true });
 
     if (error) {
-      console.error('Error fetching transactions:', error);
+      console.error("Error fetching transactions:", error);
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
     let statement: any;
     let htmlContent: string;
 
-    if (statementType === 'profit_loss') {
+    if (statementType === "profit_loss") {
       if (!startDate || !endDate) {
         return NextResponse.json(
-          { error: 'startDate and endDate are required for P&L' },
-          { status: 400 }
+          { error: "startDate and endDate are required for P&L" },
+          { status: 400 },
         );
       }
       statement = FinancialStatementsService.generateProfitLoss(
         transactions,
         startDate,
-        endDate
+        endDate,
       );
       htmlContent = generateProfitLossHTML(statement);
-    } else if (statementType === 'balance_sheet') {
+    } else if (statementType === "balance_sheet") {
       if (!asOfDate) {
         return NextResponse.json(
-          { error: 'asOfDate is required for Balance Sheet' },
-          { status: 400 }
+          { error: "asOfDate is required for Balance Sheet" },
+          { status: 400 },
         );
       }
-      statement = FinancialStatementsService.generateBalanceSheet(transactions, asOfDate);
+      statement = FinancialStatementsService.generateBalanceSheet(
+        transactions,
+        asOfDate,
+      );
       htmlContent = generateBalanceSheetHTML(statement);
     } else {
-      return NextResponse.json({ error: 'Invalid statementType' }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid statementType" },
+        { status: 400 },
+      );
     }
 
     // Return HTML for client-side PDF generation
     return NextResponse.json({ html: htmlContent });
   } catch (error: any) {
-    console.error('Error in POST /api/reports/export-pdf:', error);
+    console.error("Error in POST /api/reports/export-pdf:", error);
     return NextResponse.json(
-      { error: error.message || 'Internal server error' },
-      { status: 500 }
+      { error: error.message || "Internal server error" },
+      { status: 500 },
     );
   }
 }
 
 function generateProfitLossHTML(statement: any): string {
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-NG', {
-      style: 'currency',
-      currency: 'NGN',
+    return new Intl.NumberFormat("en-NG", {
+      style: "currency",
+      currency: "NGN",
       minimumFractionDigits: 2,
     }).format(amount);
   };
 
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('en-NG', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
+    return new Date(dateStr).toLocaleDateString("en-NG", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
@@ -118,12 +132,16 @@ function generateProfitLossHTML(statement: any): string {
 
       <h2>REVENUE</h2>
       <table>
-        ${statement.revenue.items.map((item: any) => `
+        ${statement.revenue.items
+          .map(
+            (item: any) => `
           <tr>
             <td>${item.category}</td>
             <td class="amount">${formatCurrency(item.amount)}</td>
           </tr>
-        `).join('')}
+        `,
+          )
+          .join("")}
         <tr class="total">
           <td>TOTAL REVENUE</td>
           <td class="amount">${formatCurrency(statement.revenue.total)}</td>
@@ -132,12 +150,16 @@ function generateProfitLossHTML(statement: any): string {
 
       <h2>EXPENSES</h2>
       <table>
-        ${statement.expenses.items.map((item: any) => `
+        ${statement.expenses.items
+          .map(
+            (item: any) => `
           <tr>
             <td>${item.category}</td>
             <td class="amount">${formatCurrency(item.amount)}</td>
           </tr>
-        `).join('')}
+        `,
+          )
+          .join("")}
         <tr class="total">
           <td>TOTAL EXPENSES</td>
           <td class="amount">${formatCurrency(statement.expenses.total)}</td>
@@ -146,7 +168,7 @@ function generateProfitLossHTML(statement: any): string {
 
       <table>
         <tr class="net-income">
-          <td>NET ${statement.netIncome >= 0 ? 'PROFIT' : 'LOSS'}</td>
+          <td>NET ${statement.netIncome >= 0 ? "PROFIT" : "LOSS"}</td>
           <td class="amount">${formatCurrency(Math.abs(statement.netIncome))}</td>
         </tr>
         <tr class="total">
@@ -161,18 +183,18 @@ function generateProfitLossHTML(statement: any): string {
 
 function generateBalanceSheetHTML(statement: any): string {
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-NG', {
-      style: 'currency',
-      currency: 'NGN',
+    return new Intl.NumberFormat("en-NG", {
+      style: "currency",
+      currency: "NGN",
       minimumFractionDigits: 2,
     }).format(amount);
   };
 
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('en-NG', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
+    return new Date(dateStr).toLocaleDateString("en-NG", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
@@ -201,12 +223,16 @@ function generateBalanceSheetHTML(statement: any): string {
       
       <h3>Current Assets</h3>
       <table>
-        ${statement.assets.current.items.map((item: any) => `
+        ${statement.assets.current.items
+          .map(
+            (item: any) => `
           <tr>
             <td>${item.category}</td>
             <td class="amount">${formatCurrency(item.amount)}</td>
           </tr>
-        `).join('')}
+        `,
+          )
+          .join("")}
         <tr class="subtotal">
           <td>Total Current Assets</td>
           <td class="amount">${formatCurrency(statement.assets.current.total)}</td>
@@ -215,12 +241,16 @@ function generateBalanceSheetHTML(statement: any): string {
 
       <h3>Non-Current Assets</h3>
       <table>
-        ${statement.assets.nonCurrent.items.map((item: any) => `
+        ${statement.assets.nonCurrent.items
+          .map(
+            (item: any) => `
           <tr>
             <td>${item.category}</td>
             <td class="amount">${formatCurrency(item.amount)}</td>
           </tr>
-        `).join('')}
+        `,
+          )
+          .join("")}
         <tr class="subtotal">
           <td>Total Non-Current Assets</td>
           <td class="amount">${formatCurrency(statement.assets.nonCurrent.total)}</td>
@@ -238,12 +268,16 @@ function generateBalanceSheetHTML(statement: any): string {
       
       <h3>Current Liabilities</h3>
       <table>
-        ${statement.liabilities.current.items.map((item: any) => `
+        ${statement.liabilities.current.items
+          .map(
+            (item: any) => `
           <tr>
             <td>${item.category}</td>
             <td class="amount">${formatCurrency(item.amount)}</td>
           </tr>
-        `).join('')}
+        `,
+          )
+          .join("")}
         <tr class="subtotal">
           <td>Total Current Liabilities</td>
           <td class="amount">${formatCurrency(statement.liabilities.current.total)}</td>
@@ -252,12 +286,16 @@ function generateBalanceSheetHTML(statement: any): string {
 
       <h3>Non-Current Liabilities</h3>
       <table>
-        ${statement.liabilities.nonCurrent.items.map((item: any) => `
+        ${statement.liabilities.nonCurrent.items
+          .map(
+            (item: any) => `
           <tr>
             <td>${item.category}</td>
             <td class="amount">${formatCurrency(item.amount)}</td>
           </tr>
-        `).join('')}
+        `,
+          )
+          .join("")}
         <tr class="subtotal">
           <td>Total Non-Current Liabilities</td>
           <td class="amount">${formatCurrency(statement.liabilities.nonCurrent.total)}</td>
@@ -266,12 +304,16 @@ function generateBalanceSheetHTML(statement: any): string {
 
       <h3>Equity</h3>
       <table>
-        ${statement.equity.items.map((item: any) => `
+        ${statement.equity.items
+          .map(
+            (item: any) => `
           <tr>
             <td>${item.category}</td>
             <td class="amount">${formatCurrency(item.amount)}</td>
           </tr>
-        `).join('')}
+        `,
+          )
+          .join("")}
         <tr class="subtotal">
           <td>Total Equity</td>
           <td class="amount">${formatCurrency(statement.equity.total)}</td>

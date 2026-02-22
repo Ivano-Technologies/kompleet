@@ -14,7 +14,7 @@ export interface CategoryPrediction {
 export interface CategorizationRequest {
   description: string;
   amount: number;
-  transactionType: 'credit' | 'debit';
+  transactionType: "credit" | "debit";
   date?: string;
   merchant?: string;
 }
@@ -48,14 +48,16 @@ export interface AIProvider {
   /**
    * Categorize multiple transactions in batch
    */
-  categorizeBatch?(requests: CategorizationRequest[]): Promise<CategoryPrediction[]>;
+  categorizeBatch?(
+    requests: CategorizationRequest[],
+  ): Promise<CategoryPrediction[]>;
 }
 
 /**
  * Provider Configuration
  */
 export interface ProviderConfig {
-  provider: 'openai' | 'claude' | 'kimi' | 'fallback';
+  provider: "openai" | "claude" | "kimi" | "fallback";
   apiKey?: string;
   model?: string;
   temperature?: number;

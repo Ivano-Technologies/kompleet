@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import Image from 'next/image';
-import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { createSupabaseClient } from '@/lib/supabase/client';
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
+import { createSupabaseClient } from "@/lib/supabase/client";
 import {
   LayoutDashboard,
   ArrowLeftRight,
@@ -29,8 +29,8 @@ import {
   ClipboardList,
   Users,
   Wallet,
-} from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 interface NavItem {
   href: string;
@@ -41,77 +41,86 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   {
-    href: '/dashboard',
-    label: 'Dashboard',
+    href: "/dashboard",
+    label: "Dashboard",
     icon: LayoutDashboard,
   },
   {
-    href: '/transactions',
-    label: 'Transactions',
+    href: "/transactions",
+    label: "Transactions",
     icon: ArrowLeftRight,
     children: [
-      { href: '/transactions/upload', label: 'Upload', icon: Upload },
-      { href: '/transactions/review', label: 'Review', icon: CheckCircle },
-      { href: '/transactions/duplicates', label: 'Duplicates', icon: Copy },
-      { href: '/transactions/connect', label: 'Bank Connect', icon: Link2 },
+      { href: "/transactions/upload", label: "Upload", icon: Upload },
+      { href: "/transactions/review", label: "Review", icon: CheckCircle },
+      { href: "/transactions/duplicates", label: "Duplicates", icon: Copy },
+      { href: "/transactions/connect", label: "Bank Connect", icon: Link2 },
     ],
   },
   {
-    href: '/invoices',
-    label: 'Invoices',
+    href: "/invoices",
+    label: "Invoices",
     icon: Receipt,
   },
   {
-    href: '/expenses',
-    label: 'Expenses',
+    href: "/expenses",
+    label: "Expenses",
     icon: Wallet,
+    children: [{ href: "/expenses/teams", label: "Workspaces", icon: Users }],
   },
   {
-    href: '/tax-reports',
-    label: 'Tax Reports',
+    href: "/tax-reports",
+    label: "Tax Reports",
     icon: FileText,
   },
   {
-    href: '/calculators',
-    label: 'Calculators',
+    href: "/calculators",
+    label: "Calculators",
     icon: Calculator,
   },
   {
-    href: '/categories',
-    label: 'Categories',
+    href: "/categories",
+    label: "Categories",
     icon: Tags,
   },
   {
-    href: '/reports',
-    label: 'Reports',
+    href: "/reports",
+    label: "Reports",
     icon: BarChart3,
     children: [
-      { href: '/reports/profit-loss', label: 'Profit & Loss', icon: PieChart },
-      { href: '/reports/balance-sheet', label: 'Balance Sheet', icon: FileSpreadsheet },
-      { href: '/reports/expense-reports', label: 'Expense Reports', icon: Wallet },
+      { href: "/reports/profit-loss", label: "Profit & Loss", icon: PieChart },
+      {
+        href: "/reports/balance-sheet",
+        label: "Balance Sheet",
+        icon: FileSpreadsheet,
+      },
+      {
+        href: "/reports/expense-reports",
+        label: "Expense Reports",
+        icon: Wallet,
+      },
     ],
   },
   {
-    href: '/filing',
-    label: 'Filing',
+    href: "/filing",
+    label: "Filing",
     icon: ClipboardList,
   },
   {
-    href: '/notifications',
-    label: 'Notifications',
+    href: "/notifications",
+    label: "Notifications",
     icon: Bell,
   },
   {
-    href: '/settings',
-    label: 'Settings',
+    href: "/settings",
+    label: "Settings",
     icon: Settings,
   },
 ];
 
 const adminItems: NavItem[] = [
-  { href: '/admin/team', label: 'Team', icon: Users },
-  { href: '/admin/rules', label: 'Tax Rules', icon: Shield },
-  { href: '/admin/sources', label: 'Sources', icon: FileText },
+  { href: "/admin/team", label: "Team", icon: Users },
+  { href: "/admin/rules", label: "Tax Rules", icon: Shield },
+  { href: "/admin/sources", label: "Sources", icon: FileText },
 ];
 
 interface SidebarProps {
@@ -121,10 +130,17 @@ interface SidebarProps {
   onMobileClose: () => void;
 }
 
-export function Sidebar({ userEmail, userRole, isMobileOpen, onMobileClose }: SidebarProps) {
+export function Sidebar({
+  userEmail,
+  userRole,
+  isMobileOpen,
+  onMobileClose,
+}: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(
+    new Set(),
+  );
   const [signingOut, setSigningOut] = useState(false);
 
   const toggleSection = (href: string) => {
@@ -140,7 +156,7 @@ export function Sidebar({ userEmail, userRole, isMobileOpen, onMobileClose }: Si
   };
 
   const isActive = (href: string) => {
-    if (href === '/dashboard') return pathname === '/dashboard';
+    if (href === "/dashboard") return pathname === "/dashboard";
     return pathname?.startsWith(href);
   };
 
@@ -152,16 +168,20 @@ export function Sidebar({ userEmail, userRole, isMobileOpen, onMobileClose }: Si
     setSigningOut(true);
     const supabase = createSupabaseClient();
     await supabase.auth.signOut();
-    router.push('/login');
+    router.push("/login");
   };
 
-  const userInitial = userEmail?.charAt(0).toUpperCase() || 'U';
+  const userInitial = userEmail?.charAt(0).toUpperCase() || "U";
 
   const sidebarContent = (
     <div className="flex flex-col h-full">
       {/* Logo */}
       <div className="p-6 border-b border-light-border dark:border-dark-border">
-        <Link href="/dashboard" className="flex items-center gap-3" onClick={onMobileClose}>
+        <Link
+          href="/dashboard"
+          className="flex items-center gap-3"
+          onClick={onMobileClose}
+        >
           <Image
             src="/assets/logo-primary.png"
             alt="KOMPLEET Logo"
@@ -192,8 +212,8 @@ export function Sidebar({ userEmail, userRole, isMobileOpen, onMobileClose }: Si
                   onClick={onMobileClose}
                   className={`flex-1 flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                     active || childActive
-                      ? 'bg-primary-500 text-white'
-                      : 'text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover hover:text-light-text-primary dark:hover:text-dark-text-primary'
+                      ? "bg-primary-500 text-white"
+                      : "text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover hover:text-light-text-primary dark:hover:text-dark-text-primary"
                   }`}
                 >
                   <Icon className="w-[18px] h-[18px] shrink-0" />
@@ -204,8 +224,8 @@ export function Sidebar({ userEmail, userRole, isMobileOpen, onMobileClose }: Si
                     onClick={() => toggleSection(item.href)}
                     className={`p-1.5 rounded-md transition-colors ${
                       active || childActive
-                        ? 'text-white/70 hover:text-white'
-                        : 'text-light-text-tertiary dark:text-dark-text-tertiary hover:text-light-text-primary dark:hover:text-dark-text-primary'
+                        ? "text-white/70 hover:text-white"
+                        : "text-light-text-tertiary dark:text-dark-text-tertiary hover:text-light-text-primary dark:hover:text-dark-text-primary"
                     }`}
                     aria-label={`Toggle ${item.label} submenu`}
                   >
@@ -231,8 +251,8 @@ export function Sidebar({ userEmail, userRole, isMobileOpen, onMobileClose }: Si
                         onClick={onMobileClose}
                         className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
                           childIsActive
-                            ? 'bg-primary-500/10 text-primary-600 dark:text-primary-400 font-medium'
-                            : 'text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover hover:text-light-text-primary dark:hover:text-dark-text-primary'
+                            ? "bg-primary-500/10 text-primary-600 dark:text-primary-400 font-medium"
+                            : "text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover hover:text-light-text-primary dark:hover:text-dark-text-primary"
                         }`}
                       >
                         <ChildIcon className="w-4 h-4 shrink-0" />
@@ -247,7 +267,7 @@ export function Sidebar({ userEmail, userRole, isMobileOpen, onMobileClose }: Si
         })}
 
         {/* Admin Section — visible to owner and admin roles */}
-        {(userRole === 'owner' || userRole === 'admin') && (
+        {(userRole === "owner" || userRole === "admin") && (
           <div className="mt-4 pt-3 border-t border-light-border dark:border-dark-border">
             <p className="px-3 mb-1 text-xs font-semibold uppercase tracking-wider text-light-text-tertiary dark:text-dark-text-tertiary">
               Admin
@@ -262,8 +282,8 @@ export function Sidebar({ userEmail, userRole, isMobileOpen, onMobileClose }: Si
                   onClick={onMobileClose}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                     active
-                      ? 'bg-primary-500 text-white'
-                      : 'text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover hover:text-light-text-primary dark:hover:text-dark-text-primary'
+                      ? "bg-primary-500 text-white"
+                      : "text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover hover:text-light-text-primary dark:hover:text-dark-text-primary"
                   }`}
                 >
                   <Icon className="w-[18px] h-[18px] shrink-0" />
@@ -281,16 +301,16 @@ export function Sidebar({ userEmail, userRole, isMobileOpen, onMobileClose }: Si
           href="/profile"
           onClick={onMobileClose}
           className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-            pathname?.startsWith('/profile')
-              ? 'bg-primary-500/10 text-primary-600 dark:text-primary-400'
-              : 'text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover hover:text-light-text-primary dark:hover:text-dark-text-primary'
+            pathname?.startsWith("/profile")
+              ? "bg-primary-500/10 text-primary-600 dark:text-primary-400"
+              : "text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover hover:text-light-text-primary dark:hover:text-dark-text-primary"
           }`}
         >
           <div className="w-7 h-7 rounded-full bg-primary-500 flex items-center justify-center text-white text-xs font-semibold">
             {userInitial}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="truncate">{userEmail || 'User'}</p>
+            <p className="truncate">{userEmail || "User"}</p>
           </div>
         </Link>
 
@@ -300,7 +320,7 @@ export function Sidebar({ userEmail, userRole, isMobileOpen, onMobileClose }: Si
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 transition-colors"
         >
           <LogOut className="w-[18px] h-[18px] shrink-0" />
-          <span>{signingOut ? 'Signing out...' : 'Sign Out'}</span>
+          <span>{signingOut ? "Signing out..." : "Sign Out"}</span>
         </button>
       </div>
     </div>

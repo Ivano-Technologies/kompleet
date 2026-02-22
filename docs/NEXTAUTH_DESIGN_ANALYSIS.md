@@ -11,6 +11,7 @@
 ### Color Palette
 
 **Dark Theme (Primary):**
+
 - Background: Pure black (#000000)
 - Surface: Dark gray (#1a1a1a, #2a2a2a)
 - Text Primary: White (#FFFFFF)
@@ -19,6 +20,7 @@
 - Gradient accents: Purple-to-cyan, pink-to-orange, blue-to-green (circular icons)
 
 **Light Theme:**
+
 - Background: White (#FFFFFF)
 - Surface: Light gray (#F5F5F5, #FAFAFA)
 - Text Primary: Black (#000000)
@@ -29,10 +31,12 @@
 ### Typography
 
 **Font Family:**
+
 - Primary: Sans-serif (appears to be Inter, system-ui, or similar modern sans)
 - Monospace: For code examples
 
 **Font Sizes & Weights:**
+
 - Hero Heading: ~72px, Bold (900)
 - Section Heading: ~48px, Bold (800)
 - Subheading: ~32px, Bold (700)
@@ -41,17 +45,20 @@
 - Footer/Caption: ~12px, Regular (400)
 
 **Line Height:**
+
 - Headings: 1.1-1.2
 - Body: 1.5-1.6
 
 ### Layout & Spacing
 
 **Container:**
+
 - Max width: ~1200px
 - Padding: 40px horizontal on desktop
 - Centered content
 
 **Spacing Scale:**
+
 - XS: 8px
 - S: 16px
 - M: 24px
@@ -60,6 +67,7 @@
 - XXL: 96px
 
 **Grid:**
+
 - 3-column layout for feature cards
 - Equal spacing between columns
 - Responsive: stacks to 1-column on mobile
@@ -67,6 +75,7 @@
 ### Components
 
 #### 1. **Navigation Bar (Header)**
+
 - Height: ~64px
 - Background: Transparent or solid (depending on scroll)
 - Logo: Left-aligned (gradient shield icon + text)
@@ -75,6 +84,7 @@
 - Sticky on scroll
 
 #### 2. **Hero Section**
+
 - Full viewport height
 - Centered content (logo + heading + tagline + CTA buttons)
 - Large gradient logo/icon
@@ -83,6 +93,7 @@
 - CTA buttons: Side-by-side (primary + secondary)
 
 #### 3. **Feature Cards (Circular Icons)**
+
 - Circular gradient backgrounds (purple, pink, blue)
 - Illustration inside circle
 - Heading below circle
@@ -90,12 +101,14 @@
 - Equal sizing, evenly spaced
 
 #### 4. **Feature Columns (Text-Heavy)**
+
 - 3-column layout
 - Heading at top
 - Bulleted list of features
 - Consistent height
 
 #### 5. **Buttons**
+
 - Primary: Bright cyan background, white text, rounded (24px radius)
 - Secondary: White/transparent background, border, cyan text
 - Hover: Slightly darker/lighter shade
@@ -103,6 +116,7 @@
 - Font: 16px, medium weight (500-600)
 
 #### 6. **Footer**
+
 - 3-column layout
 - Section headings: Bold
 - Links: Regular weight, gray

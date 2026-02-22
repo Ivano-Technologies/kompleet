@@ -124,11 +124,13 @@ SENTRY_DSN=https://... (if using Sentry)
 ### Vercel Rollback (< 2 min)
 
 **Option 1: Dashboard**
+
 1. Vercel → Deployments
 2. Find previous working deployment
 3. Click "Promote to Production"
 
 **Option 2: CLI**
+
 ```bash
 vercel rollback
 ```
@@ -136,6 +138,7 @@ vercel rollback
 ### Database Rollback (5-15 min)
 
 **Only if schema changed:**
+
 1. Supabase → Database → Backups
 2. Select restore point (within 7 days)
 3. Click "Restore to Point in Time"
@@ -151,6 +154,7 @@ https://vercel.com/dashboard
 ```
 
 **Check:**
+
 - ✅ Deployment status: "Ready"
 - ✅ Function logs: No errors
 - ✅ Analytics: Page views tracking
@@ -162,19 +166,20 @@ https://supabase.com/dashboard/project/frlcvkmjuhnjcicwywrh
 ```
 
 **Check:**
+
 - ✅ Database logs: No connection errors
 - ✅ Auth logs: User signups working
 - ✅ CPU usage: < 60%
 
 ### Success Metrics (First 24 Hours)
 
-| Metric | Target | Where to Check |
-|--------|--------|----------------|
-| Uptime | > 99.5% | Vercel Analytics |
-| Error Rate | < 1% | Vercel Function Logs |
-| API Response | < 500ms | Vercel Analytics → Web Vitals |
-| User Signups | 5+ | Supabase → Table Editor → `users` |
-| Calculations | 10+ | Supabase → Table Editor → `tax_calculations` |
+| Metric       | Target  | Where to Check                               |
+| ------------ | ------- | -------------------------------------------- |
+| Uptime       | > 99.5% | Vercel Analytics                             |
+| Error Rate   | < 1%    | Vercel Function Logs                         |
+| API Response | < 500ms | Vercel Analytics → Web Vitals                |
+| User Signups | 5+      | Supabase → Table Editor → `users`            |
+| Calculations | 10+     | Supabase → Table Editor → `tax_calculations` |
 
 ---
 
@@ -195,10 +200,12 @@ pnpm build
 ### 500 Errors After Deployment
 
 **Check Vercel Function Logs:**
+
 1. Vercel Dashboard → Deployments → Latest → Functions
 2. Look for error stack traces
 
 **Common causes:**
+
 - Missing environment variables
 - Database connection failed (check Supabase credentials)
 - Service role key not set
@@ -206,16 +213,19 @@ pnpm build
 ### Database Connection Failed
 
 **Verify credentials in Vercel:**
+
 ```bash
 vercel env ls
 ```
 
 **Expected variables:**
+
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY`
 
 **If missing, add them:**
+
 ```bash
 vercel env add NEXT_PUBLIC_SUPABASE_URL production
 ```
@@ -223,11 +233,13 @@ vercel env add NEXT_PUBLIC_SUPABASE_URL production
 ### Authentication Not Working
 
 **Check:**
+
 1. Supabase → Authentication → Settings
 2. Site URL: Should match your Vercel domain
 3. Redirect URLs: Add `https://YOUR-DOMAIN.vercel.app/**`
 
 **Update redirect URLs:**
+
 ```
 https://YOUR-DOMAIN.vercel.app/auth/callback
 https://YOUR-DOMAIN.vercel.app/**
@@ -289,6 +301,7 @@ Once deployed and verified:
 ✅ All security features active (RBAC, RLS, Rate Limiting)
 
 **Next Steps:**
+
 1. Monitor performance for 48 hours
 2. Collect user feedback
 3. Plan Phase 2 features (see `docs/PHASE_3_ROADMAP.md`)

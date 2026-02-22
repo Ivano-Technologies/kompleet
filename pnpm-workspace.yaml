@@ -1,13 +1,13 @@
 packages:
-  - '.'
-  - 'apps/*'
+  - "."
+  - "apps/*"
 
 ignoredBuiltDependencies:
   - core-js
   - unrs-resolver
 
 onlyBuiltDependencies:
-  - '@sentry/cli'
+  - "@sentry/cli"
   - esbuild
   - sharp
   - supabase

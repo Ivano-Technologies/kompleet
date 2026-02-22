@@ -4,10 +4,10 @@
  * Protected: Requires authentication
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@/lib/supabase/server';
-import { withRateLimit } from '@/lib/with-rate-limit';
-import { saveCalculationSchema } from '@/lib/schemas/calculations';
+import { NextRequest, NextResponse } from "next/server";
+import { createServerClient } from "@/lib/supabase/server";
+import { withRateLimit } from "@/lib/with-rate-limit";
+import { saveCalculationSchema } from "@/lib/schemas/calculations";
 
 async function handlePOST(request: NextRequest) {
   try {
@@ -21,8 +21,8 @@ async function handlePOST(request: NextRequest) {
 
     if (authError || !user) {
       return NextResponse.json(
-        { error: 'Unauthorized', message: 'Authentication required' },
-        { status: 401 }
+        { error: "Unauthorized", message: "Authentication required" },
+        { status: 401 },
       );
     }
 
@@ -32,22 +32,31 @@ async function handlePOST(request: NextRequest) {
 
     if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Validation error', details: parsed.error.flatten() },
-        { status: 400 }
+        { error: "Validation error", details: parsed.error.flatten() },
+        { status: 400 },
       );
     }
 
-    const { tax_type, tax_year, input_data, gross_amount, taxable_amount, tax_due, breakdown } =
-      parsed.data;
+    const {
+      tax_type,
+      tax_year,
+      input_data,
+      gross_amount,
+      taxable_amount,
+      tax_due,
+      breakdown,
+    } = parsed.data;
 
     // Insert calculation
     const { data: calculation, error: insertError } = await supabase
-      .from('tax_calculations')
+      .from("tax_calculations")
       .insert({
         user_id: user.id,
         tax_type,
         tax_year,
-        calculation_date: parsed.data.calculation_date || new Date().toISOString().split('T')[0],
+        calculation_date:
+          parsed.data.calculation_date ||
+          new Date().toISOString().split("T")[0],
         input_data,
         gross_amount,
         deductions: parsed.data.deductions ?? 0,
@@ -61,37 +70,37 @@ async function handlePOST(request: NextRequest) {
       .single();
 
     if (insertError) {
-      console.error('[Save Calculation Error]', insertError);
+      console.error("[Save Calculation Error]", insertError);
       return NextResponse.json(
-        { error: 'Database error', message: 'Failed to save calculation' },
-        { status: 500 }
+        { error: "Database error", message: "Failed to save calculation" },
+        { status: 500 },
       );
     }
 
     // Log successful save
-    await supabase.from('audit_logs').insert({
+    await supabase.from("audit_logs").insert({
       user_id: user.id,
-      action: 'create',
-      resource_type: 'tax_calculation',
+      action: "create",
+      resource_type: "tax_calculation",
       resource_id: calculation.id,
       metadata: {
         tax_type,
         tax_year,
       },
-      ip_address: request.headers.get('x-forwarded-for') || 'unknown',
-      user_agent: request.headers.get('user-agent') || 'unknown',
+      ip_address: request.headers.get("x-forwarded-for") || "unknown",
+      user_agent: request.headers.get("user-agent") || "unknown",
     });
 
     return NextResponse.json({
       success: true,
       calculation,
-      message: 'Calculation saved successfully',
+      message: "Calculation saved successfully",
     });
   } catch (error) {
-    console.error('[Save Calculation Error]', error);
+    console.error("[Save Calculation Error]", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+      { error: "Internal server error" },
+      { status: 500 },
     );
   }
 }

@@ -1,4 +1,5 @@
 # Phase 0: Discovery & Design Alignment
+
 ## Unified Bank Statement Ingestion Engine
 
 **Date:** February 18, 2026  
@@ -235,24 +236,25 @@ Phase 3 (DEPENDS ON Phase 1 + 2):
 
 ## 3. RISK REGISTER
 
-| ID | Risk | Severity | Probability | Impact | Mitigation |
-|----|------|----------|-------------|--------|-----------|
-| **R-001** | Password sent in plaintext over HTTPS | HIGH | MEDIUM | Data breach | Use TLS 1.3+, rate-limit password attempts, never log passwords |
-| **R-002** | Encrypted file decryption fails silently | HIGH | MEDIUM | User confusion | Explicit error messages, retry flow without re-upload |
-| **R-003** | LLM receives sensitive data (account numbers, names) | HIGH | HIGH | Privacy violation | Implement sanitizeForAI() before sending to LLM |
-| **R-004** | Large file uploads cause memory overflow | MEDIUM | MEDIUM | Service crash | Implement streaming parsers, file size limits (100MB max) |
-| **R-005** | Duplicate detection O(n²) timeout on large batches | MEDIUM | MEDIUM | Upload timeout | Use LSH bucketing for >1000 transactions |
-| **R-006** | AI categorization mistakes impact tax accuracy | HIGH | HIGH | User trust loss | Confidence thresholds, user review required for <0.65, feedback loop |
-| **R-007** | Malformed CSV/Excel causes parser crash | MEDIUM | HIGH | Service crash | Try-catch all parsers, return graceful error |
-| **R-008** | User loses password before upload completes | LOW | MEDIUM | Retry friction | Store password in session (encrypted), allow retry without re-upload |
-| **R-009** | Audit logs expose sensitive transaction data | HIGH | MEDIUM | Compliance violation | Log only: file type, upload status, transaction count (no content) |
-| **R-010** | Mobile app cannot handle large file uploads | MEDIUM | MEDIUM | Mobile UX broken | Test with 50MB+ files, implement chunked upload if needed |
+| ID        | Risk                                                 | Severity | Probability | Impact               | Mitigation                                                           |
+| --------- | ---------------------------------------------------- | -------- | ----------- | -------------------- | -------------------------------------------------------------------- |
+| **R-001** | Password sent in plaintext over HTTPS                | HIGH     | MEDIUM      | Data breach          | Use TLS 1.3+, rate-limit password attempts, never log passwords      |
+| **R-002** | Encrypted file decryption fails silently             | HIGH     | MEDIUM      | User confusion       | Explicit error messages, retry flow without re-upload                |
+| **R-003** | LLM receives sensitive data (account numbers, names) | HIGH     | HIGH        | Privacy violation    | Implement sanitizeForAI() before sending to LLM                      |
+| **R-004** | Large file uploads cause memory overflow             | MEDIUM   | MEDIUM      | Service crash        | Implement streaming parsers, file size limits (100MB max)            |
+| **R-005** | Duplicate detection O(n²) timeout on large batches   | MEDIUM   | MEDIUM      | Upload timeout       | Use LSH bucketing for >1000 transactions                             |
+| **R-006** | AI categorization mistakes impact tax accuracy       | HIGH     | HIGH        | User trust loss      | Confidence thresholds, user review required for <0.65, feedback loop |
+| **R-007** | Malformed CSV/Excel causes parser crash              | MEDIUM   | HIGH        | Service crash        | Try-catch all parsers, return graceful error                         |
+| **R-008** | User loses password before upload completes          | LOW      | MEDIUM      | Retry friction       | Store password in session (encrypted), allow retry without re-upload |
+| **R-009** | Audit logs expose sensitive transaction data         | HIGH     | MEDIUM      | Compliance violation | Log only: file type, upload status, transaction count (no content)   |
+| **R-010** | Mobile app cannot handle large file uploads          | MEDIUM   | MEDIUM      | Mobile UX broken     | Test with 50MB+ files, implement chunked upload if needed            |
 
 ---
 
 ## 4. MILESTONE TIMELINE
 
 ### Phase 0: Discovery & Design Alignment (THIS WEEK)
+
 - **Duration:** 1 day
 - **Deliverables:**
   - ✅ Architecture diagram (above)
@@ -263,6 +265,7 @@ Phase 3 (DEPENDS ON Phase 1 + 2):
 - **Exit Criteria:** All stakeholders aligned on architecture and risks
 
 ### Phase 1: Core Ingestion Infrastructure (WEEK 1-2)
+
 - **Duration:** 3-4 days
 - **Deliverables:**
   - File type detection (detectFileType.ts)
@@ -284,6 +287,7 @@ Phase 3 (DEPENDS ON Phase 1 + 2):
   - ✅ All tests passing
 
 ### Phase 2: Upload UX (Web + Mobile) (WEEK 2-3)
+
 - **Duration:** 2-3 days
 - **Deliverables:**
   - Upload entry screen (UploadWidget.tsx)
@@ -300,6 +304,7 @@ Phase 3 (DEPENDS ON Phase 1 + 2):
   - ✅ Mobile and desktop flows work
 
 ### Phase 3: AI Categorization + Feedback Loop (WEEK 3-4)
+
 - **Duration:** 3-4 days
 - **Deliverables:**
   - Categorization service (categorizeTransaction.ts)
@@ -317,6 +322,7 @@ Phase 3 (DEPENDS ON Phase 1 + 2):
   - ✅ No sensitive data exposed to AI
 
 ### Phase 4: Hardening, QA & Rollout (WEEK 4-5)
+
 - **Duration:** 2-3 days
 - **Deliverables:**
   - Security audit (passwords, data handling)
@@ -337,43 +343,51 @@ Phase 3 (DEPENDS ON Phase 1 + 2):
 ## 5. SUCCESS METRICS
 
 ### Upload Success Rate
+
 - **Baseline:** Current upload failure rate (from logs)
 - **Target:** >95% success rate for supported formats
 - **Measurement:** (successful_uploads / total_uploads) × 100
 - **Tracking:** Dashboard metric, daily reporting
 
 ### Encryption Handling
+
 - **Target:** 100% of password-protected files handled without re-upload
 - **Measurement:** (successful_password_retries / total_password_attempts) × 100
 - **Tracking:** Audit logs, weekly review
 
 ### AI Categorization Accuracy
+
 - **Baseline:** Initial LLM accuracy (measure after Phase 3)
 - **Target:** >85% accuracy for high-confidence results (>0.85)
 - **Measurement:** (correct_categories / total_categorized) × 100
 - **Tracking:** User correction rate, feedback loop metrics
 
 ### User Correction Rate
+
 - **Target:** <15% of transactions require user correction
 - **Measurement:** (user_corrections / total_categorized) × 100
 - **Tracking:** Dashboard analytics, monthly review
 
 ### System Reliability
+
 - **Target:** <1% parsing errors for valid files
 - **Measurement:** (parsing_errors / total_uploads) × 100
 - **Tracking:** Error logs, weekly review
 
 ### Security Compliance
+
 - **Target:** 0 password leaks, 0 sensitive data in logs
 - **Measurement:** Security audit checklist, log analysis
 - **Tracking:** Manual review, automated log scanning
 
 ### Performance
+
 - **Target:** <5 seconds for PDF parsing (up to 50MB)
 - **Measurement:** Average parse time by file size
 - **Tracking:** Performance monitoring, weekly review
 
 ### User Satisfaction
+
 - **Target:** >4.5/5 stars for upload experience
 - **Measurement:** In-app feedback survey
 - **Tracking:** Weekly surveys, monthly aggregation
@@ -383,6 +397,7 @@ Phase 3 (DEPENDS ON Phase 1 + 2):
 ## 6. QUALITY GATES (Non-Negotiable)
 
 ### Security Gates
+
 - [ ] No passwords in logs or database
 - [ ] No raw files sent to AI
 - [ ] Decryption only in memory
@@ -391,6 +406,7 @@ Phase 3 (DEPENDS ON Phase 1 + 2):
 - [ ] HTTPS only for password transmission
 
 ### Functional Gates
+
 - [ ] Password-protected PDF and Excel parse successfully
 - [ ] Wrong passwords handled gracefully (no re-upload)
 - [ ] Parsing works for Nigerian bank statement formats
@@ -398,6 +414,7 @@ Phase 3 (DEPENDS ON Phase 1 + 2):
 - [ ] System is idempotent and resilient to retries
 
 ### UX Gates
+
 - [ ] Upload flow does not require technical troubleshooting
 - [ ] Password prompt appears immediately (no delay)
 - [ ] Progress states are clear and responsive
@@ -405,6 +422,7 @@ Phase 3 (DEPENDS ON Phase 1 + 2):
 - [ ] Mobile and desktop flows are equivalent
 
 ### Testing Gates
+
 - [ ] All critical paths covered by tests
 - [ ] Edge cases tested (corrupt files, wrong passwords, timeouts)
 - [ ] Performance tested for large files (50MB+)
@@ -416,6 +434,7 @@ Phase 3 (DEPENDS ON Phase 1 + 2):
 ## 7. ASSUMPTIONS & CONSTRAINTS
 
 ### Assumptions
+
 1. Supabase is available and configured for transaction persistence
 2. OpenAI API is available for LLM categorization
 3. Users have access to their file passwords (for encrypted files)
@@ -423,6 +442,7 @@ Phase 3 (DEPENDS ON Phase 1 + 2):
 5. Mobile app uses same API endpoints as web
 
 ### Constraints
+
 1. **File Size Limit:** 100MB max per upload
 2. **Processing Time:** <5 seconds for PDF parsing
 3. **Password Attempts:** Max 3 attempts before lockout

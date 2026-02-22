@@ -1,5 +1,5 @@
-import Link from 'next/link';
-import { LogIn, Home, ShieldAlert } from 'lucide-react';
+import Link from "next/link";
+import { LogIn, Home, ShieldAlert } from "lucide-react";
 
 export default function Unauthorized() {
   return (
@@ -9,7 +9,9 @@ export default function Unauthorized() {
           <ShieldAlert className="w-7 h-7 text-amber-600 dark:text-amber-400" />
         </div>
         <div className="space-y-2">
-          <h1 className="text-5xl font-bold text-amber-600 dark:text-amber-400">401</h1>
+          <h1 className="text-5xl font-bold text-amber-600 dark:text-amber-400">
+            401
+          </h1>
           <h2 className="text-xl font-bold">Unauthorized</h2>
           <p className="text-sm text-[rgb(var(--text-secondary))]">
             You need to be logged in to access this page.

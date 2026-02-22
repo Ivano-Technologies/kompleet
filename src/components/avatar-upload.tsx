@@ -83,7 +83,7 @@ export function AvatarUpload() {
             </div>
           )}
         </div>
-        
+
         {uploading && (
           <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-full">
             <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -107,9 +107,7 @@ export function AvatarUpload() {
         {uploading ? "Uploading..." : "Change Avatar"}
       </button>
 
-      {error && (
-        <p className="text-sm text-red-600">{error}</p>
-      )}
+      {error && <p className="text-sm text-red-600">{error}</p>}
 
       <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary text-center max-w-xs">
         Upload a profile picture. Max size 5MB. Supported formats: JPG, PNG, GIF

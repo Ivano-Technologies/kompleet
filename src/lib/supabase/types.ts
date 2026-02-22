@@ -14,67 +14,67 @@
 // ENUM TYPES
 // ============================================================
 
-export type EntityType = 'individual' | 'company';
+export type EntityType = "individual" | "company";
 
-export type TransactionType = 'credit' | 'debit';
+export type TransactionType = "credit" | "debit";
 
 export type TaxTreatmentType =
-  | 'taxable'
-  | 'deductible'
-  | 'exempt'
-  | 'non_deductible'
-  | 'capital';
+  | "taxable"
+  | "deductible"
+  | "exempt"
+  | "non_deductible"
+  | "capital";
 
 export type CategoryGroupType =
-  | 'income'
-  | 'expense'
-  | 'transfer'
-  | 'tax'
-  | 'personal';
+  | "income"
+  | "expense"
+  | "transfer"
+  | "tax"
+  | "personal";
 
 export type SubscriptionTierType =
-  | 'free'
-  | 'starter'
-  | 'professional'
-  | 'enterprise';
+  | "free"
+  | "starter"
+  | "professional"
+  | "enterprise";
 
-export type TaxType = 'pit' | 'cit' | 'vat' | 'wht';
+export type TaxType = "pit" | "cit" | "vat" | "wht";
 
 export type AuditActionType =
-  | 'create'
-  | 'update'
-  | 'delete'
-  | 'restore'
-  | 'export'
-  | 'login'
-  | 'logout';
+  | "create"
+  | "update"
+  | "delete"
+  | "restore"
+  | "export"
+  | "login"
+  | "logout";
 
 export type ReportStatusType =
-  | 'pending'
-  | 'generating'
-  | 'completed'
-  | 'failed';
+  | "pending"
+  | "generating"
+  | "completed"
+  | "failed";
 
 export type ImportStatusType =
-  | 'pending'
-  | 'processing'
-  | 'completed'
-  | 'failed'
-  | 'partial';
+  | "pending"
+  | "processing"
+  | "completed"
+  | "failed"
+  | "partial";
 
 export type WhtCategoryType =
-  | 'dividends'
-  | 'interest'
-  | 'royalties'
-  | 'rent'
-  | 'commission'
-  | 'consultancy'
-  | 'technical_services'
-  | 'management_services'
-  | 'directors_fees'
-  | 'contracts';
+  | "dividends"
+  | "interest"
+  | "royalties"
+  | "rent"
+  | "commission"
+  | "consultancy"
+  | "technical_services"
+  | "management_services"
+  | "directors_fees"
+  | "contracts";
 
-export type MemberRoleType = 'owner' | 'accountant' | 'staff';
+export type MemberRoleType = "owner" | "accountant" | "staff";
 
 // ============================================================
 // JSON TYPES
@@ -283,23 +283,23 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: 'transactions_user_id_fkey';
-            columns: ['user_id'];
-            referencedRelation: 'profiles';
-            referencedColumns: ['id'];
+            foreignKeyName: "transactions_user_id_fkey";
+            columns: ["user_id"];
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: 'transactions_category_id_fkey';
-            columns: ['category_id'];
-            referencedRelation: 'categories';
-            referencedColumns: ['id'];
+            foreignKeyName: "transactions_category_id_fkey";
+            columns: ["category_id"];
+            referencedRelation: "categories";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: 'fk_transactions_import_batch';
-            columns: ['import_batch_id'];
-            referencedRelation: 'import_batches';
-            referencedColumns: ['id'];
-          }
+            foreignKeyName: "fk_transactions_import_batch";
+            columns: ["import_batch_id"];
+            referencedRelation: "import_batches";
+            referencedColumns: ["id"];
+          },
         ];
       };
 
@@ -357,11 +357,11 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: 'tax_calculations_user_id_fkey';
-            columns: ['user_id'];
-            referencedRelation: 'profiles';
-            referencedColumns: ['id'];
-          }
+            foreignKeyName: "tax_calculations_user_id_fkey";
+            columns: ["user_id"];
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
         ];
       };
 
@@ -419,11 +419,11 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: 'reports_user_id_fkey';
-            columns: ['user_id'];
-            referencedRelation: 'profiles';
-            referencedColumns: ['id'];
-          }
+            foreignKeyName: "reports_user_id_fkey";
+            columns: ["user_id"];
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
         ];
       };
 
@@ -462,11 +462,11 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: 'audit_logs_user_id_fkey';
-            columns: ['user_id'];
-            referencedRelation: 'profiles';
-            referencedColumns: ['id'];
-          }
+            foreignKeyName: "audit_logs_user_id_fkey";
+            columns: ["user_id"];
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
         ];
       };
 
@@ -524,11 +524,11 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: 'import_batches_user_id_fkey';
-            columns: ['user_id'];
-            referencedRelation: 'profiles';
-            referencedColumns: ['id'];
-          }
+            foreignKeyName: "import_batches_user_id_fkey";
+            columns: ["user_id"];
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
         ];
       };
 
@@ -571,23 +571,23 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: 'ai_overrides_user_id_fkey';
-            columns: ['user_id'];
-            referencedRelation: 'profiles';
-            referencedColumns: ['id'];
+            foreignKeyName: "ai_overrides_user_id_fkey";
+            columns: ["user_id"];
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: 'ai_overrides_original_category_fkey';
-            columns: ['original_category_id'];
-            referencedRelation: 'categories';
-            referencedColumns: ['id'];
+            foreignKeyName: "ai_overrides_original_category_fkey";
+            columns: ["original_category_id"];
+            referencedRelation: "categories";
+            referencedColumns: ["id"];
           },
           {
-            foreignKeyName: 'ai_overrides_corrected_category_fkey';
-            columns: ['corrected_category_id'];
-            referencedRelation: 'categories';
-            referencedColumns: ['id'];
-          }
+            foreignKeyName: "ai_overrides_corrected_category_fkey";
+            columns: ["corrected_category_id"];
+            referencedRelation: "categories";
+            referencedColumns: ["id"];
+          },
         ];
       };
 
@@ -638,11 +638,11 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: 'ai_audit_logs_user_id_fkey';
-            columns: ['user_id'];
-            referencedRelation: 'profiles';
-            referencedColumns: ['id'];
-          }
+            foreignKeyName: "ai_audit_logs_user_id_fkey";
+            columns: ["user_id"];
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
         ];
       };
 
@@ -721,11 +721,11 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: 'invoices_user_id_fkey';
-            columns: ['user_id'];
-            referencedRelation: 'profiles';
-            referencedColumns: ['id'];
-          }
+            foreignKeyName: "invoices_user_id_fkey";
+            columns: ["user_id"];
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
         ];
       };
     };
@@ -809,55 +809,55 @@ export interface Database {
 /**
  * Extract the Row type for a table
  */
-export type TableRow<T extends keyof Database['public']['Tables']> =
-  Database['public']['Tables'][T]['Row'];
+export type TableRow<T extends keyof Database["public"]["Tables"]> =
+  Database["public"]["Tables"][T]["Row"];
 
 /**
  * Extract the Insert type for a table
  */
-export type TableInsert<T extends keyof Database['public']['Tables']> =
-  Database['public']['Tables'][T]['Insert'];
+export type TableInsert<T extends keyof Database["public"]["Tables"]> =
+  Database["public"]["Tables"][T]["Insert"];
 
 /**
  * Extract the Update type for a table
  */
-export type TableUpdate<T extends keyof Database['public']['Tables']> =
-  Database['public']['Tables'][T]['Update'];
+export type TableUpdate<T extends keyof Database["public"]["Tables"]> =
+  Database["public"]["Tables"][T]["Update"];
 
 // ============================================================
 // CONVENIENCE TYPE ALIASES
 // ============================================================
 
-export type Profile = TableRow<'profiles'>;
-export type ProfileInsert = TableInsert<'profiles'>;
-export type ProfileUpdate = TableUpdate<'profiles'>;
+export type Profile = TableRow<"profiles">;
+export type ProfileInsert = TableInsert<"profiles">;
+export type ProfileUpdate = TableUpdate<"profiles">;
 
-export type Category = TableRow<'categories'>;
-export type CategoryInsert = TableInsert<'categories'>;
-export type CategoryUpdate = TableUpdate<'categories'>;
+export type Category = TableRow<"categories">;
+export type CategoryInsert = TableInsert<"categories">;
+export type CategoryUpdate = TableUpdate<"categories">;
 
-export type Transaction = TableRow<'transactions'>;
-export type TransactionInsert = TableInsert<'transactions'>;
-export type TransactionUpdate = TableUpdate<'transactions'>;
+export type Transaction = TableRow<"transactions">;
+export type TransactionInsert = TableInsert<"transactions">;
+export type TransactionUpdate = TableUpdate<"transactions">;
 
-export type TaxCalculation = TableRow<'tax_calculations'>;
-export type TaxCalculationInsert = TableInsert<'tax_calculations'>;
-export type TaxCalculationUpdate = TableUpdate<'tax_calculations'>;
+export type TaxCalculation = TableRow<"tax_calculations">;
+export type TaxCalculationInsert = TableInsert<"tax_calculations">;
+export type TaxCalculationUpdate = TableUpdate<"tax_calculations">;
 
-export type Report = TableRow<'reports'>;
-export type ReportInsert = TableInsert<'reports'>;
-export type ReportUpdate = TableUpdate<'reports'>;
+export type Report = TableRow<"reports">;
+export type ReportInsert = TableInsert<"reports">;
+export type ReportUpdate = TableUpdate<"reports">;
 
-export type AuditLog = TableRow<'audit_logs'>;
-export type AuditLogInsert = TableInsert<'audit_logs'>;
+export type AuditLog = TableRow<"audit_logs">;
+export type AuditLogInsert = TableInsert<"audit_logs">;
 
-export type ImportBatch = TableRow<'import_batches'>;
-export type ImportBatchInsert = TableInsert<'import_batches'>;
-export type ImportBatchUpdate = TableUpdate<'import_batches'>;
+export type ImportBatch = TableRow<"import_batches">;
+export type ImportBatchInsert = TableInsert<"import_batches">;
+export type ImportBatchUpdate = TableUpdate<"import_batches">;
 
-export type AICategoryOverride = TableRow<'ai_category_overrides'>;
-export type AICategoryOverrideInsert = TableInsert<'ai_category_overrides'>;
-export type AICategoryOverrideUpdate = TableUpdate<'ai_category_overrides'>;
+export type AICategoryOverride = TableRow<"ai_category_overrides">;
+export type AICategoryOverrideInsert = TableInsert<"ai_category_overrides">;
+export type AICategoryOverrideUpdate = TableUpdate<"ai_category_overrides">;
 
-export type AIAuditLog = TableRow<'ai_audit_logs'>;
-export type AIAuditLogInsert = TableInsert<'ai_audit_logs'>;
+export type AIAuditLog = TableRow<"ai_audit_logs">;
+export type AIAuditLogInsert = TableInsert<"ai_audit_logs">;
