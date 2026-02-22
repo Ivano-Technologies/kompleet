@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-import { rateLimit, getIdentifier } from './rate-limit';
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { rateLimit, getIdentifier } from "./rate-limit";
 
 interface RateLimitOptions {
   limit?: number; // requests per window
@@ -23,7 +23,7 @@ interface RateLimitOptions {
  */
 export function withRateLimit<T extends Request | NextRequest = Request>(
   handler: (request: T, context?: any) => Promise<Response> | Response,
-  options: RateLimitOptions = {}
+  options: RateLimitOptions = {},
 ): (request: T, context?: any) => Promise<Response> {
   return async (request: T, context?: any) => {
     const identifier = getIdentifier(request);
@@ -31,24 +31,26 @@ export function withRateLimit<T extends Request | NextRequest = Request>(
 
     // Add rate limit headers
     const headers = new Headers();
-    headers.set('X-RateLimit-Limit', String(options.limit ?? 60));
-    headers.set('X-RateLimit-Remaining', String(result.remaining));
-    headers.set('X-RateLimit-Reset', result.reset.toISOString());
+    headers.set("X-RateLimit-Limit", String(options.limit ?? 60));
+    headers.set("X-RateLimit-Remaining", String(result.remaining));
+    headers.set("X-RateLimit-Reset", result.reset.toISOString());
 
     if (!result.success) {
-      const retryAfter = Math.ceil((result.reset.getTime() - Date.now()) / 1000);
-      headers.set('Retry-After', String(retryAfter));
+      const retryAfter = Math.ceil(
+        (result.reset.getTime() - Date.now()) / 1000,
+      );
+      headers.set("Retry-After", String(retryAfter));
 
       return NextResponse.json(
         {
-          error: 'Too many requests',
+          error: "Too many requests",
           message: `Rate limit exceeded. Please try again in ${retryAfter} seconds.`,
           retryAfter,
         },
         {
           status: 429,
           headers,
-        }
+        },
       );
     }
 

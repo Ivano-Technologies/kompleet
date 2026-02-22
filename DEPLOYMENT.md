@@ -39,6 +39,7 @@ supabase db push
 ```
 
 Alternatively, run migrations manually in Supabase SQL Editor:
+
 1. Go to Supabase Dashboard → SQL Editor
 2. Run each migration file in order:
    - `src/supabase/migrations/001_extensions.sql`
@@ -243,6 +244,7 @@ Manually verify these critical flows:
 **Cause**: Missing dependency or incorrect import path
 
 **Solution**:
+
 ```bash
 # Verify all dependencies are in package.json
 npm install
@@ -256,6 +258,7 @@ npm install
 **Cause**: Environment variables not set in Vercel
 
 **Solution**:
+
 1. Go to Vercel Dashboard → Settings → Environment Variables
 2. Add missing variables
 3. Redeploy (Vercel → Deployments → [...] → Redeploy)
@@ -265,6 +268,7 @@ npm install
 **Cause**: Redirect URL not in Supabase allowlist
 
 **Solution**:
+
 1. Go to Supabase Dashboard → Authentication → URL Configuration
 2. Add your deployment URL to redirect URLs
 3. Use wildcard for preview deployments: `https://*-your-team.vercel.app/auth/callback`
@@ -274,6 +278,7 @@ npm install
 **Cause**: CORS or network error
 
 **Solution**:
+
 1. Check Vercel function logs for errors
 2. Verify environment variables are set
 3. Check Supabase project is not paused (free tier auto-pauses after inactivity)
@@ -283,6 +288,7 @@ npm install
 **Cause**: Middleware logic error or cookie issue
 
 **Solution**:
+
 1. Check `src/middleware.ts` route matching logic
 2. Verify cookies are being set correctly
 3. Check browser DevTools → Application → Cookies
@@ -292,6 +298,7 @@ npm install
 **Cause**: Type errors not caught locally
 
 **Solution**:
+
 ```bash
 # Run typecheck locally
 npm run typecheck
@@ -304,6 +311,7 @@ npm run typecheck
 **Cause**: Webhook endpoint not reachable or signature verification fails
 
 **Solution**:
+
 1. Verify webhook URL is correct in Stripe Dashboard
 2. Check `STRIPE_WEBHOOK_SECRET` is set correctly in Vercel
 3. Test webhook with Stripe CLI:

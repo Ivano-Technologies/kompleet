@@ -3,21 +3,24 @@
  * Identifies if a file requires a password to decrypt
  */
 
-import { FileType } from './detectFileType';
-import { EncryptionInfo } from './types';
+import { FileType } from "./detectFileType";
+import { EncryptionInfo } from "./types";
 
 /**
  * Detect if file is encrypted based on file type
  */
-export function detectEncryption(buffer: Buffer, fileType: FileType): EncryptionInfo {
+export function detectEncryption(
+  buffer: Buffer,
+  fileType: FileType,
+): EncryptionInfo {
   switch (fileType) {
-    case 'pdf':
+    case "pdf":
       return detectPdfEncryption(buffer);
-    case 'xlsx':
-      return detectExcelEncryption(buffer, 'xlsx');
-    case 'xls':
-      return detectExcelEncryption(buffer, 'xls');
-    case 'zip':
+    case "xlsx":
+      return detectExcelEncryption(buffer, "xlsx");
+    case "xls":
+      return detectExcelEncryption(buffer, "xls");
+    case "zip":
       return detectZipEncryption(buffer);
     default:
       return { isEncrypted: false, requiresPassword: false };
@@ -31,14 +34,14 @@ export function detectEncryption(buffer: Buffer, fileType: FileType): Encryption
 function detectPdfEncryption(buffer: Buffer): EncryptionInfo {
   try {
     // Convert buffer to string (latin1 preserves byte values)
-    const bufferStr = buffer.toString('latin1');
+    const bufferStr = buffer.toString("latin1");
 
     // Look for /Encrypt dictionary (indicates encryption)
-    const isEncrypted = bufferStr.includes('/Encrypt');
+    const isEncrypted = bufferStr.includes("/Encrypt");
 
     return {
       isEncrypted,
-      encryptionType: isEncrypted ? 'password' : undefined,
+      encryptionType: isEncrypted ? "password" : undefined,
       requiresPassword: isEncrypted,
     };
   } catch {
@@ -51,9 +54,12 @@ function detectPdfEncryption(buffer: Buffer): EncryptionInfo {
  * XLSX: ZIP format with possible encryption flags
  * XLS: OLE2 format with encryption flags in header
  */
-function detectExcelEncryption(buffer: Buffer, fileType: 'xlsx' | 'xls'): EncryptionInfo {
+function detectExcelEncryption(
+  buffer: Buffer,
+  fileType: "xlsx" | "xls",
+): EncryptionInfo {
   try {
-    if (fileType === 'xlsx') {
+    if (fileType === "xlsx") {
       // XLSX is a ZIP file
       // Check for encryption flags in ZIP local file headers
       // Encryption flag is bit 0 of general purpose bit flag (offset 6-7 in local header)
@@ -76,7 +82,7 @@ function detectExcelEncryption(buffer: Buffer, fileType: 'xlsx' | 'xls'): Encryp
           if ((gpbf & 0x0001) === 0x0001) {
             return {
               isEncrypted: true,
-              encryptionType: 'password',
+              encryptionType: "password",
               requiresPassword: true,
             };
           }
@@ -124,7 +130,7 @@ function detectZipEncryption(buffer: Buffer): EncryptionInfo {
         if ((gpbf & 0x0001) === 0x0001) {
           return {
             isEncrypted: true,
-            encryptionType: 'password',
+            encryptionType: "password",
             requiresPassword: true,
           };
         }
@@ -143,8 +149,8 @@ function detectZipEncryption(buffer: Buffer): EncryptionInfo {
  */
 export function getEncryptionMessage(encryptionInfo: EncryptionInfo): string {
   if (!encryptionInfo.isEncrypted) {
-    return '';
+    return "";
   }
 
-  return 'This file is password-protected. Please provide the password to unlock it.';
+  return "This file is password-protected. Please provide the password to unlock it.";
 }

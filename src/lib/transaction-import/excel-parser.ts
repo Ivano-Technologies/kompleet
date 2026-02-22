@@ -3,16 +3,16 @@
  * Handles .xlsx and .xls file parsing with multi-sheet support
  */
 
-import * as XLSX from 'xlsx';
-import { BankConfig } from './bank-configs';
-import { ParsedTransaction, ParseResult, ParseError } from './csv-parser';
+import * as XLSX from "xlsx";
+import { BankConfig } from "./bank-configs";
+import { ParsedTransaction, ParseResult, ParseError } from "./csv-parser";
 
 /**
  * Parse Excel file using bank-specific configuration
  */
 export async function parseExcel(
   fileBuffer: Buffer,
-  bankConfig: BankConfig
+  bankConfig: BankConfig,
 ): Promise<ParseResult> {
   const transactions: ParsedTransaction[] = [];
   const errors: ParseError[] = [];
@@ -21,7 +21,7 @@ export async function parseExcel(
   try {
     // Read workbook
     const workbook = XLSX.read(fileBuffer, {
-      type: 'buffer',
+      type: "buffer",
       cellDates: true,
       cellNF: false,
       cellText: false,
@@ -29,7 +29,7 @@ export async function parseExcel(
 
     // Get target sheet
     const sheetName =
-      typeof bankConfig.excelConfig.sheetName === 'string'
+      typeof bankConfig.excelConfig.sheetName === "string"
         ? bankConfig.excelConfig.sheetName
         : workbook.SheetNames[bankConfig.excelConfig.sheetName];
 
@@ -43,7 +43,7 @@ export async function parseExcel(
     const rows = XLSX.utils.sheet_to_json(worksheet, {
       header: 1, // Use array of arrays
       raw: false, // Convert values to strings
-      defval: '', // Default value for empty cells
+      defval: "", // Default value for empty cells
     }) as any[][];
 
     totalRows = rows.length;
@@ -58,7 +58,7 @@ export async function parseExcel(
       const rowNumber = i + 1;
 
       // Skip empty rows
-      if (row.every((cell) => !cell || cell.toString().trim() === '')) {
+      if (row.every((cell) => !cell || cell.toString().trim() === "")) {
         continue;
       }
 
@@ -67,7 +67,7 @@ export async function parseExcel(
           row,
           headers,
           bankConfig,
-          rowNumber
+          rowNumber,
         );
         if (transaction) {
           transactions.push(transaction);
@@ -75,8 +75,9 @@ export async function parseExcel(
       } catch (error) {
         errors.push({
           rowNumber,
-          errorType: 'PARSING_ERROR',
-          errorMessage: error instanceof Error ? error.message : 'Unknown error',
+          errorType: "PARSING_ERROR",
+          errorMessage:
+            error instanceof Error ? error.message : "Unknown error",
           rawData: { row, headers },
         });
       }
@@ -91,8 +92,8 @@ export async function parseExcel(
   } catch (error) {
     errors.push({
       rowNumber: 0,
-      errorType: 'FILE_PARSING_ERROR',
-      errorMessage: error instanceof Error ? error.message : 'Unknown error',
+      errorType: "FILE_PARSING_ERROR",
+      errorMessage: error instanceof Error ? error.message : "Unknown error",
       rawData: {},
     });
 
@@ -112,7 +113,7 @@ function extractTransactionFromExcel(
   row: any[],
   headers: any[],
   bankConfig: BankConfig,
-  rowNumber: number
+  rowNumber: number,
 ): ParsedTransaction | null {
   const { excelConfig } = bankConfig;
 
@@ -129,7 +130,9 @@ function extractTransactionFromExcel(
 
   const date = parseDate(dateStr, excelConfig.dateFormat);
   if (!date) {
-    throw new Error(`Invalid date format: "${dateStr}" (expected ${excelConfig.dateFormat})`);
+    throw new Error(
+      `Invalid date format: "${dateStr}" (expected ${excelConfig.dateFormat})`,
+    );
   }
 
   // Extract merchant
@@ -140,14 +143,14 @@ function extractTransactionFromExcel(
 
   // Extract amount (debit/credit)
   let amount: number;
-  let type: 'debit' | 'credit';
+  let type: "debit" | "credit";
 
   if (excelConfig.amountColumn) {
     // Single amount column
     const amountIndex = getColumnIndex(excelConfig.amountColumn, headers);
     const amountStr = row[amountIndex];
     amount = parseAmount(amountStr);
-    type = amount < 0 ? 'debit' : 'credit';
+    type = amount < 0 ? "debit" : "credit";
     amount = Math.abs(amount);
   } else if (excelConfig.debitColumn && excelConfig.creditColumn) {
     // Separate debit/credit columns
@@ -162,15 +165,15 @@ function extractTransactionFromExcel(
 
     if (debit > 0) {
       amount = debit;
-      type = 'debit';
+      type = "debit";
     } else if (credit > 0) {
       amount = credit;
-      type = 'credit';
+      type = "credit";
     } else {
-      throw new Error('Both debit and credit are zero or empty');
+      throw new Error("Both debit and credit are zero or empty");
     }
   } else {
-    throw new Error('Invalid bank configuration: missing amount columns');
+    throw new Error("Invalid bank configuration: missing amount columns");
   }
 
   // Extract balance
@@ -207,18 +210,18 @@ function extractTransactionFromExcel(
  * Get column index from letter or number
  */
 function getColumnIndex(column: string | number, headers: any[]): number {
-  if (typeof column === 'number') {
+  if (typeof column === "number") {
     return column;
   }
 
   // Convert column letter to index (A=0, B=1, etc.)
-  if (typeof column === 'string' && column.length === 1) {
+  if (typeof column === "string" && column.length === 1) {
     return column.toUpperCase().charCodeAt(0) - 65;
   }
 
   // Try to find column by header name
   const headerIndex = headers.findIndex(
-    (h) => h && h.toString().toLowerCase() === column.toLowerCase()
+    (h) => h && h.toString().toLowerCase() === column.toLowerCase(),
   );
 
   if (headerIndex >= 0) {
@@ -235,11 +238,12 @@ function parseDate(dateStr: string, format: string): string | null {
   if (!dateStr) return null;
 
   // Handle Excel date serial numbers
-  if (typeof dateStr === 'number' || /^\d+$/.test(dateStr)) {
-    const excelDate = typeof dateStr === 'number' ? dateStr : parseInt(dateStr, 10);
+  if (typeof dateStr === "number" || /^\d+$/.test(dateStr)) {
+    const excelDate =
+      typeof dateStr === "number" ? dateStr : parseInt(dateStr, 10);
     const date = XLSX.SSF.parse_date_code(excelDate);
     if (date) {
-      return new Date(date.y, date.m - 1, date.d).toISOString().split('T')[0];
+      return new Date(date.y, date.m - 1, date.d).toISOString().split("T")[0];
     }
   }
 
@@ -247,18 +251,18 @@ function parseDate(dateStr: string, format: string): string | null {
   let day: number, month: number, year: number;
 
   try {
-    if (format === 'DD/MM/YYYY' || format === 'DD-MM-YYYY') {
+    if (format === "DD/MM/YYYY" || format === "DD-MM-YYYY") {
       const parts = cleaned.split(/[\/\-]/);
       day = parseInt(parts[0], 10);
       month = parseInt(parts[1], 10);
       year = parseInt(parts[2], 10);
-    } else if (format === 'MM/DD/YYYY' || format === 'MM-DD-YYYY') {
+    } else if (format === "MM/DD/YYYY" || format === "MM-DD-YYYY") {
       const parts = cleaned.split(/[\/\-]/);
       month = parseInt(parts[0], 10);
       day = parseInt(parts[1], 10);
       year = parseInt(parts[2], 10);
-    } else if (format === 'YYYY-MM-DD') {
-      const parts = cleaned.split('-');
+    } else if (format === "YYYY-MM-DD") {
+      const parts = cleaned.split("-");
       year = parseInt(parts[0], 10);
       month = parseInt(parts[1], 10);
       day = parseInt(parts[2], 10);
@@ -276,7 +280,7 @@ function parseDate(dateStr: string, format: string): string | null {
     }
 
     // Convert to ISO format
-    const isoDate = new Date(year, month - 1, day).toISOString().split('T')[0];
+    const isoDate = new Date(year, month - 1, day).toISOString().split("T")[0];
     return isoDate;
   } catch (error) {
     return null;
@@ -287,18 +291,18 @@ function parseDate(dateStr: string, format: string): string | null {
  * Parse amount string to number
  */
 function parseAmount(amountStr: string | number | undefined): number {
-  if (amountStr === undefined || amountStr === null || amountStr === '') {
+  if (amountStr === undefined || amountStr === null || amountStr === "") {
     return 0;
   }
 
-  if (typeof amountStr === 'number') {
+  if (typeof amountStr === "number") {
     return amountStr;
   }
 
   // Remove currency symbols and commas
   const cleaned = amountStr
     .toString()
-    .replace(/[₦NGN,\s]/gi, '')
+    .replace(/[₦NGN,\s]/gi, "")
     .trim();
 
   if (!cleaned) {

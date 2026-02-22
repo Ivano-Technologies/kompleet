@@ -1,8 +1,8 @@
 /**
  * Scan tab: camera capture → OCR (or queue when offline) → manual correction.
  */
-import { useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useRouter } from "expo-router";
+import { useCallback, useState } from "react";
 import {
   View,
   Text,
@@ -10,14 +10,19 @@ import {
   StyleSheet,
   ActivityIndicator,
   Alert,
-} from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
-import { useNDPRConsent } from '@/lib/ndpr/NDPRConsentGate';
-import { getUserId } from '@/lib/auth/user-id';
-import { enqueueOcr, getPendingOcrItems, runOcrOnImage, processOcrQueue } from '@/lib/ocr/ocr-queue';
-import { setPendingReceiptUri } from '@/lib/receipt-pending-image';
+} from "react-native";
+import * as ImagePicker from "expo-image-picker";
+import { useNDPRConsent } from "@/lib/ndpr/NDPRConsentGate";
+import { getUserId } from "@/lib/auth/user-id";
+import {
+  enqueueOcr,
+  getPendingOcrItems,
+  runOcrOnImage,
+  processOcrQueue,
+} from "@/lib/ocr/ocr-queue";
+import { setPendingReceiptUri } from "@/lib/receipt-pending-image";
 
-const API_BASE = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';
+const API_BASE = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3000";
 
 export default function ScanScreen() {
   const router = useRouter();
@@ -27,13 +32,16 @@ export default function ScanScreen() {
 
   const captureAndProcess = useCallback(async () => {
     if (!consent?.hasConsent) {
-      Alert.alert('Consent required', 'Accept NDPR consent to scan receipts.');
+      Alert.alert("Consent required", "Accept NDPR consent to scan receipts.");
       return;
     }
 
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Camera access', 'Camera permission is required to scan receipts.');
+    if (status !== "granted") {
+      Alert.alert(
+        "Camera access",
+        "Camera permission is required to scan receipts.",
+      );
       return;
     }
 
@@ -42,7 +50,7 @@ export default function ScanScreen() {
 
     try {
       const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ['images'],
+        mediaTypes: ["images"],
         allowsEditing: true,
         aspect: [3, 4],
         quality: 0.8,
@@ -59,7 +67,7 @@ export default function ScanScreen() {
       // Simple online check: try to hit OCR API (or a tiny ping). If fetch fails, assume offline.
       let isOnline = false;
       try {
-        const r = await fetch(`${API_BASE}/api/health`, { method: 'GET' });
+        const r = await fetch(`${API_BASE}/api/health`, { method: "GET" });
         isOnline = r.ok;
       } catch {
         isOnline = false;
@@ -68,7 +76,9 @@ export default function ScanScreen() {
       if (!isOnline) {
         enqueueOcr(uri);
         const pending = getPendingOcrItems();
-        setMessage(`Saved for later (${pending.length} in queue). Process when online.`);
+        setMessage(
+          `Saved for later (${pending.length} in queue). Process when online.`,
+        );
         setLoading(false);
         return;
       }
@@ -77,18 +87,20 @@ export default function ScanScreen() {
         uri,
         userId,
         API_BASE,
-        async () => null
+        async () => null,
       );
 
-      if ('error' in ocrResult) {
-        const { createExpense } = await import('@/lib/db/expense-repository');
+      if ("error" in ocrResult) {
+        const { createExpense } = await import("@/lib/db/expense-repository");
         const draft = createExpense(userId, {
           date: new Date().toISOString().slice(0, 10),
           amount: 0,
-          currency: 'NGN',
-          notes: 'OCR failed – please enter manually',
+          currency: "NGN",
+          notes: "OCR failed – please enter manually",
         });
-        setMessage(`OCR failed: ${ocrResult.error}. Opening form to enter manually.`);
+        setMessage(
+          `OCR failed: ${ocrResult.error}. Opening form to enter manually.`,
+        );
         setPendingReceiptUri(uri);
         router.push(`/receipt-edit/${draft.id}`);
         setLoading(false);
@@ -98,7 +110,7 @@ export default function ScanScreen() {
       setPendingReceiptUri(uri);
       router.push(`/receipt-edit/${ocrResult.expenseId}`);
     } catch (e) {
-      setMessage(e instanceof Error ? e.message : 'Something went wrong');
+      setMessage(e instanceof Error ? e.message : "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -115,15 +127,15 @@ export default function ScanScreen() {
       const { processed, errors } = await processOcrQueue(
         userId,
         API_BASE,
-        async () => null
+        async () => null,
       );
       setMessage(
         errors.length > 0
           ? `Processed ${processed}, ${errors.length} failed.`
-          : `Processed ${processed} receipt(s).`
+          : `Processed ${processed} receipt(s).`,
       );
     } catch (e) {
-      setMessage(e instanceof Error ? e.message : 'Queue processing failed');
+      setMessage(e instanceof Error ? e.message : "Queue processing failed");
     } finally {
       setLoading(false);
     }
@@ -169,7 +181,8 @@ export default function ScanScreen() {
         )}
       </Pressable>
       <Text style={styles.hint}>
-        Poor lighting? Try again in better light or enter the expense manually from Home.
+        Poor lighting? Try again in better light or enter the expense manually
+        from Home.
       </Text>
     </View>
   );
@@ -183,51 +196,57 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 22,
-    fontWeight: '600',
-    color: '#008751',
+    fontWeight: "600",
+    color: "#008751",
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
     marginBottom: 24,
   },
   messageBox: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: "#f0f0f0",
     padding: 12,
     borderRadius: 8,
     marginBottom: 16,
   },
   message: {
     fontSize: 14,
-    color: '#333',
+    color: "#333",
   },
   pending: {
     fontSize: 13,
-    color: '#008751',
+    color: "#008751",
     marginBottom: 16,
   },
   button: {
-    backgroundColor: '#008751',
+    backgroundColor: "#008751",
     padding: 16,
     borderRadius: 8,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 16,
   },
   buttonDisabled: { opacity: 0.7 },
   buttonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   secondaryButton: {
     padding: 12,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#008751',
-    alignItems: 'center',
+    borderColor: "#008751",
+    alignItems: "center",
     marginBottom: 16,
   },
-  secondaryButtonText: { color: '#008751', fontSize: 16, fontWeight: '600' },
-  hint: { fontSize: 12, color: '#888', marginTop: 16, textAlign: 'center', paddingHorizontal: 16 },
+  secondaryButtonText: { color: "#008751", fontSize: 16, fontWeight: "600" },
+  hint: {
+    fontSize: 12,
+    color: "#888",
+    marginTop: 16,
+    textAlign: "center",
+    paddingHorizontal: 16,
+  },
 });

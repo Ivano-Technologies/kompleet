@@ -1,10 +1,11 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { useYear } from '@/contexts/year-context';
+import React from "react";
+import { useYear } from "@/contexts/year-context";
 
 export function YearSelector() {
-  const { selectedYear, setSelectedYear, availableYears, isLoading } = useYear();
+  const { selectedYear, setSelectedYear, availableYears, isLoading } =
+    useYear();
 
   if (isLoading) {
     return (
@@ -17,7 +18,10 @@ export function YearSelector() {
 
   return (
     <div className="flex items-center gap-2">
-      <label htmlFor="year-selector" className="text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary">
+      <label
+        htmlFor="year-selector"
+        className="text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary"
+      >
         Tax Year:
       </label>
       <select
@@ -38,7 +42,8 @@ export function YearSelector() {
 
 // Compact version for mobile/header
 export function YearSelectorCompact() {
-  const { selectedYear, setSelectedYear, availableYears, isLoading } = useYear();
+  const { selectedYear, setSelectedYear, availableYears, isLoading } =
+    useYear();
 
   if (isLoading) {
     return (

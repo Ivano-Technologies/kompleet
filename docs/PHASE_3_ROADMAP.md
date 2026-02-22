@@ -8,13 +8,13 @@
 
 ## Feature Overview
 
-| Feature ID | Name | Priority | Effort | Dependencies |
-|------------|------|----------|--------|--------------|
-| F-08 | Tax Advisory Chatbot | P0 | 40h | OpenAI API, Vector DB |
-| F-09 | Tax Calendar & Reminders | P0 | 30h | Email service, Cron jobs |
-| F-10 | Tax Savings Optimizer | P1 | 50h | ML models, Historical data |
-| F-11 | Multi-User Collaboration | P1 | 35h | Real-time sync, Permissions |
-| F-12 | Advanced Reporting | P2 | 25h | Chart library, Export service |
+| Feature ID | Name                     | Priority | Effort | Dependencies                  |
+| ---------- | ------------------------ | -------- | ------ | ----------------------------- |
+| F-08       | Tax Advisory Chatbot     | P0       | 40h    | OpenAI API, Vector DB         |
+| F-09       | Tax Calendar & Reminders | P0       | 30h    | Email service, Cron jobs      |
+| F-10       | Tax Savings Optimizer    | P1       | 50h    | ML models, Historical data    |
+| F-11       | Multi-User Collaboration | P1       | 35h    | Real-time sync, Permissions   |
+| F-12       | Advanced Reporting       | P2       | 25h    | Chart library, Export service |
 
 **Total Estimated Effort**: 180 hours (~2.5 months with 1 FTE)
 
@@ -23,9 +23,11 @@
 ## F-08: Tax Advisory Chatbot
 
 ### Overview
+
 AI-powered chatbot that answers Nigerian tax questions, provides compliance guidance, and helps users understand complex tax regulations.
 
 ### User Stories
+
 1. As a business owner, I want to ask "What tax forms do I need to file?" and get personalized answers
 2. As an individual, I want to ask "Can I deduct home office expenses?" and get accurate Nigerian tax guidance
 3. As a user, I want the chatbot to reference specific sections of the Tax Act
@@ -33,6 +35,7 @@ AI-powered chatbot that answers Nigerian tax questions, provides compliance guid
 ### Technical Specification
 
 **Architecture:**
+
 ```
 User Question
     ↓
@@ -49,6 +52,7 @@ Contextual Response
 ```
 
 **Database Schema:**
+
 ```sql
 CREATE TABLE chat_conversations (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -117,6 +121,7 @@ CREATE INDEX ON knowledge_base USING ivfflat (embedding vector_cosine_ops);
    - Add safety guardrails (don't give legal advice disclaimer)
 
 **API Example:**
+
 ```typescript
 // POST /api/chat
 {
@@ -139,6 +144,7 @@ CREATE INDEX ON knowledge_base USING ivfflat (embedding vector_cosine_ops);
 ```
 
 **Cost Estimate:**
+
 - OpenAI API: ~$50-100/month (1000 conversations)
 - Vector DB: Included with Supabase Pro
 
@@ -147,9 +153,11 @@ CREATE INDEX ON knowledge_base USING ivfflat (embedding vector_cosine_ops);
 ## F-09: Tax Calendar & Reminders
 
 ### Overview
+
 Automated tax deadline tracking with email/SMS reminders for upcoming filing deadlines, payment due dates, and compliance events.
 
 ### User Stories
+
 1. As a business owner, I want automatic reminders 7 days before CIT filing deadline
 2. As an individual, I want to see all my tax deadlines in a calendar view
 3. As a user, I want to customize when I receive reminder notifications
@@ -157,6 +165,7 @@ Automated tax deadline tracking with email/SMS reminders for upcoming filing dea
 ### Technical Specification
 
 **Database Schema:**
+
 ```sql
 CREATE TABLE tax_deadlines (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -223,6 +232,7 @@ CREATE TABLE sent_reminders (
    - Verify timezone handling
 
 **Cron Configuration** (`vercel.json`):
+
 ```json
 {
   "crons": [
@@ -235,6 +245,7 @@ CREATE TABLE sent_reminders (
 ```
 
 **Email Template Example:**
+
 ```
 Subject: Reminder: CIT Filing Deadline in 7 Days
 
@@ -262,9 +273,11 @@ The KOMPLEET Team
 ## F-10: Tax Savings Optimizer
 
 ### Overview
+
 AI-powered analysis that identifies tax-saving opportunities based on user's financial profile and Nigerian tax laws.
 
 ### User Stories
+
 1. As a business owner, I want to see what deductions I'm missing
 2. As an individual, I want recommendations to reduce my tax burden legally
 3. As a user, I want personalized tax planning advice
@@ -272,13 +285,14 @@ AI-powered analysis that identifies tax-saving opportunities based on user's fin
 ### Technical Specification
 
 **Optimization Rules Engine:**
+
 ```typescript
 interface OptimizationRule {
   id: string;
   name: string;
   description: string;
-  applicableTo: 'individual' | 'business' | 'both';
-  category: 'deduction' | 'credit' | 'timing' | 'structure';
+  applicableTo: "individual" | "business" | "both";
+  category: "deduction" | "credit" | "timing" | "structure";
   potentialSavings: (profile: UserProfile) => number;
   recommendation: string;
   implementation: string[];
@@ -286,22 +300,22 @@ interface OptimizationRule {
 
 const optimizationRules: OptimizationRule[] = [
   {
-    id: 'pension_contribution',
-    name: 'Maximize Pension Contributions',
-    applicableTo: 'both',
-    category: 'deduction',
+    id: "pension_contribution",
+    name: "Maximize Pension Contributions",
+    applicableTo: "both",
+    category: "deduction",
     potentialSavings: (profile) => {
       const currentPension = profile.pensionContribution;
-      const maxPension = profile.grossIncome * 0.20; // 20% limit
+      const maxPension = profile.grossIncome * 0.2; // 20% limit
       const additionalContribution = maxPension - currentPension;
       return additionalContribution * profile.marginalTaxRate;
     },
-    recommendation: 'Increase pension contribution to maximize tax relief',
+    recommendation: "Increase pension contribution to maximize tax relief",
     implementation: [
-      'Contact your pension administrator',
-      'Increase monthly contribution',
-      'Claim relief on tax return'
-    ]
+      "Contact your pension administrator",
+      "Increase monthly contribution",
+      "Claim relief on tax return",
+    ],
   },
   // ... 20+ more rules
 ];
@@ -340,6 +354,7 @@ const optimizationRules: OptimizationRule[] = [
    - Validate legal compliance
 
 **UI Mockup:**
+
 ```
 ┌─────────────────────────────────────────┐
 │ Tax Savings Opportunities               │
@@ -370,14 +385,17 @@ const optimizationRules: OptimizationRule[] = [
 ## Implementation Priority
 
 ### Month 1: Foundation
+
 - **Week 1-2**: F-09 Email reminders (basic)
 - **Week 3-4**: F-08 Chatbot (MVP with basic RAG)
 
 ### Month 2: Enhancement
+
 - **Week 1-2**: F-08 Chatbot refinement + sources
 - **Week 3-4**: F-09 Calendar UI + recurring deadlines
 
 ### Month 3: Advanced
+
 - **Week 1-3**: F-10 Tax Optimizer (rules engine + UI)
 - **Week 4**: Testing & polish
 
@@ -385,26 +403,28 @@ const optimizationRules: OptimizationRule[] = [
 
 ## Success Metrics
 
-| Feature | Metric | Target |
-|---------|--------|--------|
-| F-08 Chatbot | Accuracy (user satisfaction) | > 85% |
-| F-08 Chatbot | Response time | < 3s |
-| F-09 Reminders | Email delivery rate | > 95% |
-| F-09 Reminders | User engagement (click rate) | > 40% |
-| F-10 Optimizer | Recommendations accepted | > 30% |
-| F-10 Optimizer | Avg savings identified | > ₦500K |
+| Feature        | Metric                       | Target  |
+| -------------- | ---------------------------- | ------- |
+| F-08 Chatbot   | Accuracy (user satisfaction) | > 85%   |
+| F-08 Chatbot   | Response time                | < 3s    |
+| F-09 Reminders | Email delivery rate          | > 95%   |
+| F-09 Reminders | User engagement (click rate) | > 40%   |
+| F-10 Optimizer | Recommendations accepted     | > 30%   |
+| F-10 Optimizer | Avg savings identified       | > ₦500K |
 
 ---
 
 ## Technical Dependencies
 
 ### Required Services
+
 - **OpenAI API** ($100-200/month) - GPT-4 + embeddings
 - **Email Service** (Resend/SendGrid) ($10-30/month)
 - **Cron Jobs** (Vercel Cron - included, or Inngest free tier)
 - **Vector DB** (Supabase pgvector - included)
 
 ### Optional Services
+
 - **SMS** (Twilio) - Pay per message (~₦50/SMS)
 - **Push Notifications** (Firebase Cloud Messaging - free)
 
@@ -412,12 +432,12 @@ const optimizationRules: OptimizationRule[] = [
 
 ## Risks & Mitigation
 
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| Chatbot gives wrong tax advice | High | Add disclaimers, cite sources, human review |
-| Email deliverability issues | Medium | Use reputable ESP, verify domain, monitor bounce rates |
-| Optimizer rules become outdated | Medium | Quarterly review, version control rules |
-| OpenAI API costs exceed budget | Low | Cache responses, use GPT-3.5 for simple queries |
+| Risk                            | Impact | Mitigation                                             |
+| ------------------------------- | ------ | ------------------------------------------------------ |
+| Chatbot gives wrong tax advice  | High   | Add disclaimers, cite sources, human review            |
+| Email deliverability issues     | Medium | Use reputable ESP, verify domain, monitor bounce rates |
+| Optimizer rules become outdated | Medium | Quarterly review, version control rules                |
+| OpenAI API costs exceed budget  | Low    | Cache responses, use GPT-3.5 for simple queries        |
 
 ---
 

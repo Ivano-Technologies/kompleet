@@ -1,48 +1,48 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Menu, Bell, ChevronRight } from 'lucide-react';
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Menu, Bell, ChevronRight } from "lucide-react";
 
 const pageTitles: Record<string, string> = {
-  '/dashboard': 'Dashboard',
-  '/transactions': 'Transactions',
-  '/transactions/upload': 'Upload Transactions',
-  '/transactions/review': 'Review Transactions',
-  '/transactions/duplicates': 'Duplicate Resolution',
-  '/transactions/connect': 'Bank Connect',
-  '/invoices': 'Invoices',
-  '/invoices/new': 'New Invoice',
-  '/tax-reports': 'Tax Reports',
-  '/tax-reports/generate': 'Generate Tax Report',
-  '/calculators': 'Calculators',
-  '/calculators/individual-tax': 'Individual Tax Calculator',
-  '/calculators/business-tax': 'Business Tax Calculator',
-  '/calculators/vat': 'VAT Calculator',
-  '/calculators/stamp-duty': 'Stamp Duty Calculator',
-  '/calculators/capital-allowances': 'Capital Allowances',
-  '/calculators/property-tax': 'Property Tax Calculator',
-  '/calculators/history': 'Calculation History',
-  '/categories': 'Categories',
-  '/reports': 'Reports',
-  '/reports/profit-loss': 'Profit & Loss',
-  '/reports/balance-sheet': 'Balance Sheet',
-  '/filing': 'Tax Filing',
-  '/notifications': 'Notifications',
-  '/settings': 'Settings',
-  '/profile': 'Profile',
-  '/profile/edit': 'Edit Profile',
-  '/export': 'Export Data',
-  '/history': 'History',
-  '/yoy-comparison': 'Year-over-Year Comparison',
-  '/ml-governance': 'ML Governance',
+  "/dashboard": "Dashboard",
+  "/transactions": "Transactions",
+  "/transactions/upload": "Upload Transactions",
+  "/transactions/review": "Review Transactions",
+  "/transactions/duplicates": "Duplicate Resolution",
+  "/transactions/connect": "Bank Connect",
+  "/invoices": "Invoices",
+  "/invoices/new": "New Invoice",
+  "/tax-reports": "Tax Reports",
+  "/tax-reports/generate": "Generate Tax Report",
+  "/calculators": "Calculators",
+  "/calculators/individual-tax": "Individual Tax Calculator",
+  "/calculators/business-tax": "Business Tax Calculator",
+  "/calculators/vat": "VAT Calculator",
+  "/calculators/stamp-duty": "Stamp Duty Calculator",
+  "/calculators/capital-allowances": "Capital Allowances",
+  "/calculators/property-tax": "Property Tax Calculator",
+  "/calculators/history": "Calculation History",
+  "/categories": "Categories",
+  "/reports": "Reports",
+  "/reports/profit-loss": "Profit & Loss",
+  "/reports/balance-sheet": "Balance Sheet",
+  "/filing": "Tax Filing",
+  "/notifications": "Notifications",
+  "/settings": "Settings",
+  "/profile": "Profile",
+  "/profile/edit": "Edit Profile",
+  "/export": "Export Data",
+  "/history": "History",
+  "/yoy-comparison": "Year-over-Year Comparison",
+  "/ml-governance": "ML Governance",
 };
 
 function getBreadcrumbs(pathname: string): { label: string; href: string }[] {
-  const segments = pathname.split('/').filter(Boolean);
+  const segments = pathname.split("/").filter(Boolean);
   const crumbs: { label: string; href: string }[] = [];
 
-  let currentPath = '';
+  let currentPath = "";
   for (const segment of segments) {
     currentPath += `/${segment}`;
     const title = pageTitles[currentPath];
@@ -60,8 +60,8 @@ interface TopBarProps {
 
 export function TopBar({ onMenuToggle }: TopBarProps) {
   const pathname = usePathname();
-  const breadcrumbs = getBreadcrumbs(pathname || '/dashboard');
-  const pageTitle = pageTitles[pathname || ''] || 'Dashboard';
+  const breadcrumbs = getBreadcrumbs(pathname || "/dashboard");
+  const pageTitle = pageTitles[pathname || ""] || "Dashboard";
 
   return (
     <header className="sticky top-0 z-30 bg-light-background dark:bg-dark-background border-b border-light-border dark:border-dark-border px-4 lg:px-6">
@@ -77,7 +77,10 @@ export function TopBar({ onMenuToggle }: TopBarProps) {
           </button>
 
           {/* Breadcrumbs (desktop) */}
-          <nav className="hidden sm:flex items-center gap-1 text-sm" aria-label="Breadcrumb">
+          <nav
+            className="hidden sm:flex items-center gap-1 text-sm"
+            aria-label="Breadcrumb"
+          >
             {breadcrumbs.map((crumb, i) => (
               <span key={crumb.href} className="flex items-center gap-1">
                 {i > 0 && (

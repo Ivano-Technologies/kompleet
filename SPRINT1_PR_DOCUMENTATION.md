@@ -49,47 +49,50 @@ Three critical API endpoints were missing authentication checks:
 #### 1. `/api/audit-log` (POST) - Authentication Required
 
 **Before:**
+
 ```typescript
 async function handlePOST(request: NextRequest) {
   const body = await request.json();
-  const { calculationType, inputData, outputData, ruleVersionId, userId } = body;
-  
+  const { calculationType, inputData, outputData, ruleVersionId, userId } =
+    body;
+
   // userId from request body - SECURITY RISK
-  const { data, error } = await supabase
-    .from('audit_logs')
-    .insert({
-      user_id: userId || null, // Could be any user ID
-    });
+  const { data, error } = await supabase.from("audit_logs").insert({
+    user_id: userId || null, // Could be any user ID
+  });
 }
 ```
 
 **After:**
+
 ```typescript
 async function handlePOST(request: NextRequest) {
   const supabase = await createServerClient();
-  
+
   // Verify authentication
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
   if (authError || !user) {
     return NextResponse.json(
-      { error: 'Unauthorized', message: 'Authentication required' },
-      { status: 401 }
+      { error: "Unauthorized", message: "Authentication required" },
+      { status: 401 },
     );
   }
-  
+
   const body = await request.json();
   const { calculationType, inputData, outputData, ruleVersionId } = body;
-  
+
   // Use authenticated user ID - SECURE
-  const { data, error } = await supabase
-    .from('audit_logs')
-    .insert({
-      user_id: user.id, // From authenticated session
-    });
+  const { data, error } = await supabase.from("audit_logs").insert({
+    user_id: user.id, // From authenticated session
+  });
 }
 ```
 
 **Security Improvements:**
+
 - ✅ Verifies user is authenticated
 - ✅ Uses authenticated user ID from session (not request body)
 - ✅ Prevents unauthorized audit log creation
@@ -100,43 +103,49 @@ async function handlePOST(request: NextRequest) {
 #### 2. `/api/history` (GET) - Authentication + User Filtering
 
 **Before:**
+
 ```typescript
 async function handleGET(request: NextRequest) {
   const supabase = await createServerClient();
-  
+
   // No authentication check - SECURITY RISK
   let query = supabase
-    .from('audit_logs')
-    .select('*', { count: 'exact' })
-    .order('created_at', { ascending: false });
+    .from("audit_logs")
+    .select("*", { count: "exact" })
+    .order("created_at", { ascending: false });
   // Returns ALL audit logs - no user filtering
 }
 ```
 
 **After:**
+
 ```typescript
 async function handleGET(request: NextRequest) {
   const supabase = await createServerClient();
-  
+
   // Verify authentication
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
   if (authError || !user) {
     return NextResponse.json(
-      { error: 'Unauthorized', message: 'Authentication required' },
-      { status: 401 }
+      { error: "Unauthorized", message: "Authentication required" },
+      { status: 401 },
     );
   }
-  
+
   // Filter by authenticated user
   let query = supabase
-    .from('audit_logs')
-    .select('*', { count: 'exact' })
-    .eq('user_id', user.id) // Only user's own logs
-    .order('created_at', { ascending: false });
+    .from("audit_logs")
+    .select("*", { count: "exact" })
+    .eq("user_id", user.id) // Only user's own logs
+    .order("created_at", { ascending: false });
 }
 ```
 
 **Security Improvements:**
+
 - ✅ Verifies user is authenticated
 - ✅ Filters results by user_id
 - ✅ Prevents users from seeing other users' history
@@ -147,59 +156,65 @@ async function handleGET(request: NextRequest) {
 #### 3. `/api/history/[id]` (DELETE) - Authentication + Ownership Verification
 
 **Before:**
+
 ```typescript
 async function handleDELETE(request: NextRequest, { params }) {
   const supabase = await createServerClient();
   const { id } = await params;
-  
+
   // No authentication check - SECURITY RISK
-  const { error } = await supabase
-    .from('audit_logs')
-    .delete()
-    .eq('id', id); // Deletes any record
+  const { error } = await supabase.from("audit_logs").delete().eq("id", id); // Deletes any record
 }
 ```
 
 **After:**
+
 ```typescript
 async function handleDELETE(request: NextRequest, { params }) {
   const supabase = await createServerClient();
-  
+
   // Verify authentication
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
   if (authError || !user) {
     return NextResponse.json(
-      { error: 'Unauthorized', message: 'Authentication required' },
-      { status: 401 }
+      { error: "Unauthorized", message: "Authentication required" },
+      { status: 401 },
     );
   }
-  
+
   const { id } = await params;
-  
+
   // Verify ownership
   const { data: auditLog, error: fetchError } = await supabase
-    .from('audit_logs')
-    .select('user_id')
-    .eq('id', id)
+    .from("audit_logs")
+    .select("user_id")
+    .eq("id", id)
     .single();
-  
+
   if (auditLog.user_id !== user.id) {
     return NextResponse.json(
-      { error: 'Forbidden', message: 'You do not have permission to delete this calculation' },
-      { status: 403 }
+      {
+        error: "Forbidden",
+        message: "You do not have permission to delete this calculation",
+      },
+      { status: 403 },
     );
   }
-  
+
   // Delete only if user owns the record
   const { error } = await supabase
-    .from('audit_logs')
+    .from("audit_logs")
     .delete()
-    .eq('id', id)
-    .eq('user_id', user.id);
+    .eq("id", id)
+    .eq("user_id", user.id);
 }
 ```
 
 **Security Improvements:**
+
 - ✅ Verifies user is authenticated
 - ✅ Verifies user owns the record before deletion
 - ✅ Returns 403 Forbidden if user doesn't own the record
@@ -213,6 +228,7 @@ async function handleDELETE(request: NextRequest, { params }) {
 ### Test Results
 
 **All 291 existing tests pass:**
+
 ```
 Test Files  24 passed (24)
 Tests       291 passed (291)
@@ -224,6 +240,7 @@ Duration    7.98s
 ### Test Coverage
 
 The changes are covered by existing tests:
+
 - ✅ Authentication middleware tests
 - ✅ Rate limiting tests
 - ✅ Audit logging tests
@@ -319,6 +336,7 @@ git reset --hard origin/main
 ### Authentication Method
 
 Uses Supabase Auth with server-side session verification:
+
 - ✅ Secure: Session verified on server side
 - ✅ Reliable: Uses Supabase built-in auth
 - ✅ Consistent: Same pattern used throughout codebase
@@ -326,6 +344,7 @@ Uses Supabase Auth with server-side session verification:
 ### Authorization Method
 
 Uses RLS (Row-Level Security) policies at database level:
+
 - ✅ Defense in depth: Auth at API + RLS at database
 - ✅ Secure: Even if API auth bypassed, RLS prevents data access
 - ✅ Efficient: Database enforces security, not just API
@@ -341,11 +360,13 @@ Uses RLS (Row-Level Security) policies at database level:
 ## Performance Impact
 
 **Minimal performance impact:**
+
 - One additional database query per request to verify user ownership (for DELETE)
 - This is negligible compared to the security benefit
 - Query is optimized with proper indexes
 
 **Benchmarks:**
+
 - Audit log creation: ~50-100ms (unchanged)
 - History retrieval: ~100-200ms (unchanged)
 - History deletion: ~150-250ms (one additional query)
@@ -357,6 +378,7 @@ Uses RLS (Row-Level Security) policies at database level:
 ### NDPR Compliance
 
 ✅ **Improves NDPR compliance:**
+
 - Enforces access controls on personal data
 - Prevents unauthorized data access
 - Enables audit trail protection
@@ -364,6 +386,7 @@ Uses RLS (Row-Level Security) policies at database level:
 ### Nigerian Tax Act 2025
 
 ✅ **Supports compliance:**
+
 - Protects audit logs from tampering
 - Maintains calculation history
 - Enables regulatory audits
@@ -435,4 +458,3 @@ A: Password reset is handled by Supabase Auth and is separate from these endpoin
 **Confidence:** HIGH
 
 All changes have been tested and verified. Ready for pull request review and staging deployment.
-

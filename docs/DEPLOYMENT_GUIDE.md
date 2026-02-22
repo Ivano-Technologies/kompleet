@@ -9,6 +9,7 @@
 ## Pre-Deployment Checklist
 
 ### ✅ Code Readiness (All Complete)
+
 - [x] Build passes with no errors
 - [x] All tests passing (95.5% - 128/134 tests)
 - [x] TypeScript compilation clean
@@ -24,6 +25,7 @@
 #### 1. Supabase Configuration (30 minutes)
 
 **Enable PITR:**
+
 1. Log in to [Supabase Dashboard](https://supabase.com/dashboard)
 2. Navigate to project: `frlcvkmjuhnjcicwywrh`
 3. Go to **Settings** → **Billing** → Verify Pro Plan ($25/month)
@@ -33,6 +35,7 @@
 7. Verify status shows "PITR: Enabled"
 
 **Verify RLS Policies:**
+
 ```bash
 # Connect to Supabase and verify RLS
 psql $DATABASE_URL -c "SELECT tablename, rowsecurity FROM pg_tables WHERE schemaname = 'public' AND rowsecurity = true;"
@@ -59,6 +62,7 @@ RATE_LIMIT_REQUESTS_PER_MINUTE=60
 ```
 
 **Add to Vercel:**
+
 1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
 2. Select **kompleet-platform** project (or create new)
 3. Go to **Settings** → **Environment Variables**
@@ -69,6 +73,7 @@ RATE_LIMIT_REQUESTS_PER_MINUTE=60
 #### 3. GitHub Repository (10 minutes)
 
 **Ensure clean main branch:**
+
 ```bash
 # Check status
 git status
@@ -109,6 +114,7 @@ git push origin main
 In the Vercel project settings, paste all environment variables from above.
 
 **Critical variables:**
+
 - ✅ `NEXT_PUBLIC_SUPABASE_URL`
 - ✅ `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - ✅ `SUPABASE_SERVICE_ROLE_KEY` (mark as Secret)
@@ -123,6 +129,7 @@ In the Vercel project settings, paste all environment variables from above.
 ### Step 4: Post-Deployment Verification (10 minutes)
 
 **Health Checks:**
+
 ```bash
 # 1. API Health
 curl https://kompleet-platform.vercel.app/api/health
@@ -142,6 +149,7 @@ for i in {1..65}; do curl -s -o /dev/null -w "%{http_code}\n" https://kompleet-p
 ```
 
 **Manual Testing:**
+
 1. ✅ Sign up new account
 2. ✅ Log in
 3. ✅ Navigate to Tax Center (`/calculators`)
@@ -204,6 +212,7 @@ for i in {1..65}; do curl -s -o /dev/null -w "%{http_code}\n" https://kompleet-p
 ### Error Tracking (Recommended)
 
 **Option 1: Sentry (Recommended)**
+
 ```bash
 pnpm add @sentry/nextjs
 
@@ -212,6 +221,7 @@ npx @sentry/wizard -i nextjs
 ```
 
 **Option 2: LogRocket**
+
 ```bash
 pnpm add logrocket logrocket-react
 ```
@@ -273,6 +283,7 @@ For minor bugs that don't require full rollback:
 ### Enable Caching
 
 In `vercel.json`:
+
 ```json
 {
   "headers": [
@@ -292,16 +303,11 @@ In `vercel.json`:
 ### Image Optimization
 
 Next.js automatically optimizes images. Ensure you're using `next/image`:
-```tsx
-import Image from 'next/image';
 
-<Image
-  src="/logo.png"
-  alt="KOMPLEET"
-  width={200}
-  height={50}
-  priority
-/>
+```tsx
+import Image from "next/image";
+
+<Image src="/logo.png" alt="KOMPLEET" width={200} height={50} priority />;
 ```
 
 ### Database Connection Pooling
@@ -309,6 +315,7 @@ import Image from 'next/image';
 Already configured via Supabase. Default pool size: 15 connections.
 
 To adjust:
+
 1. Supabase Dashboard → **Settings** → **Database**
 2. **Connection pooling** → Adjust pool size if needed
 
@@ -319,27 +326,28 @@ To adjust:
 ### Content Security Policy
 
 Add to `next.config.js`:
+
 ```javascript
 const securityHeaders = [
   {
-    key: 'X-DNS-Prefetch-Control',
-    value: 'on'
+    key: "X-DNS-Prefetch-Control",
+    value: "on",
   },
   {
-    key: 'Strict-Transport-Security',
-    value: 'max-age=63072000; includeSubDomains; preload'
+    key: "Strict-Transport-Security",
+    value: "max-age=63072000; includeSubDomains; preload",
   },
   {
-    key: 'X-Content-Type-Options',
-    value: 'nosniff'
-  }
+    key: "X-Content-Type-Options",
+    value: "nosniff",
+  },
 ];
 
 module.exports = {
   async headers() {
     return [
       {
-        source: '/:path*',
+        source: "/:path*",
         headers: securityHeaders,
       },
     ];
@@ -350,6 +358,7 @@ module.exports = {
 ### Rate Limiting Verification
 
 Test that rate limiting is working:
+
 ```bash
 # Should return 429 after 30 requests
 for i in {1..35}; do
@@ -378,11 +387,13 @@ done
 ### Communication
 
 **Internal:**
+
 - Notify team of production URL
 - Share monitoring dashboard links
 - Document on-call rotation
 
 **External (Beta Users):**
+
 ```
 Subject: KOMPLEET Beta Launch - Nigerian Tax Compliance Made Easy
 
@@ -416,24 +427,26 @@ The KOMPLEET Team
 
 ### Metrics to Watch
 
-| Metric | Target | Alert If |
-|--------|--------|----------|
-| Uptime | 99.9% | < 99% |
-| API Response Time | < 500ms | > 2s |
-| Error Rate | < 1% | > 5% |
-| Database CPU | < 60% | > 80% |
-| Failed Logins | < 5% | > 10% |
-| Rate Limit Hits | Normal traffic | Spike |
+| Metric            | Target         | Alert If |
+| ----------------- | -------------- | -------- |
+| Uptime            | 99.9%          | < 99%    |
+| API Response Time | < 500ms        | > 2s     |
+| Error Rate        | < 1%           | > 5%     |
+| Database CPU      | < 60%          | > 80%    |
+| Failed Logins     | < 5%           | > 10%    |
+| Rate Limit Hits   | Normal traffic | Spike    |
 
 ### Daily Checks (First Week)
 
 **Morning (9 AM):**
+
 - [ ] Check Vercel deployment status
 - [ ] Review Supabase logs for errors
 - [ ] Check user signup count
 - [ ] Review calculation save success rate
 
 **Evening (6 PM):**
+
 - [ ] Check error tracking dashboard
 - [ ] Review user feedback emails
 - [ ] Monitor database performance
@@ -448,6 +461,7 @@ The KOMPLEET Team
 **Symptoms:** Deployment fails with build errors
 
 **Solutions:**
+
 1. Check Vercel build logs
 2. Verify all environment variables are set
 3. Test build locally: `pnpm build`
@@ -459,6 +473,7 @@ The KOMPLEET Team
 **Symptoms:** 500 errors on API routes, "Database error" messages
 
 **Solutions:**
+
 1. Verify `DATABASE_URL` is correct in Vercel
 2. Check Supabase project is active (not paused)
 3. Test connection:
@@ -473,6 +488,7 @@ The KOMPLEET Team
 **Symptoms:** Users can't sign up/log in, 401 errors
 
 **Solutions:**
+
 1. Verify `NEXT_PUBLIC_SUPABASE_ANON_KEY` is set
 2. Check Supabase Auth is enabled
 3. Verify JWT secret hasn't changed
@@ -484,6 +500,7 @@ The KOMPLEET Team
 **Symptoms:** Legitimate users getting 429 errors
 
 **Solutions:**
+
 1. Increase limits in route files (e.g., `{ limit: 60 }`)
 2. Check if single user is hitting multiple IPs
 3. Implement user-based rate limiting (vs IP-based)
@@ -494,18 +511,21 @@ The KOMPLEET Team
 ## Next Steps
 
 ### Immediate (First Week)
+
 1. ✅ Monitor error rates and performance
 2. ✅ Collect beta user feedback
 3. ✅ Fix critical bugs discovered
 4. ✅ Document known issues
 
 ### Short-term (Weeks 2-4)
+
 1. 🔧 Implement user feedback improvements
 2. 🔧 Add Phase 2 features (Stamp Duty, Capital Allowances)
 3. 🔧 Expand test coverage to 75%+
 4. 🔧 Optimize slow API endpoints
 
 ### Medium-term (Months 2-3)
+
 1. 📋 Deploy ML categorization service
 2. 📋 Build Phase 3 features (Chatbot, Calendar, Optimizer)
 3. 📋 Scale infrastructure for 1000+ users

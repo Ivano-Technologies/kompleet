@@ -10,6 +10,7 @@
 ## 1. Component Architecture
 
 ### File Structure
+
 ```
 src/
 ├── app/                    # Next.js App Router pages
@@ -27,6 +28,7 @@ src/
 ```
 
 ### Component Naming
+
 - **Pages:** `page.tsx` (Next.js App Router convention)
 - **Components:** PascalCase (e.g., `SolidCard.tsx`)
 - **Utilities:** camelCase (e.g., `formatCurrency.ts`)
@@ -37,6 +39,7 @@ src/
 ## 2. Styling Rules
 
 ### Tailwind CSS Only
+
 ```tsx
 // ✅ CORRECT - Use Tailwind classes
 <div className="bg-light-surface dark:bg-dark-surface p-6 rounded-xl">
@@ -49,6 +52,7 @@ src/
 ```
 
 ### Design Token Usage
+
 ```tsx
 // ✅ CORRECT - Use design tokens
 <div className="text-light-text-primary dark:text-dark-text-primary">
@@ -61,6 +65,7 @@ src/
 ```
 
 ### Theme-Adaptive Classes
+
 ```tsx
 // ✅ CORRECT - Light/Dark variants
 <div className="bg-white dark:bg-dark-background">
@@ -72,6 +77,7 @@ src/
 ```
 
 ### No Glassmorphism
+
 ```tsx
 // ❌ FORBIDDEN - Glassmorphism
 <div className="backdrop-blur-md bg-white/10">
@@ -86,6 +92,7 @@ src/
 ## 3. Component Patterns
 
 ### Solid Card Component
+
 ```tsx
 // Standard solid card
 <div className="solid-card bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl p-6 shadow-card">
@@ -99,6 +106,7 @@ src/
 ```
 
 ### Button Components
+
 ```tsx
 // Primary button
 <button className="btn-primary">
@@ -123,6 +131,7 @@ src/
 ```
 
 ### Input Components
+
 ```tsx
 // Standard input
 <input
@@ -138,6 +147,7 @@ src/
 ```
 
 ### Status Badges
+
 ```tsx
 // Success status
 <span className="status-success">
@@ -160,6 +170,7 @@ src/
 ## 4. TypeScript Requirements
 
 ### Strict Mode
+
 ```tsx
 // tsconfig.json must have:
 {
@@ -172,6 +183,7 @@ src/
 ```
 
 ### Component Props
+
 ```tsx
 // ✅ CORRECT - Typed props
 interface CardProps {
@@ -191,6 +203,7 @@ export function Card({ title, description, children }) {
 ```
 
 ### Event Handlers
+
 ```tsx
 // ✅ CORRECT - Typed event handlers
 const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
@@ -198,7 +211,7 @@ const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
 };
 
 const handleClick = (e: MouseEvent<HTMLButtonElement>) => {
-  console.log('Clicked');
+  console.log("Clicked");
 };
 
 // ❌ WRONG - Untyped event handlers
@@ -208,6 +221,7 @@ const handleSubmit = (e) => {
 ```
 
 ### State Management
+
 ```tsx
 // ✅ CORRECT - Typed state
 const [user, setUser] = useState<User | null>(null);
@@ -224,6 +238,7 @@ const [loading, setLoading] = useState(false);
 ## 5. Server vs Client Components
 
 ### Server Components (Default)
+
 ```tsx
 // ✅ CORRECT - Server component (no 'use client')
 export default async function DashboardPage() {
@@ -233,19 +248,21 @@ export default async function DashboardPage() {
 ```
 
 ### Client Components (When Needed)
+
 ```tsx
 // ✅ CORRECT - Client component (with 'use client')
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 
 export default function InteractiveForm() {
-  const [value, setValue] = useState('');
+  const [value, setValue] = useState("");
   return <input value={value} onChange={(e) => setValue(e.target.value)} />;
 }
 ```
 
 ### When to Use Client Components
+
 - State management (`useState`, `useReducer`)
 - Event handlers (`onClick`, `onChange`)
 - Browser APIs (`localStorage`, `window`)
@@ -256,9 +273,10 @@ export default function InteractiveForm() {
 ## 6. Authentication Patterns
 
 ### Protected Routes
+
 ```tsx
 // ✅ CORRECT - Server-side auth check
-import { requireAuth } from '@/lib/auth';
+import { requireAuth } from "@/lib/auth";
 
 export default async function ProtectedPage() {
   await requireAuth(); // Redirects if not authenticated
@@ -267,11 +285,12 @@ export default async function ProtectedPage() {
 ```
 
 ### Client-Side Auth State
+
 ```tsx
 // ✅ CORRECT - Use Supabase client
-'use client';
+"use client";
 
-import { createSupabaseClient } from '@/lib/supabase/client';
+import { createSupabaseClient } from "@/lib/supabase/client";
 
 export function UserProfile() {
   const supabase = createSupabaseClient();
@@ -290,20 +309,22 @@ export function UserProfile() {
 ## 7. Data Fetching
 
 ### Server Components
+
 ```tsx
 // ✅ CORRECT - Fetch in server component
 export default async function TransactionsPage() {
   const supabase = createSupabaseServerClient();
-  const { data } = await supabase.from('transactions').select('*');
-  
+  const { data } = await supabase.from("transactions").select("*");
+
   return <TransactionList transactions={data} />;
 }
 ```
 
 ### Client Components
+
 ```tsx
 // ✅ CORRECT - Fetch in client component
-'use client';
+"use client";
 
 export function TransactionList() {
   const [transactions, setTransactions] = useState([]);
@@ -312,7 +333,7 @@ export function TransactionList() {
   useEffect(() => {
     const fetchData = async () => {
       const supabase = createSupabaseClient();
-      const { data } = await supabase.from('transactions').select('*');
+      const { data } = await supabase.from("transactions").select("*");
       setTransactions(data || []);
       setLoading(false);
     };
@@ -329,6 +350,7 @@ export function TransactionList() {
 ## 8. Error Handling
 
 ### Form Errors
+
 ```tsx
 // ✅ CORRECT - Display errors to users
 const [error, setError] = useState<string | null>(null);
@@ -336,11 +358,11 @@ const [error, setError] = useState<string | null>(null);
 const handleSubmit = async (e: FormEvent) => {
   e.preventDefault();
   setError(null);
-  
+
   try {
     await submitForm();
   } catch (err) {
-    setError('An error occurred. Please try again.');
+    setError("An error occurred. Please try again.");
   }
 };
 
@@ -357,13 +379,14 @@ return (
 ```
 
 ### API Errors
+
 ```tsx
 // ✅ CORRECT - Handle Supabase errors
-const { data, error } = await supabase.from('table').select('*');
+const { data, error } = await supabase.from("table").select("*");
 
 if (error) {
-  console.error('Database error:', error);
-  setError('Failed to load data. Please try again.');
+  console.error("Database error:", error);
+  setError("Failed to load data. Please try again.");
   return;
 }
 ```
@@ -373,21 +396,23 @@ if (error) {
 ## 9. Loading States
 
 ### Skeleton Loaders
+
 ```tsx
 // ✅ CORRECT - Show skeleton while loading
-{loading ? (
-  <div className="solid-card animate-pulse">
-    <div className="h-4 bg-light-surface-hover dark:bg-dark-surface-hover rounded w-3/4 mb-2"></div>
-    <div className="h-4 bg-light-surface-hover dark:bg-dark-surface-hover rounded w-1/2"></div>
-  </div>
-) : (
-  <div className="solid-card">
-    {/* Actual content */}
-  </div>
-)}
+{
+  loading ? (
+    <div className="solid-card animate-pulse">
+      <div className="h-4 bg-light-surface-hover dark:bg-dark-surface-hover rounded w-3/4 mb-2"></div>
+      <div className="h-4 bg-light-surface-hover dark:bg-dark-surface-hover rounded w-1/2"></div>
+    </div>
+  ) : (
+    <div className="solid-card">{/* Actual content */}</div>
+  );
+}
 ```
 
 ### Button Loading
+
 ```tsx
 // ✅ CORRECT - Disable button during loading
 <button
@@ -395,7 +420,7 @@ if (error) {
   disabled={loading}
   className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
 >
-  {loading ? 'Submitting...' : 'Submit'}
+  {loading ? "Submitting..." : "Submit"}
 </button>
 ```
 
@@ -404,6 +429,7 @@ if (error) {
 ## 10. Accessibility Requirements
 
 ### Semantic HTML
+
 ```tsx
 // ✅ CORRECT - Use semantic elements
 <nav>
@@ -426,6 +452,7 @@ if (error) {
 ```
 
 ### ARIA Labels
+
 ```tsx
 // ✅ CORRECT - Add ARIA labels
 <button aria-label="Close modal" onClick={onClose}>
@@ -440,6 +467,7 @@ if (error) {
 ```
 
 ### Keyboard Navigation
+
 ```tsx
 // ✅ CORRECT - Handle keyboard events
 <div
@@ -447,7 +475,7 @@ if (error) {
   tabIndex={0}
   onClick={handleClick}
   onKeyDown={(e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
+    if (e.key === "Enter" || e.key === " ") {
       handleClick();
     }
   }}
@@ -461,6 +489,7 @@ if (error) {
 ## 11. Performance Optimization
 
 ### Image Optimization
+
 ```tsx
 // ✅ CORRECT - Use Next.js Image component
 import Image from 'next/image';
@@ -478,20 +507,22 @@ import Image from 'next/image';
 ```
 
 ### Dynamic Imports
+
 ```tsx
 // ✅ CORRECT - Lazy load heavy components
-import dynamic from 'next/dynamic';
+import dynamic from "next/dynamic";
 
-const HeavyChart = dynamic(() => import('@/components/HeavyChart'), {
+const HeavyChart = dynamic(() => import("@/components/HeavyChart"), {
   loading: () => <LoadingSpinner />,
   ssr: false, // Disable SSR if not needed
 });
 ```
 
 ### Memoization
+
 ```tsx
 // ✅ CORRECT - Memoize expensive calculations
-import { useMemo } from 'react';
+import { useMemo } from "react";
 
 const expensiveValue = useMemo(() => {
   return calculateExpensiveValue(data);
@@ -503,31 +534,33 @@ const expensiveValue = useMemo(() => {
 ## 12. Testing Requirements
 
 ### Component Tests
+
 ```tsx
 // ✅ CORRECT - Test components
-import { render, screen } from '@testing-library/react';
-import { Button } from './Button';
+import { render, screen } from "@testing-library/react";
+import { Button } from "./Button";
 
-test('renders button with text', () => {
+test("renders button with text", () => {
   render(<Button>Click me</Button>);
-  expect(screen.getByText('Click me')).toBeInTheDocument();
+  expect(screen.getByText("Click me")).toBeInTheDocument();
 });
 ```
 
 ### Integration Tests
+
 ```tsx
 // ✅ CORRECT - Test user flows
-test('user can submit form', async () => {
+test("user can submit form", async () => {
   render(<SignupForm />);
-  
-  fireEvent.change(screen.getByLabelText('Email'), {
-    target: { value: 'test@example.com' },
+
+  fireEvent.change(screen.getByLabelText("Email"), {
+    target: { value: "test@example.com" },
   });
-  
-  fireEvent.click(screen.getByText('Sign Up'));
-  
+
+  fireEvent.click(screen.getByText("Sign Up"));
+
   await waitFor(() => {
-    expect(screen.getByText('Account created!')).toBeInTheDocument();
+    expect(screen.getByText("Account created!")).toBeInTheDocument();
   });
 });
 ```
@@ -537,6 +570,7 @@ test('user can submit form', async () => {
 ## 13. Git Commit Standards
 
 ### Commit Message Format
+
 ```
 Sprint X: [Component/Page] - [Action]
 
@@ -546,6 +580,7 @@ Sprint X: [Component/Page] - [Action]
 ```
 
 ### Examples
+
 ```
 Sprint 2: Landing page - Remove glassmorphism
 
@@ -567,6 +602,7 @@ Sprint 3: Signup page - Implement solid design
 ## 14. Code Review Checklist
 
 ### Before Submitting PR
+
 - [ ] No TypeScript errors (`pnpm build`)
 - [ ] No linting errors (`pnpm lint`)
 - [ ] All tests pass (`pnpm test`)
@@ -583,6 +619,7 @@ Sprint 3: Signup page - Implement solid design
 ## 15. Forbidden Patterns
 
 ### ❌ NEVER DO THIS:
+
 ```tsx
 // Glassmorphism
 <div className="backdrop-blur-md bg-white/10" />
@@ -617,12 +654,14 @@ await supabase.from('table').insert(data); // No error check
 ## 16. Enforcement
 
 ### Automated Checks
+
 - **TypeScript:** Strict mode enforced in `tsconfig.json`
 - **ESLint:** Configured to catch common mistakes
 - **Prettier:** Enforces consistent formatting
 - **Husky:** Pre-commit hooks run linting and tests
 
 ### Manual Review
+
 - All PRs require approval from tech lead
 - Design review required for UI changes
 - QA sign-off required before merge

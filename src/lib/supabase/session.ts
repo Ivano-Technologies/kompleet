@@ -1,12 +1,12 @@
 /**
  * Server Session Helpers
- * 
+ *
  * This module provides explicit server-side session management functions.
  * All functions use the server Supabase client and are designed for:
  * - Server Components
  * - Route Handlers
  * - Server Actions
- * 
+ *
  * Key principles:
  * - Accept SupabaseClient as parameter (no implicit clients)
  * - Return structured errors (no redirects)
@@ -14,7 +14,7 @@
  * - Unit-testable with mocked clients
  */
 
-import { SupabaseClient, Session, User } from '@supabase/supabase-js';
+import { SupabaseClient, Session, User } from "@supabase/supabase-js";
 
 /**
  * Result type for session operations
@@ -25,10 +25,10 @@ export type SessionResult<T> =
 
 /**
  * Retrieves the current server session
- * 
+ *
  * @param client - Server Supabase client instance
  * @returns Session result with session data or error
- * 
+ *
  * @example
  * ```ts
  * const supabase = createServerClient();
@@ -39,7 +39,7 @@ export type SessionResult<T> =
  * ```
  */
 export async function getServerSession(
-  client: SupabaseClient
+  client: SupabaseClient,
 ): Promise<SessionResult<Session | null>> {
   try {
     const { data, error } = await client.auth.getSession();
@@ -58,17 +58,17 @@ export async function getServerSession(
   } catch (err) {
     return {
       success: false,
-      error: `Unexpected error retrieving session: ${err instanceof Error ? err.message : 'Unknown error'}`,
+      error: `Unexpected error retrieving session: ${err instanceof Error ? err.message : "Unknown error"}`,
     };
   }
 }
 
 /**
  * Retrieves the current authenticated user
- * 
+ *
  * @param client - Server Supabase client instance
  * @returns Session result with user data or error
- * 
+ *
  * @example
  * ```ts
  * const supabase = createServerClient();
@@ -79,7 +79,7 @@ export async function getServerSession(
  * ```
  */
 export async function getServerUser(
-  client: SupabaseClient
+  client: SupabaseClient,
 ): Promise<SessionResult<User | null>> {
   try {
     const { data, error } = await client.auth.getUser();
@@ -98,20 +98,20 @@ export async function getServerUser(
   } catch (err) {
     return {
       success: false,
-      error: `Unexpected error retrieving user: ${err instanceof Error ? err.message : 'Unknown error'}`,
+      error: `Unexpected error retrieving user: ${err instanceof Error ? err.message : "Unknown error"}`,
     };
   }
 }
 
 /**
  * Requires an authenticated user, throwing an error if not found
- * 
+ *
  * Use this in protected routes/handlers where authentication is mandatory.
- * 
+ *
  * @param client - Server Supabase client instance
  * @returns The authenticated user
  * @throws Error if user is not authenticated
- * 
+ *
  * @example
  * ```ts
  * const supabase = createServerClient();
@@ -131,7 +131,7 @@ export async function requireServerUser(client: SupabaseClient): Promise<User> {
   }
 
   if (!result.data) {
-    throw new Error('Authentication required: No user session found');
+    throw new Error("Authentication required: No user session found");
   }
 
   return result.data;
@@ -139,10 +139,10 @@ export async function requireServerUser(client: SupabaseClient): Promise<User> {
 
 /**
  * Checks if a user is authenticated
- * 
+ *
  * @param client - Server Supabase client instance
  * @returns true if user is authenticated, false otherwise
- * 
+ *
  * @example
  * ```ts
  * const supabase = createServerClient();
@@ -153,7 +153,7 @@ export async function requireServerUser(client: SupabaseClient): Promise<User> {
  * ```
  */
 export async function isAuthenticated(
-  client: SupabaseClient
+  client: SupabaseClient,
 ): Promise<boolean> {
   const result = await getServerUser(client);
   return result.success && result.data !== null;
@@ -161,10 +161,10 @@ export async function isAuthenticated(
 
 /**
  * Retrieves user ID from session
- * 
+ *
  * @param client - Server Supabase client instance
  * @returns User ID or null if not authenticated
- * 
+ *
  * @example
  * ```ts
  * const supabase = createServerClient();
@@ -175,7 +175,7 @@ export async function isAuthenticated(
  * ```
  */
 export async function getUserId(
-  client: SupabaseClient
+  client: SupabaseClient,
 ): Promise<string | null> {
   const result = await getServerUser(client);
   return result.success && result.data ? result.data.id : null;

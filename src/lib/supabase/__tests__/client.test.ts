@@ -4,10 +4,10 @@
  * Smoke tests for client creation and configuration.
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 // Mock @supabase/ssr before importing our module
-vi.mock('@supabase/ssr', () => ({
+vi.mock("@supabase/ssr", () => ({
   createBrowserClient: vi.fn(() => ({
     auth: {
       getSession: vi.fn(),
@@ -29,7 +29,7 @@ vi.mock('@supabase/ssr', () => ({
   })),
 }));
 
-describe('Supabase Client', () => {
+describe("Supabase Client", () => {
   const originalEnv = process.env;
 
   beforeEach(() => {
@@ -39,8 +39,8 @@ describe('Supabase Client', () => {
     // Set up environment variables
     process.env = {
       ...originalEnv,
-      NEXT_PUBLIC_SUPABASE_URL: 'https://test-project.supabase.co',
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: 'test-anon-key-12345',
+      NEXT_PUBLIC_SUPABASE_URL: "https://test-project.supabase.co",
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: "test-anon-key-12345",
     };
   });
 
@@ -49,9 +49,9 @@ describe('Supabase Client', () => {
     vi.clearAllMocks();
   });
 
-  describe('createSupabaseClient', () => {
-    it('should create a Supabase client successfully', async () => {
-      const { createSupabaseClient } = await import('../client');
+  describe("createSupabaseClient", () => {
+    it("should create a Supabase client successfully", async () => {
+      const { createSupabaseClient } = await import("../client");
 
       const client = createSupabaseClient();
 
@@ -60,46 +60,46 @@ describe('Supabase Client', () => {
       expect(client.from).toBeDefined();
     });
 
-    it('should create a client with auth methods', async () => {
-      const { createSupabaseClient } = await import('../client');
+    it("should create a client with auth methods", async () => {
+      const { createSupabaseClient } = await import("../client");
 
       const client = createSupabaseClient();
 
-      expect(typeof client.auth.getSession).toBe('function');
-      expect(typeof client.auth.getUser).toBe('function');
-      expect(typeof client.auth.signInWithPassword).toBe('function');
-      expect(typeof client.auth.signOut).toBe('function');
+      expect(typeof client.auth.getSession).toBe("function");
+      expect(typeof client.auth.getUser).toBe("function");
+      expect(typeof client.auth.signInWithPassword).toBe("function");
+      expect(typeof client.auth.signOut).toBe("function");
     });
 
-    it('should create a client with query methods', async () => {
-      const { createSupabaseClient } = await import('../client');
+    it("should create a client with query methods", async () => {
+      const { createSupabaseClient } = await import("../client");
 
       const client = createSupabaseClient();
-      const query = client.from('profiles');
+      const query = client.from("profiles");
 
-      expect(typeof query.select).toBe('function');
-      expect(typeof query.insert).toBe('function');
-      expect(typeof query.update).toBe('function');
-      expect(typeof query.delete).toBe('function');
+      expect(typeof query.select).toBe("function");
+      expect(typeof query.insert).toBe("function");
+      expect(typeof query.update).toBe("function");
+      expect(typeof query.delete).toBe("function");
     });
 
-    it('should throw error when NEXT_PUBLIC_SUPABASE_URL is missing', async () => {
+    it("should throw error when NEXT_PUBLIC_SUPABASE_URL is missing", async () => {
       delete process.env.NEXT_PUBLIC_SUPABASE_URL;
 
-      const { createSupabaseClient } = await import('../client');
+      const { createSupabaseClient } = await import("../client");
 
       expect(() => createSupabaseClient()).toThrow(
-        'Missing NEXT_PUBLIC_SUPABASE_URL environment variable'
+        "Missing NEXT_PUBLIC_SUPABASE_URL environment variable",
       );
     });
 
-    it('should throw error when NEXT_PUBLIC_SUPABASE_ANON_KEY is missing', async () => {
+    it("should throw error when NEXT_PUBLIC_SUPABASE_ANON_KEY is missing", async () => {
       delete process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-      const { createSupabaseClient } = await import('../client');
+      const { createSupabaseClient } = await import("../client");
 
       expect(() => createSupabaseClient()).toThrow(
-        'Missing NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable'
+        "Missing NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable",
       );
     });
   });

@@ -1,16 +1,19 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient as createClient } from '@/lib/supabase/server';
-import { getUpcomingDeadlines } from '@/lib/deadline-service';
-import { withRateLimit } from '@/lib/with-rate-limit';
+import { NextRequest, NextResponse } from "next/server";
+import { createServerClient as createClient } from "@/lib/supabase/server";
+import { getUpcomingDeadlines } from "@/lib/deadline-service";
+import { withRateLimit } from "@/lib/with-rate-limit";
 
 async function handleGET(request: NextRequest) {
   try {
     const supabase = await createClient();
-    
+
     // Check authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Get upcoming deadlines
@@ -19,14 +22,13 @@ async function handleGET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       deadlines,
-      count: deadlines.length
+      count: deadlines.length,
     });
-
   } catch (error) {
-    console.error('Get upcoming deadlines error:', error);
+    console.error("Get upcoming deadlines error:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+      { error: "Internal server error" },
+      { status: 500 },
     );
   }
 }

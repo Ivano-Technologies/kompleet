@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import Link from 'next/link';
-import { Wallet, Plus, Search, ChevronRight } from 'lucide-react';
+import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
+import { Wallet, Plus, Search, ChevronRight } from "lucide-react";
 
 interface Expense {
   id: string;
@@ -29,9 +29,9 @@ export default function ExpensesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState({
-    startDate: '',
-    endDate: '',
-    categoryId: '',
+    startDate: "",
+    endDate: "",
+    categoryId: "",
   });
 
   const fetchExpenses = useCallback(async () => {
@@ -39,8 +39,8 @@ export default function ExpensesPage() {
     setError(null);
     try {
       const params = new URLSearchParams({
-        page: '1',
-        limit: '100',
+        page: "1",
+        limit: "100",
         ...(filters.startDate && { startDate: filters.startDate }),
         ...(filters.endDate && { endDate: filters.endDate }),
         ...(filters.categoryId && { categoryId: filters.categoryId }),
@@ -51,10 +51,10 @@ export default function ExpensesPage() {
         setExpenses(data.expenses ?? []);
         setTotal(data.total ?? 0);
       } else {
-        setError(data.error ?? 'Failed to load expenses');
+        setError(data.error ?? "Failed to load expenses");
       }
     } catch {
-      setError('Failed to load expenses');
+      setError("Failed to load expenses");
     } finally {
       setLoading(false);
     }
@@ -65,23 +65,27 @@ export default function ExpensesPage() {
   }, [fetchExpenses]);
 
   useEffect(() => {
-    fetch('/api/expenses/categories')
+    fetch("/api/expenses/categories")
       .then((r) => r.json())
       .then((d) => setCategories(d.categories ?? []))
       .catch(() => {});
   }, []);
 
   const formatCurrency = (amount: number, currency: string) =>
-    new Intl.NumberFormat('en-NG', {
-      style: 'currency',
-      currency: currency || 'NGN',
+    new Intl.NumberFormat("en-NG", {
+      style: "currency",
+      currency: currency || "NGN",
     }).format(amount);
 
   const formatDate = (d: string) =>
-    new Date(d).toLocaleDateString('en-NG', { year: 'numeric', month: 'short', day: 'numeric' });
+    new Date(d).toLocaleDateString("en-NG", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
 
   const getCategoryName = (id: string | null) =>
-    id ? categories.find((c) => c.id === id)?.name ?? '' : '';
+    id ? (categories.find((c) => c.id === id)?.name ?? "") : "";
 
   return (
     <div className="space-y-6">
@@ -103,20 +107,26 @@ export default function ExpensesPage() {
           type="date"
           className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
           value={filters.startDate}
-          onChange={(e) => setFilters((f) => ({ ...f, startDate: e.target.value }))}
+          onChange={(e) =>
+            setFilters((f) => ({ ...f, startDate: e.target.value }))
+          }
           placeholder="Start date"
         />
         <input
           type="date"
           className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
           value={filters.endDate}
-          onChange={(e) => setFilters((f) => ({ ...f, endDate: e.target.value }))}
+          onChange={(e) =>
+            setFilters((f) => ({ ...f, endDate: e.target.value }))
+          }
           placeholder="End date"
         />
         <select
           className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
           value={filters.categoryId}
-          onChange={(e) => setFilters((f) => ({ ...f, categoryId: e.target.value }))}
+          onChange={(e) =>
+            setFilters((f) => ({ ...f, categoryId: e.target.value }))
+          }
         >
           <option value="">All categories</option>
           {categories.map((c) => (
@@ -144,11 +154,13 @@ export default function ExpensesPage() {
                 >
                   <div className="min-w-0 flex-1">
                     <p className="font-medium text-foreground truncate">
-                      {exp.vendor || 'No vendor'}
+                      {exp.vendor || "No vendor"}
                     </p>
                     <p className="text-sm text-muted-foreground">
                       {formatDate(exp.date)}
-                      {getCategoryName(exp.category_id) ? ` · ${getCategoryName(exp.category_id)}` : ''}
+                      {getCategoryName(exp.category_id)
+                        ? ` · ${getCategoryName(exp.category_id)}`
+                        : ""}
                     </p>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">

@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   ArrowDown,
   ArrowLeft,
@@ -15,14 +15,14 @@ import {
   Plus,
   Search,
   Upload,
-} from 'lucide-react';
+} from "lucide-react";
 
 interface Transaction {
   id: string;
   transaction_date: string;
   description: string;
   amount: number;
-  transaction_type: 'debit' | 'credit';
+  transaction_type: "debit" | "credit";
   balance?: number;
   category?: {
     id: string;
@@ -52,10 +52,10 @@ export default function TransactionsPage() {
   const [loading, setLoading] = useState(true);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [filters, setFilters] = useState({
-    search: '',
-    type: '',
-    startDate: '',
-    endDate: '',
+    search: "",
+    type: "",
+    startDate: "",
+    endDate: "",
   });
   const [exporting, setExporting] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
@@ -81,11 +81,11 @@ export default function TransactionsPage() {
         setPagination(data.pagination);
         setError(null);
       } else {
-        setError(data.error || 'Failed to load transactions');
+        setError(data.error || "Failed to load transactions");
       }
     } catch (error) {
-      console.error('Error fetching transactions:', error);
-      setError('Failed to load transactions. Please try again.');
+      console.error("Error fetching transactions:", error);
+      setError("Failed to load transactions. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -119,9 +119,9 @@ export default function TransactionsPage() {
     if (!confirm(`Delete ${selectedIds.size} transaction(s)?`)) return;
 
     try {
-      const response = await fetch('/api/transactions', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/transactions", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ids: Array.from(selectedIds) }),
       });
 
@@ -131,30 +131,30 @@ export default function TransactionsPage() {
         fetchTransactions();
       } else {
         const data = await response.json().catch(() => ({}));
-        setError(data.error || 'Failed to delete transactions');
+        setError(data.error || "Failed to delete transactions");
       }
     } catch (error) {
-      console.error('Error deleting transactions:', error);
-      setError('Failed to delete transactions. Please try again.');
+      console.error("Error deleting transactions:", error);
+      setError("Failed to delete transactions. Please try again.");
     }
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-NG', {
-      style: 'currency',
-      currency: 'NGN',
+    return new Intl.NumberFormat("en-NG", {
+      style: "currency",
+      currency: "NGN",
     }).format(amount);
   };
 
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('en-NG', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
+    return new Date(dateStr).toLocaleDateString("en-NG", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
-  const handleExport = async (format: 'csv' | 'json') => {
+  const handleExport = async (format: "csv" | "json") => {
     setExporting(true);
     setShowExportMenu(false);
     try {
@@ -170,20 +170,20 @@ export default function TransactionsPage() {
       if (response.ok) {
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        const a = document.createElement("a");
         a.href = url;
-        a.download = `transactions_${new Date().toISOString().split('T')[0]}.${format}`;
+        a.download = `transactions_${new Date().toISOString().split("T")[0]}.${format}`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
       } else {
         const data = await response.json().catch(() => ({}));
-        setError(data.error || 'Export failed');
+        setError(data.error || "Export failed");
       }
     } catch (error) {
-      console.error('Export error:', error);
-      setError('Export failed. Please try again.');
+      console.error("Export error:", error);
+      setError("Export failed. Please try again.");
     } finally {
       setExporting(false);
     }
@@ -194,7 +194,12 @@ export default function TransactionsPage() {
       {error && (
         <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 rounded-lg flex justify-between items-center">
           <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
-          <button onClick={() => setError(null)} className="text-red-400 hover:text-red-600 dark:hover:text-red-300 text-lg leading-none">&times;</button>
+          <button
+            onClick={() => setError(null)}
+            className="text-red-400 hover:text-red-600 dark:hover:text-red-300 text-lg leading-none"
+          >
+            &times;
+          </button>
         </div>
       )}
       {/* Header */}
@@ -221,18 +226,18 @@ export default function TransactionsPage() {
               className="btn-secondary text-sm px-3 py-2 flex items-center gap-1.5 disabled:opacity-50"
             >
               <Download className="w-3.5 h-3.5" />
-              {exporting ? 'Exporting...' : 'Export'}
+              {exporting ? "Exporting..." : "Export"}
             </button>
             {showExportMenu && (
               <div className="absolute right-0 mt-1 w-44 bg-light-surface dark:bg-dark-surface rounded-lg border border-light-border dark:border-dark-border shadow-lg z-20">
                 <button
-                  onClick={() => handleExport('csv')}
+                  onClick={() => handleExport("csv")}
                   className="block w-full text-left px-4 py-2.5 text-sm hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover rounded-t-lg text-light-text-primary dark:text-dark-text-primary"
                 >
                   Export as CSV
                 </button>
                 <button
-                  onClick={() => handleExport('json')}
+                  onClick={() => handleExport("json")}
                   className="block w-full text-left px-4 py-2.5 text-sm hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover rounded-b-lg text-light-text-primary dark:text-dark-text-primary"
                 >
                   Export as JSON
@@ -276,7 +281,9 @@ export default function TransactionsPage() {
         <input
           type="date"
           value={filters.startDate}
-          onChange={(e) => setFilters({ ...filters, startDate: e.target.value })}
+          onChange={(e) =>
+            setFilters({ ...filters, startDate: e.target.value })
+          }
           className="px-3 py-2.5 text-sm bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-lg text-light-text-secondary dark:text-dark-text-secondary focus:outline-none focus:border-primary-500"
         />
         <input
@@ -291,7 +298,8 @@ export default function TransactionsPage() {
       {selectedIds.size > 0 && (
         <div className="bg-primary-500/10 border border-primary-500/20 rounded-lg p-3 flex items-center justify-between">
           <span className="text-sm text-primary-500 font-medium">
-            {selectedIds.size} transaction{selectedIds.size !== 1 ? 's' : ''} selected
+            {selectedIds.size} transaction{selectedIds.size !== 1 ? "s" : ""}{" "}
+            selected
           </span>
           <button
             onClick={handleBulkDelete}
@@ -332,7 +340,10 @@ export default function TransactionsPage() {
                     <th className="px-5 py-3 text-left w-10">
                       <input
                         type="checkbox"
-                        checked={selectedIds.size === transactions.length && transactions.length > 0}
+                        checked={
+                          selectedIds.size === transactions.length &&
+                          transactions.length > 0
+                        }
                         onChange={handleSelectAll}
                         className="rounded border-light-border dark:border-dark-border"
                       />
@@ -352,9 +363,7 @@ export default function TransactionsPage() {
                     <th className="px-5 py-3 text-center text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary hidden sm:table-cell">
                       Status
                     </th>
-                    <th className="px-5 py-3 text-center text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary w-10">
-                      
-                    </th>
+                    <th className="px-5 py-3 text-center text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary w-10"></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -362,9 +371,14 @@ export default function TransactionsPage() {
                     <tr
                       key={transaction.id}
                       className="border-b border-light-border/50 dark:border-dark-border/50 last:border-0 hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover cursor-pointer transition-colors"
-                      onClick={() => router.push(`/transactions/${transaction.id}`)}
+                      onClick={() =>
+                        router.push(`/transactions/${transaction.id}`)
+                      }
                     >
-                      <td className="px-5 py-3.5" onClick={(e) => e.stopPropagation()}>
+                      <td
+                        className="px-5 py-3.5"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <input
                           type="checkbox"
                           checked={selectedIds.has(transaction.id)}
@@ -378,7 +392,7 @@ export default function TransactionsPage() {
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-2.5">
                           <div className="w-8 h-8 rounded-lg bg-primary-500/10 flex items-center justify-center flex-shrink-0">
-                            {transaction.transaction_type === 'credit' ? (
+                            {transaction.transaction_type === "credit" ? (
                               <ArrowDown className="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
                             ) : (
                               <ArrowUp className="w-3.5 h-3.5 text-red-500 dark:text-red-400" />
@@ -409,12 +423,12 @@ export default function TransactionsPage() {
                       <td className="px-5 py-3.5 text-right">
                         <span
                           className={`font-semibold text-sm ${
-                            transaction.transaction_type === 'credit'
-                              ? 'text-green-600 dark:text-green-400'
-                              : 'text-light-text-primary dark:text-dark-text-primary'
+                            transaction.transaction_type === "credit"
+                              ? "text-green-600 dark:text-green-400"
+                              : "text-light-text-primary dark:text-dark-text-primary"
                           }`}
                         >
-                          {transaction.transaction_type === 'credit' ? '+' : ''}
+                          {transaction.transaction_type === "credit" ? "+" : ""}
                           {formatCurrency(transaction.amount)}
                         </span>
                       </td>
@@ -422,14 +436,17 @@ export default function TransactionsPage() {
                         <span
                           className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                             transaction.is_reconciled
-                              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                              : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                              ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                              : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
                           }`}
                         >
-                          {transaction.is_reconciled ? 'Reconciled' : 'Pending'}
+                          {transaction.is_reconciled ? "Reconciled" : "Pending"}
                         </span>
                       </td>
-                      <td className="px-5 py-3.5 text-center" onClick={(e) => e.stopPropagation()}>
+                      <td
+                        className="px-5 py-3.5 text-center"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <button className="p-1.5 hover:bg-light-background dark:hover:bg-dark-background rounded-lg transition-colors">
                           <MoreVertical className="w-4 h-4 text-light-text-tertiary dark:text-dark-text-tertiary" />
                         </button>
@@ -443,13 +460,15 @@ export default function TransactionsPage() {
             {/* Pagination */}
             <div className="flex items-center justify-between px-5 py-3 border-t border-light-border dark:border-dark-border">
               <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
-                Showing {(pagination.page - 1) * pagination.limit + 1} to{' '}
-                {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
-                {pagination.total.toLocaleString()} entries
+                Showing {(pagination.page - 1) * pagination.limit + 1} to{" "}
+                {Math.min(pagination.page * pagination.limit, pagination.total)}{" "}
+                of {pagination.total.toLocaleString()} entries
               </p>
               <div className="flex items-center gap-1">
                 <button
-                  onClick={() => setPagination({ ...pagination, page: pagination.page - 1 })}
+                  onClick={() =>
+                    setPagination({ ...pagination, page: pagination.page - 1 })
+                  }
                   disabled={pagination.page === 1}
                   className="p-1.5 rounded-md hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                 >
@@ -458,23 +477,31 @@ export default function TransactionsPage() {
                 <span className="px-3 py-1 text-xs font-medium bg-primary-500 text-white rounded-md">
                   {pagination.page}
                 </span>
-                {pagination.totalPages > 1 && pagination.page < pagination.totalPages && (
-                  <>
-                    {pagination.page < pagination.totalPages - 1 && (
-                      <span className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary px-1">
-                        ...
-                      </span>
-                    )}
-                    <button
-                      onClick={() => setPagination({ ...pagination, page: pagination.totalPages })}
-                      className="px-3 py-1 text-xs rounded-md hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover transition-colors"
-                    >
-                      {pagination.totalPages}
-                    </button>
-                  </>
-                )}
+                {pagination.totalPages > 1 &&
+                  pagination.page < pagination.totalPages && (
+                    <>
+                      {pagination.page < pagination.totalPages - 1 && (
+                        <span className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary px-1">
+                          ...
+                        </span>
+                      )}
+                      <button
+                        onClick={() =>
+                          setPagination({
+                            ...pagination,
+                            page: pagination.totalPages,
+                          })
+                        }
+                        className="px-3 py-1 text-xs rounded-md hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover transition-colors"
+                      >
+                        {pagination.totalPages}
+                      </button>
+                    </>
+                  )}
                 <button
-                  onClick={() => setPagination({ ...pagination, page: pagination.page + 1 })}
+                  onClick={() =>
+                    setPagination({ ...pagination, page: pagination.page + 1 })
+                  }
                   disabled={pagination.page >= pagination.totalPages}
                   className="p-1.5 rounded-md hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                 >

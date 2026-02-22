@@ -41,14 +41,14 @@ All work has been committed to the `ui-rebuild-stitch` branch. A total of **6 ne
 
 ### Commit History:
 
-| Commit Hash | Message                                                                      |
-|-------------|------------------------------------------------------------------------------|
-| `d6a934c88` | refactor: convert Settings page to use ThemeProvider and dark: classes       |
+| Commit Hash | Message                                                                          |
+| ----------- | -------------------------------------------------------------------------------- |
+| `d6a934c88` | refactor: convert Settings page to use ThemeProvider and dark: classes           |
 | `1decc1df8` | refactor: convert Reports page to use dark: classes instead of conditional state |
-| `d6e68e44b` | feat: add Light/Dark theme support to invoices page                          |
-| `2b0d4aca5` | feat: add Light/Dark theme support to transactions page                      |
-| `61b9c8a3e` | feat: add Light/Dark theme support to dashboard page                         |
-| `bb38cd556` | feat: add Light/Dark theme support to login page                             |
+| `d6e68e44b` | feat: add Light/Dark theme support to invoices page                              |
+| `2b0d4aca5` | feat: add Light/Dark theme support to transactions page                          |
+| `61b9c8a3e` | feat: add Light/Dark theme support to dashboard page                             |
+| `bb38cd556` | feat: add Light/Dark theme support to login page                                 |
 
 ## 5. Conclusion
 

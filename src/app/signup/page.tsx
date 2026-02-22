@@ -1,33 +1,53 @@
-'use client';
+"use client";
 
-import { useState, FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
-import { createSupabaseClient } from '@/lib/supabase/client';
-import { useTheme } from '@/contexts/ThemeContext';
-import Link from 'next/link';
-import Image from 'next/image';
-import { ArrowLeft, ArrowRight, CheckCircle2, Eye, EyeOff, Moon, Shield, Lock, Sun } from 'lucide-react';
+import { useState, FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import { createSupabaseClient } from "@/lib/supabase/client";
+import { useTheme } from "@/contexts/ThemeContext";
+import Link from "next/link";
+import Image from "next/image";
+import {
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle2,
+  Eye,
+  EyeOff,
+  Moon,
+  Shield,
+  Lock,
+  Sun,
+} from "lucide-react";
 
 const LOGO_URL =
-  'https://files.manuscdn.com/user_upload_by_module/session_file/114473754/ZeGQuujTZDuMQDVT.png';
+  "https://files.manuscdn.com/user_upload_by_module/session_file/114473754/ZeGQuujTZDuMQDVT.png";
 
 function getPasswordStrength(pw: string) {
   const checks = { minLength: pw.length >= 8, hasNumber: /\d/.test(pw) };
   const passed = Object.values(checks).filter(Boolean).length;
   let label: string, color: string, width: string;
-  if (passed === 0) { label = 'Weak'; color = 'bg-red-500'; width = '33%'; }
-  else if (passed === 1) { label = 'Fair'; color = 'bg-yellow-500'; width = '66%'; }
-  else { label = 'Strong'; color = 'bg-green-500'; width = '100%'; }
+  if (passed === 0) {
+    label = "Weak";
+    color = "bg-red-500";
+    width = "33%";
+  } else if (passed === 1) {
+    label = "Fair";
+    color = "bg-yellow-500";
+    width = "66%";
+  } else {
+    label = "Strong";
+    color = "bg-green-500";
+    width = "100%";
+  }
   return { checks, passed, label, color, width };
 }
 
 export default function SignUpPage() {
   const router = useRouter();
   const { theme, toggleTheme } = useTheme();
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [businessEmail, setBusinessEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [businessEmail, setBusinessEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -40,12 +60,12 @@ export default function SignUpPage() {
     setLoading(true);
 
     if (password.length < 8) {
-      setError('Password must be at least 8 characters long');
+      setError("Password must be at least 8 characters long");
       setLoading(false);
       return;
     }
     if (!/\d/.test(password)) {
-      setError('Password must contain at least one number');
+      setError("Password must contain at least one number");
       setLoading(false);
       return;
     }
@@ -77,7 +97,7 @@ export default function SignUpPage() {
         // Users must verify their email before accessing the app.
       }
     } catch {
-      setError('An unexpected error occurred. Please try again.');
+      setError("An unexpected error occurred. Please try again.");
       setLoading(false);
     }
   };
@@ -94,7 +114,10 @@ export default function SignUpPage() {
             <p className="text-[rgb(var(--text-secondary))] mb-6">
               Check your email to verify your account.
             </p>
-            <Link href="/login" className="btn-primary block w-full text-center">
+            <Link
+              href="/login"
+              className="btn-primary block w-full text-center"
+            >
               Go to Login
             </Link>
           </div>
@@ -115,23 +138,34 @@ export default function SignUpPage() {
         </div>
         <div className="relative z-10">
           <Link href="/" className="flex items-center gap-2.5">
-            <Image src={LOGO_URL} alt="KOMPLEET" width={36} height={36} className="rounded" />
+            <Image
+              src={LOGO_URL}
+              alt="KOMPLEET"
+              width={36}
+              height={36}
+              className="rounded"
+            />
             <span className="text-xl font-bold text-white">KOMPLEET</span>
           </Link>
         </div>
         <div className="relative z-10 space-y-6">
           <h2 className="text-3xl font-bold text-white leading-tight">
-            Start automating<br />your finances today.
+            Start automating
+            <br />
+            your finances today.
           </h2>
           <p className="text-white/70 text-base max-w-sm leading-relaxed">
-            Create your free account and join thousands of Nigerian businesses already saving time on tax compliance.
+            Create your free account and join thousands of Nigerian businesses
+            already saving time on tax compliance.
           </p>
           <div className="flex gap-6 text-white/60 text-sm">
             <span className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-white/60" /> Free 14-day trial
+              <span className="w-1.5 h-1.5 rounded-full bg-white/60" /> Free
+              14-day trial
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-white/60" /> No credit card
+              <span className="w-1.5 h-1.5 rounded-full bg-white/60" /> No
+              credit card
             </span>
           </div>
         </div>
@@ -143,20 +177,32 @@ export default function SignUpPage() {
       {/* Right panel - form */}
       <div className="flex-1 flex flex-col">
         <div className="flex items-center justify-between p-6">
-          <Link href="/" className="flex items-center gap-2 text-sm text-[rgb(var(--text-secondary))] hover:text-[rgb(var(--text-primary))] transition-colors">
+          <Link
+            href="/"
+            className="flex items-center gap-2 text-sm text-[rgb(var(--text-secondary))] hover:text-[rgb(var(--text-primary))] transition-colors"
+          >
             <ArrowLeft className="w-4 h-4" /> Back
           </Link>
           <div className="flex items-center gap-3">
             <span className="text-sm text-[rgb(var(--text-secondary))]">
-              Already have an account?{' '}
-              <Link href="/login" className="text-[rgb(var(--primary))] font-medium hover:underline">Log in</Link>
+              Already have an account?{" "}
+              <Link
+                href="/login"
+                className="text-[rgb(var(--primary))] font-medium hover:underline"
+              >
+                Log in
+              </Link>
             </span>
             <button
               onClick={toggleTheme}
               className="p-2 rounded-md border border-[rgb(var(--border))] hover:bg-[rgb(var(--surface))] transition-colors"
               aria-label="Toggle theme"
             >
-              {theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+              {theme === "light" ? (
+                <Moon className="w-4 h-4" />
+              ) : (
+                <Sun className="w-4 h-4" />
+              )}
             </button>
           </div>
         </div>
@@ -165,7 +211,13 @@ export default function SignUpPage() {
           <div className="w-full max-w-md space-y-8">
             {/* Mobile logo */}
             <div className="lg:hidden flex items-center justify-center gap-2 mb-4">
-              <Image src={LOGO_URL} alt="KOMPLEET" width={32} height={32} className="rounded" />
+              <Image
+                src={LOGO_URL}
+                alt="KOMPLEET"
+                width={32}
+                height={32}
+                className="rounded"
+              />
               <span className="text-lg font-bold">KOMPLEET</span>
             </div>
 
@@ -178,14 +230,18 @@ export default function SignUpPage() {
 
             {error && (
               <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 rounded-lg">
-                <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
+                <p className="text-red-600 dark:text-red-400 text-sm">
+                  {error}
+                </p>
               </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label htmlFor="firstName" className="text-sm font-medium">First Name</label>
+                  <label htmlFor="firstName" className="text-sm font-medium">
+                    First Name
+                  </label>
                   <input
                     id="firstName"
                     type="text"
@@ -197,7 +253,9 @@ export default function SignUpPage() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label htmlFor="lastName" className="text-sm font-medium">Last Name</label>
+                  <label htmlFor="lastName" className="text-sm font-medium">
+                    Last Name
+                  </label>
                   <input
                     id="lastName"
                     type="text"
@@ -211,7 +269,9 @@ export default function SignUpPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label htmlFor="businessEmail" className="text-sm font-medium">Business Email</label>
+                <label htmlFor="businessEmail" className="text-sm font-medium">
+                  Business Email
+                </label>
                 <input
                   id="businessEmail"
                   type="email"
@@ -224,11 +284,13 @@ export default function SignUpPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label htmlFor="password" className="text-sm font-medium">Password</label>
+                <label htmlFor="password" className="text-sm font-medium">
+                  Password
+                </label>
                 <div className="relative">
                   <input
                     id="password"
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
@@ -241,16 +303,24 @@ export default function SignUpPage() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-[rgb(var(--text-tertiary))] hover:text-[rgb(var(--text-primary))]"
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showPassword ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
                   </button>
                 </div>
                 {password.length > 0 && (
                   <div className="mt-2 space-y-1.5">
                     <div className="h-1.5 bg-[rgb(var(--surface))] rounded-full overflow-hidden">
-                      <div className={`h-full ${strength.color} rounded-full transition-all duration-300`} style={{ width: strength.width }} />
+                      <div
+                        className={`h-full ${strength.color} rounded-full transition-all duration-300`}
+                        style={{ width: strength.width }}
+                      />
                     </div>
                     <p className="text-xs text-[rgb(var(--text-tertiary))]">
-                      Password strength: <span className="font-medium">{strength.label}</span>
+                      Password strength:{" "}
+                      <span className="font-medium">{strength.label}</span>
                     </p>
                   </div>
                 )}
@@ -261,16 +331,26 @@ export default function SignUpPage() {
                 disabled={loading}
                 className="btn-primary w-full py-3 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
-                {loading ? 'Creating account...' : 'Create Free Account'}
+                {loading ? "Creating account..." : "Create Free Account"}
                 {!loading && <ArrowRight className="w-4 h-4" />}
               </button>
             </form>
 
             <p className="text-xs text-center text-[rgb(var(--text-tertiary))]">
-              By signing up, you agree to our{' '}
-              <Link href="/terms" className="text-[rgb(var(--primary))] hover:underline">Terms of Service</Link>
-              {' '}and{' '}
-              <Link href="/privacy" className="text-[rgb(var(--primary))] hover:underline">Privacy Policy</Link>
+              By signing up, you agree to our{" "}
+              <Link
+                href="/terms"
+                className="text-[rgb(var(--primary))] hover:underline"
+              >
+                Terms of Service
+              </Link>{" "}
+              and{" "}
+              <Link
+                href="/privacy"
+                className="text-[rgb(var(--primary))] hover:underline"
+              >
+                Privacy Policy
+              </Link>
             </p>
 
             {/* Trust Badges */}

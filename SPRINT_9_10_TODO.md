@@ -20,6 +20,7 @@
 ## Phase 1: Database Schema & Data Model
 
 ### Invoices Table
+
 - [x] Create `invoices` table with all required fields
 - [x] Add `invoice_number` (unique, sequential per user)
 - [x] Add `tax_year` column
@@ -34,17 +35,20 @@
 - [x] Create indexes on `invoice_number`, `user_id`, `tax_year`, `status`
 
 ### Invoice Line Items Schema
+
 - [x] Define line item structure (description, quantity, unit_price, vat_rate, amount)
 - [x] Support multiple VAT rates (0%, 7.5%)
 - [x] Add discount support
 
 ### Invoice Numbering
+
 - [x] Create `invoice_sequences` table for auto-numbering
 - [x] Implement globally unique sequential numbering per user
 - [x] Add year-based prefix (e.g., INV-2026-0001)
 - [x] Ensure no gaps or duplicates
 
 ### RLS Policies
+
 - [x] Add RLS policies scoped by `user_id`
 - [x] Restrict invoice modification after issuance
 - [x] Log all invoice access
@@ -54,6 +58,7 @@
 ## Phase 2: Invoice Generation Service
 
 ### Core Invoice Service
+
 - [ ] Create invoice generation service module
 - [ ] Implement VAT calculation logic (7.5%)
 - [ ] Implement subtotal and total calculation
@@ -61,6 +66,7 @@
 - [ ] Validate invoice data before generation
 
 ### PDF Generation
+
 - [ ] Install PDF generation library (jsPDF or PDFKit)
 - [ ] Create professional invoice PDF template
 - [ ] Add company branding (logo, colors)
@@ -73,6 +79,7 @@
 - [ ] Optimize PDF generation for < 2s
 
 ### Invoice Templates
+
 - [ ] Create default invoice template
 - [ ] Add template customization support
 - [ ] Support custom branding (logo, colors, fonts)
@@ -84,6 +91,7 @@
 ## Phase 3: QR Code & Digital Signatures
 
 ### QR Code Integration
+
 - [x] Install QR code library (qrcode.react or qrcode)
 - [x] Define QR code payload structure (NRS-compliant)
 - [x] Include invoice number, amount, VAT, date, signature in QR
@@ -92,6 +100,7 @@
 - [x] Add QR code verification endpoint
 
 ### Digital Signature
+
 - [x] Implement digital signature using Web Crypto API
 - [x] Generate RSA key pair for user/organization
 - [x] Securely store private keys (encrypted)
@@ -106,6 +115,7 @@
 ## Phase 4: Invoice UI Pages
 
 ### Invoice Creation Page (`/invoices/new`)
+
 - [ ] Create invoice form with customer details
 - [ ] Add line items input (dynamic rows)
 - [ ] Auto-calculate VAT and totals
@@ -116,6 +126,7 @@
 - [ ] Add form validation
 
 ### Invoice List Page (`/invoices`)
+
 - [ ] Display all invoices in table/grid
 - [ ] Add filters (status, date range, customer)
 - [ ] Add search by invoice number
@@ -125,6 +136,7 @@
 - [ ] Add bulk actions (export, archive)
 
 ### Invoice Detail Page (`/invoices/[id]`)
+
 - [ ] Display full invoice details
 - [ ] Show PDF preview
 - [ ] Add download PDF button
@@ -138,6 +150,7 @@
 ## Phase 5: Archiving & Compliance
 
 ### 7-Year Archiving
+
 - [ ] Implement automatic archiving after 30 days
 - [ ] Store archived invoices in long-term storage
 - [ ] Implement tamper-evident storage
@@ -146,6 +159,7 @@
 - [ ] Add archive access logging
 
 ### Compliance Features
+
 - [ ] Validate invoice format against NRS specifications
 - [ ] Ensure QR code payload meets NRS requirements
 - [ ] Maintain compliance evidence logs
@@ -153,6 +167,7 @@
 - [ ] Create compliance report generator
 
 ### Audit Logging
+
 - [ ] Log invoice creation
 - [ ] Log invoice issuance
 - [ ] Log invoice cancellation
@@ -165,6 +180,7 @@
 ## Phase 6: API Endpoints
 
 ### Invoice APIs
+
 - [ ] POST `/api/invoices/create` - Create draft invoice
 - [ ] POST `/api/invoices/[id]/issue` - Issue invoice (immutable)
 - [ ] GET `/api/invoices` - List invoices
@@ -174,9 +190,11 @@
 - [ ] GET `/api/invoices/[id]/verify` - Verify signature and QR
 
 ### Numbering API
+
 - [ ] GET `/api/invoices/next-number` - Get next invoice number
 
 ### Template APIs
+
 - [ ] GET `/api/invoices/templates` - List templates
 - [ ] POST `/api/invoices/templates` - Create custom template
 
@@ -185,6 +203,7 @@
 ## Phase 7: Testing & Validation
 
 ### Unit Tests
+
 - [ ] Test VAT calculation logic
 - [ ] Test invoice numbering (no duplicates)
 - [ ] Test subtotal/total calculations
@@ -192,6 +211,7 @@
 - [ ] Test signature generation and verification
 
 ### Integration Tests
+
 - [ ] Test QR code generation and payload
 - [ ] Test PDF generation
 - [ ] Test invoice issuance workflow
@@ -199,12 +219,14 @@
 - [ ] Test RLS policies
 
 ### Performance Tests
+
 - [ ] Load test invoice generation (< 2s under load)
 - [ ] Test concurrent invoice creation
 - [ ] Test PDF generation performance
 - [ ] Test database query performance
 
 ### Compliance Tests
+
 - [ ] Validate against NRS e-invoicing requirements
 - [ ] Test QR code compliance
 - [ ] Test signature compliance
@@ -212,6 +234,7 @@
 - [ ] Generate compliance report
 
 ### End-to-End Tests
+
 - [ ] Test full invoice creation flow
 - [ ] Test invoice issuance and immutability
 - [ ] Test PDF download
@@ -222,6 +245,7 @@
 ## Phase 8: Security & Deployment
 
 ### Security
+
 - [ ] Encrypt private keys for signatures
 - [ ] Implement key rotation policy
 - [ ] Secure PDF storage (encrypted at rest)
@@ -230,12 +254,14 @@
 - [ ] Add input sanitization
 
 ### Feature Flag
+
 - [ ] Deploy behind feature flag
 - [ ] Enable for beta users first
 - [ ] Monitor performance and errors
 - [ ] Gradual rollout to all users
 
 ### Monitoring
+
 - [ ] Add invoice generation metrics
 - [ ] Add PDF generation time tracking
 - [ ] Add signature verification metrics
@@ -243,6 +269,7 @@
 - [ ] Set up alerts for failures
 
 ### Documentation
+
 - [ ] Developer API documentation
 - [ ] User guide for invoice creation
 - [ ] Compliance documentation for NRS audits

@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { useRouter, useParams } from 'next/navigation';
-import Link from 'next/link';
+import { useState, useEffect, useCallback } from "react";
+import { useRouter, useParams } from "next/navigation";
+import Link from "next/link";
 
 interface Transaction {
   id: string;
   transaction_date: string;
   description: string;
   amount: number;
-  transaction_type: 'debit' | 'credit';
+  transaction_type: "debit" | "credit";
   balance?: number;
   category?: {
     id: string;
@@ -45,12 +45,12 @@ export default function TransactionDetailsPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
-    description: '',
-    amount: '',
-    transaction_type: 'debit' as 'debit' | 'credit',
-    transaction_date: '',
-    category_id: '',
-    notes: '',
+    description: "",
+    amount: "",
+    transaction_type: "debit" as "debit" | "credit",
+    transaction_date: "",
+    category_id: "",
+    notes: "",
     is_reconciled: false,
   });
 
@@ -66,15 +66,15 @@ export default function TransactionDetailsPage() {
           amount: data.transaction.amount.toString(),
           transaction_type: data.transaction.transaction_type,
           transaction_date: data.transaction.transaction_date,
-          category_id: data.transaction.category?.id || '',
-          notes: data.transaction.notes || '',
+          category_id: data.transaction.category?.id || "",
+          notes: data.transaction.notes || "",
           is_reconciled: data.transaction.is_reconciled,
         });
       } else {
-        setError('Transaction not found');
+        setError("Transaction not found");
       }
     } catch (err) {
-      setError('Failed to load transaction');
+      setError("Failed to load transaction");
       console.error(err);
     } finally {
       setLoading(false);
@@ -83,13 +83,13 @@ export default function TransactionDetailsPage() {
 
   const fetchCategories = useCallback(async () => {
     try {
-      const response = await fetch('/api/categories');
+      const response = await fetch("/api/categories");
       const data = await response.json();
       if (response.ok) {
         setCategories(data.categories || []);
       }
     } catch (err) {
-      console.error('Failed to fetch categories:', err);
+      console.error("Failed to fetch categories:", err);
     }
   }, []);
 
@@ -104,8 +104,8 @@ export default function TransactionDetailsPage() {
 
     try {
       const response = await fetch(`/api/transactions/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           description: formData.description,
           amount: parseFloat(formData.amount),
@@ -122,10 +122,10 @@ export default function TransactionDetailsPage() {
         setEditing(false);
       } else {
         const data = await response.json();
-        setError(data.error || 'Failed to save transaction');
+        setError(data.error || "Failed to save transaction");
       }
     } catch (err) {
-      setError('Failed to save transaction');
+      setError("Failed to save transaction");
       console.error(err);
     } finally {
       setSaving(false);
@@ -133,36 +133,36 @@ export default function TransactionDetailsPage() {
   };
 
   const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this transaction?')) return;
+    if (!confirm("Are you sure you want to delete this transaction?")) return;
 
     try {
       const response = await fetch(`/api/transactions/${id}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
 
       if (response.ok) {
-        router.push('/transactions');
+        router.push("/transactions");
       } else {
-        setError('Failed to delete transaction');
+        setError("Failed to delete transaction");
       }
     } catch (err) {
-      setError('Failed to delete transaction');
+      setError("Failed to delete transaction");
       console.error(err);
     }
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-NG', {
-      style: 'currency',
-      currency: 'NGN',
+    return new Intl.NumberFormat("en-NG", {
+      style: "currency",
+      currency: "NGN",
     }).format(amount);
   };
 
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('en-NG', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
+    return new Date(dateStr).toLocaleDateString("en-NG", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
@@ -171,7 +171,9 @@ export default function TransactionDetailsPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="text-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
-          <p className="text-light-text-secondary dark:text-dark-text-secondary mt-4">Loading transaction...</p>
+          <p className="text-light-text-secondary dark:text-dark-text-secondary mt-4">
+            Loading transaction...
+          </p>
         </div>
       </div>
     );
@@ -207,7 +209,9 @@ export default function TransactionDetailsPage() {
         </Link>
         <div className="flex justify-between items-start">
           <div>
-            <h1 className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary">Transaction Details</h1>
+            <h1 className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary">
+              Transaction Details
+            </h1>
             <p className="text-light-text-secondary dark:text-dark-text-secondary mt-1">
               {formatDate(transaction.transaction_date)}
             </p>
@@ -235,7 +239,7 @@ export default function TransactionDetailsPage() {
                   disabled={saving}
                   className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
                 >
-                  {saving ? 'Saving...' : 'Save'}
+                  {saving ? "Saving..." : "Save"}
                 </button>
                 <button
                   onClick={() => {
@@ -271,7 +275,12 @@ export default function TransactionDetailsPage() {
             <div className="flex gap-4">
               <select
                 value={formData.transaction_type}
-                onChange={(e) => setFormData({ ...formData, transaction_type: e.target.value as 'debit' | 'credit' })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    transaction_type: e.target.value as "debit" | "credit",
+                  })
+                }
                 className="px-4 py-2 border border-light-border dark:border-dark-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               >
                 <option value="debit">Debit (-)</option>
@@ -280,16 +289,22 @@ export default function TransactionDetailsPage() {
               <input
                 type="number"
                 value={formData.amount}
-                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, amount: e.target.value })
+                }
                 step="0.01"
                 className="flex-1 px-4 py-2 border border-light-border dark:border-dark-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               />
             </div>
           ) : (
-            <div className={`text-3xl font-bold ${
-              transaction.transaction_type === 'credit' ? 'text-green-600' : 'text-red-600'
-            }`}>
-              {transaction.transaction_type === 'credit' ? '+' : '-'}
+            <div
+              className={`text-3xl font-bold ${
+                transaction.transaction_type === "credit"
+                  ? "text-green-600"
+                  : "text-red-600"
+              }`}
+            >
+              {transaction.transaction_type === "credit" ? "+" : "-"}
               {formatCurrency(transaction.amount)}
             </div>
           )}
@@ -304,11 +319,15 @@ export default function TransactionDetailsPage() {
             <input
               type="text"
               value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, description: e.target.value })
+              }
               className="w-full px-4 py-2 border border-light-border dark:border-dark-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             />
           ) : (
-            <p className="text-light-text-primary dark:text-dark-text-primary">{transaction.description}</p>
+            <p className="text-light-text-primary dark:text-dark-text-primary">
+              {transaction.description}
+            </p>
           )}
         </div>
 
@@ -321,11 +340,15 @@ export default function TransactionDetailsPage() {
             <input
               type="date"
               value={formData.transaction_date}
-              onChange={(e) => setFormData({ ...formData, transaction_date: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, transaction_date: e.target.value })
+              }
               className="w-full px-4 py-2 border border-light-border dark:border-dark-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             />
           ) : (
-            <p className="text-light-text-primary dark:text-dark-text-primary">{formatDate(transaction.transaction_date)}</p>
+            <p className="text-light-text-primary dark:text-dark-text-primary">
+              {formatDate(transaction.transaction_date)}
+            </p>
           )}
         </div>
 
@@ -337,7 +360,9 @@ export default function TransactionDetailsPage() {
           {editing ? (
             <select
               value={formData.category_id}
-              onChange={(e) => setFormData({ ...formData, category_id: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, category_id: e.target.value })
+              }
               className="w-full px-4 py-2 border border-light-border dark:border-dark-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
             >
               <option value="">Uncategorized</option>
@@ -353,16 +378,20 @@ export default function TransactionDetailsPage() {
                 {transaction.category.name}
               </span>
               <span className="text-sm text-light-text-tertiary dark:text-dark-text-tertiary">
-                {transaction.category.category_type} • {transaction.category.tax_treatment}
+                {transaction.category.category_type} •{" "}
+                {transaction.category.tax_treatment}
               </span>
-              {transaction.confidence_score !== undefined && transaction.confidence_score < 100 && (
-                <span className="text-sm text-light-text-tertiary dark:text-dark-text-tertiary">
-                  ({transaction.confidence_score}% confidence)
-                </span>
-              )}
+              {transaction.confidence_score !== undefined &&
+                transaction.confidence_score < 100 && (
+                  <span className="text-sm text-light-text-tertiary dark:text-dark-text-tertiary">
+                    ({transaction.confidence_score}% confidence)
+                  </span>
+                )}
             </div>
           ) : (
-            <p className="text-light-text-tertiary dark:text-dark-text-tertiary">Uncategorized</p>
+            <p className="text-light-text-tertiary dark:text-dark-text-tertiary">
+              Uncategorized
+            </p>
           )}
         </div>
 
@@ -374,15 +403,21 @@ export default function TransactionDetailsPage() {
           {editing ? (
             <textarea
               value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, notes: e.target.value })
+              }
               rows={3}
               className="w-full px-4 py-2 border border-light-border dark:border-dark-border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               placeholder="Add notes about this transaction..."
             />
           ) : transaction.notes ? (
-            <p className="text-light-text-primary dark:text-dark-text-primary">{transaction.notes}</p>
+            <p className="text-light-text-primary dark:text-dark-text-primary">
+              {transaction.notes}
+            </p>
           ) : (
-            <p className="text-light-text-tertiary dark:text-dark-text-tertiary">No notes</p>
+            <p className="text-light-text-tertiary dark:text-dark-text-tertiary">
+              No notes
+            </p>
           )}
         </div>
 
@@ -393,20 +428,28 @@ export default function TransactionDetailsPage() {
               <input
                 type="checkbox"
                 checked={formData.is_reconciled}
-                onChange={(e) => setFormData({ ...formData, is_reconciled: e.target.checked })}
+                onChange={(e) =>
+                  setFormData({ ...formData, is_reconciled: e.target.checked })
+                }
                 className="rounded border-light-border dark:border-dark-border text-green-600 focus:ring-green-500 mr-2"
               />
-              <span className="text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary">Mark as reconciled</span>
+              <span className="text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary">
+                Mark as reconciled
+              </span>
             </label>
           ) : (
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary">Reconciled:</span>
-              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                transaction.is_reconciled
-                  ? 'bg-green-100 text-green-800'
-                  : 'bg-light-background dark:bg-dark-background text-light-text-primary dark:text-dark-text-primary'
-              }`}>
-                {transaction.is_reconciled ? 'Yes' : 'No'}
+              <span className="text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary">
+                Reconciled:
+              </span>
+              <span
+                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                  transaction.is_reconciled
+                    ? "bg-green-100 text-green-800"
+                    : "bg-light-background dark:bg-dark-background text-light-text-primary dark:text-dark-text-primary"
+                }`}
+              >
+                {transaction.is_reconciled ? "Yes" : "No"}
               </span>
             </div>
           )}
@@ -416,26 +459,40 @@ export default function TransactionDetailsPage() {
         <div className="pt-6 border-t border-light-border dark:border-dark-border space-y-2">
           {transaction.balance !== undefined && (
             <div className="flex justify-between text-sm">
-              <span className="text-light-text-secondary dark:text-dark-text-secondary">Balance after transaction:</span>
-              <span className="font-medium text-light-text-primary dark:text-dark-text-primary">{formatCurrency(transaction.balance)}</span>
+              <span className="text-light-text-secondary dark:text-dark-text-secondary">
+                Balance after transaction:
+              </span>
+              <span className="font-medium text-light-text-primary dark:text-dark-text-primary">
+                {formatCurrency(transaction.balance)}
+              </span>
             </div>
           )}
           {transaction.reference && (
             <div className="flex justify-between text-sm">
-              <span className="text-light-text-secondary dark:text-dark-text-secondary">Reference:</span>
-              <span className="font-medium text-light-text-primary dark:text-dark-text-primary">{transaction.reference}</span>
+              <span className="text-light-text-secondary dark:text-dark-text-secondary">
+                Reference:
+              </span>
+              <span className="font-medium text-light-text-primary dark:text-dark-text-primary">
+                {transaction.reference}
+              </span>
             </div>
           )}
           {transaction.source && (
             <div className="flex justify-between text-sm">
-              <span className="text-light-text-secondary dark:text-dark-text-secondary">Source:</span>
-              <span className="font-medium text-light-text-primary dark:text-dark-text-primary">{transaction.source}</span>
+              <span className="text-light-text-secondary dark:text-dark-text-secondary">
+                Source:
+              </span>
+              <span className="font-medium text-light-text-primary dark:text-dark-text-primary">
+                {transaction.source}
+              </span>
             </div>
           )}
           <div className="flex justify-between text-sm">
-            <span className="text-light-text-secondary dark:text-dark-text-secondary">Created:</span>
+            <span className="text-light-text-secondary dark:text-dark-text-secondary">
+              Created:
+            </span>
             <span className="font-medium text-light-text-primary dark:text-dark-text-primary">
-              {new Date(transaction.created_at).toLocaleString('en-NG')}
+              {new Date(transaction.created_at).toLocaleString("en-NG")}
             </span>
           </div>
         </div>

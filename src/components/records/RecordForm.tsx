@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import type { CreateRecordRequest, FinancialRecord } from '@/types/api';
+import { useState } from "react";
+import type { CreateRecordRequest, FinancialRecord } from "@/types/api";
 
 interface RecordFormProps {
   record?: FinancialRecord;
@@ -11,12 +11,12 @@ interface RecordFormProps {
 
 export function RecordForm({ record, onSubmit, onCancel }: RecordFormProps) {
   const [formData, setFormData] = useState<CreateRecordRequest>({
-    type: record?.type || 'income',
+    type: record?.type || "income",
     amount: record?.amount || 0,
-    date: record?.date || new Date().toISOString().split('T')[0],
-    category: record?.category || '',
-    description: record?.description || '',
-    taxCode: record?.taxCode || '',
+    date: record?.date || new Date().toISOString().split("T")[0],
+    category: record?.category || "",
+    description: record?.description || "",
+    taxCode: record?.taxCode || "",
     vatAmount: record?.vatAmount || 0,
   });
 
@@ -26,12 +26,17 @@ export function RecordForm({ record, onSubmit, onCancel }: RecordFormProps) {
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: name === 'amount' || name === 'vatAmount' ? parseFloat(value) || 0 : value,
+      [name]:
+        name === "amount" || name === "vatAmount"
+          ? parseFloat(value) || 0
+          : value,
     }));
   };
 
@@ -39,7 +44,10 @@ export function RecordForm({ record, onSubmit, onCancel }: RecordFormProps) {
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Type */}
       <div>
-        <label htmlFor="type" className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2">
+        <label
+          htmlFor="type"
+          className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2"
+        >
           Type *
         </label>
         <select
@@ -57,7 +65,10 @@ export function RecordForm({ record, onSubmit, onCancel }: RecordFormProps) {
 
       {/* Amount */}
       <div>
-        <label htmlFor="amount" className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2">
+        <label
+          htmlFor="amount"
+          className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2"
+        >
           Amount (NGN) *
         </label>
         <input
@@ -75,7 +86,10 @@ export function RecordForm({ record, onSubmit, onCancel }: RecordFormProps) {
 
       {/* Date */}
       <div>
-        <label htmlFor="date" className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2">
+        <label
+          htmlFor="date"
+          className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2"
+        >
           Date *
         </label>
         <input
@@ -91,7 +105,10 @@ export function RecordForm({ record, onSubmit, onCancel }: RecordFormProps) {
 
       {/* Category */}
       <div>
-        <label htmlFor="category" className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2">
+        <label
+          htmlFor="category"
+          className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2"
+        >
           Category *
         </label>
         <input
@@ -108,7 +125,10 @@ export function RecordForm({ record, onSubmit, onCancel }: RecordFormProps) {
 
       {/* Description */}
       <div>
-        <label htmlFor="description" className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2">
+        <label
+          htmlFor="description"
+          className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2"
+        >
           Description
         </label>
         <textarea
@@ -124,7 +144,10 @@ export function RecordForm({ record, onSubmit, onCancel }: RecordFormProps) {
 
       {/* Tax Code */}
       <div>
-        <label htmlFor="taxCode" className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2">
+        <label
+          htmlFor="taxCode"
+          className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2"
+        >
           Tax Code
         </label>
         <input
@@ -140,7 +163,10 @@ export function RecordForm({ record, onSubmit, onCancel }: RecordFormProps) {
 
       {/* VAT Amount */}
       <div>
-        <label htmlFor="vatAmount" className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2">
+        <label
+          htmlFor="vatAmount"
+          className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2"
+        >
           VAT Amount (NGN)
         </label>
         <input
@@ -162,7 +188,7 @@ export function RecordForm({ record, onSubmit, onCancel }: RecordFormProps) {
           type="submit"
           className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
         >
-          {record ? 'Update Record' : 'Create Record'}
+          {record ? "Update Record" : "Create Record"}
         </button>
         <button
           type="button"

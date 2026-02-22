@@ -12,7 +12,7 @@ export interface Transaction {
   userId: string;
   amount: number;
   description: string;
-  status: 'pending' | 'completed' | 'failed';
+  status: "pending" | "completed" | "failed";
   createdAt: Date;
 }
 

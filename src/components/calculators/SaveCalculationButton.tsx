@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Save, Loader2, Check, AlertCircle } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Save, Loader2, Check, AlertCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface SaveCalculationButtonProps {
-  taxType: 'pit' | 'cit' | 'vat' | 'wht';
+  taxType: "pit" | "cit" | "vat" | "wht";
   taxYear: number;
   inputData: Record<string, any>;
   grossAmount: number;
@@ -16,7 +16,7 @@ interface SaveCalculationButtonProps {
   taxDue: number;
   effectiveRate?: number;
   breakdown: Record<string, any>;
-  variant?: 'default' | 'outline' | 'ghost' | 'destructive';
+  variant?: "default" | "outline" | "ghost" | "destructive";
   className?: string;
 }
 
@@ -30,8 +30,8 @@ export function SaveCalculationButton({
   taxDue,
   effectiveRate,
   breakdown,
-  variant = 'default',
-  className = '',
+  variant = "default",
+  className = "",
 }: SaveCalculationButtonProps) {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -44,9 +44,9 @@ export function SaveCalculationButton({
 
     try {
       // Convert amounts to kobo (multiply by 100)
-      const response = await fetch('/api/calculations/save', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/calculations/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           tax_type: taxType,
           tax_year: taxYear,
@@ -63,15 +63,17 @@ export function SaveCalculationButton({
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to save calculation');
+        throw new Error(data.message || "Failed to save calculation");
       }
 
       setSaved(true);
       // Reset saved state after 3 seconds
       setTimeout(() => setSaved(false), 3000);
     } catch (error: any) {
-      console.error('[Save Calculation Error]', error);
-      setError(error.message || 'Failed to save calculation. Please try again.');
+      console.error("[Save Calculation Error]", error);
+      setError(
+        error.message || "Failed to save calculation. Please try again.",
+      );
     } finally {
       setSaving(false);
     }

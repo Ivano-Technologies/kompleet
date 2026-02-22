@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { AlertCircle, HelpCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import React from "react";
+import { AlertCircle, HelpCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
 interface UploadErrorProps {
   error?: string;
@@ -15,32 +15,40 @@ export default function UploadError({ error, onRetry }: UploadErrorProps) {
   const getTroubleshootingSteps = (errorMessage?: string): string[] => {
     if (!errorMessage) {
       return [
-        'Re-export the statement from your bank',
-        'Try a different file format (CSV instead of PDF)',
-        'Check that the file is not corrupted',
+        "Re-export the statement from your bank",
+        "Try a different file format (CSV instead of PDF)",
+        "Check that the file is not corrupted",
       ];
     }
 
-    if (errorMessage.toLowerCase().includes('password')) {
+    if (errorMessage.toLowerCase().includes("password")) {
       return [
-        'Remove the copy protection in your PDF reader',
-        'Export as a new PDF without encryption',
-        'Try uploading a CSV export from your bank instead',
+        "Remove the copy protection in your PDF reader",
+        "Export as a new PDF without encryption",
+        "Try uploading a CSV export from your bank instead",
       ];
     }
 
-    if (errorMessage.toLowerCase().includes('file type')) {
-      return ['Only PDF, Excel, CSV, and ZIP files are supported', 'Check the file extension', 'Try re-exporting from your bank'];
+    if (errorMessage.toLowerCase().includes("file type")) {
+      return [
+        "Only PDF, Excel, CSV, and ZIP files are supported",
+        "Check the file extension",
+        "Try re-exporting from your bank",
+      ];
     }
 
-    if (errorMessage.toLowerCase().includes('size')) {
-      return ['File exceeds 100 MB limit', 'Try uploading a smaller file', 'Contact support for large files'];
+    if (errorMessage.toLowerCase().includes("size")) {
+      return [
+        "File exceeds 100 MB limit",
+        "Try uploading a smaller file",
+        "Contact support for large files",
+      ];
     }
 
     return [
-      'Re-export the statement from your bank',
-      'Try a different file format',
-      'Check that the file is not corrupted',
+      "Re-export the statement from your bank",
+      "Try a different file format",
+      "Check that the file is not corrupted",
     ];
   };
 
@@ -71,7 +79,9 @@ export default function UploadError({ error, onRetry }: UploadErrorProps) {
           <div className="mb-8 p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
             <div className="flex gap-3 mb-3">
               <HelpCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-              <h3 className="font-semibold text-blue-900 dark:text-blue-200">What you can try:</h3>
+              <h3 className="font-semibold text-blue-900 dark:text-blue-200">
+                What you can try:
+              </h3>
             </div>
             <ol className="space-y-2 ml-8 text-sm text-blue-900 dark:text-blue-200">
               {troubleshootingSteps.map((step, index) => (
@@ -95,7 +105,7 @@ export default function UploadError({ error, onRetry }: UploadErrorProps) {
               variant="outline"
               className="w-full py-6"
               onClick={() => {
-                window.location.href = '/support';
+                window.location.href = "/support";
               }}
             >
               Contact Support

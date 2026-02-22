@@ -41,7 +41,7 @@ export interface WHTRate {
 
 export interface SubscriptionTier {
   /** Tier identifier */
-  id: 'free' | 'starter' | 'professional' | 'enterprise';
+  id: "free" | "starter" | "professional" | "enterprise";
   /** Display name */
   name: string;
   /** Monthly price in Kobo (0 for free) */
@@ -65,13 +65,13 @@ export interface SubscriptionTier {
  */
 export const CURRENCY = {
   /** Currency code */
-  CODE: 'NGN',
+  CODE: "NGN",
   /** Currency symbol */
-  SYMBOL: '₦',
+  SYMBOL: "₦",
   /** Decimal places */
   DECIMALS: 2,
   /** Smallest unit name */
-  SMALLEST_UNIT: 'kobo',
+  SMALLEST_UNIT: "kobo",
   /** Conversion factor (1 Naira = 100 Kobo) */
   KOBO_PER_NAIRA: 100,
 } as const;
@@ -95,7 +95,7 @@ export function koboToNaira(kobo: number): number {
  */
 export function formatNaira(kobo: number, showSymbol = true): string {
   const naira = koboToNaira(kobo);
-  const formatted = new Intl.NumberFormat('en-NG', {
+  const formatted = new Intl.NumberFormat("en-NG", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(naira);
@@ -118,37 +118,37 @@ export const PIT_BRACKETS: readonly TaxBracket[] = [
     min: 0,
     max: nairaToKobo(300_000),
     rate: 0.07,
-    description: 'First ₦300,000 at 7%',
+    description: "First ₦300,000 at 7%",
   },
   {
     min: nairaToKobo(300_000),
     max: nairaToKobo(600_000),
     rate: 0.11,
-    description: 'Next ₦300,000 at 11%',
+    description: "Next ₦300,000 at 11%",
   },
   {
     min: nairaToKobo(600_000),
     max: nairaToKobo(1_100_000),
     rate: 0.15,
-    description: 'Next ₦500,000 at 15%',
+    description: "Next ₦500,000 at 15%",
   },
   {
     min: nairaToKobo(1_100_000),
     max: nairaToKobo(1_600_000),
     rate: 0.19,
-    description: 'Next ₦500,000 at 19%',
+    description: "Next ₦500,000 at 19%",
   },
   {
     min: nairaToKobo(1_600_000),
     max: nairaToKobo(3_200_000),
     rate: 0.21,
-    description: 'Next ₦1,600,000 at 21%',
+    description: "Next ₦1,600,000 at 21%",
   },
   {
     min: nairaToKobo(3_200_000),
     max: null,
     rate: 0.24,
-    description: 'Above ₦3,200,000 at 24%',
+    description: "Above ₦3,200,000 at 24%",
   },
 ] as const;
 
@@ -166,7 +166,7 @@ export const PIT_RELIEFS = {
     /** Percentage of gross income (alternative to fixed) */
     GROSS_INCOME_PERCENT: 0.01,
     /** Additional percentage of gross income */
-    ADDITIONAL_PERCENT: 0.20,
+    ADDITIONAL_PERCENT: 0.2,
   },
 
   /**
@@ -175,7 +175,7 @@ export const PIT_RELIEFS = {
    */
   PENSION: {
     MAX_RATE: 0.08,
-    DESCRIPTION: 'Pension contribution (max 8% of gross)',
+    DESCRIPTION: "Pension contribution (max 8% of gross)",
   },
 
   /**
@@ -184,7 +184,7 @@ export const PIT_RELIEFS = {
    */
   NHF: {
     RATE: 0.025,
-    DESCRIPTION: 'NHF contribution (2.5% of basic)',
+    DESCRIPTION: "NHF contribution (2.5% of basic)",
   },
 
   /**
@@ -192,8 +192,8 @@ export const PIT_RELIEFS = {
    * Actual premium paid (subject to limits)
    */
   LIFE_INSURANCE: {
-    MAX_RATE: 0.10, // Max 10% of gross income
-    DESCRIPTION: 'Life insurance premium',
+    MAX_RATE: 0.1, // Max 10% of gross income
+    DESCRIPTION: "Life insurance premium",
   },
 
   /**
@@ -226,8 +226,8 @@ export const CIT_RATES = {
    */
   SMALL: {
     MAX_TURNOVER: nairaToKobo(25_000_000),
-    RATE: 0.00,
-    DESCRIPTION: 'Small company (turnover ≤ ₦25M)',
+    RATE: 0.0,
+    DESCRIPTION: "Small company (turnover ≤ ₦25M)",
   },
 
   /**
@@ -237,8 +237,8 @@ export const CIT_RATES = {
   MEDIUM: {
     MIN_TURNOVER: nairaToKobo(25_000_000),
     MAX_TURNOVER: nairaToKobo(100_000_000),
-    RATE: 0.20,
-    DESCRIPTION: 'Medium company (₦25M < turnover ≤ ₦100M)',
+    RATE: 0.2,
+    DESCRIPTION: "Medium company (₦25M < turnover ≤ ₦100M)",
   },
 
   /**
@@ -247,8 +247,8 @@ export const CIT_RATES = {
    */
   LARGE: {
     MIN_TURNOVER: nairaToKobo(100_000_000),
-    RATE: 0.30,
-    DESCRIPTION: 'Large company (turnover > ₦100M)',
+    RATE: 0.3,
+    DESCRIPTION: "Large company (turnover > ₦100M)",
   },
 } as const;
 
@@ -262,7 +262,7 @@ export const CIT_ADDITIONAL = {
    */
   TET: {
     RATE: 0.025,
-    DESCRIPTION: 'Tertiary Education Tax',
+    DESCRIPTION: "Tertiary Education Tax",
   },
 
   /**
@@ -271,7 +271,7 @@ export const CIT_ADDITIONAL = {
    */
   POLICE_LEVY: {
     RATE: 0.00005,
-    DESCRIPTION: 'Police Trust Fund Levy',
+    DESCRIPTION: "Police Trust Fund Levy",
   },
 
   /**
@@ -280,7 +280,7 @@ export const CIT_ADDITIONAL = {
    */
   NASENI: {
     RATE: 0.0025,
-    DESCRIPTION: 'NASENI Levy',
+    DESCRIPTION: "NASENI Levy",
   },
 
   /**
@@ -289,7 +289,7 @@ export const CIT_ADDITIONAL = {
    */
   DEVELOPMENT_LEVY: {
     AMOUNT: nairaToKobo(5_000),
-    DESCRIPTION: 'Annual development levy',
+    DESCRIPTION: "Annual development levy",
   },
 } as const;
 
@@ -299,7 +299,7 @@ export const CIT_ADDITIONAL = {
  */
 export const CIT_MINIMUM_TAX = {
   RATE: 0.005,
-  DESCRIPTION: 'Minimum tax (0.5% of turnover)',
+  DESCRIPTION: "Minimum tax (0.5% of turnover)",
 } as const;
 
 /**
@@ -309,15 +309,15 @@ export const CAPITAL_ALLOWANCES = {
   /** Initial allowance (year of purchase) */
   INITIAL: {
     BUILDING: 0.15,
-    PLANT_MACHINERY: 0.50,
+    PLANT_MACHINERY: 0.5,
     FURNITURE: 0.25,
-    MOTOR_VEHICLE: 0.50,
+    MOTOR_VEHICLE: 0.5,
   },
   /** Annual allowance (subsequent years) */
   ANNUAL: {
-    BUILDING: 0.10,
+    BUILDING: 0.1,
     PLANT_MACHINERY: 0.25,
-    FURNITURE: 0.20,
+    FURNITURE: 0.2,
     MOTOR_VEHICLE: 0.25,
   },
 } as const;
@@ -343,24 +343,24 @@ export const VAT_REGISTRATION_THRESHOLD = nairaToKobo(25_000_000);
  * Based on the VAT Act Schedule I
  */
 export const VAT_EXEMPT_CATEGORIES = [
-  'medical_pharmaceutical',
-  'basic_food',
-  'books_educational',
-  'baby_products',
-  'agricultural_produce',
-  'fertilizer_seeds',
-  'veterinary_medicine',
-  'locally_produced_textiles',
-  'exports',
+  "medical_pharmaceutical",
+  "basic_food",
+  "books_educational",
+  "baby_products",
+  "agricultural_produce",
+  "fertilizer_seeds",
+  "veterinary_medicine",
+  "locally_produced_textiles",
+  "exports",
 ] as const;
 
 /**
  * Zero-Rated Categories (0% VAT but can claim input VAT)
  */
 export const VAT_ZERO_RATED = [
-  'exports',
-  'goods_services_diplomats',
-  'humanitarian_goods',
+  "exports",
+  "goods_services_diplomats",
+  "humanitarian_goods",
 ] as const;
 
 // ============================================================
@@ -373,63 +373,63 @@ export const VAT_ZERO_RATED = [
  */
 export const WHT_RATES: readonly WHTRate[] = [
   {
-    category: 'dividends',
-    residentRate: 0.10,
-    nonResidentRate: 0.10,
+    category: "dividends",
+    residentRate: 0.1,
+    nonResidentRate: 0.1,
     threshold: nairaToKobo(50_000),
   },
   {
-    category: 'interest',
-    residentRate: 0.10,
-    nonResidentRate: 0.10,
+    category: "interest",
+    residentRate: 0.1,
+    nonResidentRate: 0.1,
     threshold: nairaToKobo(50_000),
   },
   {
-    category: 'royalties',
-    residentRate: 0.10,
-    nonResidentRate: 0.10,
+    category: "royalties",
+    residentRate: 0.1,
+    nonResidentRate: 0.1,
     threshold: nairaToKobo(50_000),
   },
   {
-    category: 'rent',
-    residentRate: 0.10,
-    nonResidentRate: 0.10,
+    category: "rent",
+    residentRate: 0.1,
+    nonResidentRate: 0.1,
     threshold: nairaToKobo(50_000),
   },
   {
-    category: 'commission',
-    residentRate: 0.10,
-    nonResidentRate: 0.10,
+    category: "commission",
+    residentRate: 0.1,
+    nonResidentRate: 0.1,
     threshold: nairaToKobo(50_000),
   },
   {
-    category: 'consultancy',
-    residentRate: 0.10,
-    nonResidentRate: 0.10,
+    category: "consultancy",
+    residentRate: 0.1,
+    nonResidentRate: 0.1,
     threshold: nairaToKobo(50_000),
   },
   {
-    category: 'technical_services',
-    residentRate: 0.10,
-    nonResidentRate: 0.10,
+    category: "technical_services",
+    residentRate: 0.1,
+    nonResidentRate: 0.1,
     threshold: nairaToKobo(50_000),
   },
   {
-    category: 'management_services',
-    residentRate: 0.10,
-    nonResidentRate: 0.10,
+    category: "management_services",
+    residentRate: 0.1,
+    nonResidentRate: 0.1,
     threshold: nairaToKobo(50_000),
   },
   {
-    category: 'directors_fees',
-    residentRate: 0.10,
-    nonResidentRate: 0.10,
+    category: "directors_fees",
+    residentRate: 0.1,
+    nonResidentRate: 0.1,
     threshold: nairaToKobo(50_000),
   },
   {
-    category: 'contracts',
+    category: "contracts",
     residentRate: 0.05,
-    nonResidentRate: 0.10,
+    nonResidentRate: 0.1,
     threshold: nairaToKobo(50_000),
   },
 ] as const;
@@ -448,65 +448,65 @@ export const WHT_DEFAULT_THRESHOLD = nairaToKobo(50_000);
  */
 export const SUBSCRIPTION_TIERS: readonly SubscriptionTier[] = [
   {
-    id: 'free',
-    name: 'Free',
+    id: "free",
+    name: "Free",
     priceMonthly: 0,
     priceAnnual: 0,
     transactionLimit: 50,
     maxFileSize: 5 * 1024 * 1024, // 5MB
     features: [
-      'Up to 50 transactions/month',
-      'Basic categorization',
-      'PIT calculator',
-      'CSV export',
+      "Up to 50 transactions/month",
+      "Basic categorization",
+      "PIT calculator",
+      "CSV export",
     ],
   },
   {
-    id: 'starter',
-    name: 'Starter',
+    id: "starter",
+    name: "Starter",
     priceMonthly: nairaToKobo(5_000),
     priceAnnual: nairaToKobo(50_000),
     transactionLimit: 500,
     maxFileSize: 25 * 1024 * 1024, // 25MB
     features: [
-      'Up to 500 transactions/month',
-      'AI categorization',
-      'All tax calculators',
-      'PDF & Excel export',
-      'Bank statement parsing',
+      "Up to 500 transactions/month",
+      "AI categorization",
+      "All tax calculators",
+      "PDF & Excel export",
+      "Bank statement parsing",
     ],
   },
   {
-    id: 'professional',
-    name: 'Professional',
+    id: "professional",
+    name: "Professional",
     priceMonthly: nairaToKobo(15_000),
     priceAnnual: nairaToKobo(150_000),
     transactionLimit: 999999, // Unlimited
     maxFileSize: 100 * 1024 * 1024, // 100MB
     features: [
-      'Unlimited transactions',
-      'AI categorization with learning',
-      'All tax calculators',
-      'All export formats',
-      'Multi-bank support',
-      'Priority support',
+      "Unlimited transactions",
+      "AI categorization with learning",
+      "All tax calculators",
+      "All export formats",
+      "Multi-bank support",
+      "Priority support",
     ],
   },
   {
-    id: 'enterprise',
-    name: 'Enterprise',
+    id: "enterprise",
+    name: "Enterprise",
     priceMonthly: nairaToKobo(50_000),
     priceAnnual: nairaToKobo(500_000),
     transactionLimit: 999999, // Unlimited
     maxFileSize: 500 * 1024 * 1024, // 500MB
     features: [
-      'Everything in Professional',
-      'Multi-user access',
-      'Role-based permissions',
-      'API access',
-      'Custom integrations',
-      'Dedicated support',
-      'Audit trail',
+      "Everything in Professional",
+      "Multi-user access",
+      "Role-based permissions",
+      "API access",
+      "Custom integrations",
+      "Dedicated support",
+      "Audit trail",
     ],
   },
 ] as const;
@@ -515,7 +515,7 @@ export const SUBSCRIPTION_TIERS: readonly SubscriptionTier[] = [
  * Get subscription tier by ID
  */
 export function getSubscriptionTier(
-  tierId: SubscriptionTier['id']
+  tierId: SubscriptionTier["id"],
 ): SubscriptionTier | undefined {
   return SUBSCRIPTION_TIERS.find((tier) => tier.id === tierId);
 }
@@ -523,7 +523,7 @@ export function getSubscriptionTier(
 /**
  * Get transaction limit for a tier
  */
-export function getTransactionLimit(tierId: SubscriptionTier['id']): number {
+export function getTransactionLimit(tierId: SubscriptionTier["id"]): number {
   const tier = getSubscriptionTier(tierId);
   return tier?.transactionLimit ?? 50;
 }
@@ -536,21 +536,25 @@ export function getTransactionLimit(tierId: SubscriptionTier['id']): number {
  * Supported Nigerian banks for statement parsing
  */
 export const SUPPORTED_BANKS = [
-  { code: 'GTB', name: 'Guaranty Trust Bank', aliases: ['gtbank', 'gt bank'] },
-  { code: 'FBN', name: 'First Bank of Nigeria', aliases: ['first bank', 'firstbank'] },
-  { code: 'UBA', name: 'United Bank for Africa', aliases: ['uba'] },
-  { code: 'ACCESS', name: 'Access Bank', aliases: ['access', 'diamond bank'] },
-  { code: 'ZENITH', name: 'Zenith Bank', aliases: ['zenith'] },
-  { code: 'FCMB', name: 'First City Monument Bank', aliases: ['fcmb'] },
-  { code: 'STANBIC', name: 'Stanbic IBTC Bank', aliases: ['stanbic', 'ibtc'] },
-  { code: 'STERLING', name: 'Sterling Bank', aliases: ['sterling'] },
-  { code: 'UNION', name: 'Union Bank', aliases: ['union bank'] },
-  { code: 'FIDELITY', name: 'Fidelity Bank', aliases: ['fidelity'] },
-  { code: 'WEMA', name: 'Wema Bank', aliases: ['wema', 'alat'] },
-  { code: 'ECOBANK', name: 'Ecobank Nigeria', aliases: ['ecobank'] },
-  { code: 'KUDA', name: 'Kuda Bank', aliases: ['kuda'] },
-  { code: 'OPAY', name: 'OPay', aliases: ['opay'] },
-  { code: 'PALMPAY', name: 'PalmPay', aliases: ['palmpay'] },
+  { code: "GTB", name: "Guaranty Trust Bank", aliases: ["gtbank", "gt bank"] },
+  {
+    code: "FBN",
+    name: "First Bank of Nigeria",
+    aliases: ["first bank", "firstbank"],
+  },
+  { code: "UBA", name: "United Bank for Africa", aliases: ["uba"] },
+  { code: "ACCESS", name: "Access Bank", aliases: ["access", "diamond bank"] },
+  { code: "ZENITH", name: "Zenith Bank", aliases: ["zenith"] },
+  { code: "FCMB", name: "First City Monument Bank", aliases: ["fcmb"] },
+  { code: "STANBIC", name: "Stanbic IBTC Bank", aliases: ["stanbic", "ibtc"] },
+  { code: "STERLING", name: "Sterling Bank", aliases: ["sterling"] },
+  { code: "UNION", name: "Union Bank", aliases: ["union bank"] },
+  { code: "FIDELITY", name: "Fidelity Bank", aliases: ["fidelity"] },
+  { code: "WEMA", name: "Wema Bank", aliases: ["wema", "alat"] },
+  { code: "ECOBANK", name: "Ecobank Nigeria", aliases: ["ecobank"] },
+  { code: "KUDA", name: "Kuda Bank", aliases: ["kuda"] },
+  { code: "OPAY", name: "OPay", aliases: ["opay"] },
+  { code: "PALMPAY", name: "PalmPay", aliases: ["palmpay"] },
 ] as const;
 
 /**
@@ -558,19 +562,19 @@ export const SUPPORTED_BANKS = [
  */
 export const SUPPORTED_FILE_TYPES = {
   CSV: {
-    mimeTypes: ['text/csv', 'application/csv'],
-    extensions: ['.csv'],
+    mimeTypes: ["text/csv", "application/csv"],
+    extensions: [".csv"],
   },
   EXCEL: {
     mimeTypes: [
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'application/vnd.ms-excel',
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "application/vnd.ms-excel",
     ],
-    extensions: ['.xlsx', '.xls'],
+    extensions: [".xlsx", ".xls"],
   },
   PDF: {
-    mimeTypes: ['application/pdf'],
-    extensions: ['.pdf'],
+    mimeTypes: ["application/pdf"],
+    extensions: [".pdf"],
   },
 } as const;
 
@@ -578,12 +582,12 @@ export const SUPPORTED_FILE_TYPES = {
  * Date formats used in Nigerian bank statements
  */
 export const DATE_FORMATS = [
-  'DD/MM/YYYY',
-  'DD-MM-YYYY',
-  'YYYY-MM-DD',
-  'DD/MM/YY',
-  'DD-MM-YY',
-  'MM/DD/YYYY',
+  "DD/MM/YYYY",
+  "DD-MM-YYYY",
+  "YYYY-MM-DD",
+  "DD/MM/YY",
+  "DD-MM-YY",
+  "MM/DD/YYYY",
 ] as const;
 
 /**
@@ -603,10 +607,10 @@ export const TAX_YEAR = {
  * AI Categorization confidence thresholds
  */
 export const AI_CONFIDENCE_THRESHOLDS = {
-  HIGH: 0.90, // Auto-apply category
-  MEDIUM: 0.70, // Apply but flag for review
-  LOW: 0.50, // Suggest only
-  MINIMUM: 0.30, // Don't suggest
+  HIGH: 0.9, // Auto-apply category
+  MEDIUM: 0.7, // Apply but flag for review
+  LOW: 0.5, // Suggest only
+  MINIMUM: 0.3, // Don't suggest
 } as const;
 
 /**

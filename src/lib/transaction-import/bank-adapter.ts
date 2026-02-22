@@ -3,12 +3,12 @@
  * Routes parsing to bank-specific adapters for 10 Nigerian banks
  */
 
-import { getBankConfig, BANK_CONFIGS } from './bank-configs';
-import { parseCSV, ParseResult } from './csv-parser';
-import { parseExcel } from './excel-parser';
-import { parsePDF } from './pdf-parser';
+import { getBankConfig, BANK_CONFIGS } from "./bank-configs";
+import { parseCSV, ParseResult } from "./csv-parser";
+import { parseExcel } from "./excel-parser";
+import { parsePDF } from "./pdf-parser";
 
-export type FileType = 'csv' | 'excel' | 'pdf';
+export type FileType = "csv" | "excel" | "pdf";
 
 /**
  * Parse bank statement file using appropriate adapter
@@ -16,10 +16,12 @@ export type FileType = 'csv' | 'excel' | 'pdf';
 export async function parseBankStatement(
   fileContent: Buffer | string,
   bankCode: string,
-  fileType: FileType
+  fileType: FileType,
 ): Promise<ParseResult> {
-  if (fileType === 'pdf') {
-    const buffer = Buffer.isBuffer(fileContent) ? fileContent : Buffer.from(fileContent);
+  if (fileType === "pdf") {
+    const buffer = Buffer.isBuffer(fileContent)
+      ? fileContent
+      : Buffer.from(fileContent);
     const bankConfig = getBankConfig(bankCode);
     return parsePDF(buffer, bankConfig?.name);
   }
@@ -30,11 +32,16 @@ export async function parseBankStatement(
     throw new Error(`Unsupported bank: ${bankCode}`);
   }
 
-  if (fileType === 'csv') {
-    const content = typeof fileContent === 'string' ? fileContent : fileContent.toString('utf-8');
+  if (fileType === "csv") {
+    const content =
+      typeof fileContent === "string"
+        ? fileContent
+        : fileContent.toString("utf-8");
     return parseCSV(content, bankConfig);
-  } else if (fileType === 'excel') {
-    const buffer = Buffer.isBuffer(fileContent) ? fileContent : Buffer.from(fileContent);
+  } else if (fileType === "excel") {
+    const buffer = Buffer.isBuffer(fileContent)
+      ? fileContent
+      : Buffer.from(fileContent);
     return parseExcel(buffer, bankConfig);
   } else {
     throw new Error(`Unsupported file type: ${fileType}`);
@@ -45,36 +52,36 @@ export async function parseBankStatement(
  * Detect file type from file extension or content
  */
 export function detectFileType(fileName: string, mimeType?: string): FileType {
-  const ext = fileName.toLowerCase().split('.').pop();
+  const ext = fileName.toLowerCase().split(".").pop();
 
-  if (ext === 'csv') {
-    return 'csv';
+  if (ext === "csv") {
+    return "csv";
   }
 
-  if (ext === 'xlsx' || ext === 'xls') {
-    return 'excel';
+  if (ext === "xlsx" || ext === "xls") {
+    return "excel";
   }
 
-  if (ext === 'pdf') {
-    return 'pdf';
+  if (ext === "pdf") {
+    return "pdf";
   }
 
   // Fallback to MIME type
   if (mimeType) {
-    if (mimeType.includes('csv') || mimeType.includes('text/plain')) {
-      return 'csv';
+    if (mimeType.includes("csv") || mimeType.includes("text/plain")) {
+      return "csv";
     }
 
     if (
-      mimeType.includes('spreadsheet') ||
-      mimeType.includes('excel') ||
-      mimeType.includes('xlsx')
+      mimeType.includes("spreadsheet") ||
+      mimeType.includes("excel") ||
+      mimeType.includes("xlsx")
     ) {
-      return 'excel';
+      return "excel";
     }
 
-    if (mimeType.includes('pdf')) {
-      return 'pdf';
+    if (mimeType.includes("pdf")) {
+      return "pdf";
     }
   }
 

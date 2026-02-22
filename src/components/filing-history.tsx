@@ -1,7 +1,13 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { FileText, Download, Calendar, CheckCircle, Filter } from 'lucide-react';
+import { useState, useEffect, useCallback } from "react";
+import {
+  FileText,
+  Download,
+  Calendar,
+  CheckCircle,
+  Filter,
+} from "lucide-react";
 
 interface FilingRecord {
   id: string;
@@ -20,15 +26,15 @@ interface FilingRecord {
 export default function FilingHistory() {
   const [filings, setFilings] = useState<FilingRecord[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filterYear, setFilterYear] = useState<number | 'all'>('all');
-  const [filterType, setFilterType] = useState<string>('all');
+  const [filterYear, setFilterYear] = useState<number | "all">("all");
+  const [filterType, setFilterType] = useState<string>("all");
 
   const fetchFilingHistory = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      if (filterYear !== 'all') params.append('taxYear', filterYear.toString());
-      if (filterType !== 'all') params.append('formType', filterType);
+      if (filterYear !== "all") params.append("taxYear", filterYear.toString());
+      if (filterType !== "all") params.append("formType", filterType);
 
       const response = await fetch(`/api/forms/list?${params}`);
       const data = await response.json();
@@ -37,7 +43,7 @@ export default function FilingHistory() {
         setFilings(data.forms);
       }
     } catch (error) {
-      console.error('Error fetching filing history:', error);
+      console.error("Error fetching filing history:", error);
     } finally {
       setLoading(false);
     }
@@ -48,7 +54,7 @@ export default function FilingHistory() {
   }, [fetchFilingHistory]);
 
   const handleDownload = (filing: FilingRecord) => {
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = filing.pdf_url;
     link.download = `NRS_${filing.form_type}_${filing.tax_year}_${filing.id.slice(0, 8)}.pdf`;
     link.click();
@@ -56,9 +62,9 @@ export default function FilingHistory() {
 
   const getFormTypeName = (formType: string) => {
     const names: Record<string, string> = {
-      PIT: 'Personal Income Tax',
-      CIT: 'Company Income Tax',
-      VAT: 'Value Added Tax',
+      PIT: "Personal Income Tax",
+      CIT: "Company Income Tax",
+      VAT: "Value Added Tax",
     };
     return names[formType] || formType;
   };
@@ -67,20 +73,23 @@ export default function FilingHistory() {
     const badges: Record<string, { color: string; label: string }> = {
       draft: {
         color:
-          'bg-light-background dark:bg-dark-background text-light-text-primary dark:text-dark-text-primary',
-        label: 'Draft',
+          "bg-light-background dark:bg-dark-background text-light-text-primary dark:text-dark-text-primary",
+        label: "Draft",
       },
       generated: {
-        color: 'bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300',
-        label: 'Generated',
+        color:
+          "bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300",
+        label: "Generated",
       },
       filed: {
-        color: 'bg-primary-100 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400',
-        label: 'Filed',
+        color:
+          "bg-primary-100 dark:bg-primary-900/20 text-primary-700 dark:text-primary-400",
+        label: "Filed",
       },
       archived: {
-        color: 'bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-300',
-        label: 'Archived',
+        color:
+          "bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-300",
+        label: "Archived",
       },
     };
 
@@ -90,7 +99,7 @@ export default function FilingHistory() {
       <span
         className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${badge.color}`}
       >
-        {status === 'filed' && <CheckCircle className="w-3 h-3" />}
+        {status === "filed" && <CheckCircle className="w-3 h-3" />}
         {badge.label}
       </span>
     );
@@ -98,32 +107,32 @@ export default function FilingHistory() {
 
   const exportHistory = () => {
     const headers = [
-      'Form Type',
-      'Tax Year',
-      'Status',
-      'Generated Date',
-      'Filed Date',
-      'Confirmation Number',
+      "Form Type",
+      "Tax Year",
+      "Status",
+      "Generated Date",
+      "Filed Date",
+      "Confirmation Number",
     ];
 
-    const rows = filings.map(f => [
+    const rows = filings.map((f) => [
       getFormTypeName(f.form_type),
       f.tax_year,
       f.status,
-      new Date(f.created_at).toLocaleDateString('en-NG'),
+      new Date(f.created_at).toLocaleDateString("en-NG"),
       f.filing_status?.[0]?.filed_date
-        ? new Date(f.filing_status[0].filed_date).toLocaleDateString('en-NG')
-        : 'N/A',
-      f.filing_status?.[0]?.confirmation_number || 'N/A',
+        ? new Date(f.filing_status[0].filed_date).toLocaleDateString("en-NG")
+        : "N/A",
+      f.filing_status?.[0]?.confirmation_number || "N/A",
     ]);
 
-    const csv = [headers, ...rows].map(row => row.join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
+    const csv = [headers, ...rows].map((row) => row.join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
 
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
-    link.download = `filing-history-${new Date().toISOString().split('T')[0]}.csv`;
+    link.download = `filing-history-${new Date().toISOString().split("T")[0]}.csv`;
     link.click();
   };
 
@@ -137,7 +146,8 @@ export default function FilingHistory() {
               Filing History
             </h2>
             <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mt-1">
-              {filings.length} {filings.length === 1 ? 'filing' : 'filings'} found
+              {filings.length} {filings.length === 1 ? "filing" : "filings"}{" "}
+              found
             </p>
           </div>
 
@@ -157,8 +167,10 @@ export default function FilingHistory() {
             <Filter className="w-4 h-4 text-light-text-secondary dark:text-dark-text-secondary" />
             <select
               value={filterYear}
-              onChange={e =>
-                setFilterYear(e.target.value === 'all' ? 'all' : parseInt(e.target.value))
+              onChange={(e) =>
+                setFilterYear(
+                  e.target.value === "all" ? "all" : parseInt(e.target.value),
+                )
               }
               className="px-3 py-2 border border-light-border dark:border-dark-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm bg-light-surface dark:bg-dark-surface"
             >
@@ -172,7 +184,7 @@ export default function FilingHistory() {
 
           <select
             value={filterType}
-            onChange={e => setFilterType(e.target.value)}
+            onChange={(e) => setFilterType(e.target.value)}
             className="px-3 py-2 border border-light-border dark:border-dark-border rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 text-sm bg-light-surface dark:bg-dark-surface"
           >
             <option value="all">All Form Types</option>
@@ -198,14 +210,14 @@ export default function FilingHistory() {
             No filings found
           </h3>
           <p className="text-light-text-secondary dark:text-dark-text-secondary">
-            {filterYear !== 'all' || filterType !== 'all'
-              ? 'Try adjusting your filters'
-              : 'Generate your first tax form to see it here'}
+            {filterYear !== "all" || filterType !== "all"
+              ? "Try adjusting your filters"
+              : "Generate your first tax form to see it here"}
           </p>
         </div>
       ) : (
         <div className="divide-y divide-light-border dark:divide-dark-border">
-          {filings.map(filing => (
+          {filings.map((filing) => (
             <div
               key={filing.id}
               className="p-6 hover:bg-light-background dark:hover:bg-dark-background transition-colors"
@@ -227,23 +239,26 @@ export default function FilingHistory() {
                     <div className="flex items-center gap-4 text-sm text-light-text-secondary dark:text-dark-text-secondary">
                       <span className="flex items-center gap-1">
                         <Calendar className="w-4 h-4" />
-                        Generated:{' '}
-                        {new Date(filing.created_at).toLocaleDateString('en-NG')}
+                        Generated:{" "}
+                        {new Date(filing.created_at).toLocaleDateString(
+                          "en-NG",
+                        )}
                       </span>
 
                       {filing.filing_status?.length ? (
                         <>
                           <span className="flex items-center gap-1">
                             <CheckCircle className="w-4 h-4 text-primary-500" />
-                            Filed:{' '}
-                            {new Date(filing.filing_status[0].filed_date).toLocaleDateString(
-                              'en-NG'
-                            )}
+                            Filed:{" "}
+                            {new Date(
+                              filing.filing_status[0].filed_date,
+                            ).toLocaleDateString("en-NG")}
                           </span>
 
                           {filing.filing_status[0].confirmation_number && (
                             <span className="text-primary-500 font-medium">
-                              Confirmation: {filing.filing_status[0].confirmation_number}
+                              Confirmation:{" "}
+                              {filing.filing_status[0].confirmation_number}
                             </span>
                           )}
                         </>

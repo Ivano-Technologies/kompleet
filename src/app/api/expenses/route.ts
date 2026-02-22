@@ -2,13 +2,19 @@
  * GET /api/expenses - List expenses (Supabase, RLS).
  * POST /api/expenses - Create expense.
  */
-import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@/lib/supabase/server';
-import { z } from 'zod';
+import { NextRequest, NextResponse } from "next/server";
+import { createServerClient } from "@/lib/supabase/server";
+import { z } from "zod";
 
 const querySchema = z.object({
-  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  startDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
+  endDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
   categoryId: z.string().uuid().optional(),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(50),
@@ -17,7 +23,7 @@ const querySchema = z.object({
 const postBodySchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   amount: z.number().finite().nonnegative(),
-  currency: z.string().max(10).default('NGN'),
+  currency: z.string().max(10).default("NGN"),
   category_id: z.string().uuid().nullable().optional(),
   vendor: z.string().max(500).nullable().optional(),
   vat_amount: z.number().finite().nonnegative().optional(),
@@ -28,34 +34,39 @@ const postBodySchema = z.object({
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createServerClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const sp = request.nextUrl.searchParams;
     const parsed = querySchema.safeParse({
-      startDate: sp.get('startDate') ?? undefined,
-      endDate: sp.get('endDate') ?? undefined,
-      categoryId: sp.get('categoryId') ?? undefined,
-      page: sp.get('page') ?? undefined,
-      limit: sp.get('limit') ?? undefined,
+      startDate: sp.get("startDate") ?? undefined,
+      endDate: sp.get("endDate") ?? undefined,
+      categoryId: sp.get("categoryId") ?? undefined,
+      page: sp.get("page") ?? undefined,
+      limit: sp.get("limit") ?? undefined,
     });
     if (!parsed.success) {
-      return NextResponse.json({ error: 'Invalid query', details: parsed.error.flatten() }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid query", details: parsed.error.flatten() },
+        { status: 400 },
+      );
     }
     const { startDate, endDate, categoryId, page, limit } = parsed.data;
 
     let query = supabase
-      .from('expenses')
-      .select('*', { count: 'exact' })
-      .eq('user_id', user.id)
-      .order('date', { ascending: false })
-      .order('created_at', { ascending: false });
+      .from("expenses")
+      .select("*", { count: "exact" })
+      .eq("user_id", user.id)
+      .order("date", { ascending: false })
+      .order("created_at", { ascending: false });
 
-    if (startDate) query = query.gte('date', startDate);
-    if (endDate) query = query.lte('date', endDate);
-    if (categoryId) query = query.eq('category_id', categoryId);
+    if (startDate) query = query.gte("date", startDate);
+    if (endDate) query = query.lte("date", endDate);
+    if (categoryId) query = query.eq("category_id", categoryId);
 
     const from = (page - 1) * limit;
     const to = from + limit - 1;
@@ -72,8 +83,8 @@ export async function GET(request: NextRequest) {
     });
   } catch (err) {
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Server error' },
-      { status: 500 }
+      { error: err instanceof Error ? err.message : "Server error" },
+      { status: 500 },
     );
   }
 }
@@ -81,19 +92,24 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createServerClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
     const parsed = postBodySchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json({ error: 'Invalid body', details: parsed.error.flatten() }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid body", details: parsed.error.flatten() },
+        { status: 400 },
+      );
     }
 
     const { data, error } = await supabase
-      .from('expenses')
+      .from("expenses")
       .insert({
         user_id: user.id,
         date: parsed.data.date,
@@ -105,7 +121,9 @@ export async function POST(request: NextRequest) {
         receipt_url: parsed.data.receipt_url ?? null,
         notes: parsed.data.notes ?? null,
       })
-      .select('id, date, amount, currency, category_id, vendor, vat_amount, receipt_url, notes, created_at, updated_at')
+      .select(
+        "id, date, amount, currency, category_id, vendor, vat_amount, receipt_url, notes, created_at, updated_at",
+      )
       .single();
 
     if (error) {
@@ -114,8 +132,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(data);
   } catch (err) {
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Server error' },
-      { status: 500 }
+      { error: err instanceof Error ? err.message : "Server error" },
+      { status: 500 },
     );
   }
 }

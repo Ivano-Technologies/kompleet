@@ -6,7 +6,11 @@
 
 export interface TaxComputationInput {
   // Business Information
-  businessType: 'individual' | 'small_company' | 'other_company' | 'very_large_company';
+  businessType:
+    | "individual"
+    | "small_company"
+    | "other_company"
+    | "very_large_company";
   turnover: number;
   totalAssets: number;
   isProfessionalService: boolean;
@@ -77,7 +81,7 @@ export class TaxComputationService {
   static computeTax(input: TaxComputationInput): TaxComputationResult {
     // Determine business classification
     const classification = this.classifyBusiness(input);
-    const qualifiesAsSmall = classification === 'Small Company';
+    const qualifiesAsSmall = classification === "Small Company";
 
     // Calculate assessable profit
     const assessableProfit = this.calculateAssessableProfit(input);
@@ -86,13 +90,17 @@ export class TaxComputationService {
     const taxableIncome = this.calculateTaxableIncome(input, assessableProfit);
 
     // Calculate income tax
-    const incomeTax = this.calculateIncomeTax(input, taxableIncome, qualifiesAsSmall);
+    const incomeTax = this.calculateIncomeTax(
+      input,
+      taxableIncome,
+      qualifiesAsSmall,
+    );
 
     // Calculate development levy
     const developmentLevy = this.calculateDevelopmentLevy(
       input,
       assessableProfit,
-      qualifiesAsSmall
+      qualifiesAsSmall,
     );
 
     // Total tax liability
@@ -100,7 +108,9 @@ export class TaxComputationService {
 
     // Effective tax rate
     const effectiveTaxRate =
-      input.totalRevenue > 0 ? (totalTaxLiability / input.totalRevenue) * 100 : 0;
+      input.totalRevenue > 0
+        ? (totalTaxLiability / input.totalRevenue) * 100
+        : 0;
 
     // Tax breakdown
     const taxBreakdown = this.generateTaxBreakdown(
@@ -108,7 +118,7 @@ export class TaxComputationService {
       assessableProfit,
       taxableIncome,
       incomeTax,
-      developmentLevy
+      developmentLevy,
     );
 
     // Reliefs and exemptions
@@ -116,7 +126,10 @@ export class TaxComputationService {
     const exemptions = this.identifyExemptions(input, qualifiesAsSmall);
 
     // Filing requirements
-    const filingRequirements = this.getFilingRequirements(input, qualifiesAsSmall);
+    const filingRequirements = this.getFilingRequirements(
+      input,
+      qualifiesAsSmall,
+    );
     const nextSteps = this.getNextSteps(input, qualifiesAsSmall);
 
     return {
@@ -142,8 +155,8 @@ export class TaxComputationService {
    * Classify business based on Nigeria Tax Act 2025
    */
   private static classifyBusiness(input: TaxComputationInput): string {
-    if (input.businessType === 'individual') {
-      return 'Individual Taxpayer';
+    if (input.businessType === "individual") {
+      return "Individual Taxpayer";
     }
 
     // Small Company criteria (both must be met)
@@ -152,15 +165,15 @@ export class TaxComputationService {
       input.totalAssets <= 250_000_000 &&
       !input.isProfessionalService
     ) {
-      return 'Small Company';
+      return "Small Company";
     }
 
     // Very Large Company
     if (input.turnover >= 20_000_000_000) {
-      return 'Very Large Company (Minimum ETR 15%)';
+      return "Very Large Company (Minimum ETR 15%)";
     }
 
-    return 'Other Company';
+    return "Other Company";
   }
 
   /**
@@ -179,7 +192,7 @@ export class TaxComputationService {
    */
   private static calculateTaxableIncome(
     input: TaxComputationInput,
-    assessableProfit: number
+    assessableProfit: number,
   ): number {
     // Add back non-deductible expenses
     return assessableProfit + input.nonDeductibleExpenses;
@@ -191,10 +204,10 @@ export class TaxComputationService {
   private static calculateIncomeTax(
     input: TaxComputationInput,
     taxableIncome: number,
-    qualifiesAsSmall: boolean
+    qualifiesAsSmall: boolean,
   ): number {
     // Individual tax calculation
-    if (input.businessType === 'individual' && input.annualIncome) {
+    if (input.businessType === "individual" && input.annualIncome) {
       return this.calculateIndividualTax(input.annualIncome, input);
     }
 
@@ -204,12 +217,12 @@ export class TaxComputationService {
     }
 
     // Other companies: 30% tax
-    if (input.businessType === 'other_company') {
+    if (input.businessType === "other_company") {
       return taxableIncome * 0.3;
     }
 
     // Very large companies: 30% with 15% minimum ETR
-    if (input.businessType === 'very_large_company') {
+    if (input.businessType === "very_large_company") {
       const standardTax = taxableIncome * 0.3;
       const minimumTax = input.totalRevenue * 0.15;
       return Math.max(standardTax, minimumTax);
@@ -223,7 +236,7 @@ export class TaxComputationService {
    */
   private static calculateIndividualTax(
     annualIncome: number,
-    input: TaxComputationInput
+    input: TaxComputationInput,
   ): number {
     // Apply reliefs
     let taxableIncome = annualIncome;
@@ -298,10 +311,10 @@ export class TaxComputationService {
   private static calculateDevelopmentLevy(
     input: TaxComputationInput,
     assessableProfit: number,
-    qualifiesAsSmall: boolean
+    qualifiesAsSmall: boolean,
   ): number {
     // Exemptions: Small companies, individuals, non-residents
-    if (qualifiesAsSmall || input.businessType === 'individual') {
+    if (qualifiesAsSmall || input.businessType === "individual") {
       return 0;
     }
 
@@ -316,60 +329,60 @@ export class TaxComputationService {
     assessableProfit: number,
     taxableIncome: number,
     incomeTax: number,
-    developmentLevy: number
+    developmentLevy: number,
   ): TaxBreakdownItem[] {
     const breakdown: TaxBreakdownItem[] = [];
 
     breakdown.push({
-      description: 'Total Revenue',
+      description: "Total Revenue",
       amount: input.totalRevenue,
     });
 
     breakdown.push({
-      description: 'Less: Deductible Expenses',
+      description: "Less: Deductible Expenses",
       amount: -(input.totalExpenses - input.nonDeductibleExpenses),
     });
 
     if (input.capitalGains > 0) {
       breakdown.push({
-        description: 'Add: Capital Gains',
+        description: "Add: Capital Gains",
         amount: input.capitalGains,
       });
     }
 
     if (input.capitalLosses > 0) {
       breakdown.push({
-        description: 'Less: Capital Losses',
+        description: "Less: Capital Losses",
         amount: -input.capitalLosses,
       });
     }
 
     breakdown.push({
-      description: 'Assessable Profit',
+      description: "Assessable Profit",
       amount: assessableProfit,
     });
 
     if (input.nonDeductibleExpenses > 0) {
       breakdown.push({
-        description: 'Add: Non-Deductible Expenses',
+        description: "Add: Non-Deductible Expenses",
         amount: input.nonDeductibleExpenses,
       });
     }
 
     breakdown.push({
-      description: 'Taxable Income',
+      description: "Taxable Income",
       amount: taxableIncome,
     });
 
     breakdown.push({
-      description: 'Income Tax',
+      description: "Income Tax",
       amount: incomeTax,
-      rate: input.businessType === 'other_company' ? 30 : undefined,
+      rate: input.businessType === "other_company" ? 30 : undefined,
     });
 
     if (developmentLevy > 0) {
       breakdown.push({
-        description: 'Development Levy',
+        description: "Development Levy",
         amount: developmentLevy,
         rate: 4,
       });
@@ -384,21 +397,22 @@ export class TaxComputationService {
   private static identifyReliefs(input: TaxComputationInput): ReliefItem[] {
     const reliefs: ReliefItem[] = [];
 
-    if (input.businessType === 'individual') {
+    if (input.businessType === "individual") {
       if (input.rentPaid) {
         const rentRelief = Math.min(500_000, input.rentPaid * 0.2);
         reliefs.push({
-          name: 'Rent Relief',
+          name: "Rent Relief",
           amount: rentRelief,
-          description: 'N500,000 or 20% of annual rent paid (whichever is lower)',
+          description:
+            "N500,000 or 20% of annual rent paid (whichever is lower)",
         });
       }
 
       if (input.ownerOccupierInterest) {
         reliefs.push({
-          name: 'Owner-Occupier Interest',
+          name: "Owner-Occupier Interest",
           amount: input.ownerOccupierInterest,
-          description: 'Interest on owner-occupier house is deductible',
+          description: "Interest on owner-occupier house is deductible",
         });
       }
     }
@@ -411,38 +425,42 @@ export class TaxComputationService {
    */
   private static identifyExemptions(
     input: TaxComputationInput,
-    qualifiesAsSmall: boolean
+    qualifiesAsSmall: boolean,
   ): ExemptionItem[] {
     const exemptions: ExemptionItem[] = [];
 
     if (qualifiesAsSmall) {
       exemptions.push({
-        name: 'Small Company Income Tax Exemption',
-        description: '0% income tax rate (turnover ≤ N50m, assets ≤ N250m)',
+        name: "Small Company Income Tax Exemption",
+        description: "0% income tax rate (turnover ≤ N50m, assets ≤ N250m)",
       });
 
       exemptions.push({
-        name: 'Development Levy Exemption',
-        description: 'Small companies are exempt from 4% development levy',
+        name: "Development Levy Exemption",
+        description: "Small companies are exempt from 4% development levy",
       });
 
       exemptions.push({
-        name: 'Capital Gains Tax Exemption',
-        description: '0% capital gains tax (integrated into income tax)',
+        name: "Capital Gains Tax Exemption",
+        description: "0% capital gains tax (integrated into income tax)",
       });
 
       if (input.turnover < 100_000_000 && input.totalAssets < 250_000_000) {
         exemptions.push({
-          name: 'VAT Exemption',
-          description: 'Turnover < N100m AND assets < N250m',
+          name: "VAT Exemption",
+          description: "Turnover < N100m AND assets < N250m",
         });
       }
     }
 
-    if (input.businessType === 'individual' && input.annualIncome && input.annualIncome <= 800_000) {
+    if (
+      input.businessType === "individual" &&
+      input.annualIncome &&
+      input.annualIncome <= 800_000
+    ) {
       exemptions.push({
-        name: 'Individual Tax-Free Threshold',
-        description: 'First N800,000 of annual income is tax-free',
+        name: "Individual Tax-Free Threshold",
+        description: "First N800,000 of annual income is tax-free",
       });
     }
 
@@ -454,30 +472,32 @@ export class TaxComputationService {
    */
   private static getFilingRequirements(
     input: TaxComputationInput,
-    qualifiesAsSmall: boolean
+    qualifiesAsSmall: boolean,
   ): string[] {
     const requirements: string[] = [];
 
-    if (input.businessType === 'individual') {
-      requirements.push('File annual personal income tax return');
-      requirements.push('Submit employer tax deduction certificate (if employed)');
+    if (input.businessType === "individual") {
+      requirements.push("File annual personal income tax return");
+      requirements.push(
+        "Submit employer tax deduction certificate (if employed)",
+      );
     } else {
-      requirements.push('File annual corporate income tax return');
-      requirements.push('Submit audited financial statements');
-      requirements.push('File VAT returns (monthly)');
+      requirements.push("File annual corporate income tax return");
+      requirements.push("Submit audited financial statements");
+      requirements.push("File VAT returns (monthly)");
 
       if (!qualifiesAsSmall) {
-        requirements.push('Pay development levy (4% of assessable profits)');
+        requirements.push("Pay development levy (4% of assessable profits)");
       }
 
-      if (input.businessType === 'very_large_company') {
-        requirements.push('Maintain 15% minimum effective tax rate');
-        requirements.push('Submit transfer pricing documentation');
+      if (input.businessType === "very_large_company") {
+        requirements.push("Maintain 15% minimum effective tax rate");
+        requirements.push("Submit transfer pricing documentation");
       }
     }
 
-    requirements.push('Register with Nigeria Revenue Service (NRS)');
-    requirements.push('Obtain Tax Identification Number (TIN)');
+    requirements.push("Register with Nigeria Revenue Service (NRS)");
+    requirements.push("Obtain Tax Identification Number (TIN)");
 
     return requirements;
   }
@@ -487,22 +507,26 @@ export class TaxComputationService {
    */
   private static getNextSteps(
     input: TaxComputationInput,
-    qualifiesAsSmall: boolean
+    qualifiesAsSmall: boolean,
   ): string[] {
     const steps: string[] = [];
 
     if (qualifiesAsSmall) {
-      steps.push('Confirm eligibility for small company status with NRS');
-      steps.push('Enjoy 0% income tax rate and development levy exemption');
-      steps.push('Consider VAT exemption if turnover < N100m');
+      steps.push("Confirm eligibility for small company status with NRS");
+      steps.push("Enjoy 0% income tax rate and development levy exemption");
+      steps.push("Consider VAT exemption if turnover < N100m");
     } else {
-      steps.push('Prepare for 30% corporate income tax payment');
-      steps.push('Budget for 4% development levy');
-      steps.push('Ensure all VAT and customs duties are paid for expense deductibility');
+      steps.push("Prepare for 30% corporate income tax payment");
+      steps.push("Budget for 4% development levy");
+      steps.push(
+        "Ensure all VAT and customs duties are paid for expense deductibility",
+      );
     }
 
-    steps.push('Maintain proper accounting records');
-    steps.push('Consult a qualified Nigerian tax professional for complex matters');
+    steps.push("Maintain proper accounting records");
+    steps.push(
+      "Consult a qualified Nigerian tax professional for complex matters",
+    );
 
     return steps;
   }
@@ -511,9 +535,9 @@ export class TaxComputationService {
    * Format currency for Nigerian Naira
    */
   static formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('en-NG', {
-      style: 'currency',
-      currency: 'NGN',
+    return new Intl.NumberFormat("en-NG", {
+      style: "currency",
+      currency: "NGN",
       minimumFractionDigits: 2,
     }).format(amount);
   }

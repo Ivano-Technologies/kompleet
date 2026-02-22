@@ -3,15 +3,15 @@
  * Shows past import sessions with stats
  */
 
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from "react";
 
 interface ImportSession {
   id: string;
   file_name: string;
   bank_code: string;
-  status: 'processing' | 'completed' | 'failed';
+  status: "processing" | "completed" | "failed";
   transactions_imported: number;
   total_amount: number;
   errors_count: number;
@@ -28,16 +28,16 @@ export function ImportHistory() {
 
   const fetchHistory = useCallback(async () => {
     try {
-      const response = await fetch('/api/transactions/import-history?limit=20');
+      const response = await fetch("/api/transactions/import-history?limit=20");
       const data = await response.json();
 
       if (response.ok) {
         setSessions(data.sessions || []);
       } else {
-        setError(data.error || 'Failed to load history');
+        setError(data.error || "Failed to load history");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load history');
+      setError(err instanceof Error ? err.message : "Failed to load history");
     } finally {
       setLoading(false);
     }
@@ -92,11 +92,11 @@ export function ImportHistory() {
                   </h3>
                   <span
                     className={`px-2 py-1 text-xs font-medium rounded ${
-                      session.status === 'completed'
-                        ? 'bg-success/20 text-success'
-                        : session.status === 'failed'
-                        ? 'bg-error/20 text-error'
-                        : 'bg-warning/20 text-warning'
+                      session.status === "completed"
+                        ? "bg-success/20 text-success"
+                        : session.status === "failed"
+                          ? "bg-error/20 text-error"
+                          : "bg-warning/20 text-warning"
                     }`}
                   >
                     {session.status}

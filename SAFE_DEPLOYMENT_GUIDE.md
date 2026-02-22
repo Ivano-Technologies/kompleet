@@ -10,6 +10,7 @@
 ## ⚠️ IMPORTANT: Read Before Starting
 
 **What This Guide Does:**
+
 - Commits all local changes to git
 - Pushes changes to GitHub main branch
 - Deploys to Vercel production
@@ -17,6 +18,7 @@
 - Provides rollback procedures
 
 **Prerequisites:**
+
 - [ ] You have git installed and configured
 - [ ] You have push access to the GitHub repository
 - [ ] You have Vercel account and CLI installed (or will install in Step 4)
@@ -24,6 +26,7 @@
 - [ ] You have ~1 hour of uninterrupted time
 
 **What Changes Will Be Deployed:**
+
 - ✅ RBAC implementation (4 roles, 16 permissions)
 - ✅ Rate limiting (10 critical routes)
 - ✅ Save Calculation APIs (6 endpoints)
@@ -66,6 +69,7 @@ pnpm build
 ```
 
 **Expected Result:**
+
 ```
 ✓ Compiled successfully in 54s
 ✓ Generating static pages using 7 workers (86/86)
@@ -82,6 +86,7 @@ pnpm test
 ```
 
 **Expected Result:**
+
 ```
 Test Files  11 passed (13)
 Tests  128 passed (134)
@@ -98,6 +103,7 @@ bash scripts/pre-deploy-check.sh
 ```
 
 **Expected Result:**
+
 ```
 ✓ All checks passed! Ready for deployment.
 ```
@@ -115,6 +121,7 @@ git status
 ```
 
 Review the list of modified and new files. You should see:
+
 - Modified: 14 files (calculators, API routes, tests, etc.)
 - Untracked: 26 new files (documentation, new pages, API routes)
 
@@ -162,6 +169,7 @@ git log --oneline -1
 **Save this commit hash** - you'll need it if you need to rollback.
 
 Example output:
+
 ```
 5b2026f63 docs: document Supabase Auth as current, Clerk migration deferred
 ```
@@ -179,6 +187,7 @@ https://github.com/Ivano-Technologies/KOMPLEET-PLATFORM
 ```
 
 **Note**:
+
 - Latest commit on main branch
 - Last deployment time (if visible)
 - Any open pull requests
@@ -204,6 +213,7 @@ git status
 ```
 
 **Expected Result:**
+
 - All modified files shown in green (staged)
 - All new files shown in green (staged)
 
@@ -274,6 +284,7 @@ git push origin main
 ```
 
 **Expected Result:**
+
 ```
 Enumerating objects: X, done.
 Counting objects: 100% (X/X), done.
@@ -298,6 +309,7 @@ https://github.com/Ivano-Technologies/KOMPLEET-PLATFORM
 ```
 
 **Verify**:
+
 - [ ] Latest commit shows your commit message
 - [ ] Commit timestamp is current (just now)
 - [ ] All new files are visible in the file browser
@@ -314,6 +326,7 @@ If you have GitHub Actions CI/CD:
 Go to: `https://github.com/Ivano-Technologies/KOMPLEET-PLATFORM/actions`
 
 **Wait for**:
+
 - [ ] CI workflow to complete
 - [ ] All checks to pass (green checkmarks)
 
@@ -328,11 +341,13 @@ Go to: `https://github.com/Ivano-Technologies/KOMPLEET-PLATFORM/actions`
 ### 5.1 Enable PITR (Point-in-Time Recovery)
 
 1. Open Supabase Dashboard:
+
    ```
    https://supabase.com/dashboard/project/frlcvkmjuhnjcicwywrh
    ```
 
 2. Navigate to:
+
    ```
    Settings → Database → Point in Time Recovery
    ```
@@ -354,6 +369,7 @@ Go to: `https://github.com/Ivano-Technologies/KOMPLEET-PLATFORM/actions`
 Still in Supabase Dashboard:
 
 1. Navigate to:
+
    ```
    Settings → API
    ```
@@ -361,11 +377,13 @@ Still in Supabase Dashboard:
 2. Copy these values (you'll need them for Vercel):
 
    **Copy URL:**
+
    ```
    Project URL: https://frlcvkmjuhnjcicwywrh.supabase.co
    ```
 
    **Copy Keys:**
+
    ```
    anon public key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
    service_role key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
@@ -382,6 +400,7 @@ Still in Supabase Dashboard:
 In Supabase Dashboard:
 
 1. Navigate to:
+
    ```
    Database → Tables
    ```
@@ -392,6 +411,7 @@ In Supabase Dashboard:
    - [ ] `audit_logs`
 
 3. Navigate to:
+
    ```
    Authentication → Policies
    ```
@@ -429,11 +449,13 @@ vercel login
 ```
 
 **Follow prompts**:
+
 1. Choose login method (Email, GitHub, GitLab, etc.)
 2. Verify in browser
 3. Return to terminal when logged in
 
 **Expected Result:**
+
 ```
 > Success! Email authentication complete for your-email@example.com
 ```
@@ -457,6 +479,7 @@ vercel link
 ```
 
 **Answer prompts**:
+
 ```
 ? Set up and deploy "~/kompleet-platform"? [Y/n] Y
 ? Which scope do you want to deploy to? [Your Vercel account/team]
@@ -465,6 +488,7 @@ vercel link
 ```
 
 **Expected Result:**
+
 ```
 ✅ Linked to your-vercel-account/kompleet-platform
 ```
@@ -514,6 +538,7 @@ vercel env ls
 ```
 
 **Expected Result:**
+
 ```
 Environment Variables:
 - NEXT_PUBLIC_SUPABASE_URL (production)
@@ -528,6 +553,7 @@ Environment Variables:
 ### 6.6 Deploy to Production
 
 **⚠️ FINAL CHECK**: Before deploying, ensure:
+
 - [ ] Build passed locally (Step 1.1)
 - [ ] Tests passed locally (Step 1.2)
 - [ ] Changes pushed to GitHub (Step 4.1)
@@ -541,6 +567,7 @@ vercel --prod
 ```
 
 **What happens**:
+
 1. Vercel uploads your code
 2. Installs dependencies
 3. Runs build process
@@ -548,6 +575,7 @@ vercel --prod
 5. Shows deployment URL
 
 **Expected Output:**
+
 ```
 🔍  Inspect: https://vercel.com/your-account/kompleet-platform/xxx
 ✅  Production: https://kompleet-platform.vercel.app [copied to clipboard]
@@ -584,6 +612,7 @@ curl https://YOUR-PRODUCTION-URL.vercel.app/api/health
 **Replace `YOUR-PRODUCTION-URL` with your actual Vercel URL**
 
 **Expected Response:**
+
 ```json
 {
   "status": "ok",
@@ -763,6 +792,7 @@ wait
 ### 7.4 Check Vercel Deployment Logs
 
 1. Open Vercel Dashboard:
+
    ```
    https://vercel.com/dashboard
    ```
@@ -784,6 +814,7 @@ wait
 ### 7.5 Check Supabase Logs
 
 1. Open Supabase Dashboard:
+
    ```
    https://supabase.com/dashboard/project/frlcvkmjuhnjcicwywrh
    ```
@@ -825,11 +856,13 @@ Use browser DevTools to check performance:
 **During first hour after deployment**, monitor:
 
 #### Vercel Analytics
+
 ```
 https://vercel.com/dashboard → Your Project → Analytics
 ```
 
 Check:
+
 - [ ] Page views increasing
 - [ ] No spike in 500 errors
 - [ ] Response times < 500ms average
@@ -837,11 +870,13 @@ Check:
 ---
 
 #### Supabase Monitoring
+
 ```
 https://supabase.com/dashboard/project/frlcvkmjuhnjcicwywrh
 ```
 
 Check:
+
 - [ ] Database CPU < 60%
 - [ ] Active connections < 100
 - [ ] No query errors
@@ -853,14 +888,14 @@ Check:
 
 **Success Metrics** (check every 6 hours):
 
-| Metric | Target | Where to Check |
-|--------|--------|----------------|
-| Uptime | > 99.5% | Vercel Analytics |
-| Error Rate | < 1% | Vercel Function Logs |
-| API Response Time | < 500ms | Vercel Analytics → Web Vitals |
-| Database CPU | < 60% | Supabase → Database |
-| User Signups | 5+ | Supabase → Table Editor → users |
-| Calculations Saved | 10+ | Supabase → Table Editor → tax_calculations |
+| Metric             | Target  | Where to Check                             |
+| ------------------ | ------- | ------------------------------------------ |
+| Uptime             | > 99.5% | Vercel Analytics                           |
+| Error Rate         | < 1%    | Vercel Function Logs                       |
+| API Response Time  | < 500ms | Vercel Analytics → Web Vitals              |
+| Database CPU       | < 60%   | Supabase → Database                        |
+| User Signups       | 5+      | Supabase → Table Editor → users            |
+| Calculations Saved | 10+     | Supabase → Table Editor → tax_calculations |
 
 ---
 
@@ -895,6 +930,7 @@ Check:
 - [ ] PDF export
 
 **Collect feedback** on:
+
 - Bugs or errors encountered
 - UI/UX issues
 - Performance problems
@@ -907,6 +943,7 @@ Check:
 ### When to Rollback
 
 Rollback if you experience:
+
 - ❌ Critical bugs affecting all users
 - ❌ Data loss or corruption
 - ❌ Authentication completely broken
@@ -914,6 +951,7 @@ Rollback if you experience:
 - ❌ Database connection failures
 
 **Don't rollback** for minor issues:
+
 - ✅ Minor UI glitches
 - ✅ Isolated bugs affecting < 5% of users
 - ✅ Non-critical feature not working
@@ -925,6 +963,7 @@ Rollback if you experience:
 **Via Dashboard:**
 
 1. Open Vercel Dashboard:
+
    ```
    https://vercel.com/dashboard
    ```
@@ -988,6 +1027,7 @@ vercel --prod
 **Only if database schema changed and causing issues:**
 
 1. Open Supabase Dashboard:
+
    ```
    https://supabase.com/dashboard/project/frlcvkmjuhnjcicwywrh
    ```
@@ -1032,25 +1072,30 @@ vercel --prod
 ### If Something Goes Wrong
 
 **Build Fails:**
+
 - Check TypeScript errors: `pnpm typecheck`
 - Check ESLint errors: `pnpm lint`
 - Review build logs in Vercel dashboard
 
 **Authentication Not Working:**
+
 - Verify Supabase credentials in Vercel env vars
 - Check Supabase → Authentication → Settings → Site URL
 - Add production URL to redirect URLs
 
 **Database Connection Fails:**
+
 - Verify `SUPABASE_SERVICE_ROLE_KEY` is set correctly
 - Check Supabase → Settings → Database → Connection pooling
 - Review Supabase logs for connection errors
 
 **Rate Limiting Too Aggressive:**
+
 - Adjust in `src/lib/rate-limit.ts`
 - Increase `RATE_LIMIT_REQUESTS_PER_MINUTE` env var
 
 **API Returns 500 Errors:**
+
 - Check Vercel Function logs
 - Check browser console for errors
 - Review Sentry errors (if configured)

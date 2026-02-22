@@ -1,5 +1,5 @@
-import { requireAuth } from '@/lib/auth';
-import { redirect } from 'next/navigation';
+import { requireAuth } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
 export default async function AdminLayout({
   children,
@@ -11,8 +11,8 @@ export default async function AdminLayout({
   // Read role from app_metadata (admin-only writable)
   const role = user.app_metadata?.role;
 
-  if (!role || !['owner', 'admin'].includes(role)) {
-    redirect('/dashboard');
+  if (!role || !["owner", "admin"].includes(role)) {
+    redirect("/dashboard");
   }
 
   return <>{children}</>;

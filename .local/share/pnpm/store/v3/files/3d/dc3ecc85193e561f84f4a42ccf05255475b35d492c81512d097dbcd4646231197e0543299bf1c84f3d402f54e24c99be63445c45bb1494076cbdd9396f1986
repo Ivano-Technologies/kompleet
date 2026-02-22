@@ -1,5 +1,5 @@
 #!/usr/bin/env node
 
-const crossEnv = require('..')
+const crossEnv = require("..");
 
-crossEnv(process.argv.slice(2), {shell: true})
+crossEnv(process.argv.slice(2), { shell: true });

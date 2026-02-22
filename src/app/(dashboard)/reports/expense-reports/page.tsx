@@ -1,9 +1,13 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { FileText, Download } from 'lucide-react';
+import { useState } from "react";
+import { FileText, Download } from "lucide-react";
 
-const DEFAULT_START = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+const DEFAULT_START = new Date(
+  new Date().getFullYear(),
+  new Date().getMonth(),
+  1,
+)
   .toISOString()
   .slice(0, 10);
 const DEFAULT_END = new Date().toISOString().slice(0, 10);
@@ -13,7 +17,7 @@ export default function ExpenseReportsPage() {
   const [endDate, setEndDate] = useState(DEFAULT_END);
   const [exporting, setExporting] = useState<string | null>(null);
 
-  async function handleExport(format: 'csv' | 'pdf' | 'excel') {
+  async function handleExport(format: "csv" | "pdf" | "excel") {
     setExporting(format);
     try {
       const params = new URLSearchParams({
@@ -24,19 +28,24 @@ export default function ExpenseReportsPage() {
       const res = await fetch(`/api/expenses/export?${params}`);
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error ?? 'Export failed');
+        throw new Error(data.error ?? "Export failed");
       }
       const blob = await res.blob();
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
-      a.download = res.headers.get('Content-Disposition')?.split('filename=')[1]?.replace(/"/g, '') ?? `expenses_${startDate}_${endDate}.${format === 'excel' ? 'xlsx' : format}`;
+      a.download =
+        res.headers
+          .get("Content-Disposition")
+          ?.split("filename=")[1]
+          ?.replace(/"/g, "") ??
+        `expenses_${startDate}_${endDate}.${format === "excel" ? "xlsx" : format}`;
       document.body.appendChild(a);
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
     } catch (e) {
-      alert(e instanceof Error ? e.message : 'Export failed');
+      alert(e instanceof Error ? e.message : "Export failed");
     } finally {
       setExporting(null);
     }
@@ -82,30 +91,30 @@ export default function ExpenseReportsPage() {
         <div className="mt-6 flex flex-wrap gap-3">
           <button
             type="button"
-            onClick={() => handleExport('csv')}
+            onClick={() => handleExport("csv")}
             disabled={!!exporting}
             className="inline-flex items-center gap-2 rounded-md bg-[#008751] px-4 py-2 text-sm font-medium text-white hover:bg-[#006b42] disabled:opacity-60"
           >
             <Download className="h-4 w-4" />
-            {exporting === 'csv' ? 'Exporting…' : 'Download CSV'}
+            {exporting === "csv" ? "Exporting…" : "Download CSV"}
           </button>
           <button
             type="button"
-            onClick={() => handleExport('excel')}
+            onClick={() => handleExport("excel")}
             disabled={!!exporting}
             className="inline-flex items-center gap-2 rounded-md bg-[#008751] px-4 py-2 text-sm font-medium text-white hover:bg-[#006b42] disabled:opacity-60"
           >
             <Download className="h-4 w-4" />
-            {exporting === 'excel' ? 'Exporting…' : 'Download Excel'}
+            {exporting === "excel" ? "Exporting…" : "Download Excel"}
           </button>
           <button
             type="button"
-            onClick={() => handleExport('pdf')}
+            onClick={() => handleExport("pdf")}
             disabled={!!exporting}
             className="inline-flex items-center gap-2 rounded-md bg-[#008751] px-4 py-2 text-sm font-medium text-white hover:bg-[#006b42] disabled:opacity-60"
           >
             <FileText className="h-4 w-4" />
-            {exporting === 'pdf' ? 'Exporting…' : 'Download PDF'}
+            {exporting === "pdf" ? "Exporting…" : "Download PDF"}
           </button>
         </div>
       </div>

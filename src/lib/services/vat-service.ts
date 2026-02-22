@@ -7,13 +7,13 @@
 
 export interface VATTransaction {
   id: string;
-  type: 'income' | 'expense';
+  type: "income" | "expense";
   amount: number;
   description: string;
   date: string;
   category: string;
   // VAT classification
-  vatTreatment: 'standard' | 'exempt' | 'zero-rated' | 'out-of-scope';
+  vatTreatment: "standard" | "exempt" | "zero-rated" | "out-of-scope";
   // For expenses: whether VAT is recoverable
   vatRecoverable?: boolean;
 }
@@ -30,22 +30,22 @@ export interface VATCalculation {
 
 export interface VATSummary {
   period: string; // YYYY-MM format
-  
+
   // Output VAT (VAT on sales)
   totalSalesGross: number;
   totalSalesVAT: number;
-  
+
   // Input VAT (VAT on purchases)
   totalPurchasesGross: number;
   totalPurchasesVAT: number;
   recoverableVAT: number;
-  
+
   // Net VAT payable
   netVATPayable: number;
-  
+
   // Breakdown by category
   breakdown: VATBreakdownItem[];
-  
+
   // Compliance
   filingDeadline: string;
   isRegistered: boolean;
@@ -53,7 +53,7 @@ export interface VATSummary {
 
 export interface VATBreakdownItem {
   category: string;
-  type: 'income' | 'expense';
+  type: "income" | "expense";
   grossAmount: number;
   vatAmount: number;
   vatTreatment: string;
@@ -61,25 +61,25 @@ export interface VATBreakdownItem {
 }
 
 export interface VATFormData {
-  formType: 'A' | 'B'; // Form A: Registered traders, Form B: Non-registered
+  formType: "A" | "B"; // Form A: Registered traders, Form B: Non-registered
   period: string;
   businessName: string;
   tinNumber: string;
-  
+
   // Form A specific
   totalSalesInclusive?: number;
   totalSalesExclusive?: number;
   outputVAT?: number;
-  
+
   totalPurchasesInclusive?: number;
   totalPurchasesExclusive?: number;
   inputVAT?: number;
-  
+
   netVATPayable?: number;
-  
+
   // Form B specific (non-registered)
   totalTurnover?: number;
-  
+
   // Common
   submissionDate?: string;
   authorizedSignatory?: string;
@@ -92,26 +92,26 @@ export class VATService {
   // VAT rates
   private static readonly STANDARD_RATE = 0.075; // 7.5%
   private static readonly ZERO_RATE = 0.0;
-  
+
   // VAT registration threshold (annual turnover)
   private static readonly REGISTRATION_THRESHOLD = 25_000_000; // ₦25 million
-  
+
   // Exempt supplies (no VAT charged, no VAT recovery)
   private static readonly EXEMPT_CATEGORIES = [
-    'medical_services',
-    'education',
-    'financial_services',
-    'insurance',
-    'residential_rent',
-    'agricultural_produce',
+    "medical_services",
+    "education",
+    "financial_services",
+    "insurance",
+    "residential_rent",
+    "agricultural_produce",
   ];
-  
+
   // Zero-rated supplies (no VAT charged, VAT recovery allowed)
   private static readonly ZERO_RATED_CATEGORIES = [
-    'exported_goods',
-    'export_services',
-    'agricultural_products',
-    'food_items',
+    "exported_goods",
+    "export_services",
+    "agricultural_products",
+    "food_items",
   ];
 
   /**
@@ -119,26 +119,26 @@ export class VATService {
    */
   static determineVATTreatment(
     category: string,
-    type: 'income' | 'expense',
-    isRegistered: boolean
-  ): 'standard' | 'exempt' | 'zero-rated' | 'out-of-scope' {
+    type: "income" | "expense",
+    isRegistered: boolean,
+  ): "standard" | "exempt" | "zero-rated" | "out-of-scope" {
     // Unregistered businesses don't charge VAT
-    if (!isRegistered && type === 'income') {
-      return 'out-of-scope';
+    if (!isRegistered && type === "income") {
+      return "out-of-scope";
     }
 
     // Check if exempt
     if (this.EXEMPT_CATEGORIES.includes(category.toLowerCase())) {
-      return 'exempt';
+      return "exempt";
     }
 
     // Check if zero-rated
     if (this.ZERO_RATED_CATEGORIES.includes(category.toLowerCase())) {
-      return 'zero-rated';
+      return "zero-rated";
     }
 
     // Default to standard rate
-    return 'standard';
+    return "standard";
   }
 
   /**
@@ -146,12 +146,12 @@ export class VATService {
    */
   static calculateTransactionVAT(
     transaction: VATTransaction,
-    isRegistered: boolean
+    isRegistered: boolean,
   ): VATCalculation {
     const treatment = this.determineVATTreatment(
       transaction.category,
       transaction.type,
-      isRegistered
+      isRegistered,
     );
 
     let vatRate = 0;
@@ -159,28 +159,30 @@ export class VATService {
     let isRecoverable = false;
 
     switch (treatment) {
-      case 'standard':
+      case "standard":
         vatRate = this.STANDARD_RATE;
         vatAmount = transaction.amount * vatRate;
         // For expenses, VAT is recoverable if marked as such
-        isRecoverable = transaction.type === 'expense' && (transaction.vatRecoverable ?? true);
+        isRecoverable =
+          transaction.type === "expense" &&
+          (transaction.vatRecoverable ?? true);
         break;
 
-      case 'zero-rated':
+      case "zero-rated":
         vatRate = this.ZERO_RATE;
         vatAmount = 0;
         // Zero-rated supplies allow VAT recovery on inputs
-        isRecoverable = transaction.type === 'expense';
+        isRecoverable = transaction.type === "expense";
         break;
 
-      case 'exempt':
+      case "exempt":
         vatRate = 0;
         vatAmount = 0;
         // Exempt supplies do NOT allow VAT recovery
         isRecoverable = false;
         break;
 
-      case 'out-of-scope':
+      case "out-of-scope":
         vatRate = 0;
         vatAmount = 0;
         isRecoverable = false;
@@ -192,7 +194,9 @@ export class VATService {
       grossAmount: transaction.amount,
       vatRate,
       vatAmount,
-      netAmount: transaction.amount + (transaction.type === 'income' ? vatAmount : -vatAmount),
+      netAmount:
+        transaction.amount +
+        (transaction.type === "income" ? vatAmount : -vatAmount),
       vatTreatment: treatment,
       isRecoverable,
     };
@@ -204,7 +208,7 @@ export class VATService {
   static calculateVATSummary(
     transactions: VATTransaction[],
     period: string,
-    isRegistered: boolean
+    isRegistered: boolean,
   ): VATSummary {
     const breakdown: Map<string, VATBreakdownItem> = new Map();
     let totalSalesGross = 0;
@@ -215,10 +219,13 @@ export class VATService {
 
     // Process each transaction
     for (const transaction of transactions) {
-      const calculation = this.calculateTransactionVAT(transaction, isRegistered);
+      const calculation = this.calculateTransactionVAT(
+        transaction,
+        isRegistered,
+      );
 
       // Update totals
-      if (transaction.type === 'income') {
+      if (transaction.type === "income") {
         totalSalesGross += calculation.grossAmount;
         totalSalesVAT += calculation.vatAmount;
       } else {
@@ -252,11 +259,11 @@ export class VATService {
     const netVATPayable = totalSalesVAT - recoverableVAT;
 
     // Filing deadline (last day of month following the quarter)
-    const [year, month] = period.split('-').map(Number);
+    const [year, month] = period.split("-").map(Number);
     const quarter = Math.ceil(month / 3);
     const deadlineMonth = quarter * 3 + 1;
     const deadlineYear = deadlineMonth > 12 ? year + 1 : year;
-    const filingDeadline = `${deadlineYear}-${String(deadlineMonth % 12 || 12).padStart(2, '0')}-28`;
+    const filingDeadline = `${deadlineYear}-${String(deadlineMonth % 12 || 12).padStart(2, "0")}-28`;
 
     return {
       period,
@@ -282,38 +289,46 @@ export class VATService {
   /**
    * Generate VAT Form A (for registered traders)
    */
-  static generateFormA(summary: VATSummary, businessName: string, tinNumber: string): VATFormData {
+  static generateFormA(
+    summary: VATSummary,
+    businessName: string,
+    tinNumber: string,
+  ): VATFormData {
     if (!summary.isRegistered) {
-      throw new Error('Form A is only for registered VAT traders');
+      throw new Error("Form A is only for registered VAT traders");
     }
 
     return {
-      formType: 'A',
+      formType: "A",
       period: summary.period,
       businessName,
       tinNumber,
       totalSalesInclusive: summary.totalSalesGross + summary.totalSalesVAT,
       totalSalesExclusive: summary.totalSalesGross,
       outputVAT: summary.totalSalesVAT,
-      totalPurchasesInclusive: summary.totalPurchasesGross + summary.totalPurchasesVAT,
+      totalPurchasesInclusive:
+        summary.totalPurchasesGross + summary.totalPurchasesVAT,
       totalPurchasesExclusive: summary.totalPurchasesGross,
       inputVAT: summary.totalPurchasesVAT,
       netVATPayable: summary.netVATPayable,
-      submissionDate: new Date().toISOString().split('T')[0],
+      submissionDate: new Date().toISOString().split("T")[0],
     };
   }
 
   /**
    * Generate VAT Form B (for non-registered traders)
    */
-  static generateFormB(annualTurnover: number, businessName: string): VATFormData {
+  static generateFormB(
+    annualTurnover: number,
+    businessName: string,
+  ): VATFormData {
     return {
-      formType: 'B',
+      formType: "B",
       period: new Date().toISOString().substring(0, 7),
       businessName,
-      tinNumber: '',
+      tinNumber: "",
       totalTurnover: annualTurnover,
-      submissionDate: new Date().toISOString().split('T')[0],
+      submissionDate: new Date().toISOString().split("T")[0],
     };
   }
 
@@ -321,7 +336,10 @@ export class VATService {
    * Calculate VAT on inclusive price (price includes VAT)
    * Useful for retail transactions
    */
-  static extractVATFromInclusive(inclusivePrice: number, rate: number = this.STANDARD_RATE): {
+  static extractVATFromInclusive(
+    inclusivePrice: number,
+    rate: number = this.STANDARD_RATE,
+  ): {
     netAmount: number;
     vatAmount: number;
   } {
@@ -339,7 +357,10 @@ export class VATService {
    * Calculate VAT on exclusive price (price excludes VAT)
    * Useful for B2B transactions
    */
-  static addVATToExclusive(exclusivePrice: number, rate: number = this.STANDARD_RATE): {
+  static addVATToExclusive(
+    exclusivePrice: number,
+    rate: number = this.STANDARD_RATE,
+  ): {
     netAmount: number;
     vatAmount: number;
     inclusivePrice: number;
@@ -367,20 +388,23 @@ export class VATService {
 
     // Check if registered but no sales
     if (summary.isRegistered && summary.totalSalesGross === 0) {
-      warnings.push('Registered for VAT but no sales recorded in period');
+      warnings.push("Registered for VAT but no sales recorded in period");
     }
 
     // Check if unregistered but high turnover
-    if (!summary.isRegistered && summary.totalSalesGross > this.REGISTRATION_THRESHOLD) {
+    if (
+      !summary.isRegistered &&
+      summary.totalSalesGross > this.REGISTRATION_THRESHOLD
+    ) {
       issues.push(
-        `Turnover (₦${summary.totalSalesGross.toLocaleString()}) exceeds registration threshold (₦${this.REGISTRATION_THRESHOLD.toLocaleString()}). Must register for VAT.`
+        `Turnover (₦${summary.totalSalesGross.toLocaleString()}) exceeds registration threshold (₦${this.REGISTRATION_THRESHOLD.toLocaleString()}). Must register for VAT.`,
       );
     }
 
     // Check for negative net VAT (refund due)
     if (summary.netVATPayable < 0) {
       warnings.push(
-        `VAT refund due: ₦${Math.abs(summary.netVATPayable).toLocaleString()}. Submit refund claim.`
+        `VAT refund due: ₦${Math.abs(summary.netVATPayable).toLocaleString()}. Submit refund claim.`,
       );
     }
 

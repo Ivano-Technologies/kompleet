@@ -9,6 +9,7 @@
 ## Quick Status
 
 ### ✅ Completed Features (39/85)
+
 - Authentication & User Management (67%)
 - AI Categorization Engine (88%) - **Ahead of Schedule**
 - Tax Calculation Engine (64%)
@@ -17,11 +18,13 @@
 - ML Governance Framework (100%)
 
 ### ❌ Critical Blockers (3)
+
 1. **Transaction Upload & Parsing** - No CSV/Excel import (Sprint 5)
 2. **Financial Statement Generator** - No P&L/Tax Schedule (Sprint 6)
 3. **NRS Filing Integration** - No form generation (Sprint 7)
 
 ### ⚠️ High-Priority Gaps
+
 - E-Invoicing incomplete (13% - mandatory 2026 compliance)
 - No disaster recovery plan
 - NDPR consent flows incomplete
@@ -31,13 +34,13 @@
 
 ## Platform Metrics
 
-| Metric | Target | Current | Status |
-|--------|--------|---------|--------|
-| Feature Completion | 100% | 62% | 🟡 In Progress |
-| ML Accuracy | 88%+ | 87% | 🟢 Near Target |
-| Uptime | 99.9% | 99.5% | 🟡 Close |
-| Beta Users | 100 | 0 | 🔴 Not Launched |
-| Paying Customers | 660 | 0 | 🔴 Pre-Revenue |
+| Metric             | Target | Current | Status          |
+| ------------------ | ------ | ------- | --------------- |
+| Feature Completion | 100%   | 62%     | 🟡 In Progress  |
+| ML Accuracy        | 88%+   | 87%     | 🟢 Near Target  |
+| Uptime             | 99.9%  | 99.5%   | 🟡 Close        |
+| Beta Users         | 100    | 0       | 🔴 Not Launched |
+| Paying Customers   | 660    | 0       | 🔴 Pre-Revenue  |
 
 ---
 
@@ -65,13 +68,13 @@
 
 ## Risk Summary
 
-| Risk | Probability | Impact | Status |
-|------|-------------|--------|--------|
-| MVP launch delayed | HIGH | CRITICAL | 🔴 Active |
-| E-invoicing non-compliance | MEDIUM | CRITICAL | 🟡 Monitoring |
-| Performance issues at scale | MEDIUM | HIGH | 🟡 Monitoring |
-| Data loss (no DR) | LOW | CRITICAL | 🔴 Active |
-| NDPR penalties | MEDIUM | HIGH | 🟡 Monitoring |
+| Risk                        | Probability | Impact   | Status        |
+| --------------------------- | ----------- | -------- | ------------- |
+| MVP launch delayed          | HIGH        | CRITICAL | 🔴 Active     |
+| E-invoicing non-compliance  | MEDIUM      | CRITICAL | 🟡 Monitoring |
+| Performance issues at scale | MEDIUM      | HIGH     | 🟡 Monitoring |
+| Data loss (no DR)           | LOW         | CRITICAL | 🔴 Active     |
+| NDPR penalties              | MEDIUM      | HIGH     | 🟡 Monitoring |
 
 ---
 

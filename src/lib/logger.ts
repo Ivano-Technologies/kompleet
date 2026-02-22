@@ -18,13 +18,13 @@
  *   - Use appropriate level (don't use error for warnings)
  */
 
-import pino, { type Logger as PinoLogger } from 'pino';
+import pino, { type Logger as PinoLogger } from "pino";
 
 // ============================================================
 // TYPES
 // ============================================================
 
-export type LogLevel = 'fatal' | 'error' | 'warn' | 'info' | 'debug' | 'trace';
+export type LogLevel = "fatal" | "error" | "warn" | "info" | "debug" | "trace";
 
 export interface LogContext {
   userId?: string;
@@ -51,41 +51,50 @@ export interface Logger {
 
 function getLogLevel(): LogLevel {
   const level = process.env.LOG_LEVEL as LogLevel | undefined;
-  const validLevels: LogLevel[] = ['fatal', 'error', 'warn', 'info', 'debug', 'trace'];
+  const validLevels: LogLevel[] = [
+    "fatal",
+    "error",
+    "warn",
+    "info",
+    "debug",
+    "trace",
+  ];
 
   if (level && validLevels.includes(level)) return level;
-  return process.env.NODE_ENV === 'development' ? 'debug' : 'info';
+  return process.env.NODE_ENV === "development" ? "debug" : "info";
 }
 
 const REDACTED_FIELDS = [
-  'password',
-  'token',
-  'apiKey',
-  'api_key',
-  'secret',
-  'authorization',
-  'cookie',
-  'creditCard',
-  'credit_card',
-  'cardNumber',
-  'card_number',
-  'cvv',
-  'ssn',
-  'tin',
+  "password",
+  "token",
+  "apiKey",
+  "api_key",
+  "secret",
+  "authorization",
+  "cookie",
+  "creditCard",
+  "credit_card",
+  "cardNumber",
+  "card_number",
+  "cvv",
+  "ssn",
+  "tin",
 ];
 
-function redactSensitiveData(obj: Record<string, unknown>): Record<string, unknown> {
+function redactSensitiveData(
+  obj: Record<string, unknown>,
+): Record<string, unknown> {
   const redacted: Record<string, unknown> = {};
 
   for (const [key, value] of Object.entries(obj)) {
     const lowerKey = key.toLowerCase();
     const shouldRedact = REDACTED_FIELDS.some((field) =>
-      lowerKey.includes(field.toLowerCase())
+      lowerKey.includes(field.toLowerCase()),
     );
 
     if (shouldRedact) {
-      redacted[key] = '[REDACTED]';
-    } else if (value && typeof value === 'object' && !Array.isArray(value)) {
+      redacted[key] = "[REDACTED]";
+    } else if (value && typeof value === "object" && !Array.isArray(value)) {
       redacted[key] = redactSensitiveData(value as Record<string, unknown>);
     } else {
       redacted[key] = value;
@@ -99,32 +108,32 @@ function redactSensitiveData(obj: Record<string, unknown>): Record<string, unkno
 // LOGGER CREATION
 // ============================================================
 
-const isServer = typeof window === 'undefined';
+const isServer = typeof window === "undefined";
 
 function createLogger(): PinoLogger {
-  const isDevelopment = process.env.NODE_ENV === 'development';
+  const isDevelopment = process.env.NODE_ENV === "development";
 
   return pino({
     level: getLogLevel(),
     base: {
       env: process.env.NODE_ENV,
-      service: 'kompleet',
-      version: process.env.npm_package_version || '0.0.0',
+      service: "kompleet",
+      version: process.env.npm_package_version || "0.0.0",
     },
     timestamp: pino.stdTimeFunctions.isoTime,
     transport: isDevelopment
       ? {
-          target: 'pino-pretty',
+          target: "pino-pretty",
           options: {
             colorize: true,
-            translateTime: 'HH:MM:ss',
-            ignore: 'pid,hostname,service,version,env',
+            translateTime: "HH:MM:ss",
+            ignore: "pid,hostname,service,version,env",
           },
         }
       : undefined,
     redact: {
       paths: REDACTED_FIELDS.map((field) => `*.${field}`),
-      censor: '[REDACTED]',
+      censor: "[REDACTED]",
     },
     serializers: {
       error: pino.stdSerializers.err,
@@ -150,13 +159,20 @@ function createNoopLogger(): Logger {
 
 function wrapLogger(pinoInstance: PinoLogger): Logger {
   return {
-    fatal: (message, context) => pinoInstance.fatal(redactSensitiveData(context ?? {}), message),
-    error: (message, context) => pinoInstance.error(redactSensitiveData(context ?? {}), message),
-    warn: (message, context) => pinoInstance.warn(redactSensitiveData(context ?? {}), message),
-    info: (message, context) => pinoInstance.info(redactSensitiveData(context ?? {}), message),
-    debug: (message, context) => pinoInstance.debug(redactSensitiveData(context ?? {}), message),
-    trace: (message, context) => pinoInstance.trace(redactSensitiveData(context ?? {}), message),
-    child: (bindings) => wrapLogger(pinoInstance.child(redactSensitiveData(bindings))),
+    fatal: (message, context) =>
+      pinoInstance.fatal(redactSensitiveData(context ?? {}), message),
+    error: (message, context) =>
+      pinoInstance.error(redactSensitiveData(context ?? {}), message),
+    warn: (message, context) =>
+      pinoInstance.warn(redactSensitiveData(context ?? {}), message),
+    info: (message, context) =>
+      pinoInstance.info(redactSensitiveData(context ?? {}), message),
+    debug: (message, context) =>
+      pinoInstance.debug(redactSensitiveData(context ?? {}), message),
+    trace: (message, context) =>
+      pinoInstance.trace(redactSensitiveData(context ?? {}), message),
+    child: (bindings) =>
+      wrapLogger(pinoInstance.child(redactSensitiveData(bindings))),
   };
 }
 
@@ -168,16 +184,22 @@ export const logger: Logger = isServer
 // HELPERS
 // ============================================================
 
-export function createRequestLogger(request: Request, additionalContext?: LogContext): Logger {
+export function createRequestLogger(
+  request: Request,
+  additionalContext?: LogContext,
+): Logger {
   return logger.child({
-    requestId: request.headers.get('x-request-id') || crypto.randomUUID(),
+    requestId: request.headers.get("x-request-id") || crypto.randomUUID(),
     method: request.method,
     url: new URL(request.url).pathname,
     ...additionalContext,
   });
 }
 
-export function createUserLogger(userId: string, additionalContext?: LogContext): Logger {
+export function createUserLogger(
+  userId: string,
+  additionalContext?: LogContext,
+): Logger {
   return logger.child({ userId, ...additionalContext });
 }
 
@@ -190,7 +212,7 @@ export function createUserLogger(userId: string, additionalContext?: LogContext)
 export function logDuration(
   operation: string,
   startTime: number,
-  context?: LogContext
+  context?: LogContext,
 ): void {
   const durationMs = Date.now() - startTime;
   logger.info(`${operation} completed`, {
@@ -220,12 +242,12 @@ export function formatError(error: unknown): {
     };
   }
 
-  if (typeof error === 'string') {
+  if (typeof error === "string") {
     return { message: error };
   }
 
   return {
-    message: 'Unknown error',
+    message: "Unknown error",
     stack: JSON.stringify(error),
   };
 }

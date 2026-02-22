@@ -1,5 +1,5 @@
-import { createServerClient as createClient } from '@/lib/supabase/server';
-import QRCode from 'qrcode';
+import { createServerClient as createClient } from "@/lib/supabase/server";
+import QRCode from "qrcode";
 
 // ============================================
 // QR Code Service (NRS-Compliant)
@@ -25,8 +25,8 @@ export function generateQRPayload(invoice: any): string {
     total_amount: invoice.total_amount,
     vat_amount: invoice.vat_amount,
     customer_name: invoice.customer_info.name,
-    signature_hash: invoice.signature_hash || '',
-    verification_url: `${process.env.NEXT_PUBLIC_APP_URL}/invoices/${invoice.id}/verify`
+    signature_hash: invoice.signature_hash || "",
+    verification_url: `${process.env.NEXT_PUBLIC_APP_URL}/invoices/${invoice.id}/verify`,
   };
 
   // Encode as JSON string for QR code
@@ -42,15 +42,15 @@ export async function generateQRCodeImage(payload: string): Promise<string> {
       width: 200,
       margin: 2,
       color: {
-        dark: '#0A6847', // Nigerian green
-        light: '#FFFFFF'
+        dark: "#0A6847", // Nigerian green
+        light: "#FFFFFF",
       },
-      errorCorrectionLevel: 'H' // High error correction for reliability
+      errorCorrectionLevel: "H", // High error correction for reliability
     });
     return qrDataUrl;
   } catch (error) {
-    console.error('Error generating QR code:', error);
-    throw new Error('Failed to generate QR code');
+    console.error("Error generating QR code:", error);
+    throw new Error("Failed to generate QR code");
   }
 }
 
@@ -60,7 +60,7 @@ export async function generateQRCodeImage(payload: string): Promise<string> {
 export function verifyQRPayload(qrString: string): QRCodePayload | null {
   try {
     const payload = JSON.parse(qrString) as QRCodePayload;
-    
+
     // Validate required fields
     if (
       !payload.invoice_number ||
@@ -73,7 +73,7 @@ export function verifyQRPayload(qrString: string): QRCodePayload | null {
 
     return payload;
   } catch (error) {
-    console.error('Invalid QR payload:', error);
+    console.error("Invalid QR payload:", error);
     return null;
   }
 }
@@ -93,27 +93,33 @@ export async function generateKeyPair(): Promise<{
   try {
     const keyPair = await crypto.subtle.generateKey(
       {
-        name: 'RSASSA-PKCS1-v1_5',
+        name: "RSASSA-PKCS1-v1_5",
         modulusLength: 2048,
         publicExponent: new Uint8Array([1, 0, 1]),
-        hash: 'SHA-256'
+        hash: "SHA-256",
       },
       true, // extractable
-      ['sign', 'verify']
+      ["sign", "verify"],
     );
 
     // Export keys
-    const publicKeyBuffer = await crypto.subtle.exportKey('spki', keyPair.publicKey);
-    const privateKeyBuffer = await crypto.subtle.exportKey('pkcs8', keyPair.privateKey);
+    const publicKeyBuffer = await crypto.subtle.exportKey(
+      "spki",
+      keyPair.publicKey,
+    );
+    const privateKeyBuffer = await crypto.subtle.exportKey(
+      "pkcs8",
+      keyPair.privateKey,
+    );
 
     // Convert to base64
-    const publicKey = Buffer.from(publicKeyBuffer).toString('base64');
-    const privateKey = Buffer.from(privateKeyBuffer).toString('base64');
+    const publicKey = Buffer.from(publicKeyBuffer).toString("base64");
+    const privateKey = Buffer.from(privateKeyBuffer).toString("base64");
 
     return { publicKey, privateKey };
   } catch (error) {
-    console.error('Error generating key pair:', error);
-    throw new Error('Failed to generate cryptographic keys');
+    console.error("Error generating key pair:", error);
+    throw new Error("Failed to generate cryptographic keys");
   }
 }
 
@@ -129,14 +135,14 @@ export function createInvoiceHash(invoice: any): string {
     invoice.subtotal.toFixed(2),
     invoice.vat_amount.toFixed(2),
     invoice.total_amount.toFixed(2),
-    JSON.stringify(invoice.line_items)
-  ].join('|');
+    JSON.stringify(invoice.line_items),
+  ].join("|");
 
   // Create SHA-256 hash
   const encoder = new TextEncoder();
   const data = encoder.encode(canonicalData);
-  
-  return Buffer.from(data).toString('base64');
+
+  return Buffer.from(data).toString("base64");
 }
 
 /**
@@ -144,20 +150,20 @@ export function createInvoiceHash(invoice: any): string {
  */
 export async function signInvoice(
   invoiceData: any,
-  privateKeyBase64: string
+  privateKeyBase64: string,
 ): Promise<string> {
   try {
     // Import private key
-    const privateKeyBuffer = Buffer.from(privateKeyBase64, 'base64');
+    const privateKeyBuffer = Buffer.from(privateKeyBase64, "base64");
     const privateKey = await crypto.subtle.importKey(
-      'pkcs8',
+      "pkcs8",
       privateKeyBuffer,
       {
-        name: 'RSASSA-PKCS1-v1_5',
-        hash: 'SHA-256'
+        name: "RSASSA-PKCS1-v1_5",
+        hash: "SHA-256",
       },
       false,
-      ['sign']
+      ["sign"],
     );
 
     // Create invoice hash
@@ -167,17 +173,17 @@ export async function signInvoice(
 
     // Sign the hash
     const signature = await crypto.subtle.sign(
-      'RSASSA-PKCS1-v1_5',
+      "RSASSA-PKCS1-v1_5",
       privateKey,
-      data
+      data,
     );
 
     // Convert to hex string
-    const signatureHex = Buffer.from(signature).toString('hex');
+    const signatureHex = Buffer.from(signature).toString("hex");
     return signatureHex;
   } catch (error) {
-    console.error('Error signing invoice:', error);
-    throw new Error('Failed to sign invoice');
+    console.error("Error signing invoice:", error);
+    throw new Error("Failed to sign invoice");
   }
 }
 
@@ -187,20 +193,20 @@ export async function signInvoice(
 export async function verifyInvoiceSignature(
   invoiceData: any,
   signatureHex: string,
-  publicKeyBase64: string
+  publicKeyBase64: string,
 ): Promise<boolean> {
   try {
     // Import public key
-    const publicKeyBuffer = Buffer.from(publicKeyBase64, 'base64');
+    const publicKeyBuffer = Buffer.from(publicKeyBase64, "base64");
     const publicKey = await crypto.subtle.importKey(
-      'spki',
+      "spki",
       publicKeyBuffer,
       {
-        name: 'RSASSA-PKCS1-v1_5',
-        hash: 'SHA-256'
+        name: "RSASSA-PKCS1-v1_5",
+        hash: "SHA-256",
       },
       false,
-      ['verify']
+      ["verify"],
     );
 
     // Create invoice hash
@@ -209,19 +215,19 @@ export async function verifyInvoiceSignature(
     const data = encoder.encode(invoiceHash);
 
     // Convert signature from hex to ArrayBuffer
-    const signatureBuffer = Buffer.from(signatureHex, 'hex');
+    const signatureBuffer = Buffer.from(signatureHex, "hex");
 
     // Verify signature
     const isValid = await crypto.subtle.verify(
-      'RSASSA-PKCS1-v1_5',
+      "RSASSA-PKCS1-v1_5",
       publicKey,
       signatureBuffer,
-      data
+      data,
     );
 
     return isValid;
   } catch (error) {
-    console.error('Error verifying signature:', error);
+    console.error("Error verifying signature:", error);
     return false;
   }
 }
@@ -237,7 +243,7 @@ export async function verifyInvoiceSignature(
 export async function storeUserKeys(
   userId: string,
   publicKey: string,
-  privateKey: string
+  privateKey: string,
 ): Promise<void> {
   const supabase = await createClient();
 
@@ -245,17 +251,17 @@ export async function storeUserKeys(
   const encryptedPrivateKey = await encryptPrivateKey(privateKey);
 
   // Store in database (create user_keys table if needed)
-  const { error } = await supabase.from('user_keys').upsert({
+  const { error } = await supabase.from("user_keys").upsert({
     user_id: userId,
     public_key: publicKey,
     private_key_encrypted: encryptedPrivateKey,
-    key_type: 'RSA-2048',
-    created_at: new Date().toISOString()
+    key_type: "RSA-2048",
+    created_at: new Date().toISOString(),
   });
 
   if (error) {
-    console.error('Error storing user keys:', error);
-    throw new Error('Failed to store cryptographic keys');
+    console.error("Error storing user keys:", error);
+    throw new Error("Failed to store cryptographic keys");
   }
 }
 
@@ -269,9 +275,9 @@ export async function getUserKeys(userId: string): Promise<{
   const supabase = await createClient();
 
   const { data, error } = await supabase
-    .from('user_keys')
-    .select('public_key, private_key_encrypted')
-    .eq('user_id', userId)
+    .from("user_keys")
+    .select("public_key, private_key_encrypted")
+    .eq("user_id", userId)
     .single();
 
   if (error || !data) {
@@ -283,7 +289,7 @@ export async function getUserKeys(userId: string): Promise<{
 
   return {
     publicKey: data.public_key,
-    privateKey
+    privateKey,
   };
 }
 
@@ -294,49 +300,51 @@ async function encryptPrivateKey(privateKey: string): Promise<string> {
   // Get master encryption key from environment
   const masterKey = process.env.MASTER_ENCRYPTION_KEY;
   if (!masterKey) {
-    throw new Error('Master encryption key not configured');
+    throw new Error("Master encryption key not configured");
   }
 
   // Import master key
   const encoder = new TextEncoder();
   const keyMaterial = await crypto.subtle.importKey(
-    'raw',
+    "raw",
     encoder.encode(masterKey),
-    'PBKDF2',
+    "PBKDF2",
     false,
-    ['deriveKey']
+    ["deriveKey"],
   );
 
   // Derive encryption key
   const salt = crypto.getRandomValues(new Uint8Array(16));
   const encryptionKey = await crypto.subtle.deriveKey(
     {
-      name: 'PBKDF2',
+      name: "PBKDF2",
       salt,
       iterations: 100000,
-      hash: 'SHA-256'
+      hash: "SHA-256",
     },
     keyMaterial,
-    { name: 'AES-GCM', length: 256 },
+    { name: "AES-GCM", length: 256 },
     false,
-    ['encrypt']
+    ["encrypt"],
   );
 
   // Encrypt private key
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const encrypted = await crypto.subtle.encrypt(
-    { name: 'AES-GCM', iv },
+    { name: "AES-GCM", iv },
     encryptionKey,
-    encoder.encode(privateKey)
+    encoder.encode(privateKey),
   );
 
   // Combine salt + iv + encrypted data
-  const combined = new Uint8Array(salt.length + iv.length + encrypted.byteLength);
+  const combined = new Uint8Array(
+    salt.length + iv.length + encrypted.byteLength,
+  );
   combined.set(salt, 0);
   combined.set(iv, salt.length);
   combined.set(new Uint8Array(encrypted), salt.length + iv.length);
 
-  return Buffer.from(combined).toString('base64');
+  return Buffer.from(combined).toString("base64");
 }
 
 /**
@@ -346,11 +354,11 @@ async function decryptPrivateKey(encryptedPrivateKey: string): Promise<string> {
   // Get master encryption key from environment
   const masterKey = process.env.MASTER_ENCRYPTION_KEY;
   if (!masterKey) {
-    throw new Error('Master encryption key not configured');
+    throw new Error("Master encryption key not configured");
   }
 
   // Decode encrypted data
-  const combined = Buffer.from(encryptedPrivateKey, 'base64');
+  const combined = Buffer.from(encryptedPrivateKey, "base64");
   const salt = combined.slice(0, 16);
   const iv = combined.slice(16, 28);
   const encrypted = combined.slice(28);
@@ -358,32 +366,32 @@ async function decryptPrivateKey(encryptedPrivateKey: string): Promise<string> {
   // Import master key
   const encoder = new TextEncoder();
   const keyMaterial = await crypto.subtle.importKey(
-    'raw',
+    "raw",
     encoder.encode(masterKey),
-    'PBKDF2',
+    "PBKDF2",
     false,
-    ['deriveKey']
+    ["deriveKey"],
   );
 
   // Derive decryption key
   const decryptionKey = await crypto.subtle.deriveKey(
     {
-      name: 'PBKDF2',
+      name: "PBKDF2",
       salt,
       iterations: 100000,
-      hash: 'SHA-256'
+      hash: "SHA-256",
     },
     keyMaterial,
-    { name: 'AES-GCM', length: 256 },
+    { name: "AES-GCM", length: 256 },
     false,
-    ['decrypt']
+    ["decrypt"],
   );
 
   // Decrypt
   const decrypted = await crypto.subtle.decrypt(
-    { name: 'AES-GCM', iv },
+    { name: "AES-GCM", iv },
     decryptionKey,
-    encrypted
+    encrypted,
   );
 
   const decoder = new TextDecoder();
@@ -399,7 +407,7 @@ async function decryptPrivateKey(encryptedPrivateKey: string): Promise<string> {
  */
 export async function signAndIssueInvoice(
   invoiceId: string,
-  userId: string
+  userId: string,
 ): Promise<void> {
   const supabase = await createClient();
 
@@ -412,48 +420,51 @@ export async function signAndIssueInvoice(
 
   // 2. Fetch invoice data
   const { data: invoice, error: fetchError } = await supabase
-    .from('invoices')
-    .select('*')
-    .eq('id', invoiceId)
-    .eq('user_id', userId)
+    .from("invoices")
+    .select("*")
+    .eq("id", invoiceId)
+    .eq("user_id", userId)
     .single();
 
   if (fetchError || !invoice) {
-    throw new Error('Invoice not found');
+    throw new Error("Invoice not found");
   }
 
   // 3. Sign invoice
   const signatureHash = await signInvoice(invoice, keys.privateKey);
 
   // 4. Generate QR code payload
-  const qrPayload = generateQRPayload({ ...invoice, signature_hash: signatureHash });
+  const qrPayload = generateQRPayload({
+    ...invoice,
+    signature_hash: signatureHash,
+  });
 
   // 5. Update invoice with signature and QR code
   const { error: updateError } = await supabase
-    .from('invoices')
+    .from("invoices")
     .update({
       signature_hash: signatureHash,
       qr_payload: qrPayload,
-      status: 'issued',
+      status: "issued",
       issued_at: new Date().toISOString(),
-      is_immutable: true
+      is_immutable: true,
     })
-    .eq('id', invoiceId)
-    .eq('user_id', userId);
+    .eq("id", invoiceId)
+    .eq("user_id", userId);
 
   if (updateError) {
-    throw new Error('Failed to update invoice with signature');
+    throw new Error("Failed to update invoice with signature");
   }
 
   // 6. Log audit trail
-  await supabase.from('invoice_audit_logs').insert({
+  await supabase.from("invoice_audit_logs").insert({
     invoice_id: invoiceId,
     user_id: userId,
-    action: 'signed_and_issued',
+    action: "signed_and_issued",
     metadata: {
-      signature_algorithm: 'RSASSA-PKCS1-v1_5',
-      hash_algorithm: 'SHA-256'
-    }
+      signature_algorithm: "RSASSA-PKCS1-v1_5",
+      hash_algorithm: "SHA-256",
+    },
   });
 }
 
@@ -468,13 +479,13 @@ export async function verifyInvoice(invoiceId: string): Promise<{
 
   // Fetch invoice
   const { data: invoice, error } = await supabase
-    .from('invoices')
-    .select('*')
-    .eq('id', invoiceId)
+    .from("invoices")
+    .select("*")
+    .eq("id", invoiceId)
     .single();
 
   if (error || !invoice) {
-    throw new Error('Invoice not found');
+    throw new Error("Invoice not found");
   }
 
   if (!invoice.signature_hash) {
@@ -491,15 +502,15 @@ export async function verifyInvoice(invoiceId: string): Promise<{
   const isValid = await verifyInvoiceSignature(
     invoice,
     invoice.signature_hash,
-    keys.publicKey
+    keys.publicKey,
   );
 
   // Log verification attempt
-  await supabase.from('invoice_audit_logs').insert({
+  await supabase.from("invoice_audit_logs").insert({
     invoice_id: invoiceId,
     user_id: invoice.user_id,
-    action: 'signature_verified',
-    metadata: { result: isValid ? 'valid' : 'invalid' }
+    action: "signature_verified",
+    metadata: { result: isValid ? "valid" : "invalid" },
   });
 
   return { isValid, invoice };

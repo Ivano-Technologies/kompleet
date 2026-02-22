@@ -30,11 +30,13 @@
 ### Recommended Primary Flow
 
 **For most users:**
+
 - Landing page → `/login` (email/password)
 - New users → `/signup` (registration)
 - Forgot password → `/forgot-password`
 
 **For passwordless users:**
+
 - Landing page → `/sign-in` (magic link)
 
 ### Navigation Updates Made
@@ -57,16 +59,17 @@
 
 ## Auth Methods Supported
 
-| Method | Route | Status | UI |
-|:-------|:------|:-------|:---|
-| Email/Password | `/login`, `/signup` | ✅ Working | ✅ Complete |
-| Magic Link | `/sign-in` | ✅ Working | ✅ Complete |
-| OAuth (Google, GitHub) | N/A | ⚠️ Code only | ❌ No UI |
-| Phone OTP | N/A | ⚠️ Code only | ❌ No UI |
+| Method                 | Route               | Status       | UI          |
+| :--------------------- | :------------------ | :----------- | :---------- |
+| Email/Password         | `/login`, `/signup` | ✅ Working   | ✅ Complete |
+| Magic Link             | `/sign-in`          | ✅ Working   | ✅ Complete |
+| OAuth (Google, GitHub) | N/A                 | ⚠️ Code only | ❌ No UI    |
+| Phone OTP              | N/A                 | ⚠️ Code only | ❌ No UI    |
 
 ## Design Consistency
 
 All auth pages now use:
+
 - **Dark theme** (#11211b background)
 - **Nigerian Green** (#0a6746) for primary actions
 - **Consistent card layout** with white/5 opacity

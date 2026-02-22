@@ -59,24 +59,29 @@ psql "postgresql://postgres:[YOUR-PASSWORD]@db.frlcvkmjuhnjcicwywrh.supabase.co:
 ## Security Policies Implemented
 
 ### Rule Versions & Tax Rules
+
 - ✅ Authenticated users can **read** all rules (needed for calculations)
 - ✅ Service role can **manage** rules (admin operations)
 
 ### Sources
+
 - ✅ Authenticated users can **read** all sources (needed for calculations)
 - ✅ Service role can **manage** sources (admin operations)
 
 ### Audit Logs
+
 - ✅ Users can **read** only their own audit logs (privacy)
 - ✅ Users can **insert** their own audit logs (calculations)
 - ✅ Service role can **manage** all logs (admin operations)
 
 ### Review Queue
+
 - ✅ Authenticated users can **read** all review items
 - ✅ Authenticated users can **insert** review items
 - ✅ Service role can **manage** review queue (admin operations)
 
 ### Profiles (if exists)
+
 - ✅ Users can **read** their own profile
 - ✅ Users can **update** their own profile
 - ✅ Service role can **manage** all profiles (admin operations)
@@ -129,6 +134,7 @@ After deploying RLS:
 ## Support
 
 If you encounter any issues:
+
 - Check Supabase logs in Dashboard → Logs
 - Review the SQL error messages
 - Verify your service role key is set correctly in environment variables

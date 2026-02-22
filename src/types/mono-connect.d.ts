@@ -1,7 +1,7 @@
-declare module '@mono.co/connect.js' {
+declare module "@mono.co/connect.js" {
   interface MonoConnectOptions {
     key: string;
-    scope?: 'auth' | 'payments';
+    scope?: "auth" | "payments";
     customer?: { id: string } | { name: string; email: string };
     reference?: string;
     onSuccess: (data: { code: string }) => void;

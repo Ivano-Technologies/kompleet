@@ -1,5 +1,4 @@
-
-'use client';
+"use client";
 
 /**
  * ML Governance Dashboard
@@ -8,12 +7,18 @@
  * drift detection, and governance KPIs.
  */
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, ShieldCheck } from 'lucide-react';
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Loader2, ShieldCheck } from "lucide-react";
 
 // ============================================================================
 // TYPES
@@ -47,13 +52,13 @@ export default function MLGovernanceDashboard() {
 
   const loadDashboardData = async () => {
     try {
-      const kpisRes = await fetch('/api/ml-governance/metrics/kpis');
+      const kpisRes = await fetch("/api/ml-governance/metrics/kpis");
       const kpisData = await kpisRes.json();
       if (kpisData.success) {
         setKpis(kpisData.kpis);
       }
 
-      const modelsRes = await fetch('/api/ml-governance/models?limit=10');
+      const modelsRes = await fetch("/api/ml-governance/models?limit=10");
       const modelsData = await modelsRes.json();
       if (modelsData.success) {
         setModels(modelsData.models);
@@ -61,7 +66,7 @@ export default function MLGovernanceDashboard() {
 
       setLoading(false);
     } catch (error) {
-      console.error('Failed to load dashboard data:', error);
+      console.error("Failed to load dashboard data:", error);
       setLoading(false);
     }
   };
@@ -75,7 +80,9 @@ export default function MLGovernanceDashboard() {
       <div className="flex items-center justify-center py-20">
         <div className="text-center">
           <Loader2 className="animate-spin h-12 w-12 text-primary-500 mx-auto mb-4" />
-          <p className="text-light-text-secondary dark:text-dark-text-secondary">Loading ML Governance Dashboard...</p>
+          <p className="text-light-text-secondary dark:text-dark-text-secondary">
+            Loading ML Governance Dashboard...
+          </p>
         </div>
       </div>
     );
@@ -86,15 +93,15 @@ export default function MLGovernanceDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-            <ShieldCheck className="h-8 w-8 text-primary-500" />
-            <div>
-                <h1 className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">
-                    ML Governance Dashboard
-                </h1>
-                <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
-                    Monitor models, approvals, drift, and compliance
-                </p>
-            </div>
+          <ShieldCheck className="h-8 w-8 text-primary-500" />
+          <div>
+            <h1 className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">
+              ML Governance Dashboard
+            </h1>
+            <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
+              Monitor models, approvals, drift, and compliance
+            </p>
+          </div>
         </div>
         <Button className="btn-primary rounded-lg">Register New Model</Button>
       </div>
@@ -108,7 +115,9 @@ export default function MLGovernanceDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary">{kpis?.totalModels || 0}</div>
+            <div className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary">
+              {kpis?.totalModels || 0}
+            </div>
           </CardContent>
         </Card>
 
@@ -119,7 +128,9 @@ export default function MLGovernanceDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-primary-600 dark:text-primary-500">{kpis?.deployedModels || 0}</div>
+            <div className="text-3xl font-bold text-primary-600 dark:text-primary-500">
+              {kpis?.deployedModels || 0}
+            </div>
           </CardContent>
         </Card>
 
@@ -130,7 +141,9 @@ export default function MLGovernanceDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary">{kpis?.rollbackSuccessRate || 100}%</div>
+            <div className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary">
+              {kpis?.rollbackSuccessRate || 100}%
+            </div>
           </CardContent>
         </Card>
 
@@ -154,7 +167,9 @@ export default function MLGovernanceDashboard() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary">{kpis?.documentationCompleteness || 0}%</div>
+            <div className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary">
+              {kpis?.documentationCompleteness || 0}%
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -172,8 +187,12 @@ export default function MLGovernanceDashboard() {
         <TabsContent value="models" className="space-y-4">
           <Card className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
             <CardHeader>
-              <CardTitle className="text-light-text-primary dark:text-dark-text-primary">Model Registry</CardTitle>
-              <CardDescription className="text-light-text-secondary dark:text-dark-text-secondary">All registered ML models and their versions</CardDescription>
+              <CardTitle className="text-light-text-primary dark:text-dark-text-primary">
+                Model Registry
+              </CardTitle>
+              <CardDescription className="text-light-text-secondary dark:text-dark-text-secondary">
+                All registered ML models and their versions
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -189,16 +208,23 @@ export default function MLGovernanceDashboard() {
                     >
                       <div className="flex-1">
                         <div className="flex items-center gap-3">
-                          <h3 className="font-semibold text-light-text-primary dark:text-dark-text-primary">{model.modelName}</h3>
+                          <h3 className="font-semibold text-light-text-primary dark:text-dark-text-primary">
+                            {model.modelName}
+                          </h3>
                           <Badge variant="outline">{model.version}</Badge>
                           <Badge
-                            className={model.status === 'deployed' ? 'bg-primary-500' : 'bg-light-text-tertiary'}
+                            className={
+                              model.status === "deployed"
+                                ? "bg-primary-500"
+                                : "bg-light-text-tertiary"
+                            }
                           >
                             {model.status}
                           </Badge>
                         </div>
                         <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mt-1">
-                          Created: {new Date(model.createdAt).toLocaleDateString()}
+                          Created:{" "}
+                          {new Date(model.createdAt).toLocaleDateString()}
                           {model.deployedAt &&
                             ` - Deployed: ${new Date(model.deployedAt).toLocaleDateString()}`}
                         </p>
@@ -218,8 +244,12 @@ export default function MLGovernanceDashboard() {
         <TabsContent value="approvals" className="space-y-4">
           <Card className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
             <CardHeader>
-              <CardTitle className="text-light-text-primary dark:text-dark-text-primary">Pending Approvals</CardTitle>
-              <CardDescription className="text-light-text-secondary dark:text-dark-text-secondary">Models awaiting approval for deployment</CardDescription>
+              <CardTitle className="text-light-text-primary dark:text-dark-text-primary">
+                Pending Approvals
+              </CardTitle>
+              <CardDescription className="text-light-text-secondary dark:text-dark-text-secondary">
+                Models awaiting approval for deployment
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-center text-light-text-tertiary dark:text-dark-text-tertiary py-8">
@@ -233,8 +263,12 @@ export default function MLGovernanceDashboard() {
         <TabsContent value="drift" className="space-y-4">
           <Card className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
             <CardHeader>
-              <CardTitle className="text-light-text-primary dark:text-dark-text-primary">Drift Alerts</CardTitle>
-              <CardDescription className="text-light-text-secondary dark:text-dark-text-secondary">Models with detected drift or performance issues</CardDescription>
+              <CardTitle className="text-light-text-primary dark:text-dark-text-primary">
+                Drift Alerts
+              </CardTitle>
+              <CardDescription className="text-light-text-secondary dark:text-dark-text-secondary">
+                Models with detected drift or performance issues
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-center text-light-text-tertiary dark:text-dark-text-tertiary py-8">
@@ -248,8 +282,12 @@ export default function MLGovernanceDashboard() {
         <TabsContent value="audit" className="space-y-4">
           <Card className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
             <CardHeader>
-              <CardTitle className="text-light-text-primary dark:text-dark-text-primary">Audit Logs</CardTitle>
-              <CardDescription className="text-light-text-secondary dark:text-dark-text-secondary">Complete audit trail of ML lifecycle events</CardDescription>
+              <CardTitle className="text-light-text-primary dark:text-dark-text-primary">
+                Audit Logs
+              </CardTitle>
+              <CardDescription className="text-light-text-secondary dark:text-dark-text-secondary">
+                Complete audit trail of ML lifecycle events
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-center text-light-text-tertiary dark:text-dark-text-tertiary py-8">

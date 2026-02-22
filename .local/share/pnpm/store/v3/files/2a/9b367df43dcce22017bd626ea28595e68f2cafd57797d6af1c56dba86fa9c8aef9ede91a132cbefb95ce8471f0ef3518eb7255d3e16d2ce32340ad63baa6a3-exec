@@ -14,16 +14,19 @@
 // Limitations:
 //   Currently only supports android and ios.
 
-const { resolveEntryPoint, resolveRelativeEntryPoint } = require('@expo/config/paths');
-const path = require('path');
+const {
+  resolveEntryPoint,
+  resolveRelativeEntryPoint,
+} = require("@expo/config/paths");
+const path = require("path");
 
 const projectRoot = process.argv[1];
 const platform = process.argv[2];
-const absolute = process.argv[3] === 'absolute';
+const absolute = process.argv[3] === "absolute";
 
 if (!platform || !projectRoot) {
   console.error(
-    'Usage: node expo/scripts/resolveAppEntry.js <projectRoot> <platform> <relative|absolute>'
+    "Usage: node expo/scripts/resolveAppEntry.js <projectRoot> <platform> <relative|absolute>",
   );
   process.exit(1);
 }
@@ -33,7 +36,9 @@ const entry = absolute
   : resolveRelativeEntryPoint(projectRoot, { platform });
 
 if (!entry) {
-  console.error(`Error: Could not find entry file for project at: ${projectRoot}`);
+  console.error(
+    `Error: Could not find entry file for project at: ${projectRoot}`,
+  );
   process.exit(1);
 } else {
   // Prevent any logs from the app.config.js

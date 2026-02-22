@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { CheckCircle, TrendingUp } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import React from "react";
+import { CheckCircle, TrendingUp } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
 interface UploadSuccessProps {
   transactionCount: number;
@@ -32,27 +32,46 @@ export default function UploadSuccess({
 
           {/* Transaction count */}
           <p className="text-center text-slate-600 dark:text-slate-400 mb-8">
-            We found <span className="font-semibold text-slate-900 dark:text-white">{transactionCount}</span>{' '}
-            transaction{transactionCount !== 1 ? 's' : ''}.
+            We found{" "}
+            <span className="font-semibold text-slate-900 dark:text-white">
+              {transactionCount}
+            </span>{" "}
+            transaction{transactionCount !== 1 ? "s" : ""}.
           </p>
 
           {/* Summary stats */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
             <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
-              <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Date range</p>
-              <p className="text-sm font-semibold text-slate-900 dark:text-white">Feb 1 - Feb 18, 2026</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                Date range
+              </p>
+              <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                Feb 1 - Feb 18, 2026
+              </p>
             </div>
             <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
-              <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Total debit</p>
-              <p className="text-sm font-semibold text-red-600 dark:text-red-400">₦2,450,000</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                Total debit
+              </p>
+              <p className="text-sm font-semibold text-red-600 dark:text-red-400">
+                ₦2,450,000
+              </p>
             </div>
             <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
-              <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Total credit</p>
-              <p className="text-sm font-semibold text-green-600 dark:text-green-400">₦3,100,000</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                Total credit
+              </p>
+              <p className="text-sm font-semibold text-green-600 dark:text-green-400">
+                ₦3,100,000
+              </p>
             </div>
             <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
-              <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Net</p>
-              <p className="text-sm font-semibold text-green-600 dark:text-green-400">+₦650,000</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                Net
+              </p>
+              <p className="text-sm font-semibold text-green-600 dark:text-green-400">
+                +₦650,000
+              </p>
             </div>
           </div>
 
@@ -66,7 +85,9 @@ export default function UploadSuccess({
               Review and categorize transactions
             </Button>
 
-            <p className="text-center text-sm text-slate-600 dark:text-slate-400">or</p>
+            <p className="text-center text-sm text-slate-600 dark:text-slate-400">
+              or
+            </p>
 
             <Button
               onClick={onUploadAnother}

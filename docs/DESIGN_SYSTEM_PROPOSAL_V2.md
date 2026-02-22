@@ -1,4 +1,5 @@
 # KOMPLEET Design System v2.0
+
 ## NextAuth.js Pixel-Perfect Implementation + Nigerian Green Accents
 
 **Status:** Awaiting Approval  
@@ -31,43 +32,43 @@ KOMPLEET adopts NextAuth.js's extreme minimalism and high-contrast aesthetic, re
 
 ### Light Theme
 
-| Token | Hex | Usage | WCAG AA |
-|-------|-----|-------|---------|
-| **background** | `#FFFFFF` | Page background, card backgrounds | ✅ |
-| **foreground** | `#000000` | Headings, body text, primary content | ✅ 21:1 |
-| **muted** | `#666666` | Secondary text, captions, metadata | ✅ 5.74:1 |
-| **border** | `#E0E0E0` | Dividers, card borders, input borders | ✅ |
-| **primary** | `#008751` | Primary buttons, active states, key highlights | ✅ 4.52:1 |
-| **primary-hover** | `#006B3F` | Primary button hover state | ✅ |
-| **surface** | `#FFFFFF` | Cards, modals, elevated surfaces (same as background) | ✅ |
-| **floating-logo** | `#E0E0E0` | Background brand logos (10% opacity) | ✅ |
+| Token             | Hex       | Usage                                                 | WCAG AA   |
+| ----------------- | --------- | ----------------------------------------------------- | --------- |
+| **background**    | `#FFFFFF` | Page background, card backgrounds                     | ✅        |
+| **foreground**    | `#000000` | Headings, body text, primary content                  | ✅ 21:1   |
+| **muted**         | `#666666` | Secondary text, captions, metadata                    | ✅ 5.74:1 |
+| **border**        | `#E0E0E0` | Dividers, card borders, input borders                 | ✅        |
+| **primary**       | `#008751` | Primary buttons, active states, key highlights        | ✅ 4.52:1 |
+| **primary-hover** | `#006B3F` | Primary button hover state                            | ✅        |
+| **surface**       | `#FFFFFF` | Cards, modals, elevated surfaces (same as background) | ✅        |
+| **floating-logo** | `#E0E0E0` | Background brand logos (10% opacity)                  | ✅        |
 
 ### Dark Theme
 
-| Token | Hex | Usage | WCAG AA |
-|-------|-----|-------|---------|
-| **background** | `#000000` | Page background, card backgrounds | ✅ |
-| **foreground** | `#FFFFFF` | Headings, body text, primary content | ✅ 21:1 |
-| **muted** | `#A0A0A0` | Secondary text, captions, metadata | ✅ 5.94:1 |
-| **border** | `#333333` | Dividers, card borders, input borders | ✅ |
-| **primary** | `#008751` | Primary buttons, active states, key highlights | ✅ 4.52:1 |
-| **primary-hover** | `#00A862` | Primary button hover state (lighter in dark mode) | ✅ |
-| **surface** | `#000000` | Cards, modals, elevated surfaces (same as background) | ✅ |
-| **floating-logo** | `#333333` | Background brand logos (10% opacity) | ✅ |
+| Token             | Hex       | Usage                                                 | WCAG AA   |
+| ----------------- | --------- | ----------------------------------------------------- | --------- |
+| **background**    | `#000000` | Page background, card backgrounds                     | ✅        |
+| **foreground**    | `#FFFFFF` | Headings, body text, primary content                  | ✅ 21:1   |
+| **muted**         | `#A0A0A0` | Secondary text, captions, metadata                    | ✅ 5.94:1 |
+| **border**        | `#333333` | Dividers, card borders, input borders                 | ✅        |
+| **primary**       | `#008751` | Primary buttons, active states, key highlights        | ✅ 4.52:1 |
+| **primary-hover** | `#00A862` | Primary button hover state (lighter in dark mode)     | ✅        |
+| **surface**       | `#000000` | Cards, modals, elevated surfaces (same as background) | ✅        |
+| **floating-logo** | `#333333` | Background brand logos (10% opacity)                  | ✅        |
 
 ### Semantic Colors
 
-| Token | Light | Dark | Usage |
-|-------|-------|------|-------|
+| Token       | Light     | Dark      | Usage                              |
+| ----------- | --------- | --------- | ---------------------------------- |
 | **success** | `#22C55E` | `#4ADE80` | Success messages, completed states |
-| **warning** | `#F59E0B` | `#FBBF24` | Warning messages, pending states |
-| **error** | `#EF4444` | `#F87171` | Error messages, failed states |
-| **info** | `#3B82F6` | `#60A5FA` | Info messages, neutral alerts |
+| **warning** | `#F59E0B` | `#FBBF24` | Warning messages, pending states   |
+| **error**   | `#EF4444` | `#F87171` | Error messages, failed states      |
+| **info**    | `#3B82F6` | `#60A5FA` | Info messages, neutral alerts      |
 
 ### Toggle / Switch
 
-| Token | Hex | Usage |
-|-------|-----|-------|
+| Token                | Hex       | Usage                                      |
+| -------------------- | --------- | ------------------------------------------ |
 | **toggle-indicator** | `#CCFF00` | Toggle button indicators (on/active state) |
 
 Use **#CCFF00** for the visible indicator (thumb/knot) on toggle and switch components so the active state is clearly distinguishable.
@@ -84,15 +85,15 @@ Use **#CCFF00** for the visible indicator (thumb/knot) on toggle and switch comp
 
 ### Type Scale
 
-| Name | Size | Weight | Line Height | Usage |
-|------|------|--------|-------------|-------|
-| **hero** | 72px | 900 | 1.1 | Landing page hero headings |
-| **h1** | 48px | 800 | 1.2 | Page titles, section headings |
-| **h2** | 32px | 700 | 1.3 | Subsection headings, card titles |
-| **h3** | 24px | 600 | 1.4 | Component headings, widget titles |
-| **body** | 16px | 400 | 1.5 | Paragraph text, descriptions |
-| **small** | 14px | 400 | 1.4 | Secondary text, labels |
-| **caption** | 12px | 400 | 1.4 | Metadata, timestamps, footnotes |
+| Name        | Size | Weight | Line Height | Usage                             |
+| ----------- | ---- | ------ | ----------- | --------------------------------- |
+| **hero**    | 72px | 900    | 1.1         | Landing page hero headings        |
+| **h1**      | 48px | 800    | 1.2         | Page titles, section headings     |
+| **h2**      | 32px | 700    | 1.3         | Subsection headings, card titles  |
+| **h3**      | 24px | 600    | 1.4         | Component headings, widget titles |
+| **body**    | 16px | 400    | 1.5         | Paragraph text, descriptions      |
+| **small**   | 14px | 400    | 1.4         | Secondary text, labels            |
+| **caption** | 12px | 400    | 1.4         | Metadata, timestamps, footnotes   |
 
 ### Font Loading
 
@@ -120,14 +121,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
 ## Spacing Scale
 
-| Token | Value | Usage |
-|-------|-------|-------|
-| **xs** | 8px | Icon padding, small gaps |
-| **sm** | 16px | Button padding, input padding |
-| **md** | 24px | Card padding, section padding |
-| **lg** | 40px | Large card padding, component spacing |
-| **xl** | 64px | Section gaps, page margins |
-| **2xl** | 96px | Hero section spacing, major divisions |
+| Token   | Value | Usage                                 |
+| ------- | ----- | ------------------------------------- |
+| **xs**  | 8px   | Icon padding, small gaps              |
+| **sm**  | 16px  | Button padding, input padding         |
+| **md**  | 24px  | Card padding, section padding         |
+| **lg**  | 40px  | Large card padding, component spacing |
+| **xl**  | 64px  | Section gaps, page margins            |
+| **2xl** | 96px  | Hero section spacing, major divisions |
 
 ---
 
@@ -136,6 +137,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 ### Buttons
 
 #### Primary Button
+
 ```tsx
 <button className="bg-primary hover:bg-primary-hover text-white font-semibold text-base px-8 py-3 rounded-3xl transition-colors duration-200">
   Get Started
@@ -143,6 +145,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 ```
 
 **Specs:**
+
 - Background: Nigerian green (#008751)
 - Text: White, 16px, 600 weight
 - Padding: 12px 32px
@@ -151,6 +154,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 - Transition: 200ms ease
 
 #### Secondary Button
+
 ```tsx
 <button className="bg-transparent border border-primary text-primary hover:border-dashed hover:border-2 font-semibold text-base px-8 py-3 rounded-3xl transition-all duration-200">
   Learn More
@@ -158,6 +162,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 ```
 
 **Specs:**
+
 - Background: Transparent
 - Border: 1px solid Nigerian green
 - Text: Nigerian green, 16px, 600 weight
@@ -167,6 +172,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 - Transition: 200ms ease
 
 #### Danger Button
+
 ```tsx
 <button className="bg-error hover:opacity-90 text-white font-semibold text-base px-8 py-3 rounded-3xl transition-opacity duration-200">
   Delete
@@ -176,6 +182,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 ### Cards
 
 #### Feature Card (with Circular Icon)
+
 ```tsx
 <div className="flex flex-col items-center text-center">
   <div className="w-[200px] h-[200px] rounded-full bg-gradient-to-br from-purple-500 to-cyan-500 flex items-center justify-center mb-6">
@@ -190,6 +197,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 ```
 
 **Specs:**
+
 - Circular icon: 200px diameter
 - Gradient: Purple-cyan, pink-orange, or blue-cyan
 - No glassmorphism - solid gradient background
@@ -197,6 +205,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 - Body: 16px, muted color
 
 #### Data Card (Dashboard Widget)
+
 ```tsx
 <div className="bg-surface border border-border rounded-2xl p-6">
   <h3 className="text-lg font-semibold mb-2">Widget Title</h3>
@@ -206,6 +215,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 ```
 
 **Specs:**
+
 - Background: Same as page background (white/black)
 - Border: 1px solid border color
 - Border radius: 16px
@@ -223,6 +233,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 ```
 
 **Specs:**
+
 - Background: Surface color
 - Border: 1px solid border color
 - Border radius: 8px
@@ -248,6 +259,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 ```
 
 **Specs:**
+
 - Height: 64px
 - Background: Same as page background
 - Border bottom: 1px solid border color
@@ -260,18 +272,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 ## Layout System
 
 ### Container
+
 ```tsx
-<div className="max-w-[1200px] mx-auto px-6">
-  {/* Content */}
-</div>
+<div className="max-w-[1200px] mx-auto px-6">{/* Content */}</div>
 ```
 
 **Specs:**
+
 - Max width: 1200px
 - Horizontal padding: 24px
 - Centered with auto margins
 
 ### Grid (3-column for features)
+
 ```tsx
 <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
   {/* Feature cards */}
@@ -279,18 +292,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 ```
 
 **Specs:**
+
 - 3 columns on desktop
 - 1 column on mobile
 - Gap: 40px
 
 ### Section Spacing
+
 ```tsx
-<section className="py-16 md:py-24">
-  {/* Section content */}
-</section>
+<section className="py-16 md:py-24">{/* Section content */}</section>
 ```
 
 **Specs:**
+
 - Vertical padding: 64px (mobile), 96px (desktop)
 
 ---
@@ -303,12 +317,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 // components/floating-logos.tsx
 export function FloatingLogos() {
   const logos = [
-    { name: 'GTBank', x: '10%', y: '15%' },
-    { name: 'Access Bank', x: '85%', y: '20%' },
-    { name: 'Zenith Bank', x: '15%', y: '60%' },
-    { name: 'UBA', x: '80%', y: '70%' },
-    { name: 'FIRS', x: '50%', y: '40%' },
-    { name: 'First Bank', x: '25%', y: '80%' },
+    { name: "GTBank", x: "10%", y: "15%" },
+    { name: "Access Bank", x: "85%", y: "20%" },
+    { name: "Zenith Bank", x: "15%", y: "60%" },
+    { name: "UBA", x: "80%", y: "70%" },
+    { name: "FIRS", x: "50%", y: "40%" },
+    { name: "First Bank", x: "25%", y: "80%" },
   ];
 
   return (
@@ -332,6 +346,7 @@ export function FloatingLogos() {
 ```
 
 **Specs:**
+
 - Opacity: 10% (0.1)
 - Positioning: Absolute, scattered across hero section
 - Size: 96px (w-24 h-24)
@@ -339,6 +354,7 @@ export function FloatingLogos() {
 - Pointer events: None (non-interactive)
 
 ### Logo Selection (Nigerian Finance/Business Brands)
+
 - GTBank
 - Access Bank
 - Zenith Bank
@@ -356,14 +372,14 @@ export function FloatingLogos() {
 
 ### Contrast Ratios (WCAG AA Compliant)
 
-| Combination | Ratio | Pass |
-|-------------|-------|------|
-| Foreground on Background (Light) | 21:1 | ✅ AAA |
-| Foreground on Background (Dark) | 21:1 | ✅ AAA |
-| Muted on Background (Light) | 5.74:1 | ✅ AA |
-| Muted on Background (Dark) | 5.94:1 | ✅ AA |
-| Primary on Background (Light) | 4.52:1 | ✅ AA |
-| Primary on Background (Dark) | 4.52:1 | ✅ AA |
+| Combination                      | Ratio  | Pass   |
+| -------------------------------- | ------ | ------ |
+| Foreground on Background (Light) | 21:1   | ✅ AAA |
+| Foreground on Background (Dark)  | 21:1   | ✅ AAA |
+| Muted on Background (Light)      | 5.74:1 | ✅ AA  |
+| Muted on Background (Dark)       | 5.94:1 | ✅ AA  |
+| Primary on Background (Light)    | 4.52:1 | ✅ AA  |
+| Primary on Background (Dark)     | 4.52:1 | ✅ AA  |
 
 ### Focus States
 
@@ -387,6 +403,7 @@ All interactive elements have visible focus states with Nigerian green outlines:
 ## Implementation Checklist
 
 ### Phase 1: Foundation
+
 - [ ] Install Inter font from Google Fonts
 - [ ] Update Tailwind config with exact color tokens
 - [ ] Create CSS variables for theme switching
@@ -394,6 +411,7 @@ All interactive elements have visible focus states with Nigerian green outlines:
 - [ ] Remove all shadow utilities from existing components
 
 ### Phase 2: Components
+
 - [ ] Build primary, secondary, and danger button components
 - [ ] Build feature card component with circular icons
 - [ ] Build data card component (flat, bordered)
@@ -401,18 +419,21 @@ All interactive elements have visible focus states with Nigerian green outlines:
 - [ ] Build navigation bar component
 
 ### Phase 3: Layout
+
 - [ ] Create floating logos component
 - [ ] Update container max-width to 1200px
 - [ ] Implement 3-column grid for features
 - [ ] Apply section spacing (64-96px)
 
 ### Phase 4: Pages
+
 - [ ] Redesign landing page (hero + features)
 - [ ] Redesign dashboard (overview + widgets)
 - [ ] Redesign sign-in page
 - [ ] Redesign all other pages
 
 ### Phase 5: Polish
+
 - [ ] Test dark mode theme switching
 - [ ] Verify all contrast ratios
 - [ ] Test keyboard navigation
@@ -423,12 +444,12 @@ All interactive elements have visible focus states with Nigerian green outlines:
 
 ## Differences from Original NextAuth Design
 
-| Element | NextAuth | KOMPLEET |
-|---------|----------|----------|
-| **Accent color** | Bright cyan (#00D4FF) | Nigerian green (#008751) |
+| Element            | NextAuth                             | KOMPLEET                                     |
+| ------------------ | ------------------------------------ | -------------------------------------------- |
+| **Accent color**   | Bright cyan (#00D4FF)                | Nigerian green (#008751)                     |
 | **Floating logos** | Tech brands (Facebook, Google, etc.) | Nigerian finance brands (GTBank, FIRS, etc.) |
-| **Content focus** | Authentication documentation | Tax compliance & bookkeeping |
-| **Feature icons** | Generic tech illustrations | Tax/finance-specific illustrations |
+| **Content focus**  | Authentication documentation         | Tax compliance & bookkeeping                 |
+| **Feature icons**  | Generic tech illustrations           | Tax/finance-specific illustrations           |
 
 Everything else remains pixel-perfect to NextAuth.js design.
 
@@ -439,6 +460,7 @@ Everything else remains pixel-perfect to NextAuth.js design.
 **Please review this design system proposal and confirm approval to proceed with implementation.**
 
 Once approved, I will:
+
 1. Update Tailwind config with exact tokens
 2. Load Inter font
 3. Build component library

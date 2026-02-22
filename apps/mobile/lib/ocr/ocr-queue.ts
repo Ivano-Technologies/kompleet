@@ -1,27 +1,24 @@
 /**
  * OCR queue: enqueue image path when offline; process when online (API + upload + expense).
  */
-import * as FileSystem from 'expo-file-system';
-import { getDb } from '@/lib/db/init';
-import { createExpense } from '@/lib/db/expense-repository';
-import { parseReceiptText, type ParsedReceipt } from './parse-receipt';
+import * as FileSystem from "expo-file-system";
+import { getDb } from "@/lib/db/init";
+import { createExpense } from "@/lib/db/expense-repository";
+import { parseReceiptText, type ParsedReceipt } from "./parse-receipt";
 
-const OCR_QUEUE_TABLE = 'ocr_queue';
+const OCR_QUEUE_TABLE = "ocr_queue";
 
 export function enqueueOcr(imagePath: string): number {
   const db = getDb();
-  db.runSync(
-    `insert into ocr_queue (image_path) values (?)`,
-    [imagePath]
-  );
-  const row = db.getAllSync<{ id: number }>('select last_insert_rowid() as id');
+  db.runSync(`insert into ocr_queue (image_path) values (?)`, [imagePath]);
+  const row = db.getAllSync<{ id: number }>("select last_insert_rowid() as id");
   return row[0]?.id ?? 0;
 }
 
 export function getPendingOcrItems(): { id: number; image_path: string }[] {
   const db = getDb();
   return db.getAllSync<{ id: number; image_path: string }>(
-    'select id, image_path from ocr_queue where processed_at is null order by id'
+    "select id, image_path from ocr_queue where processed_at is null order by id",
   );
 }
 
@@ -29,7 +26,7 @@ export function markOcrProcessed(id: number, expenseId: string): void {
   const db = getDb();
   db.runSync(
     'update ocr_queue set processed_at = datetime("now"), expense_id = ? where id = ?',
-    [expenseId, id]
+    [expenseId, id],
   );
 }
 
@@ -37,7 +34,7 @@ export function markOcrFailed(id: number): void {
   const db = getDb();
   db.runSync(
     'update ocr_queue set processed_at = datetime("now") where id = ?',
-    [id]
+    [id],
   );
 }
 
@@ -54,16 +51,16 @@ export async function runOcrOnImage(
   imagePath: string,
   userId: string,
   apiBaseUrl: string,
-  getAuthToken: () => Promise<string | null>
+  getAuthToken: () => Promise<string | null>,
 ): Promise<{ parsed: ParsedReceipt; expenseId: string } | { error: string }> {
   const base64 = await FileSystem.readAsStringAsync(imagePath, {
     encoding: FileSystem.EncodingType.Base64,
   });
   const token = await getAuthToken();
   const res = await fetch(`${apiBaseUrl}/api/expenses/ocr`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: JSON.stringify({ imageBase64: base64 }),
@@ -72,8 +69,14 @@ export async function runOcrOnImage(
     const text = await res.text();
     return { error: text || `OCR API ${res.status}` };
   }
-  const data = (await res.json()) as { text?: string; vendor?: string; date?: string; amount?: number; vat?: number };
-  const rawText = data.text ?? '';
+  const data = (await res.json()) as {
+    text?: string;
+    vendor?: string;
+    date?: string;
+    amount?: number;
+    vat?: number;
+  };
+  const rawText = data.text ?? "";
   const parsed: ParsedReceipt = {
     vendor: data.vendor ?? null,
     date: data.date ?? null,
@@ -86,7 +89,7 @@ export async function runOcrOnImage(
   const expense = createExpense(userId, {
     date,
     amount,
-    currency: 'NGN',
+    currency: "NGN",
     vendor: parsed.vendor ?? undefined,
     vatAmount: parsed.vatAmount ?? undefined,
     notes: rawText.slice(0, 500),
@@ -101,15 +104,20 @@ export async function runOcrOnImage(
 export async function processOcrQueue(
   userId: string,
   apiBaseUrl: string,
-  getAuthToken: () => Promise<string | null>
+  getAuthToken: () => Promise<string | null>,
 ): Promise<{ processed: number; errors: string[] }> {
   const pending = getPendingOcrItems();
   const errors: string[] = [];
   let processed = 0;
   for (const item of pending) {
     try {
-      const result = await runOcrOnImage(item.image_path, userId, apiBaseUrl, getAuthToken);
-      if ('error' in result) {
+      const result = await runOcrOnImage(
+        item.image_path,
+        userId,
+        apiBaseUrl,
+        getAuthToken,
+      );
+      if ("error" in result) {
         errors.push(result.error);
         markOcrFailed(item.id);
       } else {

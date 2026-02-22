@@ -48,7 +48,7 @@ KOMPLEET ML models are stored in AWS S3 and automatically downloaded on applicat
 **Region:** `eu-west-1` (Ireland - closest to Nigeria)  
 **Access:** Public read for model files  
 **Versioning:** Enabled (recommended)  
-**Encryption:** Server-side encryption enabled  
+**Encryption:** Server-side encryption enabled
 
 ### Public Access Policy
 
@@ -74,6 +74,7 @@ KOMPLEET ML models are stored in AWS S3 and automatically downloaded on applicat
 **Base URL:** `https://kompleet-ml-models.s3.eu-west-1.amazonaws.com`
 
 **Current Version (v1.0.0):**
+
 - Model: `https://kompleet-ml-models.s3.eu-west-1.amazonaws.com/v1.0.0/model.joblib`
 - Encoders: `https://kompleet-ml-models.s3.eu-west-1.amazonaws.com/v1.0.0/encoders.joblib`
 - Metadata: `https://kompleet-ml-models.s3.eu-west-1.amazonaws.com/v1.0.0/metadata.json`
@@ -135,6 +136,7 @@ npx tsx scripts/upload-models-to-s3.ts
 ```
 
 The script will:
+
 1. Check if bucket exists
 2. Set public read policy
 3. Upload all model files
@@ -164,6 +166,7 @@ python train_model.py
 ```
 
 This generates:
+
 - `model_1.0.1_YYYYMMDD_HHMMSS.joblib`
 - `encoders_1.0.1_YYYYMMDD_HHMMSS.joblib`
 - `metadata_1.0.1_YYYYMMDD_HHMMSS.json`
@@ -201,6 +204,7 @@ rm -rf .ml-models-cache/
 **Symptom:** ML service fails to start with "File not found" error
 
 **Solutions:**
+
 1. Check S3 bucket public access policy
 2. Verify model URLs are accessible:
    ```bash
@@ -214,6 +218,7 @@ rm -rf .ml-models-cache/
 **Symptom:** ML service takes >2 minutes to start
 
 **Solutions:**
+
 1. Check internet connection speed
 2. Consider using CloudFront CDN for faster downloads
 3. Verify cache directory is writable
@@ -224,6 +229,7 @@ rm -rf .ml-models-cache/
 **Symptom:** Models re-download on every restart
 
 **Solutions:**
+
 1. Check cache directory permissions:
    ```bash
    ls -la .ml-models-cache/
@@ -236,6 +242,7 @@ rm -rf .ml-models-cache/
 **Symptom:** 403 Forbidden error when downloading
 
 **Solutions:**
+
 1. Check bucket policy allows public read
 2. Verify bucket name and region are correct
 3. Check if bucket has "Block Public Access" enabled (should be disabled)
@@ -247,10 +254,12 @@ rm -rf .ml-models-cache/
 ### AWS S3 Costs (eu-west-1)
 
 **Storage:**
+
 - 182 MB model + 3 KB encoders + 403 B metadata ≈ 0.18 GB
 - Cost: $0.023/GB/month = **$0.004/month**
 
 **Data Transfer:**
+
 - Assuming 100 downloads/month (dev + prod deployments)
 - 100 × 182 MB = 18.2 GB
 - First 100 GB free per month
@@ -278,11 +287,7 @@ rm -rf .ml-models-cache/
   "Statement": [
     {
       "Effect": "Allow",
-      "Action": [
-        "s3:PutObject",
-        "s3:GetObject",
-        "s3:ListBucket"
-      ],
+      "Action": ["s3:PutObject", "s3:GetObject", "s3:ListBucket"],
       "Resource": [
         "arn:aws:s3:::kompleet-ml-models",
         "arn:aws:s3:::kompleet-ml-models/*"
@@ -306,6 +311,7 @@ rm -rf .ml-models-cache/
 ### S3 Metrics (CloudWatch)
 
 Monitor in AWS Console:
+
 - **BucketSizeBytes** - Total storage used
 - **NumberOfObjects** - Number of files
 - **AllRequests** - Download requests
@@ -315,6 +321,7 @@ Monitor in AWS Console:
 ### Application Metrics
 
 Log in ML service:
+
 - Model download time
 - Model load time
 - Cache hit/miss rate

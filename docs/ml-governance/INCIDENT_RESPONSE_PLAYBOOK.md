@@ -17,24 +17,28 @@ This playbook provides step-by-step procedures for responding to incidents invol
 ## Incident Categories
 
 ### 1. Model Performance Degradation
+
 - Accuracy drop exceeding thresholds
 - Significant drift detection
 - Increased error rates
 - Latency degradation
 
 ### 2. Security Incidents
+
 - Unauthorized access to model artifacts
 - API security breaches
 - Adversarial attacks detected
 - Data exfiltration attempts
 
 ### 3. Compliance Violations
+
 - NDPR breach (unauthorized data processing)
 - Consent violations
 - Data subject rights violations
 - Audit trail tampering
 
 ### 4. Operational Failures
+
 - Model service unavailability
 - Deployment failures
 - Rollback failures
@@ -45,18 +49,21 @@ This playbook provides step-by-step procedures for responding to incidents invol
 ## Severity Levels
 
 ### Critical (P1)
+
 - **Impact:** Severe business impact, regulatory breach, or security compromise
 - **Examples:** Complete model failure, data breach, NDPR violation
 - **Response Time:** Immediate (< 15 minutes)
 - **Escalation:** ML Governance Lead, CTO, Compliance Officer, CEO
 
 ### Major (P2)
+
 - **Impact:** Significant performance degradation or user impact
 - **Examples:** Accuracy drop > 10%, critical drift alert, API unavailability
 - **Response Time:** < 1 hour
 - **Escalation:** ML Governance Lead, Model Owner
 
 ### Minor (P3)
+
 - **Impact:** Limited impact, early warning signs
 - **Examples:** Warning-level drift, minor performance degradation
 - **Response Time:** < 4 hours
@@ -111,18 +118,15 @@ This playbook provides step-by-step procedures for responding to incidents invol
      - Initiate emergency rollback to previous stable version
      - Follow expedited approval workflow (< 15 minutes)
      - Verify rollback success and monitor performance
-   
    - **For Security Incidents:**
      - Disable affected API endpoints immediately
      - Revoke compromised credentials
      - Block suspicious IP addresses
      - Isolate affected systems
-   
    - **For Compliance Violations:**
      - Stop unauthorized data processing immediately
      - Preserve evidence (logs, configurations)
      - Notify Compliance Officer
-   
    - **For Operational Failures:**
      - Switch to backup/redundant systems if available
      - Implement temporary workarounds
@@ -200,19 +204,16 @@ This playbook provides step-by-step procedures for responding to incidents invol
      - Adjust model parameters or architecture
      - Update preprocessing pipelines
      - Conduct thorough evaluation before redeployment
-   
    - **For Security Issues:**
      - Patch vulnerabilities
      - Strengthen access controls
      - Implement additional security measures
      - Conduct security testing
-   
    - **For Compliance Issues:**
      - Correct data processing practices
      - Obtain missing consents
      - Update privacy notices
      - Implement technical controls
-   
    - **For Operational Issues:**
      - Fix infrastructure problems
      - Update deployment procedures
@@ -253,7 +254,6 @@ This playbook provides step-by-step procedures for responding to incidents invol
      - Notify NDPC within 72 hours if personal data breach
      - Include nature of breach, affected data, likely consequences, measures taken
      - Coordinate with Compliance Officer and legal counsel
-   
    - **Data Subject Notification:**
      - Notify affected individuals if high risk to rights and freedoms
      - Provide clear information about breach and protective measures
@@ -316,27 +316,32 @@ This playbook provides step-by-step procedures for responding to incidents invol
 ## Playbook: Model Performance Degradation
 
 ### Scenario
+
 Critical drift alert indicates model accuracy has dropped below acceptable thresholds.
 
 ### Response Steps
 
 **1. Triage (0-5 minutes)**
+
 - Verify alert is genuine by checking recent inference logs
 - Assess severity: Accuracy drop > 10% = P1, 5-10% = P2, < 5% = P3
 - Notify Model Owner and ML Governance Lead
 
 **2. Containment (5-20 minutes)**
+
 - For P1: Initiate emergency rollback to previous stable version
 - For P2/P3: Enable manual review for high-stakes decisions
 - Preserve evidence: Export recent inference logs and drift metrics
 
 **3. Investigation (20 minutes - 2 hours)**
+
 - Analyze drift metrics: Data drift, concept drift, prediction drift
 - Review recent changes: Code deployments, configuration updates, data pipeline changes
 - Examine input data distribution: Has user behavior changed?
 - Check for data quality issues: Missing values, outliers, corrupted data
 
 **4. Remediation (2 hours - 48 hours)**
+
 - If data drift: Retrain model with recent data
 - If concept drift: Investigate if underlying relationships have changed
 - If data quality issue: Fix data pipeline and retrain
@@ -344,11 +349,13 @@ Critical drift alert indicates model accuracy has dropped below acceptable thres
 - Conduct thorough evaluation before redeployment
 
 **5. Notification**
+
 - Update stakeholders on status and timeline
 - If user-facing impact: Communicate with affected users
 - Document incident in audit logs
 
 **6. Post-Incident Review**
+
 - Why did drift occur? Was it preventable?
 - Were alert thresholds appropriate?
 - Was response time acceptable?
@@ -359,16 +366,19 @@ Critical drift alert indicates model accuracy has dropped below acceptable thres
 ## Playbook: Security Incident
 
 ### Scenario
+
 Unauthorized access to model artifacts or API detected.
 
 ### Response Steps
 
 **1. Triage (0-5 minutes)**
+
 - Verify security alert is genuine
 - Assess severity: Data breach or artifact compromise = P1, API abuse = P2
 - Notify Security Reviewer, ML Governance Lead, and CTO
 
 **2. Containment (5-15 minutes)**
+
 - Disable affected API endpoints immediately
 - Revoke all API keys and tokens
 - Block suspicious IP addresses
@@ -376,6 +386,7 @@ Unauthorized access to model artifacts or API detected.
 - Preserve logs and evidence
 
 **3. Investigation (15 minutes - 4 hours)**
+
 - Determine attack vector: How was access gained?
 - Assess scope: What data or artifacts were accessed?
 - Identify attacker: IP addresses, user accounts, patterns
@@ -383,6 +394,7 @@ Unauthorized access to model artifacts or API detected.
 - Determine if data exfiltration occurred
 
 **4. Remediation (4 hours - 48 hours)**
+
 - Patch vulnerabilities that enabled access
 - Strengthen authentication and authorization
 - Implement additional security controls (WAF, IDS)
@@ -390,12 +402,14 @@ Unauthorized access to model artifacts or API detected.
 - Conduct security testing before restoring service
 
 **5. Notification**
+
 - Notify executive leadership immediately
 - If personal data breach: Notify NDPC within 72 hours
 - If high risk: Notify affected data subjects
 - Coordinate with legal counsel and PR team
 
 **6. Post-Incident Review**
+
 - How was security compromised?
 - Were security controls adequate?
 - Was detection timely?
@@ -406,28 +420,33 @@ Unauthorized access to model artifacts or API detected.
 ## Playbook: NDPR Compliance Violation
 
 ### Scenario
+
 Unauthorized processing of personal data or consent violation detected.
 
 ### Response Steps
 
 **1. Triage (0-5 minutes)**
+
 - Verify compliance violation
 - Assess severity: Unauthorized processing of sensitive data = P1
 - Notify Compliance Officer, ML Governance Lead, and legal counsel
 
 **2. Containment (5-15 minutes)**
+
 - Stop unauthorized data processing immediately
 - Disable affected models or data pipelines
 - Preserve evidence: Logs, configurations, data processing records
 - Secure affected data
 
 **3. Investigation (15 minutes - 4 hours)**
+
 - Determine nature of violation: Lack of consent, purpose limitation breach, etc.
 - Assess scope: How much data? How many data subjects?
 - Identify root cause: Process failure, system error, human error?
 - Determine if notification to NDPC is required
 
 **4. Remediation (4 hours - 48 hours)**
+
 - Correct data processing practices
 - Obtain missing consents if possible
 - Delete data if processing was unlawful
@@ -435,6 +454,7 @@ Unauthorized processing of personal data or consent violation detected.
 - Implement technical controls to prevent recurrence
 
 **5. Notification**
+
 - Notify NDPC within 72 hours if required
 - Notify affected data subjects if high risk
 - Prepare detailed breach notification with:
@@ -444,6 +464,7 @@ Unauthorized processing of personal data or consent violation detected.
   - Measures taken to address violation
 
 **6. Post-Incident Review**
+
 - How did compliance violation occur?
 - Were compliance controls adequate?
 - Was training sufficient?
@@ -454,39 +475,46 @@ Unauthorized processing of personal data or consent violation detected.
 ## Playbook: Operational Failure
 
 ### Scenario
+
 Model service becomes unavailable or deployment fails.
 
 ### Response Steps
 
 **1. Triage (0-5 minutes)**
+
 - Verify service outage
 - Assess severity: Complete outage = P1, degraded performance = P2
 - Notify Platform Engineer and ML Governance Lead
 
 **2. Containment (5-20 minutes)**
+
 - Switch to backup/redundant systems if available
 - Implement temporary workarounds
 - Isolate failing components
 - Preserve logs and system state
 
 **3. Investigation (20 minutes - 2 hours)**
+
 - Identify root cause: Infrastructure failure, deployment error, resource exhaustion?
 - Review recent changes: Deployments, configuration updates, infrastructure changes
 - Check dependencies: Database, APIs, external services
 - Examine resource utilization: CPU, memory, disk, network
 
 **4. Remediation (2 hours - 24 hours)**
+
 - Fix infrastructure issues
 - Redeploy model if deployment failed
 - Scale resources if resource exhaustion
 - Update deployment procedures to prevent recurrence
 
 **5. Notification**
+
 - Update stakeholders on status and ETA
 - If user-facing: Communicate with affected users
 - Document outage in incident logs
 
 **6. Post-Incident Review**
+
 - What caused the failure?
 - Were monitoring and alerting adequate?
 - Was redundancy sufficient?
@@ -555,22 +583,22 @@ Model service becomes unavailable or deployment fails.
 
 ### Emergency Contacts
 
-| Role | Name | Phone | Email |
-|------|------|-------|-------|
+| Role               | Name   | Phone   | Email   |
+| ------------------ | ------ | ------- | ------- |
 | ML Governance Lead | [Name] | [Phone] | [Email] |
 | Compliance Officer | [Name] | [Phone] | [Email] |
-| Security Reviewer | [Name] | [Phone] | [Email] |
-| CTO | [Name] | [Phone] | [Email] |
-| CEO | [Name] | [Phone] | [Email] |
-| Legal Counsel | [Name] | [Phone] | [Email] |
+| Security Reviewer  | [Name] | [Phone] | [Email] |
+| CTO                | [Name] | [Phone] | [Email] |
+| CEO                | [Name] | [Phone] | [Email] |
+| Legal Counsel      | [Name] | [Phone] | [Email] |
 
 ### External Contacts
 
-| Organization | Contact | Phone | Email |
-|--------------|---------|-------|-------|
-| NDPC | [Contact] | [Phone] | [Email] |
-| Legal Firm | [Firm Name] | [Phone] | [Email] |
-| PR Agency | [Agency Name] | [Phone] | [Email] |
+| Organization | Contact       | Phone   | Email   |
+| ------------ | ------------- | ------- | ------- |
+| NDPC         | [Contact]     | [Phone] | [Email] |
+| Legal Firm   | [Firm Name]   | [Phone] | [Email] |
+| PR Agency    | [Agency Name] | [Phone] | [Email] |
 
 ---
 
@@ -578,35 +606,38 @@ Model service becomes unavailable or deployment fails.
 
 ### Appendix A: Incident Severity Matrix
 
-| Factor | P1 (Critical) | P2 (Major) | P3 (Minor) |
-|--------|---------------|------------|------------|
-| User Impact | Severe (> 50% users) | Significant (10-50% users) | Limited (< 10% users) |
-| Business Impact | Revenue loss, regulatory breach | Degraded service | Minimal impact |
-| Security | Data breach, system compromise | API abuse, attempted breach | Security warning |
-| Compliance | NDPR violation | Compliance risk | Compliance gap |
-| Response Time | < 15 minutes | < 1 hour | < 4 hours |
+| Factor          | P1 (Critical)                   | P2 (Major)                  | P3 (Minor)            |
+| --------------- | ------------------------------- | --------------------------- | --------------------- |
+| User Impact     | Severe (> 50% users)            | Significant (10-50% users)  | Limited (< 10% users) |
+| Business Impact | Revenue loss, regulatory breach | Degraded service            | Minimal impact        |
+| Security        | Data breach, system compromise  | API abuse, attempted breach | Security warning      |
+| Compliance      | NDPR violation                  | Compliance risk             | Compliance gap        |
+| Response Time   | < 15 minutes                    | < 1 hour                    | < 4 hours             |
 
 ### Appendix B: Escalation Matrix
 
-| Severity | Immediate Notification | 1-Hour Update | Executive Notification |
-|----------|------------------------|---------------|------------------------|
-| P1 | Model Owner, ML Governance Lead, CTO | CEO, Compliance Officer (if applicable) | Board (if major breach) |
-| P2 | Model Owner, ML Governance Lead | CTO | - |
-| P3 | Model Owner | ML Governance Lead | - |
+| Severity | Immediate Notification               | 1-Hour Update                           | Executive Notification  |
+| -------- | ------------------------------------ | --------------------------------------- | ----------------------- |
+| P1       | Model Owner, ML Governance Lead, CTO | CEO, Compliance Officer (if applicable) | Board (if major breach) |
+| P2       | Model Owner, ML Governance Lead      | CTO                                     | -                       |
+| P3       | Model Owner                          | ML Governance Lead                      | -                       |
 
 ### Appendix C: Useful Commands
 
 **View Recent Audit Logs:**
+
 ```bash
 curl -X GET "https://api.kompleet.ng/api/ml-governance/audit-logs?limit=100"
 ```
 
 **Get Model Drift Metrics:**
+
 ```bash
 curl -X GET "https://api.kompleet.ng/api/ml-governance/drift/{modelId}/{version}/latest"
 ```
 
 **Initiate Emergency Rollback:**
+
 ```bash
 curl -X POST "https://api.kompleet.ng/api/ml-governance/rollback" \
   -H "Content-Type: application/json" \
@@ -625,4 +656,4 @@ curl -X POST "https://api.kompleet.ng/api/ml-governance/rollback" \
 **Last Updated:** February 6, 2026  
 **Next Review:** August 6, 2026
 
-*This playbook is part of the KOMPLEET ML Governance framework. All personnel must be familiar with incident response procedures.*
+_This playbook is part of the KOMPLEET ML Governance framework. All personnel must be familiar with incident response procedures._

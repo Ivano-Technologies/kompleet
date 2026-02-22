@@ -1,4 +1,3 @@
-
 ## Branding Update (February 6, 2026)
 
 - [x] Update landing page with new tagline
@@ -26,30 +25,35 @@
 ## ML Governance Framework (February 6, 2026)
 
 ### Phase 1: Architecture & Schema
+
 - [x] Design model registry database schema
 - [x] Design audit log schema
 - [x] Design approval workflow schema
 - [x] Create system architecture diagram
 
 ### Phase 2: Model Registry & Versioning
+
 - [x] Implement model registry service
 - [x] Build model versioning system
 - [x] Create model artifact storage
 - [x] Build model metadata API
 
 ### Phase 3: Workflows & Audit Trails
+
 - [x] Implement approval workflow engine
 - [x] Build audit logging infrastructure
 - [x] Create rollback mechanism
 - [x] Implement drift detection alerts
 
 ### Phase 4: Dashboards & Monitoring
+
 - [x] Create governance dashboard UI
 - [x] Build model performance monitoring
 - [x] Create audit log viewer
 - [x] Implement compliance reporting
 
 ### Phase 5: Documentation & Policies
+
 - [x] Write ML governance policy
 - [x] Create model release checklist
 - [x] Write incident response playbooks
@@ -59,6 +63,7 @@
 ## Sprint 11-12: ML Categorization & Email Integration (4 weeks)
 
 ### Phase 1: Architecture & Design
+
 - [x] Design ML training pipeline architecture
 - [x] Design ML inference service architecture
 - [x] Design feature store for ML inputs
@@ -69,6 +74,7 @@
 - [x] Create system architecture diagram
 
 ### Phase 2: Dataset & Model Training
+
 - [x] Extract Nigerian transaction data from Supabase
 - [x] Label transactions with categories
 - [x] Engineer features (merchant, amount, frequency, channel)
@@ -80,6 +86,7 @@
 - [x] Implement model versioning
 
 ### Phase 3: ML Inference API
+
 - [x] Build /api/ai/categorize endpoint
 - [x] Implement feature extraction from transactions
 - [x] Integrate trained model for inference
@@ -90,6 +97,7 @@
 - [x] Add inference logging
 
 ### Phase 4: Email Integrations
+
 - [x] Set up Google Cloud Console project for Gmail API
 - [x] Configure OAuth consent screen (Gmail)
 - [x] Implement Gmail OAuth flow
@@ -106,6 +114,7 @@
 - [x] Add email API error handling and retries
 
 ### Phase 5: Continuous Learning & Recurring Detection
+
 - [x] Build user correction collection system
 - [x] Implement model retraining pipeline
 - [x] Schedule periodic model retraining
@@ -116,6 +125,7 @@
 - [x] Add recurring transaction UI indicators
 
 ### Phase 6: UI Implementation
+
 - [x] Create category correction interface
 - [x] Build email connection management page
 - [x] Add Gmail connection button and flow
@@ -126,6 +136,7 @@
 - [x] Add recurring transaction badges
 
 ### Phase 7: Testing & Deployment
+
 - [x] Write offline model evaluation tests
 - [x] Set up A/B test ML vs rules-based
 - [x] Write Gmail OAuth integration tests
@@ -142,6 +153,7 @@
 - [x] Monitor and validate 60%+ manual reduction
 
 ### Documentation
+
 - [ ] Write ML pipeline developer docs
 - [ ] Write inference API documentation
 - [ ] Write Gmail connection user guide
@@ -153,6 +165,7 @@
 ## CRITICAL PATH TO MVP (Sprints 5-7)
 
 ### Sprint 5: Transaction Upload & Parsing
+
 - [x] Create database schema (import_sessions, import_errors, duplicate_candidates)
 - [x] Install parser libraries (papaparse, xlsx, formidable)
 - [x] Document bank formats for 10 Nigerian banks
@@ -175,6 +188,7 @@
 - [ ] Conduct user acceptance testing
 
 ### Sprint 6: Financial Statement Generator
+
 - [ ] Design financial statement data models
 - [ ] Build Income Statement (P&L) generator
 - [ ] Build Tax Computation Schedule generator
@@ -189,6 +203,7 @@
 - [ ] Conduct UAT with tax professionals
 
 ### Sprint 7: NRS Filing Integration
+
 - [ ] Research NRS form specifications (PIT, CIT, VAT)
 - [ ] Build NRS form generator
 - [ ] Implement filing deadline management
@@ -201,7 +216,6 @@
 - [ ] Validate forms against NRS requirements
 - [ ] Conduct end-to-end filing workflow testing
 - [ ] Prepare user documentation
-
 
 ## Branding Fixes - User Reported Issues (February 6, 2026)
 
@@ -313,17 +327,16 @@
 - [x] Remove password and OAuth options temporarily
 - [ ] Test magic link authentication flow
 
-
 ## Dashboard Chart Rendering Issues (February 8, 2026)
 
 - [x] Fix chart components with invalid dimensions (-1 width/height)
 - [x] Add explicit width/height to chart containers
 - [ ] Test all dashboard charts render correctly (requires new magic link login)
 
-
 ## UI Redesign - NextAuth Design Language (February 8, 2026)
 
 ### Design Decisions (LOCKED)
+
 - Font: Inter (NextAuth exact match)
 - Colors: NextAuth light/dark themes + Nigerian green (#008751) accents only
 - Tone: Friendly & approachable
@@ -332,6 +345,7 @@
 - Users: Optimize for all segments equally (no personalization yet)
 
 ### Phase 1: Foundation
+
 - [x] Analyze NextAuth live site for pixel-perfect details
 - [x] Create Design System v2.0 with NextAuth fidelity
 - [x] Get user approval for design system
@@ -342,6 +356,7 @@
 - [x] Create CSS variables for theme switching
 
 ### Phase 2: Component Library
+
 - [x] Button (primary with Nigerian green, secondary with dashed hover, danger)
 - [x] Card (feature card, data card with CardHeader/CardTitle/CardContent)
 - [x] Input & Textarea (with Nigerian green focus states)
@@ -360,6 +375,7 @@
 - [ ] Tabs (navigation within pages) - Future
 
 ### Phase 3: Page Redesigns
+
 - [ ] Landing page (/) - NextAuth hero pattern
 - [ ] Sign-in page (/sign-in) - Centered card
 - [ ] Dashboard (/dashboard) - Overview with stats + quick actions
@@ -372,6 +388,7 @@
 - [ ] Profile/Settings - Simple forms
 
 ### Phase 4: Themes & Polish
+
 - [ ] Implement dark theme
 - [ ] Test theme switching
 - [ ] Accessibility checks (WCAG AA)
@@ -379,10 +396,10 @@
 - [ ] Performance optimization
 
 ### Phase 5: Deployment
+
 - [ ] User approval for final UI
 - [ ] Deploy to production
 - [ ] Before/after comparison documentation
-
 
 ## Design Enhancement - Add Visual Sophistication (February 8, 2026)
 
@@ -398,7 +415,6 @@
 - [ ] Polish card designs with refined borders and spacing
 - [ ] Enhance button styles with better hover states
 - [ ] Test all enhancements and deploy
-
 
 ## Icon Sizing and Visual Balance Fixes (February 8, 2026)
 

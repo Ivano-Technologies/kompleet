@@ -1,19 +1,19 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useMemo, FormEvent, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { createSupabaseClient } from '@/lib/supabase/client';
-import { useTheme } from '@/contexts/ThemeContext';
-import Link from 'next/link';
-import Image from 'next/image';
-import { ArrowLeft, Eye, EyeOff, Moon, Shield, Lock, Sun } from 'lucide-react';
+import { useState, useEffect, useMemo, FormEvent, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { createSupabaseClient } from "@/lib/supabase/client";
+import { useTheme } from "@/contexts/ThemeContext";
+import Link from "next/link";
+import Image from "next/image";
+import { ArrowLeft, Eye, EyeOff, Moon, Shield, Lock, Sun } from "lucide-react";
 
 const LOGO_URL =
-  'https://files.manuscdn.com/user_upload_by_module/session_file/114473754/ZeGQuujTZDuMQDVT.png';
+  "https://files.manuscdn.com/user_upload_by_module/session_file/114473754/ZeGQuujTZDuMQDVT.png";
 
 function LoginForm() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -22,27 +22,35 @@ function LoginForm() {
   const { theme, toggleTheme } = useTheme();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get('redirectTo') || '/dashboard';
+  const redirectTo = searchParams.get("redirectTo") || "/dashboard";
 
   // Handle error messages from auth callback
-  const callbackError = searchParams.get('error');
-  const callbackMessage = searchParams.get('message');
+  const callbackError = searchParams.get("error");
+  const callbackMessage = searchParams.get("message");
 
   useEffect(() => {
     if (callbackError) {
       const errorMessages: Record<string, string> = {
-        'auth_failed': 'Authentication failed. Please try again.',
-        'expired_link': callbackMessage || 'This link has expired. Please request a new one.',
-        'link_used': callbackMessage || 'This link has already been used. Please request a new one.',
-        'no_session': 'Failed to create session. Please try again.',
-        'missing_code': 'Invalid authentication link.',
-        'access_denied': 'Access was denied. Please try again.',
-        'server_error': 'Server error occurred. Please try again later.',
-        'temporarily_unavailable': 'Service temporarily unavailable. Please try again later.',
-        'invalid_request': 'Invalid request. Please try again.',
-        'unexpected': 'An unexpected error occurred. Please try again.',
+        auth_failed: "Authentication failed. Please try again.",
+        expired_link:
+          callbackMessage || "This link has expired. Please request a new one.",
+        link_used:
+          callbackMessage ||
+          "This link has already been used. Please request a new one.",
+        no_session: "Failed to create session. Please try again.",
+        missing_code: "Invalid authentication link.",
+        access_denied: "Access was denied. Please try again.",
+        server_error: "Server error occurred. Please try again later.",
+        temporarily_unavailable:
+          "Service temporarily unavailable. Please try again later.",
+        invalid_request: "Invalid request. Please try again.",
+        unexpected: "An unexpected error occurred. Please try again.",
       };
-      setError(errorMessages[callbackError] || callbackMessage || 'Authentication error occurred.');
+      setError(
+        errorMessages[callbackError] ||
+          callbackMessage ||
+          "Authentication error occurred.",
+      );
     }
   }, [callbackError, callbackMessage]);
 
@@ -75,16 +83,16 @@ function LoginForm() {
     setError(null);
 
     if (isCoolingDown) {
-      setError('Too many attempts. Please wait before trying again.');
+      setError("Too many attempts. Please wait before trying again.");
       return;
     }
 
     setLoading(true);
 
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
 
@@ -93,7 +101,9 @@ function LoginForm() {
       if (res.status === 429) {
         const retryAfterSec = data.retryAfterSec || 60;
         setCooldownUntil(Date.now() + retryAfterSec * 1000);
-        setError(`Too many login attempts. Please try again in ${Math.ceil(retryAfterSec / 60)} minute(s).`);
+        setError(
+          `Too many login attempts. Please try again in ${Math.ceil(retryAfterSec / 60)} minute(s).`,
+        );
         setLoading(false);
         return;
       }
@@ -105,9 +115,11 @@ function LoginForm() {
         if (attempts >= 3) {
           const cooldownSec = Math.min(attempts * 30, 300);
           setCooldownUntil(Date.now() + cooldownSec * 1000);
-          setError(`Too many failed attempts. Please wait ${cooldownSec} seconds before trying again.`);
+          setError(
+            `Too many failed attempts. Please wait ${cooldownSec} seconds before trying again.`,
+          );
         } else {
-          setError(data.error || 'Invalid email or password.');
+          setError(data.error || "Invalid email or password.");
         }
 
         setLoading(false);
@@ -130,7 +142,7 @@ function LoginForm() {
         router.refresh();
       }
     } catch {
-      setError('An unexpected error occurred. Please try again.');
+      setError("An unexpected error occurred. Please try again.");
       setLoading(false);
     }
   };
@@ -147,23 +159,34 @@ function LoginForm() {
         </div>
         <div className="relative z-10">
           <Link href="/" className="flex items-center gap-2.5">
-            <Image src={LOGO_URL} alt="KOMPLEET" width={36} height={36} className="rounded" />
+            <Image
+              src={LOGO_URL}
+              alt="KOMPLEET"
+              width={36}
+              height={36}
+              className="rounded"
+            />
             <span className="text-xl font-bold text-white">KOMPLEET</span>
           </Link>
         </div>
         <div className="relative z-10 space-y-6">
           <h2 className="text-3xl font-bold text-white leading-tight">
-            Tax compliance<br />made effortless.
+            Tax compliance
+            <br />
+            made effortless.
           </h2>
           <p className="text-white/70 text-base max-w-sm leading-relaxed">
-            Join thousands of Nigerian businesses automating their tax filings, invoicing, and financial reporting.
+            Join thousands of Nigerian businesses automating their tax filings,
+            invoicing, and financial reporting.
           </p>
           <div className="flex gap-6 text-white/60 text-sm">
             <span className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-white/60" /> 5,000+ businesses
+              <span className="w-1.5 h-1.5 rounded-full bg-white/60" /> 5,000+
+              businesses
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-white/60" /> NRS compliant
+              <span className="w-1.5 h-1.5 rounded-full bg-white/60" /> NRS
+              compliant
             </span>
           </div>
         </div>
@@ -175,7 +198,10 @@ function LoginForm() {
       {/* Right panel - form */}
       <div className="flex-1 flex flex-col">
         <div className="flex items-center justify-between p-6">
-          <Link href="/" className="flex items-center gap-2 text-sm text-[rgb(var(--text-secondary))] hover:text-[rgb(var(--text-primary))] transition-colors">
+          <Link
+            href="/"
+            className="flex items-center gap-2 text-sm text-[rgb(var(--text-secondary))] hover:text-[rgb(var(--text-primary))] transition-colors"
+          >
             <ArrowLeft className="w-4 h-4" /> Back
           </Link>
           <button
@@ -183,7 +209,11 @@ function LoginForm() {
             className="p-2 rounded-md border border-[rgb(var(--border))] hover:bg-[rgb(var(--surface))] transition-colors"
             aria-label="Toggle theme"
           >
-            {theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+            {theme === "light" ? (
+              <Moon className="w-4 h-4" />
+            ) : (
+              <Sun className="w-4 h-4" />
+            )}
           </button>
         </div>
 
@@ -191,30 +221,44 @@ function LoginForm() {
           <div className="w-full max-w-sm space-y-8">
             {/* Mobile logo */}
             <div className="lg:hidden flex items-center justify-center gap-2 mb-4">
-              <Image src={LOGO_URL} alt="KOMPLEET" width={32} height={32} className="rounded" />
+              <Image
+                src={LOGO_URL}
+                alt="KOMPLEET"
+                width={32}
+                height={32}
+                className="rounded"
+              />
               <span className="text-lg font-bold">KOMPLEET</span>
             </div>
 
             <div className="space-y-2">
               <h1 className="text-2xl font-bold">Welcome back</h1>
-              <p className="text-sm text-[rgb(var(--text-secondary))]">Enter your credentials to access your account</p>
+              <p className="text-sm text-[rgb(var(--text-secondary))]">
+                Enter your credentials to access your account
+              </p>
             </div>
 
             {error && callbackError && (
               <div className="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/30 rounded-lg">
-                <p className="text-amber-700 dark:text-amber-400 text-sm">{error}</p>
+                <p className="text-amber-700 dark:text-amber-400 text-sm">
+                  {error}
+                </p>
               </div>
             )}
-            
+
             {error && !callbackError && (
               <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 rounded-lg">
-                <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
+                <p className="text-red-600 dark:text-red-400 text-sm">
+                  {error}
+                </p>
               </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-1.5">
-                <label htmlFor="email" className="text-sm font-medium">Email</label>
+                <label htmlFor="email" className="text-sm font-medium">
+                  Email
+                </label>
                 <input
                   id="email"
                   type="email"
@@ -228,15 +272,20 @@ function LoginForm() {
 
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <label htmlFor="password" className="text-sm font-medium">Password</label>
-                  <Link href="/forgot-password" className="text-xs text-[rgb(var(--primary))] hover:underline">
+                  <label htmlFor="password" className="text-sm font-medium">
+                    Password
+                  </label>
+                  <Link
+                    href="/forgot-password"
+                    className="text-xs text-[rgb(var(--primary))] hover:underline"
+                  >
                     Forgot password?
                   </Link>
                 </div>
                 <div className="relative">
                   <input
                     id="password"
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Enter your password"
@@ -249,7 +298,11 @@ function LoginForm() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-[rgb(var(--text-tertiary))] hover:text-[rgb(var(--text-primary))]"
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showPassword ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -259,13 +312,20 @@ function LoginForm() {
                 disabled={loading || isCoolingDown}
                 className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? 'Signing in...' : isCoolingDown ? 'Please wait...' : 'Sign In'}
+                {loading
+                  ? "Signing in..."
+                  : isCoolingDown
+                    ? "Please wait..."
+                    : "Sign In"}
               </button>
             </form>
 
             <p className="text-center text-sm text-[rgb(var(--text-secondary))]">
-              Don&apos;t have an account?{' '}
-              <Link href="/signup" className="text-[rgb(var(--primary))] font-medium hover:underline">
+              Don&apos;t have an account?{" "}
+              <Link
+                href="/signup"
+                className="text-[rgb(var(--primary))] font-medium hover:underline"
+              >
                 Create one
               </Link>
             </p>

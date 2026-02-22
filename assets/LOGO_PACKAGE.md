@@ -9,12 +9,14 @@
 ## Logo Files
 
 ### Primary Logo (White Background)
+
 **File:** `logo-primary.png`  
 **Usage:** Platform UI, documents, light backgrounds  
 **Description:** Organic brush-stroke green "<" symbol on white/transparent background  
 **Dimensions:** 1024 x 1024px
 
 ### Inverted Logo (Green Background)
+
 **File:** `logo-inverted.png`  
 **Usage:** Mobile app icons, social media, dark backgrounds  
 **Description:** Organic brush-stroke white "<" symbol on Nigerian green background  
@@ -25,6 +27,7 @@
 ## Marketing Materials
 
 ### Social Media Graphics
+
 1. **Square Format** (1:1) - `marketing/social-media-square.png`
    - Instagram feed posts
    - Facebook posts
@@ -44,6 +47,7 @@
    - 1080 x 1920px
 
 ### Email & Presentation
+
 4. **Email Header** (21:9) - `marketing/email-header.png`
    - Newsletter headers
    - Email campaigns
@@ -55,6 +59,7 @@
    - 1920 x 1080px
 
 ### Email Signature
+
 **File:** `marketing/EMAIL_SIGNATURE.html`  
 **Format:** HTML template  
 **Usage:** Professional email signatures for team members
@@ -64,20 +69,24 @@
 ## Brand Elements
 
 ### Official Tagline
+
 **"Kompleet records. Kompleet filings. Kompleet compliance."**
 
 This three-part tagline communicates the platform's comprehensive approach:
+
 - **Kompleet records** - Transaction management
 - **Kompleet filings** - NRS e-invoicing and tax submissions
 - **Kompleet compliance** - 2026 Tax Act adherence
 
 ### Color Palette
+
 - **Nigerian Green:** #0A6847 (RGB: 10, 104, 71)
 - **White:** #FFFFFF (RGB: 255, 255, 255)
 - **Dark Text:** #11181C (RGB: 17, 24, 28)
 - **Light Gray:** #F5F5F5 (RGB: 245, 245, 245)
 
 ### Typography
+
 - **Primary Font:** Sans-serif (Arial, Helvetica, system fonts)
 - **Style:** Clean, modern, professional
 - **Weight:** Regular (400) for body, Bold (700) for headings
@@ -87,6 +96,7 @@ This three-part tagline communicates the platform's comprehensive approach:
 ## Logo Design Specifications
 
 See `LOGO_SPECIFICATIONS.md` for complete technical details including:
+
 - Organic brush-stroke characteristics
 - Two-stroke composition
 - Rounded tapered ends
@@ -99,18 +109,20 @@ See `LOGO_SPECIFICATIONS.md` for complete technical details including:
 ## Usage Guidelines
 
 ### DO:
+
 ✅ Use the primary logo on light backgrounds  
 ✅ Use the inverted logo on dark/green backgrounds  
 ✅ Maintain adequate white space around the logo  
 ✅ Keep the organic brush-stroke style intact  
-✅ Use the official tagline in marketing materials  
+✅ Use the official tagline in marketing materials
 
 ### DON'T:
+
 ❌ Alter, stretch, or distort the logo  
 ❌ Change the colors  
 ❌ Add effects, shadows, or outlines  
 ❌ Use low-resolution versions  
-❌ Place logo on busy backgrounds that reduce visibility  
+❌ Place logo on busy backgrounds that reduce visibility
 
 ---
 
@@ -142,6 +154,7 @@ See `LOGO_SPECIFICATIONS.md` for complete technical details including:
 ## Mobile App Integration
 
 The inverted logo has been integrated into the KOMPLEET mobile app:
+
 - `icon.png` - App launcher icon
 - `splash-icon.png` - Splash screen
 - `favicon.png` - Web favicon
@@ -152,6 +165,7 @@ The inverted logo has been integrated into the KOMPLEET mobile app:
 ## Platform Integration
 
 The primary logo is displayed on:
+
 - Landing page (kompleet.ng)
 - Login page
 - Signup page
@@ -174,4 +188,4 @@ For brand guidelines, additional assets, or usage questions:
 **Last Updated:** February 6, 2026  
 **Status:** Production Ready
 
-*Kompleet records. Kompleet filings. Kompleet compliance.*
+_Kompleet records. Kompleet filings. Kompleet compliance._

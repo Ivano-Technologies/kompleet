@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 const Module = require("module");
-const {resolve} = require("path");
+const { resolve } = require("path");
 
 /*
  * Simple wrapper around node that first registers Sucrase with default settings.

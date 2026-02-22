@@ -4,23 +4,23 @@
  * Optional future: conflict UI ("Keep mine" / "Keep server") when same id has different updated_at.
  */
 
-import { getDb } from '@/lib/db/init';
-import type { SupabaseClient } from '@supabase/supabase-js';
+import { getDb } from "@/lib/db/init";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
-const LAST_SYNCED_KEY = 'last_synced_at';
+const LAST_SYNCED_KEY = "last_synced_at";
 
 export function getLastSyncedAt(): string | null {
   const db = getDb();
   const rows = db.getAllSync<{ value: string }>(
-    'select value from sync_meta where key = ?',
-    [LAST_SYNCED_KEY]
+    "select value from sync_meta where key = ?",
+    [LAST_SYNCED_KEY],
   );
   return rows[0]?.value ?? null;
 }
 
 function setLastSyncedAt(iso: string): void {
   const db = getDb();
-  db.runSync('insert or replace into sync_meta (key, value) values (?, ?)', [
+  db.runSync("insert or replace into sync_meta (key, value) values (?, ?)", [
     LAST_SYNCED_KEY,
     iso,
   ]);
@@ -47,39 +47,49 @@ export async function runSync(supabase: SupabaseClient): Promise<SyncResult> {
     entity_id: string;
     operation: string;
     payload: string | null;
-  }>('select id, entity_type, entity_id, operation, payload from sync_queue order by id');
+  }>(
+    "select id, entity_type, entity_id, operation, payload from sync_queue order by id",
+  );
 
   for (const row of queueRows) {
     try {
-      if (row.entity_type !== 'expense') continue;
-      const payload = row.payload ? (JSON.parse(row.payload) as Record<string, unknown>) : null;
-      if (row.operation === 'insert' && payload) {
-        const { error } = await supabase.from('expenses').insert(payload);
+      if (row.entity_type !== "expense") continue;
+      const payload = row.payload
+        ? (JSON.parse(row.payload) as Record<string, unknown>)
+        : null;
+      if (row.operation === "insert" && payload) {
+        const { error } = await supabase.from("expenses").insert(payload);
         if (error) result.errors.push(String(error.message));
         else result.pushed++;
-      } else if (row.operation === 'update' && payload) {
+      } else if (row.operation === "update" && payload) {
         const { id, ...rest } = payload as { id: string; [k: string]: unknown };
-        const { error } = await supabase.from('expenses').update(rest).eq('id', id);
+        const { error } = await supabase
+          .from("expenses")
+          .update(rest)
+          .eq("id", id);
         if (error) result.errors.push(String(error.message));
         else result.pushed++;
-      } else if (row.operation === 'delete') {
-        const { error } = await supabase.from('expenses').delete().eq('id', row.entity_id);
+      } else if (row.operation === "delete") {
+        const { error } = await supabase
+          .from("expenses")
+          .delete()
+          .eq("id", row.entity_id);
         if (error) result.errors.push(String(error.message));
         else result.pushed++;
       }
-      db.runSync('delete from sync_queue where id = ?', [row.id]);
+      db.runSync("delete from sync_queue where id = ?", [row.id]);
     } catch (e) {
       result.errors.push(String(e));
     }
   }
 
   // 2. Pull: fetch expenses updated after last_synced_at
-  const lastSynced = getLastSyncedAt() ?? '1970-01-01T00:00:00Z';
+  const lastSynced = getLastSyncedAt() ?? "1970-01-01T00:00:00Z";
   const { data: remote, error: pullError } = await supabase
-    .from('expenses')
-    .select('*')
-    .gte('updated_at', lastSynced)
-    .order('updated_at', { ascending: true });
+    .from("expenses")
+    .select("*")
+    .gte("updated_at", lastSynced)
+    .order("updated_at", { ascending: true });
 
   if (pullError) {
     result.errors.push(pullError.message);
@@ -99,7 +109,7 @@ export async function runSync(supabase: SupabaseClient): Promise<SyncResult> {
         (row as { user_id: string }).user_id,
         (row as { date: string }).date,
         (row as { amount: number }).amount,
-        (row as { currency: string }).currency ?? 'NGN',
+        (row as { currency: string }).currency ?? "NGN",
         (row as { category_id: string | null }).category_id ?? null,
         (row as { vendor: string | null }).vendor ?? null,
         (row as { vat_amount: number }).vat_amount ?? 0,
@@ -108,7 +118,7 @@ export async function runSync(supabase: SupabaseClient): Promise<SyncResult> {
         (row as { created_at: string }).created_at,
         updatedAt,
         updatedAt,
-      ]
+      ],
     );
     result.pulled++;
   }

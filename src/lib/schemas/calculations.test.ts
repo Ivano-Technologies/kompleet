@@ -1,24 +1,28 @@
-import { describe, it, expect } from 'vitest';
-import { saveCalculationSchema, updateCalculationSchema, taxTypeEnum } from './calculations';
+import { describe, it, expect } from "vitest";
+import {
+  saveCalculationSchema,
+  updateCalculationSchema,
+  taxTypeEnum,
+} from "./calculations";
 
-describe('taxTypeEnum', () => {
-  it('accepts valid tax types', () => {
-    expect(taxTypeEnum.safeParse('pit').success).toBe(true);
-    expect(taxTypeEnum.safeParse('cit').success).toBe(true);
-    expect(taxTypeEnum.safeParse('vat').success).toBe(true);
-    expect(taxTypeEnum.safeParse('wht').success).toBe(true);
+describe("taxTypeEnum", () => {
+  it("accepts valid tax types", () => {
+    expect(taxTypeEnum.safeParse("pit").success).toBe(true);
+    expect(taxTypeEnum.safeParse("cit").success).toBe(true);
+    expect(taxTypeEnum.safeParse("vat").success).toBe(true);
+    expect(taxTypeEnum.safeParse("wht").success).toBe(true);
   });
 
-  it('rejects invalid tax types', () => {
-    expect(taxTypeEnum.safeParse('income').success).toBe(false);
-    expect(taxTypeEnum.safeParse('').success).toBe(false);
-    expect(taxTypeEnum.safeParse('PIT').success).toBe(false);
+  it("rejects invalid tax types", () => {
+    expect(taxTypeEnum.safeParse("income").success).toBe(false);
+    expect(taxTypeEnum.safeParse("").success).toBe(false);
+    expect(taxTypeEnum.safeParse("PIT").success).toBe(false);
   });
 });
 
-describe('saveCalculationSchema', () => {
+describe("saveCalculationSchema", () => {
   const validInput = {
-    tax_type: 'vat',
+    tax_type: "vat",
     tax_year: 2025,
     input_data: { revenue: 5000000 },
     gross_amount: 5000000,
@@ -27,15 +31,15 @@ describe('saveCalculationSchema', () => {
     breakdown: { rate: 7.5, base: 4500000 },
   };
 
-  it('accepts valid input', () => {
+  it("accepts valid input", () => {
     const result = saveCalculationSchema.safeParse(validInput);
     expect(result.success).toBe(true);
   });
 
-  it('accepts valid input with all optional fields', () => {
+  it("accepts valid input with all optional fields", () => {
     const result = saveCalculationSchema.safeParse({
       ...validInput,
-      calculation_date: '2025-06-15',
+      calculation_date: "2025-06-15",
       deductions: 500000,
       effective_rate: 7.5,
       is_final: true,
@@ -43,15 +47,15 @@ describe('saveCalculationSchema', () => {
     expect(result.success).toBe(true);
   });
 
-  it('rejects invalid tax_type', () => {
+  it("rejects invalid tax_type", () => {
     const result = saveCalculationSchema.safeParse({
       ...validInput,
-      tax_type: 'invalid',
+      tax_type: "invalid",
     });
     expect(result.success).toBe(false);
   });
 
-  it('rejects tax_year below 2000', () => {
+  it("rejects tax_year below 2000", () => {
     const result = saveCalculationSchema.safeParse({
       ...validInput,
       tax_year: 1999,
@@ -59,7 +63,7 @@ describe('saveCalculationSchema', () => {
     expect(result.success).toBe(false);
   });
 
-  it('rejects tax_year above 2100', () => {
+  it("rejects tax_year above 2100", () => {
     const result = saveCalculationSchema.safeParse({
       ...validInput,
       tax_year: 2101,
@@ -67,12 +71,18 @@ describe('saveCalculationSchema', () => {
     expect(result.success).toBe(false);
   });
 
-  it('accepts boundary years (2000 and 2100)', () => {
-    expect(saveCalculationSchema.safeParse({ ...validInput, tax_year: 2000 }).success).toBe(true);
-    expect(saveCalculationSchema.safeParse({ ...validInput, tax_year: 2100 }).success).toBe(true);
+  it("accepts boundary years (2000 and 2100)", () => {
+    expect(
+      saveCalculationSchema.safeParse({ ...validInput, tax_year: 2000 })
+        .success,
+    ).toBe(true);
+    expect(
+      saveCalculationSchema.safeParse({ ...validInput, tax_year: 2100 })
+        .success,
+    ).toBe(true);
   });
 
-  it('rejects negative gross_amount', () => {
+  it("rejects negative gross_amount", () => {
     const result = saveCalculationSchema.safeParse({
       ...validInput,
       gross_amount: -100,
@@ -80,7 +90,7 @@ describe('saveCalculationSchema', () => {
     expect(result.success).toBe(false);
   });
 
-  it('rejects negative taxable_amount', () => {
+  it("rejects negative taxable_amount", () => {
     const result = saveCalculationSchema.safeParse({
       ...validInput,
       taxable_amount: -1,
@@ -88,7 +98,7 @@ describe('saveCalculationSchema', () => {
     expect(result.success).toBe(false);
   });
 
-  it('rejects negative tax_due', () => {
+  it("rejects negative tax_due", () => {
     const result = saveCalculationSchema.safeParse({
       ...validInput,
       tax_due: -50,
@@ -96,7 +106,7 @@ describe('saveCalculationSchema', () => {
     expect(result.success).toBe(false);
   });
 
-  it('rejects negative deductions', () => {
+  it("rejects negative deductions", () => {
     const result = saveCalculationSchema.safeParse({
       ...validInput,
       deductions: -100,
@@ -104,7 +114,7 @@ describe('saveCalculationSchema', () => {
     expect(result.success).toBe(false);
   });
 
-  it('accepts zero amounts', () => {
+  it("accepts zero amounts", () => {
     const result = saveCalculationSchema.safeParse({
       ...validInput,
       gross_amount: 0,
@@ -114,20 +124,22 @@ describe('saveCalculationSchema', () => {
     expect(result.success).toBe(true);
   });
 
-  it('rejects missing required fields', () => {
+  it("rejects missing required fields", () => {
     expect(saveCalculationSchema.safeParse({}).success).toBe(false);
-    expect(saveCalculationSchema.safeParse({ tax_type: 'vat' }).success).toBe(false);
+    expect(saveCalculationSchema.safeParse({ tax_type: "vat" }).success).toBe(
+      false,
+    );
   });
 
-  it('rejects invalid calculation_date format', () => {
+  it("rejects invalid calculation_date format", () => {
     const result = saveCalculationSchema.safeParse({
       ...validInput,
-      calculation_date: '15/06/2025',
+      calculation_date: "15/06/2025",
     });
     expect(result.success).toBe(false);
   });
 
-  it('rejects effective_rate over 100', () => {
+  it("rejects effective_rate over 100", () => {
     const result = saveCalculationSchema.safeParse({
       ...validInput,
       effective_rate: 150,
@@ -136,15 +148,15 @@ describe('saveCalculationSchema', () => {
   });
 });
 
-describe('updateCalculationSchema', () => {
-  it('accepts valid partial update', () => {
+describe("updateCalculationSchema", () => {
+  it("accepts valid partial update", () => {
     const result = updateCalculationSchema.safeParse({
       gross_amount: 6000000,
     });
     expect(result.success).toBe(true);
   });
 
-  it('accepts multiple fields update', () => {
+  it("accepts multiple fields update", () => {
     const result = updateCalculationSchema.safeParse({
       gross_amount: 6000000,
       tax_due: 450000,
@@ -153,13 +165,17 @@ describe('updateCalculationSchema', () => {
     expect(result.success).toBe(true);
   });
 
-  it('rejects empty object (no valid fields)', () => {
+  it("rejects empty object (no valid fields)", () => {
     const result = updateCalculationSchema.safeParse({});
     expect(result.success).toBe(false);
   });
 
-  it('rejects negative amounts', () => {
-    expect(updateCalculationSchema.safeParse({ gross_amount: -1 }).success).toBe(false);
-    expect(updateCalculationSchema.safeParse({ tax_due: -100 }).success).toBe(false);
+  it("rejects negative amounts", () => {
+    expect(
+      updateCalculationSchema.safeParse({ gross_amount: -1 }).success,
+    ).toBe(false);
+    expect(updateCalculationSchema.safeParse({ tax_due: -100 }).success).toBe(
+      false,
+    );
   });
 });
