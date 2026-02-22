@@ -6,8 +6,7 @@ import { useState } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { ArrowRight, Menu, Moon, Sun, X } from 'lucide-react';
 
-const LOGO_URL =
-  'https://files.manuscdn.com/user_upload_by_module/session_file/114473754/ZeGQuujTZDuMQDVT.png';
+const LOGO_URL = '/assets/logo-primary.png';
 
 export default function LandingNav() {
   const { theme, toggleTheme } = useTheme();
@@ -93,6 +92,17 @@ export default function LandingNav() {
           <Link href="/pricing" className="block text-sm font-medium py-2 text-[rgb(var(--text-primary))]">
             Pricing
           </Link>
+          <a href="#compliance" className="block text-sm font-medium py-2 text-[rgb(var(--text-primary))]">
+            Compliance
+          </a>
+          <button
+            onClick={toggleTheme}
+            className="w-full p-2 rounded-md border border-[rgb(var(--border))] hover:bg-[rgb(var(--surface))] transition-colors flex items-center justify-center gap-2"
+            aria-label="Toggle theme"
+          >
+            {theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+            <span className="text-sm font-medium">{theme === 'light' ? 'Dark Mode' : 'Light Mode'}</span>
+          </button>
           <div className="flex gap-2 pt-2">
             <Link href="/login" className="btn-secondary px-4 py-2 rounded-lg text-sm font-semibold flex-1 text-center">
               Log In
