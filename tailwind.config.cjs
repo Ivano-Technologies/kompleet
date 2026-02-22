@@ -53,8 +53,8 @@ module.exports = {
         // Dark Theme Colors
         dark: {
           background: '#20292F',
-          surface: '#283137',
-          'surface-hover': '#30393F',
+          surface: '#2B373F',
+          'surface-hover': '#333F47',
           border: '#384147',
           'border-hover': '#485157',
           text: {
