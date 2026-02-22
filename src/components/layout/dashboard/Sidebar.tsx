@@ -28,6 +28,7 @@ import {
   Shield,
   ClipboardList,
   Users,
+  Wallet,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -61,6 +62,11 @@ const navItems: NavItem[] = [
     icon: Receipt,
   },
   {
+    href: '/expenses',
+    label: 'Expenses',
+    icon: Wallet,
+  },
+  {
     href: '/tax-reports',
     label: 'Tax Reports',
     icon: FileText,
@@ -82,6 +88,7 @@ const navItems: NavItem[] = [
     children: [
       { href: '/reports/profit-loss', label: 'Profit & Loss', icon: PieChart },
       { href: '/reports/balance-sheet', label: 'Balance Sheet', icon: FileSpreadsheet },
+      { href: '/reports/expense-reports', label: 'Expense Reports', icon: Wallet },
     ],
   },
   {

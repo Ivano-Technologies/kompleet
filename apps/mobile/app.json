@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "Kompleet Expenses",
+    "slug": "kompleet-expenses",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "kompleet",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#008751"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.kompleet.expenses"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#008751"
+      },
+      "package": "com.kompleet.expenses"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      ["expo-image-picker", { "cameraPermission": "Allow Kompleet to access your camera to scan receipts." }]
+    ]
+  }
+}
