@@ -145,7 +145,7 @@ export default function HomeScreen() {
       {isOnline === false && (
         <View style={styles.offlineBanner}>
           <Text style={styles.offlineText}>
-            You're offline. Changes will sync when back online.
+            {"You're offline. Changes will sync when back online."}
           </Text>
         </View>
       )}

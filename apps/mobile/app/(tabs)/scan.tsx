@@ -157,7 +157,7 @@ export default function ScanScreen() {
       {pendingCount > 0 && (
         <>
           <Text style={styles.pending}>
-            {pendingCount} receipt(s) queued for when you're back online.
+            {`${pendingCount} receipt(s) queued for when you're back online.`}
           </Text>
           <Pressable
             style={[styles.secondaryButton, loading && styles.buttonDisabled]}

@@ -10,13 +10,10 @@ function log(
   if (typeof __DEV__ !== "undefined" && __DEV__) {
     const payload = context ? `${message} ${JSON.stringify(context)}` : message;
     if (level === "error") {
-      // eslint-disable-next-line no-console
       console.error("[Kompleet]", payload);
     } else if (level === "warn") {
-      // eslint-disable-next-line no-console
       console.warn("[Kompleet]", payload);
     } else {
-      // eslint-disable-next-line no-console
       console.log("[Kompleet]", payload);
     }
   }
