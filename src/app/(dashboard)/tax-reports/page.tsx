@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useEffect, useState, useCallback } from 'react';
-import Link from 'next/link';
-import { Plus, FileText, Info } from 'lucide-react';
+import { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
+import { Plus, FileText, Info } from "lucide-react";
 
 interface TaxReport {
   id: string;
@@ -30,15 +30,15 @@ export default function TaxReportsPage() {
     try {
       setLoading(true);
       const params = new URLSearchParams();
-      if (filter.taxYear) params.append('taxYear', filter.taxYear.toString());
-      if (filter.status) params.append('status', filter.status);
-      if (filter.reportType) params.append('reportType', filter.reportType);
+      if (filter.taxYear) params.append("taxYear", filter.taxYear.toString());
+      if (filter.status) params.append("status", filter.status);
+      if (filter.reportType) params.append("reportType", filter.reportType);
 
       const response = await fetch(`/api/tax-reports?${params.toString()}`);
       const data = await response.json();
       setReports(data.reports || []);
     } catch (error) {
-      console.error('Error fetching reports:', error);
+      console.error("Error fetching reports:", error);
     } finally {
       setLoading(false);
     }
@@ -49,27 +49,32 @@ export default function TaxReportsPage() {
   }, [fetchReports]);
 
   const formatCurrency = (amount: number) =>
-    new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN' }).format(amount);
+    new Intl.NumberFormat("en-NG", {
+      style: "currency",
+      currency: "NGN",
+    }).format(amount);
 
   const formatDate = (dateString: string) =>
-    new Date(dateString).toLocaleDateString('en-NG', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
+    new Date(dateString).toLocaleDateString("en-NG", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
 
   const statusStyles: Record<string, string> = {
-    draft: 'bg-light-background dark:bg-dark-background text-light-text-secondary dark:text-dark-text-secondary dark:bg-dark-surface/40 dark:text-light-text-tertiary dark:text-dark-text-tertiary',
-    filed: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-    paid: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-    archived: 'bg-light-background dark:bg-dark-background text-light-text-tertiary dark:text-dark-text-tertiary dark:bg-dark-surface/40 dark:text-light-text-tertiary dark:text-dark-text-tertiary',
+    draft:
+      "bg-light-background dark:bg-dark-background text-light-text-secondary dark:text-dark-text-secondary dark:bg-dark-surface/40 dark:text-light-text-tertiary dark:text-dark-text-tertiary",
+    filed: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+    paid: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+    archived:
+      "bg-light-background dark:bg-dark-background text-light-text-tertiary dark:text-dark-text-tertiary dark:bg-dark-surface/40 dark:text-light-text-tertiary dark:text-dark-text-tertiary",
   };
 
   const reportTypeLabels: Record<string, string> = {
-    income_tax: 'Income Tax',
-    development_levy: 'Development Levy',
-    vat: 'VAT',
-    comprehensive: 'Comprehensive',
+    income_tax: "Income Tax",
+    development_levy: "Development Levy",
+    vat: "VAT",
+    comprehensive: "Comprehensive",
   };
 
   return (
@@ -95,9 +100,12 @@ export default function TaxReportsPage() {
       {/* Filters */}
       <div className="flex flex-wrap gap-3">
         <select
-          value={filter.taxYear || ''}
+          value={filter.taxYear || ""}
           onChange={(e) =>
-            setFilter({ ...filter, taxYear: e.target.value ? parseInt(e.target.value) : undefined })
+            setFilter({
+              ...filter,
+              taxYear: e.target.value ? parseInt(e.target.value) : undefined,
+            })
           }
           className="px-3 py-2 text-sm rounded-lg border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface text-light-text-primary dark:text-dark-text-primary focus:outline-none focus:border-primary-500"
         >
@@ -107,8 +115,10 @@ export default function TaxReportsPage() {
           <option value="2024">2024</option>
         </select>
         <select
-          value={filter.status || ''}
-          onChange={(e) => setFilter({ ...filter, status: e.target.value || undefined })}
+          value={filter.status || ""}
+          onChange={(e) =>
+            setFilter({ ...filter, status: e.target.value || undefined })
+          }
           className="px-3 py-2 text-sm rounded-lg border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface text-light-text-primary dark:text-dark-text-primary focus:outline-none focus:border-primary-500"
         >
           <option value="">All Status</option>
@@ -123,8 +133,9 @@ export default function TaxReportsPage() {
       <div className="flex items-start gap-3 p-4 rounded-lg border border-blue-200 dark:border-blue-800/40 bg-blue-50 dark:bg-blue-900/10">
         <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
         <p className="text-sm text-blue-800 dark:text-blue-300 leading-relaxed">
-          Tax reports comply with the Nigeria Tax Act 2025 and include income tax, development levy,
-          and VAT calculations. Use these reports for filing with the Nigeria Revenue Service (NRS).
+          Tax reports comply with the Nigeria Tax Act 2025 and include income
+          tax, development levy, and VAT calculations. Use these reports for
+          filing with the Nigeria Revenue Service (NRS).
         </p>
       </div>
 
@@ -132,10 +143,22 @@ export default function TaxReportsPage() {
       {reports.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
-            { label: 'Total Reports', value: reports.length, color: '' },
-            { label: 'Draft', value: reports.filter((r) => r.status === 'draft').length, color: '' },
-            { label: 'Filed', value: reports.filter((r) => r.status === 'filed').length, color: 'text-green-600 dark:text-green-400' },
-            { label: 'Paid', value: reports.filter((r) => r.status === 'paid').length, color: 'text-blue-600 dark:text-blue-400' },
+            { label: "Total Reports", value: reports.length, color: "" },
+            {
+              label: "Draft",
+              value: reports.filter((r) => r.status === "draft").length,
+              color: "",
+            },
+            {
+              label: "Filed",
+              value: reports.filter((r) => r.status === "filed").length,
+              color: "text-green-600 dark:text-green-400",
+            },
+            {
+              label: "Paid",
+              value: reports.filter((r) => r.status === "paid").length,
+              color: "text-blue-600 dark:text-blue-400",
+            },
           ].map((stat) => (
             <div
               key={stat.label}
@@ -144,7 +167,9 @@ export default function TaxReportsPage() {
               <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
                 {stat.label}
               </p>
-              <p className={`text-xl font-bold mt-1 ${stat.color || 'text-light-text-primary dark:text-dark-text-primary'}`}>
+              <p
+                className={`text-xl font-bold mt-1 ${stat.color || "text-light-text-primary dark:text-dark-text-primary"}`}
+              >
                 {stat.value}
               </p>
             </div>
@@ -215,10 +240,12 @@ export default function TaxReportsPage() {
                       {report.tax_year}
                     </td>
                     <td className="px-4 py-3 text-light-text-secondary dark:text-dark-text-secondary">
-                      {reportTypeLabels[report.report_type] || report.report_type}
+                      {reportTypeLabels[report.report_type] ||
+                        report.report_type}
                     </td>
                     <td className="px-4 py-3 text-light-text-secondary dark:text-dark-text-secondary whitespace-nowrap">
-                      {formatDate(report.period_start)} – {formatDate(report.period_end)}
+                      {formatDate(report.period_start)} –{" "}
+                      {formatDate(report.period_end)}
                     </td>
                     <td className="px-4 py-3 text-light-text-secondary dark:text-dark-text-secondary">
                       {report.business_classification}
@@ -235,7 +262,8 @@ export default function TaxReportsPage() {
                           statusStyles[report.status] || statusStyles.draft
                         }`}
                       >
-                        {report.status.charAt(0).toUpperCase() + report.status.slice(1)}
+                        {report.status.charAt(0).toUpperCase() +
+                          report.status.slice(1)}
                       </span>
                     </td>
                     <td className="px-4 py-3">

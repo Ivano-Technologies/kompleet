@@ -29,7 +29,7 @@ export interface PaginatedResponse<T> {
 export interface FinancialRecord {
   id: string;
   userId: string;
-  type: 'income' | 'expense';
+  type: "income" | "expense";
   amount: number;
   currency: string;
   date: string;
@@ -44,7 +44,7 @@ export interface FinancialRecord {
 }
 
 export interface CreateRecordRequest {
-  type: 'income' | 'expense';
+  type: "income" | "expense";
   amount: number;
   date: string;
   category: string;
@@ -61,8 +61,8 @@ export interface UpdateRecordRequest extends Partial<CreateRecordRequest> {}
 export interface Filing {
   id: string;
   userId: string;
-  type: 'VAT' | 'CIT' | 'WHT' | 'PAYE';
-  status: 'draft' | 'submitted' | 'approved' | 'rejected';
+  type: "VAT" | "CIT" | "WHT" | "PAYE";
+  status: "draft" | "submitted" | "approved" | "rejected";
   period: {
     year: number;
     month?: number;
@@ -99,13 +99,13 @@ export interface DashboardSummary {
 export interface BankAccount {
   id: string;
   userId: string;
-  provider: 'mono' | 'okra' | 'plaid';
+  provider: "mono" | "okra" | "plaid";
   accountNumber: string;
   accountName: string;
   bankName: string;
   balance?: number;
   currency: string;
-  status: 'active' | 'disconnected' | 'error';
+  status: "active" | "disconnected" | "error";
   lastSyncedAt?: string;
   metadata?: Record<string, unknown>;
   createdAt: string;
@@ -116,7 +116,7 @@ export interface Transaction {
   id: string;
   bankAccountId: string;
   externalId: string;
-  type: 'debit' | 'credit';
+  type: "debit" | "credit";
   amount: number;
   currency: string;
   description?: string;
@@ -177,7 +177,7 @@ export interface Invoice {
   subtotal: number;
   taxAmount: number;
   total: number;
-  status: 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled';
+  status: "draft" | "sent" | "paid" | "overdue" | "cancelled";
   dueDate: string;
   paidAt?: string;
   sentAt?: string;

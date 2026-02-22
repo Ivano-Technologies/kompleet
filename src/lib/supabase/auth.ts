@@ -2,7 +2,7 @@
  * Auth Helpers (Client-Side Only)
  * ================================
  * Authentication utility functions for browser use.
- * 
+ *
  * All functions require an explicit Supabase client parameter.
  * This makes them testable and avoids hidden global state.
  *
@@ -14,8 +14,8 @@
  *   const { user, error } = await signInWithEmail(supabase, email, password);
  */
 
-import type { TypedSupabaseClient } from './client';
-import type { Session, User } from '@supabase/supabase-js';
+import type { TypedSupabaseClient } from "./client";
+import type { Session, User } from "@supabase/supabase-js";
 
 // ============================================================
 // RESULT TYPES
@@ -64,7 +64,7 @@ export interface SignUpResult {
 export async function signInWithEmail(
   supabase: TypedSupabaseClient,
   email: string,
-  password: string
+  password: string,
 ): Promise<SignInResult> {
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
@@ -96,16 +96,17 @@ export async function signInWithEmail(
  */
 export async function signInWithOAuth(
   supabase: TypedSupabaseClient,
-  provider: 'google' | 'github' | 'facebook',
+  provider: "google" | "github" | "facebook",
   options?: {
     redirectTo?: string;
     scopes?: string;
-  }
+  },
 ): Promise<{ error: string | null }> {
   const { error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
-      redirectTo: options?.redirectTo ?? `${window.location.origin}/auth/callback`,
+      redirectTo:
+        options?.redirectTo ?? `${window.location.origin}/auth/callback`,
       scopes: options?.scopes,
     },
   });
@@ -126,7 +127,7 @@ export async function signInWithOAuth(
  */
 export async function signInWithPhone(
   supabase: TypedSupabaseClient,
-  phone: string
+  phone: string,
 ): Promise<{ error: string | null }> {
   const { error } = await supabase.auth.signInWithOtp({
     phone,
@@ -152,12 +153,12 @@ export async function signInWithPhone(
 export async function verifyPhoneOTP(
   supabase: TypedSupabaseClient,
   phone: string,
-  token: string
+  token: string,
 ): Promise<SignInResult> {
   const { data, error } = await supabase.auth.verifyOtp({
     phone,
     token,
-    type: 'sms',
+    type: "sms",
   });
 
   if (error) {
@@ -200,9 +201,9 @@ export async function signUpWithEmail(
   password: string,
   metadata?: {
     fullName?: string;
-    entityType?: 'individual' | 'company';
+    entityType?: "individual" | "company";
     phone?: string;
-  }
+  },
 ): Promise<SignUpResult> {
   const { data, error } = await supabase.auth.signUp({
     email,
@@ -210,7 +211,7 @@ export async function signUpWithEmail(
     options: {
       data: {
         full_name: metadata?.fullName,
-        entity_type: metadata?.entityType ?? 'individual',
+        entity_type: metadata?.entityType ?? "individual",
         phone: metadata?.phone,
       },
       emailRedirectTo: `${window.location.origin}/auth/callback`,
@@ -256,7 +257,7 @@ export async function signUpWithEmail(
  * }
  */
 export async function signOut(
-  supabase: TypedSupabaseClient
+  supabase: TypedSupabaseClient,
 ): Promise<{ error: string | null }> {
   const { error } = await supabase.auth.signOut();
 
@@ -284,7 +285,7 @@ export async function signOut(
  * }
  */
 export async function getSession(
-  supabase: TypedSupabaseClient
+  supabase: TypedSupabaseClient,
 ): Promise<AuthResult<Session>> {
   const { data, error } = await supabase.auth.getSession();
 
@@ -311,7 +312,7 @@ export async function getSession(
  * }
  */
 export async function getCurrentUser(
-  supabase: TypedSupabaseClient
+  supabase: TypedSupabaseClient,
 ): Promise<AuthResult<User>> {
   const { data, error } = await supabase.auth.getUser();
 
@@ -330,7 +331,7 @@ export async function getCurrentUser(
  * const isLoggedIn = await isAuthenticated(supabase);
  */
 export async function isAuthenticated(
-  supabase: TypedSupabaseClient
+  supabase: TypedSupabaseClient,
 ): Promise<boolean> {
   const { data } = await getSession(supabase);
   return data !== null;
@@ -352,7 +353,7 @@ export async function isAuthenticated(
  */
 export async function resetPassword(
   supabase: TypedSupabaseClient,
-  email: string
+  email: string,
 ): Promise<{ error: string | null }> {
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: `${window.location.origin}/auth/callback`,
@@ -373,7 +374,7 @@ export async function resetPassword(
  */
 export async function updatePassword(
   supabase: TypedSupabaseClient,
-  newPassword: string
+  newPassword: string,
 ): Promise<{ error: string | null }> {
   const { error } = await supabase.auth.updateUser({
     password: newPassword,
@@ -411,15 +412,20 @@ export async function updatePassword(
 export function onAuthStateChange(
   supabase: TypedSupabaseClient,
   callback: (
-    event: 'SIGNED_IN' | 'SIGNED_OUT' | 'TOKEN_REFRESHED' | 'USER_UPDATED' | 'PASSWORD_RECOVERY',
-    session: Session | null
-  ) => void
+    event:
+      | "SIGNED_IN"
+      | "SIGNED_OUT"
+      | "TOKEN_REFRESHED"
+      | "USER_UPDATED"
+      | "PASSWORD_RECOVERY",
+    session: Session | null,
+  ) => void,
 ): () => void {
-  const { data: { subscription } } = supabase.auth.onAuthStateChange(
-    (event, session) => {
-      callback(event as Parameters<typeof callback>[0], session);
-    }
-  );
+  const {
+    data: { subscription },
+  } = supabase.auth.onAuthStateChange((event, session) => {
+    callback(event as Parameters<typeof callback>[0], session);
+  });
 
   return () => subscription.unsubscribe();
 }

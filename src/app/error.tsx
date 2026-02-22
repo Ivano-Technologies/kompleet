@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { AlertTriangle, RotateCcw, Home } from 'lucide-react';
-import Link from 'next/link';
+import { AlertTriangle, RotateCcw, Home } from "lucide-react";
+import Link from "next/link";
 
 export default function GlobalError({
   error,
@@ -19,7 +19,7 @@ export default function GlobalError({
         <div className="space-y-2">
           <h2 className="text-xl font-bold">Something went wrong</h2>
           <p className="text-sm text-[rgb(var(--text-secondary))]">
-            {error.message || 'An unexpected error occurred. Please try again.'}
+            {error.message || "An unexpected error occurred. Please try again."}
           </p>
         </div>
         <div className="flex items-center gap-3">

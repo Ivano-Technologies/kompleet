@@ -1,16 +1,22 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient as createClient } from '@/lib/supabase/server';
-import { withRateLimit } from '@/lib/with-rate-limit';
-import { withAudit } from '@/lib/with-audit';
-import { z } from 'zod';
+import { NextRequest, NextResponse } from "next/server";
+import { createServerClient as createClient } from "@/lib/supabase/server";
+import { withRateLimit } from "@/lib/with-rate-limit";
+import { withAudit } from "@/lib/with-audit";
+import { z } from "zod";
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 const exportQuerySchema = z.object({
-  format: z.enum(['csv', 'json']).default('csv'),
-  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format').optional(),
-  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format').optional(),
-  type: z.enum(['debit', 'credit']).optional(),
+  format: z.enum(["csv", "json"]).default("csv"),
+  startDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format")
+    .optional(),
+  endDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format")
+    .optional(),
+  type: z.enum(["debit", "credit"]).optional(),
 });
 
 async function handleGET(request: NextRequest) {
@@ -18,9 +24,12 @@ async function handleGET(request: NextRequest) {
     const supabase = await createClient();
 
     // Check authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Validate query parameters
@@ -30,8 +39,8 @@ async function handleGET(request: NextRequest) {
 
     if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Invalid query parameters', details: parsed.error.flatten() },
-        { status: 400 }
+        { error: "Invalid query parameters", details: parsed.error.flatten() },
+        { status: 400 },
       );
     }
 
@@ -39,28 +48,30 @@ async function handleGET(request: NextRequest) {
 
     // Build query
     let query = supabase
-      .from('transactions')
-      .select(`
+      .from("transactions")
+      .select(
+        `
         *,
         category:categories(name, category_type, tax_treatment)
-      `)
-      .eq('user_id', user.id)
-      .order('transaction_date', { ascending: false });
+      `,
+      )
+      .eq("user_id", user.id)
+      .order("transaction_date", { ascending: false });
 
     if (startDate) {
-      query = query.gte('transaction_date', startDate);
+      query = query.gte("transaction_date", startDate);
     }
     if (endDate) {
-      query = query.lte('transaction_date', endDate);
+      query = query.lte("transaction_date", endDate);
     }
     if (type) {
-      query = query.eq('transaction_type', type);
+      query = query.eq("transaction_type", type);
     }
 
     const { data: transactions, error } = await query;
 
     if (error) {
-      console.error('Error fetching transactions:', error);
+      console.error("Error fetching transactions:", error);
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
@@ -68,25 +79,27 @@ async function handleGET(request: NextRequest) {
     const MAX_EXPORT = 50000;
     if (transactions && transactions.length > MAX_EXPORT) {
       return NextResponse.json(
-        { error: `Export limited to ${MAX_EXPORT.toLocaleString()} transactions. Please use date filters to narrow your results.` },
-        { status: 400 }
+        {
+          error: `Export limited to ${MAX_EXPORT.toLocaleString()} transactions. Please use date filters to narrow your results.`,
+        },
+        { status: 400 },
       );
     }
 
-    if (format === 'csv') {
+    if (format === "csv") {
       // Generate CSV
       const headers = [
-        'Date',
-        'Description',
-        'Type',
-        'Amount',
-        'Balance',
-        'Category',
-        'Category Type',
-        'Tax Treatment',
-        'Reference',
-        'Notes',
-        'Reconciled'
+        "Date",
+        "Description",
+        "Type",
+        "Amount",
+        "Balance",
+        "Category",
+        "Category Type",
+        "Tax Treatment",
+        "Reference",
+        "Notes",
+        "Reconciled",
       ];
 
       const rows = transactions.map((t: any) => [
@@ -94,36 +107,40 @@ async function handleGET(request: NextRequest) {
         `"${t.description.replace(/"/g, '""')}"`,
         t.transaction_type,
         t.amount,
-        t.balance || '',
-        t.category?.name || 'Uncategorized',
-        t.category?.category_type || '',
-        t.category?.tax_treatment || '',
-        t.reference || '',
-        t.notes ? `"${t.notes.replace(/"/g, '""')}"` : '',
-        t.is_reconciled ? 'Yes' : 'No'
+        t.balance || "",
+        t.category?.name || "Uncategorized",
+        t.category?.category_type || "",
+        t.category?.tax_treatment || "",
+        t.reference || "",
+        t.notes ? `"${t.notes.replace(/"/g, '""')}"` : "",
+        t.is_reconciled ? "Yes" : "No",
       ]);
 
-      const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+      const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join(
+        "\n",
+      );
 
       return new NextResponse(csv, {
         headers: {
-          'Content-Type': 'text/csv',
-          'Content-Disposition': `attachment; filename="transactions_${new Date().toISOString().split('T')[0]}.csv"`,
+          "Content-Type": "text/csv",
+          "Content-Disposition": `attachment; filename="transactions_${new Date().toISOString().split("T")[0]}.csv"`,
         },
       });
-    } else if (format === 'json') {
+    } else if (format === "json") {
       // Return JSON
       return NextResponse.json({ transactions });
     } else {
-      return NextResponse.json({ error: 'Invalid format' }, { status: 400 });
+      return NextResponse.json({ error: "Invalid format" }, { status: 400 });
     }
   } catch (error: any) {
-    console.error('Error in GET /api/transactions/export:', error);
+    console.error("Error in GET /api/transactions/export:", error);
     return NextResponse.json(
-      { error: error.message || 'Internal server error' },
-      { status: 500 }
+      { error: error.message || "Internal server error" },
+      { status: 500 },
     );
   }
 }
 
-export const GET = withRateLimit(withAudit(handleGET, { action: 'export', resourceType: 'transactions' }));
+export const GET = withRateLimit(
+  withAudit(handleGET, { action: "export", resourceType: "transactions" }),
+);

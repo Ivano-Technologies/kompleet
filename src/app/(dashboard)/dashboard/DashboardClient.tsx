@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
+import Link from "next/link";
 import {
   ArrowUpRight,
   Download,
@@ -8,7 +8,7 @@ import {
   Plus,
   TrendingUp,
   Wallet,
-} from 'lucide-react';
+} from "lucide-react";
 import {
   Area,
   AreaChart,
@@ -20,7 +20,7 @@ import {
   Tooltip,
   XAxis,
   YAxis,
-} from 'recharts';
+} from "recharts";
 
 interface KpiData {
   totalRevenue: number;
@@ -75,10 +75,34 @@ export default function DashboardClient({
   recentTransactions,
 }: DashboardClientProps) {
   const kpis = [
-    { label: 'Total Revenue', value: `₦${formatNaira(kpiData.totalRevenue)}`, change: `+${kpiData.revenueChange}%`, up: true, icon: TrendingUp },
-    { label: 'Outstanding Invoices', value: `₦${formatNaira(kpiData.outstandingInvoices)}`, change: `${kpiData.pendingCount} pending`, up: false, icon: FileText },
-    { label: 'Tax Obligations', value: `₦${formatNaira(kpiData.estimatedTax)}`, change: `Due ${kpiData.taxDueDate}`, up: false, icon: Wallet },
-    { label: 'Net Profit', value: `₦${formatNaira(kpiData.netProfit)}`, change: `+${kpiData.profitChange}%`, up: true, icon: ArrowUpRight },
+    {
+      label: "Total Revenue",
+      value: `₦${formatNaira(kpiData.totalRevenue)}`,
+      change: `+${kpiData.revenueChange}%`,
+      up: true,
+      icon: TrendingUp,
+    },
+    {
+      label: "Outstanding Invoices",
+      value: `₦${formatNaira(kpiData.outstandingInvoices)}`,
+      change: `${kpiData.pendingCount} pending`,
+      up: false,
+      icon: FileText,
+    },
+    {
+      label: "Tax Obligations",
+      value: `₦${formatNaira(kpiData.estimatedTax)}`,
+      change: `Due ${kpiData.taxDueDate}`,
+      up: false,
+      icon: Wallet,
+    },
+    {
+      label: "Net Profit",
+      value: `₦${formatNaira(kpiData.netProfit)}`,
+      change: `+${kpiData.profitChange}%`,
+      up: true,
+      icon: ArrowUpRight,
+    },
   ];
 
   return (
@@ -97,7 +121,10 @@ export default function DashboardClient({
           <button className="btn-secondary text-sm px-3 py-2 hidden sm:flex items-center gap-1.5">
             <Download className="w-3.5 h-3.5" /> Export
           </button>
-          <Link href="/invoices" className="btn-primary text-sm px-3 py-2 flex items-center gap-1.5">
+          <Link
+            href="/invoices"
+            className="btn-primary text-sm px-3 py-2 flex items-center gap-1.5"
+          >
             <Plus className="w-3.5 h-3.5" /> New Invoice
           </Link>
         </div>
@@ -126,8 +153,8 @@ export default function DashboardClient({
               <div
                 className={`text-xs font-medium flex items-center gap-1 ${
                   kpi.up
-                    ? 'text-green-600 dark:text-green-400'
-                    : 'text-light-text-tertiary dark:text-dark-text-tertiary'
+                    ? "text-green-600 dark:text-green-400"
+                    : "text-light-text-tertiary dark:text-dark-text-tertiary"
                 }`}
               >
                 {kpi.up && <ArrowUpRight className="w-3 h-3" />}
@@ -161,7 +188,10 @@ export default function DashboardClient({
                     <stop offset="100%" stopColor="#166534" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-light-border dark:stroke-dark-border" />
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  className="stroke-light-border dark:stroke-dark-border"
+                />
                 <XAxis
                   dataKey="month"
                   tick={{ fontSize: 12 }}
@@ -173,16 +203,29 @@ export default function DashboardClient({
                   className="fill-light-text-tertiary dark:fill-dark-text-tertiary"
                 />
                 <Tooltip
-                  formatter={(v) => [`₦${Number(v).toLocaleString()}`, '']}
+                  formatter={(v) => [`₦${Number(v).toLocaleString()}`, ""]}
                   contentStyle={{
-                    backgroundColor: 'var(--tooltip-bg, #fff)',
-                    border: '1px solid var(--tooltip-border, #e5e7eb)',
+                    backgroundColor: "var(--tooltip-bg, #fff)",
+                    border: "1px solid var(--tooltip-border, #e5e7eb)",
                     borderRadius: 8,
                     fontSize: 12,
                   }}
                 />
-                <Area type="monotone" dataKey="revenue" stroke="#166534" fill="url(#revGrad)" strokeWidth={2} />
-                <Area type="monotone" dataKey="expenses" stroke="#ef4444" fill="transparent" strokeWidth={1.5} strokeDasharray="4 4" />
+                <Area
+                  type="monotone"
+                  dataKey="revenue"
+                  stroke="#166534"
+                  fill="url(#revGrad)"
+                  strokeWidth={2}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="expenses"
+                  stroke="#ef4444"
+                  fill="transparent"
+                  strokeWidth={1.5}
+                  strokeDasharray="4 4"
+                />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -213,10 +256,10 @@ export default function DashboardClient({
                   ))}
                 </Pie>
                 <Tooltip
-                  formatter={(v) => [`₦${Number(v).toLocaleString()}`, '']}
+                  formatter={(v) => [`₦${Number(v).toLocaleString()}`, ""]}
                   contentStyle={{
-                    backgroundColor: 'var(--tooltip-bg, #fff)',
-                    border: '1px solid var(--tooltip-border, #e5e7eb)',
+                    backgroundColor: "var(--tooltip-bg, #fff)",
+                    border: "1px solid var(--tooltip-border, #e5e7eb)",
                     borderRadius: 8,
                     fontSize: 12,
                   }}
@@ -226,9 +269,15 @@ export default function DashboardClient({
           </div>
           <div className="space-y-2 mt-2">
             {taxBreakdown.map((t) => (
-              <div key={t.name} className="flex items-center justify-between text-xs">
+              <div
+                key={t.name}
+                className="flex items-center justify-between text-xs"
+              >
                 <span className="flex items-center gap-2 text-light-text-secondary dark:text-dark-text-secondary">
-                  <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: t.color }} />
+                  <span
+                    className="w-2.5 h-2.5 rounded-sm"
+                    style={{ backgroundColor: t.color }}
+                  />
                   {t.name}
                 </span>
                 <span className="font-medium text-light-text-primary dark:text-dark-text-primary">
@@ -296,9 +345,9 @@ export default function DashboardClient({
                   <td className="px-5 py-3.5 hidden md:table-cell">
                     <span
                       className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                        txn.status === 'completed'
-                          ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                          : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                        txn.status === "completed"
+                          ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                          : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
                       }`}
                     >
                       {txn.status}
@@ -307,11 +356,12 @@ export default function DashboardClient({
                   <td
                     className={`px-5 py-3.5 text-right font-medium text-sm ${
                       txn.amount > 0
-                        ? 'text-green-600 dark:text-green-400'
-                        : 'text-light-text-primary dark:text-dark-text-primary'
+                        ? "text-green-600 dark:text-green-400"
+                        : "text-light-text-primary dark:text-dark-text-primary"
                     }`}
                   >
-                    {txn.amount > 0 ? '+' : ''}₦{Math.abs(txn.amount).toLocaleString()}
+                    {txn.amount > 0 ? "+" : ""}₦
+                    {Math.abs(txn.amount).toLocaleString()}
                   </td>
                 </tr>
               ))}

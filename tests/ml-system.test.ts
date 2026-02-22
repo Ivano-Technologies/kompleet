@@ -3,25 +3,25 @@
  * Tests for ML categorization, email parsing, and recurring detection
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-describe('ML Categorization System', () => {
-  describe('Feature Extraction', () => {
-    it('should normalize merchant names correctly', () => {
+describe("ML Categorization System", () => {
+  describe("Feature Extraction", () => {
+    it("should normalize merchant names correctly", () => {
       const testCases = [
-        { input: 'Shoprite Lagos', expected: 'shopritelagos' },
-        { input: 'JUMIA Nigeria!!!', expected: 'jumianigeria' },
-        { input: 'MTN-NG', expected: 'mtnng' }
+        { input: "Shoprite Lagos", expected: "shopritelagos" },
+        { input: "JUMIA Nigeria!!!", expected: "jumianigeria" },
+        { input: "MTN-NG", expected: "mtnng" },
       ];
 
       for (const { input, expected } of testCases) {
-        const normalized = input.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const normalized = input.toLowerCase().replace(/[^a-z0-9]/g, "");
         expect(normalized).toBe(expected);
       }
     });
 
-    it('should handle missing or invalid amounts', () => {
-      const amounts = [null, undefined, '', 'invalid', -100, 0];
+    it("should handle missing or invalid amounts", () => {
+      const amounts = [null, undefined, "", "invalid", -100, 0];
 
       for (const amount of amounts) {
         const parsed = Math.max(0, parseFloat(String(amount)) || 0);
@@ -30,7 +30,7 @@ describe('ML Categorization System', () => {
     });
   });
 
-  describe('ML Inference API', () => {
+  describe("ML Inference API", () => {
     const originalFetch = global.fetch;
 
     beforeEach(() => {
@@ -42,14 +42,14 @@ describe('ML Categorization System', () => {
       global.fetch = originalFetch;
     });
 
-    it('should return valid categorization response', async () => {
+    it("should return valid categorization response", async () => {
       const mockResponse = {
-        category: 'Groceries',
+        category: "Groceries",
         confidence: 0.92,
         alternatives: [
-          { category: 'Household', confidence: 0.05 },
-          { category: 'Personal Care', confidence: 0.03 }
-        ]
+          { category: "Household", confidence: 0.05 },
+          { category: "Personal Care", confidence: 0.03 },
+        ],
       };
 
       vi.mocked(global.fetch).mockResolvedValueOnce({
@@ -57,41 +57,41 @@ describe('ML Categorization System', () => {
         json: () => Promise.resolve(mockResponse),
       } as Response);
 
-      const response = await fetch('http://localhost:5000/categorize', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("http://localhost:5000/categorize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          merchant: 'Shoprite',
+          merchant: "Shoprite",
           amount: 15000,
-          channel: 'card',
-          timestamp: new Date().toISOString()
-        })
+          channel: "card",
+          timestamp: new Date().toISOString(),
+        }),
       });
 
       expect(response.ok).toBe(true);
 
       const data = await response.json();
-      expect(data).toHaveProperty('category');
-      expect(data).toHaveProperty('confidence');
-      expect(data).toHaveProperty('alternatives');
+      expect(data).toHaveProperty("category");
+      expect(data).toHaveProperty("confidence");
+      expect(data).toHaveProperty("alternatives");
       expect(data.confidence).toBeGreaterThan(0);
       expect(data.confidence).toBeLessThanOrEqual(1);
     });
 
-    it('should handle batch categorization', async () => {
+    it("should handle batch categorization", async () => {
       const transactions = [
-        { merchant: 'Shoprite', amount: 15000, channel: 'card' },
-        { merchant: 'MTN', amount: 5000, channel: 'mobile' },
-        { merchant: 'Uber', amount: 3000, channel: 'card' }
+        { merchant: "Shoprite", amount: 15000, channel: "card" },
+        { merchant: "MTN", amount: 5000, channel: "mobile" },
+        { merchant: "Uber", amount: 3000, channel: "card" },
       ];
 
       const mockResponse = {
         results: [
-          { category: 'Groceries', confidence: 0.92 },
-          { category: 'Telecom', confidence: 0.88 },
-          { category: 'Transport', confidence: 0.95 }
+          { category: "Groceries", confidence: 0.92 },
+          { category: "Telecom", confidence: 0.88 },
+          { category: "Transport", confidence: 0.95 },
         ],
-        count: 3
+        count: 3,
       };
 
       vi.mocked(global.fetch).mockResolvedValueOnce({
@@ -99,10 +99,10 @@ describe('ML Categorization System', () => {
         json: () => Promise.resolve(mockResponse),
       } as Response);
 
-      const response = await fetch('http://localhost:5000/batch-categorize', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transactions })
+      const response = await fetch("http://localhost:5000/batch-categorize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ transactions }),
       });
 
       expect(response.ok).toBe(true);
@@ -113,56 +113,61 @@ describe('ML Categorization System', () => {
     });
   });
 
-  describe('Email Parsing', () => {
-    it('should extract amount from Nigerian Naira patterns', () => {
+  describe("Email Parsing", () => {
+    it("should extract amount from Nigerian Naira patterns", () => {
       const testTexts = [
-        'Total: ₦15,000.00',
-        'Amount: NGN 15000',
-        'Paid: Naira 15,000',
-        'You paid ₦15000.00'
+        "Total: ₦15,000.00",
+        "Amount: NGN 15000",
+        "Paid: Naira 15,000",
+        "You paid ₦15000.00",
       ];
 
-      const pattern = /₦\s*([\d,]+(?:\.\d{2})?)|NGN\s*([\d,]+(?:\.\d{2})?)|Naira\s*([\d,]+(?:\.\d{2})?)/;
+      const pattern =
+        /₦\s*([\d,]+(?:\.\d{2})?)|NGN\s*([\d,]+(?:\.\d{2})?)|Naira\s*([\d,]+(?:\.\d{2})?)/;
 
       for (const text of testTexts) {
         const match = text.match(pattern);
         expect(match).toBeTruthy();
 
         if (match) {
-          const amountStr = (match[1] || match[2] || match[3]).replace(/,/g, '');
+          const amountStr = (match[1] || match[2] || match[3]).replace(
+            /,/g,
+            "",
+          );
           const amount = parseFloat(amountStr);
           expect(amount).toBe(15000);
         }
       }
     });
 
-    it('should extract merchant from email sender', () => {
+    it("should extract merchant from email sender", () => {
       const senders = [
-        'no-reply@shoprite.com.ng',
-        'receipts@jumia.com.ng',
-        'notifications@uber.com'
+        "no-reply@shoprite.com.ng",
+        "receipts@jumia.com.ng",
+        "notifications@uber.com",
       ];
 
       for (const sender of senders) {
-        const domain = sender.split('@')[1];
-        const merchant = domain.split('.')[0];
+        const domain = sender.split("@")[1];
+        const merchant = domain.split(".")[0];
         expect(merchant.length).toBeGreaterThan(0);
       }
     });
   });
 
-  describe('Recurring Transaction Detection', () => {
-    it('should calculate interval statistics correctly', () => {
+  describe("Recurring Transaction Detection", () => {
+    it("should calculate interval statistics correctly", () => {
       const dates = [
-        '2026-01-01',
-        '2026-02-01', // 31 days
-        '2026-03-01', // 28 days
-        '2026-04-01'  // 31 days
+        "2026-01-01",
+        "2026-02-01", // 31 days
+        "2026-03-01", // 28 days
+        "2026-04-01", // 31 days
       ];
 
       const intervals: number[] = [];
       for (let i = 1; i < dates.length; i++) {
-        const diff = new Date(dates[i]).getTime() - new Date(dates[i-1]).getTime();
+        const diff =
+          new Date(dates[i]).getTime() - new Date(dates[i - 1]).getTime();
         intervals.push(Math.floor(diff / (1000 * 60 * 60 * 24)));
       }
 
@@ -170,24 +175,26 @@ describe('ML Categorization System', () => {
       expect(mean).toBeCloseTo(30, 0); // ~30 days average
     });
 
-    it('should detect recurring patterns with low variance', () => {
+    it("should detect recurring patterns with low variance", () => {
       const intervals = [30, 31, 29, 30, 31]; // Monthly payments
       const mean = intervals.reduce((a, b) => a + b, 0) / intervals.length;
-      const variance = intervals.reduce((sum, interval) => {
-        return sum + Math.pow(interval - mean, 2);
-      }, 0) / intervals.length;
+      const variance =
+        intervals.reduce((sum, interval) => {
+          return sum + Math.pow(interval - mean, 2);
+        }, 0) / intervals.length;
       const stddev = Math.sqrt(variance);
       const cv = stddev / mean;
 
       expect(cv).toBeLessThan(0.2); // Low coefficient of variation = recurring
     });
 
-    it('should reject non-recurring patterns with high variance', () => {
+    it("should reject non-recurring patterns with high variance", () => {
       const intervals = [5, 45, 12, 90, 3]; // Random intervals
       const mean = intervals.reduce((a, b) => a + b, 0) / intervals.length;
-      const variance = intervals.reduce((sum, interval) => {
-        return sum + Math.pow(interval - mean, 2);
-      }, 0) / intervals.length;
+      const variance =
+        intervals.reduce((sum, interval) => {
+          return sum + Math.pow(interval - mean, 2);
+        }, 0) / intervals.length;
       const stddev = Math.sqrt(variance);
       const cv = stddev / mean;
 
@@ -195,13 +202,13 @@ describe('ML Categorization System', () => {
     });
   });
 
-  describe('Continuous Learning', () => {
-    it('should calculate correction statistics', () => {
+  describe("Continuous Learning", () => {
+    it("should calculate correction statistics", () => {
       const corrections = [
-        { predicted: 'Utilities', corrected: 'Groceries' },
-        { predicted: 'Utilities', corrected: 'Groceries' },
-        { predicted: 'Transport', corrected: 'Entertainment' },
-        { predicted: 'Utilities', corrected: 'Groceries' }
+        { predicted: "Utilities", corrected: "Groceries" },
+        { predicted: "Utilities", corrected: "Groceries" },
+        { predicted: "Transport", corrected: "Entertainment" },
+        { predicted: "Utilities", corrected: "Groceries" },
       ];
 
       const categoryPairs: Record<string, number> = {};
@@ -210,12 +217,12 @@ describe('ML Categorization System', () => {
         categoryPairs[key] = (categoryPairs[key] || 0) + 1;
       }
 
-      expect(categoryPairs['Utilities → Groceries']).toBe(3);
-      expect(categoryPairs['Transport → Entertainment']).toBe(1);
+      expect(categoryPairs["Utilities → Groceries"]).toBe(3);
+      expect(categoryPairs["Transport → Entertainment"]).toBe(1);
     });
   });
 
-  describe('Model Performance', () => {
+  describe("Model Performance", () => {
     const originalFetch = global.fetch;
 
     beforeEach(() => {
@@ -226,31 +233,32 @@ describe('ML Categorization System', () => {
       global.fetch = originalFetch;
     });
 
-    it('should meet accuracy target', () => {
+    it("should meet accuracy target", () => {
       const modelAccuracy = 0.8703; // From training
       expect(modelAccuracy).toBeGreaterThan(0.85); // Close to 88% target
     });
 
-    it('should have reasonable inference latency', async () => {
+    it("should have reasonable inference latency", async () => {
       vi.mocked(global.fetch).mockResolvedValueOnce({
         ok: true,
-        json: () => Promise.resolve({
-          category: 'Test',
-          confidence: 0.9,
-          alternatives: []
-        }),
+        json: () =>
+          Promise.resolve({
+            category: "Test",
+            confidence: 0.9,
+            alternatives: [],
+          }),
       } as Response);
 
       const start = Date.now();
 
-      await fetch('http://localhost:5000/categorize', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      await fetch("http://localhost:5000/categorize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          merchant: 'Test Merchant',
+          merchant: "Test Merchant",
           amount: 10000,
-          channel: 'card'
-        })
+          channel: "card",
+        }),
       });
 
       const latency = Date.now() - start;

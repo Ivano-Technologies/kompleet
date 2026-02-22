@@ -1,20 +1,20 @@
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
-import './globals.css';
-import { ThemeProvider } from '@/contexts/ThemeContext';
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 
 const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-inter',
-  display: 'swap',
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: 'KOMPLEET - Tax Compliance Platform',
-  description: 'Kompleet records. Kompleet filings. Kompleet compliance.',
+  title: "KOMPLEET - Tax Compliance Platform",
+  description: "Kompleet records. Kompleet filings. Kompleet compliance.",
   icons: {
-    icon: '/favicon.png',
-    apple: '/favicon.png',
+    icon: "/favicon.png",
+    apple: "/favicon.png",
   },
 };
 
@@ -26,9 +26,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable}>
       <body className="font-sans">
-        <ThemeProvider>
-          {children}
-        </ThemeProvider>
+        <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
   );

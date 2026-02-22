@@ -3,19 +3,19 @@
  * Handles password-protected files, sheet detection, and data extraction
  */
 
-import ExcelJS from 'exceljs';
-import { RawRow, ParseResult, ParseError } from './types';
-import { normalizeTransactions } from './normalizeTransactions';
+import ExcelJS from "exceljs";
+import { RawRow, ParseResult, ParseError } from "./types";
+import { normalizeTransactions } from "./normalizeTransactions";
 
 /**
  * Parse Excel file (XLSX or XLS)
  */
 export async function parseExcel(
   buffer: Buffer,
-  fileType: 'xlsx' | 'xls',
+  fileType: "xlsx" | "xls",
   userId: string,
   sourceFileId: string,
-  password?: string
+  password?: string,
 ): Promise<ParseResult> {
   try {
     // 1. Create workbook
@@ -25,8 +25,11 @@ export async function parseExcel(
     try {
       await workbook.xlsx.load(buffer as any);
     } catch (error) {
-      if (error instanceof Error && error.message.toLowerCase().includes('password')) {
-        throw new Error('PASSWORD_REQUIRED');
+      if (
+        error instanceof Error &&
+        error.message.toLowerCase().includes("password")
+      ) {
+        throw new Error("PASSWORD_REQUIRED");
       }
       throw error;
     }
@@ -34,7 +37,7 @@ export async function parseExcel(
     // 3. Find statement sheet
     const sheet = findStatementSheet(workbook);
     if (!sheet) {
-      throw new Error('No statement sheet found in workbook');
+      throw new Error("No statement sheet found in workbook");
     }
 
     // 4. Extract rows from sheet
@@ -45,7 +48,7 @@ export async function parseExcel(
       rawRows,
       fileType,
       userId,
-      sourceFileId
+      sourceFileId,
     );
 
     return {
@@ -54,18 +57,20 @@ export async function parseExcel(
       totalRows: rawRows.length,
       successfulRows: transactions.length,
       fileMetadata: {
-        fileName: 'unknown.xlsx',
+        fileName: "unknown.xlsx",
         fileSize: buffer.length,
-        fileType: fileType as 'xlsx' | 'xls',
+        fileType: fileType as "xlsx" | "xls",
         isEncrypted: false,
         sheetName: sheet.name,
       },
     };
   } catch (error) {
-    if (error instanceof Error && error.message === 'PASSWORD_REQUIRED') {
+    if (error instanceof Error && error.message === "PASSWORD_REQUIRED") {
       throw error;
     }
-    throw new Error(`Excel parsing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw new Error(
+      `Excel parsing failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
   }
 }
 
@@ -73,16 +78,18 @@ export async function parseExcel(
  * Find statement sheet in workbook
  * Uses heuristics: looks for sheets named "Statement", "Transactions", etc.
  */
-function findStatementSheet(workbook: ExcelJS.Workbook): ExcelJS.Worksheet | null {
+function findStatementSheet(
+  workbook: ExcelJS.Workbook,
+): ExcelJS.Worksheet | null {
   // Common statement sheet names
   const statementNames = [
-    'statement',
-    'transactions',
-    'activity',
-    'history',
-    'account',
-    'bank statement',
-    'transaction history',
+    "statement",
+    "transactions",
+    "activity",
+    "history",
+    "account",
+    "bank statement",
+    "transaction history",
   ];
 
   // Try exact matches first
@@ -96,7 +103,7 @@ function findStatementSheet(workbook: ExcelJS.Workbook): ExcelJS.Worksheet | nul
   // Try case-insensitive matches
   for (const sheet of workbook.worksheets) {
     const sheetName = sheet.name.toLowerCase();
-    if (statementNames.some(name => sheetName.includes(name))) {
+    if (statementNames.some((name) => sheetName.includes(name))) {
       return sheet;
     }
   }
@@ -152,7 +159,10 @@ function extractRowsFromSheet(sheet: ExcelJS.Worksheet): RawRow[] {
     }
 
     // Skip empty rows
-    if (Object.keys(rawRow).length > 0 && Object.values(rawRow).some(v => v)) {
+    if (
+      Object.keys(rawRow).length > 0 &&
+      Object.values(rawRow).some((v) => v)
+    ) {
       rows.push(rawRow);
     }
   }
@@ -166,22 +176,22 @@ function extractRowsFromSheet(sheet: ExcelJS.Worksheet): RawRow[] {
  */
 function formatCellValue(cell: ExcelJS.Cell): string {
   if (cell.value === null || cell.value === undefined) {
-    return '';
+    return "";
   }
 
   // Handle dates
   if (cell.value instanceof Date) {
-    return cell.value.toISOString().split('T')[0];
+    return cell.value.toISOString().split("T")[0];
   }
 
   // Handle numbers
-  if (typeof cell.value === 'number') {
+  if (typeof cell.value === "number") {
     return cell.value.toString();
   }
 
   // Handle rich text
-  if (typeof cell.value === 'object' && 'richText' in cell.value) {
-    return (cell.value.richText as any[]).map(rt => rt.text).join('');
+  if (typeof cell.value === "object" && "richText" in cell.value) {
+    return (cell.value.richText as any[]).map((rt) => rt.text).join("");
   }
 
   // Handle strings

@@ -1,17 +1,21 @@
 # OAuth Branding Configuration Guide
 
 ## Issue
+
 When users click "Continue with Google" on the KOMPLEET login page, they see "Sign in to continue to frlcvkmjuhnjcicwywrh.supabase.co" instead of "Sign in to continue to KOMPLEET".
 
 ## Root Cause
+
 This is controlled by Supabase's OAuth configuration, not our application code. The OAuth consent screen shows the Supabase project URL by default.
 
 ## Solution Options
 
 ### Option 1: Custom Domain (Recommended for Production)
+
 Configure a custom domain for your Supabase project to replace the default `.supabase.co` domain.
 
 **Steps:**
+
 1. Go to Supabase Dashboard → Project Settings → Custom Domains
 2. Add your custom domain (e.g., `app.kompleet.ng` or `auth.kompleet.ng`)
 3. Configure DNS records as instructed by Supabase
@@ -25,9 +29,11 @@ Configure a custom domain for your Supabase project to replace the default `.sup
 **Result:** OAuth consent screen will show "Sign in to continue to app.kompleet.ng"
 
 ### Option 2: Google Cloud Console Branding (Partial Fix)
+
 Configure the OAuth consent screen in Google Cloud Console to show KOMPLEET branding.
 
 **Steps:**
+
 1. Go to [Google Cloud Console](https://console.cloud.google.com)
 2. Select your project
 3. Navigate to APIs & Services → OAuth consent screen
@@ -43,9 +49,11 @@ Configure the OAuth consent screen in Google Cloud Console to show KOMPLEET bran
 **Result:** OAuth consent screen will show KOMPLEET branding, but the "continue to" URL will still show the Supabase domain unless you implement Option 1.
 
 ### Option 3: Supabase Project Settings (Minimal Impact)
+
 Update Supabase project settings to improve branding.
 
 **Steps:**
+
 1. Go to Supabase Dashboard → Project Settings → General
 2. Update **Project Name** to "KOMPLEET"
 3. This has minimal impact on OAuth screens but helps with internal organization
@@ -53,11 +61,13 @@ Update Supabase project settings to improve branding.
 ## Recommended Approach for KOMPLEET
 
 **For MVP/Beta Launch:**
+
 - Implement **Option 2** (Google Cloud Console branding) immediately
 - This takes 5-10 minutes and improves the OAuth experience
 - Users will see "KOMPLEET" as the application name with the logo
 
 **For Production Launch:**
+
 - Implement **Option 1** (Custom Domain) before public launch
 - This provides the most professional experience
 - Budget 1-2 days for DNS propagation and testing
@@ -65,12 +75,14 @@ Update Supabase project settings to improve branding.
 ## Current Status
 
 ✅ **Application branding is correct:**
+
 - Landing page shows KOMPLEET branding
 - Login page shows KOMPLEET logo and tagline
 - Sign up page shows KOMPLEET branding
 - No "Supabase" references in the application UI
 
 ⚠️ **OAuth consent screen needs configuration:**
+
 - Google OAuth shows Supabase project URL
 - Requires Google Cloud Console configuration (Option 2)
 - Or custom domain setup (Option 1)
@@ -78,12 +90,14 @@ Update Supabase project settings to improve branding.
 ## Action Items
 
 ### Immediate (Before Beta Launch)
+
 - [ ] Configure Google Cloud Console OAuth consent screen with KOMPLEET branding
 - [ ] Upload KOMPLEET logo to Google Cloud Console
 - [ ] Add privacy policy and terms of service URLs
 - [ ] Test OAuth flow with new branding
 
 ### Before Production Launch
+
 - [ ] Set up custom domain for Supabase project
 - [ ] Configure DNS records
 - [ ] Update environment variables

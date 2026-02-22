@@ -1,5 +1,5 @@
-import Link from 'next/link';
-import { Home, ShieldX, LayoutDashboard } from 'lucide-react';
+import Link from "next/link";
+import { Home, ShieldX, LayoutDashboard } from "lucide-react";
 
 export default function Forbidden() {
   return (
@@ -9,7 +9,9 @@ export default function Forbidden() {
           <ShieldX className="w-7 h-7 text-red-600 dark:text-red-400" />
         </div>
         <div className="space-y-2">
-          <h1 className="text-5xl font-bold text-red-600 dark:text-red-400">403</h1>
+          <h1 className="text-5xl font-bold text-red-600 dark:text-red-400">
+            403
+          </h1>
           <h2 className="text-xl font-bold">Forbidden</h2>
           <p className="text-sm text-[rgb(var(--text-secondary))]">
             You don&apos;t have permission to access this resource.

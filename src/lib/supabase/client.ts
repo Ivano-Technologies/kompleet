@@ -14,9 +14,9 @@
  *   const { data } = await supabase.from('profiles').select();
  */
 
-import { createBrowserClient as createSSRBrowserClient } from '@supabase/ssr';
-import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Database } from './types';
+import { createBrowserClient as createSSRBrowserClient } from "@supabase/ssr";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "./types";
 
 // ============================================================
 // ENVIRONMENT VALIDATION
@@ -26,8 +26,8 @@ function getSupabaseUrl(): string {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   if (!url) {
     throw new Error(
-      'Missing NEXT_PUBLIC_SUPABASE_URL environment variable. ' +
-      'Please add it to your .env.local file.'
+      "Missing NEXT_PUBLIC_SUPABASE_URL environment variable. " +
+        "Please add it to your .env.local file.",
     );
   }
   return url;
@@ -37,8 +37,8 @@ function getSupabaseAnonKey(): string {
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!key) {
     throw new Error(
-      'Missing NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable. ' +
-      'Please add it to your .env.local file.'
+      "Missing NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable. " +
+        "Please add it to your .env.local file.",
     );
   }
   return key;
@@ -62,7 +62,7 @@ export type TypedSupabaseClient = SupabaseClient<Database>;
 export function createSupabaseClient(): TypedSupabaseClient {
   return createSSRBrowserClient<Database>(
     getSupabaseUrl(),
-    getSupabaseAnonKey()
+    getSupabaseAnonKey(),
   );
 }
 
@@ -74,4 +74,4 @@ export { createSupabaseClient as createClient };
 export { createSupabaseClient as createBrowserClient };
 
 // Re-export types from supabase-js for convenience
-export type { SupabaseClient, Session, User } from '@supabase/supabase-js';
+export type { SupabaseClient, Session, User } from "@supabase/supabase-js";

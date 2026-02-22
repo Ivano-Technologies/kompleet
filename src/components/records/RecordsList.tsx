@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import type { FinancialRecord } from '@/types/api';
+import { useState } from "react";
+import type { FinancialRecord } from "@/types/api";
 
 interface RecordsListProps {
   records: FinancialRecord[];
@@ -10,24 +10,26 @@ interface RecordsListProps {
 }
 
 export function RecordsList({ records, onEdit, onDelete }: RecordsListProps) {
-  const [selectedType, setSelectedType] = useState<'all' | 'income' | 'expense'>('all');
+  const [selectedType, setSelectedType] = useState<
+    "all" | "income" | "expense"
+  >("all");
 
   const filteredRecords = records.filter(
-    (record) => selectedType === 'all' || record.type === selectedType
+    (record) => selectedType === "all" || record.type === selectedType,
   );
 
-  const formatCurrency = (amount: number, currency: string = 'NGN') => {
-    return new Intl.NumberFormat('en-NG', {
-      style: 'currency',
+  const formatCurrency = (amount: number, currency: string = "NGN") => {
+    return new Intl.NumberFormat("en-NG", {
+      style: "currency",
       currency,
     }).format(amount);
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-NG', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
+    return new Date(dateString).toLocaleDateString("en-NG", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
@@ -36,31 +38,31 @@ export function RecordsList({ records, onEdit, onDelete }: RecordsListProps) {
       {/* Filters */}
       <div className="flex gap-2">
         <button
-          onClick={() => setSelectedType('all')}
+          onClick={() => setSelectedType("all")}
           className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-            selectedType === 'all'
-              ? 'bg-blue-600 text-white'
-              : 'bg-light-background dark:bg-dark-background text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-border dark:bg-dark-border'
+            selectedType === "all"
+              ? "bg-blue-600 text-white"
+              : "bg-light-background dark:bg-dark-background text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-border dark:bg-dark-border"
           }`}
         >
           All
         </button>
         <button
-          onClick={() => setSelectedType('income')}
+          onClick={() => setSelectedType("income")}
           className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-            selectedType === 'income'
-              ? 'bg-green-600 text-white'
-              : 'bg-light-background dark:bg-dark-background text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-border dark:bg-dark-border'
+            selectedType === "income"
+              ? "bg-green-600 text-white"
+              : "bg-light-background dark:bg-dark-background text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-border dark:bg-dark-border"
           }`}
         >
           Income
         </button>
         <button
-          onClick={() => setSelectedType('expense')}
+          onClick={() => setSelectedType("expense")}
           className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-            selectedType === 'expense'
-              ? 'bg-red-600 text-white'
-              : 'bg-light-background dark:bg-dark-background text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-border dark:bg-dark-border'
+            selectedType === "expense"
+              ? "bg-red-600 text-white"
+              : "bg-light-background dark:bg-dark-background text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-border dark:bg-dark-border"
           }`}
         >
           Expenses
@@ -95,22 +97,28 @@ export function RecordsList({ records, onEdit, onDelete }: RecordsListProps) {
           <tbody className="divide-y divide-light-border dark:divide-dark-border">
             {filteredRecords.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-6 py-12 text-center text-light-text-tertiary dark:text-dark-text-tertiary">
+                <td
+                  colSpan={6}
+                  className="px-6 py-12 text-center text-light-text-tertiary dark:text-dark-text-tertiary"
+                >
                   No records found
                 </td>
               </tr>
             ) : (
               filteredRecords.map((record) => (
-                <tr key={record.id} className="hover:bg-light-background dark:bg-dark-background">
+                <tr
+                  key={record.id}
+                  className="hover:bg-light-background dark:bg-dark-background"
+                >
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-light-text-primary dark:text-dark-text-primary">
                     {formatDate(record.date)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span
                       className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                        record.type === 'income'
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-red-100 text-red-800'
+                        record.type === "income"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
                       }`}
                     >
                       {record.type}
@@ -120,7 +128,7 @@ export function RecordsList({ records, onEdit, onDelete }: RecordsListProps) {
                     {record.category}
                   </td>
                   <td className="px-6 py-4 text-sm text-light-text-secondary dark:text-dark-text-secondary max-w-xs truncate">
-                    {record.description || '-'}
+                    {record.description || "-"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-light-text-primary dark:text-dark-text-primary">
                     {formatCurrency(record.amount, record.currency)}

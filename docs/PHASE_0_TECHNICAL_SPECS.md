@@ -67,31 +67,31 @@
 
 export interface Transaction {
   // Core fields (required)
-  id: string;                    // UUID, generated on insert
-  user_id: string;               // From auth context
-  source_file_id: string;        // Reference to uploaded file
-  date: string;                  // ISO 8601 format: YYYY-MM-DD
-  description: string;           // Transaction narration/merchant
-  amount: number;                // Absolute value (always positive)
-  type: 'debit' | 'credit';      // Transaction direction
-  
+  id: string; // UUID, generated on insert
+  user_id: string; // From auth context
+  source_file_id: string; // Reference to uploaded file
+  date: string; // ISO 8601 format: YYYY-MM-DD
+  description: string; // Transaction narration/merchant
+  amount: number; // Absolute value (always positive)
+  type: "debit" | "credit"; // Transaction direction
+
   // Optional fields
-  currency?: string;             // ISO 4217 code (default: NGN)
-  balance?: number;              // Running balance after transaction
-  reference?: string;            // Bank reference number
-  bank_name?: string;            // Originating bank
-  
+  currency?: string; // ISO 4217 code (default: NGN)
+  balance?: number; // Running balance after transaction
+  reference?: string; // Bank reference number
+  bank_name?: string; // Originating bank
+
   // AI Categorization fields
-  category?: string;             // Assigned category
-  confidence_score?: number;     // 0.0 to 1.0
-  categorization_method?: 'LLM' | 'RULE' | 'ML' | 'MANUAL';
-  requires_review?: boolean;     // true if confidence < 0.65
-  
+  category?: string; // Assigned category
+  confidence_score?: number; // 0.0 to 1.0
+  categorization_method?: "LLM" | "RULE" | "ML" | "MANUAL";
+  requires_review?: boolean; // true if confidence < 0.65
+
   // Metadata
-  raw_category?: string;         // Category from bank statement
+  raw_category?: string; // Category from bank statement
   raw_data?: Record<string, any>; // Original parsed row
-  created_at: string;            // ISO 8601 timestamp
-  updated_at: string;            // ISO 8601 timestamp
+  created_at: string; // ISO 8601 timestamp
+  updated_at: string; // ISO 8601 timestamp
 }
 
 export interface ParseResult {
@@ -102,7 +102,7 @@ export interface ParseResult {
   fileMetadata?: {
     fileName: string;
     fileSize: number;
-    fileType: 'pdf' | 'xlsx' | 'xls' | 'csv' | 'zip';
+    fileType: "pdf" | "xlsx" | "xls" | "csv" | "zip";
     isEncrypted: boolean;
     pageCount?: number;
     sheetName?: string;
@@ -118,15 +118,15 @@ export interface ParseError {
 
 export interface IngestionRequest {
   file: File;
-  password?: string;             // Optional, for encrypted files
-  bankCode?: string;             // Optional, for bank-specific parsing
+  password?: string; // Optional, for encrypted files
+  bankCode?: string; // Optional, for bank-specific parsing
 }
 
 export interface IngestionResponse {
   success: boolean;
   transactionCount: number;
   errors: ParseError[];
-  aiJobId?: string;              // Job ID for async categorization
+  aiJobId?: string; // Job ID for async categorization
   message?: string;
 }
 
@@ -150,43 +150,54 @@ export interface SanitizedTransaction {
 **Output:** ParseResult
 
 **Logic:**
+
 ```typescript
-async function parsePdf(buffer: Buffer, password?: string): Promise<ParseResult> {
+async function parsePdf(
+  buffer: Buffer,
+  password?: string,
+): Promise<ParseResult> {
   // 1. Detect if encrypted
-  const isEncrypted = detectEncryption(buffer, 'pdf');
-  
+  const isEncrypted = detectEncryption(buffer, "pdf");
+
   // 2. If encrypted, decrypt with password
   let decryptedBuffer = buffer;
   if (isEncrypted && password) {
     decryptedBuffer = await decryptPdfWithPassword(buffer, password);
   }
-  
+
   // 3. Extract text using pdfjs-dist
   const text = await extractTextFromPdf(decryptedBuffer);
-  
+
   // 4. If text extraction fails, try OCR
   if (!text || text.length < 50) {
     const ocrText = await extractWithOCR(decryptedBuffer);
     // Use ocrText if available
   }
-  
+
   // 5. Parse text into rows using LLM
   const rows = await parseTextWithLLM(text);
-  
+
   // 6. Normalize rows to Transaction schema
-  const transactions = normalizeTransactions(rows, 'pdf');
-  
+  const transactions = normalizeTransactions(rows, "pdf");
+
   // 7. Return ParseResult
-  return { transactions, errors: [], totalRows: rows.length, successfulRows: transactions.length };
+  return {
+    transactions,
+    errors: [],
+    totalRows: rows.length,
+    successfulRows: transactions.length,
+  };
 }
 ```
 
 **Libraries:**
+
 - `pdfjs-dist` - PDF text extraction
 - `pdf-lib` - PDF encryption/decryption
 - `tesseract.js` - OCR fallback
 
 **Edge Cases:**
+
 - Password-protected PDFs
 - Scanned/image-based PDFs (OCR fallback)
 - Multi-column layouts (LLM handles)
@@ -200,34 +211,45 @@ async function parsePdf(buffer: Buffer, password?: string): Promise<ParseResult>
 **Output:** ParseResult
 
 **Logic:**
+
 ```typescript
-async function parseExcel(buffer: Buffer, password?: string): Promise<ParseResult> {
+async function parseExcel(
+  buffer: Buffer,
+  password?: string,
+): Promise<ParseResult> {
   // 1. Detect if encrypted
-  const isEncrypted = detectEncryption(buffer, 'xlsx');
-  
+  const isEncrypted = detectEncryption(buffer, "xlsx");
+
   // 2. Read workbook (exceljs handles password)
   const workbook = new ExcelJS.Workbook();
   const options: any = { password };
   await workbook.xlsx.load(buffer);
-  
+
   // 3. Find statement sheet (heuristic: "Statement", "Transactions", etc.)
   const sheet = findStatementSheet(workbook);
-  
+
   // 4. Extract rows from sheet
   const rows = extractRowsFromSheet(sheet);
-  
+
   // 5. Normalize rows to Transaction schema
-  const transactions = normalizeTransactions(rows, 'xlsx');
-  
+  const transactions = normalizeTransactions(rows, "xlsx");
+
   // 6. Return ParseResult
-  return { transactions, errors: [], totalRows: rows.length, successfulRows: transactions.length };
+  return {
+    transactions,
+    errors: [],
+    totalRows: rows.length,
+    successfulRows: transactions.length,
+  };
 }
 ```
 
 **Libraries:**
+
 - `exceljs` - Excel parsing with password support
 
 **Edge Cases:**
+
 - Password-protected Excel files
 - Multiple sheets (auto-detect statement sheet)
 - Merged cells
@@ -241,34 +263,42 @@ async function parseExcel(buffer: Buffer, password?: string): Promise<ParseResul
 **Output:** ParseResult
 
 **Logic:**
+
 ```typescript
 async function parseCsv(buffer: Buffer): Promise<ParseResult> {
   // 1. Detect encoding
   const encoding = detectEncoding(buffer);
-  
+
   // 2. Decode buffer to string
   const csvText = decodeBuffer(buffer, encoding);
-  
+
   // 3. Auto-detect delimiter
   const delimiter = detectDelimiter(csvText);
-  
+
   // 4. Parse CSV
   const rows = Papa.parse(csvText, { delimiter, header: true });
-  
+
   // 5. Normalize rows to Transaction schema
-  const transactions = normalizeTransactions(rows.data, 'csv');
-  
+  const transactions = normalizeTransactions(rows.data, "csv");
+
   // 6. Return ParseResult
-  return { transactions, errors: rows.errors, totalRows: rows.data.length, successfulRows: transactions.length };
+  return {
+    transactions,
+    errors: rows.errors,
+    totalRows: rows.data.length,
+    successfulRows: transactions.length,
+  };
 }
 ```
 
 **Libraries:**
+
 - `papaparse` - CSV parsing
 - `chardet` - Encoding detection
 - `iconv-lite` - Character encoding conversion
 
 **Edge Cases:**
+
 - UTF-8 BOM markers
 - Latin-1/Windows-1252 encoding
 - Different delimiters (comma, semicolon, tab)
@@ -282,17 +312,23 @@ async function parseCsv(buffer: Buffer): Promise<ParseResult> {
 **Output:** ParseResult
 
 **Logic:**
+
 ```typescript
-async function parseZip(buffer: Buffer, password?: string): Promise<ParseResult> {
+async function parseZip(
+  buffer: Buffer,
+  password?: string,
+): Promise<ParseResult> {
   // 1. Detect if encrypted
-  const isEncrypted = detectEncryption(buffer, 'zip');
-  
+  const isEncrypted = detectEncryption(buffer, "zip");
+
   // 2. Extract ZIP contents (unzipper handles password)
   const entries = await unzip(buffer, { password });
-  
+
   // 3. Find statement files (*.pdf, *.xlsx, *.csv)
-  const statementFiles = entries.filter(f => /\.(pdf|xlsx|xls|csv)$/i.test(f.name));
-  
+  const statementFiles = entries.filter((f) =>
+    /\.(pdf|xlsx|xls|csv)$/i.test(f.name),
+  );
+
   // 4. Parse each file
   const allTransactions: Transaction[] = [];
   for (const file of statementFiles) {
@@ -301,19 +337,26 @@ async function parseZip(buffer: Buffer, password?: string): Promise<ParseResult>
     const result = await parse(fileBuffer, fileType, password);
     allTransactions.push(...result.transactions);
   }
-  
+
   // 5. Deduplicate across files
   const deduplicated = deduplicateTransactions(allTransactions);
-  
+
   // 6. Return ParseResult
-  return { transactions: deduplicated, errors: [], totalRows: allTransactions.length, successfulRows: deduplicated.length };
+  return {
+    transactions: deduplicated,
+    errors: [],
+    totalRows: allTransactions.length,
+    successfulRows: deduplicated.length,
+  };
 }
 ```
 
 **Libraries:**
+
 - `unzipper` - ZIP extraction with password support
 
 **Edge Cases:**
+
 - Password-protected ZIP archives
 - Multiple statement files in one ZIP
 - Nested folders
@@ -330,18 +373,21 @@ async function parseZip(buffer: Buffer, password?: string): Promise<ParseResult>
 
 export interface EncryptionInfo {
   isEncrypted: boolean;
-  encryptionType?: 'password' | 'certificate' | 'unknown';
+  encryptionType?: "password" | "certificate" | "unknown";
   requiresPassword: boolean;
 }
 
-export function detectEncryption(buffer: Buffer, fileType: string): EncryptionInfo {
+export function detectEncryption(
+  buffer: Buffer,
+  fileType: string,
+): EncryptionInfo {
   switch (fileType) {
-    case 'pdf':
+    case "pdf":
       return detectPdfEncryption(buffer);
-    case 'xlsx':
-    case 'xls':
+    case "xlsx":
+    case "xls":
       return detectExcelEncryption(buffer);
-    case 'zip':
+    case "zip":
       return detectZipEncryption(buffer);
     default:
       return { isEncrypted: false, requiresPassword: false };
@@ -350,11 +396,11 @@ export function detectEncryption(buffer: Buffer, fileType: string): EncryptionIn
 
 function detectPdfEncryption(buffer: Buffer): EncryptionInfo {
   // PDF encryption is indicated by /Encrypt dictionary
-  const bufferStr = buffer.toString('latin1');
-  const isEncrypted = bufferStr.includes('/Encrypt');
+  const bufferStr = buffer.toString("latin1");
+  const isEncrypted = bufferStr.includes("/Encrypt");
   return {
     isEncrypted,
-    encryptionType: isEncrypted ? 'password' : undefined,
+    encryptionType: isEncrypted ? "password" : undefined,
     requiresPassword: isEncrypted,
   };
 }
@@ -363,7 +409,7 @@ function detectExcelEncryption(buffer: Buffer): EncryptionInfo {
   // XLSX is a ZIP file; check for encryption markers
   // XLS uses OLE2 format; check for encryption flags
   try {
-    const isZip = buffer.slice(0, 4).toString('hex') === '504b0304'; // ZIP signature
+    const isZip = buffer.slice(0, 4).toString("hex") === "504b0304"; // ZIP signature
     if (isZip) {
       // XLSX: check for encryption in ZIP central directory
       return { isEncrypted: false, requiresPassword: false }; // exceljs will handle
@@ -383,7 +429,7 @@ function detectZipEncryption(buffer: Buffer): EncryptionInfo {
     const isEncrypted = (buffer[6] & 0x01) === 0x01;
     return {
       isEncrypted,
-      encryptionType: isEncrypted ? 'password' : undefined,
+      encryptionType: isEncrypted ? "password" : undefined,
       requiresPassword: isEncrypted,
     };
   } catch {
@@ -395,6 +441,7 @@ function detectZipEncryption(buffer: Buffer): EncryptionInfo {
 ### 4.2 Password Handling
 
 **Security Rules:**
+
 - ❌ Never log passwords
 - ❌ Never store passwords in database
 - ✅ Decrypt only in memory
@@ -407,25 +454,25 @@ function detectZipEncryption(buffer: Buffer): EncryptionInfo {
 async function handleEncryptedFile(file: File, password?: string) {
   // 1. Validate password provided
   if (!password) {
-    return { error: 'PASSWORD_REQUIRED', requiresPassword: true };
+    return { error: "PASSWORD_REQUIRED", requiresPassword: true };
   }
-  
+
   // 2. Rate-limit attempts (store in Redis)
   const attemptCount = await redis.incr(`password_attempts:${file.name}`);
   if (attemptCount > 3) {
-    return { error: 'TOO_MANY_ATTEMPTS', locked: true };
+    return { error: "TOO_MANY_ATTEMPTS", locked: true };
   }
-  
+
   // 3. Try to decrypt
   try {
     const decrypted = await decrypt(file, password);
     // Clear password from memory
-    password = '';
+    password = "";
     return { success: true, decrypted };
   } catch (error) {
     // Clear password from memory
-    password = '';
-    return { error: 'WRONG_PASSWORD', retry: true };
+    password = "";
+    return { error: "WRONG_PASSWORD", retry: true };
   }
 }
 ```
@@ -438,13 +485,13 @@ async function handleEncryptedFile(file: File, password?: string) {
 
 ```typescript
 interface RawRow {
-  date: string;           // Any format: DD/MM/YYYY, MM/DD/YYYY, etc.
-  description: string;    // Merchant/narration
-  amount: string;         // May include currency symbols, commas
-  balance?: string;       // Optional running balance
-  reference?: string;     // Optional transaction reference
-  type?: string;          // May be 'DR', 'CR', 'DEBIT', 'CREDIT'
-  [key: string]: any;     // Other fields from bank
+  date: string; // Any format: DD/MM/YYYY, MM/DD/YYYY, etc.
+  description: string; // Merchant/narration
+  amount: string; // May include currency symbols, commas
+  balance?: string; // Optional running balance
+  reference?: string; // Optional transaction reference
+  type?: string; // May be 'DR', 'CR', 'DEBIT', 'CREDIT'
+  [key: string]: any; // Other fields from bank
 }
 ```
 
@@ -453,31 +500,36 @@ interface RawRow {
 ```typescript
 // /src/lib/ingestion/normalizeTransactions.ts
 
-export function normalizeTransactions(rawRows: RawRow[], fileType: string): Transaction[] {
+export function normalizeTransactions(
+  rawRows: RawRow[],
+  fileType: string,
+): Transaction[] {
   return rawRows.map((row, index) => {
     try {
       return {
         id: generateUUID(),
         user_id: getCurrentUserId(),
         source_file_id: getCurrentSourceFileId(),
-        
+
         // Normalize date
         date: normalizeDate(row.date),
-        
+
         // Normalize description
         description: normalizeDescription(row.description),
-        
+
         // Normalize amount
         amount: normalizeAmount(row.amount),
-        
+
         // Detect type
         type: detectTransactionType(row),
-        
+
         // Optional fields
-        currency: 'NGN', // Default to Nigerian Naira
-        balance: row.balance ? parseFloat(row.balance.toString().replace(/[,₦NGN\s]/g, '')) : undefined,
+        currency: "NGN", // Default to Nigerian Naira
+        balance: row.balance
+          ? parseFloat(row.balance.toString().replace(/[,₦NGN\s]/g, ""))
+          : undefined,
         reference: row.reference?.toString().trim() || undefined,
-        
+
         // Metadata
         raw_data: row,
         created_at: new Date().toISOString(),
@@ -485,7 +537,7 @@ export function normalizeTransactions(rawRows: RawRow[], fileType: string): Tran
       };
     } catch (error) {
       // Return error, not transaction
-      throw new ParseError(index, 'NORMALIZATION_ERROR', error.message);
+      throw new ParseError(index, "NORMALIZATION_ERROR", error.message);
     }
   });
 }
@@ -511,7 +563,7 @@ function normalizeAmount(amountStr: string): number {
   // Return absolute value
 }
 
-function detectTransactionType(row: RawRow): 'debit' | 'credit' {
+function detectTransactionType(row: RawRow): "debit" | "credit" {
   // Check 'type' field: DR/DEBIT → debit, CR/CREDIT → credit
   // Check amount sign: negative → debit, positive → credit
   // Check description: WITHDRAWAL/ATM → debit, DEPOSIT/TRANSFER IN → credit
@@ -531,25 +583,27 @@ function detectTransactionType(row: RawRow): 'debit' | 'credit' {
 function createDeduplicationHash(tx: Transaction): string {
   // Hash = SHA256(date + amount + description)
   // This identifies transactions that are identical
-  
+
   const key = `${tx.date}|${tx.amount}|${tx.description.toLowerCase()}`;
-  return crypto.createHash('sha256').update(key).digest('hex');
+  return crypto.createHash("sha256").update(key).digest("hex");
 }
 
-export function deduplicateTransactions(transactions: Transaction[]): Transaction[] {
+export function deduplicateTransactions(
+  transactions: Transaction[],
+): Transaction[] {
   const seen = new Map<string, Transaction>();
-  
+
   for (const tx of transactions) {
     const hash = createDeduplicationHash(tx);
-    
+
     if (seen.has(hash)) {
       // Keep the first occurrence, discard duplicate
       continue;
     }
-    
+
     seen.set(hash, tx);
   }
-  
+
   return Array.from(seen.values());
 }
 ```
@@ -560,22 +614,26 @@ export function deduplicateTransactions(transactions: Transaction[]): Transactio
 // Check if transaction already exists in database
 export async function checkForDuplicates(
   transactions: Transaction[],
-  userId: string
-): Promise<{ new: Transaction[], duplicates: Transaction[] }> {
-  const hashes = transactions.map(tx => createDeduplicationHash(tx));
-  
+  userId: string,
+): Promise<{ new: Transaction[]; duplicates: Transaction[] }> {
+  const hashes = transactions.map((tx) => createDeduplicationHash(tx));
+
   // Query existing transactions with same hashes
   const existing = await supabase
-    .from('transactions')
-    .select('*')
-    .eq('user_id', userId)
-    .in('dedup_hash', hashes);
-  
-  const existingHashes = new Set(existing.data.map(tx => tx.dedup_hash));
-  
+    .from("transactions")
+    .select("*")
+    .eq("user_id", userId)
+    .in("dedup_hash", hashes);
+
+  const existingHashes = new Set(existing.data.map((tx) => tx.dedup_hash));
+
   return {
-    new: transactions.filter(tx => !existingHashes.has(createDeduplicationHash(tx))),
-    duplicates: transactions.filter(tx => existingHashes.has(createDeduplicationHash(tx))),
+    new: transactions.filter(
+      (tx) => !existingHashes.has(createDeduplicationHash(tx)),
+    ),
+    duplicates: transactions.filter((tx) =>
+      existingHashes.has(createDeduplicationHash(tx)),
+    ),
   };
 }
 ```
@@ -592,29 +650,29 @@ export async function checkForDuplicates(
 export function sanitizeForAI(transaction: Transaction): SanitizedTransaction {
   // KEEP: date, description, amount, currency, balance
   // REMOVE: account numbers, customer names, addresses, statement metadata
-  
+
   const sanitized: SanitizedTransaction = {
     date: transaction.date,
     description: sanitizeDescription(transaction.description),
     amount: transaction.amount,
-    currency: transaction.currency || 'NGN',
+    currency: transaction.currency || "NGN",
     balance: transaction.balance,
   };
-  
+
   return sanitized;
 }
 
 function sanitizeDescription(desc: string): string {
   // Remove account numbers (10+ consecutive digits)
-  let sanitized = desc.replace(/\d{10,}/g, 'ACCOUNT_REDACTED');
-  
+  let sanitized = desc.replace(/\d{10,}/g, "ACCOUNT_REDACTED");
+
   // Remove common PII patterns (email, phone)
-  sanitized = sanitized.replace(/[\w.-]+@[\w.-]+\.\w+/g, 'EMAIL_REDACTED');
-  sanitized = sanitized.replace(/\+?\d{10,}/g, 'PHONE_REDACTED');
-  
+  sanitized = sanitized.replace(/[\w.-]+@[\w.-]+\.\w+/g, "EMAIL_REDACTED");
+  sanitized = sanitized.replace(/\+?\d{10,}/g, "PHONE_REDACTED");
+
   // Remove names (heuristic: capitalized words at start)
   // This is conservative to avoid over-redaction
-  
+
   return sanitized;
 }
 ```
@@ -626,6 +684,7 @@ function sanitizeDescription(desc: string): string {
 ### POST /api/ingest
 
 **Request:**
+
 ```typescript
 {
   file: File;              // Multipart form data
@@ -635,6 +694,7 @@ function sanitizeDescription(desc: string): string {
 ```
 
 **Response (Success):**
+
 ```typescript
 {
   success: true,
@@ -646,6 +706,7 @@ function sanitizeDescription(desc: string): string {
 ```
 
 **Response (Encrypted, needs password):**
+
 ```typescript
 {
   success: false,
@@ -656,6 +717,7 @@ function sanitizeDescription(desc: string): string {
 ```
 
 **Response (Wrong password):**
+
 ```typescript
 {
   success: false,
@@ -667,6 +729,7 @@ function sanitizeDescription(desc: string): string {
 ```
 
 **Response (Parsing error):**
+
 ```typescript
 {
   success: false,

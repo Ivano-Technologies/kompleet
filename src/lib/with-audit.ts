@@ -10,8 +10,8 @@
  * }), { limit: 60 });
  */
 
-import { NextRequest } from 'next/server';
-import { createServerClient } from '@/lib/supabase/server';
+import { NextRequest } from "next/server";
+import { createServerClient } from "@/lib/supabase/server";
 
 interface AuditOptions {
   action: string;
@@ -20,7 +20,7 @@ interface AuditOptions {
 
 export function withAudit(
   handler: (request: NextRequest, context?: any) => Promise<Response>,
-  options: AuditOptions
+  options: AuditOptions,
 ): (request: NextRequest, context?: any) => Promise<Response> {
   return async (request: NextRequest, context?: any) => {
     const response = await handler(request, context);
@@ -29,28 +29,31 @@ export function withAudit(
     if (response.ok) {
       try {
         const supabase = await createServerClient();
-        const { data: { user } } = await supabase.auth.getUser();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
 
         if (user) {
-          const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
-            || request.headers.get('x-real-ip')
-            || 'unknown';
+          const ip =
+            request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+            request.headers.get("x-real-ip") ||
+            "unknown";
 
           // Fire-and-forget — don't await, don't block
           Promise.resolve(
-            supabase.from('audit_logs').insert({
+            supabase.from("audit_logs").insert({
               user_id: user.id,
               action: options.action,
               resource_type: options.resourceType,
               ip_address: ip,
-              user_agent: request.headers.get('user-agent') || 'unknown',
-            })
+              user_agent: request.headers.get("user-agent") || "unknown",
+            }),
           ).catch((err: unknown) => {
-            console.error('[Audit Log Error]', err);
+            console.error("[Audit Log Error]", err);
           });
         }
       } catch (err) {
-        console.error('[Audit Log Error]', err);
+        console.error("[Audit Log Error]", err);
       }
     }
 

@@ -12,38 +12,41 @@ Row Level Security (RLS) policies are **properly configured** on all core tables
 
 ### profiles Table
 
-| Policy Name | Command | Roles | Condition |
-|------------|---------|-------|-----------|
-| Users can view own profile | SELECT | public | `auth.uid() = id` |
-| Users can update own profile | UPDATE | public | `auth.uid() = id` |
-| Enable insert for authenticated users only | INSERT | public | (none - allows creation) |
+| Policy Name                                | Command | Roles  | Condition                |
+| ------------------------------------------ | ------- | ------ | ------------------------ |
+| Users can view own profile                 | SELECT  | public | `auth.uid() = id`        |
+| Users can update own profile               | UPDATE  | public | `auth.uid() = id`        |
+| Enable insert for authenticated users only | INSERT  | public | (none - allows creation) |
 
 **Status**: ✅ **SECURE**
+
 - Users can only view and update their own profiles
 - Profile creation allowed for authenticated users
 - No unauthorized access possible
 
 ### transactions Table
 
-| Policy Name | Command | Roles | Condition |
-|------------|---------|-------|-----------|
-| Users can view own transactions | SELECT | public | `auth.uid() = user_id` |
-| Users can insert own transactions | INSERT | public | (none - checked on insert) |
-| Users can update own transactions | UPDATE | public | `auth.uid() = user_id` |
-| Users can delete own transactions | DELETE | public | `auth.uid() = user_id` |
+| Policy Name                       | Command | Roles  | Condition                  |
+| --------------------------------- | ------- | ------ | -------------------------- |
+| Users can view own transactions   | SELECT  | public | `auth.uid() = user_id`     |
+| Users can insert own transactions | INSERT  | public | (none - checked on insert) |
+| Users can update own transactions | UPDATE  | public | `auth.uid() = user_id`     |
+| Users can delete own transactions | DELETE  | public | `auth.uid() = user_id`     |
 
 **Status**: ✅ **SECURE**
+
 - Full CRUD operations restricted to transaction owner
 - User cannot access another user's transactions
 - Ownership enforced via `user_id` column
 
 ### categories Table
 
-| Policy Name | Command | Roles | Condition |
-|------------|---------|-------|-----------|
-| Categories are viewable by authenticated users | SELECT | authenticated | `true` |
+| Policy Name                                    | Command | Roles         | Condition |
+| ---------------------------------------------- | ------- | ------------- | --------- |
+| Categories are viewable by authenticated users | SELECT  | authenticated | `true`    |
 
 **Status**: ✅ **SECURE**
+
 - Categories are read-only for authenticated users
 - Shared resource accessible to all users
 - No write permissions (managed by admin/system)
@@ -53,6 +56,7 @@ Row Level Security (RLS) policies are **properly configured** on all core tables
 ### Warnings Found
 
 **Function Search Path Mutable** (9 functions)
+
 - Level: WARN
 - Impact: LOW
 - Functions affected:
@@ -69,6 +73,7 @@ Row Level Security (RLS) policies are **properly configured** on all core tables
 **Recommendation**: Set explicit `search_path` on functions to prevent potential SQL injection via search path manipulation.
 
 **Leaked Password Protection Disabled**
+
 - Level: WARN
 - Impact: MEDIUM
 - Status: Currently disabled
@@ -84,6 +89,7 @@ Row Level Security (RLS) policies are **properly configured** on all core tables
 **Expected**: Access denied (returns empty result or error)
 
 **SQL Test**:
+
 ```sql
 -- As User A (auth.uid() = 'user-a-id')
 SELECT * FROM profiles WHERE id = 'user-b-id';
@@ -97,6 +103,7 @@ SELECT * FROM profiles WHERE id = 'user-b-id';
 **Expected**: Access denied (returns empty result)
 
 **SQL Test**:
+
 ```sql
 -- As User A (auth.uid() = 'user-a-id')
 SELECT * FROM transactions WHERE user_id = 'user-b-id';
@@ -110,6 +117,7 @@ SELECT * FROM transactions WHERE user_id = 'user-b-id';
 **Expected**: All categories visible
 
 **SQL Test**:
+
 ```sql
 -- As any authenticated user
 SELECT * FROM categories;
@@ -160,6 +168,7 @@ SELECT * FROM categories;
 The database has proper RLS policies in place that enforce user ownership. All core tables (profiles, transactions) are protected against unauthorized access. The warnings found are minor and can be addressed in future updates.
 
 **Action Items**:
+
 - [ ] Enable leaked password protection (5 minutes)
 - [ ] Fix function search paths (30 minutes)
 - [ ] Add audit logging (future enhancement)

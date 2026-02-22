@@ -3,16 +3,16 @@
  * Handles file detection, encryption, parsing, normalization, validation
  */
 
-import { detectFileType, isSupportedFileType } from './detectFileType';
-import { detectEncryption } from './detectEncryption';
-import { parsePdf } from './parsePdf';
-import { parseExcel } from './parseExcel';
-import { parseCsv } from './parseCsv';
-import { parseZip } from './parseZip';
-import { deduplicateTransactions } from './deduplicate';
-import { sanitizeTransactions } from './sanitizeForAI';
-import { validateTransactions } from './validate';
-import { IngestionRequest, IngestionResponse, ParseResult } from './types';
+import { detectFileType, isSupportedFileType } from "./detectFileType";
+import { detectEncryption } from "./detectEncryption";
+import { parsePdf } from "./parsePdf";
+import { parseExcel } from "./parseExcel";
+import { parseCsv } from "./parseCsv";
+import { parseZip } from "./parseZip";
+import { deduplicateTransactions } from "./deduplicate";
+import { sanitizeTransactions } from "./sanitizeForAI";
+import { validateTransactions } from "./validate";
+import { IngestionRequest, IngestionResponse, ParseResult } from "./types";
 
 /**
  * Main ingestion function
@@ -21,7 +21,7 @@ import { IngestionRequest, IngestionResponse, ParseResult } from './types';
 export async function ingestStatement(
   request: IngestionRequest,
   userId: string,
-  sourceFileId: string
+  sourceFileId: string,
 ): Promise<IngestionResponse> {
   try {
     // 1. Read file buffer
@@ -37,7 +37,7 @@ export async function ingestStatement(
         errors: [
           {
             rowNumber: 0,
-            errorType: 'UNSUPPORTED_FILE_TYPE',
+            errorType: "UNSUPPORTED_FILE_TYPE",
             errorMessage: `File type not supported: ${request.file.name}. Supported formats: PDF, Excel, CSV, ZIP`,
           },
         ],
@@ -53,7 +53,7 @@ export async function ingestStatement(
         success: false,
         transactionCount: 0,
         errors: [],
-        message: 'PASSWORD_REQUIRED',
+        message: "PASSWORD_REQUIRED",
       };
     }
 
@@ -62,33 +62,56 @@ export async function ingestStatement(
 
     try {
       switch (fileType) {
-        case 'pdf':
-          parseResult = await parsePdf(buffer, userId, sourceFileId, request.password);
+        case "pdf":
+          parseResult = await parsePdf(
+            buffer,
+            userId,
+            sourceFileId,
+            request.password,
+          );
           break;
-        case 'xlsx':
-          parseResult = await parseExcel(buffer, 'xlsx', userId, sourceFileId, request.password);
+        case "xlsx":
+          parseResult = await parseExcel(
+            buffer,
+            "xlsx",
+            userId,
+            sourceFileId,
+            request.password,
+          );
           break;
-        case 'xls':
-          parseResult = await parseExcel(buffer, 'xls', userId, sourceFileId, request.password);
+        case "xls":
+          parseResult = await parseExcel(
+            buffer,
+            "xls",
+            userId,
+            sourceFileId,
+            request.password,
+          );
           break;
-        case 'csv':
+        case "csv":
           parseResult = await parseCsv(buffer, userId, sourceFileId);
           break;
-        case 'zip':
-          parseResult = await parseZip(buffer, userId, sourceFileId, request.password);
+        case "zip":
+          parseResult = await parseZip(
+            buffer,
+            userId,
+            sourceFileId,
+            request.password,
+          );
           break;
         default:
           throw new Error(`Unsupported file type: ${fileType}`);
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
 
-      if (errorMessage === 'PASSWORD_REQUIRED') {
+      if (errorMessage === "PASSWORD_REQUIRED") {
         return {
           success: false,
           transactionCount: 0,
           errors: [],
-          message: 'PASSWORD_REQUIRED',
+          message: "PASSWORD_REQUIRED",
         };
       }
 
@@ -98,7 +121,7 @@ export async function ingestStatement(
         errors: [
           {
             rowNumber: 0,
-            errorType: 'PARSING_ERROR',
+            errorType: "PARSING_ERROR",
             errorMessage: errorMessage,
           },
         ],
@@ -110,7 +133,8 @@ export async function ingestStatement(
     const deduplicated = deduplicateTransactions(parseResult.transactions);
 
     // 6. Validate transactions
-    const { valid: validTransactions, errors: validationErrors } = validateTransactions(deduplicated);
+    const { valid: validTransactions, errors: validationErrors } =
+      validateTransactions(deduplicated);
 
     // 7. Combine all errors
     const allErrors = [...parseResult.errors, ...validationErrors];
@@ -125,7 +149,7 @@ export async function ingestStatement(
       message:
         validTransactions.length > 0
           ? `Successfully ingested ${validTransactions.length} transactions`
-          : 'No valid transactions found in file',
+          : "No valid transactions found in file",
     };
   } catch (error) {
     return {
@@ -134,11 +158,12 @@ export async function ingestStatement(
       errors: [
         {
           rowNumber: 0,
-          errorType: 'INGESTION_ERROR',
-          errorMessage: error instanceof Error ? error.message : 'Unknown error',
+          errorType: "INGESTION_ERROR",
+          errorMessage:
+            error instanceof Error ? error.message : "Unknown error",
         },
       ],
-      message: `Ingestion failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      message: `Ingestion failed: ${error instanceof Error ? error.message : "Unknown error"}`,
     };
   }
 }
@@ -155,15 +180,15 @@ async function fileToBuffer(file: File): Promise<Buffer> {
  * Get ingestion status
  */
 export function getIngestionStatus(response: IngestionResponse): {
-  status: 'success' | 'error' | 'partial';
+  status: "success" | "error" | "partial";
   message: string;
   transactionCount: number;
   errorCount: number;
 } {
   if (response.success && response.errors.length === 0) {
     return {
-      status: 'success',
-      message: response.message || 'Ingestion completed successfully',
+      status: "success",
+      message: response.message || "Ingestion completed successfully",
       transactionCount: response.transactionCount,
       errorCount: 0,
     };
@@ -171,15 +196,15 @@ export function getIngestionStatus(response: IngestionResponse): {
 
   if (!response.success && response.transactionCount === 0) {
     return {
-      status: 'error',
-      message: response.message || 'Ingestion failed',
+      status: "error",
+      message: response.message || "Ingestion failed",
       transactionCount: 0,
       errorCount: response.errors.length,
     };
   }
 
   return {
-    status: 'partial',
+    status: "partial",
     message: `Ingestion completed with errors: ${response.transactionCount} transactions, ${response.errors.length} errors`,
     transactionCount: response.transactionCount,
     errorCount: response.errors.length,

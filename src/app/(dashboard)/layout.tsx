@@ -1,5 +1,5 @@
-import { requireAuth } from '@/lib/auth';
-import { DashboardShell } from '@/components/layout/dashboard';
+import { requireAuth } from "@/lib/auth";
+import { DashboardShell } from "@/components/layout/dashboard";
 
 export default async function DashboardRouteGroupLayout({
   children,
@@ -8,7 +8,9 @@ export default async function DashboardRouteGroupLayout({
 }) {
   const user = await requireAuth();
   return (
-    <DashboardShell user={{ email: user.email, id: user.id, role: user.app_metadata?.role }}>
+    <DashboardShell
+      user={{ email: user.email, id: user.id, role: user.app_metadata?.role }}
+    >
       {children}
     </DashboardShell>
   );

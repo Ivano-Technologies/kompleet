@@ -1,22 +1,22 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
-import { ChevronDown, Check, X, AlertCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import React, { useState } from "react";
+import { ChevronDown, Check, X, AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 
 interface TransactionReviewCardProps {
   transactionId: string;
   date: string;
   amount: number;
-  type: 'debit' | 'credit';
+  type: "debit" | "credit";
   description: string;
   counterparty?: string;
   currency?: string;
@@ -35,7 +35,7 @@ export default function TransactionReviewCard({
   type,
   description,
   counterparty,
-  currency = 'NGN',
+  currency = "NGN",
   predictedCategory,
   confidence,
   alternatives = [],
@@ -53,7 +53,7 @@ export default function TransactionReviewCard({
     try {
       await onAccept(selectedCategory);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to accept');
+      setError(err instanceof Error ? err.message : "Failed to accept");
     } finally {
       setIsLoading(false);
     }
@@ -64,7 +64,7 @@ export default function TransactionReviewCard({
     try {
       await onReject(predictedCategory, selectedCategory);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to reject');
+      setError(err instanceof Error ? err.message : "Failed to reject");
     } finally {
       setIsLoading(false);
     }
@@ -72,17 +72,17 @@ export default function TransactionReviewCard({
 
   const confidenceColor =
     confidence >= 0.8
-      ? 'text-green-600 dark:text-green-400'
+      ? "text-green-600 dark:text-green-400"
       : confidence >= 0.6
-        ? 'text-amber-600 dark:text-amber-400'
-        : 'text-red-600 dark:text-red-400';
+        ? "text-amber-600 dark:text-amber-400"
+        : "text-red-600 dark:text-red-400";
 
   const confidenceLabel =
     confidence >= 0.8
-      ? 'High confidence'
+      ? "High confidence"
       : confidence >= 0.6
-        ? 'Medium confidence'
-        : 'Low confidence';
+        ? "Medium confidence"
+        : "Low confidence";
 
   return (
     <Card className="backdrop-blur-md bg-white/80 dark:bg-slate-900/80 border border-white/20 dark:border-slate-800/20">
@@ -91,20 +91,26 @@ export default function TransactionReviewCard({
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
-              <p className="text-sm text-slate-500 dark:text-slate-400">{date}</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                {date}
+              </p>
               <span
                 className={`text-sm font-semibold px-2 py-1 rounded ${
-                  type === 'debit'
-                    ? 'bg-red-100 dark:bg-red-950/30 text-red-700 dark:text-red-400'
-                    : 'bg-green-100 dark:bg-green-950/30 text-green-700 dark:text-green-400'
+                  type === "debit"
+                    ? "bg-red-100 dark:bg-red-950/30 text-red-700 dark:text-red-400"
+                    : "bg-green-100 dark:bg-green-950/30 text-green-700 dark:text-green-400"
                 }`}
               >
-                {type === 'debit' ? '−' : '+'} ₦{amount.toLocaleString()}
+                {type === "debit" ? "−" : "+"} ₦{amount.toLocaleString()}
               </span>
             </div>
-            <p className="font-medium text-slate-900 dark:text-white">{description}</p>
+            <p className="font-medium text-slate-900 dark:text-white">
+              {description}
+            </p>
             {counterparty && (
-              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{counterparty}</p>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                {counterparty}
+              </p>
             )}
           </div>
           <button
@@ -112,7 +118,7 @@ export default function TransactionReviewCard({
             className="ml-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
           >
             <ChevronDown
-              className={`w-5 h-5 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+              className={`w-5 h-5 transition-transform ${isExpanded ? "rotate-180" : ""}`}
             />
           </button>
         </div>
@@ -121,14 +127,20 @@ export default function TransactionReviewCard({
         <div className="mb-4 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">AI Prediction</p>
-              <p className="font-semibold text-slate-900 dark:text-white">{predictedCategory}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                AI Prediction
+              </p>
+              <p className="font-semibold text-slate-900 dark:text-white">
+                {predictedCategory}
+              </p>
             </div>
             <div className="text-right">
               <p className={`text-sm font-semibold ${confidenceColor}`}>
                 {(confidence * 100).toFixed(0)}%
               </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400">{confidenceLabel}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                {confidenceLabel}
+              </p>
             </div>
           </div>
         </div>
@@ -165,12 +177,15 @@ export default function TransactionReviewCard({
               <label className="text-xs text-slate-500 dark:text-slate-400 mb-2 block">
                 Select category:
               </label>
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <Select
+                value={selectedCategory}
+                onValueChange={setSelectedCategory}
+              >
                 <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {categories.map(cat => (
+                  {categories.map((cat) => (
                     <SelectItem key={cat} value={cat}>
                       {cat}
                     </SelectItem>

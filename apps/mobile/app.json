@@ -27,7 +27,12 @@
     "plugins": [
       "expo-router",
       "expo-secure-store",
-      ["expo-image-picker", { "cameraPermission": "Allow Kompleet to access your camera to scan receipts." }]
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Allow Kompleet to access your camera to scan receipts."
+        }
+      ]
     ]
   }
 }

@@ -1,6 +1,12 @@
-'use client';
+"use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 
 interface YearContextType {
   selectedYear: number;
@@ -23,7 +29,7 @@ export function YearProvider({ children }: YearProviderProps) {
 
   // Load selected year from localStorage on mount
   useEffect(() => {
-    const stored = localStorage.getItem('kompleet_selected_year');
+    const stored = localStorage.getItem("kompleet_selected_year");
     if (stored) {
       const year = parseInt(stored, 10);
       if (!isNaN(year)) {
@@ -36,7 +42,7 @@ export function YearProvider({ children }: YearProviderProps) {
   useEffect(() => {
     async function fetchAvailableYears() {
       try {
-        const response = await fetch('/api/year/available');
+        const response = await fetch("/api/year/available");
         if (response.ok) {
           const data = await response.json();
           setAvailableYears(data.years || [currentYear]);
@@ -45,7 +51,7 @@ export function YearProvider({ children }: YearProviderProps) {
           setAvailableYears([currentYear - 2, currentYear - 1, currentYear]);
         }
       } catch (error) {
-        console.error('Failed to fetch available years:', error);
+        console.error("Failed to fetch available years:", error);
         // Fallback to default years
         setAvailableYears([currentYear - 2, currentYear - 1, currentYear]);
       } finally {
@@ -59,27 +65,29 @@ export function YearProvider({ children }: YearProviderProps) {
   // Persist selected year to localStorage and log audit trail
   const setSelectedYear = async (year: number) => {
     setSelectedYearState(year);
-    localStorage.setItem('kompleet_selected_year', year.toString());
+    localStorage.setItem("kompleet_selected_year", year.toString());
 
     // Log year switch for audit
     try {
-      await fetch('/api/audit/log', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      await fetch("/api/audit/log", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          action: 'year_switch',
-          resource_type: 'tax_year',
+          action: "year_switch",
+          resource_type: "tax_year",
           tax_year: year,
-          metadata: { previous_year: selectedYear }
-        })
+          metadata: { previous_year: selectedYear },
+        }),
       });
     } catch (error) {
-      console.error('Failed to log year switch:', error);
+      console.error("Failed to log year switch:", error);
     }
   };
 
   return (
-    <YearContext.Provider value={{ selectedYear, setSelectedYear, availableYears, isLoading }}>
+    <YearContext.Provider
+      value={{ selectedYear, setSelectedYear, availableYears, isLoading }}
+    >
       {children}
     </YearContext.Provider>
   );
@@ -88,7 +96,7 @@ export function YearProvider({ children }: YearProviderProps) {
 export function useYear() {
   const context = useContext(YearContext);
   if (context === undefined) {
-    throw new Error('useYear must be used within a YearProvider');
+    throw new Error("useYear must be used within a YearProvider");
   }
   return context;
 }

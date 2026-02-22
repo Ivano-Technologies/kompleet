@@ -1,17 +1,17 @@
-import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
-import { withRateLimit } from '@/lib/with-rate-limit';
+import { NextResponse } from "next/server";
+import fs from "fs";
+import path from "path";
+import { withRateLimit } from "@/lib/with-rate-limit";
 
 async function handleGET() {
   const htmlContent = fs.readFileSync(
-    path.join(process.cwd(), 'public', 'kompleet.html'),
-    'utf-8'
+    path.join(process.cwd(), "public", "kompleet.html"),
+    "utf-8",
   );
-  
+
   return new NextResponse(htmlContent, {
     headers: {
-      'Content-Type': 'text/html',
+      "Content-Type": "text/html",
     },
   });
 }

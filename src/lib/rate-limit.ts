@@ -27,14 +27,17 @@ export interface RateLimitResult {
 const rateLimitStore = new Map<string, RateLimitEntry>();
 
 // Cleanup old entries every 5 minutes
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, entry] of rateLimitStore.entries()) {
-    if (entry.resetTime < now) {
-      rateLimitStore.delete(key);
+setInterval(
+  () => {
+    const now = Date.now();
+    for (const [key, entry] of rateLimitStore.entries()) {
+      if (entry.resetTime < now) {
+        rateLimitStore.delete(key);
+      }
     }
-  }
-}, 5 * 60 * 1000);
+  },
+  5 * 60 * 1000,
+);
 
 /**
  * Rate limit a request by identifier (user ID or IP address)
@@ -45,9 +48,11 @@ setInterval(() => {
  */
 export function rateLimit(
   identifier: string,
-  options: RateLimitOptions = {}
+  options: RateLimitOptions = {},
 ): RateLimitResult {
-  const limit = options.limit ?? parseInt(process.env.RATE_LIMIT_REQUESTS_PER_MINUTE ?? '60', 10);
+  const limit =
+    options.limit ??
+    parseInt(process.env.RATE_LIMIT_REQUESTS_PER_MINUTE ?? "60", 10);
   const window = options.window ?? 60 * 1000; // default 1 minute
   const now = Date.now();
 
@@ -98,8 +103,10 @@ export function rateLimit(
 export function getIdentifier(request: Request): string {
   // Try to get user ID from auth header (implement based on your auth system)
   // For now, use IP address as fallback
-  const forwarded = request.headers.get('x-forwarded-for');
-  const ip = forwarded ? forwarded.split(',')[0] : request.headers.get('x-real-ip') ?? 'anonymous';
+  const forwarded = request.headers.get("x-forwarded-for");
+  const ip = forwarded
+    ? forwarded.split(",")[0]
+    : (request.headers.get("x-real-ip") ?? "anonymous");
 
   return ip;
 }

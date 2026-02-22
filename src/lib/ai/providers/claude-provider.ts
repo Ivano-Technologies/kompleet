@@ -4,45 +4,45 @@
  * AI categorization provider using Anthropic's Claude models
  */
 
-import Anthropic from '@anthropic-ai/sdk';
-import { AIProvider, CategoryPrediction, CategorizationRequest } from './types';
+import Anthropic from "@anthropic-ai/sdk";
+import { AIProvider, CategoryPrediction, CategorizationRequest } from "./types";
 
 const TRANSACTION_CATEGORIES = [
-  'Revenue',
-  'Sales',
-  'Refunds',
-  'Cost of Goods Sold',
-  'Salaries & Wages',
-  'Rent & Utilities',
-  'Office Supplies',
-  'Marketing & Advertising',
-  'Professional Services',
-  'Travel & Transportation',
-  'Meals & Entertainment',
-  'Insurance',
-  'Taxes & Levies',
-  'Loan Repayment',
-  'Equipment & Fixed Assets',
-  'Maintenance & Repairs',
-  'Telecommunications',
-  'Bank Fees',
-  'Interest Income',
-  'Interest Expense',
-  'Dividends',
-  'Other Income',
-  'Other Expense',
-  'Transfer',
-  'Uncategorized',
+  "Revenue",
+  "Sales",
+  "Refunds",
+  "Cost of Goods Sold",
+  "Salaries & Wages",
+  "Rent & Utilities",
+  "Office Supplies",
+  "Marketing & Advertising",
+  "Professional Services",
+  "Travel & Transportation",
+  "Meals & Entertainment",
+  "Insurance",
+  "Taxes & Levies",
+  "Loan Repayment",
+  "Equipment & Fixed Assets",
+  "Maintenance & Repairs",
+  "Telecommunications",
+  "Bank Fees",
+  "Interest Income",
+  "Interest Expense",
+  "Dividends",
+  "Other Income",
+  "Other Expense",
+  "Transfer",
+  "Uncategorized",
 ];
 
 export class ClaudeProvider implements AIProvider {
-  name = 'claude';
+  name = "claude";
   private client: Anthropic | null = null;
   private model: string;
 
-  constructor(apiKey?: string, model: string = 'claude-3-5-sonnet-20241022') {
+  constructor(apiKey?: string, model: string = "claude-3-5-sonnet-20241022") {
     this.model = model;
-    
+
     if (apiKey) {
       this.client = new Anthropic({ apiKey });
     }
@@ -50,17 +50,19 @@ export class ClaudeProvider implements AIProvider {
 
   async isAvailable(): Promise<boolean> {
     if (this.client) return true;
-    
+
     const apiKey = process.env.ANTHROPIC_API_KEY || process.env.CLAUDE_API_KEY;
     if (!apiKey) return false;
-    
+
     this.client = new Anthropic({ apiKey });
     return true;
   }
 
-  async categorize(request: CategorizationRequest): Promise<CategoryPrediction> {
+  async categorize(
+    request: CategorizationRequest,
+  ): Promise<CategoryPrediction> {
     if (!this.client) {
-      throw new Error('Claude provider not initialized. API key missing.');
+      throw new Error("Claude provider not initialized. API key missing.");
     }
 
     const prompt = this.buildPrompt(request);
@@ -72,21 +74,23 @@ export class ClaudeProvider implements AIProvider {
         temperature: 0.3,
         messages: [
           {
-            role: 'user',
+            role: "user",
             content: prompt,
           },
         ],
       });
 
       const content = response.content[0];
-      if (content.type !== 'text') {
-        throw new Error('Unexpected response type from Claude');
+      if (content.type !== "text") {
+        throw new Error("Unexpected response type from Claude");
       }
 
       return this.parseResponse(content.text);
     } catch (error) {
-      console.error('Claude categorization error:', error);
-      throw new Error(`Claude provider error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error("Claude categorization error:", error);
+      throw new Error(
+        `Claude provider error: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     }
   }
 
@@ -97,11 +101,11 @@ Transaction Details:
 - Description: ${request.description}
 - Amount: ₦${request.amount.toLocaleString()}
 - Type: ${request.transactionType}
-${request.date ? `- Date: ${request.date}` : ''}
-${request.merchant ? `- Merchant: ${request.merchant}` : ''}
+${request.date ? `- Date: ${request.date}` : ""}
+${request.merchant ? `- Merchant: ${request.merchant}` : ""}
 
 Available Categories:
-${TRANSACTION_CATEGORIES.join(', ')}
+${TRANSACTION_CATEGORIES.join(", ")}
 
 Respond in JSON format:
 {
@@ -126,23 +130,23 @@ Rules:
       // Try to extract JSON from the response
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
-        throw new Error('No JSON found in response');
+        throw new Error("No JSON found in response");
       }
 
       const parsed = JSON.parse(jsonMatch[0]);
 
       return {
-        category: parsed.category || 'Uncategorized',
+        category: parsed.category || "Uncategorized",
         confidence: Math.min(Math.max(parsed.confidence || 50, 0), 100),
-        reasoning: parsed.reasoning || 'No reasoning provided',
+        reasoning: parsed.reasoning || "No reasoning provided",
         alternativeCategories: parsed.alternativeCategories || [],
       };
     } catch (error) {
-      console.error('Failed to parse Claude response:', error);
+      console.error("Failed to parse Claude response:", error);
       return {
-        category: 'Uncategorized',
+        category: "Uncategorized",
         confidence: 30,
-        reasoning: 'Failed to parse AI response',
+        reasoning: "Failed to parse AI response",
         alternativeCategories: [],
       };
     }

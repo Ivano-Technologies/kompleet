@@ -1,20 +1,40 @@
-'use client';
+"use client";
 
-import type { ComplianceMetrics } from '@/lib/dashboard/data-aggregation';
+import type { ComplianceMetrics } from "@/lib/dashboard/data-aggregation";
 
 interface ComplianceHealthMeterProps {
   data: ComplianceMetrics;
 }
 
 export function ComplianceHealthMeter({ data }: ComplianceHealthMeterProps) {
-  const { categorizedTransactions, totalTransactions, reconciliationRate, taxReadinessScore } = data;
+  const {
+    categorizedTransactions,
+    totalTransactions,
+    reconciliationRate,
+    taxReadinessScore,
+  } = data;
 
   // Determine health status and color
   const getHealthStatus = (score: number) => {
-    if (score >= 80) return { label: 'Excellent', color: 'text-green-500', bgColor: 'bg-green-500' };
-    if (score >= 60) return { label: 'Good', color: 'text-blue-500', bgColor: 'bg-blue-500' };
-    if (score >= 40) return { label: 'Fair', color: 'text-yellow-500', bgColor: 'bg-yellow-500' };
-    return { label: 'Needs Attention', color: 'text-red-500', bgColor: 'bg-red-500' };
+    if (score >= 80)
+      return {
+        label: "Excellent",
+        color: "text-green-500",
+        bgColor: "bg-green-500",
+      };
+    if (score >= 60)
+      return { label: "Good", color: "text-blue-500", bgColor: "bg-blue-500" };
+    if (score >= 40)
+      return {
+        label: "Fair",
+        color: "text-yellow-500",
+        bgColor: "bg-yellow-500",
+      };
+    return {
+      label: "Needs Attention",
+      color: "text-red-500",
+      bgColor: "bg-red-500",
+    };
   };
 
   const healthStatus = getHealthStatus(taxReadinessScore);
@@ -23,7 +43,10 @@ export function ComplianceHealthMeter({ data }: ComplianceHealthMeterProps) {
     <div className="w-full h-full flex flex-col items-center justify-center p-6">
       {/* Circular Progress Meter */}
       <div className="relative w-48 h-48 mb-6">
-        <svg className="w-full h-full transform -rotate-90" viewBox="0 0 200 200">
+        <svg
+          className="w-full h-full transform -rotate-90"
+          viewBox="0 0 200 200"
+        >
           {/* Background circle */}
           <circle
             cx="100"
@@ -51,7 +74,9 @@ export function ComplianceHealthMeter({ data }: ComplianceHealthMeterProps) {
           <div className={`text-5xl font-bold ${healthStatus.color}`}>
             {taxReadinessScore}%
           </div>
-          <div className="text-sm text-light-text-tertiary dark:text-dark-text-tertiary mt-1">Tax Readiness</div>
+          <div className="text-sm text-light-text-tertiary dark:text-dark-text-tertiary mt-1">
+            Tax Readiness
+          </div>
         </div>
       </div>
 
@@ -66,22 +91,26 @@ export function ComplianceHealthMeter({ data }: ComplianceHealthMeterProps) {
           <div className="text-2xl font-bold text-white">
             {categorizedTransactions}/{totalTransactions}
           </div>
-          <div className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary mt-1">Categorized</div>
+          <div className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary mt-1">
+            Categorized
+          </div>
         </div>
         <div className="text-center p-3 rounded-lg bg-surface border border-border">
           <div className="text-2xl font-bold text-white">
             {reconciliationRate}%
           </div>
-          <div className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary mt-1">Reconciled</div>
+          <div className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary mt-1">
+            Reconciled
+          </div>
         </div>
       </div>
 
       {/* Action Hint */}
       {taxReadinessScore < 80 && (
         <div className="mt-4 text-xs text-center text-light-text-tertiary dark:text-dark-text-tertiary">
-          {taxReadinessScore < 40 
-            ? 'Categorize more transactions to improve your score'
-            : 'Keep categorizing and reconciling to reach excellent status'}
+          {taxReadinessScore < 40
+            ? "Categorize more transactions to improve your score"
+            : "Keep categorizing and reconciling to reach excellent status"}
         </div>
       )}
     </div>

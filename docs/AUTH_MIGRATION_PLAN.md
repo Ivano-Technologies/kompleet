@@ -3,6 +3,7 @@
 ## Current State (MVP)
 
 **Active:** Supabase Auth
+
 - Middleware: `middleware.ts` uses `@supabase/ssr`
 - Sign-in/Signup: `@supabase/auth-ui-react` components
 - RLS: Policies use `auth.uid()` (Supabase native)
@@ -11,6 +12,7 @@
 ## Future Migration (Post-MVP)
 
 **Target:** Clerk Auth
+
 - Better UI/UX
 - More OAuth providers
 - Advanced security features

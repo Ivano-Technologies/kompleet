@@ -389,24 +389,24 @@ All policy versions must be maintained with version numbers, effective dates, ch
 
 This policy has been reviewed and approved by the following authorities:
 
-**ML Governance Lead:** ___________________________ Date: __________
+**ML Governance Lead:** ************\_\_\_************ Date: ****\_\_****
 
-**Compliance Officer:** ___________________________ Date: __________
+**Compliance Officer:** ************\_\_\_************ Date: ****\_\_****
 
-**Chief Technology Officer:** ___________________________ Date: __________
+**Chief Technology Officer:** ************\_\_\_************ Date: ****\_\_****
 
-**Chief Executive Officer:** ___________________________ Date: __________
+**Chief Executive Officer:** ************\_\_\_************ Date: ****\_\_****
 
 ---
 
 ## Document Control
 
-| Version | Date | Author | Changes | Approvers |
-|---------|------|--------|---------|-----------|
-| 1.0 | 2026-02-06 | ML Governance Lead | Initial policy creation | CTO, Compliance Officer, CEO |
+| Version | Date       | Author             | Changes                 | Approvers                    |
+| ------- | ---------- | ------------------ | ----------------------- | ---------------------------- |
+| 1.0     | 2026-02-06 | ML Governance Lead | Initial policy creation | CTO, Compliance Officer, CEO |
 
 **Next Review Date:** February 6, 2027
 
 ---
 
-*This document is confidential and proprietary to Ivano Technologies Ltd. Unauthorized distribution is prohibited.*
+_This document is confidential and proprietary to Ivano Technologies Ltd. Unauthorized distribution is prohibited._

@@ -104,11 +104,11 @@ Whether you're a small business owner, freelancer, or corporate finance professi
 
 ## Success Stories
 
-**"KOMPLEET saved our business during tax season"** - Before KOMPLEET, we spent weeks manually calculating taxes and organizing receipts. Now everything is automated and we generate compliant invoices in seconds. *- Adebayo O., Lagos-based Consulting Firm*
+**"KOMPLEET saved our business during tax season"** - Before KOMPLEET, we spent weeks manually calculating taxes and organizing receipts. Now everything is automated and we generate compliant invoices in seconds. _- Adebayo O., Lagos-based Consulting Firm_
 
-**"Finally, a platform built for Nigerian businesses"** - Other solutions required expensive subscriptions and didn't understand Nigerian tax law. KOMPLEET is affordable, accurate, and designed specifically for our market. *- Chioma N., E-commerce Entrepreneur*
+**"Finally, a platform built for Nigerian businesses"** - Other solutions required expensive subscriptions and didn't understand Nigerian tax law. KOMPLEET is affordable, accurate, and designed specifically for our market. _- Chioma N., E-commerce Entrepreneur_
 
-**"The mobile app is a game-changer"** - I can track expenses on the go and check my tax obligations from anywhere. The biometric security gives me peace of mind. *- Ibrahim K., Freelance Developer*
+**"The mobile app is a game-changer"** - I can track expenses on the go and check my tax obligations from anywhere. The biometric security gives me peace of mind. _- Ibrahim K., Freelance Developer_
 
 ---
 
@@ -150,4 +150,4 @@ Instagram: @kompleet.ng
 
 ---
 
-*© 2026 Ivano Technologies Ltd. All rights reserved.*
+_© 2026 Ivano Technologies Ltd. All rights reserved._

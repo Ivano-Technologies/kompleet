@@ -21,16 +21,19 @@ const nextConfig = {
   async headers() {
     return [
       {
-        source: '/(.*)',
+        source: "/(.*)",
         headers: [
-          { key: 'X-Content-Type-Options', value: 'nosniff' },
-          { key: 'X-Frame-Options', value: 'DENY' },
-          { key: 'X-XSS-Protection', value: '1; mode=block' },
-          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "X-XSS-Protection", value: "1; mode=block" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           {
-            key: 'Strict-Transport-Security',
-            value: 'max-age=31536000; includeSubDomains',
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=()",
+          },
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=31536000; includeSubDomains",
           },
         ],
       },
@@ -69,17 +72,14 @@ const nextConfig = {
   },
 };
 
-export default withSentryConfig(
-  nextConfig,
-  {
-    org: "ivano-technologies",
-    project: "kompleet-platform",
-    authToken: process.env.SENTRY_AUTH_TOKEN,
-    widenClientFileUpload: true,
-    silent: !process.env.CI,
-    disableLogger: true,
-    tunnelRoute: "/monitoring",
-    autoInstrumentServerFunctions: true,
-    hideSourceMaps: true,
-  }
-);
+export default withSentryConfig(nextConfig, {
+  org: "ivano-technologies",
+  project: "kompleet-platform",
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  widenClientFileUpload: true,
+  silent: !process.env.CI,
+  disableLogger: true,
+  tunnelRoute: "/monitoring",
+  autoInstrumentServerFunctions: true,
+  hideSourceMaps: true,
+});

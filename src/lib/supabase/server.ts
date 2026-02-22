@@ -1,29 +1,29 @@
 /**
  * Server-side Supabase client factory
- * 
+ *
  * This module provides factory functions for creating Supabase clients
  * that work with Supabase Auth in Server Components, Route Handlers, and Middleware.
  */
-import { createServerClient as createSupabaseServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
-import type { SupabaseClient } from '@supabase/supabase-js';
-import { createClient } from '@supabase/supabase-js';
+import { createServerClient as createSupabaseServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { createClient } from "@supabase/supabase-js";
 
 /**
  * Creates a Supabase client configured for server-side use with Supabase Auth.
- * 
+ *
  * This client:
  * - Uses Supabase Auth for authentication
  * - Respects RLS policies based on authenticated user
  * - Is safe for Server Components and Route Handlers
  * - Automatically manages auth cookies
- * 
+ *
  * @returns A configured Supabase client instance with Supabase Auth
- * 
+ *
  * @example
  * ```ts
  * import { createServerClient } from '@/lib/supabase/server';
- * 
+ *
  * export async function GET() {
  *   const supabase = await createServerClient();
  *   const { data } = await supabase.from('transactions').select();
@@ -37,8 +37,8 @@ export async function createServerClient(): Promise<SupabaseClient> {
 
   if (!supabaseUrl || !supabaseAnonKey) {
     throw new Error(
-      'Missing Supabase environment variables. ' +
-      'Ensure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set.'
+      "Missing Supabase environment variables. " +
+        "Ensure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set.",
     );
   }
 
@@ -56,7 +56,7 @@ export async function createServerClient(): Promise<SupabaseClient> {
           });
         } catch (error) {
           // Handle cookie setting errors (e.g., in middleware)
-          console.error('Error setting cookies:', error);
+          console.error("Error setting cookies:", error);
         }
       },
     },
@@ -65,18 +65,18 @@ export async function createServerClient(): Promise<SupabaseClient> {
 
 /**
  * Creates a Supabase admin client with service role access.
- * 
+ *
  * This client:
  * - Bypasses RLS policies
  * - Should only be used for administrative operations
  * - Never expose service role key to client-side
- * 
+ *
  * @returns A configured Supabase admin client instance
- * 
+ *
  * @example
  * ```ts
  * import { createAdminClient } from '@/lib/supabase/server';
- * 
+ *
  * export async function POST() {
  *   const supabase = createAdminClient();
  *   // Admin operations that bypass RLS
@@ -91,8 +91,8 @@ export function createAdminClient(): SupabaseClient {
 
   if (!supabaseUrl || !supabaseServiceRoleKey) {
     throw new Error(
-      'Missing Supabase environment variables. ' +
-      'Ensure NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are set.'
+      "Missing Supabase environment variables. " +
+        "Ensure NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are set.",
     );
   }
 
@@ -108,4 +108,6 @@ export function createAdminClient(): SupabaseClient {
  * Type alias for server Supabase client
  * Use this for type annotations to ensure consistency
  */
-export type ServerSupabaseClient = Awaited<ReturnType<typeof createServerClient>>;
+export type ServerSupabaseClient = Awaited<
+  ReturnType<typeof createServerClient>
+>;

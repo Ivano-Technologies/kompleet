@@ -19,6 +19,7 @@ Authorization: Bearer <jwt_token>
 ```
 
 **Example:**
+
 ```bash
 curl -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
   https://techivano.com/api/ingest
@@ -35,6 +36,7 @@ curl -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
 Upload and parse a bank statement file.
 
 **Request:**
+
 ```
 Content-Type: multipart/form-data
 
@@ -45,6 +47,7 @@ Parameters:
 ```
 
 **Response (Success):**
+
 ```json
 {
   "success": true,
@@ -55,6 +58,7 @@ Parameters:
 ```
 
 **Response (Password Required):**
+
 ```json
 {
   "success": false,
@@ -64,6 +68,7 @@ Parameters:
 ```
 
 **Response (Error):**
+
 ```json
 {
   "success": false,
@@ -80,12 +85,14 @@ Parameters:
 ```
 
 **Status Codes:**
+
 - `200 OK` - File processed successfully
 - `400 Bad Request` - Invalid file or parameters
 - `401 Unauthorized` - Authentication failed
 - `500 Internal Server Error` - Server error
 
 **Example:**
+
 ```bash
 curl -X POST https://techivano.com/api/ingest \
   -H "Authorization: Bearer <token>" \
@@ -102,6 +109,7 @@ curl -X POST https://techivano.com/api/ingest \
 Categorize transactions using AI.
 
 **Request:**
+
 ```json
 {
   "transactionIds": ["tx-1", "tx-2", "tx-3"],
@@ -110,6 +118,7 @@ Categorize transactions using AI.
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -136,6 +145,7 @@ Categorize transactions using AI.
 ```
 
 **Status Codes:**
+
 - `200 OK` - Categorization successful
 - `400 Bad Request` - Invalid transaction IDs
 - `401 Unauthorized` - Authentication failed
@@ -143,6 +153,7 @@ Categorize transactions using AI.
 - `500 Internal Server Error` - Server error
 
 **Example:**
+
 ```bash
 curl -X POST https://techivano.com/api/categorize \
   -H "Authorization: Bearer <token>" \
@@ -162,6 +173,7 @@ curl -X POST https://techivano.com/api/categorize \
 Record user correction for a transaction.
 
 **Request:**
+
 ```json
 {
   "transactionId": "tx-1",
@@ -173,6 +185,7 @@ Record user correction for a transaction.
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -181,12 +194,14 @@ Record user correction for a transaction.
 ```
 
 **Status Codes:**
+
 - `200 OK` - Feedback recorded
 - `400 Bad Request` - Missing required fields
 - `401 Unauthorized` - Authentication failed
 - `500 Internal Server Error` - Server error
 
 **Example:**
+
 ```bash
 curl -X POST https://techivano.com/api/feedback \
   -H "Authorization: Bearer <token>" \
@@ -205,9 +220,11 @@ curl -X POST https://techivano.com/api/feedback \
 Get feedback statistics and category accuracy.
 
 **Query Parameters:**
+
 - `type` (optional): "statistics" (default) or "accuracy"
 
 **Response (Statistics):**
+
 ```json
 {
   "success": true,
@@ -222,6 +239,7 @@ Get feedback statistics and category accuracy.
 ```
 
 **Response (Accuracy):**
+
 ```json
 {
   "success": true,
@@ -244,6 +262,7 @@ Get feedback statistics and category accuracy.
 ```
 
 **Example:**
+
 ```bash
 # Get statistics
 curl -X GET "https://techivano.com/api/feedback?type=statistics" \
@@ -276,40 +295,44 @@ All errors follow a consistent format:
 
 ### Common Error Types
 
-| Error Type | Description | Solution |
-|-----------|-------------|----------|
-| `UNSUPPORTED_FILE_TYPE` | File format not supported | Use PDF, Excel, CSV, or ZIP |
-| `PASSWORD_REQUIRED` | File is password-protected | Provide password in request |
-| `INVALID_DATE` | Date cannot be parsed | Use standard date format |
-| `INVALID_AMOUNT` | Amount is not a valid number | Check amount format |
-| `MISSING_REQUIRED_FIELD` | Required field is missing | Provide all required fields |
-| `UNAUTHORIZED` | Authentication failed | Check JWT token |
-| `RATE_LIMIT_EXCEEDED` | Too many requests | Wait before retrying |
-| `SERVER_ERROR` | Internal server error | Contact support |
+| Error Type               | Description                  | Solution                    |
+| ------------------------ | ---------------------------- | --------------------------- |
+| `UNSUPPORTED_FILE_TYPE`  | File format not supported    | Use PDF, Excel, CSV, or ZIP |
+| `PASSWORD_REQUIRED`      | File is password-protected   | Provide password in request |
+| `INVALID_DATE`           | Date cannot be parsed        | Use standard date format    |
+| `INVALID_AMOUNT`         | Amount is not a valid number | Check amount format         |
+| `MISSING_REQUIRED_FIELD` | Required field is missing    | Provide all required fields |
+| `UNAUTHORIZED`           | Authentication failed        | Check JWT token             |
+| `RATE_LIMIT_EXCEEDED`    | Too many requests            | Wait before retrying        |
+| `SERVER_ERROR`           | Internal server error        | Contact support             |
 
 ---
 
 ## Supported File Formats
 
 ### PDF
+
 - Text-based PDFs (scanned PDFs use OCR fallback)
 - Encrypted PDFs (password required)
 - Multi-page statements
 - Bank-specific layouts
 
 ### Excel
+
 - XLSX format
 - XLS format (legacy)
 - Password-protected files
 - Multiple sheets (auto-detection)
 
 ### CSV
+
 - UTF-8 encoding
 - Latin-1 encoding
 - Windows-1252 encoding
 - Auto-delimiter detection (comma, semicolon, tab, pipe)
 
 ### ZIP
+
 - Multiple statement files
 - Mixed formats (PDF + Excel + CSV)
 - Encrypted ZIPs (password required)
@@ -342,6 +365,7 @@ The API implements rate limiting to prevent abuse:
 - **Retry-After Header:** Indicates when to retry
 
 **Response Headers:**
+
 ```
 X-RateLimit-Limit: 100
 X-RateLimit-Remaining: 95
@@ -349,6 +373,7 @@ X-RateLimit-Reset: 1645123456
 ```
 
 **Rate Limit Exceeded Response:**
+
 ```json
 {
   "success": false,
@@ -362,19 +387,20 @@ X-RateLimit-Reset: 1645123456
 ## Best Practices
 
 ### 1. Error Handling
+
 Always check the `success` field and handle errors gracefully:
 
 ```javascript
-const response = await fetch('/api/ingest', {
-  method: 'POST',
-  headers: { 'Authorization': `Bearer ${token}` },
-  body: formData
+const response = await fetch("/api/ingest", {
+  method: "POST",
+  headers: { Authorization: `Bearer ${token}` },
+  body: formData,
 });
 
 const data = await response.json();
 
 if (!data.success) {
-  if (data.message === 'PASSWORD_REQUIRED') {
+  if (data.message === "PASSWORD_REQUIRED") {
     // Prompt user for password
   } else {
     // Show error message
@@ -384,6 +410,7 @@ if (!data.success) {
 ```
 
 ### 2. Retry Logic
+
 Implement exponential backoff for retries:
 
 ```javascript
@@ -393,22 +420,24 @@ async function retryRequest(fn, maxRetries = 3) {
       return await fn();
     } catch (error) {
       if (i === maxRetries - 1) throw error;
-      await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
+      await new Promise((r) => setTimeout(r, Math.pow(2, i) * 1000));
     }
   }
 }
 ```
 
 ### 3. File Size Optimization
+
 Keep files under 100 MB:
 
 ```javascript
 if (file.size > 100 * 1024 * 1024) {
-  throw new Error('File exceeds 100 MB limit');
+  throw new Error("File exceeds 100 MB limit");
 }
 ```
 
 ### 4. Batch Processing
+
 Process transactions in batches for better performance:
 
 ```javascript
@@ -424,6 +453,7 @@ for (let i = 0; i < transactionIds.length; i += batchSize) {
 ## Webhooks (Future)
 
 Webhooks will be available for:
+
 - File ingestion completion
 - Categorization completion
 - User feedback recorded
@@ -434,6 +464,7 @@ Webhooks will be available for:
 ## Support
 
 For API support:
+
 - **Email:** support@ivano.com
 - **Documentation:** https://docs.ivano.com
 - **Status Page:** https://status.ivano.com
@@ -443,15 +474,16 @@ For API support:
 
 ## Version History
 
-| Version | Date | Changes |
-|---------|------|---------|
-| 1.0.0 | 2026-02-18 | Initial release |
+| Version | Date       | Changes         |
+| ------- | ---------- | --------------- |
+| 1.0.0   | 2026-02-18 | Initial release |
 
 ---
 
 ## Changelog
 
 ### v1.0.0 (2026-02-18)
+
 - Initial API release
 - File ingestion endpoints
 - AI categorization

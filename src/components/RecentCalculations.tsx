@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import type { CalculationHistory } from '@/types/calculation-history';
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import type { CalculationHistory } from "@/types/calculation-history";
 
 export function RecentCalculations() {
   const [calculations, setCalculations] = useState<CalculationHistory[]>([]);
@@ -18,47 +18,47 @@ export function RecentCalculations() {
   const fetchRecentCalculations = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/history?limit=5&offset=0');
-      
+      const response = await fetch("/api/history?limit=5&offset=0");
+
       if (!response.ok) {
-        throw new Error('Failed to fetch recent calculations');
+        throw new Error("Failed to fetch recent calculations");
       }
 
       const result = await response.json();
       setCalculations(result.data || []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setLoading(false);
     }
   };
 
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-NG', {
-      style: 'currency',
-      currency: 'NGN',
+    return new Intl.NumberFormat("en-NG", {
+      style: "currency",
+      currency: "NGN",
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(value);
   };
 
   const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('en-NG', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    return new Date(date).toLocaleDateString("en-NG", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   const getCalculatorName = (type: string) => {
     const names: Record<string, string> = {
-      business_tax: 'Business Tax',
-      individual_income_tax: 'Individual Tax',
-      vat: 'VAT',
-      capital_allowance: 'Capital Allowances',
-      stamp_duty: 'Stamp Duty',
-      property_tax: 'Property Tax',
+      business_tax: "Business Tax",
+      individual_income_tax: "Individual Tax",
+      vat: "VAT",
+      capital_allowance: "Capital Allowances",
+      stamp_duty: "Stamp Duty",
+      property_tax: "Property Tax",
     };
     return names[type] || type;
   };

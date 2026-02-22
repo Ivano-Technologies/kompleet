@@ -1,10 +1,13 @@
-import { NextResponse } from 'next/server';
-import type { ApiResponse } from '@/types/api';
+import { NextResponse } from "next/server";
+import type { ApiResponse } from "@/types/api";
 
 /**
  * Create a standardized API success response
  */
-export function apiSuccess<T>(data: T, status: number = 200): NextResponse<ApiResponse<T>> {
+export function apiSuccess<T>(
+  data: T,
+  status: number = 200,
+): NextResponse<ApiResponse<T>> {
   return NextResponse.json(
     {
       data,
@@ -12,7 +15,7 @@ export function apiSuccess<T>(data: T, status: number = 200): NextResponse<ApiRe
         timestamp: new Date().toISOString(),
       },
     },
-    { status }
+    { status },
   );
 }
 
@@ -23,7 +26,7 @@ export function apiError(
   code: string,
   message: string,
   status: number = 400,
-  details?: unknown
+  details?: unknown,
 ): NextResponse<ApiResponse<never>> {
   return NextResponse.json(
     {
@@ -36,7 +39,7 @@ export function apiError(
         timestamp: new Date().toISOString(),
       },
     },
-    { status }
+    { status },
   );
 }
 
@@ -45,7 +48,7 @@ export function apiError(
  */
 export function validateRequired<T extends Record<string, unknown>>(
   body: T,
-  fields: (keyof T)[]
+  fields: (keyof T)[],
 ): { valid: true } | { valid: false; missing: string[] } {
   const missing = fields.filter((field) => !body[field]);
   if (missing.length > 0) {
@@ -59,12 +62,14 @@ export function validateRequired<T extends Record<string, unknown>>(
  */
 export async function getUserId(request: Request): Promise<string | null> {
   try {
-    const { createServerClient } = await import('@/lib/supabase/server');
+    const { createServerClient } = await import("@/lib/supabase/server");
     const supabase = await createServerClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     return user?.id || null;
   } catch (error) {
-    console.error('Failed to get user ID:', error);
+    console.error("Failed to get user ID:", error);
     return null;
   }
 }
@@ -72,12 +77,12 @@ export async function getUserId(request: Request): Promise<string | null> {
 /**
  * Require authentication for API route
  */
-export async function requireAuth(request: Request): Promise<
-  { userId: string } | NextResponse<ApiResponse<never>>
-> {
+export async function requireAuth(
+  request: Request,
+): Promise<{ userId: string } | NextResponse<ApiResponse<never>>> {
   const userId = await getUserId(request);
   if (!userId) {
-    return apiError('UNAUTHORIZED', 'Authentication required', 401);
+    return apiError("UNAUTHORIZED", "Authentication required", 401);
   }
   return { userId };
 }

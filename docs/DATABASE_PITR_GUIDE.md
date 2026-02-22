@@ -18,6 +18,7 @@ Point-in-Time Recovery (PITR) allows you to restore your Supabase PostgreSQL dat
 ### Supabase Plan Requirements
 
 PITR is available on:
+
 - ✅ **Pro Plan** ($25/month) - 7 days retention
 - ✅ **Team Plan** ($599/month) - 14 days retention
 - ✅ **Enterprise Plan** (custom) - 30+ days retention
@@ -47,6 +48,7 @@ PITR is available on:
 ### Step 2: Enable PITR
 
 1. In Supabase Dashboard, navigate to:
+
    ```
    Project → Database → Backups
    ```
@@ -83,6 +85,7 @@ PITR is available on:
 ### When to Use PITR
 
 Use PITR when you need to restore the database to a previous state due to:
+
 - Accidental `DELETE` or `UPDATE` without `WHERE` clause
 - Failed migration that corrupted data
 - Application bug that modified data incorrectly
@@ -91,6 +94,7 @@ Use PITR when you need to restore the database to a previous state due to:
 ### Recovery Process
 
 ⚠️ **WARNING**: Database recovery will:
+
 - Replace ALL current database data with data from the recovery point
 - Cannot be undone (unless you have another backup)
 - Requires downtime (5-30 minutes depending on database size)
@@ -110,6 +114,7 @@ Use PITR when you need to restore the database to a previous state due to:
    - Click **Restore to Point in Time**
 
 3. Enter the recovery timestamp:
+
    ```
    Date: YYYY-MM-DD
    Time: HH:MM:SS (UTC)
@@ -128,6 +133,7 @@ Use PITR when you need to restore the database to a previous state due to:
 1. Check the database status in the dashboard
 
 2. Run verification queries to confirm data is correct:
+
    ```sql
    -- Check row counts
    SELECT 'users' as table_name, count(*) FROM users
@@ -154,9 +160,11 @@ Use PITR when you need to restore the database to a previous state due to:
 Before performing any risky database operations (migrations, bulk updates, schema changes):
 
 1. **Record the current timestamp**:
+
    ```sql
    SELECT NOW() AT TIME ZONE 'UTC' as recovery_point;
    ```
+
    Example output: `2026-02-10 15:23:45.123456+00`
 
 2. **Save this timestamp** in your deployment notes
@@ -186,14 +194,15 @@ Before performing any risky database operations (migrations, bulk updates, schem
 
 ### Supabase Pro Plan PITR Costs
 
-| Component | Cost |
-|-----------|------|
-| Pro Plan Base | $25/month |
-| PITR (7 days retention) | Included ✅ |
-| Database Storage | $0.125/GB/month |
-| Database Egress | $0.09/GB |
+| Component               | Cost            |
+| ----------------------- | --------------- |
+| Pro Plan Base           | $25/month       |
+| PITR (7 days retention) | Included ✅     |
+| Database Storage        | $0.125/GB/month |
+| Database Egress         | $0.09/GB        |
 
 **Estimated Monthly Cost for MVP**:
+
 - Pro Plan: $25
 - Database (5GB): $0.63
 - PITR: $0 (included)
@@ -202,6 +211,7 @@ Before performing any risky database operations (migrations, bulk updates, schem
 ### Extended Retention Costs
 
 For longer retention periods:
+
 - **14 days**: Team Plan - $599/month
 - **30+ days**: Enterprise Plan - Custom pricing
 
@@ -239,6 +249,7 @@ See [PRODUCTION_DEPLOYMENT_CHECKLIST.md](../PRODUCTION_DEPLOYMENT_CHECKLIST.md#r
 **Issue**: "Enable PITR" button is grayed out
 
 **Solutions**:
+
 1. Verify you're on Pro Plan or higher
 2. Check if project is paused (resume it)
 3. Contact Supabase support if issue persists
@@ -248,6 +259,7 @@ See [PRODUCTION_DEPLOYMENT_CHECKLIST.md](../PRODUCTION_DEPLOYMENT_CHECKLIST.md#r
 **Issue**: Error message when enabling PITR
 
 **Solutions**:
+
 1. Wait 5 minutes and try again
 2. Check project status (must be ACTIVE_HEALTHY)
 3. Contact Supabase support with project ID
@@ -257,6 +269,7 @@ See [PRODUCTION_DEPLOYMENT_CHECKLIST.md](../PRODUCTION_DEPLOYMENT_CHECKLIST.md#r
 **Issue**: Recovery process failed or timed out
 
 **Solutions**:
+
 1. Check Supabase status page for incidents
 2. Try a different recovery timestamp
 3. Contact Supabase support immediately

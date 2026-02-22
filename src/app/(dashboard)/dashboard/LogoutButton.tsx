@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { createSupabaseClient } from '@/lib/supabase/client';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { createSupabaseClient } from "@/lib/supabase/client";
 
 export default function LogoutButton() {
   const [loading, setLoading] = useState(false);
@@ -16,16 +16,16 @@ export default function LogoutButton() {
       const { error } = await supabase.auth.signOut();
 
       if (error) {
-        console.error('Logout error:', error.message);
+        console.error("Logout error:", error.message);
         setLoading(false);
         return;
       }
 
       // Redirect to home page after logout
-      router.push('/');
+      router.push("/");
       router.refresh();
     } catch (err) {
-      console.error('Unexpected logout error:', err);
+      console.error("Unexpected logout error:", err);
       setLoading(false);
     }
   };
@@ -35,16 +35,16 @@ export default function LogoutButton() {
       onClick={handleLogout}
       disabled={loading}
       style={{
-        padding: '8px 16px',
-        fontSize: '14px',
-        backgroundColor: loading ? '#ccc' : '#dc3545',
-        color: 'white',
-        border: 'none',
-        borderRadius: '4px',
-        cursor: loading ? 'not-allowed' : 'pointer',
+        padding: "8px 16px",
+        fontSize: "14px",
+        backgroundColor: loading ? "#ccc" : "#dc3545",
+        color: "white",
+        border: "none",
+        borderRadius: "4px",
+        cursor: loading ? "not-allowed" : "pointer",
       }}
     >
-      {loading ? 'Logging out...' : 'Logout'}
+      {loading ? "Logging out..." : "Logout"}
     </button>
   );
 }

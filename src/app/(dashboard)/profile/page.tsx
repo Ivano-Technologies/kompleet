@@ -1,6 +1,6 @@
-import { requireAuth } from '@/lib/auth';
-import Link from 'next/link';
-import { User, Settings, Lock } from 'lucide-react';
+import { requireAuth } from "@/lib/auth";
+import Link from "next/link";
+import { User, Settings, Lock } from "lucide-react";
 
 export default async function ProfilePage() {
   const user = await requireAuth();
@@ -31,7 +31,7 @@ export default async function ProfilePage() {
               </label>
               <input
                 type="email"
-                value={user.email || ''}
+                value={user.email || ""}
                 disabled
                 className="w-full px-4 py-2 border border-light-border dark:border-dark-border rounded-lg bg-light-background dark:bg-dark-background text-light-text-primary dark:text-dark-text-primary"
               />
@@ -58,7 +58,11 @@ export default async function ProfilePage() {
               </label>
               <input
                 type="text"
-                value={user.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}
+                value={
+                  user.created_at
+                    ? new Date(user.created_at).toLocaleDateString()
+                    : "N/A"
+                }
                 disabled
                 className="w-full px-4 py-2 border border-light-border dark:border-dark-border rounded-lg bg-light-background dark:bg-dark-background text-light-text-primary dark:text-dark-text-primary"
               />

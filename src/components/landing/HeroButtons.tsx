@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { ArrowRight, PlayCircle } from 'lucide-react';
+import { useState } from "react";
+import Link from "next/link";
+import { ArrowRight, PlayCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 
 export default function HeroButtons() {
   const [demoOpen, setDemoOpen] = useState(false);
@@ -37,7 +37,9 @@ export default function HeroButtons() {
       <Dialog open={demoOpen} onOpenChange={setDemoOpen}>
         <DialogContent className="bg-slate-900 border-white/10 text-white sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-white text-xl">Product Demo</DialogTitle>
+            <DialogTitle className="text-white text-xl">
+              Product Demo
+            </DialogTitle>
             <DialogDescription className="text-slate-400">
               Our product demo video is coming soon.
             </DialogDescription>
@@ -47,7 +49,8 @@ export default function HeroButtons() {
               <PlayCircle className="w-8 h-8 text-primary" />
             </div>
             <p className="text-slate-300 mb-6">
-              We are putting the finishing touches on our demo walkthrough. In the meantime, create a free account to explore KOMPLEET yourself.
+              We are putting the finishing touches on our demo walkthrough. In
+              the meantime, create a free account to explore KOMPLEET yourself.
             </p>
             <Link
               href="/signup"

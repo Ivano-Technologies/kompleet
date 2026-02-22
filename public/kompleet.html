@@ -1,231 +1,284 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="KOMPLEET - Nigerian Tax Compliance Platform by Ivano Technologies Ltd. Calculate taxes, generate reports, and comply with Nigerian tax laws.">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="KOMPLEET - Nigerian Tax Compliance Platform by Ivano Technologies Ltd. Calculate taxes, generate reports, and comply with Nigerian tax laws."
+    />
     <title>KOMPLEET - Nigerian Tax Compliance Platform</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            background: #f9fafb;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 40px 20px;
-        }
-        header {
-            text-align: center;
-            padding: 60px 20px;
-            background: linear-gradient(135deg, #0a7ea4 0%, #0d9488 100%);
-            color: white;
-            border-radius: 16px;
-            margin-bottom: 60px;
-            box-shadow: 0 10px 40px rgba(10, 126, 164, 0.3);
-        }
-        .logo {
-            width: 120px;
-            height: 120px;
-            margin: 0 auto 20px;
-            background: white;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            font-size: 48px;
-            font-weight: 700;
-            color: #0a7ea4;
-        }
-        h1 { font-size: 3em; margin-bottom: 20px; font-weight: 700; }
-        .tagline { font-size: 1.3em; opacity: 0.95; font-weight: 400; }
-        .section {
-            background: white;
-            padding: 40px;
-            border-radius: 12px;
-            margin-bottom: 30px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-        h2 {
-            color: #0a7ea4;
-            margin-bottom: 20px;
-            font-size: 2em;
-            font-weight: 600;
-        }
-        .features {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 30px;
-            margin: 30px 0;
-        }
-        .feature {
-            padding: 20px;
-            border-left: 4px solid #0a7ea4;
-            background: #f0f9ff;
-            border-radius: 8px;
-        }
-        .feature h3 { color: #0a7ea4; margin-bottom: 10px; font-size: 1.2em; }
-        .cta {
-            text-align: center;
-            padding: 40px;
-        }
-        .button {
-            display: inline-block;
-            padding: 15px 40px;
-            background: #0a7ea4;
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            font-size: 1.2em;
-            font-weight: 600;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(10, 126, 164, 0.3);
-        }
-        .button:hover { 
-            background: #0d9488;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(10, 126, 164, 0.4);
-        }
-        .oauth-info {
-            background: #fef3c7;
-            border-left: 4px solid #f59e0b;
-            padding: 20px;
-            margin: 30px 0;
-            border-radius: 8px;
-        }
-        .oauth-info h3 {
-            color: #92400e;
-            margin-bottom: 10px;
-        }
-        .oauth-info ul {
-            margin: 15px 0 15px 30px;
-        }
-        .oauth-info li {
-            margin: 8px 0;
-        }
-        footer {
-            text-align: center;
-            padding: 40px 20px;
-            color: #666;
-            border-top: 1px solid #e5e7eb;
-            margin-top: 60px;
-        }
-        footer a {
-            color: #0a7ea4;
-            text-decoration: none;
-            margin: 0 15px;
-            font-weight: 500;
-        }
-        footer a:hover { text-decoration: underline; }
-        @media (max-width: 768px) {
-            h1 { font-size: 2em; }
-            .tagline { font-size: 1.1em; }
-            .section { padding: 25px; }
-            .features { grid-template-columns: 1fr; }
-        }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+          line-height: 1.6;
+          color: #333;
+          background: #f9fafb;
+      }
+      .container {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 40px 20px;
+      }
+      header {
+          text-align: center;
+          padding: 60px 20px;
+          background: linear-gradient(135deg, #0a7ea4 0%, #0d9488 100%);
+          color: white;
+          border-radius: 16px;
+          margin-bottom: 60px;
+          box-shadow: 0 10px 40px rgba(10, 126, 164, 0.3);
+      }
+      .logo {
+          width: 120px;
+          height: 120px;
+          margin: 0 auto 20px;
+          background: white;
+          border-radius: 20px;
+          display: flex;
+          align-items: center;
+          justify-center;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+          font-size: 48px;
+          font-weight: 700;
+          color: #0a7ea4;
+      }
+      h1 { font-size: 3em; margin-bottom: 20px; font-weight: 700; }
+      .tagline { font-size: 1.3em; opacity: 0.95; font-weight: 400; }
+      .section {
+          background: white;
+          padding: 40px;
+          border-radius: 12px;
+          margin-bottom: 30px;
+          box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      }
+      h2 {
+          color: #0a7ea4;
+          margin-bottom: 20px;
+          font-size: 2em;
+          font-weight: 600;
+      }
+      .features {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+          gap: 30px;
+          margin: 30px 0;
+      }
+      .feature {
+          padding: 20px;
+          border-left: 4px solid #0a7ea4;
+          background: #f0f9ff;
+          border-radius: 8px;
+      }
+      .feature h3 { color: #0a7ea4; margin-bottom: 10px; font-size: 1.2em; }
+      .cta {
+          text-align: center;
+          padding: 40px;
+      }
+      .button {
+          display: inline-block;
+          padding: 15px 40px;
+          background: #0a7ea4;
+          color: white;
+          text-decoration: none;
+          border-radius: 8px;
+          font-size: 1.2em;
+          font-weight: 600;
+          transition: all 0.3s;
+          box-shadow: 0 4px 15px rgba(10, 126, 164, 0.3);
+      }
+      .button:hover {
+          background: #0d9488;
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(10, 126, 164, 0.4);
+      }
+      .oauth-info {
+          background: #fef3c7;
+          border-left: 4px solid #f59e0b;
+          padding: 20px;
+          margin: 30px 0;
+          border-radius: 8px;
+      }
+      .oauth-info h3 {
+          color: #92400e;
+          margin-bottom: 10px;
+      }
+      .oauth-info ul {
+          margin: 15px 0 15px 30px;
+      }
+      .oauth-info li {
+          margin: 8px 0;
+      }
+      footer {
+          text-align: center;
+          padding: 40px 20px;
+          color: #666;
+          border-top: 1px solid #e5e7eb;
+          margin-top: 60px;
+      }
+      footer a {
+          color: #0a7ea4;
+          text-decoration: none;
+          margin: 0 15px;
+          font-weight: 500;
+      }
+      footer a:hover { text-decoration: underline; }
+      @media (max-width: 768px) {
+          h1 { font-size: 2em; }
+          .tagline { font-size: 1.1em; }
+          .section { padding: 25px; }
+          .features { grid-template-columns: 1fr; }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <header>
-            <div class="logo">K</div>
-            <h1>KOMPLEET</h1>
-            <p class="tagline">Nigerian Tax Compliance Made Simple</p>
-        </header>
+      <header>
+        <div class="logo">K</div>
+        <h1>KOMPLEET</h1>
+        <p class="tagline">Nigerian Tax Compliance Made Simple</p>
+      </header>
 
-        <div class="section">
-            <h2>About KOMPLEET</h2>
-            <p style="font-size: 1.1em; margin-bottom: 20px;">
-                KOMPLEET is a comprehensive tax compliance platform designed specifically for Nigerian individuals and businesses. 
-                We help you navigate the complexities of Nigerian tax laws, calculate your obligations accurately, and generate 
-                professional reports for regulatory compliance under the Nigeria Tax Act 2025.
-            </p>
-            
-            <div class="features">
-                <div class="feature">
-                    <h3>🧮 Tax Calculators</h3>
-                    <p>Calculate business taxes, individual taxes, VAT, and capital allowances based on the Nigeria Tax Act 2025.</p>
-                </div>
-                <div class="feature">
-                    <h3>📊 Professional Reports</h3>
-                    <p>Generate detailed financial statements, tax summaries, and compliance documentation.</p>
-                </div>
-                <div class="feature">
-                    <h3>📈 Transaction Management</h3>
-                    <p>Import and categorize transactions, track income and expenses, and maintain accurate records.</p>
-                </div>
-                <div class="feature">
-                    <h3>⏰ Deadline Tracking</h3>
-                    <p>Never miss a filing deadline with automated reminders and a comprehensive tax calendar.</p>
-                </div>
-            </div>
-        </div>
+      <div class="section">
+        <h2>About KOMPLEET</h2>
+        <p style="font-size: 1.1em; margin-bottom: 20px">
+          KOMPLEET is a comprehensive tax compliance platform designed
+          specifically for Nigerian individuals and businesses. We help you
+          navigate the complexities of Nigerian tax laws, calculate your
+          obligations accurately, and generate professional reports for
+          regulatory compliance under the Nigeria Tax Act 2025.
+        </p>
 
-        <div class="section">
-            <h2>Why We Use Google Sign-In</h2>
-            <div class="oauth-info">
-                <h3>🔐 Secure & Convenient Authentication</h3>
-                <p>
-                    KOMPLEET uses Google Sign-In to provide you with a secure, fast, and convenient way to access your account. 
-                    When you sign in with Google, we only request access to your:
-                </p>
-                <ul>
-                    <li><strong>Email address</strong> - To create and identify your account</li>
-                    <li><strong>Name</strong> - To personalize your experience</li>
-                    <li><strong>Profile picture</strong> (optional) - To display on your account</li>
-                </ul>
-                <p style="margin-top: 15px;">
-                    <strong>We do NOT access:</strong> Your Google Drive, Gmail, Calendar, or any other Google services. 
-                    We only use Google for authentication purposes.
-                </p>
-            </div>
-        </div>
-
-        <div class="section">
-            <h2>Your Privacy & Data Security</h2>
-            <p style="margin-bottom: 15px;">
-                We take your privacy seriously. All your tax data and personal information are:
-            </p>
-            <ul style="margin-left: 30px; margin-bottom: 20px;">
-                <li>Encrypted in transit and at rest using industry-standard protocols</li>
-                <li>Stored securely in compliance with the Nigeria Data Protection Act 2023</li>
-                <li>Never shared with third parties without your explicit consent</li>
-                <li>Protected by multi-layer security measures and regular audits</li>
-            </ul>
+        <div class="features">
+          <div class="feature">
+            <h3>🧮 Tax Calculators</h3>
             <p>
-                For complete details, please read our 
-                <a href="https://techivano.com/kompleet-privacy.html" style="color: #0a7ea4; font-weight: 600;">Privacy Policy</a> and 
-                <a href="https://techivano.com/kompleet-terms.html" style="color: #0a7ea4; font-weight: 600;">Terms of Service</a>.
+              Calculate business taxes, individual taxes, VAT, and capital
+              allowances based on the Nigeria Tax Act 2025.
             </p>
+          </div>
+          <div class="feature">
+            <h3>📊 Professional Reports</h3>
+            <p>
+              Generate detailed financial statements, tax summaries, and
+              compliance documentation.
+            </p>
+          </div>
+          <div class="feature">
+            <h3>📈 Transaction Management</h3>
+            <p>
+              Import and categorize transactions, track income and expenses, and
+              maintain accurate records.
+            </p>
+          </div>
+          <div class="feature">
+            <h3>⏰ Deadline Tracking</h3>
+            <p>
+              Never miss a filing deadline with automated reminders and a
+              comprehensive tax calendar.
+            </p>
+          </div>
         </div>
+      </div>
 
-        <div class="cta">
-            <h2 style="margin-bottom: 20px;">Ready to Simplify Your Tax Compliance?</h2>
-            <a href="https://kompleet-platform-33sgybk1y-techivano.vercel.app/signup" class="button">
-                Get Started Free
-            </a>
-            <p style="margin-top: 20px; color: #666;">
-                Already have an account? 
-                <a href="https://kompleet-platform-33sgybk1y-techivano.vercel.app/login" style="color: #0a7ea4; font-weight: 600;">Sign In</a>
-            </p>
+      <div class="section">
+        <h2>Why We Use Google Sign-In</h2>
+        <div class="oauth-info">
+          <h3>🔐 Secure & Convenient Authentication</h3>
+          <p>
+            KOMPLEET uses Google Sign-In to provide you with a secure, fast, and
+            convenient way to access your account. When you sign in with Google,
+            we only request access to your:
+          </p>
+          <ul>
+            <li>
+              <strong>Email address</strong> - To create and identify your
+              account
+            </li>
+            <li><strong>Name</strong> - To personalize your experience</li>
+            <li>
+              <strong>Profile picture</strong> (optional) - To display on your
+              account
+            </li>
+          </ul>
+          <p style="margin-top: 15px">
+            <strong>We do NOT access:</strong> Your Google Drive, Gmail,
+            Calendar, or any other Google services. We only use Google for
+            authentication purposes.
+          </p>
         </div>
+      </div>
 
-        <footer>
-            <p><strong>Ivano Technologies Ltd</strong></p>
-            <p style="margin: 10px 0;">Nigerian Tax Compliance Solutions</p>
-            <div style="margin: 20px 0;">
-                <a href="https://techivano.com/kompleet-privacy.html">Privacy Policy</a>
-                <a href="https://techivano.com/kompleet-terms.html">Terms of Service</a>
-                <a href="mailto:support@techivano.com">Contact Support</a>
-            </div>
-            <p style="margin-top: 20px; color: #999;">
-                © 2026 Ivano Technologies Ltd. All rights reserved.
-            </p>
-        </footer>
+      <div class="section">
+        <h2>Your Privacy & Data Security</h2>
+        <p style="margin-bottom: 15px">
+          We take your privacy seriously. All your tax data and personal
+          information are:
+        </p>
+        <ul style="margin-left: 30px; margin-bottom: 20px">
+          <li>
+            Encrypted in transit and at rest using industry-standard protocols
+          </li>
+          <li>
+            Stored securely in compliance with the Nigeria Data Protection Act
+            2023
+          </li>
+          <li>Never shared with third parties without your explicit consent</li>
+          <li>Protected by multi-layer security measures and regular audits</li>
+        </ul>
+        <p>
+          For complete details, please read our
+          <a
+            href="https://techivano.com/kompleet-privacy.html"
+            style="color: #0a7ea4; font-weight: 600"
+            >Privacy Policy</a
+          >
+          and
+          <a
+            href="https://techivano.com/kompleet-terms.html"
+            style="color: #0a7ea4; font-weight: 600"
+            >Terms of Service</a
+          >.
+        </p>
+      </div>
+
+      <div class="cta">
+        <h2 style="margin-bottom: 20px">
+          Ready to Simplify Your Tax Compliance?
+        </h2>
+        <a
+          href="https://kompleet-platform-33sgybk1y-techivano.vercel.app/signup"
+          class="button"
+        >
+          Get Started Free
+        </a>
+        <p style="margin-top: 20px; color: #666">
+          Already have an account?
+          <a
+            href="https://kompleet-platform-33sgybk1y-techivano.vercel.app/login"
+            style="color: #0a7ea4; font-weight: 600"
+            >Sign In</a
+          >
+        </p>
+      </div>
+
+      <footer>
+        <p><strong>Ivano Technologies Ltd</strong></p>
+        <p style="margin: 10px 0">Nigerian Tax Compliance Solutions</p>
+        <div style="margin: 20px 0">
+          <a href="https://techivano.com/kompleet-privacy.html"
+            >Privacy Policy</a
+          >
+          <a href="https://techivano.com/kompleet-terms.html"
+            >Terms of Service</a
+          >
+          <a href="mailto:support@techivano.com">Contact Support</a>
+        </div>
+        <p style="margin-top: 20px; color: #999">
+          © 2026 Ivano Technologies Ltd. All rights reserved.
+        </p>
+      </footer>
     </div>
-</body>
+  </body>
 </html>

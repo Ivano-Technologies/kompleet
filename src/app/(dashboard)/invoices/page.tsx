@@ -1,14 +1,21 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { createBrowserClient as createClient } from '@/lib/supabase/client';
-import type { Database } from '@/lib/supabase/types';
-import { Plus, Search, FileText, Send, Download, ChevronDown } from 'lucide-react';
+import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { createBrowserClient as createClient } from "@/lib/supabase/client";
+import type { Database } from "@/lib/supabase/types";
+import {
+  Plus,
+  Search,
+  FileText,
+  Send,
+  Download,
+  ChevronDown,
+} from "lucide-react";
 
-type DbInvoice = Database['public']['Tables']['invoices']['Row'];
+type DbInvoice = Database["public"]["Tables"]["invoices"]["Row"];
 
-interface Invoice extends Omit<DbInvoice, 'customer_info'> {
+interface Invoice extends Omit<DbInvoice, "customer_info"> {
   customer_info: {
     name: string;
     email?: string;
@@ -20,16 +27,16 @@ export default function InvoicesPage() {
   const router = useRouter();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
 
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [yearFilter] = useState<number>(new Date().getFullYear());
 
   const fetchInvoices = useCallback(async () => {
     setLoading(true);
-    setError('');
+    setError("");
 
     try {
       const supabase = await createClient();
@@ -37,17 +44,17 @@ export default function InvoicesPage() {
         data: { user },
       } = await supabase.auth.getUser();
 
-      if (!user) throw new Error('Not authenticated');
+      if (!user) throw new Error("Not authenticated");
 
       let query = supabase
-        .from('invoices')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('tax_year', yearFilter)
-        .order('created_at', { ascending: false });
+        .from("invoices")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("tax_year", yearFilter)
+        .order("created_at", { ascending: false });
 
-      if (statusFilter !== 'all') {
-        query = query.eq('status', statusFilter);
+      if (statusFilter !== "all") {
+        query = query.eq("status", statusFilter);
       }
 
       const { data, error: fetchError } = await query;
@@ -82,19 +89,22 @@ export default function InvoicesPage() {
   });
 
   const statusStyles: Record<string, string> = {
-    draft: 'bg-light-background dark:bg-dark-background text-light-text-secondary dark:text-dark-text-secondary dark:bg-dark-surface/40 dark:text-light-text-tertiary dark:text-dark-text-tertiary',
-    issued: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-    paid: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-    cancelled: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-    archived: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+    draft:
+      "bg-light-background dark:bg-dark-background text-light-text-secondary dark:text-dark-text-secondary dark:bg-dark-surface/40 dark:text-light-text-tertiary dark:text-dark-text-tertiary",
+    issued:
+      "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+    paid: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+    cancelled: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+    archived:
+      "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
   };
 
   const statusLabels: Record<string, string> = {
-    draft: 'Draft',
-    issued: 'Awaiting Payment',
-    paid: 'Paid',
-    cancelled: 'Cancelled',
-    archived: 'Archived',
+    draft: "Draft",
+    issued: "Awaiting Payment",
+    paid: "Paid",
+    cancelled: "Cancelled",
+    archived: "Archived",
   };
 
   const StatusBadge = ({ status }: { status: string }) => (
@@ -108,7 +118,10 @@ export default function InvoicesPage() {
   );
 
   return (
-    <div className="flex -m-4 lg:-m-6" style={{ minHeight: 'calc(100vh - 3.5rem)' }}>
+    <div
+      className="flex -m-4 lg:-m-6"
+      style={{ minHeight: "calc(100vh - 3.5rem)" }}
+    >
       {/* Left Sidebar - Invoice List */}
       <div className="w-80 lg:w-96 bg-light-surface dark:bg-dark-surface border-r border-light-border dark:border-dark-border flex flex-col flex-shrink-0">
         {/* Header */}
@@ -118,14 +131,15 @@ export default function InvoicesPage() {
               Invoices
             </h1>
             <button
-              onClick={() => router.push('/invoices/new')}
+              onClick={() => router.push("/invoices/new")}
               className="btn-primary text-sm px-3 py-2 flex items-center gap-1.5"
             >
               <Plus className="w-3.5 h-3.5" /> New
             </button>
           </div>
           <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
-            {filteredInvoices.length} invoice{filteredInvoices.length !== 1 ? 's' : ''}
+            {filteredInvoices.length} invoice
+            {filteredInvoices.length !== 1 ? "s" : ""}
           </p>
         </div>
 
@@ -142,17 +156,17 @@ export default function InvoicesPage() {
             />
           </div>
           <div className="flex gap-1.5 flex-wrap">
-            {['all', 'draft', 'issued', 'paid', 'cancelled'].map((s) => (
+            {["all", "draft", "issued", "paid", "cancelled"].map((s) => (
               <button
                 key={s}
                 onClick={() => setStatusFilter(s)}
                 className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
                   statusFilter === s
-                    ? 'bg-primary-500 text-white'
-                    : 'bg-light-background dark:bg-dark-background text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover'
+                    ? "bg-primary-500 text-white"
+                    : "bg-light-background dark:bg-dark-background text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover"
                 }`}
               >
-                {s === 'all' ? 'All' : statusLabels[s]}
+                {s === "all" ? "All" : statusLabels[s]}
               </button>
             ))}
           </div>
@@ -180,7 +194,7 @@ export default function InvoicesPage() {
                 No invoices found
               </p>
               <button
-                onClick={() => router.push('/invoices/new')}
+                onClick={() => router.push("/invoices/new")}
                 className="text-primary-500 hover:text-primary-400 text-xs font-medium"
               >
                 Create your first invoice →
@@ -194,15 +208,17 @@ export default function InvoicesPage() {
                   onClick={() => setSelectedInvoice(invoice)}
                   className={`w-full p-4 text-left hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover transition-colors ${
                     selectedInvoice?.id === invoice.id
-                      ? 'bg-primary-500/5 dark:bg-primary-500/10 border-l-2 border-primary-500'
-                      : 'border-l-2 border-transparent'
+                      ? "bg-primary-500/5 dark:bg-primary-500/10 border-l-2 border-primary-500"
+                      : "border-l-2 border-transparent"
                   }`}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div className="w-8 h-8 rounded-lg bg-primary-500/10 flex items-center justify-center flex-shrink-0">
                         <span className="text-primary-500 font-bold text-xs">
-                          {invoice.customer_info.name.substring(0, 2).toUpperCase()}
+                          {invoice.customer_info.name
+                            .substring(0, 2)
+                            .toUpperCase()}
                         </span>
                       </div>
                       <div className="min-w-0">
@@ -218,14 +234,17 @@ export default function InvoicesPage() {
                   </div>
                   <div className="flex items-center justify-between mt-2 pl-10">
                     <span className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
-                      {new Date(invoice.invoice_date).toLocaleDateString('en-NG', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                      })}
+                      {new Date(invoice.invoice_date).toLocaleDateString(
+                        "en-NG",
+                        {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        },
+                      )}
                     </span>
                     <span className="font-semibold text-sm text-light-text-primary dark:text-dark-text-primary">
-                      ₦{invoice.total_amount.toLocaleString('en-NG')}
+                      ₦{invoice.total_amount.toLocaleString("en-NG")}
                     </span>
                   </div>
                 </button>
@@ -258,7 +277,10 @@ export default function InvoicesPage() {
                 </button>
                 <button
                   onClick={() =>
-                    window.open(`/api/invoices/${selectedInvoice.id}/pdf`, '_blank')
+                    window.open(
+                      `/api/invoices/${selectedInvoice.id}/pdf`,
+                      "_blank",
+                    )
                   }
                   className="btn-secondary text-sm px-3 py-2 flex items-center gap-1.5"
                 >
@@ -299,10 +321,12 @@ export default function InvoicesPage() {
                         Issued:
                       </span>
                       <span className="text-light-text-primary dark:text-dark-text-primary font-medium">
-                        {new Date(selectedInvoice.invoice_date).toLocaleDateString('en-NG', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric',
+                        {new Date(
+                          selectedInvoice.invoice_date,
+                        ).toLocaleDateString("en-NG", {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
                         })}
                       </span>
                     </div>
@@ -312,10 +336,12 @@ export default function InvoicesPage() {
                           Due:
                         </span>
                         <span className="text-light-text-primary dark:text-dark-text-primary font-medium">
-                          {new Date(selectedInvoice.due_date).toLocaleDateString('en-NG', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
+                          {new Date(
+                            selectedInvoice.due_date,
+                          ).toLocaleDateString("en-NG", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
                           })}
                         </span>
                       </div>
@@ -376,14 +402,16 @@ export default function InvoicesPage() {
                       <td className="py-3 text-light-text-primary dark:text-dark-text-primary">
                         ₦
                         {(
-                          selectedInvoice.subtotal || selectedInvoice.total_amount
-                        ).toLocaleString('en-NG')}
+                          selectedInvoice.subtotal ||
+                          selectedInvoice.total_amount
+                        ).toLocaleString("en-NG")}
                       </td>
                       <td className="py-3 text-right font-medium text-light-text-primary dark:text-dark-text-primary">
                         ₦
                         {(
-                          selectedInvoice.subtotal || selectedInvoice.total_amount
-                        ).toLocaleString('en-NG')}
+                          selectedInvoice.subtotal ||
+                          selectedInvoice.total_amount
+                        ).toLocaleString("en-NG")}
                       </td>
                     </tr>
                   </tbody>
@@ -401,29 +429,30 @@ export default function InvoicesPage() {
                       ₦
                       {(
                         selectedInvoice.subtotal || selectedInvoice.total_amount
-                      ).toLocaleString('en-NG', { minimumFractionDigits: 2 })}
+                      ).toLocaleString("en-NG", { minimumFractionDigits: 2 })}
                     </span>
                   </div>
-                  {selectedInvoice.vat_amount && selectedInvoice.vat_amount > 0 && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-light-text-tertiary dark:text-dark-text-tertiary">
-                        VAT (7.5%)
-                      </span>
-                      <span className="text-light-text-primary dark:text-dark-text-primary font-medium">
-                        ₦
-                        {selectedInvoice.vat_amount.toLocaleString('en-NG', {
-                          minimumFractionDigits: 2,
-                        })}
-                      </span>
-                    </div>
-                  )}
+                  {selectedInvoice.vat_amount &&
+                    selectedInvoice.vat_amount > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-light-text-tertiary dark:text-dark-text-tertiary">
+                          VAT (7.5%)
+                        </span>
+                        <span className="text-light-text-primary dark:text-dark-text-primary font-medium">
+                          ₦
+                          {selectedInvoice.vat_amount.toLocaleString("en-NG", {
+                            minimumFractionDigits: 2,
+                          })}
+                        </span>
+                      </div>
+                    )}
                   <div className="border-t border-light-border dark:border-dark-border pt-2 flex justify-between">
                     <span className="font-bold text-light-text-primary dark:text-dark-text-primary">
                       Total
                     </span>
                     <span className="text-primary-500 font-bold text-xl">
                       ₦
-                      {selectedInvoice.total_amount.toLocaleString('en-NG', {
+                      {selectedInvoice.total_amount.toLocaleString("en-NG", {
                         minimumFractionDigits: 2,
                       })}
                     </span>

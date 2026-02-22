@@ -4,24 +4,24 @@
  * API docs: https://docs.mono.co
  */
 
-const MONO_BASE_URL = 'https://api.withmono.com/v2';
+const MONO_BASE_URL = "https://api.withmono.com/v2";
 
 function getSecretKey(): string {
   const key = process.env.MONO_SECRET_KEY;
-  if (!key) throw new Error('MONO_SECRET_KEY is not configured');
+  if (!key) throw new Error("MONO_SECRET_KEY is not configured");
   return key;
 }
 
 async function monoFetch<T>(
   endpoint: string,
-  options: { method?: string; body?: unknown } = {}
+  options: { method?: string; body?: unknown } = {},
 ): Promise<T> {
   const res = await fetch(`${MONO_BASE_URL}${endpoint}`, {
-    method: options.method || 'GET',
+    method: options.method || "GET",
     headers: {
-      'accept': 'application/json',
-      'content-type': 'application/json',
-      'mono-sec-key': getSecretKey(),
+      accept: "application/json",
+      "content-type": "application/json",
+      "mono-sec-key": getSecretKey(),
     },
     ...(options.body ? { body: JSON.stringify(options.body) } : {}),
   });
@@ -58,7 +58,7 @@ export interface MonoTransaction {
   id: string;
   narration: string;
   amount: number; // in kobo (divide by 100 for Naira)
-  type: 'debit' | 'credit';
+  type: "debit" | "credit";
   balance: number; // in kobo
   date: string;
   category?: string;
@@ -93,8 +93,8 @@ interface MonoTransactionsResponse {
  * Exchange the auth code from Mono Connect widget for a permanent account ID
  */
 export async function exchangeToken(code: string): Promise<string> {
-  const response = await monoFetch<MonoExchangeResponse>('/accounts/auth', {
-    method: 'POST',
+  const response = await monoFetch<MonoExchangeResponse>("/accounts/auth", {
+    method: "POST",
     body: { code },
   });
   return response.data.id;
@@ -103,8 +103,12 @@ export async function exchangeToken(code: string): Promise<string> {
 /**
  * Get account information (name, number, bank, balance)
  */
-export async function getAccountInfo(accountId: string): Promise<MonoAccountInfo> {
-  const response = await monoFetch<MonoAccountResponse>(`/accounts/${accountId}`);
+export async function getAccountInfo(
+  accountId: string,
+): Promise<MonoAccountInfo> {
+  const response = await monoFetch<MonoAccountResponse>(
+    `/accounts/${accountId}`,
+  );
   return response.data;
 }
 
@@ -114,15 +118,19 @@ export async function getAccountInfo(accountId: string): Promise<MonoAccountInfo
  */
 export async function getTransactions(
   accountId: string,
-  options?: { start?: string; end?: string; limit?: number; page?: number }
-): Promise<{ transactions: MonoTransaction[]; total: number; hasMore: boolean }> {
+  options?: { start?: string; end?: string; limit?: number; page?: number },
+): Promise<{
+  transactions: MonoTransaction[];
+  total: number;
+  hasMore: boolean;
+}> {
   const params = new URLSearchParams();
-  if (options?.start) params.set('start', options.start); // DD-MM-YYYY
-  if (options?.end) params.set('end', options.end);
-  if (options?.limit) params.set('limit', options.limit.toString());
+  if (options?.start) params.set("start", options.start); // DD-MM-YYYY
+  if (options?.end) params.set("end", options.end);
+  if (options?.limit) params.set("limit", options.limit.toString());
 
   const queryString = params.toString();
-  const endpoint = `/accounts/${accountId}/transactions${queryString ? `?${queryString}` : ''}`;
+  const endpoint = `/accounts/${accountId}/transactions${queryString ? `?${queryString}` : ""}`;
 
   const response = await monoFetch<MonoTransactionsResponse>(endpoint);
 
@@ -137,12 +145,12 @@ export async function getTransactions(
  * Trigger a manual data sync for an account
  */
 export async function syncAccount(accountId: string): Promise<void> {
-  await monoFetch(`/accounts/${accountId}/sync`, { method: 'POST' });
+  await monoFetch(`/accounts/${accountId}/sync`, { method: "POST" });
 }
 
 /**
  * Unlink a connected account
  */
 export async function unlinkAccount(accountId: string): Promise<void> {
-  await monoFetch(`/accounts/${accountId}/unlink`, { method: 'POST' });
+  await monoFetch(`/accounts/${accountId}/unlink`, { method: "POST" });
 }

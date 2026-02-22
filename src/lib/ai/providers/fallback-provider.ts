@@ -5,12 +5,12 @@
  * Uses keyword matching and transaction patterns
  */
 
-import { AIProvider, CategoryPrediction, CategorizationRequest } from './types';
+import { AIProvider, CategoryPrediction, CategorizationRequest } from "./types";
 
 interface CategoryRule {
   category: string;
   keywords: string[];
-  transactionType?: 'credit' | 'debit';
+  transactionType?: "credit" | "debit";
   amountRange?: { min?: number; max?: number };
   confidence: number;
 }
@@ -18,116 +18,171 @@ interface CategoryRule {
 const CATEGORY_RULES: CategoryRule[] = [
   // Income categories
   {
-    category: 'Revenue',
-    keywords: ['sales', 'revenue', 'income', 'payment received', 'customer payment'],
-    transactionType: 'credit',
+    category: "Revenue",
+    keywords: [
+      "sales",
+      "revenue",
+      "income",
+      "payment received",
+      "customer payment",
+    ],
+    transactionType: "credit",
     confidence: 85,
   },
   {
-    category: 'Salary',
-    keywords: ['salary', 'wages', 'payroll', 'staff payment'],
-    transactionType: 'credit',
+    category: "Salary",
+    keywords: ["salary", "wages", "payroll", "staff payment"],
+    transactionType: "credit",
     confidence: 90,
   },
   {
-    category: 'Interest Income',
-    keywords: ['interest', 'dividend', 'investment income'],
-    transactionType: 'credit',
+    category: "Interest Income",
+    keywords: ["interest", "dividend", "investment income"],
+    transactionType: "credit",
     confidence: 85,
   },
-  
+
   // Expense categories
   {
-    category: 'Salaries & Wages',
-    keywords: ['salary', 'wages', 'payroll', 'staff', 'employee'],
-    transactionType: 'debit',
+    category: "Salaries & Wages",
+    keywords: ["salary", "wages", "payroll", "staff", "employee"],
+    transactionType: "debit",
     confidence: 90,
   },
   {
-    category: 'Rent & Utilities',
-    keywords: ['rent', 'electricity', 'ekedc', 'ikedc', 'phcn', 'water', 'dstv', 'gotv', 'startimes'],
-    transactionType: 'debit',
+    category: "Rent & Utilities",
+    keywords: [
+      "rent",
+      "electricity",
+      "ekedc",
+      "ikedc",
+      "phcn",
+      "water",
+      "dstv",
+      "gotv",
+      "startimes",
+    ],
+    transactionType: "debit",
     confidence: 85,
   },
   {
-    category: 'Telecommunications',
-    keywords: ['mtn', 'glo', 'airtel', '9mobile', 'internet', 'data', 'airtime', 'spectranet'],
-    transactionType: 'debit',
+    category: "Telecommunications",
+    keywords: [
+      "mtn",
+      "glo",
+      "airtel",
+      "9mobile",
+      "internet",
+      "data",
+      "airtime",
+      "spectranet",
+    ],
+    transactionType: "debit",
     confidence: 90,
   },
   {
-    category: 'Marketing & Advertising',
-    keywords: ['marketing', 'advertising', 'promotion', 'facebook ads', 'google ads'],
-    transactionType: 'debit',
+    category: "Marketing & Advertising",
+    keywords: [
+      "marketing",
+      "advertising",
+      "promotion",
+      "facebook ads",
+      "google ads",
+    ],
+    transactionType: "debit",
     confidence: 85,
   },
   {
-    category: 'Travel & Transportation',
-    keywords: ['fuel', 'petrol', 'diesel', 'uber', 'bolt', 'taxi', 'flight', 'hotel'],
-    transactionType: 'debit',
+    category: "Travel & Transportation",
+    keywords: [
+      "fuel",
+      "petrol",
+      "diesel",
+      "uber",
+      "bolt",
+      "taxi",
+      "flight",
+      "hotel",
+    ],
+    transactionType: "debit",
     confidence: 85,
   },
   {
-    category: 'Meals & Entertainment',
-    keywords: ['restaurant', 'food', 'lunch', 'dinner', 'catering'],
-    transactionType: 'debit',
+    category: "Meals & Entertainment",
+    keywords: ["restaurant", "food", "lunch", "dinner", "catering"],
+    transactionType: "debit",
     confidence: 80,
   },
   {
-    category: 'Office Supplies',
-    keywords: ['stationery', 'office', 'supplies', 'printer', 'paper'],
-    transactionType: 'debit',
+    category: "Office Supplies",
+    keywords: ["stationery", "office", "supplies", "printer", "paper"],
+    transactionType: "debit",
     confidence: 85,
   },
   {
-    category: 'Professional Services',
-    keywords: ['consulting', 'legal', 'accounting', 'audit', 'professional'],
-    transactionType: 'debit',
+    category: "Professional Services",
+    keywords: ["consulting", "legal", "accounting", "audit", "professional"],
+    transactionType: "debit",
     confidence: 85,
   },
   {
-    category: 'Bank Fees',
-    keywords: ['bank charge', 'commission', 'sms charge', 'atm fee', 'transfer fee'],
-    transactionType: 'debit',
+    category: "Bank Fees",
+    keywords: [
+      "bank charge",
+      "commission",
+      "sms charge",
+      "atm fee",
+      "transfer fee",
+    ],
+    transactionType: "debit",
     confidence: 95,
   },
   {
-    category: 'Taxes & Levies',
-    keywords: ['tax', 'vat', 'wht', 'levy', 'firs', 'lirs'],
-    transactionType: 'debit',
+    category: "Taxes & Levies",
+    keywords: ["tax", "vat", "wht", "levy", "firs", "lirs"],
+    transactionType: "debit",
     confidence: 90,
   },
   {
-    category: 'Equipment & Fixed Assets',
-    keywords: ['equipment', 'machinery', 'computer', 'laptop', 'furniture', 'vehicle'],
-    transactionType: 'debit',
+    category: "Equipment & Fixed Assets",
+    keywords: [
+      "equipment",
+      "machinery",
+      "computer",
+      "laptop",
+      "furniture",
+      "vehicle",
+    ],
+    transactionType: "debit",
     amountRange: { min: 50000 },
     confidence: 80,
   },
   {
-    category: 'Insurance',
-    keywords: ['insurance', 'premium', 'aiico', 'leadway'],
-    transactionType: 'debit',
+    category: "Insurance",
+    keywords: ["insurance", "premium", "aiico", "leadway"],
+    transactionType: "debit",
     confidence: 90,
   },
-  
+
   // Transfer category
   {
-    category: 'Transfer',
-    keywords: ['transfer', 'moved', 'internal transfer'],
+    category: "Transfer",
+    keywords: ["transfer", "moved", "internal transfer"],
     confidence: 70,
   },
 ];
 
 export class FallbackProvider implements AIProvider {
-  name = 'fallback';
+  name = "fallback";
 
   async isAvailable(): Promise<boolean> {
     // Fallback provider is always available
     return true;
   }
 
-  async categorize(request: CategorizationRequest): Promise<CategoryPrediction> {
+  async categorize(
+    request: CategorizationRequest,
+  ): Promise<CategoryPrediction> {
     const description = request.description.toLowerCase();
     const amount = request.amount;
     const transactionType = request.transactionType;
@@ -167,15 +222,15 @@ export class FallbackProvider implements AIProvider {
     if (matches.length === 0) {
       // No matches found, return uncategorized
       return {
-        category: 'Uncategorized',
+        category: "Uncategorized",
         confidence: 30,
-        reasoning: 'No matching rules found for this transaction',
+        reasoning: "No matching rules found for this transaction",
         alternativeCategories: [],
       };
     }
 
     const bestMatch = matches[0];
-    const alternatives = matches.slice(1, 3).map(m => ({
+    const alternatives = matches.slice(1, 3).map((m) => ({
       category: m.rule.category,
       confidence: Math.round(m.score),
     }));
@@ -183,9 +238,9 @@ export class FallbackProvider implements AIProvider {
     return {
       category: bestMatch.rule.category,
       confidence: Math.round(bestMatch.score),
-      reasoning: `Matched keywords: ${bestMatch.rule.keywords.filter(k => 
-        description.includes(k.toLowerCase())
-      ).join(', ')}`,
+      reasoning: `Matched keywords: ${bestMatch.rule.keywords
+        .filter((k) => description.includes(k.toLowerCase()))
+        .join(", ")}`,
       alternativeCategories: alternatives,
     };
   }

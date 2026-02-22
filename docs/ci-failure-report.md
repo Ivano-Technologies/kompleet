@@ -11,10 +11,10 @@ This report details the investigation into the 3 failed CI tests that occurred d
 
 A local build of the project revealed the following two build-time errors:
 
-| File                               | Line | Error Description                                    |
-|------------------------------------|------|------------------------------------------------------|
-| `src/app/(dashboard)/reports/page.tsx` | 174  | **Unexpected token `>`:** An extra `>` was found.      |
-| `src/app/(dashboard)/settings/page.tsx`| 132  | **Unterminated string constant:** A `"` was used instead of a closing `'` or backtick`. |
+| File                                    | Line | Error Description                                                                       |
+| --------------------------------------- | ---- | --------------------------------------------------------------------------------------- |
+| `src/app/(dashboard)/reports/page.tsx`  | 174  | **Unexpected token `>`:** An extra `>` was found.                                       |
+| `src/app/(dashboard)/settings/page.tsx` | 132  | **Unterminated string constant:** A `"` was used instead of a closing `'` or backtick`. |
 
 These syntax errors were preventing the Next.js application from building successfully, which in turn caused the Vercel deployment and its associated CI checks to fail.
 
@@ -29,9 +29,9 @@ The following actions were taken to resolve the issue:
 
 ### Commit Details:
 
-| Commit Hash | Message                                                          |
-|-------------|------------------------------------------------------------------|
-| `6901931f2` | fix: resolve syntax errors in reports and settings pages         |
+| Commit Hash | Message                                                  |
+| ----------- | -------------------------------------------------------- |
+| `6901931f2` | fix: resolve syntax errors in reports and settings pages |
 
 ## 4. Next Steps
 

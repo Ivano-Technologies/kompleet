@@ -4,8 +4,8 @@
  * HIGH-001: Optimized with Locality-Sensitive Hashing (LSH) for large datasets
  */
 
-import { createHash } from 'crypto';
-import { NormalizedTransaction } from './normalizer';
+import { createHash } from "crypto";
+import { NormalizedTransaction } from "./normalizer";
 
 export interface DuplicateMatch {
   existingTransaction: NormalizedTransaction & { id?: string };
@@ -14,10 +14,17 @@ export interface DuplicateMatch {
   matchFactors: MatchFactor[];
 }
 
-export type MatchFactor = 'date' | 'amount' | 'merchant' | 'reference' | 'balance';
+export type MatchFactor =
+  | "date"
+  | "amount"
+  | "merchant"
+  | "reference"
+  | "balance";
 
-const SIMILARITY_THRESHOLD = parseFloat(process.env.DUPLICATE_SIMILARITY_THRESHOLD || '0.85');
-const FUZZY_MERCHANT_THRESHOLD = 0.80; // 80% merchant name similarity
+const SIMILARITY_THRESHOLD = parseFloat(
+  process.env.DUPLICATE_SIMILARITY_THRESHOLD || "0.85",
+);
+const FUZZY_MERCHANT_THRESHOLD = 0.8; // 80% merchant name similarity
 const LSH_OPTIMIZATION_THRESHOLD = 1000; // Use LSH for datasets larger than this
 
 interface LSHBucket {
@@ -31,10 +38,10 @@ interface LSHBucket {
 function createTransactionHash(tx: NormalizedTransaction): string {
   // Extract date (YYYY-MM-DD format)
   const date = tx.date.substring(0, 10);
-  
+
   // Bucket amount to nearest 100
   const amountBucket = Math.round(tx.amount / 100) * 100;
-  
+
   // Create hash combining date and amount bucket
   return `${date}_${amountBucket}`;
 }
@@ -45,19 +52,21 @@ function createTransactionHash(tx: NormalizedTransaction): string {
  */
 export function findDuplicatesOptimized(
   existingTransactions: (NormalizedTransaction & { id?: string })[],
-  newTransactions: NormalizedTransaction[]
+  newTransactions: NormalizedTransaction[],
 ): DuplicateMatch[] {
   // For small datasets, use the simple O(n²) approach
   if (existingTransactions.length < LSH_OPTIMIZATION_THRESHOLD) {
     return findDuplicates(existingTransactions, newTransactions);
   }
 
-  console.log(`Using LSH optimization for ${existingTransactions.length} existing transactions`);
-  
+  console.log(
+    `Using LSH optimization for ${existingTransactions.length} existing transactions`,
+  );
+
   // Build LSH buckets for existing transactions
   const buckets: LSHBucket = {};
-  
-  existingTransactions.forEach(tx => {
+
+  existingTransactions.forEach((tx) => {
     const hash = createTransactionHash(tx);
     if (!buckets[hash]) {
       buckets[hash] = [];
@@ -70,12 +79,12 @@ export function findDuplicatesOptimized(
   // Find duplicates by checking only same-bucket transactions
   const duplicates: DuplicateMatch[] = [];
 
-  newTransactions.forEach(newTx => {
+  newTransactions.forEach((newTx) => {
     const hash = createTransactionHash(newTx);
     const candidates = buckets[hash] || [];
 
     // Only compare against transactions in the same bucket
-    candidates.forEach(existingTx => {
+    candidates.forEach((existingTx) => {
       const match = compareTransactions(existingTx, newTx);
 
       if (match.similarityScore >= SIMILARITY_THRESHOLD) {
@@ -94,7 +103,7 @@ export function findDuplicatesOptimized(
  */
 export function findDuplicates(
   existingTransactions: (NormalizedTransaction & { id?: string })[],
-  newTransactions: NormalizedTransaction[]
+  newTransactions: NormalizedTransaction[],
 ): DuplicateMatch[] {
   const duplicates: DuplicateMatch[] = [];
 
@@ -116,13 +125,13 @@ export function findDuplicates(
  */
 function compareTransactions(
   transaction1: NormalizedTransaction,
-  transaction2: NormalizedTransaction
+  transaction2: NormalizedTransaction,
 ): DuplicateMatch {
   const matchFactors: MatchFactor[] = [];
   let score = 0;
   const weights = {
     date: 0.25,
-    amount: 0.30,
+    amount: 0.3,
     merchant: 0.25,
     reference: 0.15,
     balance: 0.05,
@@ -130,24 +139,24 @@ function compareTransactions(
 
   // Compare date (exact match)
   if (transaction1.date === transaction2.date) {
-    matchFactors.push('date');
+    matchFactors.push("date");
     score += weights.date;
   }
 
   // Compare amount (exact match)
   if (Math.abs(transaction1.amount - transaction2.amount) < 0.01) {
-    matchFactors.push('amount');
+    matchFactors.push("amount");
     score += weights.amount;
   }
 
   // Compare merchant (fuzzy match)
   const merchantSimilarity = calculateStringSimilarity(
     transaction1.merchant,
-    transaction2.merchant
+    transaction2.merchant,
   );
 
   if (merchantSimilarity >= FUZZY_MERCHANT_THRESHOLD) {
-    matchFactors.push('merchant');
+    matchFactors.push("merchant");
     score += weights.merchant * merchantSimilarity;
   }
 
@@ -157,13 +166,13 @@ function compareTransactions(
     transaction2.reference &&
     transaction1.reference === transaction2.reference
   ) {
-    matchFactors.push('reference');
+    matchFactors.push("reference");
     score += weights.reference;
   }
 
   // Compare balance (exact match)
   if (Math.abs(transaction1.balance - transaction2.balance) < 0.01) {
-    matchFactors.push('balance');
+    matchFactors.push("balance");
     score += weights.balance;
   }
 
@@ -216,7 +225,7 @@ function levenshteinDistance(str1: string, str2: string): number {
         matrix[i][j] = Math.min(
           matrix[i - 1][j - 1] + 1, // substitution
           matrix[i][j - 1] + 1, // insertion
-          matrix[i - 1][j] + 1 // deletion
+          matrix[i - 1][j] + 1, // deletion
         );
       }
     }
@@ -228,7 +237,9 @@ function levenshteinDistance(str1: string, str2: string): number {
 /**
  * Group duplicates by existing transaction
  */
-export function groupDuplicates(duplicates: DuplicateMatch[]): Map<string, DuplicateMatch[]> {
+export function groupDuplicates(
+  duplicates: DuplicateMatch[],
+): Map<string, DuplicateMatch[]> {
   const groups = new Map<string, DuplicateMatch[]>();
 
   duplicates.forEach((duplicate) => {
@@ -247,7 +258,9 @@ export function groupDuplicates(duplicates: DuplicateMatch[]): Map<string, Dupli
 /**
  * Filter high-confidence duplicates (> 95% similarity)
  */
-export function filterHighConfidenceDuplicates(duplicates: DuplicateMatch[]): DuplicateMatch[] {
+export function filterHighConfidenceDuplicates(
+  duplicates: DuplicateMatch[],
+): DuplicateMatch[] {
   return duplicates.filter((duplicate) => duplicate.similarityScore >= 0.95);
 }
 
@@ -262,11 +275,15 @@ export function getDuplicateStats(duplicates: DuplicateMatch[]): {
   averageSimilarity: number;
 } {
   const total = duplicates.length;
-  const highConfidence = duplicates.filter((d) => d.similarityScore >= 0.95).length;
-  const mediumConfidence = duplicates.filter(
-    (d) => d.similarityScore >= 0.85 && d.similarityScore < 0.95
+  const highConfidence = duplicates.filter(
+    (d) => d.similarityScore >= 0.95,
   ).length;
-  const lowConfidence = duplicates.filter((d) => d.similarityScore < 0.85).length;
+  const mediumConfidence = duplicates.filter(
+    (d) => d.similarityScore >= 0.85 && d.similarityScore < 0.95,
+  ).length;
+  const lowConfidence = duplicates.filter(
+    (d) => d.similarityScore < 0.85,
+  ).length;
 
   const averageSimilarity =
     total > 0

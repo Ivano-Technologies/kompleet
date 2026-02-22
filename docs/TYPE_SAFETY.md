@@ -28,6 +28,7 @@ pnpm supabase gen types typescript --project-id <project-id> > src/lib/supabase/
 ### Type Location
 
 All Supabase-generated types are located in:
+
 ```
 src/lib/supabase/types.ts
 ```
@@ -49,6 +50,7 @@ pnpm check:types
 ```
 
 This script will:
+
 1. Generate fresh types from your local Supabase instance
 2. Compare them with the current types in `src/lib/supabase/types.ts`
 3. Report any differences found
@@ -56,6 +58,7 @@ This script will:
 ### Example Output
 
 **✅ Types in sync:**
+
 ```bash
 $ pnpm check:types
 🔍 Checking for Supabase type drift...
@@ -64,6 +67,7 @@ $ pnpm check:types
 ```
 
 **❌ Type drift detected:**
+
 ```bash
 $ pnpm check:types
 🔍 Checking for Supabase type drift...
@@ -132,6 +136,7 @@ typecheck:
 ### When to Regenerate Types
 
 Regenerate types whenever you:
+
 - Add a new table to Supabase
 - Modify a table schema (add/remove/change columns)
 - Add or modify RLS policies that affect type definitions
@@ -162,11 +167,13 @@ Regenerate types whenever you:
 ### Pre-commit Hook
 
 The pre-commit hook automatically runs:
+
 ```bash
 pnpm lint && pnpm typecheck && pnpm test
 ```
 
 This ensures:
+
 - ✅ Code is properly formatted
 - ✅ No TypeScript errors
 - ✅ All tests pass
@@ -180,20 +187,20 @@ This ensures:
 The Supabase client is fully typed:
 
 ```typescript
-import { createClient } from '@/lib/supabase/client';
-import { Database } from '@/lib/supabase/types';
+import { createClient } from "@/lib/supabase/client";
+import { Database } from "@/lib/supabase/types";
 
 const supabase = createClient<Database>();
 
 // TypeScript knows the exact schema
 const { data, error } = await supabase
-  .from('transactions')  // ✅ Autocomplete for table names
-  .select('*')
-  .eq('user_id', userId);  // ✅ Autocomplete for column names
+  .from("transactions") // ✅ Autocomplete for table names
+  .select("*")
+  .eq("user_id", userId); // ✅ Autocomplete for column names
 
 // data is typed as Transaction[]
-data?.forEach(transaction => {
-  console.log(transaction.amount);  // ✅ Type-safe property access
+data?.forEach((transaction) => {
+  console.log(transaction.amount); // ✅ Type-safe property access
 });
 ```
 
@@ -205,15 +212,15 @@ Custom query wrappers provide additional type safety:
 // src/lib/db/queries.ts
 export async function getTransactionsByUser(userId: string) {
   const supabase = createClient();
-  
+
   const { data, error } = await supabase
-    .from('transactions')
-    .select('*')
-    .eq('user_id', userId)
-    .order('transaction_date', { ascending: false });
-  
+    .from("transactions")
+    .select("*")
+    .eq("user_id", userId)
+    .order("transaction_date", { ascending: false });
+
   if (error) throw error;
-  return data;  // Return type is Transaction[]
+  return data; // Return type is Transaction[]
 }
 ```
 
@@ -243,6 +250,7 @@ export async function getTransactionsByUser(userId: string) {
 **Problem**: `pnpm check:types` reports type drift
 
 **Solution**:
+
 1. Review the differences shown in the output
 2. If the schema changes are intentional, regenerate types:
    ```bash
@@ -255,6 +263,7 @@ export async function getTransactionsByUser(userId: string) {
 **Problem**: Type drift check shows "Could not connect to local Supabase"
 
 **Solution**:
+
 1. Start local Supabase:
    ```bash
    pnpm supabase start
@@ -269,6 +278,7 @@ export async function getTransactionsByUser(userId: string) {
 **Problem**: TypeScript errors appear after applying a migration
 
 **Solution**:
+
 1. Regenerate types from the updated schema
 2. Update code to match the new schema
 3. Run typecheck to verify:
@@ -280,13 +290,13 @@ export async function getTransactionsByUser(userId: string) {
 
 ## Scripts Reference
 
-| Script | Command | Description |
-|---|---|---|
-| **typecheck** | `pnpm typecheck` | Run TypeScript compiler without emitting files |
-| **check:types** | `pnpm check:types` | Check for Supabase type drift |
-| **gen:types** | `pnpm supabase gen types typescript --local > src/lib/supabase/types.ts` | Generate fresh types from Supabase |
-| **precommit** | `pnpm precommit` | Run lint, typecheck, and tests before commit |
-| **ci** | `pnpm ci` | Full CI pipeline (lint, typecheck, test, build) |
+| Script          | Command                                                                  | Description                                     |
+| --------------- | ------------------------------------------------------------------------ | ----------------------------------------------- |
+| **typecheck**   | `pnpm typecheck`                                                         | Run TypeScript compiler without emitting files  |
+| **check:types** | `pnpm check:types`                                                       | Check for Supabase type drift                   |
+| **gen:types**   | `pnpm supabase gen types typescript --local > src/lib/supabase/types.ts` | Generate fresh types from Supabase              |
+| **precommit**   | `pnpm precommit`                                                         | Run lint, typecheck, and tests before commit    |
+| **ci**          | `pnpm ci`                                                                | Full CI pipeline (lint, typecheck, test, build) |
 
 ---
 
