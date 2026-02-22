@@ -2,7 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 const LOGO_URL =
-  'https://files.manuscdn.com/user_upload_by_module/session_file/114473754/ZeGQuujTZDuMQDVT.png';
+  '/assets/logo-primary.png';
 
 export default function LandingFooter() {
   return (

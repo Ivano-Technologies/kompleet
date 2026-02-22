@@ -156,7 +156,7 @@ export function Sidebar({ userEmail, userRole, isMobileOpen, onMobileClose }: Si
       <div className="p-6 border-b border-light-border dark:border-dark-border">
         <Link href="/dashboard" className="flex items-center gap-3" onClick={onMobileClose}>
           <Image
-            src="https://files.manuscdn.com/user_upload_by_module/session_file/114473754/ZeGQuujTZDuMQDVT.png"
+            src="/assets/logo-primary.png"
             alt="KOMPLEET Logo"
             width={36}
             height={36}
