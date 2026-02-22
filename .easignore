@@ -1,0 +1,26 @@
+# Reduce EAS upload size (monorepo: keep root package.json, pnpm-*, apps/mobile)
+node_modules/
+.next/
+.git/
+docs/
+marketing/
+tests/
+drizzle/
+src/
+public/
+*.md
+!.easignore
+.env
+.env.*
+.vercel/
+out/
+dist/
+build/
+.cache/
+.expo/
+*.log
+tsconfig.tsbuildinfo
+.backup_migrations/
+.ml-models-cache/
+ml-training/
+.local/
