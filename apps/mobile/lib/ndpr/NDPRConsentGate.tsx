@@ -50,7 +50,10 @@ export function NDPRConsentGate({
   }, []);
 
   useEffect(() => {
-    check();
+    const id = setTimeout(() => {
+      void check();
+    }, 0);
+    return () => clearTimeout(id);
   }, [check]);
 
   const accept = useCallback(async () => {
