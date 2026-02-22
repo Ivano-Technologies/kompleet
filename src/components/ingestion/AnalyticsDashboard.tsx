@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { TrendingUp, AlertCircle, CheckCircle, BarChart3 } from 'lucide-react';
-import { Card } from '@/components/ui/card';
+import React, { useEffect, useState } from "react";
+import { TrendingUp, AlertCircle, CheckCircle, BarChart3 } from "lucide-react";
+import { Card } from "@/components/ui/card";
 
 interface FeedbackStats {
   totalFeedback: number;
@@ -26,7 +26,9 @@ interface CategoryAccuracy {
 
 export default function AnalyticsDashboard() {
   const [stats, setStats] = useState<FeedbackStats | null>(null);
-  const [categoryAccuracy, setCategoryAccuracy] = useState<CategoryAccuracy[]>([]);
+  const [categoryAccuracy, setCategoryAccuracy] = useState<CategoryAccuracy[]>(
+    [],
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,18 +36,20 @@ export default function AnalyticsDashboard() {
     const fetchStats = async () => {
       try {
         // Fetch statistics
-        const statsRes = await fetch('/api/feedback?type=statistics');
-        if (!statsRes.ok) throw new Error('Failed to fetch statistics');
+        const statsRes = await fetch("/api/feedback?type=statistics");
+        if (!statsRes.ok) throw new Error("Failed to fetch statistics");
         const statsData = await statsRes.json();
         setStats(statsData.data);
 
         // Fetch category accuracy
-        const accuracyRes = await fetch('/api/feedback?type=accuracy');
-        if (!accuracyRes.ok) throw new Error('Failed to fetch accuracy');
+        const accuracyRes = await fetch("/api/feedback?type=accuracy");
+        if (!accuracyRes.ok) throw new Error("Failed to fetch accuracy");
         const accuracyData = await accuracyRes.json();
         setCategoryAccuracy(accuracyData.data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load analytics');
+        setError(
+          err instanceof Error ? err.message : "Failed to load analytics",
+        );
       } finally {
         setIsLoading(false);
       }
@@ -86,7 +90,9 @@ export default function AnalyticsDashboard() {
         <Card className="backdrop-blur-md bg-white/80 dark:bg-slate-900/80 border border-white/20 dark:border-slate-800/20 p-6">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Total Corrections</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                Total Corrections
+              </p>
               <p className="text-2xl font-bold text-slate-900 dark:text-white">
                 {stats.totalFeedback}
               </p>
@@ -99,7 +105,9 @@ export default function AnalyticsDashboard() {
         <Card className="backdrop-blur-md bg-white/80 dark:bg-slate-900/80 border border-white/20 dark:border-slate-800/20 p-6">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Correct</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                Correct
+              </p>
               <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                 {stats.correctPredictions}
               </p>
@@ -112,7 +120,9 @@ export default function AnalyticsDashboard() {
         <Card className="backdrop-blur-md bg-white/80 dark:bg-slate-900/80 border border-white/20 dark:border-slate-800/20 p-6">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Incorrect</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                Incorrect
+              </p>
               <p className="text-2xl font-bold text-red-600 dark:text-red-400">
                 {stats.incorrectPredictions}
               </p>
@@ -125,7 +135,9 @@ export default function AnalyticsDashboard() {
         <Card className="backdrop-blur-md bg-white/80 dark:bg-slate-900/80 border border-white/20 dark:border-slate-800/20 p-6">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Accuracy</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">
+                Accuracy
+              </p>
               <p className="text-2xl font-bold text-slate-900 dark:text-white">
                 {(stats.overallAccuracy * 100).toFixed(1)}%
               </p>
@@ -161,7 +173,7 @@ export default function AnalyticsDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {categoryAccuracy.map(cat => (
+                {categoryAccuracy.map((cat) => (
                   <tr
                     key={cat.category}
                     className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50"
@@ -179,10 +191,10 @@ export default function AnalyticsDashboard() {
                       <span
                         className={`inline-block px-2 py-1 rounded text-xs font-semibold ${
                           cat.accuracy >= 0.8
-                            ? 'bg-green-100 dark:bg-green-950/30 text-green-700 dark:text-green-400'
+                            ? "bg-green-100 dark:bg-green-950/30 text-green-700 dark:text-green-400"
                             : cat.accuracy >= 0.6
-                              ? 'bg-amber-100 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400'
-                              : 'bg-red-100 dark:bg-red-950/30 text-red-700 dark:text-red-400'
+                              ? "bg-amber-100 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400"
+                              : "bg-red-100 dark:bg-red-950/30 text-red-700 dark:text-red-400"
                         }`}
                       >
                         {(cat.accuracy * 100).toFixed(1)}%
@@ -199,7 +211,8 @@ export default function AnalyticsDashboard() {
       {/* Last feedback date */}
       {stats.lastFeedbackDate && (
         <p className="text-xs text-slate-500 dark:text-slate-400 text-center">
-          Last correction: {new Date(stats.lastFeedbackDate).toLocaleDateString()}
+          Last correction:{" "}
+          {new Date(stats.lastFeedbackDate).toLocaleDateString()}
         </p>
       )}
     </div>

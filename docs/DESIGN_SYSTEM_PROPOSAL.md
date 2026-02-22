@@ -11,37 +11,37 @@
 
 ### Light Theme
 
-| Token | Hex | Usage | NextAuth Source |
-|-------|-----|-------|-----------------|
-| `background` | `#FFFFFF` | Page background | NextAuth light |
-| `surface` | `#F5F5F5` | Cards, elevated surfaces | NextAuth light |
-| `surface-hover` | `#FAFAFA` | Hover states for surfaces | NextAuth light |
-| `foreground` | `#000000` | Primary text | NextAuth light |
-| `muted` | `#666666` | Secondary text, labels | NextAuth light |
-| `border` | `#E0E0E0` | Dividers, borders | NextAuth light |
-| `accent` | `#008751` | **Nigerian green** - Primary buttons, active states, key highlights | KOMPLEET brand |
-| `accent-hover` | `#006D40` | Hover state for accent | Darker green |
-| `accent-light` | `#E6F4EE` | Subtle accent backgrounds | Light green tint |
-| `success` | `#22C55E` | Success states | Standard |
-| `warning` | `#F59E0B` | Warning states | Standard |
-| `error` | `#EF4444` | Error states | Standard |
+| Token           | Hex       | Usage                                                               | NextAuth Source  |
+| --------------- | --------- | ------------------------------------------------------------------- | ---------------- |
+| `background`    | `#FFFFFF` | Page background                                                     | NextAuth light   |
+| `surface`       | `#F5F5F5` | Cards, elevated surfaces                                            | NextAuth light   |
+| `surface-hover` | `#FAFAFA` | Hover states for surfaces                                           | NextAuth light   |
+| `foreground`    | `#000000` | Primary text                                                        | NextAuth light   |
+| `muted`         | `#666666` | Secondary text, labels                                              | NextAuth light   |
+| `border`        | `#E0E0E0` | Dividers, borders                                                   | NextAuth light   |
+| `accent`        | `#008751` | **Nigerian green** - Primary buttons, active states, key highlights | KOMPLEET brand   |
+| `accent-hover`  | `#006D40` | Hover state for accent                                              | Darker green     |
+| `accent-light`  | `#E6F4EE` | Subtle accent backgrounds                                           | Light green tint |
+| `success`       | `#22C55E` | Success states                                                      | Standard         |
+| `warning`       | `#F59E0B` | Warning states                                                      | Standard         |
+| `error`         | `#EF4444` | Error states                                                        | Standard         |
 
 ### Dark Theme
 
-| Token | Hex | Usage | NextAuth Source |
-|-------|-----|-------|-----------------|
-| `background` | `#000000` | Page background | NextAuth dark |
-| `surface` | `#1A1A1A` | Cards, elevated surfaces | NextAuth dark |
-| `surface-hover` | `#2A2A2A` | Hover states for surfaces | NextAuth dark |
-| `foreground` | `#FFFFFF` | Primary text | NextAuth dark |
-| `muted` | `#A0A0A0` | Secondary text, labels | NextAuth dark |
-| `border` | `#333333` | Dividers, borders | NextAuth dark |
-| `accent` | `#008751` | **Nigerian green** - Primary buttons, active states, key highlights | KOMPLEET brand |
-| `accent-hover` | `#00A564` | Hover state for accent (lighter in dark mode) | Lighter green |
-| `accent-light` | `#00331F` | Subtle accent backgrounds | Dark green tint |
-| `success` | `#4ADE80` | Success states | Standard |
-| `warning` | `#FBBF24` | Warning states | Standard |
-| `error` | `#F87171` | Error states | Standard |
+| Token           | Hex       | Usage                                                               | NextAuth Source |
+| --------------- | --------- | ------------------------------------------------------------------- | --------------- |
+| `background`    | `#000000` | Page background                                                     | NextAuth dark   |
+| `surface`       | `#1A1A1A` | Cards, elevated surfaces                                            | NextAuth dark   |
+| `surface-hover` | `#2A2A2A` | Hover states for surfaces                                           | NextAuth dark   |
+| `foreground`    | `#FFFFFF` | Primary text                                                        | NextAuth dark   |
+| `muted`         | `#A0A0A0` | Secondary text, labels                                              | NextAuth dark   |
+| `border`        | `#333333` | Dividers, borders                                                   | NextAuth dark   |
+| `accent`        | `#008751` | **Nigerian green** - Primary buttons, active states, key highlights | KOMPLEET brand  |
+| `accent-hover`  | `#00A564` | Hover state for accent (lighter in dark mode)                       | Lighter green   |
+| `accent-light`  | `#00331F` | Subtle accent backgrounds                                           | Dark green tint |
+| `success`       | `#4ADE80` | Success states                                                      | Standard        |
+| `warning`       | `#FBBF24` | Warning states                                                      | Standard        |
+| `error`         | `#F87171` | Error states                                                        | Standard        |
 
 ---
 
@@ -50,26 +50,35 @@
 ### Font Family
 
 ```css
-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+font-family:
+  "Inter",
+  -apple-system,
+  BlinkMacSystemFont,
+  "Segoe UI",
+  "Roboto",
+  "Helvetica Neue",
+  Arial,
+  sans-serif;
 ```
 
 **Implementation:**
+
 - Load Inter from Google Fonts or Vercel Fonts
 - Fallback to system fonts for performance
 
 ### Type Scale
 
-| Token | Size | Weight | Line Height | Usage |
-|-------|------|--------|-------------|-------|
-| `hero` | 72px (4.5rem) | 900 (Black) | 1.1 | Landing page hero headings |
-| `h1` | 48px (3rem) | 800 (Extra Bold) | 1.2 | Page titles |
-| `h2` | 32px (2rem) | 700 (Bold) | 1.3 | Section headings |
-| `h3` | 24px (1.5rem) | 600 (Semi Bold) | 1.4 | Subsection headings |
-| `h4` | 20px (1.25rem) | 600 (Semi Bold) | 1.4 | Card titles |
-| `body-lg` | 18px (1.125rem) | 400 (Regular) | 1.6 | Large body text |
-| `body` | 16px (1rem) | 400 (Regular) | 1.5 | Default body text |
-| `body-sm` | 14px (0.875rem) | 400 (Regular) | 1.5 | Small body text, labels |
-| `caption` | 12px (0.75rem) | 400 (Regular) | 1.4 | Captions, footnotes |
+| Token     | Size            | Weight           | Line Height | Usage                      |
+| --------- | --------------- | ---------------- | ----------- | -------------------------- |
+| `hero`    | 72px (4.5rem)   | 900 (Black)      | 1.1         | Landing page hero headings |
+| `h1`      | 48px (3rem)     | 800 (Extra Bold) | 1.2         | Page titles                |
+| `h2`      | 32px (2rem)     | 700 (Bold)       | 1.3         | Section headings           |
+| `h3`      | 24px (1.5rem)   | 600 (Semi Bold)  | 1.4         | Subsection headings        |
+| `h4`      | 20px (1.25rem)  | 600 (Semi Bold)  | 1.4         | Card titles                |
+| `body-lg` | 18px (1.125rem) | 400 (Regular)    | 1.6         | Large body text            |
+| `body`    | 16px (1rem)     | 400 (Regular)    | 1.5         | Default body text          |
+| `body-sm` | 14px (0.875rem) | 400 (Regular)    | 1.5         | Small body text, labels    |
+| `caption` | 12px (0.75rem)  | 400 (Regular)    | 1.4         | Captions, footnotes        |
 
 ### Font Weights
 
@@ -84,36 +93,36 @@ font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', '
 
 ## Spacing Scale
 
-| Token | Value | Usage |
-|-------|-------|-------|
-| `xs` | 8px (0.5rem) | Tight spacing (icon-text gap) |
-| `sm` | 16px (1rem) | Small spacing (between elements) |
-| `md` | 24px (1.5rem) | Medium spacing (card padding) |
-| `lg` | 40px (2.5rem) | Large spacing (section gaps) |
-| `xl` | 64px (4rem) | Extra large spacing (page sections) |
-| `2xl` | 96px (6rem) | Hero section spacing |
+| Token | Value         | Usage                               |
+| ----- | ------------- | ----------------------------------- |
+| `xs`  | 8px (0.5rem)  | Tight spacing (icon-text gap)       |
+| `sm`  | 16px (1rem)   | Small spacing (between elements)    |
+| `md`  | 24px (1.5rem) | Medium spacing (card padding)       |
+| `lg`  | 40px (2.5rem) | Large spacing (section gaps)        |
+| `xl`  | 64px (4rem)   | Extra large spacing (page sections) |
+| `2xl` | 96px (6rem)   | Hero section spacing                |
 
 ---
 
 ## Border Radius
 
-| Token | Value | Usage |
-|-------|-------|-------|
-| `sm` | 8px | Small elements (badges, tags) |
-| `md` | 12px | Medium elements (inputs, cards) |
-| `lg` | 16px | Large elements (modals, large cards) |
-| `full` | 9999px | Pills, circular buttons |
+| Token  | Value  | Usage                                |
+| ------ | ------ | ------------------------------------ |
+| `sm`   | 8px    | Small elements (badges, tags)        |
+| `md`   | 12px   | Medium elements (inputs, cards)      |
+| `lg`   | 16px   | Large elements (modals, large cards) |
+| `full` | 9999px | Pills, circular buttons              |
 
 ---
 
 ## Shadows
 
-| Token | Value | Usage |
-|-------|-------|-------|
-| `sm` | `0 1px 2px 0 rgb(0 0 0 / 0.05)` | Subtle elevation |
-| `md` | `0 4px 6px -1px rgb(0 0 0 / 0.1)` | Cards, dropdowns |
-| `lg` | `0 10px 15px -3px rgb(0 0 0 / 0.1)` | Modals, popovers |
-| `none` | `none` | Flat design (preferred for most elements) |
+| Token  | Value                               | Usage                                     |
+| ------ | ----------------------------------- | ----------------------------------------- |
+| `sm`   | `0 1px 2px 0 rgb(0 0 0 / 0.05)`     | Subtle elevation                          |
+| `md`   | `0 4px 6px -1px rgb(0 0 0 / 0.1)`   | Cards, dropdowns                          |
+| `lg`   | `0 10px 15px -3px rgb(0 0 0 / 0.1)` | Modals, popovers                          |
+| `none` | `none`                              | Flat design (preferred for most elements) |
 
 **Note:** NextAuth uses minimal shadows. Prefer flat design with subtle borders.
 
@@ -124,6 +133,7 @@ font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', '
 ### Button
 
 **Primary (Nigerian Green Accent)**
+
 - Background: `accent` (#008751)
 - Text: White (#FFFFFF)
 - Padding: 12px 32px
@@ -133,6 +143,7 @@ font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', '
 - Active: Scale 0.98
 
 **Secondary**
+
 - Background: Transparent
 - Text: `accent` (#008751)
 - Border: 1px solid `accent`
@@ -142,6 +153,7 @@ font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', '
 - Hover: Background `accent-light`
 
 **Danger**
+
 - Background: `error` (#EF4444 light, #F87171 dark)
 - Text: White
 - Padding: 12px 32px
@@ -152,6 +164,7 @@ font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', '
 ### Card
 
 **Feature Card (Circular Icon)**
+
 - Circular gradient background (200px diameter)
 - Icon/illustration inside circle
 - Heading below (h3, 24px, bold)
@@ -159,6 +172,7 @@ font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', '
 - Spacing: 24px between elements
 
 **Data Card (Dashboard)**
+
 - Background: `surface` with glassmorphism effect
 - Border: 1px solid `border`
 - Border radius: `lg` (16px)
@@ -166,6 +180,7 @@ font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', '
 - Hover: `surface-hover` background
 
 **Glassmorphism Effect (for widgets only, not icons):**
+
 ```css
 background: rgba(255, 255, 255, 0.1); /* Light theme */
 background: rgba(26, 26, 26, 0.8); /* Dark theme */
@@ -195,6 +210,7 @@ border: 1px solid rgba(255, 255, 255, 0.2);
 ### Navigation
 
 **Header**
+
 - Height: 64px
 - Background: `background` (transparent on scroll)
 - Border bottom: 1px solid `border`
@@ -204,6 +220,7 @@ border: 1px solid rgba(255, 255, 255, 0.2);
 - Right side: Theme toggle, user menu
 
 **Footer**
+
 - 3-column layout
 - Section headings: 16px, Semi Bold (600)
 - Links: 14px, Regular (400), `muted`
@@ -222,6 +239,7 @@ border: 1px solid rgba(255, 255, 255, 0.2);
 ### Progress
 
 **Circular (Compliance Health)**
+
 - Diameter: 120px
 - Stroke width: 8px
 - Stroke color: `accent` (#008751)
@@ -229,6 +247,7 @@ border: 1px solid rgba(255, 255, 255, 0.2);
 - Center text: Percentage, h2, bold
 
 **Linear**
+
 - Height: 8px
 - Background: `border`
 - Fill: `accent` (#008751)
@@ -254,13 +273,13 @@ border: 1px solid rgba(255, 255, 255, 0.2);
 
 ### Breakpoints
 
-| Name | Min Width | Usage |
-|------|-----------|-------|
-| `sm` | 640px | Mobile landscape |
-| `md` | 768px | Tablet portrait |
-| `lg` | 1024px | Tablet landscape, small desktop |
-| `xl` | 1280px | Desktop |
-| `2xl` | 1536px | Large desktop |
+| Name  | Min Width | Usage                           |
+| ----- | --------- | ------------------------------- |
+| `sm`  | 640px     | Mobile landscape                |
+| `md`  | 768px     | Tablet portrait                 |
+| `lg`  | 1024px    | Tablet landscape, small desktop |
+| `xl`  | 1280px    | Desktop                         |
+| `2xl` | 1536px    | Large desktop                   |
 
 ### Grid
 
@@ -279,6 +298,7 @@ border: 1px solid rgba(255, 255, 255, 0.2);
 - **UI components:** 3:1 minimum
 
 **Verified:**
+
 - `foreground` on `background`: 21:1 (AAA) ✅
 - `muted` on `background`: 5.7:1 (AA) ✅
 - `accent` on white: 4.8:1 (AA) ✅
@@ -308,28 +328,28 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        background: 'var(--background)',
-        surface: 'var(--surface)',
-        foreground: 'var(--foreground)',
-        muted: 'var(--muted)',
-        border: 'var(--border)',
-        accent: 'var(--accent)',
+        background: "var(--background)",
+        surface: "var(--surface)",
+        foreground: "var(--foreground)",
+        muted: "var(--muted)",
+        border: "var(--border)",
+        accent: "var(--accent)",
         // ... (all tokens)
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ["Inter", "system-ui", "sans-serif"],
       },
       fontSize: {
-        hero: ['4.5rem', { lineHeight: '1.1', fontWeight: '900' }],
+        hero: ["4.5rem", { lineHeight: "1.1", fontWeight: "900" }],
         // ... (all type scale)
       },
       spacing: {
-        xs: '0.5rem',
-        sm: '1rem',
-        md: '1.5rem',
-        lg: '2.5rem',
-        xl: '4rem',
-        '2xl': '6rem',
+        xs: "0.5rem",
+        sm: "1rem",
+        md: "1.5rem",
+        lg: "2.5rem",
+        xl: "4rem",
+        "2xl": "6rem",
       },
     },
   },
@@ -352,7 +372,7 @@ module.exports = {
   /* ... */
 }
 
-[data-theme='dark'] {
+[data-theme="dark"] {
   --background: #000000;
   --surface: #1a1a1a;
   --foreground: #ffffff;
@@ -369,12 +389,12 @@ module.exports = {
 
 ```tsx
 // app/layout.tsx
-import { Inter } from 'next/font/google';
+import { Inter } from "next/font/google";
 
 const inter = Inter({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-inter',
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-inter",
 });
 
 export default function RootLayout({ children }) {

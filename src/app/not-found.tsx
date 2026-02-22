@@ -1,5 +1,5 @@
-import Link from 'next/link';
-import { Home, ArrowLeft } from 'lucide-react';
+import Link from "next/link";
+import { Home, ArrowLeft } from "lucide-react";
 
 export default function NotFound() {
   return (
@@ -9,7 +9,8 @@ export default function NotFound() {
         <div className="space-y-2">
           <h2 className="text-xl font-bold">Page Not Found</h2>
           <p className="text-sm text-[rgb(var(--text-secondary))]">
-            The page you&apos;re looking for doesn&apos;t exist or has been moved.
+            The page you&apos;re looking for doesn&apos;t exist or has been
+            moved.
           </p>
         </div>
         <div className="flex items-center gap-3">

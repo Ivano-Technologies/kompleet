@@ -3,9 +3,9 @@
  * Handles encrypted PDFs, text extraction, and OCR fallback
  */
 
-import { PDFParse } from 'pdf-parse';
-import { RawRow, ParseResult, ParseError } from './types';
-import { normalizeTransactions } from './normalizeTransactions';
+import { PDFParse } from "pdf-parse";
+import { RawRow, ParseResult, ParseError } from "./types";
+import { normalizeTransactions } from "./normalizeTransactions";
 
 /**
  * Parse PDF file
@@ -14,19 +14,29 @@ export async function parsePdf(
   buffer: Buffer,
   userId: string,
   sourceFileId: string,
-  password?: string
+  password?: string,
 ): Promise<ParseResult> {
   void password; // pdf-parse does not support encrypted PDFs; caller handles decryption
   try {
     // 1. Extract text using pdf-parse (Node.js compatible)
     const parser = new PDFParse({ data: buffer });
-    const result = await (parser as any).getText() as { text?: string; total?: number } | undefined;
-    const fullText = (result?.text != null && typeof result.text === 'string') ? result.text : '';
-    const pageCount = (result?.total != null && typeof result.total === 'number') ? result.total : 0;
+    const result = (await (parser as any).getText()) as
+      | { text?: string; total?: number }
+      | undefined;
+    const fullText =
+      result?.text != null && typeof result.text === "string"
+        ? result.text
+        : "";
+    const pageCount =
+      result?.total != null && typeof result.total === "number"
+        ? result.total
+        : 0;
 
     // 2. If text extraction failed, surface a clear error
     if (!fullText || fullText.trim().length < 50) {
-      throw new Error('Could not extract text from PDF. File may be corrupted or require OCR.');
+      throw new Error(
+        "Could not extract text from PDF. File may be corrupted or require OCR.",
+      );
     }
 
     // 4. Parse text into rows using LLM
@@ -35,9 +45,9 @@ export async function parsePdf(
     // 5. Normalize transactions
     const { transactions, errors: normalizationErrors } = normalizeTransactions(
       rawRows,
-      'pdf',
+      "pdf",
       userId,
-      sourceFileId
+      sourceFileId,
     );
 
     return {
@@ -46,18 +56,20 @@ export async function parsePdf(
       totalRows: rawRows.length,
       successfulRows: transactions.length,
       fileMetadata: {
-        fileName: 'unknown.pdf',
+        fileName: "unknown.pdf",
         fileSize: buffer.length,
-        fileType: 'pdf',
+        fileType: "pdf",
         isEncrypted: false,
         pageCount,
       },
     };
   } catch (error) {
-    if (error instanceof Error && error.message.includes('password')) {
-      throw new Error('PASSWORD_REQUIRED');
+    if (error instanceof Error && error.message.includes("password")) {
+      throw new Error("PASSWORD_REQUIRED");
     }
-    throw new Error(`PDF parsing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw new Error(
+      `PDF parsing failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
   }
 }
 
@@ -76,11 +88,15 @@ async function parseTextWithLLM(text: string): Promise<RawRow[]> {
   // Common format: DATE | DESCRIPTION | AMOUNT
   // Example: 2026-02-18 | TRANSFER TO JOHN DOE | 50,000.00
 
-  const lines = text.split('\n');
+  const lines = text.split("\n");
 
   for (const line of lines) {
     // Skip empty lines and headers
-    if (!line.trim() || line.toLowerCase().includes('date') || line.toLowerCase().includes('balance')) {
+    if (
+      !line.trim() ||
+      line.toLowerCase().includes("date") ||
+      line.toLowerCase().includes("balance")
+    ) {
       continue;
     }
 
@@ -109,7 +125,7 @@ function parseTransactionLine(line: string): RawRow | null {
 
   // Try to extract date (various formats)
   const dateMatch = trimmed.match(
-    /(\d{1,2}[-\/]\d{1,2}[-\/]\d{4}|\d{4}[-\/]\d{1,2}[-\/]\d{1,2}|\d{1,2}-[A-Za-z]{3}-\d{4})/
+    /(\d{1,2}[-\/]\d{1,2}[-\/]\d{4}|\d{4}[-\/]\d{1,2}[-\/]\d{1,2}|\d{1,2}-[A-Za-z]{3}-\d{4})/,
   );
 
   if (!dateMatch) {
@@ -117,7 +133,9 @@ function parseTransactionLine(line: string): RawRow | null {
   }
 
   const date = dateMatch[0];
-  const afterDate = trimmed.substring(dateMatch.index! + dateMatch[0].length).trim();
+  const afterDate = trimmed
+    .substring(dateMatch.index! + dateMatch[0].length)
+    .trim();
 
   // Try to extract amount (currency symbols, commas, decimals)
   const amountMatch = afterDate.match(/[\d,]+\.?\d{0,2}\s*(?:NGN|₦|\$|€)?/);
@@ -132,7 +150,7 @@ function parseTransactionLine(line: string): RawRow | null {
   const beforeAmount = afterDate.substring(0, amountMatch.index).trim();
 
   // Remove trailing punctuation from description
-  const description = beforeAmount.replace(/[|,;-]+$/, '').trim();
+  const description = beforeAmount.replace(/[|,;-]+$/, "").trim();
 
   if (!description) {
     return null;

@@ -4,9 +4,9 @@
  * local cache (e.g. SecureStore) used to avoid blocking UI when offline.
  */
 
-import * as SecureStore from 'expo-secure-store';
+import * as SecureStore from "expo-secure-store";
 
-const CONSENT_KEY = 'ndpr_consent_given';
+const CONSENT_KEY = "ndpr_consent_given";
 
 export interface NDPRConsent {
   consentScan: boolean;
@@ -38,7 +38,9 @@ export async function hasConsent(): Promise<boolean> {
  * Persist locally and optionally sync to Supabase when client is available.
  */
 export async function acceptConsent(supabase?: {
-  from: (table: string) => { upsert: (row: Record<string, unknown>) => Promise<{ error: unknown }> };
+  from: (table: string) => {
+    upsert: (row: Record<string, unknown>) => Promise<{ error: unknown }>;
+  };
   auth: { getUser: () => Promise<{ data: { user: { id: string } | null } }> };
 }): Promise<void> {
   const consent: NDPRConsent = {
@@ -53,7 +55,7 @@ export async function acceptConsent(supabase?: {
       const { data } = await supabase.auth.getUser();
       const userId = data?.user?.id;
       if (userId) {
-        await supabase.from('ndpr_consents').upsert({
+        await supabase.from("ndpr_consents").upsert({
           user_id: userId,
           consent_scan: true,
           consent_cloud_sync: true,

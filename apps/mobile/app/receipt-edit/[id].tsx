@@ -1,8 +1,8 @@
 /**
  * Manual correction screen: edit expense fields after OCR (or manual entry).
  */
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -14,22 +14,25 @@ import {
   ScrollView,
   Modal,
   FlatList,
-} from 'react-native';
-import { getExpenseById, updateExpense } from '@/lib/db/expense-repository';
-import { getPendingReceiptUri, clearPendingReceiptUri } from '@/lib/receipt-pending-image';
-import { getSignedInUserId, uploadReceipt } from '@/lib/receipt-upload';
-import { listCategories, getCategoryNameById } from '@/lib/db/categories';
+} from "react-native";
+import { getExpenseById, updateExpense } from "@/lib/db/expense-repository";
+import {
+  getPendingReceiptUri,
+  clearPendingReceiptUri,
+} from "@/lib/receipt-pending-image";
+import { getSignedInUserId, uploadReceipt } from "@/lib/receipt-upload";
+import { listCategories, getCategoryNameById } from "@/lib/db/categories";
 
 export default function ReceiptEditScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [vendor, setVendor] = useState('');
-  const [date, setDate] = useState('');
-  const [amount, setAmount] = useState('');
-  const [vat, setVat] = useState('');
-  const [notes, setNotes] = useState('');
+  const [vendor, setVendor] = useState("");
+  const [date, setDate] = useState("");
+  const [amount, setAmount] = useState("");
+  const [vat, setVat] = useState("");
+  const [notes, setNotes] = useState("");
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [categoryModalVisible, setCategoryModalVisible] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,14 +42,14 @@ export default function ReceiptEditScreen() {
     if (!id) return;
     const row = getExpenseById(id);
     if (row) {
-      setVendor(row.vendor ?? '');
-      setDate(row.date ?? '');
-      setAmount(String(row.amount ?? ''));
-      setVat(String(row.vat_amount ?? ''));
-      setNotes(row.notes ?? '');
+      setVendor(row.vendor ?? "");
+      setDate(row.date ?? "");
+      setAmount(String(row.amount ?? ""));
+      setVat(String(row.vat_amount ?? ""));
+      setNotes(row.notes ?? "");
       setCategoryId(row.category_id ?? null);
     } else {
-      setError('Expense not found');
+      setError("Expense not found");
     }
     setLoading(false);
   }, [id]);
@@ -55,7 +58,7 @@ export default function ReceiptEditScreen() {
     if (!id) return;
     const amt = parseFloat(amount);
     if (Number.isNaN(amt) || amt < 0) {
-      Alert.alert('Invalid amount', 'Enter a valid amount.');
+      Alert.alert("Invalid amount", "Enter a valid amount.");
       return;
     }
     setSaving(true);
@@ -66,7 +69,8 @@ export default function ReceiptEditScreen() {
       if (pendingUri) {
         const signedInUserId = await getSignedInUserId();
         if (signedInUserId) {
-          receiptUrl = (await uploadReceipt(pendingUri, signedInUserId, id)) ?? undefined;
+          receiptUrl =
+            (await uploadReceipt(pendingUri, signedInUserId, id)) ?? undefined;
         }
         clearPendingReceiptUri();
       }
@@ -81,7 +85,7 @@ export default function ReceiptEditScreen() {
       });
       router.back();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Save failed');
+      setError(e instanceof Error ? e.message : "Save failed");
     } finally {
       setSaving(false);
     }
@@ -125,7 +129,7 @@ export default function ReceiptEditScreen() {
         onPress={() => setCategoryModalVisible(true)}
       >
         <Text style={categoryId ? styles.inputText : styles.placeholder}>
-          {categoryId ? getCategoryNameById(categoryId) : 'Select category'}
+          {categoryId ? getCategoryNameById(categoryId) : "Select category"}
         </Text>
       </Pressable>
       <Modal
@@ -134,12 +138,21 @@ export default function ReceiptEditScreen() {
         animationType="slide"
         onRequestClose={() => setCategoryModalVisible(false)}
       >
-        <Pressable style={styles.modalOverlay} onPress={() => setCategoryModalVisible(false)}>
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setCategoryModalVisible(false)}
+        >
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Category</Text>
             <FlatList
-              data={[{ id: null, name: 'None' } as { id: string | null; name: string }, ...categories]}
-              keyExtractor={(item) => item.id ?? 'none'}
+              data={[
+                { id: null, name: "None" } as {
+                  id: string | null;
+                  name: string;
+                },
+                ...categories,
+              ]}
+              keyExtractor={(item) => item.id ?? "none"}
               renderItem={({ item }) => (
                 <Pressable
                   style={styles.modalRow}
@@ -203,35 +216,60 @@ export default function ReceiptEditScreen() {
 }
 
 const styles = StyleSheet.create({
-  centered: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
+  centered: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 24,
+  },
   container: { padding: 24, paddingBottom: 48 },
-  backButton: { alignSelf: 'flex-start', marginBottom: 16 },
-  backButtonText: { fontSize: 16, color: '#008751', fontWeight: '600' },
-  label: { fontSize: 14, fontWeight: '600', color: '#333', marginBottom: 6, marginTop: 12 },
+  backButton: { alignSelf: "flex-start", marginBottom: 16 },
+  backButtonText: { fontSize: 16, color: "#008751", fontWeight: "600" },
+  label: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 6,
+    marginTop: 12,
+  },
   input: {
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: "#ccc",
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
-  inputText: { color: '#000' },
-  placeholder: { color: '#888' },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  modalContent: { backgroundColor: '#fff', borderTopLeftRadius: 16, borderTopRightRadius: 16, maxHeight: '50%', padding: 16 },
-  modalTitle: { fontSize: 18, fontWeight: '600', marginBottom: 12 },
-  modalRow: { paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#eee' },
-  modalRowText: { fontSize: 16, color: '#333' },
-  notes: { minHeight: 80, textAlignVertical: 'top' },
+  inputText: { color: "#000" },
+  placeholder: { color: "#888" },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    maxHeight: "50%",
+    padding: 16,
+  },
+  modalTitle: { fontSize: 18, fontWeight: "600", marginBottom: 12 },
+  modalRow: {
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+  modalRowText: { fontSize: 16, color: "#333" },
+  notes: { minHeight: 80, textAlignVertical: "top" },
   button: {
-    backgroundColor: '#008751',
+    backgroundColor: "#008751",
     padding: 16,
     borderRadius: 8,
     marginTop: 24,
-    alignItems: 'center',
+    alignItems: "center",
   },
   buttonDisabled: { opacity: 0.7 },
-  buttonText: { color: '#fff', fontSize: 18, fontWeight: '600' },
-  error: { color: '#c00', marginBottom: 16, textAlign: 'center' },
+  buttonText: { color: "#fff", fontSize: 18, fontWeight: "600" },
+  error: { color: "#c00", marginBottom: 16, textAlign: "center" },
 });

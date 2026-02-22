@@ -2,7 +2,7 @@
  * Professional Tax Report Template Service
  * Generates KOMPLEET-branded tax reports with navy blue and jade green styling
  * Optimized for both color and black & white printing
- * 
+ *
  * Color Scheme:
  * - Background: White (#FFFFFF)
  * - Primary Accent: Jade Green (#2D8659)
@@ -10,11 +10,11 @@
  * - Text: Charcoal (#2C3E50)
  */
 
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 // Extend jsPDF type for autoTable
-declare module 'jspdf' {
+declare module "jspdf" {
   interface jsPDF {
     autoTable: (options: any) => jsPDF;
   }
@@ -22,16 +22,16 @@ declare module 'jspdf' {
 
 // Color constants
 const COLORS = {
-  white: '#FFFFFF',
-  jadeGreen: '#2D8659',
-  navyBlue: '#001F3F',
-  charcoal: '#2C3E50',
-  lightGray: '#F8F9FA',
-  borderGray: '#E9ECEF',
+  white: "#FFFFFF",
+  jadeGreen: "#2D8659",
+  navyBlue: "#001F3F",
+  charcoal: "#2C3E50",
+  lightGray: "#F8F9FA",
+  borderGray: "#E9ECEF",
 };
 
 export interface TaxReportData {
-  reportType: 'PIT' | 'CIT' | 'VAT';
+  reportType: "PIT" | "CIT" | "VAT";
   taxpayerName: string;
   tin: string;
   taxYear: number;
@@ -57,33 +57,33 @@ function addReportHeader(
   doc: jsPDF,
   reportType: string,
   taxpayerName: string,
-  taxYear: number
+  taxYear: number,
 ): number {
   const pageWidth = doc.internal.pageSize.getWidth();
   let yPosition = 10;
 
   // White background (default)
   doc.setFillColor(255, 255, 255);
-  doc.rect(0, 0, pageWidth, 35, 'F');
+  doc.rect(0, 0, pageWidth, 35, "F");
 
   // Logo placeholder (navy blue text on white)
   doc.setTextColor(0, 31, 63); // Navy blue
   doc.setFontSize(18);
-  doc.setFont('helvetica', 'bold');
-  doc.text('KOMPLEET', 15, 18);
+  doc.setFont("helvetica", "bold");
+  doc.text("KOMPLEET", 15, 18);
 
   doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
-  doc.text('Nigerian Tax Platform', 15, 25);
+  doc.setFont("helvetica", "normal");
+  doc.text("Nigerian Tax Platform", 15, 25);
 
   // Report title (right side)
   doc.setFontSize(12);
-  doc.setFont('helvetica', 'bold');
-  doc.text(`${reportType} Report`, pageWidth - 15, 18, { align: 'right' });
+  doc.setFont("helvetica", "bold");
+  doc.text(`${reportType} Report`, pageWidth - 15, 18, { align: "right" });
 
   doc.setFontSize(9);
-  doc.setFont('helvetica', 'normal');
-  doc.text(`Tax Year: ${taxYear}`, pageWidth - 15, 25, { align: 'right' });
+  doc.setFont("helvetica", "normal");
+  doc.text(`Tax Year: ${taxYear}`, pageWidth - 15, 25, { align: "right" });
 
   // Subtle jade green line under header
   doc.setDrawColor(45, 134, 89); // Jade green
@@ -104,15 +104,15 @@ function addTaxpayerInfo(
   yPosition: number,
   taxpayerName: string,
   tin: string,
-  generatedDate: Date
+  generatedDate: Date,
 ): number {
   const pageWidth = doc.internal.pageSize.getWidth();
 
   // Section title with subtle navy blue underline
   doc.setFontSize(11);
-  doc.setFont('helvetica', 'bold');
+  doc.setFont("helvetica", "bold");
   doc.setTextColor(0, 31, 63); // Navy blue
-  doc.text('TAXPAYER INFORMATION', 15, yPosition);
+  doc.text("TAXPAYER INFORMATION", 15, yPosition);
 
   // Subtle navy blue line under title
   doc.setDrawColor(0, 31, 63);
@@ -123,17 +123,20 @@ function addTaxpayerInfo(
 
   // Info table
   doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
+  doc.setFont("helvetica", "normal");
   doc.setTextColor(44, 62, 80); // Charcoal
 
   const infoData = [
-    ['Taxpayer Name:', taxpayerName],
-    ['TIN:', tin],
-    ['Report Generated:', generatedDate.toLocaleDateString('en-NG', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    })],
+    ["Taxpayer Name:", taxpayerName],
+    ["TIN:", tin],
+    [
+      "Report Generated:",
+      generatedDate.toLocaleDateString("en-NG", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }),
+    ],
   ];
 
   infoData.forEach((row, index) => {
@@ -143,10 +146,10 @@ function addTaxpayerInfo(
       doc.setLineWidth(0.2);
       doc.line(15, yPosition - 2, pageWidth - 15, yPosition - 2);
     }
-    
-    doc.setFont('helvetica', 'bold');
+
+    doc.setFont("helvetica", "bold");
     doc.text(row[0], 15, yPosition);
-    doc.setFont('helvetica', 'normal');
+    doc.setFont("helvetica", "normal");
     doc.text(String(row[1]), 60, yPosition);
     yPosition += 7;
   });
@@ -160,14 +163,14 @@ function addTaxpayerInfo(
 function addCalculationSection(
   doc: jsPDF,
   yPosition: number,
-  sections: ReportSection[]
+  sections: ReportSection[],
 ): number {
   const pageWidth = doc.internal.pageSize.getWidth();
 
   sections.forEach((section) => {
     // Section title with subtle jade green underline
     doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
+    doc.setFont("helvetica", "bold");
     doc.setTextColor(45, 134, 89); // Jade green
     doc.text(section.title, 15, yPosition);
 
@@ -189,16 +192,20 @@ function addCalculationSection(
       doc.line(15, yPosition - 2, pageWidth - 15, yPosition - 2);
 
       // Label
-      doc.setFont(row.isBold ? 'helvetica' : 'helvetica', row.isBold ? 'bold' : 'normal');
+      doc.setFont(
+        row.isBold ? "helvetica" : "helvetica",
+        row.isBold ? "bold" : "normal",
+      );
       doc.setFontSize(row.isTotal ? 11 : 10);
       doc.text(row.label, 20, yPosition);
 
       // Value (right-aligned)
-      const valueText = typeof row.value === 'number'
-        ? `₦${row.value.toLocaleString('en-NG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-        : String(row.value);
+      const valueText =
+        typeof row.value === "number"
+          ? `₦${row.value.toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+          : String(row.value);
 
-      doc.text(valueText, pageWidth - 20, yPosition, { align: 'right' });
+      doc.text(valueText, pageWidth - 20, yPosition, { align: "right" });
 
       // Bottom border for total rows (navy blue)
       if (row.isTotal) {
@@ -220,10 +227,7 @@ function addCalculationSection(
 /**
  * Add footer with compliance information
  */
-function addReportFooter(
-  doc: jsPDF,
-  disclaimer?: string
-): void {
+function addReportFooter(doc: jsPDF, disclaimer?: string): void {
   const pageHeight = doc.internal.pageSize.getHeight();
   const pageWidth = doc.internal.pageSize.getWidth();
 
@@ -235,12 +239,13 @@ function addReportFooter(
 
   // Disclaimer text
   doc.setFontSize(8);
-  doc.setFont('helvetica', 'normal');
+  doc.setFont("helvetica", "normal");
   doc.setTextColor(44, 62, 80);
 
-  const disclaimerText = disclaimer || 
-    'This report is generated for informational purposes only and should not be considered as professional tax advice. ' +
-    'Tax laws and regulations are subject to change. Please consult with a qualified tax professional for specific guidance.';
+  const disclaimerText =
+    disclaimer ||
+    "This report is generated for informational purposes only and should not be considered as professional tax advice. " +
+      "Tax laws and regulations are subject to change. Please consult with a qualified tax professional for specific guidance.";
 
   const disclaimerLines = doc.splitTextToSize(disclaimerText, pageWidth - 30);
   doc.text(disclaimerLines, 15, pageHeight - 30);
@@ -248,7 +253,12 @@ function addReportFooter(
   // Copyright
   doc.setFontSize(7);
   doc.setTextColor(149, 165, 166); // Light gray
-  doc.text('© 2026 KOMPLEET - Nigerian Tax Platform', pageWidth / 2, pageHeight - 5, { align: 'center' });
+  doc.text(
+    "© 2026 KOMPLEET - Nigerian Tax Platform",
+    pageWidth / 2,
+    pageHeight - 5,
+    { align: "center" },
+  );
 }
 
 /**
@@ -256,18 +266,29 @@ function addReportFooter(
  */
 export function generateProfessionalTaxReport(data: TaxReportData): jsPDF {
   const doc = new jsPDF({
-    orientation: 'portrait',
-    unit: 'mm',
-    format: 'a4',
+    orientation: "portrait",
+    unit: "mm",
+    format: "a4",
   });
 
   let yPosition = 0;
 
   // Add header with logo
-  yPosition = addReportHeader(doc, data.reportType, data.taxpayerName, data.taxYear);
+  yPosition = addReportHeader(
+    doc,
+    data.reportType,
+    data.taxpayerName,
+    data.taxYear,
+  );
 
   // Add taxpayer information
-  yPosition = addTaxpayerInfo(doc, yPosition, data.taxpayerName, data.tin, data.generatedDate);
+  yPosition = addTaxpayerInfo(
+    doc,
+    yPosition,
+    data.taxpayerName,
+    data.tin,
+    data.generatedDate,
+  );
 
   // Add calculation sections
   addCalculationSection(doc, yPosition, data.sections);
@@ -282,7 +303,7 @@ export function generateProfessionalTaxReport(data: TaxReportData): jsPDF {
  * Export report as PDF buffer
  */
 export function exportReportAsPDF(doc: jsPDF): Buffer {
-  const pdfData = doc.output('arraybuffer');
+  const pdfData = doc.output("arraybuffer");
   return Buffer.from(pdfData);
 }
 

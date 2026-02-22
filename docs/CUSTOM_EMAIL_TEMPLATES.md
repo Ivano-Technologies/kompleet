@@ -7,6 +7,7 @@ This guide explains how to configure custom email templates in Supabase so that 
 ## Current Issue
 
 Currently, users receive emails from:
+
 - **Sender:** `Supabase Auth <noreply@mail.app.supabase.io>`
 - **Branding:** Generic Supabase branding
 - **User Experience:** Confusing - users expect emails from KOMPLEET
@@ -37,18 +38,29 @@ Click on **"Confirm signup"** and replace with:
 
 <p>Hi there,</p>
 
-<p>Thank you for signing up for KOMPLEET - your Nigerian Tax Compliance Platform.</p>
+<p>
+  Thank you for signing up for KOMPLEET - your Nigerian Tax Compliance Platform.
+</p>
 
-<p>To complete your registration and start using our tax calculators, please confirm your email address by clicking the button below:</p>
+<p>
+  To complete your registration and start using our tax calculators, please
+  confirm your email address by clicking the button below:
+</p>
 
-<p><a href="{{ .ConfirmationURL }}" style="display: inline-block; padding: 12px 24px; background-color: #10b981; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;">Confirm Email Address</a></p>
+<p>
+  <a
+    href="{{ .ConfirmationURL }}"
+    style="display: inline-block; padding: 12px 24px; background-color: #10b981; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;"
+    >Confirm Email Address</a
+  >
+</p>
 
 <p>Or copy and paste this link into your browser:</p>
 <p>{{ .ConfirmationURL }}</p>
 
 <p>This link will expire in 24 hours.</p>
 
-<hr>
+<hr />
 
 <p><strong>What you can do with KOMPLEET:</strong></p>
 <ul>
@@ -59,16 +71,21 @@ Click on **"Confirm signup"** and replace with:
   <li>Track your calculation history</li>
 </ul>
 
-<hr>
+<hr />
 
-<p>If you didn't create an account with KOMPLEET, you can safely ignore this email.</p>
+<p>
+  If you didn't create an account with KOMPLEET, you can safely ignore this
+  email.
+</p>
 
-<p>Best regards,<br>
-<strong>The KOMPLEET Team</strong><br>
-Ivano Technologies Ltd</p>
+<p>
+  Best regards,<br />
+  <strong>The KOMPLEET Team</strong><br />
+  Ivano Technologies Ltd
+</p>
 
 <p style="font-size: 12px; color: #666;">
-This is an automated email from KOMPLEET. Please do not reply to this email.
+  This is an automated email from KOMPLEET. Please do not reply to this email.
 </p>
 ```
 
@@ -85,14 +102,20 @@ Click on **"Reset Password"** and replace with:
 
 <p>To reset your password, click the button below:</p>
 
-<p><a href="{{ .ConfirmationURL }}" style="display: inline-block; padding: 12px 24px; background-color: #10b981; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;">Reset Password</a></p>
+<p>
+  <a
+    href="{{ .ConfirmationURL }}"
+    style="display: inline-block; padding: 12px 24px; background-color: #10b981; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;"
+    >Reset Password</a
+  >
+</p>
 
 <p>Or copy and paste this link into your browser:</p>
 <p>{{ .ConfirmationURL }}</p>
 
 <p>This link will expire in 1 hour.</p>
 
-<hr>
+<hr />
 
 <p><strong>Security Notice:</strong></p>
 <ul>
@@ -101,16 +124,21 @@ Click on **"Reset Password"** and replace with:
   <li>Never share your password with anyone</li>
 </ul>
 
-<hr>
+<hr />
 
-<p>If you're having trouble accessing your account, please contact our support team.</p>
+<p>
+  If you're having trouble accessing your account, please contact our support
+  team.
+</p>
 
-<p>Best regards,<br>
-<strong>The KOMPLEET Team</strong><br>
-Ivano Technologies Ltd</p>
+<p>
+  Best regards,<br />
+  <strong>The KOMPLEET Team</strong><br />
+  Ivano Technologies Ltd
+</p>
 
 <p style="font-size: 12px; color: #666;">
-This is an automated email from KOMPLEET. Please do not reply to this email.
+  This is an automated email from KOMPLEET. Please do not reply to this email.
 </p>
 ```
 
@@ -125,23 +153,33 @@ Click on **"Magic Link"** and replace with:
 
 <p>Click the button below to sign in to your KOMPLEET account:</p>
 
-<p><a href="{{ .ConfirmationURL }}" style="display: inline-block; padding: 12px 24px; background-color: #10b981; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;">Sign In</a></p>
+<p>
+  <a
+    href="{{ .ConfirmationURL }}"
+    style="display: inline-block; padding: 12px 24px; background-color: #10b981; color: white; text-decoration: none; border-radius: 6px; font-weight: bold;"
+    >Sign In</a
+  >
+</p>
 
 <p>Or copy and paste this link into your browser:</p>
 <p>{{ .ConfirmationURL }}</p>
 
 <p>This link will expire in 1 hour.</p>
 
-<hr>
+<hr />
 
-<p>If you didn't request this sign-in link, you can safely ignore this email.</p>
+<p>
+  If you didn't request this sign-in link, you can safely ignore this email.
+</p>
 
-<p>Best regards,<br>
-<strong>The KOMPLEET Team</strong><br>
-Ivano Technologies Ltd</p>
+<p>
+  Best regards,<br />
+  <strong>The KOMPLEET Team</strong><br />
+  Ivano Technologies Ltd
+</p>
 
 <p style="font-size: 12px; color: #666;">
-This is an automated email from KOMPLEET. Please do not reply to this email.
+  This is an automated email from KOMPLEET. Please do not reply to this email.
 </p>
 ```
 
@@ -160,6 +198,7 @@ For complete branding, you can configure custom SMTP to send from your own domai
    - **Sender Name:** KOMPLEET
 
 **Recommended SMTP Providers:**
+
 - **SendGrid** - Free tier: 100 emails/day
 - **AWS SES** - $0.10 per 1,000 emails
 - **Mailgun** - Free tier: 5,000 emails/month
@@ -187,16 +226,19 @@ Supabase provides these variables you can use in templates:
 ## Styling Guidelines
 
 **Colors:**
+
 - Primary Green: `#10b981` (KOMPLEET brand color)
 - Text: `#333333`
 - Muted Text: `#666666`
 - Background: `#f9fafb`
 
 **Fonts:**
+
 - Use system fonts for email compatibility
 - Keep font sizes readable (14px minimum)
 
 **Layout:**
+
 - Keep width under 600px for mobile compatibility
 - Use inline CSS (email clients don't support `<style>` tags well)
 - Test on multiple email clients (Gmail, Outlook, Apple Mail)
@@ -212,6 +254,7 @@ Supabase provides these variables you can use in templates:
 ## Monitoring
 
 After deployment, monitor:
+
 - Email delivery rates
 - User complaints about not receiving emails
 - Spam folder issues
@@ -227,6 +270,7 @@ After deployment, monitor:
 ## Support
 
 If emails aren't being delivered:
+
 - Check Supabase logs: Dashboard → Logs → Auth Logs
 - Verify email isn't in spam folder
 - Check Supabase email rate limits (free tier: 4 emails/hour)

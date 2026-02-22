@@ -26,12 +26,14 @@ vercel --prod --force
 ```
 
 **What this does:**
+
 - Forces a new deployment
 - Pulls latest commit from GitHub (`05505e787`)
 - Bypasses cache
 - Deploys to production
 
 **Expected output:**
+
 ```
 🔍  Inspect: https://vercel.com/your-account/kompleet-platform/abc123
 ✅  Production: https://kompleet-platform.vercel.app
@@ -89,6 +91,7 @@ git push origin main
 If you have Vercel GitHub integration enabled, this will automatically trigger a deployment.
 
 **Check deployment status:**
+
 ```
 https://vercel.com/dashboard → Your Project → Deployments
 ```
@@ -110,6 +113,7 @@ https://vercel.com/dashboard
 ### Step 3: Check Build Logs
 
 Look for this line at the beginning:
+
 ```
 Cloning github.com/Ivano-Technologies/KOMPLEET-PLATFORM (Branch: main, Commit: 05505e7)
 ```
@@ -137,6 +141,7 @@ Possible reasons:
 ### Verify Build Completes
 
 **Expected in build logs:**
+
 ```
 ✓ Compiled successfully in 25.0s
 ✓ Generating static pages using 29 workers (86/86)
@@ -146,6 +151,7 @@ Route (app)
 ```
 
 **Should NOT see:**
+
 ```
 Error: ENOENT: no such file or directory, open '.../middleware.js.nft.json'
 ```
@@ -158,6 +164,7 @@ curl https://YOUR-URL.vercel.app/api/health
 ```
 
 **Expected response:**
+
 ```json
 {
   "status": "ok",
@@ -176,6 +183,7 @@ curl https://YOUR-URL.vercel.app/api/health
 If the deployment still fails with middleware error, check:
 
 1. **Verify middleware.ts exists:**
+
    ```bash
    ls src/middleware.ts
    # or
@@ -183,11 +191,13 @@ If the deployment still fails with middleware error, check:
    ```
 
 2. **Check vercel.json middleware config:**
+
    ```bash
    cat vercel.json
    ```
 
    Should NOT have:
+
    ```json
    "functions": {
      "middleware.js": { ... }
@@ -201,6 +211,7 @@ If the deployment still fails with middleware error, check:
 If middleware error persists, temporarily disable middleware:
 
 1. Rename middleware file:
+
    ```bash
    git mv middleware.ts middleware.ts.backup
    # or
@@ -208,6 +219,7 @@ If middleware error persists, temporarily disable middleware:
    ```
 
 2. Commit and push:
+
    ```bash
    git add .
    git commit -m "temp: disable middleware for deployment test"
@@ -215,6 +227,7 @@ If middleware error persists, temporarily disable middleware:
    ```
 
 3. Redeploy:
+
    ```bash
    vercel --prod --force
    ```

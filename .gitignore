@@ -26,6 +26,8 @@ tsconfig.tsbuildinfo
 # Local backups
 .backup_migrations/
 
+# Local browser cache / automation artifacts
+.browser_data_dir/
 
 K O M P L E E T \ 
  

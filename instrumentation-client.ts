@@ -24,9 +24,9 @@ Sentry.init({
   integrations: [
     // Session Replay: video-like reproduction of user sessions
     Sentry.replayIntegration({
-      maskAllText: true,       // Mask all text for privacy (NDPR compliance)
-      maskAllInputs: true,     // Mask form inputs (tax data is sensitive)
-      blockAllMedia: true,     // Block media elements
+      maskAllText: true, // Mask all text for privacy (NDPR compliance)
+      maskAllInputs: true, // Mask form inputs (tax data is sensitive)
+      blockAllMedia: true, // Block media elements
     }),
 
     // User Feedback: widget for users to report bugs
@@ -51,7 +51,15 @@ Sentry.init({
       event.breadcrumbs = event.breadcrumbs.map((crumb) => {
         if (crumb.data) {
           // Redact fields that might contain financial info
-          const sensitiveKeys = ["turnover", "profit", "income", "assets", "tin", "ssn", "bvn"];
+          const sensitiveKeys = [
+            "turnover",
+            "profit",
+            "income",
+            "assets",
+            "tin",
+            "ssn",
+            "bvn",
+          ];
           for (const key of sensitiveKeys) {
             if (key in crumb.data) {
               crumb.data[key] = "[REDACTED]";

@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { BarChart, FileText, ArrowUp, ArrowDown } from 'lucide-react';
+import { BarChart, FileText, ArrowUp, ArrowDown } from "lucide-react";
 
 interface YearData {
   year: number;
@@ -24,7 +24,7 @@ function formatNaira(val: number) {
 }
 
 function calculatePercentageChange(current: number, previous: number): string {
-  if (previous === 0) return 'N/A';
+  if (previous === 0) return "N/A";
   return (((current - previous) / previous) * 100).toFixed(2);
 }
 
@@ -40,7 +40,8 @@ export default function YoYClient({ data }: YoYClientProps) {
             Year-over-Year Comparison
           </h1>
           <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
-            {data.currentYear.year} vs {data.previousYear.year} financial performance
+            {data.currentYear.year} vs {data.previousYear.year} financial
+            performance
           </p>
         </div>
       </header>
@@ -58,8 +59,8 @@ export default function YoYClient({ data }: YoYClientProps) {
             <span
               className={`flex items-center text-sm font-medium ${
                 data.currentYear.revenue >= data.previousYear.revenue
-                  ? 'text-green-600 dark:text-green-400'
-                  : 'text-red-600 dark:text-red-400'
+                  ? "text-green-600 dark:text-green-400"
+                  : "text-red-600 dark:text-red-400"
               }`}
             >
               {data.currentYear.revenue >= data.previousYear.revenue ? (
@@ -67,7 +68,11 @@ export default function YoYClient({ data }: YoYClientProps) {
               ) : (
                 <ArrowDown className="h-4 w-4 mr-1" />
               )}
-              {calculatePercentageChange(data.currentYear.revenue, data.previousYear.revenue)}%
+              {calculatePercentageChange(
+                data.currentYear.revenue,
+                data.previousYear.revenue,
+              )}
+              %
             </span>
             <span className="text-sm text-light-text-tertiary dark:text-dark-text-tertiary ml-2">
               vs {formatNaira(data.previousYear.revenue)}
@@ -87,8 +92,8 @@ export default function YoYClient({ data }: YoYClientProps) {
             <span
               className={`flex items-center text-sm font-medium ${
                 data.currentYear.profit >= data.previousYear.profit
-                  ? 'text-green-600 dark:text-green-400'
-                  : 'text-red-600 dark:text-red-400'
+                  ? "text-green-600 dark:text-green-400"
+                  : "text-red-600 dark:text-red-400"
               }`}
             >
               {data.currentYear.profit >= data.previousYear.profit ? (
@@ -96,7 +101,11 @@ export default function YoYClient({ data }: YoYClientProps) {
               ) : (
                 <ArrowDown className="h-4 w-4 mr-1" />
               )}
-              {calculatePercentageChange(data.currentYear.profit, data.previousYear.profit)}%
+              {calculatePercentageChange(
+                data.currentYear.profit,
+                data.previousYear.profit,
+              )}
+              %
             </span>
             <span className="text-sm text-light-text-tertiary dark:text-dark-text-tertiary ml-2">
               vs {formatNaira(data.previousYear.profit)}
@@ -116,8 +125,8 @@ export default function YoYClient({ data }: YoYClientProps) {
             <span
               className={`flex items-center text-sm font-medium ${
                 data.currentYear.expenses <= data.previousYear.expenses
-                  ? 'text-green-600 dark:text-green-400'
-                  : 'text-red-600 dark:text-red-400'
+                  ? "text-green-600 dark:text-green-400"
+                  : "text-red-600 dark:text-red-400"
               }`}
             >
               {data.currentYear.expenses <= data.previousYear.expenses ? (
@@ -125,7 +134,11 @@ export default function YoYClient({ data }: YoYClientProps) {
               ) : (
                 <ArrowUp className="h-4 w-4 mr-1" />
               )}
-              {calculatePercentageChange(data.currentYear.expenses, data.previousYear.expenses)}%
+              {calculatePercentageChange(
+                data.currentYear.expenses,
+                data.previousYear.expenses,
+              )}
+              %
             </span>
             <span className="text-sm text-light-text-tertiary dark:text-dark-text-tertiary ml-2">
               vs {formatNaira(data.previousYear.expenses)}
@@ -135,7 +148,9 @@ export default function YoYClient({ data }: YoYClientProps) {
       </div>
 
       <div className="mt-8 p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
-        <h3 className="text-lg font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">Detailed Report</h3>
+        <h3 className="text-lg font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">
+          Detailed Report
+        </h3>
         <button className="btn-primary rounded-lg inline-flex items-center gap-2">
           <FileText className="h-4 w-4" />
           Download Full Report

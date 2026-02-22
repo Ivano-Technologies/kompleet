@@ -8,11 +8,11 @@ export interface Transaction {
   transaction_date: string;
   description: string;
   amount: number;
-  transaction_type: 'debit' | 'credit';
+  transaction_type: "debit" | "credit";
   category_id?: string;
   category?: {
     name: string;
-    type: 'income' | 'expense' | 'asset' | 'liability';
+    type: "income" | "expense" | "asset" | "liability";
   };
 }
 
@@ -40,7 +40,7 @@ export interface IncomeStatementData {
 export function generateIncomeStatement(
   transactions: Transaction[],
   startDate: string,
-  endDate: string
+  endDate: string,
 ): IncomeStatementData {
   const start = new Date(startDate);
   const end = new Date(endDate);
@@ -58,13 +58,13 @@ export function generateIncomeStatement(
 
   for (const t of filtered) {
     const amount = Math.abs(t.amount);
-    const categoryName = t.category?.name ?? 'Uncategorized';
+    const categoryName = t.category?.name ?? "Uncategorized";
 
     const isIncome =
-      t.category?.type === 'income' || t.transaction_type === 'credit';
+      t.category?.type === "income" || t.transaction_type === "credit";
 
     const isExpense =
-      t.category?.type === 'expense' || t.transaction_type === 'debit';
+      t.category?.type === "expense" || t.transaction_type === "debit";
 
     if (isIncome) {
       revenueBreakdown[categoryName] =
@@ -105,9 +105,9 @@ export function generateIncomeStatement(
  * Format currency for display
  */
 export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('en-NG', {
-    style: 'currency',
-    currency: 'NGN',
+  return new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency: "NGN",
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(amount);
@@ -117,7 +117,8 @@ export function formatCurrency(amount: number): string {
  * Generate Income Statement as HTML
  */
 export function generateIncomeStatementHTML(data: IncomeStatementData): string {
-  const { period, revenue, expenses, grossProfit, netProfit, profitMargin } = data;
+  const { period, revenue, expenses, grossProfit, netProfit, profitMargin } =
+    data;
 
   return `
 <!DOCTYPE html>
@@ -129,22 +130,22 @@ export function generateIncomeStatementHTML(data: IncomeStatementData): string {
 <body>
   <h1>Income Statement (Profit & Loss)</h1>
   <p>
-    Period: ${new Date(period.startDate).toLocaleDateString('en-NG')} 
-    to ${new Date(period.endDate).toLocaleDateString('en-NG')}
+    Period: ${new Date(period.startDate).toLocaleDateString("en-NG")} 
+    to ${new Date(period.endDate).toLocaleDateString("en-NG")}
   </p>
 
   <h2>Revenue</h2>
   <ul>
     ${Object.entries(revenue.breakdown)
       .map(([k, v]) => `<li>${k}: ${formatCurrency(v)}</li>`)
-      .join('')}
+      .join("")}
   </ul>
 
   <h2>Expenses</h2>
   <ul>
     ${Object.entries(expenses.breakdown)
       .map(([k, v]) => `<li>${k}: ${formatCurrency(v)}</li>`)
-      .join('')}
+      .join("")}
   </ul>
 
   <h3>Gross Profit: ${formatCurrency(grossProfit)}</h3>

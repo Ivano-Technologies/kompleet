@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from "react";
 
-type Theme = 'light' | 'dark';
+type Theme = "light" | "dark";
 
 interface ThemeContextType {
   theme: Theme;
@@ -13,7 +13,7 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>('light');
+  const [theme, setThemeState] = useState<Theme>("light");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -24,30 +24,35 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!mounted) return;
-    
+
     // Check localStorage first
-    const storedTheme = localStorage.getItem('kompleet-theme') as Theme | null;
-    
+    const storedTheme = localStorage.getItem("kompleet-theme") as Theme | null;
+
     if (storedTheme) {
       setThemeState(storedTheme);
-      document.documentElement.classList.toggle('dark', storedTheme === 'dark');
+      document.documentElement.classList.toggle("dark", storedTheme === "dark");
     } else {
       // Detect system preference
-      const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      const initialTheme = systemPrefersDark ? 'dark' : 'light';
+      const systemPrefersDark = window.matchMedia(
+        "(prefers-color-scheme: dark)",
+      ).matches;
+      const initialTheme = systemPrefersDark ? "dark" : "light";
       setThemeState(initialTheme);
-      document.documentElement.classList.toggle('dark', initialTheme === 'dark');
+      document.documentElement.classList.toggle(
+        "dark",
+        initialTheme === "dark",
+      );
     }
   }, [mounted]);
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
-    localStorage.setItem('kompleet-theme', newTheme);
-    document.documentElement.classList.toggle('dark', newTheme === 'dark');
+    localStorage.setItem("kompleet-theme", newTheme);
+    document.documentElement.classList.toggle("dark", newTheme === "dark");
   };
 
   const toggleTheme = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
+    const newTheme = theme === "light" ? "dark" : "light";
     setTheme(newTheme);
   };
 
@@ -65,7 +70,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
 // Safe defaults for SSR/pre-rendering — does NOT throw when used outside ThemeProvider
 const defaultThemeContext: ThemeContextType = {
-  theme: 'light',
+  theme: "light",
   toggleTheme: () => {},
   setTheme: () => {},
 };

@@ -1,29 +1,35 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient as createClient } from '@/lib/supabase/server';
-import { recordCorrection, getCorrectionStats } from '@/lib/ml/continuous-learning';
-import { withRateLimit } from '@/lib/with-rate-limit';
+import { NextRequest, NextResponse } from "next/server";
+import { createServerClient as createClient } from "@/lib/supabase/server";
+import {
+  recordCorrection,
+  getCorrectionStats,
+} from "@/lib/ml/continuous-learning";
+import { withRateLimit } from "@/lib/with-rate-limit";
 
 async function handlePOST(request: NextRequest) {
   try {
     // Get current user
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Parse request body
     const body = await request.json();
 
     // Validate required fields
-    if (!body.transaction_data || !body.predicted_category || !body.corrected_category) {
+    if (
+      !body.transaction_data ||
+      !body.predicted_category ||
+      !body.corrected_category
+    ) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
+        { error: "Missing required fields" },
+        { status: 400 },
       );
     }
 
@@ -34,19 +40,18 @@ async function handlePOST(request: NextRequest) {
       transactionData: body.transaction_data,
       predictedCategory: body.predicted_category,
       correctedCategory: body.corrected_category,
-      confidence: body.confidence || 0
+      confidence: body.confidence || 0,
     });
 
     return NextResponse.json({
       success: true,
-      message: 'Correction recorded successfully'
+      message: "Correction recorded successfully",
     });
-
   } catch (error) {
-    console.error('[Record Correction API Error]', error);
+    console.error("[Record Correction API Error]", error);
     return NextResponse.json(
-      { error: 'Failed to record correction' },
-      { status: 500 }
+      { error: "Failed to record correction" },
+      { status: 500 },
     );
   }
 }
@@ -55,25 +60,23 @@ async function handleGET(request: NextRequest) {
   try {
     // Get current user
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Get correction stats
     const stats = await getCorrectionStats(user.id);
 
     return NextResponse.json(stats);
-
   } catch (error) {
-    console.error('[Get Correction Stats API Error]', error);
+    console.error("[Get Correction Stats API Error]", error);
     return NextResponse.json(
-      { error: 'Failed to get correction stats' },
-      { status: 500 }
+      { error: "Failed to get correction stats" },
+      { status: 500 },
     );
   }
 }

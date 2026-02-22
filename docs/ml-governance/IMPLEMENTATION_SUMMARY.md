@@ -144,44 +144,44 @@ The framework is production-ready, comprehensive, and scalable. With executive s
 
 ### Database Schema
 
-| Table | Purpose | Key Fields |
-|-------|---------|------------|
-| ml_models | Model registry | id, modelName, version, status, createdBy, deployedAt |
-| ml_approval_workflows | Approval tracking | id, modelId, status, requestedBy, completedAt |
-| ml_approval_stages | Stage details | id, workflowId, stageName, status, reviewedBy |
-| ml_audit_logs | Audit trail | id, eventType, modelId, userId, action, timestamp |
-| ml_drift_monitoring | Drift tracking | id, modelId, dataDriftScore, conceptDriftScore, alertLevel |
-| ml_rollback_history | Rollback tracking | id, fromModelId, toModelId, triggeredBy, executionTimeMs |
-| ml_inference_logs | Inference tracking | id, modelId, inputHash, prediction, latency, timestamp |
+| Table                 | Purpose            | Key Fields                                                 |
+| --------------------- | ------------------ | ---------------------------------------------------------- |
+| ml_models             | Model registry     | id, modelName, version, status, createdBy, deployedAt      |
+| ml_approval_workflows | Approval tracking  | id, modelId, status, requestedBy, completedAt              |
+| ml_approval_stages    | Stage details      | id, workflowId, stageName, status, reviewedBy              |
+| ml_audit_logs         | Audit trail        | id, eventType, modelId, userId, action, timestamp          |
+| ml_drift_monitoring   | Drift tracking     | id, modelId, dataDriftScore, conceptDriftScore, alertLevel |
+| ml_rollback_history   | Rollback tracking  | id, fromModelId, toModelId, triggeredBy, executionTimeMs   |
+| ml_inference_logs     | Inference tracking | id, modelId, inputHash, prediction, latency, timestamp     |
 
 ### API Endpoints
 
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| /api/ml-governance/models | POST | Register new model |
-| /api/ml-governance/models | GET | List all models |
-| /api/ml-governance/models/:id | GET | Get model details |
-| /api/ml-governance/models/:id/status | PUT | Update model status |
-| /api/ml-governance/approvals | POST | Create approval workflow |
-| /api/ml-governance/approvals/:id | GET | Get workflow status |
-| /api/ml-governance/approvals/:workflowId/stages/:stageId | PUT | Review approval stage |
-| /api/ml-governance/drift/monitor | POST | Monitor model drift |
-| /api/ml-governance/drift/:modelId | GET | Get drift history |
-| /api/ml-governance/rollback | POST | Initiate rollback |
-| /api/ml-governance/rollback/history | GET | Get rollback history |
-| /api/ml-governance/audit-logs | GET | Query audit logs |
-| /api/ml-governance/metrics/kpis | GET | Get governance KPIs |
+| Endpoint                                                 | Method | Purpose                  |
+| -------------------------------------------------------- | ------ | ------------------------ |
+| /api/ml-governance/models                                | POST   | Register new model       |
+| /api/ml-governance/models                                | GET    | List all models          |
+| /api/ml-governance/models/:id                            | GET    | Get model details        |
+| /api/ml-governance/models/:id/status                     | PUT    | Update model status      |
+| /api/ml-governance/approvals                             | POST   | Create approval workflow |
+| /api/ml-governance/approvals/:id                         | GET    | Get workflow status      |
+| /api/ml-governance/approvals/:workflowId/stages/:stageId | PUT    | Review approval stage    |
+| /api/ml-governance/drift/monitor                         | POST   | Monitor model drift      |
+| /api/ml-governance/drift/:modelId                        | GET    | Get drift history        |
+| /api/ml-governance/rollback                              | POST   | Initiate rollback        |
+| /api/ml-governance/rollback/history                      | GET    | Get rollback history     |
+| /api/ml-governance/audit-logs                            | GET    | Query audit logs         |
+| /api/ml-governance/metrics/kpis                          | GET    | Get governance KPIs      |
 
 ### Governance KPIs
 
-| KPI | Target | Current | Trend |
-|-----|--------|---------|-------|
-| Time to Rollback | < 15 min | TBD | - |
-| Documentation Completeness | 100% | TBD | - |
-| Audit Readiness Score | > 95% | TBD | - |
-| Incidents per Quarter | < 2 | TBD | - |
-| NDPR Compliance Rate | 100% | TBD | - |
-| Rollback Success Rate | 100% | TBD | - |
+| KPI                        | Target   | Current | Trend |
+| -------------------------- | -------- | ------- | ----- |
+| Time to Rollback           | < 15 min | TBD     | -     |
+| Documentation Completeness | 100%     | TBD     | -     |
+| Audit Readiness Score      | > 95%    | TBD     | -     |
+| Incidents per Quarter      | < 2      | TBD     | -     |
+| NDPR Compliance Rate       | 100%     | TBD     | -     |
+| Rollback Success Rate      | 100%     | TBD     | -     |
 
 ---
 
@@ -190,4 +190,4 @@ The framework is production-ready, comprehensive, and scalable. With executive s
 **Prepared By:** ML Governance Lead  
 **Approved By:** Chief Technology Officer, Compliance Officer, Chief Executive Officer
 
-*This summary provides executive-level overview of KOMPLEET's ML Governance framework implementation. Detailed technical documentation is available in the governance repository.*
+_This summary provides executive-level overview of KOMPLEET's ML Governance framework implementation. Detailed technical documentation is available in the governance repository._

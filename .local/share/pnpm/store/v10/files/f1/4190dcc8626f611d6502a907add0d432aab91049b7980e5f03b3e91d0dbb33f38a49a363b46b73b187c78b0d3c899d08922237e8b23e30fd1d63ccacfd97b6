@@ -1,40 +1,42 @@
 #!/usr/bin/env node
-import { foregroundChild } from 'foreground-child';
-import { existsSync } from 'fs';
-import { jack } from 'jackspeak';
-import { loadPackageJson } from 'package-json-from-dist';
-import { join } from 'path';
-import { globStream } from './index.js';
-const { version } = loadPackageJson(import.meta.url, '../package.json');
+import { foregroundChild } from "foreground-child";
+import { existsSync } from "fs";
+import { jack } from "jackspeak";
+import { loadPackageJson } from "package-json-from-dist";
+import { join } from "path";
+import { globStream } from "./index.js";
+const { version } = loadPackageJson(import.meta.url, "../package.json");
 const j = jack({
-    usage: 'glob [options] [<pattern> [<pattern> ...]]',
+  usage: "glob [options] [<pattern> [<pattern> ...]]",
 })
-    .description(`
+  .description(
+    `
     Glob v${version}
 
     Expand the positional glob expression arguments into any matching file
     system paths found.
-  `)
-    .opt({
+  `,
+  )
+  .opt({
     cmd: {
-        short: 'c',
-        hint: 'command',
-        description: `Run the command provided, passing the glob expression
+      short: "c",
+      hint: "command",
+      description: `Run the command provided, passing the glob expression
                     matches as arguments.`,
     },
-})
-    .opt({
+  })
+  .opt({
     default: {
-        short: 'p',
-        hint: 'pattern',
-        description: `If no positional arguments are provided, glob will use
+      short: "p",
+      hint: "pattern",
+      description: `If no positional arguments are provided, glob will use
                     this pattern`,
     },
-})
-    .flag({
+  })
+  .flag({
     all: {
-        short: 'A',
-        description: `By default, the glob cli command will not expand any
+      short: "A",
+      description: `By default, the glob cli command will not expand any
                     arguments that are an exact match to a file on disk.
 
                     This prevents double-expanding, in case the shell expands
@@ -58,20 +60,20 @@ const j = jack({
       `,
     },
     absolute: {
-        short: 'a',
-        description: 'Expand to absolute paths',
+      short: "a",
+      description: "Expand to absolute paths",
     },
-    'dot-relative': {
-        short: 'd',
-        description: `Prepend './' on relative matches`,
+    "dot-relative": {
+      short: "d",
+      description: `Prepend './' on relative matches`,
     },
     mark: {
-        short: 'm',
-        description: `Append a / on any directories matched`,
+      short: "m",
+      description: `Append a / on any directories matched`,
     },
     posix: {
-        short: 'x',
-        description: `Always resolve to posix style paths, using '/' as the
+      short: "x",
+      description: `Always resolve to posix style paths, using '/' as the
                     directory separator, even on Windows. Drive letter
                     absolute matches on Windows will be expanded to their
                     full resolved UNC maths, eg instead of 'C:\\foo\\bar',
@@ -79,39 +81,39 @@ const j = jack({
       `,
     },
     follow: {
-        short: 'f',
-        description: `Follow symlinked directories when expanding '**'`,
+      short: "f",
+      description: `Follow symlinked directories when expanding '**'`,
     },
     realpath: {
-        short: 'R',
-        description: `Call 'fs.realpath' on all of the results. In the case
+      short: "R",
+      description: `Call 'fs.realpath' on all of the results. In the case
                     of an entry that cannot be resolved, the entry is
                     omitted. This incurs a slight performance penalty, of
                     course, because of the added system calls.`,
     },
     stat: {
-        short: 's',
-        description: `Call 'fs.lstat' on all entries, whether required or not
+      short: "s",
+      description: `Call 'fs.lstat' on all entries, whether required or not
                     to determine if it's a valid match.`,
     },
-    'match-base': {
-        short: 'b',
-        description: `Perform a basename-only match if the pattern does not
+    "match-base": {
+      short: "b",
+      description: `Perform a basename-only match if the pattern does not
                     contain any slash characters. That is, '*.js' would be
                     treated as equivalent to '**/*.js', matching js files
                     in all directories.
       `,
     },
     dot: {
-        description: `Allow patterns to match files/directories that start
+      description: `Allow patterns to match files/directories that start
                     with '.', even if the pattern does not start with '.'
       `,
     },
     nobrace: {
-        description: 'Do not expand {...} patterns',
+      description: "Do not expand {...} patterns",
     },
     nocase: {
-        description: `Perform a case-insensitive match. This defaults to
+      description: `Perform a case-insensitive match. This defaults to
                     'true' on macOS and Windows platforms, and false on
                     all others.
 
@@ -123,41 +125,41 @@ const j = jack({
       `,
     },
     nodir: {
-        description: `Do not match directories, only files.
+      description: `Do not match directories, only files.
 
                     Note: to *only* match directories, append a '/' at the
                     end of the pattern.
       `,
     },
     noext: {
-        description: `Do not expand extglob patterns, such as '+(a|b)'`,
+      description: `Do not expand extglob patterns, such as '+(a|b)'`,
     },
     noglobstar: {
-        description: `Do not expand '**' against multiple path portions.
+      description: `Do not expand '**' against multiple path portions.
                     Ie, treat it as a normal '*' instead.`,
     },
-    'windows-path-no-escape': {
-        description: `Use '\\' as a path separator *only*, and *never* as an
+    "windows-path-no-escape": {
+      description: `Use '\\' as a path separator *only*, and *never* as an
                     escape character. If set, all '\\' characters are
                     replaced with '/' in the pattern.`,
     },
-})
-    .num({
-    'max-depth': {
-        short: 'D',
-        description: `Maximum depth to traverse from the current
+  })
+  .num({
+    "max-depth": {
+      short: "D",
+      description: `Maximum depth to traverse from the current
                     working directory`,
     },
-})
-    .opt({
+  })
+  .opt({
     cwd: {
-        short: 'C',
-        description: 'Current working directory to execute/match in',
-        default: process.cwd(),
+      short: "C",
+      description: "Current working directory to execute/match in",
+      default: process.cwd(),
     },
     root: {
-        short: 'r',
-        description: `A string path resolved against the 'cwd', which is
+      short: "r",
+      description: `A string path resolved against the 'cwd', which is
                     used as the starting point for absolute patterns that
                     start with '/' (but not drive letters or UNC paths
                     on Windows).
@@ -179,92 +181,91 @@ const j = jack({
       `,
     },
     platform: {
-        description: `Defaults to the value of 'process.platform' if
+      description: `Defaults to the value of 'process.platform' if
                     available, or 'linux' if not. Setting --platform=win32
                     on non-Windows systems may cause strange behavior!`,
-        validOptions: [
-            'aix',
-            'android',
-            'darwin',
-            'freebsd',
-            'haiku',
-            'linux',
-            'openbsd',
-            'sunos',
-            'win32',
-            'cygwin',
-            'netbsd',
-        ],
+      validOptions: [
+        "aix",
+        "android",
+        "darwin",
+        "freebsd",
+        "haiku",
+        "linux",
+        "openbsd",
+        "sunos",
+        "win32",
+        "cygwin",
+        "netbsd",
+      ],
     },
-})
-    .optList({
+  })
+  .optList({
     ignore: {
-        short: 'i',
-        description: `Glob patterns to ignore`,
+      short: "i",
+      description: `Glob patterns to ignore`,
     },
-})
-    .flag({
+  })
+  .flag({
     debug: {
-        short: 'v',
-        description: `Output a huge amount of noisy debug information about
+      short: "v",
+      description: `Output a huge amount of noisy debug information about
                     patterns as they are parsed and used to match files.`,
     },
-})
-    .flag({
+  })
+  .flag({
     help: {
-        short: 'h',
-        description: 'Show this usage information',
+      short: "h",
+      description: "Show this usage information",
     },
-});
+  });
 try {
-    const { positionals, values } = j.parse();
-    if (values.help) {
-        console.log(j.usage());
-        process.exit(0);
-    }
-    if (positionals.length === 0 && !values.default)
-        throw 'No patterns provided';
-    if (positionals.length === 0 && values.default)
-        positionals.push(values.default);
-    const patterns = values.all ? positionals : positionals.filter(p => !existsSync(p));
-    const matches = values.all ?
-        []
-        : positionals.filter(p => existsSync(p)).map(p => join(p));
-    const stream = globStream(patterns, {
-        absolute: values.absolute,
-        cwd: values.cwd,
-        dot: values.dot,
-        dotRelative: values['dot-relative'],
-        follow: values.follow,
-        ignore: values.ignore,
-        mark: values.mark,
-        matchBase: values['match-base'],
-        maxDepth: values['max-depth'],
-        nobrace: values.nobrace,
-        nocase: values.nocase,
-        nodir: values.nodir,
-        noext: values.noext,
-        noglobstar: values.noglobstar,
-        platform: values.platform,
-        realpath: values.realpath,
-        root: values.root,
-        stat: values.stat,
-        debug: values.debug,
-        posix: values.posix,
-    });
-    const cmd = values.cmd;
-    if (!cmd) {
-        matches.forEach(m => console.log(m));
-        stream.on('data', f => console.log(f));
-    }
-    else {
-        stream.on('data', f => matches.push(f));
-        stream.on('end', () => foregroundChild(cmd, matches, { shell: true }));
-    }
-}
-catch (e) {
-    console.error(j.usage());
-    console.error(e instanceof Error ? e.message : String(e));
-    process.exit(1);
+  const { positionals, values } = j.parse();
+  if (values.help) {
+    console.log(j.usage());
+    process.exit(0);
+  }
+  if (positionals.length === 0 && !values.default) throw "No patterns provided";
+  if (positionals.length === 0 && values.default)
+    positionals.push(values.default);
+  const patterns = values.all
+    ? positionals
+    : positionals.filter((p) => !existsSync(p));
+  const matches = values.all
+    ? []
+    : positionals.filter((p) => existsSync(p)).map((p) => join(p));
+  const stream = globStream(patterns, {
+    absolute: values.absolute,
+    cwd: values.cwd,
+    dot: values.dot,
+    dotRelative: values["dot-relative"],
+    follow: values.follow,
+    ignore: values.ignore,
+    mark: values.mark,
+    matchBase: values["match-base"],
+    maxDepth: values["max-depth"],
+    nobrace: values.nobrace,
+    nocase: values.nocase,
+    nodir: values.nodir,
+    noext: values.noext,
+    noglobstar: values.noglobstar,
+    platform: values.platform,
+    realpath: values.realpath,
+    root: values.root,
+    stat: values.stat,
+    debug: values.debug,
+    posix: values.posix,
+  });
+  const cmd = values.cmd;
+  if (!cmd) {
+    matches.forEach((m) => console.log(m));
+    stream.on("data", (f) => console.log(f));
+  } else {
+    stream.on("data", (f) => matches.push(f));
+    stream.on("end", () => foregroundChild(cmd, matches, { shell: true }));
+  }
+} catch (e) {
+  console.error(j.usage());
+  console.error(e instanceof Error ? e.message : String(e));
+  process.exit(1);
 }
 //# sourceMappingURL=bin.mjs.map

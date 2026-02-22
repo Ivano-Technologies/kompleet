@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Kompleet Expenses",
-    "slug": "kompleet-expenses",
+    "name": "Kompleet Platform",
+    "slug": "kompleet-platform",
     "version": "0.1.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -15,19 +15,37 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.kompleet.expenses"
+      "bundleIdentifier": "com.kompleet.platform"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#008751"
       },
-      "package": "com.kompleet.expenses"
+      "package": "com.kompleet.platform",
+      "versionCode": 1,
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "plugins": [
       "expo-router",
       "expo-secure-store",
-      ["expo-image-picker", { "cameraPermission": "Allow Kompleet to access your camera to scan receipts." }]
-    ]
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Allow Kompleet to access your camera to scan receipts."
+        }
+      ]
+    ],
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "5a45be5b-d2df-407e-ae5f-73098fd334ae"
+      }
+    },
+    "owner": "ivano-technologies"
   }
 }

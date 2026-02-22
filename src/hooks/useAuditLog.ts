@@ -3,13 +3,13 @@ export async function logCalculation(
   inputData: Record<string, any>,
   outputData: Record<string, any>,
   ruleVersionId?: string,
-  userId?: string
+  userId?: string,
 ): Promise<{ success: boolean; auditLogId?: string; error?: string }> {
   try {
-    const response = await fetch('/api/audit-log', {
-      method: 'POST',
+    const response = await fetch("/api/audit-log", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         calculationType,
@@ -25,7 +25,7 @@ export async function logCalculation(
     if (!response.ok) {
       return {
         success: false,
-        error: data.error || 'Failed to log calculation',
+        error: data.error || "Failed to log calculation",
       };
     }
 
@@ -34,10 +34,10 @@ export async function logCalculation(
       auditLogId: data.auditLogId,
     };
   } catch (error) {
-    console.error('Error logging calculation:', error);
+    console.error("Error logging calculation:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error instanceof Error ? error.message : "Unknown error",
     };
   }
 }

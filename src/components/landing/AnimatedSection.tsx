@@ -1,19 +1,19 @@
-'use client';
+"use client";
 
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 interface AnimatedSectionProps {
   children: ReactNode;
   className?: string;
   delay?: number;
-  direction?: 'up' | 'left' | 'right';
+  direction?: "up" | "left" | "right";
 }
 
 export default function AnimatedSection({
   children,
-  className = '',
+  className = "",
   delay = 0,
-  direction = 'up',
+  direction = "up",
 }: AnimatedSectionProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [isVisible, setIsVisible] = useState(false);
@@ -26,7 +26,7 @@ export default function AnimatedSection({
           observer.unobserve(entry.target);
         }
       },
-      { threshold: 0.1, rootMargin: '-50px' }
+      { threshold: 0.1, rootMargin: "-50px" },
     );
 
     if (ref.current) observer.observe(ref.current);
@@ -34,9 +34,9 @@ export default function AnimatedSection({
   }, []);
 
   const transforms: Record<string, string> = {
-    up: 'translateY(24px)',
-    left: 'translateX(-30px)',
-    right: 'translateX(30px)',
+    up: "translateY(24px)",
+    left: "translateX(-30px)",
+    right: "translateX(30px)",
   };
 
   return (
@@ -45,7 +45,7 @@ export default function AnimatedSection({
       className={className}
       style={{
         opacity: isVisible ? 1 : 0,
-        transform: isVisible ? 'translate(0)' : transforms[direction],
+        transform: isVisible ? "translate(0)" : transforms[direction],
         transition: `opacity 0.6s ease ${delay}s, transform 0.6s ease ${delay}s`,
       }}
     >

@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState, type ReactNode } from 'react';
-import { Sidebar } from './Sidebar';
-import { TopBar } from './TopBar';
+import { useState, type ReactNode } from "react";
+import { Sidebar } from "./Sidebar";
+import { TopBar } from "./TopBar";
 
 interface DashboardShellProps {
   user: { email?: string | null; id: string; role?: string };

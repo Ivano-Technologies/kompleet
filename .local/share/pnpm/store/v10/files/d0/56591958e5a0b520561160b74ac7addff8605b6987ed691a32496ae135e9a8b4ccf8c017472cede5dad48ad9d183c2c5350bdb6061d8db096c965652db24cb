@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
-import fs from 'fs';
-import path from 'path';
-import process from 'process';
+import fs from "fs";
+import path from "path";
+import process from "process";
 
 // Adjust the base directory to match your project layout:
-const SRC_DIR = path.join(process.cwd(), 'test');
+const SRC_DIR = path.join(process.cwd(), "test");
 
 /**
  * Recursively gather all .mjs files in the given directory
@@ -19,7 +19,7 @@ function getAllMjsFiles(dir) {
     if (dirent.isDirectory()) {
       // Recurse into subdirectories
       results = results.concat(getAllMjsFiles(fullPath));
-    } else if (dirent.isFile() && fullPath.endsWith('.mjs')) {
+    } else if (dirent.isFile() && fullPath.endsWith(".mjs")) {
       results.push(fullPath);
     }
   }
@@ -33,7 +33,7 @@ function getAllMjsFiles(dir) {
  */
 function resolveImport(rawImportPath, currentFileDir) {
   // We only care about relative imports
-  if (!rawImportPath.startsWith('.')) {
+  if (!rawImportPath.startsWith(".")) {
     // If it's not relative, leave it alone (e.g. 'react' or 'lodash')
     return rawImportPath;
   }
@@ -49,7 +49,7 @@ function resolveImport(rawImportPath, currentFileDir) {
   }
 
   // 2. Check if `absoluteImportPath/index.mjs` exists
-  const candidateIndexFile = path.join(absoluteImportPath, 'index.mjs');
+  const candidateIndexFile = path.join(absoluteImportPath, "index.mjs");
   if (fs.existsSync(candidateIndexFile)) {
     return pathRelativeWinSafe(currentFileDir, candidateIndexFile);
   }
@@ -65,9 +65,9 @@ function resolveImport(rawImportPath, currentFileDir) {
 function pathRelativeWinSafe(from, to) {
   let relPath = path.relative(from, to);
   // Replace backslashes with forward slashes
-  relPath = relPath.replace(/\\/g, '/');
+  relPath = relPath.replace(/\\/g, "/");
   // Ensure it starts with '.' or '..' if it isn’t already
-  if (!relPath.startsWith('.')) {
+  if (!relPath.startsWith(".")) {
     relPath = `./${relPath}`;
   }
   return relPath;
@@ -78,7 +78,7 @@ function pathRelativeWinSafe(from, to) {
  */
 function rewriteImportsInFile(filePath) {
   const fileDir = path.dirname(filePath);
-  let src = fs.readFileSync(filePath, 'utf8');
+  let src = fs.readFileSync(filePath, "utf8");
 
   // Simple pattern capturing import statements of the form:
   // import ... from '...';
@@ -107,7 +107,7 @@ function rewriteImportsInFile(filePath) {
   // });
 
   if (changed) {
-    fs.writeFileSync(filePath, src, 'utf8');
+    fs.writeFileSync(filePath, src, "utf8");
     console.log(`Updated imports in: ${filePath}`);
   }
 }
@@ -125,7 +125,7 @@ function main() {
     rewriteImportsInFile(filePath);
   }
 
-  console.log('Done.');
+  console.log("Done.");
 }
 
 main();

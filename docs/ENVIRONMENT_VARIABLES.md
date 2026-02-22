@@ -73,12 +73,14 @@ OPENAI_API_KEY=sk-dev_placeholder
 **Where to set**: GitHub → Repository Settings → Secrets and Variables → Actions → Repository secrets
 
 **Required secrets**:
+
 ```
 NEXT_PUBLIC_SUPABASE_URL
 NEXT_PUBLIC_SUPABASE_ANON_KEY
 ```
 
 **Note**: Other server-side variables use placeholder values in CI (configured in `.github/workflows/ci.yml`):
+
 - `SUPABASE_SERVICE_ROLE_KEY: 'eyJ_ci_placeholder_for_build'`
 - `OPENAI_API_KEY: 'sk-ci_placeholder_for_build'`
 - `DATABASE_URL: 'postgresql://ci:placeholder@localhost:5432/ci_build'`
@@ -93,15 +95,16 @@ This allows the build to pass without exposing real secrets in CI.
 
 **Required for Production**:
 
-| Variable | Environment | Value |
-|----------|-------------|-------|
-| `NEXT_PUBLIC_SUPABASE_URL` | Production | `https://frlcvkmjuhnjcicwywrh.supabase.co` |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Production | `[Your anon key]` |
-| `NEXT_PUBLIC_SITE_URL` | Production | `https://kompleet.ng` |
-| `SUPABASE_SERVICE_ROLE_KEY` | Production | `[Your service role key]` |
-| `OPENAI_API_KEY` | Production | `[Your OpenAI key]` |
+| Variable                        | Environment | Value                                      |
+| ------------------------------- | ----------- | ------------------------------------------ |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Production  | `https://frlcvkmjuhnjcicwywrh.supabase.co` |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Production  | `[Your anon key]`                          |
+| `NEXT_PUBLIC_SITE_URL`          | Production  | `https://kompleet.ng`                      |
+| `SUPABASE_SERVICE_ROLE_KEY`     | Production  | `[Your service role key]`                  |
+| `OPENAI_API_KEY`                | Production  | `[Your OpenAI key]`                        |
 
 **Steps to add**:
+
 1. Go to: https://vercel.com/dashboard
 2. Navigate to: Your Project → Settings → Environment Variables
 3. Click: "Add New"
@@ -165,17 +168,20 @@ This allows the build to pass without exposing real secrets in CI.
 ### ⚠️ Never Commit Secrets
 
 **DO NOT** commit these to git:
+
 - ❌ `.env.local` (added to `.gitignore`)
 - ❌ `.env.production`
 - ❌ Any file containing API keys
 
 **DO** commit:
+
 - ✅ `.env.example` (with placeholder values)
 - ✅ This documentation file
 
 ### Secret Rotation
 
 If any secret is exposed:
+
 1. **Immediately** revoke it in the provider dashboard
 2. Generate a new secret
 3. Update in Vercel/GitHub Actions
@@ -198,6 +204,7 @@ If any secret is exposed:
 **Error**: `❌ Environment validation failed: SUPABASE_SERVICE_ROLE_KEY is required`
 
 **Solution**:
+
 - **Local dev**: Set `SUPABASE_SERVICE_ROLE_KEY` in `.env.local` or let it use the placeholder
 - **CI**: Verify placeholders are set in `.github/workflows/ci.yml`
 - **Production (Vercel)**: Add the variable in Vercel dashboard
@@ -205,6 +212,7 @@ If any secret is exposed:
 ### Tests Fail with Missing Environment Variables
 
 **Solution**: Environment variables are mocked in `src/test/setup.ts`. If tests still fail:
+
 1. Check that `process.env.CI = 'true'` is set in test setup
 2. Verify placeholders are provided in GitHub Actions workflow
 3. Run tests locally with: `pnpm test`
@@ -212,6 +220,7 @@ If any secret is exposed:
 ### Vercel Deployment Fails: "Environment Variable references Secret which does not exist"
 
 **Solution**: This happens when `vercel.json` uses `@secret-name` syntax but the secret doesn't exist.
+
 - **Fixed in**: This project no longer uses secret references in `vercel.json`
 - **Variables are set directly** in Vercel dashboard instead
 
@@ -220,23 +229,27 @@ If any secret is exposed:
 ## Quick Reference
 
 **Get Supabase Credentials**:
+
 ```
 https://supabase.com/dashboard/project/frlcvkmjuhnjcicwywrh
 → Settings → API
 ```
 
 **Get OpenAI Key**:
+
 ```
 https://platform.openai.com/api-keys
 ```
 
 **Configure Vercel Variables**:
+
 ```
 https://vercel.com/dashboard
 → Your Project → Settings → Environment Variables
 ```
 
 **Configure GitHub Secrets**:
+
 ```
 https://github.com/Ivano-Technologies/KOMPLEET-PLATFORM
 → Settings → Secrets and Variables → Actions

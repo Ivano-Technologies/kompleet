@@ -12,15 +12,15 @@
 
 /* eslint-disable import/no-commonjs */
 
-'use strict';
+"use strict";
 
 try {
   // $FlowFixMe[untyped-import]
-  require('metro-babel-register').unstable_registerForMetroMonorepo();
+  require("metro-babel-register").unstable_registerForMetroMonorepo();
 } catch {}
 
-const {attachMetroCli} = require('./index');
-const yargs = require('yargs');
+const { attachMetroCli } = require("./index");
+const yargs = require("yargs");
 
 // $FlowFixMe[unused-promise]
 attachMetroCli(yargs.demandCommand(1)).argv;

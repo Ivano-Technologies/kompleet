@@ -14,24 +14,25 @@ All tables in the `public` schema have RLS enabled. This means that even if a us
 
 **Key Policies**:
 
-| Table | Policy | Description |
-|---|---|---|
-| `profiles` | `profiles_select_own` | Users can only SELECT their own profile (WHERE `auth.uid() = id`) |
-| `profiles` | `profiles_insert_own` | Users can only INSERT their own profile |
-| `profiles` | `profiles_update_own` | Users can only UPDATE their own profile |
-| `transactions` | `transactions_select_own` | Users can only SELECT their own transactions (WHERE `auth.uid() = user_id`) |
-| `transactions` | `transactions_insert_own` | Users can only INSERT transactions for themselves |
-| `transactions` | `transactions_update_own` | Users can only UPDATE their own transactions |
-| `transactions` | `transactions_delete_own` | Users can only DELETE their own transactions |
-| `categories` | `categories_select_all` | All authenticated users can read categories |
-| `bank_configs` | `bank_configs_select_active` | All authenticated users can read active bank configs |
-| `audit_logs` | `audit_logs_select_own` | Users can only view their own audit logs |
+| Table          | Policy                       | Description                                                                 |
+| -------------- | ---------------------------- | --------------------------------------------------------------------------- |
+| `profiles`     | `profiles_select_own`        | Users can only SELECT their own profile (WHERE `auth.uid() = id`)           |
+| `profiles`     | `profiles_insert_own`        | Users can only INSERT their own profile                                     |
+| `profiles`     | `profiles_update_own`        | Users can only UPDATE their own profile                                     |
+| `transactions` | `transactions_select_own`    | Users can only SELECT their own transactions (WHERE `auth.uid() = user_id`) |
+| `transactions` | `transactions_insert_own`    | Users can only INSERT transactions for themselves                           |
+| `transactions` | `transactions_update_own`    | Users can only UPDATE their own transactions                                |
+| `transactions` | `transactions_delete_own`    | Users can only DELETE their own transactions                                |
+| `categories`   | `categories_select_all`      | All authenticated users can read categories                                 |
+| `bank_configs` | `bank_configs_select_active` | All authenticated users can read active bank configs                        |
+| `audit_logs`   | `audit_logs_select_own`      | Users can only view their own audit logs                                    |
 
 ### 2. Role-Based Permissions
 
 The platform uses three Supabase roles:
 
 #### `authenticated` Role
+
 - **Purpose**: For logged-in users
 - **Permissions**:
   - `SELECT, INSERT, UPDATE` on `profiles`
@@ -40,6 +41,7 @@ The platform uses three Supabase roles:
 - **Enforcement**: All operations are further restricted by RLS policies
 
 #### `service_role` Role
+
 - **Purpose**: For server-side admin operations and monitoring
 - **Permissions**:
   - `SELECT` on all tables (read-only)
@@ -47,6 +49,7 @@ The platform uses three Supabase roles:
 - **Usage**: Should only be used in server-side code, never exposed to the client
 
 #### `anon` Role
+
 - **Purpose**: For unauthenticated users
 - **Permissions**: None (no table access)
 
@@ -71,9 +74,9 @@ const supabase = createBrowserClient();
 
 // This will only return the current user's transactions
 const { data, error } = await supabase
-  .from('transactions')
-  .select('*')
-  .eq('user_id', user.id); // RLS enforces this automatically
+  .from("transactions")
+  .select("*")
+  .eq("user_id", user.id); // RLS enforces this automatically
 ```
 
 ### Server-Side Code (API Routes)
@@ -81,23 +84,24 @@ const { data, error } = await supabase
 In API routes, always use the **server client** with the user's session:
 
 ```typescript
-import { createServerClient } from '@/lib/supabase/server';
+import { createServerClient } from "@/lib/supabase/server";
 
 export async function GET(request: NextRequest) {
   const supabase = await createServerClient();
-  
+
   // Check authentication
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  
+
   // Query with RLS enforcement
-  const { data, error } = await supabase
-    .from('transactions')
-    .select('*');
-  
+  const { data, error } = await supabase.from("transactions").select("*");
+
   // RLS ensures only the user's transactions are returned
   return NextResponse.json({ data });
 }
@@ -108,19 +112,21 @@ export async function GET(request: NextRequest) {
 For bulk operations, use the provided helper functions:
 
 ```typescript
-import { bulkInsertTransactions } from '@/lib/db/functions';
+import { bulkInsertTransactions } from "@/lib/db/functions";
 
 const result = await bulkInsertTransactions(supabase, [
   {
-    transaction_date: '2026-01-15',
+    transaction_date: "2026-01-15",
     amount: 5000,
-    description: 'Payment received',
-    transaction_type: 'credit',
+    description: "Payment received",
+    transaction_type: "credit",
   },
   // ... more transactions
 ]);
 
-console.log(`Inserted: ${result.data.inserted_count}, Failed: ${result.data.failed_count}`);
+console.log(
+  `Inserted: ${result.data.inserted_count}, Failed: ${result.data.failed_count}`,
+);
 ```
 
 ---
@@ -130,18 +136,20 @@ console.log(`Inserted: ${result.data.inserted_count}, Failed: ${result.data.fail
 ### 1. Never Bypass RLS
 
 **❌ Don't do this**:
+
 ```typescript
 // Using service_role key to bypass RLS
 const supabase = createClient(url, SERVICE_ROLE_KEY);
-const { data } = await supabase.from('transactions').select('*');
+const { data } = await supabase.from("transactions").select("*");
 // This returns ALL users' transactions!
 ```
 
 **✅ Do this**:
+
 ```typescript
 // Use the authenticated user's session
 const supabase = await createServerClient();
-const { data } = await supabase.from('transactions').select('*');
+const { data } = await supabase.from("transactions").select("*");
 // RLS ensures only the user's transactions are returned
 ```
 
@@ -150,7 +158,7 @@ const { data } = await supabase.from('transactions').select('*');
 Always validate user input before passing it to the database:
 
 ```typescript
-import { z } from 'zod';
+import { z } from "zod";
 
 const schema = z.object({
   amount: z.number().positive(),
@@ -159,7 +167,7 @@ const schema = z.object({
 
 const parsed = schema.safeParse(input);
 if (!parsed.success) {
-  return NextResponse.json({ error: 'Invalid input' }, { status: 400 });
+  return NextResponse.json({ error: "Invalid input" }, { status: 400 });
 }
 ```
 
@@ -168,7 +176,7 @@ if (!parsed.success) {
 Always use the generated Supabase types:
 
 ```typescript
-import { Database } from '@/lib/supabase/types';
+import { Database } from "@/lib/supabase/types";
 
 const supabase: SupabaseClient<Database> = await createServerClient();
 ```
@@ -178,13 +186,13 @@ const supabase: SupabaseClient<Database> = await createServerClient();
 Use the `audit_logs` table to track sensitive operations:
 
 ```typescript
-await supabase.from('audit_logs').insert({
+await supabase.from("audit_logs").insert({
   user_id: user.id,
-  calculation_type: 'tax_calculation',
+  calculation_type: "tax_calculation",
   inputs: { year: 2025 },
   outputs: { tax_due: 50000 },
-  rule_version_id: '...',
-  rule_version_number: 'v1.0',
+  rule_version_id: "...",
+  rule_version_number: "v1.0",
 });
 ```
 
@@ -212,6 +220,7 @@ pnpm test src/__tests__/rls/rls-policies.test.ts
 ```
 
 These tests verify that:
+
 - Users can only access their own data
 - Unauthorized access is blocked
 - Cross-user data leakage is prevented

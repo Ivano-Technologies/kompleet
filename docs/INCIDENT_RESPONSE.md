@@ -10,12 +10,12 @@
 
 ### Incident Severity Levels
 
-| Level | Definition | Response Time | Escalation |
-|-------|-----------|----------------|------------|
-| **P1 - Critical** | Production outage, data loss, security breach | Immediate | CEO, CTO |
-| **P2 - High** | Major feature broken, significant data issue | 15 minutes | Engineering Lead |
-| **P3 - Medium** | Minor feature broken, degraded performance | 1 hour | Team Lead |
-| **P4 - Low** | Cosmetic issue, minor bug | Next business day | Backlog |
+| Level             | Definition                                    | Response Time     | Escalation       |
+| ----------------- | --------------------------------------------- | ----------------- | ---------------- |
+| **P1 - Critical** | Production outage, data loss, security breach | Immediate         | CEO, CTO         |
+| **P2 - High**     | Major feature broken, significant data issue  | 15 minutes        | Engineering Lead |
+| **P3 - Medium**   | Minor feature broken, degraded performance    | 1 hour            | Team Lead        |
+| **P4 - Low**      | Cosmetic issue, minor bug                     | Next business day | Backlog          |
 
 ---
 
@@ -26,6 +26,7 @@
 **Trigger:** Automated alert OR manual report
 
 **Actions:**
+
 1. **Confirm Incident**
    - Verify issue is real (not false alarm)
    - Check monitoring dashboard
@@ -45,11 +46,13 @@
 ### Phase 2: Assessment & Triage (5-15 minutes)
 
 **Incident Commander Responsibilities:**
+
 - Coordinate response
 - Keep stakeholders informed
 - Make rollback decision
 
 **Assessment Questions:**
+
 - [ ] What is broken?
 - [ ] How many users affected?
 - [ ] Is data at risk?
@@ -96,6 +99,7 @@ gh run list --workflow=rollback.yml --limit=1 -L 100
 ```
 
 **Verification (Parallel):**
+
 - [ ] Health endpoint responding
 - [ ] Auth flow working
 - [ ] Dashboard loading
@@ -106,6 +110,7 @@ gh run list --workflow=rollback.yml --limit=1 -L 100
 ### Phase 4: Stabilization (20-30 minutes)
 
 **Actions:**
+
 1. **Confirm System Stable**
    - All verification checks passing
    - Error rates normal
@@ -124,12 +129,14 @@ gh run list --workflow=rollback.yml --limit=1 -L 100
 ### Phase 5: Post-Incident (30+ minutes)
 
 **Immediate (< 2 hours):**
+
 - [ ] Document incident timeline
 - [ ] Identify root cause
 - [ ] List action items
 - [ ] Schedule post-incident review
 
 **Follow-up (24-48 hours):**
+
 - [ ] Post-incident review meeting
 - [ ] Root cause analysis
 - [ ] Preventive measures identified
@@ -142,6 +149,7 @@ gh run list --workflow=rollback.yml --limit=1 -L 100
 ### During Incident
 
 **Incident Commander:**
+
 - [ ] Confirm incident is real
 - [ ] Page on-call team
 - [ ] Create war room
@@ -153,6 +161,7 @@ gh run list --workflow=rollback.yml --limit=1 -L 100
 - [ ] Document timeline
 
 **Engineering Team:**
+
 - [ ] Investigate root cause
 - [ ] Monitor error logs
 - [ ] Check database integrity
@@ -161,6 +170,7 @@ gh run list --workflow=rollback.yml --limit=1 -L 100
 - [ ] Monitor performance
 
 **Product/Customer Success:**
+
 - [ ] Monitor customer reports
 - [ ] Update status page
 - [ ] Prepare customer communication
@@ -170,18 +180,21 @@ gh run list --workflow=rollback.yml --limit=1 -L 100
 ### After Incident
 
 **Incident Commander:**
+
 - [ ] Schedule post-incident review
 - [ ] Assign action items
 - [ ] Document lessons learned
 - [ ] Update procedures if needed
 
 **Engineering Team:**
+
 - [ ] Implement preventive measures
 - [ ] Add monitoring/alerts
 - [ ] Improve testing
 - [ ] Update documentation
 
 **Product/Customer Success:**
+
 - [ ] Send customer communication
 - [ ] Offer compensation if needed
 - [ ] Follow up with affected users
@@ -243,15 +256,15 @@ Post-incident review scheduled for [date/time].
 
 ## Incident Triggers & Actions
 
-| Incident | Trigger | Action | Rollback? |
-|----------|---------|--------|-----------|
-| **Outage** | Service down | Rollback immediately | YES |
-| **Auth Failure** | Login not working | Rollback immediately | YES |
-| **Data Leak** | Unauthorized access | Rollback + investigate | YES |
-| **Compliance Breach** | Violation detected | Rollback + legal | YES |
-| **Critical Bug** | Core feature broken | Investigate 30 min, then rollback if needed | MAYBE |
-| **Performance** | Response times > 5s | Investigate 1 hour, then rollback if needed | MAYBE |
-| **Error Spike** | 5xx errors > 1% | Investigate, monitor closely | NO (unless critical) |
+| Incident              | Trigger             | Action                                      | Rollback?            |
+| --------------------- | ------------------- | ------------------------------------------- | -------------------- |
+| **Outage**            | Service down        | Rollback immediately                        | YES                  |
+| **Auth Failure**      | Login not working   | Rollback immediately                        | YES                  |
+| **Data Leak**         | Unauthorized access | Rollback + investigate                      | YES                  |
+| **Compliance Breach** | Violation detected  | Rollback + legal                            | YES                  |
+| **Critical Bug**      | Core feature broken | Investigate 30 min, then rollback if needed | MAYBE                |
+| **Performance**       | Response times > 5s | Investigate 1 hour, then rollback if needed | MAYBE                |
+| **Error Spike**       | 5xx errors > 1%     | Investigate, monitor closely                | NO (unless critical) |
 
 ---
 
@@ -392,4 +405,3 @@ Public Communication / Press Release
 - [MONITORING.md](./MONITORING.md) - Monitoring and alerting setup
 - [DEPLOYMENT.md](./DEPLOYMENT.md) - Deployment procedures
 - [SECURITY.md](./SECURITY.md) - Security incident procedures
-

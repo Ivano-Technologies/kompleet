@@ -4,13 +4,13 @@
  * MED-001: Enhanced to preserve raw merchant data and extracted metadata
  */
 
-import { ParsedTransaction } from './csv-parser';
+import { ParsedTransaction } from "./csv-parser";
 
 export interface NormalizedTransaction {
   date: string; // ISO format YYYY-MM-DD
   merchant: string; // Cleaned and standardized
   amount: number; // Always positive
-  type: 'debit' | 'credit';
+  type: "debit" | "credit";
   balance: number;
   reference?: string;
   category?: string; // Auto-categorized if available
@@ -38,7 +38,7 @@ interface MerchantNormalizationResult {
  */
 export function normalizeTransaction(
   transaction: ParsedTransaction,
-  bankCode: string
+  bankCode: string,
 ): NormalizedTransaction {
   const merchantResult = normalizeMerchantWithMetadata(transaction.merchant);
 
@@ -63,17 +63,19 @@ export function normalizeTransaction(
  * - Standardize common patterns
  * - Extract and preserve prefixes, references, dates, times
  */
-function normalizeMerchantWithMetadata(merchant: string): MerchantNormalizationResult {
+function normalizeMerchantWithMetadata(
+  merchant: string,
+): MerchantNormalizationResult {
   if (!merchant) {
     return {
-      normalized: 'Unknown',
+      normalized: "Unknown",
       metadata: {
-        rawMerchant: '',
+        rawMerchant: "",
         removedPrefixes: [],
         extractedReferences: [],
         extractedDates: [],
-        extractedTimes: []
-      }
+        extractedTimes: [],
+      },
     };
   }
 
@@ -85,55 +87,66 @@ function normalizeMerchantWithMetadata(merchant: string): MerchantNormalizationR
   const extractedTimes: string[] = [];
 
   // Remove multiple spaces
-  normalized = normalized.replace(/\s+/g, ' ');
+  normalized = normalized.replace(/\s+/g, " ");
 
   // Extract and remove common prefixes
-  const prefixes = ['POS', 'ATM', 'WEB', 'MOBILE', 'TRANSFER', 'PAYMENT', 'PURCHASE'];
-  prefixes.forEach(prefix => {
-    const regex = new RegExp(`^${prefix}\\s*`, 'i');
+  const prefixes = [
+    "POS",
+    "ATM",
+    "WEB",
+    "MOBILE",
+    "TRANSFER",
+    "PAYMENT",
+    "PURCHASE",
+  ];
+  prefixes.forEach((prefix) => {
+    const regex = new RegExp(`^${prefix}\\s*`, "i");
     if (regex.test(normalized)) {
       removedPrefixes.push(prefix);
-      normalized = normalized.replace(regex, '');
+      normalized = normalized.replace(regex, "");
     }
   });
 
   // Extract transaction reference patterns (10+ alphanumeric characters)
   normalized = normalized.replace(/\b[A-Z0-9]{10,}\b/g, (match) => {
     extractedReferences.push(match);
-    return '';
+    return "";
   });
 
   // Extract date patterns
-  normalized = normalized.replace(/\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}/g, (match) => {
-    extractedDates.push(match);
-    return '';
-  });
+  normalized = normalized.replace(
+    /\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}/g,
+    (match) => {
+      extractedDates.push(match);
+      return "";
+    },
+  );
 
   // Extract time patterns
   normalized = normalized.replace(/\d{1,2}:\d{2}(:\d{2})?/g, (match) => {
     extractedTimes.push(match);
-    return '';
+    return "";
   });
 
   // Remove extra whitespace again
-  normalized = normalized.replace(/\s+/g, ' ').trim();
+  normalized = normalized.replace(/\s+/g, " ").trim();
 
   // Capitalize first letter of each word
   normalized = normalized
     .toLowerCase()
-    .split(' ')
+    .split(" ")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
+    .join(" ");
 
   return {
-    normalized: normalized || 'Unknown',
+    normalized: normalized || "Unknown",
     metadata: {
       rawMerchant,
       removedPrefixes,
       extractedReferences,
       extractedDates,
-      extractedTimes
-    }
+      extractedTimes,
+    },
   };
 }
 
@@ -149,42 +162,44 @@ function normalizeMerchant(merchant: string): string {
  */
 export function normalizeTransactions(
   transactions: ParsedTransaction[],
-  bankCode: string
+  bankCode: string,
 ): NormalizedTransaction[] {
-  return transactions.map((transaction) => normalizeTransaction(transaction, bankCode));
+  return transactions.map((transaction) =>
+    normalizeTransaction(transaction, bankCode),
+  );
 }
 
 /**
  * Validate normalized transaction
  */
 export function validateNormalizedTransaction(
-  transaction: NormalizedTransaction
+  transaction: NormalizedTransaction,
 ): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
 
   // Validate date
   if (!transaction.date || !/^\d{4}-\d{2}-\d{2}$/.test(transaction.date)) {
-    errors.push('Invalid date format');
+    errors.push("Invalid date format");
   }
 
   // Validate merchant
-  if (!transaction.merchant || transaction.merchant.trim() === '') {
-    errors.push('Missing merchant');
+  if (!transaction.merchant || transaction.merchant.trim() === "") {
+    errors.push("Missing merchant");
   }
 
   // Validate amount
-  if (typeof transaction.amount !== 'number' || transaction.amount < 0) {
-    errors.push('Invalid amount');
+  if (typeof transaction.amount !== "number" || transaction.amount < 0) {
+    errors.push("Invalid amount");
   }
 
   // Validate type
-  if (transaction.type !== 'debit' && transaction.type !== 'credit') {
-    errors.push('Invalid transaction type');
+  if (transaction.type !== "debit" && transaction.type !== "credit") {
+    errors.push("Invalid transaction type");
   }
 
   // Validate balance
-  if (typeof transaction.balance !== 'number') {
-    errors.push('Invalid balance');
+  if (typeof transaction.balance !== "number") {
+    errors.push("Invalid balance");
   }
 
   return {

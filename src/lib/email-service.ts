@@ -23,24 +23,29 @@ export interface DeadlineInfo {
  */
 export function generate7DayReminderEmail(
   userName: string,
-  deadline: DeadlineInfo
+  deadline: DeadlineInfo,
 ): EmailTemplate {
   const formTypeNames = {
-    PIT: 'Personal Income Tax (PIT)',
-    CIT: 'Company Income Tax (CIT)',
-    VAT_Q1: 'VAT Return - Q1',
-    VAT_Q2: 'VAT Return - Q2',
-    VAT_Q3: 'VAT Return - Q3',
-    VAT_Q4: 'VAT Return - Q4'
+    PIT: "Personal Income Tax (PIT)",
+    CIT: "Company Income Tax (CIT)",
+    VAT_Q1: "VAT Return - Q1",
+    VAT_Q2: "VAT Return - Q2",
+    VAT_Q3: "VAT Return - Q3",
+    VAT_Q4: "VAT Return - Q4",
   };
 
-  const formName = formTypeNames[deadline.formType as keyof typeof formTypeNames] || deadline.formType;
-  const deadlineFormatted = new Date(deadline.deadlineDate).toLocaleDateString('en-NG', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
+  const formName =
+    formTypeNames[deadline.formType as keyof typeof formTypeNames] ||
+    deadline.formType;
+  const deadlineFormatted = new Date(deadline.deadlineDate).toLocaleDateString(
+    "en-NG",
+    {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    },
+  );
 
   const subject = `Reminder: ${formName} Filing Deadline in 7 Days`;
 
@@ -144,24 +149,29 @@ Ivano Technologies Ltd | Nigerian Tax Compliance
  */
 export function generate3DayReminderEmail(
   userName: string,
-  deadline: DeadlineInfo
+  deadline: DeadlineInfo,
 ): EmailTemplate {
   const formTypeNames = {
-    PIT: 'Personal Income Tax (PIT)',
-    CIT: 'Company Income Tax (CIT)',
-    VAT_Q1: 'VAT Return - Q1',
-    VAT_Q2: 'VAT Return - Q2',
-    VAT_Q3: 'VAT Return - Q3',
-    VAT_Q4: 'VAT Return - Q4'
+    PIT: "Personal Income Tax (PIT)",
+    CIT: "Company Income Tax (CIT)",
+    VAT_Q1: "VAT Return - Q1",
+    VAT_Q2: "VAT Return - Q2",
+    VAT_Q3: "VAT Return - Q3",
+    VAT_Q4: "VAT Return - Q4",
   };
 
-  const formName = formTypeNames[deadline.formType as keyof typeof formTypeNames] || deadline.formType;
-  const deadlineFormatted = new Date(deadline.deadlineDate).toLocaleDateString('en-NG', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
+  const formName =
+    formTypeNames[deadline.formType as keyof typeof formTypeNames] ||
+    deadline.formType;
+  const deadlineFormatted = new Date(deadline.deadlineDate).toLocaleDateString(
+    "en-NG",
+    {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    },
+  );
 
   const subject = `⚠️ Urgent: ${formName} Filing Deadline in 3 Days`;
 
@@ -247,24 +257,29 @@ Ivano Technologies Ltd | Nigerian Tax Compliance
  */
 export function generate1DayReminderEmail(
   userName: string,
-  deadline: DeadlineInfo
+  deadline: DeadlineInfo,
 ): EmailTemplate {
   const formTypeNames = {
-    PIT: 'Personal Income Tax (PIT)',
-    CIT: 'Company Income Tax (CIT)',
-    VAT_Q1: 'VAT Return - Q1',
-    VAT_Q2: 'VAT Return - Q2',
-    VAT_Q3: 'VAT Return - Q3',
-    VAT_Q4: 'VAT Return - Q4'
+    PIT: "Personal Income Tax (PIT)",
+    CIT: "Company Income Tax (CIT)",
+    VAT_Q1: "VAT Return - Q1",
+    VAT_Q2: "VAT Return - Q2",
+    VAT_Q3: "VAT Return - Q3",
+    VAT_Q4: "VAT Return - Q4",
   };
 
-  const formName = formTypeNames[deadline.formType as keyof typeof formTypeNames] || deadline.formType;
-  const deadlineFormatted = new Date(deadline.deadlineDate).toLocaleDateString('en-NG', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
+  const formName =
+    formTypeNames[deadline.formType as keyof typeof formTypeNames] ||
+    deadline.formType;
+  const deadlineFormatted = new Date(deadline.deadlineDate).toLocaleDateString(
+    "en-NG",
+    {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    },
+  );
 
   const subject = `🚨 FINAL NOTICE: ${formName} Filing Deadline Tomorrow!`;
 
@@ -348,14 +363,14 @@ Ivano Technologies Ltd | Nigerian Tax Compliance
  */
 export async function sendEmail(
   to: string,
-  template: EmailTemplate
+  template: EmailTemplate,
 ): Promise<boolean> {
   try {
     // Check if Resend API key is configured
     const resendApiKey = process.env.RESEND_API_KEY;
 
     if (!resendApiKey) {
-      console.log('⚠️ RESEND_API_KEY not configured. Email would be sent:');
+      console.log("⚠️ RESEND_API_KEY not configured. Email would be sent:");
       console.log(`To: ${to}`);
       console.log(`Subject: ${template.subject}`);
       console.log(`Text: ${template.text.substring(0, 200)}...`);
@@ -363,33 +378,32 @@ export async function sendEmail(
     }
 
     // Send email via Resend API
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${resendApiKey}`,
-        'Content-Type': 'application/json'
+        Authorization: `Bearer ${resendApiKey}`,
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: 'KOMPLEET <noreply@kompleet.com>',
+        from: "KOMPLEET <noreply@kompleet.com>",
         to: [to],
         subject: template.subject,
         html: template.html,
-        text: template.text
-      })
+        text: template.text,
+      }),
     });
 
     if (!response.ok) {
       const error = await response.text();
-      console.error('Email send error:', error);
+      console.error("Email send error:", error);
       return false;
     }
 
     const result = await response.json();
-    console.log('Email sent successfully:', result);
+    console.log("Email sent successfully:", result);
     return true;
-
   } catch (error) {
-    console.error('Send email error:', error);
+    console.error("Send email error:", error);
     return false;
   }
 }

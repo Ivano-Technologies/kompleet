@@ -109,12 +109,14 @@ pandoc SAFE_DEPLOYMENT_GUIDE.md -o SAFE_DEPLOYMENT_GUIDE.docx
 ## Recommended Approach
 
 **For PDF**: Use browser print to PDF (Option 1)
+
 - ✅ Preserves all formatting
 - ✅ Professional appearance
 - ✅ Proper page breaks
 - ✅ No additional software needed
 
 **For Word**: Use Microsoft Word open HTML (Option 1)
+
 - ✅ Fully editable
 - ✅ Preserves formatting
 - ✅ Can customize further

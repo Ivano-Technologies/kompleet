@@ -28,11 +28,11 @@ User → Clerk (Authentication) → JWT Token → Supabase (Database + RLS)
 ### Using Clerk Authentication
 
 ```tsx
-'use client';
+"use client";
 
-import { useUser, useAuth } from '@clerk/nextjs';
-import { useSupabaseClerk } from '@/lib/supabase-clerk';
-import { useEffect, useState } from 'react';
+import { useUser, useAuth } from "@clerk/nextjs";
+import { useSupabaseClerk } from "@/lib/supabase-clerk";
+import { useEffect, useState } from "react";
 
 export default function MyComponent() {
   const { user, isLoaded } = useUser();
@@ -48,13 +48,13 @@ export default function MyComponent() {
 
   async function fetchTransactions() {
     const { data, error } = await supabase
-      .from('transactions')
-      .select('*')
-      .order('created_at', { ascending: false })
+      .from("transactions")
+      .select("*")
+      .order("created_at", { ascending: false })
       .limit(10);
 
     if (error) {
-      console.error('Error fetching transactions:', error);
+      console.error("Error fetching transactions:", error);
       return;
     }
 
@@ -85,9 +85,9 @@ export default function MyComponent() {
 ### Protecting Client Components
 
 ```tsx
-'use client';
+"use client";
 
-import { SignedIn, SignedOut, RedirectToSignIn } from '@clerk/nextjs';
+import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/nextjs";
 
 export default function ProtectedPage() {
   return (
@@ -96,7 +96,7 @@ export default function ProtectedPage() {
         {/* Content visible only to signed-in users */}
         <h1>Protected Content</h1>
       </SignedIn>
-      
+
       <SignedOut>
         <RedirectToSignIn />
       </SignedOut>
@@ -112,22 +112,22 @@ export default function ProtectedPage() {
 ### Basic API Route with Clerk Auth
 
 ```typescript
-import { auth } from '@clerk/nextjs/server';
-import { NextResponse } from 'next/server';
-import { createSupabaseClerkClient } from '@/lib/supabase-clerk';
+import { auth } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
+import { createSupabaseClerkClient } from "@/lib/supabase-clerk";
 
 export async function GET() {
   const { userId, getToken } = await auth();
 
   if (!userId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const supabase = await createSupabaseClerkClient(getToken);
 
   const { data, error } = await supabase
-    .from('transactions')
-    .select('*')
+    .from("transactions")
+    .select("*")
     .limit(10);
 
   if (error) {
@@ -141,15 +141,15 @@ export async function GET() {
 ### API Route with POST Request
 
 ```typescript
-import { auth } from '@clerk/nextjs/server';
-import { NextRequest, NextResponse } from 'next/server';
-import { createSupabaseClerkClient } from '@/lib/supabase-clerk';
+import { auth } from "@clerk/nextjs/server";
+import { NextRequest, NextResponse } from "next/server";
+import { createSupabaseClerkClient } from "@/lib/supabase-clerk";
 
 export async function POST(request: NextRequest) {
   const { userId, getToken } = await auth();
 
   if (!userId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const body = await request.json();
@@ -157,7 +157,7 @@ export async function POST(request: NextRequest) {
 
   // Insert transaction (RLS will automatically set clerk_user_id)
   const { data, error } = await supabase
-    .from('transactions')
+    .from("transactions")
     .insert({
       description: body.description,
       amount: body.amount,
@@ -182,8 +182,8 @@ export async function POST(request: NextRequest) {
 ### Using Clerk in Server Components
 
 ```tsx
-import { auth, currentUser } from '@clerk/nextjs/server';
-import { createSupabaseClerkClient } from '@/lib/supabase-clerk';
+import { auth, currentUser } from "@clerk/nextjs/server";
+import { createSupabaseClerkClient } from "@/lib/supabase-clerk";
 
 export default async function ServerPage() {
   const { userId, getToken } = await auth();
@@ -196,8 +196,8 @@ export default async function ServerPage() {
   const supabase = await createSupabaseClerkClient(getToken);
 
   const { data: transactions } = await supabase
-    .from('transactions')
-    .select('*')
+    .from("transactions")
+    .select("*")
     .limit(10);
 
   return (
@@ -222,13 +222,13 @@ export default async function ServerPage() {
 Update `src/middleware.ts`:
 
 ```typescript
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
 const isPublicRoute = createRouteMatcher([
-  '/sign-in(.*)',
-  '/sign-up(.*)',
-  '/api/webhooks/clerk',
-  '/',
+  "/sign-in(.*)",
+  "/sign-up(.*)",
+  "/api/webhooks/clerk",
+  "/",
 ]);
 
 export default clerkMiddleware(async (auth, request) => {
@@ -239,8 +239,8 @@ export default clerkMiddleware(async (auth, request) => {
 
 export const config = {
   matcher: [
-    '/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
-    '/(api|trpc)(.*)',
+    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    "/(api|trpc)(.*)",
   ],
 };
 ```
@@ -254,11 +254,11 @@ export const config = {
 ```typescript
 // RLS policies will automatically populate clerk_user_id
 const { data, error } = await supabase
-  .from('transactions')
+  .from("transactions")
   .insert({
-    description: 'Office supplies',
-    amount: 150.00,
-    transaction_type: 'expense',
+    description: "Office supplies",
+    amount: 150.0,
+    transaction_type: "expense",
     transaction_date: new Date().toISOString(),
   })
   .select()
@@ -270,9 +270,9 @@ const { data, error } = await supabase
 ```typescript
 // RLS automatically filters to current user's data
 const { data, error } = await supabase
-  .from('transactions')
-  .select('*')
-  .order('transaction_date', { ascending: false });
+  .from("transactions")
+  .select("*")
+  .order("transaction_date", { ascending: false });
 ```
 
 ### Updating Data
@@ -280,9 +280,9 @@ const { data, error } = await supabase
 ```typescript
 // Can only update own records due to RLS
 const { data, error } = await supabase
-  .from('transactions')
-  .update({ description: 'Updated description' })
-  .eq('id', transactionId)
+  .from("transactions")
+  .update({ description: "Updated description" })
+  .eq("id", transactionId)
   .select()
   .single();
 ```
@@ -292,9 +292,9 @@ const { data, error } = await supabase
 ```typescript
 // Can only delete own records due to RLS
 const { error } = await supabase
-  .from('transactions')
+  .from("transactions")
   .delete()
-  .eq('id', transactionId);
+  .eq("id", transactionId);
 ```
 
 ---
@@ -307,22 +307,22 @@ const { error } = await supabase
 const { userId } = await auth();
 
 if (!userId) {
-  return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 }
 
 const supabase = await createSupabaseClerkClient(getToken);
 
 const { data: user, error } = await supabase
-  .from('clerk_users')
-  .select('*')
-  .eq('clerk_user_id', userId)
+  .from("clerk_users")
+  .select("*")
+  .eq("clerk_user_id", userId)
   .single();
 
 if (error || !user) {
   // User not synced yet, webhook might still be processing
   return NextResponse.json(
-    { error: 'User not found in database' },
-    { status: 404 }
+    { error: "User not found in database" },
+    { status: 404 },
   );
 }
 ```
@@ -334,21 +334,21 @@ const { userId, getToken } = await auth();
 const user = await currentUser();
 
 if (!userId || !user) {
-  return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 }
 
 const supabase = await createSupabaseClerkClient(getToken);
 
 // Check if profile exists
 const { data: existingProfile } = await supabase
-  .from('profiles')
-  .select('*')
-  .eq('clerk_user_id', userId)
+  .from("profiles")
+  .select("*")
+  .eq("clerk_user_id", userId)
   .single();
 
 if (!existingProfile) {
   // Create profile
-  await supabase.from('profiles').insert({
+  await supabase.from("profiles").insert({
     clerk_user_id: userId,
     email: user.emailAddresses[0]?.emailAddress,
     full_name: `${user.firstName} ${user.lastName}`,
@@ -368,31 +368,33 @@ try {
 
   if (!userId) {
     return NextResponse.json(
-      { error: 'Unauthorized', code: 'UNAUTHORIZED' },
-      { status: 401 }
+      { error: "Unauthorized", code: "UNAUTHORIZED" },
+      { status: 401 },
     );
   }
 
   const supabase = await createSupabaseClerkClient(getToken);
 
-  const { data, error } = await supabase
-    .from('transactions')
-    .select('*');
+  const { data, error } = await supabase.from("transactions").select("*");
 
   if (error) {
-    console.error('Supabase error:', error);
+    console.error("Supabase error:", error);
     return NextResponse.json(
-      { error: 'Database error', code: 'DATABASE_ERROR', details: error.message },
-      { status: 500 }
+      {
+        error: "Database error",
+        code: "DATABASE_ERROR",
+        details: error.message,
+      },
+      { status: 500 },
     );
   }
 
   return NextResponse.json({ data });
 } catch (error) {
-  console.error('Unexpected error:', error);
+  console.error("Unexpected error:", error);
   return NextResponse.json(
-    { error: 'Internal server error', code: 'INTERNAL_ERROR' },
-    { status: 500 }
+    { error: "Internal server error", code: "INTERNAL_ERROR" },
+    { status: 500 },
   );
 }
 ```

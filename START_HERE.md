@@ -194,27 +194,32 @@ If you don't have one:
 ## 🎯 What Happens During Deployment
 
 ### Phase 1: Pre-Deployment (15 min)
+
 - Verify build passes
 - Run tests
 - Create backup
 - Review changes
 
 ### Phase 2: Git & GitHub (10 min)
+
 - Commit all changes
 - Push to GitHub
 - Verify on GitHub
 
 ### Phase 3: Supabase (5 min)
+
 - Enable PITR (backups)
 - Copy credentials
 
 ### Phase 4: Vercel (15 min)
+
 - Install CLI
 - Link project
 - Add environment variables
 - Deploy to production
 
 ### Phase 5: Verification (15 min)
+
 - Test health check
 - Manual testing (signup → calculator → save)
 - Check logs
@@ -263,6 +268,7 @@ Deployment is successful when:
 5. **Deploy with confidence!**
 
 **Remember**: The guide has your back with:
+
 - Clear instructions
 - Expected results
 - Safety checkpoints

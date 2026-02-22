@@ -4,9 +4,9 @@
  * Protected: Requires 'admin:manage_rules' permission
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { withAuth } from '@/lib/auth/with-auth';
-import { rulesEngine } from '@/lib/services/rules-engine';
+import { NextRequest, NextResponse } from "next/server";
+import { withAuth } from "@/lib/auth/with-auth";
+import { rulesEngine } from "@/lib/services/rules-engine";
 
 async function handleGET(request: NextRequest) {
   try {
@@ -14,13 +14,15 @@ async function handleGET(request: NextRequest) {
 
     return NextResponse.json({ sources });
   } catch (error) {
-    console.error('Error in GET /api/tax/sources:', error);
+    console.error("Error in GET /api/tax/sources:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+      { error: "Internal server error" },
+      { status: 500 },
     );
   }
 }
 
 // Apply authentication and authorization (requires admin:manage_rules permission)
-export const GET = withAuth(handleGET, { requiredPermission: 'admin:manage_rules' });
+export const GET = withAuth(handleGET, {
+  requiredPermission: "admin:manage_rules",
+});

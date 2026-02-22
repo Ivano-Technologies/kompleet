@@ -3,8 +3,8 @@
  * Handles date parsing, amount normalization, type detection
  */
 
-import { Transaction, RawRow, ParseError } from './types';
-import { v4 as uuidv4 } from 'uuid';
+import { Transaction, RawRow, ParseError } from "./types";
+import { v4 as uuidv4 } from "uuid";
 
 /**
  * Normalize array of raw rows to Transaction schema
@@ -13,7 +13,7 @@ export function normalizeTransactions(
   rawRows: RawRow[],
   fileType: string,
   userId: string,
-  sourceFileId: string
+  sourceFileId: string,
 ): { transactions: Transaction[]; errors: ParseError[] } {
   const transactions: Transaction[] = [];
   const errors: ParseError[] = [];
@@ -27,8 +27,8 @@ export function normalizeTransactions(
     } catch (error) {
       errors.push({
         rowNumber: index + 1,
-        errorType: 'NORMALIZATION_ERROR',
-        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+        errorType: "NORMALIZATION_ERROR",
+        errorMessage: error instanceof Error ? error.message : "Unknown error",
         rawData: row,
       });
     }
@@ -44,7 +44,7 @@ function normalizeRow(
   row: RawRow,
   rowIndex: number,
   userId: string,
-  sourceFileId: string
+  sourceFileId: string,
 ): Transaction | null {
   // Skip empty rows
   if (!row.date || !row.description || !row.amount) {
@@ -71,7 +71,7 @@ function normalizeRow(
     type: detectTransactionType(row),
 
     // Optional fields
-    currency: 'NGN', // Default to Nigerian Naira
+    currency: "NGN", // Default to Nigerian Naira
     balance: row.balance ? normalizeAmount(row.balance) : undefined,
     reference: row.reference?.toString().trim() || undefined,
 
@@ -88,7 +88,7 @@ function normalizeRow(
  */
 export function normalizeDate(dateStr: string): string {
   if (!dateStr) {
-    throw new Error('Date is required');
+    throw new Error("Date is required");
   }
 
   const trimmed = dateStr.toString().trim();
@@ -103,7 +103,7 @@ export function normalizeDate(dateStr: string): string {
 
   // Try DD/MM/YYYY
   if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(trimmed)) {
-    const parts = trimmed.split('/');
+    const parts = trimmed.split("/");
     const day = parseInt(parts[0], 10);
     const month = parseInt(parts[1], 10);
     const year = parseInt(parts[2], 10);
@@ -128,7 +128,7 @@ export function normalizeDate(dateStr: string): string {
 
   // Try MM/DD/YYYY
   if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(trimmed)) {
-    const parts = trimmed.split('/');
+    const parts = trimmed.split("/");
     const month = parseInt(parts[0], 10);
     const day = parseInt(parts[1], 10);
     const year = parseInt(parts[2], 10);
@@ -140,14 +140,14 @@ export function normalizeDate(dateStr: string): string {
   if (/^\d{1,2}-[A-Za-z]{3}-\d{4}$/.test(trimmed)) {
     const date = new Date(trimmed);
     if (!isNaN(date.getTime())) {
-      return date.toISOString().split('T')[0];
+      return date.toISOString().split("T")[0];
     }
   }
 
   // Try parsing with Date constructor
   const date = new Date(trimmed);
   if (!isNaN(date.getTime())) {
-    return date.toISOString().split('T')[0];
+    return date.toISOString().split("T")[0];
   }
 
   throw new Error(`Invalid date format: ${dateStr}`);
@@ -156,16 +156,25 @@ export function normalizeDate(dateStr: string): string {
 /**
  * Check if date is valid
  */
-function isValidDate(date: Date, day: number, month: number, year: number): boolean {
-  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
+function isValidDate(
+  date: Date,
+  day: number,
+  month: number,
+  year: number,
+): boolean {
+  return (
+    date.getFullYear() === year &&
+    date.getMonth() === month - 1 &&
+    date.getDate() === day
+  );
 }
 
 /**
  * Format date as YYYY-MM-DD
  */
 function formatDate(year: number, month: number, day: number): string {
-  const monthStr = String(month).padStart(2, '0');
-  const dayStr = String(day).padStart(2, '0');
+  const monthStr = String(month).padStart(2, "0");
+  const dayStr = String(day).padStart(2, "0");
   return `${year}-${monthStr}-${dayStr}`;
 }
 
@@ -175,17 +184,17 @@ function formatDate(year: number, month: number, day: number): string {
  */
 export function normalizeDescription(desc: string): string {
   if (!desc) {
-    return '';
+    return "";
   }
 
   let normalized = desc.toString().trim();
 
   // Remove account numbers (10+ consecutive digits)
-  normalized = normalized.replace(/\d{10,}/g, '[ACCOUNT_REDACTED]');
+  normalized = normalized.replace(/\d{10,}/g, "[ACCOUNT_REDACTED]");
 
   // Limit to 255 characters
   if (normalized.length > 255) {
-    normalized = normalized.substring(0, 252) + '...';
+    normalized = normalized.substring(0, 252) + "...";
   }
 
   return normalized;
@@ -197,16 +206,16 @@ export function normalizeDescription(desc: string): string {
  */
 export function normalizeAmount(amountStr: string): number {
   if (!amountStr) {
-    throw new Error('Amount is required');
+    throw new Error("Amount is required");
   }
 
   let normalized = amountStr.toString().trim();
 
   // Remove currency symbols (₦, NGN, $, €, etc.)
-  normalized = normalized.replace(/[₦$€£¥NGN]/gi, '');
+  normalized = normalized.replace(/[₦$€£¥NGN]/gi, "");
 
   // Remove commas
-  normalized = normalized.replace(/,/g, '');
+  normalized = normalized.replace(/,/g, "");
 
   // Handle scientific notation (1.23E+09)
   const amount = parseFloat(normalized);
@@ -223,35 +232,51 @@ export function normalizeAmount(amountStr: string): number {
  * Detect transaction type (debit or credit)
  * Heuristics: type field, amount sign, description keywords
  */
-export function detectTransactionType(row: RawRow): 'debit' | 'credit' {
+export function detectTransactionType(row: RawRow): "debit" | "credit" {
   // Check 'type' field first
   if (row.type) {
     const type = row.type.toString().toUpperCase();
-    if (type.includes('DR') || type.includes('DEBIT') || type.includes('WITHDRAWAL')) {
-      return 'debit';
+    if (
+      type.includes("DR") ||
+      type.includes("DEBIT") ||
+      type.includes("WITHDRAWAL")
+    ) {
+      return "debit";
     }
-    if (type.includes('CR') || type.includes('CREDIT') || type.includes('DEPOSIT')) {
-      return 'credit';
+    if (
+      type.includes("CR") ||
+      type.includes("CREDIT") ||
+      type.includes("DEPOSIT")
+    ) {
+      return "credit";
     }
   }
 
   // Check description for keywords
-  const desc = (row.description || '').toString().toUpperCase();
-  if (desc.includes('WITHDRAWAL') || desc.includes('ATM') || desc.includes('TRANSFER OUT')) {
-    return 'debit';
+  const desc = (row.description || "").toString().toUpperCase();
+  if (
+    desc.includes("WITHDRAWAL") ||
+    desc.includes("ATM") ||
+    desc.includes("TRANSFER OUT")
+  ) {
+    return "debit";
   }
-  if (desc.includes('DEPOSIT') || desc.includes('TRANSFER IN') || desc.includes('CREDIT')) {
-    return 'credit';
+  if (
+    desc.includes("DEPOSIT") ||
+    desc.includes("TRANSFER IN") ||
+    desc.includes("CREDIT")
+  ) {
+    return "credit";
   }
 
   // Check amount sign (if available)
   if (row.amount) {
     const amountStr = row.amount.toString();
-    if (amountStr.includes('-') || amountStr.startsWith('(')) {
-      return 'debit';
+    if (amountStr.includes("-") || amountStr.startsWith("(")) {
+      return "debit";
     }
   }
 
   // Default to debit (conservative)
-  return 'debit';
+  return "debit";
 }

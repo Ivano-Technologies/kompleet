@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { AlertTriangle, RotateCcw, Home } from 'lucide-react';
-import Link from 'next/link';
+import { AlertTriangle, RotateCcw, Home } from "lucide-react";
+import Link from "next/link";
 
 export default function DashboardError({
   error,
@@ -20,7 +20,7 @@ export default function DashboardError({
           Something went wrong
         </h2>
         <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary max-w-md">
-          {error.message || 'An unexpected error occurred. Please try again.'}
+          {error.message || "An unexpected error occurred. Please try again."}
         </p>
       </div>
       <div className="flex items-center gap-3">

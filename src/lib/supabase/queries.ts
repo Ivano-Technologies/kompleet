@@ -2,7 +2,7 @@
  * Database Queries (Client-Side)
  * ==============================
  * Typed query functions for the KOMPLEET database.
- * 
+ *
  * All functions require an explicit Supabase client parameter.
  * This pattern:
  *   - Makes functions testable (pass mock client)
@@ -17,8 +17,8 @@
  *   const { data, error } = await getTransactions(supabase, { taxYear: 2024 });
  */
 
-import type { SupabaseClient } from '@supabase/supabase-js';
-import type { TypedSupabaseClient } from './client';
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { TypedSupabaseClient } from "./client";
 import type {
   Transaction,
   Category,
@@ -27,7 +27,7 @@ import type {
   ImportBatch,
   TransactionType,
   CategoryGroupType,
-} from './types';
+} from "./types";
 
 // ============================================================
 // RESULT TYPES
@@ -72,9 +72,10 @@ export interface TransactionFilters {
   importBatchId?: string;
 }
 
-export interface TransactionQueryParams extends TransactionFilters, PaginationParams {
-  orderBy?: 'transaction_date' | 'amount' | 'created_at';
-  orderDir?: 'asc' | 'desc';
+export interface TransactionQueryParams
+  extends TransactionFilters, PaginationParams {
+  orderBy?: "transaction_date" | "amount" | "created_at";
+  orderDir?: "asc" | "desc";
 }
 
 // ============================================================
@@ -96,12 +97,12 @@ export interface TransactionWithCategory extends Transaction {
  */
 export async function getUserProfile(
   supabase: SupabaseClient,
-  userId: string
+  userId: string,
 ): Promise<{ success: boolean; data?: Profile; error?: string }> {
   const { data, error } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', userId)
+    .from("profiles")
+    .select("*")
+    .eq("id", userId)
     .single();
 
   if (error) {
@@ -109,7 +110,7 @@ export async function getUserProfile(
   }
 
   if (!data) {
-    return { success: false, error: 'Profile not found' };
+    return { success: false, error: "Profile not found" };
   }
 
   return { success: true, data: data as Profile };
@@ -123,12 +124,12 @@ export async function getUserProfile(
 export async function updateUserProfile(
   supabase: SupabaseClient,
   userId: string,
-  updates: Partial<Profile>
+  updates: Partial<Profile>,
 ): Promise<{ success: boolean; data?: Profile; error?: string }> {
   const { data, error } = await supabase
-    .from('profiles')
+    .from("profiles")
     .update(updates)
-    .eq('id', userId)
+    .eq("id", userId)
     .select()
     .single();
 
@@ -137,7 +138,7 @@ export async function updateUserProfile(
   }
 
   if (!data) {
-    return { success: false, error: 'Profile not found' };
+    return { success: false, error: "Profile not found" };
   }
 
   return { success: true, data: data as Profile };
@@ -151,11 +152,16 @@ export async function updateUserProfile(
 export async function listUserProfiles(
   supabase: SupabaseClient,
   limit: number = 50,
-  offset: number = 0
-): Promise<{ success: boolean; data?: Profile[]; total?: number; error?: string }> {
+  offset: number = 0,
+): Promise<{
+  success: boolean;
+  data?: Profile[];
+  total?: number;
+  error?: string;
+}> {
   const { data, error, count } = await supabase
-    .from('profiles')
-    .select('*', { count: 'exact' })
+    .from("profiles")
+    .select("*", { count: "exact" })
     .range(offset, offset + limit - 1);
 
   if (error) {
@@ -174,12 +180,12 @@ export async function listUserProfiles(
  */
 export async function userProfileExists(
   supabase: SupabaseClient,
-  userId: string
+  userId: string,
 ): Promise<boolean> {
   const { data, error } = await supabase
-    .from('profiles')
-    .select('id')
-    .eq('id', userId)
+    .from("profiles")
+    .select("id")
+    .eq("id", userId)
     .single();
 
   if (error) return false;
@@ -195,12 +201,12 @@ export async function userProfileExists(
  */
 export async function getProfile(
   supabase: TypedSupabaseClient,
-  userId: string
+  userId: string,
 ): Promise<QueryResult<Profile>> {
   const { data, error } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', userId)
+    .from("profiles")
+    .select("*")
+    .eq("id", userId)
     .single();
 
   if (error) {
@@ -222,22 +228,25 @@ export async function getProfile(
 export async function updateProfile(
   supabase: TypedSupabaseClient,
   userId: string,
-  updates: Partial<Pick<Profile,
-    | 'full_name'
-    | 'phone'
-    | 'entity_type'
-    | 'tin'
-    | 'company_name'
-    | 'rc_number'
-    | 'company_address'
-    | 'vat_registered'
-    | 'vat_number'
-  >>
+  updates: Partial<
+    Pick<
+      Profile,
+      | "full_name"
+      | "phone"
+      | "entity_type"
+      | "tin"
+      | "company_name"
+      | "rc_number"
+      | "company_address"
+      | "vat_registered"
+      | "vat_number"
+    >
+  >,
 ): Promise<QueryResult<Profile>> {
   const { data, error } = await supabase
-    .from('profiles')
+    .from("profiles")
     .update(updates)
-    .eq('id', userId)
+    .eq("id", userId)
     .select()
     .single();
 
@@ -259,13 +268,13 @@ export async function updateProfile(
  * const { data: categories } = await getCategories(supabase);
  */
 export async function getCategories(
-  supabase: TypedSupabaseClient
+  supabase: TypedSupabaseClient,
 ): Promise<QueryListResult<Category>> {
   const { data, error } = await supabase
-    .from('categories')
-    .select('*')
-    .is('deleted_at', null)
-    .order('display_order', { ascending: true });
+    .from("categories")
+    .select("*")
+    .is("deleted_at", null)
+    .order("display_order", { ascending: true });
 
   if (error) {
     return { data: [], error: error.message };
@@ -279,12 +288,12 @@ export async function getCategories(
  */
 export async function getCategory(
   supabase: TypedSupabaseClient,
-  categoryId: string
+  categoryId: string,
 ): Promise<QueryResult<Category>> {
   const { data, error } = await supabase
-    .from('categories')
-    .select('*')
-    .eq('id', categoryId)
+    .from("categories")
+    .select("*")
+    .eq("id", categoryId)
     .single();
 
   if (error) {
@@ -302,7 +311,7 @@ export async function getCategory(
  * // { income: [...], expense: [...], transfer: [...] }
  */
 export async function getCategoriesGrouped(
-  supabase: TypedSupabaseClient
+  supabase: TypedSupabaseClient,
 ): Promise<QueryResult<Record<CategoryGroupType, Category[]>>> {
   const { data, error } = await getCategories(supabase);
 
@@ -325,7 +334,10 @@ export async function getCategoriesGrouped(
     }
   }
 
-  return { data: grouped as Record<CategoryGroupType, Category[]>, error: null };
+  return {
+    data: grouped as Record<CategoryGroupType, Category[]>,
+    error: null,
+  };
 }
 
 // ============================================================
@@ -345,7 +357,7 @@ export async function getCategoriesGrouped(
  */
 export async function getTransactions(
   supabase: TypedSupabaseClient,
-  params: TransactionQueryParams = {}
+  params: TransactionQueryParams = {},
 ): Promise<PaginatedResult<TransactionWithCategory>> {
   const {
     taxYear,
@@ -358,55 +370,55 @@ export async function getTransactions(
     importBatchId,
     page = 1,
     pageSize = 20,
-    orderBy = 'transaction_date',
-    orderDir = 'desc',
+    orderBy = "transaction_date",
+    orderDir = "desc",
   } = params;
 
   // Build the query
   let query = supabase
-    .from('transactions')
-    .select('*, category:categories(*)', { count: 'exact' })
-    .is('deleted_at', null);
+    .from("transactions")
+    .select("*, category:categories(*)", { count: "exact" })
+    .is("deleted_at", null);
 
   // Apply filters
   if (taxYear !== undefined) {
-    query = query.eq('tax_year', taxYear);
+    query = query.eq("tax_year", taxYear);
   }
 
   if (categoryId !== undefined) {
     if (categoryId === null) {
-      query = query.is('category_id', null);
+      query = query.is("category_id", null);
     } else {
-      query = query.eq('category_id', categoryId);
+      query = query.eq("category_id", categoryId);
     }
   }
 
   if (transactionType !== undefined) {
-    query = query.eq('transaction_type', transactionType);
+    query = query.eq("transaction_type", transactionType);
   }
 
   if (isVerified !== undefined) {
-    query = query.eq('is_verified', isVerified);
+    query = query.eq("is_verified", isVerified);
   }
 
   if (search !== undefined && search.length > 0) {
-    query = query.ilike('description', `%${search}%`);
+    query = query.ilike("description", `%${search}%`);
   }
 
   if (startDate !== undefined) {
-    query = query.gte('transaction_date', startDate);
+    query = query.gte("transaction_date", startDate);
   }
 
   if (endDate !== undefined) {
-    query = query.lte('transaction_date', endDate);
+    query = query.lte("transaction_date", endDate);
   }
 
   if (importBatchId !== undefined) {
-    query = query.eq('import_batch_id', importBatchId);
+    query = query.eq("import_batch_id", importBatchId);
   }
 
   // Apply ordering
-  query = query.order(orderBy, { ascending: orderDir === 'asc' });
+  query = query.order(orderBy, { ascending: orderDir === "asc" });
 
   // Apply pagination
   const from = (page - 1) * pageSize;
@@ -443,13 +455,13 @@ export async function getTransactions(
  */
 export async function getTransaction(
   supabase: TypedSupabaseClient,
-  transactionId: string
+  transactionId: string,
 ): Promise<QueryResult<TransactionWithCategory>> {
   const { data, error } = await supabase
-    .from('transactions')
-    .select('*, category:categories(*)')
-    .eq('id', transactionId)
-    .is('deleted_at', null)
+    .from("transactions")
+    .select("*, category:categories(*)")
+    .eq("id", transactionId)
+    .is("deleted_at", null)
     .single();
 
   if (error) {
@@ -464,16 +476,16 @@ export async function getTransaction(
  */
 export async function getUncategorizedCount(
   supabase: TypedSupabaseClient,
-  taxYear?: number
+  taxYear?: number,
 ): Promise<QueryResult<number>> {
   let query = supabase
-    .from('transactions')
-    .select('*', { count: 'exact', head: true })
-    .is('category_id', null)
-    .is('deleted_at', null);
+    .from("transactions")
+    .select("*", { count: "exact", head: true })
+    .is("category_id", null)
+    .is("deleted_at", null);
 
   if (taxYear !== undefined) {
-    query = query.eq('tax_year', taxYear);
+    query = query.eq("tax_year", taxYear);
   }
 
   const { count, error } = await query;
@@ -490,13 +502,13 @@ export async function getUncategorizedCount(
  */
 export async function getTransactionTotals(
   supabase: TypedSupabaseClient,
-  taxYear: number
+  taxYear: number,
 ): Promise<QueryResult<{ income: number; expenses: number; count: number }>> {
   const { data, error } = await supabase
-    .from('transactions')
-    .select('amount, transaction_type')
-    .eq('tax_year', taxYear)
-    .is('deleted_at', null);
+    .from("transactions")
+    .select("amount, transaction_type")
+    .eq("tax_year", taxYear)
+    .is("deleted_at", null);
 
   if (error) {
     return { data: null, error: error.message };
@@ -506,7 +518,7 @@ export async function getTransactionTotals(
   let expenses = 0;
 
   for (const tx of data ?? []) {
-    if (tx.transaction_type === 'credit') {
+    if (tx.transaction_type === "credit") {
       income += tx.amount;
     } else {
       expenses += tx.amount;
@@ -526,15 +538,15 @@ export async function updateTransactionCategory(
   supabase: TypedSupabaseClient,
   transactionId: string,
   categoryId: string | null,
-  isVerified: boolean = true
+  isVerified: boolean = true,
 ): Promise<QueryResult<Transaction>> {
   const { data, error } = await supabase
-    .from('transactions')
+    .from("transactions")
     .update({
       category_id: categoryId,
       is_verified: isVerified,
     })
-    .eq('id', transactionId)
+    .eq("id", transactionId)
     .select()
     .single();
 
@@ -549,12 +561,12 @@ export async function updateTransactionCategory(
  * Get available tax years (years that have transactions).
  */
 export async function getAvailableTaxYears(
-  supabase: TypedSupabaseClient
+  supabase: TypedSupabaseClient,
 ): Promise<QueryListResult<number>> {
   const { data, error } = await supabase
-    .from('transactions')
-    .select('tax_year')
-    .is('deleted_at', null);
+    .from("transactions")
+    .select("tax_year")
+    .is("deleted_at", null);
 
   if (error) {
     return { data: [], error: error.message };
@@ -583,24 +595,24 @@ export async function getTaxCalculations(
   supabase: TypedSupabaseClient,
   params: {
     taxYear?: number;
-    taxType?: 'pit' | 'cit' | 'vat' | 'wht';
+    taxType?: "pit" | "cit" | "vat" | "wht";
     limit?: number;
-  } = {}
+  } = {},
 ): Promise<QueryListResult<TaxCalculation>> {
   const { taxYear, taxType, limit = 50 } = params;
 
   let query = supabase
-    .from('tax_calculations')
-    .select('*')
-    .order('created_at', { ascending: false })
+    .from("tax_calculations")
+    .select("*")
+    .order("created_at", { ascending: false })
     .limit(limit);
 
   if (taxYear !== undefined) {
-    query = query.eq('tax_year', taxYear);
+    query = query.eq("tax_year", taxYear);
   }
 
   if (taxType !== undefined) {
-    query = query.eq('tax_type', taxType);
+    query = query.eq("tax_type", taxType);
   }
 
   const { data, error } = await query;
@@ -617,15 +629,15 @@ export async function getTaxCalculations(
  */
 export async function getLatestTaxCalculation(
   supabase: TypedSupabaseClient,
-  taxType: 'pit' | 'cit' | 'vat' | 'wht',
-  taxYear: number
+  taxType: "pit" | "cit" | "vat" | "wht",
+  taxYear: number,
 ): Promise<QueryResult<TaxCalculation>> {
   const { data, error } = await supabase
-    .from('tax_calculations')
-    .select('*')
-    .eq('tax_type', taxType)
-    .eq('tax_year', taxYear)
-    .order('created_at', { ascending: false })
+    .from("tax_calculations")
+    .select("*")
+    .eq("tax_type", taxType)
+    .eq("tax_year", taxYear)
+    .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
 
@@ -646,20 +658,20 @@ export async function getLatestTaxCalculation(
 export async function getImportBatches(
   supabase: TypedSupabaseClient,
   params: {
-    status?: 'pending' | 'processing' | 'completed' | 'failed' | 'partial';
+    status?: "pending" | "processing" | "completed" | "failed" | "partial";
     limit?: number;
-  } = {}
+  } = {},
 ): Promise<QueryListResult<ImportBatch>> {
   const { status, limit = 20 } = params;
 
   let query = supabase
-    .from('import_batches')
-    .select('*')
-    .order('created_at', { ascending: false })
+    .from("import_batches")
+    .select("*")
+    .order("created_at", { ascending: false })
     .limit(limit);
 
   if (status !== undefined) {
-    query = query.eq('status', status);
+    query = query.eq("status", status);
   }
 
   const { data, error } = await query;
@@ -676,12 +688,12 @@ export async function getImportBatches(
  */
 export async function getImportBatch(
   supabase: TypedSupabaseClient,
-  batchId: string
+  batchId: string,
 ): Promise<QueryResult<ImportBatch>> {
   const { data, error } = await supabase
-    .from('import_batches')
-    .select('*')
-    .eq('id', batchId)
+    .from("import_batches")
+    .select("*")
+    .eq("id", batchId)
     .single();
 
   if (error) {
@@ -703,19 +715,26 @@ export async function getImportBatch(
  */
 export async function getDashboardSummary(
   supabase: TypedSupabaseClient,
-  taxYear: number
-): Promise<QueryResult<{
-  totalIncome: number;
-  totalExpenses: number;
-  transactionCount: number;
-  uncategorizedCount: number;
-  recentTransactions: TransactionWithCategory[];
-}>> {
+  taxYear: number,
+): Promise<
+  QueryResult<{
+    totalIncome: number;
+    totalExpenses: number;
+    transactionCount: number;
+    uncategorizedCount: number;
+    recentTransactions: TransactionWithCategory[];
+  }>
+> {
   // Run queries in parallel
   const [totalsResult, uncategorizedResult, recentResult] = await Promise.all([
     getTransactionTotals(supabase, taxYear),
     getUncategorizedCount(supabase, taxYear),
-    getTransactions(supabase, { taxYear, pageSize: 5, orderBy: 'transaction_date', orderDir: 'desc' }),
+    getTransactions(supabase, {
+      taxYear,
+      pageSize: 5,
+      orderBy: "transaction_date",
+      orderDir: "desc",
+    }),
   ]);
 
   // Check for errors

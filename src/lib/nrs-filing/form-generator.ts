@@ -3,8 +3,8 @@
  * Generates NRS-compliant tax forms (PIT, CIT, VAT)
  */
 
-import { TaxComputationData } from '../financial-statements/tax-computation';
-import { IncomeStatementData } from '../financial-statements/income-statement';
+import { TaxComputationData } from "../financial-statements/tax-computation";
+import { IncomeStatementData } from "../financial-statements/income-statement";
 
 export interface PITFormData {
   taxpayerName: string;
@@ -48,12 +48,11 @@ export function generatePITForm(
   taxpayerInfo: { name: string; tin: string },
   taxComputation: TaxComputationData,
   taxYear: number,
-  taxPaid: number = 0
+  taxPaid: number = 0,
 ): PITFormData {
-  const allowableDeductions = Object.values(taxComputation.taxAdjustments.deductions).reduce(
-    (sum, val) => sum + val,
-    0
-  );
+  const allowableDeductions = Object.values(
+    taxComputation.taxAdjustments.deductions,
+  ).reduce((sum, val) => sum + val, 0);
 
   return {
     taxpayerName: taxpayerInfo.name,
@@ -76,11 +75,17 @@ export function generateCITForm(
   incomeStatement: IncomeStatementData,
   taxComputation: TaxComputationData,
   taxYear: number,
-  taxPaid: number = 0
+  taxPaid: number = 0,
 ): CITFormData {
   const taxAdjustments =
-    Object.values(taxComputation.taxAdjustments.addBack).reduce((sum, val) => sum + val, 0) -
-    Object.values(taxComputation.taxAdjustments.deductions).reduce((sum, val) => sum + val, 0);
+    Object.values(taxComputation.taxAdjustments.addBack).reduce(
+      (sum, val) => sum + val,
+      0,
+    ) -
+    Object.values(taxComputation.taxAdjustments.deductions).reduce(
+      (sum, val) => sum + val,
+      0,
+    );
 
   return {
     companyName: companyInfo.name,
@@ -105,7 +110,7 @@ export function generateVATForm(
   period: string,
   sales: number,
   purchases: number,
-  vatRate: number = 7.5
+  vatRate: number = 7.5,
 ): VATFormData {
   const outputVAT = sales * (vatRate / 100);
   const inputVAT = purchases * (vatRate / 100);
@@ -125,7 +130,7 @@ export function generateVATForm(
  * Format currency
  */
 function formatCurrency(amount: number): string {
-  return `₦${amount.toLocaleString('en-NG', {
+  return `₦${amount.toLocaleString("en-NG", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;

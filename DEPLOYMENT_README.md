@@ -10,6 +10,7 @@
 ## 🎉 What's Complete
 
 ### Phase 1: Core Infrastructure (100%)
+
 - [x] Build configuration (PostCSS, Tailwind v4)
 - [x] CI/CD pipeline with GitHub Actions
 - [x] Rate limiting (10 critical routes)
@@ -19,6 +20,7 @@
 - [x] Test suite (95.5% passing)
 
 ### Phase 2: MVP Features (100%)
+
 - [x] Tax Center landing page (`/calculators`)
 - [x] 3 Phase 1 calculators with Save functionality:
   - Business Tax (CIT)
@@ -149,6 +151,7 @@ ML_SERVICE_URL=http://localhost:5000  # Phase 2
 ```
 
 Get these from:
+
 - Supabase Dashboard → Project Settings → API
 
 ---
@@ -157,14 +160,14 @@ Get these from:
 
 ### Calculations API
 
-| Method | Endpoint | Description | Rate Limit |
-|--------|----------|-------------|------------|
-| POST | `/api/calculations/save` | Save new calculation | 30/min |
-| GET | `/api/calculations` | List all calculations | - |
-| GET | `/api/calculations/[id]` | Get single calculation | - |
-| PATCH | `/api/calculations/[id]` | Update calculation | - |
-| DELETE | `/api/calculations/[id]` | Delete calculation | - |
-| POST | `/api/calculations/[id]/finalize` | Lock calculation | - |
+| Method | Endpoint                          | Description            | Rate Limit |
+| ------ | --------------------------------- | ---------------------- | ---------- |
+| POST   | `/api/calculations/save`          | Save new calculation   | 30/min     |
+| GET    | `/api/calculations`               | List all calculations  | -          |
+| GET    | `/api/calculations/[id]`          | Get single calculation | -          |
+| PATCH  | `/api/calculations/[id]`          | Update calculation     | -          |
+| DELETE | `/api/calculations/[id]`          | Delete calculation     | -          |
+| POST   | `/api/calculations/[id]/finalize` | Lock calculation       | -          |
 
 **Full API docs**: `docs/API_CALCULATIONS.md`
 
@@ -192,6 +195,7 @@ pnpm lint
 **Current Coverage**: 95.5% (128/134 tests passing)
 
 **Excluded Tests** (Phase 2/3 features):
+
 - `tests/sprint7.test.ts` - NRS forms, deadlines (F-07, F-09)
 - `tests/critical-path-integration.test.ts` - Financial statements (F-06)
 
@@ -200,6 +204,7 @@ pnpm lint
 ## 🔒 Security Features
 
 ### Implemented
+
 - ✅ Row Level Security (RLS) on all tables
 - ✅ Rate limiting on 10 critical API routes
 - ✅ RBAC with 4 roles (owner, admin, user, viewer)
@@ -209,6 +214,7 @@ pnpm lint
 - ✅ No service_role key in frontend
 
 ### Post-Deploy Actions
+
 - [ ] Enable PITR in Supabase (7-day retention)
 - [ ] Configure custom domain with SSL
 - [ ] Set up error monitoring (Sentry recommended)
@@ -220,18 +226,21 @@ pnpm lint
 ## 📈 Monitoring
 
 ### Built-in (Vercel)
+
 - Web Analytics (free tier)
 - Deployment logs
 - Function logs
 - Performance metrics
 
 ### Supabase
+
 - Database logs
 - Auth logs
 - API logs
 - Real-time monitoring
 
 ### Recommended (Optional)
+
 - **Sentry**: Error tracking ($26/month)
 - **LogRocket**: Session replay ($99/month)
 - **UptimeRobot**: Uptime monitoring (free)
@@ -243,6 +252,7 @@ pnpm lint
 ### If deployment fails:
 
 **Option 1: Vercel Rollback** (< 2 minutes)
+
 ```bash
 # Via dashboard
 Vercel Dashboard → Deployments → Previous Deployment → Promote to Production
@@ -252,6 +262,7 @@ vercel rollback
 ```
 
 **Option 2: Database Rollback** (5-15 minutes)
+
 ```bash
 # Only if schema changed
 Supabase Dashboard → Database → Backups → Restore to Point in Time
@@ -264,6 +275,7 @@ Supabase Dashboard → Database → Backups → Restore to Point in Time
 ## 📞 Support & Resources
 
 ### Documentation
+
 - [Deployment Guide](docs/DEPLOYMENT_GUIDE.md) - Complete deployment walkthrough
 - [PITR Setup](docs/DATABASE_PITR_GUIDE.md) - Database backup configuration
 - [API Reference](docs/API_CALCULATIONS.md) - REST API documentation
@@ -271,11 +283,13 @@ Supabase Dashboard → Database → Backups → Restore to Point in Time
 - [Phase 3 Roadmap](docs/PHASE_3_ROADMAP.md) - Future features
 
 ### External Resources
+
 - [Next.js Deployment](https://nextjs.org/docs/deployment)
 - [Vercel Docs](https://vercel.com/docs)
 - [Supabase Docs](https://supabase.com/docs)
 
 ### Team Contacts
+
 - **Technical Issues**: [Your team channel]
 - **Deployment Questions**: [DevOps lead]
 - **Database Issues**: [Database admin]
@@ -285,6 +299,7 @@ Supabase Dashboard → Database → Backups → Restore to Point in Time
 ## ✅ Launch Checklist
 
 ### Pre-Launch
+
 - [ ] Run `./scripts/pre-deploy-check.sh` - all checks pass
 - [ ] Environment variables configured in Vercel
 - [ ] PITR enabled in Supabase
@@ -292,6 +307,7 @@ Supabase Dashboard → Database → Backups → Restore to Point in Time
 - [ ] Team notified of deployment
 
 ### Launch
+
 - [ ] Deploy to Vercel production
 - [ ] Verify health check: `/api/health`
 - [ ] Test critical path:
@@ -303,6 +319,7 @@ Supabase Dashboard → Database → Backups → Restore to Point in Time
   - [ ] Export PDF
 
 ### Post-Launch (First 24 Hours)
+
 - [ ] Monitor error rates (target: < 1%)
 - [ ] Monitor API response times (target: < 500ms)
 - [ ] Check database CPU (target: < 60%)
@@ -314,20 +331,22 @@ Supabase Dashboard → Database → Backups → Restore to Point in Time
 ## 🎯 Success Metrics
 
 ### Week 1 Targets
-| Metric | Target |
-|--------|--------|
-| Uptime | > 99.5% |
-| Error Rate | < 1% |
-| API Response Time | < 500ms |
-| User Signups | 50+ |
-| Calculations Saved | 100+ |
+
+| Metric             | Target  |
+| ------------------ | ------- |
+| Uptime             | > 99.5% |
+| Error Rate         | < 1%    |
+| API Response Time  | < 500ms |
+| User Signups       | 50+     |
+| Calculations Saved | 100+    |
 
 ### Month 1 Targets
-| Metric | Target |
-|--------|--------|
-| Active Users | 200+ |
-| Calculations Saved | 1,000+ |
-| User Retention (D7) | > 30% |
+
+| Metric                | Target    |
+| --------------------- | --------- |
+| Active Users          | 200+      |
+| Calculations Saved    | 1,000+    |
+| User Retention (D7)   | > 30%     |
 | Customer Satisfaction | > 4.0/5.0 |
 
 ---
@@ -335,6 +354,7 @@ Supabase Dashboard → Database → Backups → Restore to Point in Time
 ## 🚀 Next Steps
 
 ### Immediate (This Week)
+
 1. ✅ Run pre-deployment checks
 2. ✅ Configure environment variables
 3. ✅ Enable PITR in Supabase
@@ -343,12 +363,14 @@ Supabase Dashboard → Database → Backups → Restore to Point in Time
 6. ✅ Monitor for 48 hours
 
 ### Short-term (Weeks 2-4)
+
 1. Collect user feedback
 2. Fix critical bugs
 3. Add Phase 2 calculators (Stamp Duty, Capital Allowances)
 4. Improve test coverage to 75%+
 
 ### Medium-term (Months 2-3)
+
 1. Build Phase 3 features:
    - Tax Advisory Chatbot (F-08)
    - Tax Calendar & Reminders (F-09)

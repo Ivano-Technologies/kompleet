@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { ArrowLeft, Save, Trash2 } from 'lucide-react';
+import { useState, useEffect, useCallback } from "react";
+import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
+import { ArrowLeft, Save, Trash2 } from "lucide-react";
 
 interface Expense {
   id: string;
@@ -33,13 +33,13 @@ export default function ExpenseDetailPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
-    date: '',
-    amount: '',
-    currency: 'NGN',
-    category_id: '',
-    vendor: '',
-    vat_amount: '',
-    notes: '',
+    date: "",
+    amount: "",
+    currency: "NGN",
+    category_id: "",
+    vendor: "",
+    vat_amount: "",
+    notes: "",
   });
 
   const fetchExpense = useCallback(async () => {
@@ -49,13 +49,13 @@ export default function ExpenseDetailPage() {
     if (res.ok) {
       setExpense(data);
       setForm({
-        date: data.date?.slice(0, 10) ?? '',
-        amount: String(data.amount ?? ''),
-        currency: data.currency ?? 'NGN',
-        category_id: data.category_id ?? '',
-        vendor: data.vendor ?? '',
-        vat_amount: String(data.vat_amount ?? ''),
-        notes: data.notes ?? '',
+        date: data.date?.slice(0, 10) ?? "",
+        amount: String(data.amount ?? ""),
+        currency: data.currency ?? "NGN",
+        category_id: data.category_id ?? "",
+        vendor: data.vendor ?? "",
+        vat_amount: String(data.vat_amount ?? ""),
+        notes: data.notes ?? "",
       });
     } else {
       setExpense(null);
@@ -67,7 +67,7 @@ export default function ExpenseDetailPage() {
   }, [fetchExpense]);
 
   useEffect(() => {
-    fetch('/api/expenses/categories')
+    fetch("/api/expenses/categories")
       .then((r) => r.json())
       .then((d) => setCategories(d.categories ?? []))
       .catch(() => {});
@@ -77,14 +77,14 @@ export default function ExpenseDetailPage() {
     if (!id) return;
     const amount = parseFloat(form.amount);
     if (Number.isNaN(amount) || amount < 0) {
-      alert('Enter a valid amount.');
+      alert("Enter a valid amount.");
       return;
     }
     setSaving(true);
     try {
       const res = await fetch(`/api/expenses/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           date: form.date || undefined,
           amount,
@@ -100,7 +100,7 @@ export default function ExpenseDetailPage() {
         setExpense(data);
       } else {
         const err = await res.json().catch(() => ({}));
-        alert(err.error ?? 'Update failed');
+        alert(err.error ?? "Update failed");
       }
     } finally {
       setSaving(false);
@@ -108,13 +108,13 @@ export default function ExpenseDetailPage() {
   };
 
   const onDelete = async () => {
-    if (!id || !confirm('Delete this expense?')) return;
-    const res = await fetch(`/api/expenses/${id}`, { method: 'DELETE' });
+    if (!id || !confirm("Delete this expense?")) return;
+    const res = await fetch(`/api/expenses/${id}`, { method: "DELETE" });
     if (res.ok) {
-      router.push('/expenses');
+      router.push("/expenses");
     } else {
       const err = await res.json().catch(() => ({}));
-      alert(err.error ?? 'Delete failed');
+      alert(err.error ?? "Delete failed");
     }
   };
 
@@ -128,7 +128,10 @@ export default function ExpenseDetailPage() {
     return (
       <div className="p-8">
         <p className="text-destructive">Expense not found.</p>
-        <Link href="/expenses" className="text-primary hover:underline mt-2 inline-block">
+        <Link
+          href="/expenses"
+          className="text-primary hover:underline mt-2 inline-block"
+        >
           ← Back to expenses
         </Link>
       </div>
@@ -150,7 +153,9 @@ export default function ExpenseDetailPage() {
 
       <div className="rounded-lg border border-border bg-card p-6 space-y-4">
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1">Vendor</label>
+          <label className="block text-sm font-medium text-foreground mb-1">
+            Vendor
+          </label>
           <input
             type="text"
             className="w-full rounded-lg border border-border bg-background px-3 py-2"
@@ -160,7 +165,9 @@ export default function ExpenseDetailPage() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1">Date</label>
+          <label className="block text-sm font-medium text-foreground mb-1">
+            Date
+          </label>
           <input
             type="date"
             className="w-full rounded-lg border border-border bg-background px-3 py-2"
@@ -169,7 +176,9 @@ export default function ExpenseDetailPage() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1">Amount (₦)</label>
+          <label className="block text-sm font-medium text-foreground mb-1">
+            Amount (₦)
+          </label>
           <input
             type="number"
             step="0.01"
@@ -180,22 +189,30 @@ export default function ExpenseDetailPage() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1">VAT (₦)</label>
+          <label className="block text-sm font-medium text-foreground mb-1">
+            VAT (₦)
+          </label>
           <input
             type="number"
             step="0.01"
             min="0"
             className="w-full rounded-lg border border-border bg-background px-3 py-2"
             value={form.vat_amount}
-            onChange={(e) => setForm((f) => ({ ...f, vat_amount: e.target.value }))}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, vat_amount: e.target.value }))
+            }
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1">Category</label>
+          <label className="block text-sm font-medium text-foreground mb-1">
+            Category
+          </label>
           <select
             className="w-full rounded-lg border border-border bg-background px-3 py-2"
             value={form.category_id}
-            onChange={(e) => setForm((f) => ({ ...f, category_id: e.target.value }))}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, category_id: e.target.value }))
+            }
           >
             <option value="">None</option>
             {categories.map((c) => (
@@ -206,7 +223,9 @@ export default function ExpenseDetailPage() {
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-foreground mb-1">Notes</label>
+          <label className="block text-sm font-medium text-foreground mb-1">
+            Notes
+          </label>
           <textarea
             className="w-full rounded-lg border border-border bg-background px-3 py-2 min-h-[80px]"
             value={form.notes}
@@ -216,7 +235,9 @@ export default function ExpenseDetailPage() {
         </div>
         {expense.receipt_url && (
           <div>
-            <label className="block text-sm font-medium text-foreground mb-1">Receipt</label>
+            <label className="block text-sm font-medium text-foreground mb-1">
+              Receipt
+            </label>
             <a
               href={expense.receipt_url}
               target="_blank"
@@ -233,7 +254,7 @@ export default function ExpenseDetailPage() {
             disabled={saving}
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-white font-medium hover:bg-primary/90 disabled:opacity-70"
           >
-            <Save className="h-4 w-4" /> {saving ? 'Saving…' : 'Save'}
+            <Save className="h-4 w-4" /> {saving ? "Saving…" : "Save"}
           </button>
           <button
             onClick={onDelete}

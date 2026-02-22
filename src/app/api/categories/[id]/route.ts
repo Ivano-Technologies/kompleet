@@ -1,21 +1,24 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient as createClient } from '@/lib/supabase/server';
-import { withRateLimit } from '@/lib/with-rate-limit';
+import { NextRequest, NextResponse } from "next/server";
+import { createServerClient as createClient } from "@/lib/supabase/server";
+import { withRateLimit } from "@/lib/with-rate-limit";
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 async function handlePUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params;
     const supabase = await createClient();
-    
+
     // Check authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
@@ -30,23 +33,23 @@ async function handlePUT(
 
     // Update category
     const { data, error } = await supabase
-      .from('categories')
+      .from("categories")
       .update(updateData)
-      .eq('id', id)
+      .eq("id", id)
       .select()
       .single();
 
     if (error) {
-      console.error('Error updating category:', error);
+      console.error("Error updating category:", error);
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
     return NextResponse.json({ category: data });
   } catch (error: any) {
-    console.error('Error in PUT /api/categories/[id]:', error);
+    console.error("Error in PUT /api/categories/[id]:", error);
     return NextResponse.json(
-      { error: error.message || 'Internal server error' },
-      { status: 500 }
+      { error: error.message || "Internal server error" },
+      { status: 500 },
     );
   }
 }

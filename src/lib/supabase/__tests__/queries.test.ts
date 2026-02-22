@@ -4,20 +4,22 @@
  * Tests for database query functions using mocked Supabase client.
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { TypedSupabaseClient } from '../client';
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import type { TypedSupabaseClient } from "../client";
 import {
   getCategories,
   getTransactions,
   getProfile,
   getTransactionTotals,
   getDashboardSummary,
-} from '../queries';
+} from "../queries";
 
 /**
  * Creates a mock Supabase client for testing.
  */
-function createMockClient(overrides: Record<string, unknown> = {}): TypedSupabaseClient {
+function createMockClient(
+  overrides: Record<string, unknown> = {},
+): TypedSupabaseClient {
   const mockQuery = {
     select: vi.fn().mockReturnThis(),
     insert: vi.fn().mockReturnThis(),
@@ -48,12 +50,12 @@ function createMockClient(overrides: Record<string, unknown> = {}): TypedSupabas
   } as unknown as TypedSupabaseClient;
 }
 
-describe('Supabase Queries', () => {
-  describe('getCategories', () => {
-    it('should return categories on success', async () => {
+describe("Supabase Queries", () => {
+  describe("getCategories", () => {
+    it("should return categories on success", async () => {
       const mockCategories = [
-        { id: '1', name: 'Salary', category_group: 'income' },
-        { id: '2', name: 'Rent', category_group: 'expense' },
+        { id: "1", name: "Salary", category_group: "income" },
+        { id: "2", name: "Rent", category_group: "expense" },
       ];
 
       const mockClient = createMockClient();
@@ -71,10 +73,10 @@ describe('Supabase Queries', () => {
 
       expect(result.data).toEqual(mockCategories);
       expect(result.error).toBeNull();
-      expect(mockFrom).toHaveBeenCalledWith('categories');
+      expect(mockFrom).toHaveBeenCalledWith("categories");
     });
 
-    it('should return empty array on error', async () => {
+    it("should return empty array on error", async () => {
       const mockClient = createMockClient();
       const mockFrom = mockClient.from as ReturnType<typeof vi.fn>;
       mockFrom.mockReturnValue({
@@ -82,24 +84,24 @@ describe('Supabase Queries', () => {
         is: vi.fn().mockReturnThis(),
         order: vi.fn().mockResolvedValue({
           data: null,
-          error: { message: 'Database error' },
+          error: { message: "Database error" },
         }),
       });
 
       const result = await getCategories(mockClient);
 
       expect(result.data).toEqual([]);
-      expect(result.error).toBe('Database error');
+      expect(result.error).toBe("Database error");
     });
   });
 
-  describe('getProfile', () => {
-    it('should return profile on success', async () => {
+  describe("getProfile", () => {
+    it("should return profile on success", async () => {
       const mockProfile = {
-        id: 'user-123',
-        email: 'test@example.com',
-        full_name: 'Test User',
-        entity_type: 'individual',
+        id: "user-123",
+        email: "test@example.com",
+        full_name: "Test User",
+        entity_type: "individual",
       };
 
       const mockClient = createMockClient();
@@ -113,14 +115,14 @@ describe('Supabase Queries', () => {
         }),
       });
 
-      const result = await getProfile(mockClient, 'user-123');
+      const result = await getProfile(mockClient, "user-123");
 
       expect(result.data).toEqual(mockProfile);
       expect(result.error).toBeNull();
-      expect(mockFrom).toHaveBeenCalledWith('profiles');
+      expect(mockFrom).toHaveBeenCalledWith("profiles");
     });
 
-    it('should return null on error', async () => {
+    it("should return null on error", async () => {
       const mockClient = createMockClient();
       const mockFrom = mockClient.from as ReturnType<typeof vi.fn>;
       mockFrom.mockReturnValue({
@@ -128,22 +130,32 @@ describe('Supabase Queries', () => {
         eq: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({
           data: null,
-          error: { message: 'Not found' },
+          error: { message: "Not found" },
         }),
       });
 
-      const result = await getProfile(mockClient, 'invalid-id');
+      const result = await getProfile(mockClient, "invalid-id");
 
       expect(result.data).toBeNull();
-      expect(result.error).toBe('Not found');
+      expect(result.error).toBe("Not found");
     });
   });
 
-  describe('getTransactions', () => {
-    it('should return paginated transactions', async () => {
+  describe("getTransactions", () => {
+    it("should return paginated transactions", async () => {
       const mockTransactions = [
-        { id: '1', description: 'Payment', amount: 100000, transaction_type: 'credit' },
-        { id: '2', description: 'Purchase', amount: 50000, transaction_type: 'debit' },
+        {
+          id: "1",
+          description: "Payment",
+          amount: 100000,
+          transaction_type: "credit",
+        },
+        {
+          id: "2",
+          description: "Purchase",
+          amount: 50000,
+          transaction_type: "debit",
+        },
       ];
 
       const mockClient = createMockClient();
@@ -174,7 +186,7 @@ describe('Supabase Queries', () => {
       expect(result.error).toBeNull();
     });
 
-    it('should apply filters correctly', async () => {
+    it("should apply filters correctly", async () => {
       const mockClient = createMockClient();
       const mockQuery = {
         select: vi.fn().mockReturnThis(),
@@ -192,16 +204,16 @@ describe('Supabase Queries', () => {
 
       await getTransactions(mockClient, {
         taxYear: 2024,
-        transactionType: 'credit',
-        search: 'salary',
+        transactionType: "credit",
+        search: "salary",
       });
 
-      expect(mockQuery.eq).toHaveBeenCalledWith('tax_year', 2024);
-      expect(mockQuery.eq).toHaveBeenCalledWith('transaction_type', 'credit');
-      expect(mockQuery.ilike).toHaveBeenCalledWith('description', '%salary%');
+      expect(mockQuery.eq).toHaveBeenCalledWith("tax_year", 2024);
+      expect(mockQuery.eq).toHaveBeenCalledWith("transaction_type", "credit");
+      expect(mockQuery.ilike).toHaveBeenCalledWith("description", "%salary%");
     });
 
-    it('should return empty result on error', async () => {
+    it("should return empty result on error", async () => {
       const mockClient = createMockClient();
       const mockFrom = mockClient.from as ReturnType<typeof vi.fn>;
       mockFrom.mockReturnValue({
@@ -211,7 +223,7 @@ describe('Supabase Queries', () => {
         range: vi.fn().mockResolvedValue({
           data: null,
           count: null,
-          error: { message: 'Query failed' },
+          error: { message: "Query failed" },
         }),
       });
 
@@ -219,17 +231,17 @@ describe('Supabase Queries', () => {
 
       expect(result.data).toEqual([]);
       expect(result.count).toBe(0);
-      expect(result.error).toBe('Query failed');
+      expect(result.error).toBe("Query failed");
     });
   });
 
-  describe('getTransactionTotals', () => {
-    it('should calculate income and expenses correctly', async () => {
+  describe("getTransactionTotals", () => {
+    it("should calculate income and expenses correctly", async () => {
       const mockTransactions = [
-        { amount: 100000, transaction_type: 'credit' },
-        { amount: 50000, transaction_type: 'credit' },
-        { amount: 30000, transaction_type: 'debit' },
-        { amount: 20000, transaction_type: 'debit' },
+        { amount: 100000, transaction_type: "credit" },
+        { amount: 50000, transaction_type: "credit" },
+        { amount: 30000, transaction_type: "debit" },
+        { amount: 20000, transaction_type: "debit" },
       ];
 
       const mockClient = createMockClient();
@@ -252,8 +264,8 @@ describe('Supabase Queries', () => {
     });
   });
 
-  describe('getDashboardSummary', () => {
-    it('should aggregate dashboard data', async () => {
+  describe("getDashboardSummary", () => {
+    it("should aggregate dashboard data", async () => {
       const mockClient = createMockClient();
       const mockFrom = mockClient.from as ReturnType<typeof vi.fn>;
 
@@ -261,23 +273,23 @@ describe('Supabase Queries', () => {
       let callCount = 0;
       mockFrom.mockImplementation((table: string) => {
         callCount++;
-        
-        if (table === 'transactions' && callCount === 1) {
+
+        if (table === "transactions" && callCount === 1) {
           // getTransactionTotals
           return {
             select: vi.fn().mockReturnThis(),
             eq: vi.fn().mockReturnThis(),
             is: vi.fn().mockResolvedValue({
               data: [
-                { amount: 100000, transaction_type: 'credit' },
-                { amount: 50000, transaction_type: 'debit' },
+                { amount: 100000, transaction_type: "credit" },
+                { amount: 50000, transaction_type: "debit" },
               ],
               error: null,
             }),
           };
         }
-        
-        if (table === 'transactions' && callCount === 2) {
+
+        if (table === "transactions" && callCount === 2) {
           // getUncategorizedCount
           return {
             select: vi.fn().mockReturnThis(),
@@ -288,7 +300,7 @@ describe('Supabase Queries', () => {
             }),
           };
         }
-        
+
         // getTransactions
         return {
           select: vi.fn().mockReturnThis(),

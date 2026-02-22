@@ -3,7 +3,7 @@
  * Ensures transaction data integrity through balance validation
  */
 
-import { NormalizedTransaction } from './normalizer';
+import { NormalizedTransaction } from "./normalizer";
 
 export interface BalanceValidationResult {
   valid: boolean;
@@ -19,7 +19,7 @@ export interface BalanceError {
   transactionIndex: number;
   date: string;
   merchant: string;
-  errorType: 'BALANCE_MISMATCH' | 'NEGATIVE_BALANCE' | 'INVALID_CALCULATION';
+  errorType: "BALANCE_MISMATCH" | "NEGATIVE_BALANCE" | "INVALID_CALCULATION";
   message: string;
   expected: number;
   actual: number;
@@ -29,7 +29,7 @@ export interface BalanceWarning {
   transactionIndex: number;
   date: string;
   merchant: string;
-  warningType: 'LARGE_DISCREPANCY' | 'UNUSUAL_BALANCE' | 'NEGATIVE_BALANCE';
+  warningType: "LARGE_DISCREPANCY" | "UNUSUAL_BALANCE" | "NEGATIVE_BALANCE";
   message: string;
 }
 
@@ -39,7 +39,7 @@ const TOLERANCE = 0.01; // ₦0.01 tolerance for rounding errors
  * Validate transaction balances
  */
 export function validateBalances(
-  transactions: NormalizedTransaction[]
+  transactions: NormalizedTransaction[],
 ): BalanceValidationResult {
   const errors: BalanceError[] = [];
   const warnings: BalanceWarning[] = [];
@@ -50,10 +50,10 @@ export function validateBalances(
       errors: [
         {
           transactionIndex: 0,
-          date: '',
-          merchant: '',
-          errorType: 'INVALID_CALCULATION',
-          message: 'No transactions to validate',
+          date: "",
+          merchant: "",
+          errorType: "INVALID_CALCULATION",
+          message: "No transactions to validate",
           expected: 0,
           actual: 0,
         },
@@ -67,7 +67,9 @@ export function validateBalances(
   }
 
   // Sort transactions by date
-  const sortedTransactions = [...transactions].sort((a, b) => a.date.localeCompare(b.date));
+  const sortedTransactions = [...transactions].sort((a, b) =>
+    a.date.localeCompare(b.date),
+  );
 
   // Get opening balance from first transaction
   const openingBalance = sortedTransactions[0].balance;
@@ -76,7 +78,7 @@ export function validateBalances(
   // Validate each transaction
   sortedTransactions.forEach((transaction, index) => {
     // Calculate expected balance
-    if (transaction.type === 'credit') {
+    if (transaction.type === "credit") {
       runningBalance += transaction.amount;
     } else {
       runningBalance -= transaction.amount;
@@ -90,7 +92,7 @@ export function validateBalances(
         transactionIndex: index,
         date: transaction.date,
         merchant: transaction.merchant,
-        errorType: 'BALANCE_MISMATCH',
+        errorType: "BALANCE_MISMATCH",
         message: `Balance mismatch: expected ₦${runningBalance.toFixed(2)}, got ₦${transaction.balance.toFixed(2)}`,
         expected: runningBalance,
         actual: transaction.balance,
@@ -106,7 +108,7 @@ export function validateBalances(
         transactionIndex: index,
         date: transaction.date,
         merchant: transaction.merchant,
-        warningType: 'NEGATIVE_BALANCE',
+        warningType: "NEGATIVE_BALANCE",
         message: `Negative balance: ₦${transaction.balance.toFixed(2)}`,
       });
     }
@@ -121,14 +123,15 @@ export function validateBalances(
           transactionIndex: index,
           date: transaction.date,
           merchant: transaction.merchant,
-          warningType: 'LARGE_DISCREPANCY',
+          warningType: "LARGE_DISCREPANCY",
           message: `Large balance change: ₦${balanceChange.toFixed(2)}`,
         });
       }
     }
   });
 
-  const closingBalance = sortedTransactions[sortedTransactions.length - 1].balance;
+  const closingBalance =
+    sortedTransactions[sortedTransactions.length - 1].balance;
   const calculatedClosingBalance = runningBalance;
   const finalDiscrepancy = Math.abs(closingBalance - calculatedClosingBalance);
 
@@ -148,12 +151,12 @@ export function validateBalances(
  */
 export function calculateRunningBalance(
   transactions: NormalizedTransaction[],
-  startingBalance: number
+  startingBalance: number,
 ): NormalizedTransaction[] {
   let balance = startingBalance;
 
   return transactions.map((transaction) => {
-    if (transaction.type === 'credit') {
+    if (transaction.type === "credit") {
       balance += transaction.amount;
     } else {
       balance -= transaction.amount;
@@ -186,17 +189,20 @@ export function getBalanceSummary(transactions: NormalizedTransaction[]): {
     };
   }
 
-  const sortedTransactions = [...transactions].sort((a, b) => a.date.localeCompare(b.date));
+  const sortedTransactions = [...transactions].sort((a, b) =>
+    a.date.localeCompare(b.date),
+  );
 
   const openingBalance = sortedTransactions[0].balance;
-  const closingBalance = sortedTransactions[sortedTransactions.length - 1].balance;
+  const closingBalance =
+    sortedTransactions[sortedTransactions.length - 1].balance;
 
   const totalCredits = transactions
-    .filter((t) => t.type === 'credit')
+    .filter((t) => t.type === "credit")
     .reduce((sum, t) => sum + t.amount, 0);
 
   const totalDebits = transactions
-    .filter((t) => t.type === 'debit')
+    .filter((t) => t.type === "debit")
     .reduce((sum, t) => sum + t.amount, 0);
 
   const netChange = totalCredits - totalDebits;

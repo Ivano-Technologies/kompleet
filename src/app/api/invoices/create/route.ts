@@ -1,17 +1,19 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient as createClient } from '@/lib/supabase/server';
-import { createInvoice } from '@/lib/invoice-service';
-import { withRateLimit } from '@/lib/with-rate-limit';
-import { withAudit } from '@/lib/with-audit';
-import { createInvoiceSchema } from '@/lib/schemas/invoices';
+import { NextRequest, NextResponse } from "next/server";
+import { createServerClient as createClient } from "@/lib/supabase/server";
+import { createInvoice } from "@/lib/invoice-service";
+import { withRateLimit } from "@/lib/with-rate-limit";
+import { withAudit } from "@/lib/with-audit";
+import { createInvoiceSchema } from "@/lib/schemas/invoices";
 
 async function handlePOST(request: NextRequest) {
   try {
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
@@ -19,8 +21,8 @@ async function handlePOST(request: NextRequest) {
 
     if (!parsed.success) {
       return NextResponse.json(
-        { error: 'Invalid input', details: parsed.error.flatten() },
-        { status: 400 }
+        { error: "Invalid input", details: parsed.error.flatten() },
+        { status: 400 },
       );
     }
 
@@ -31,7 +33,7 @@ async function handlePOST(request: NextRequest) {
       invoice_date,
       due_date,
       payment_terms,
-      notes
+      notes,
     } = parsed.data;
 
     // Create invoice
@@ -43,17 +45,22 @@ async function handlePOST(request: NextRequest) {
       invoice_date,
       due_date,
       payment_terms,
-      notes
+      notes,
     } as any);
 
-    return NextResponse.json({
-      invoice_id: invoice.id,
-      invoice_number: invoice.invoice_number
-    }, { status: 201 });
+    return NextResponse.json(
+      {
+        invoice_id: invoice.id,
+        invoice_number: invoice.invoice_number,
+      },
+      { status: 201 },
+    );
   } catch (error: any) {
-    console.error('Error creating invoice:', error);
+    console.error("Error creating invoice:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
-export const POST = withRateLimit(withAudit(handlePOST, { action: 'create', resourceType: 'invoices' }));
+export const POST = withRateLimit(
+  withAudit(handlePOST, { action: "create", resourceType: "invoices" }),
+);

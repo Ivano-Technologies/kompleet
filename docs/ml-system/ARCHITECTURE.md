@@ -1,4 +1,5 @@
 # KOMPLEET ML System Architecture
+
 **Sprint 11-12: ML Categorization & Email Integration**
 
 **Version:** 1.0  
@@ -218,6 +219,7 @@ The ML system uses feature flags for gradual rollout and risk mitigation. **ML C
 ### POST /api/ai/categorize
 
 **Request:**
+
 ```json
 {
   "merchant": "Shoprite Lagos",
@@ -229,13 +231,14 @@ The ML system uses feature flags for gradual rollout and risk mitigation. **ML C
 ```
 
 **Response (Success):**
+
 ```json
 {
   "category": "Groceries",
   "confidence": 0.92,
   "alternatives": [
-    {"category": "Shopping", "confidence": 0.05},
-    {"category": "Food & Dining", "confidence": 0.03}
+    { "category": "Shopping", "confidence": 0.05 },
+    { "category": "Food & Dining", "confidence": 0.03 }
   ],
   "inference_id": "inf_abc123",
   "model_version": "1.2.0"
@@ -243,6 +246,7 @@ The ML system uses feature flags for gradual rollout and risk mitigation. **ML C
 ```
 
 **Response (Error):**
+
 ```json
 {
   "error": "Invalid request",
@@ -256,6 +260,7 @@ The ML system uses feature flags for gradual rollout and risk mitigation. **ML C
 Initiates Gmail OAuth flow.
 
 **Request:**
+
 ```json
 {
   "redirect_uri": "https://kompleet.app/email/callback"
@@ -263,6 +268,7 @@ Initiates Gmail OAuth flow.
 ```
 
 **Response:**
+
 ```json
 {
   "authorization_url": "https://accounts.google.com/o/oauth2/v2/auth?...",
@@ -275,6 +281,7 @@ Initiates Gmail OAuth flow.
 Initiates Outlook OAuth flow.
 
 **Request:**
+
 ```json
 {
   "redirect_uri": "https://kompleet.app/email/callback"
@@ -282,6 +289,7 @@ Initiates Outlook OAuth flow.
 ```
 
 **Response:**
+
 ```json
 {
   "authorization_url": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?...",
@@ -294,6 +302,7 @@ Initiates Outlook OAuth flow.
 Returns email connection status.
 
 **Response:**
+
 ```json
 {
   "gmail": {
@@ -312,6 +321,7 @@ Returns email connection status.
 Disconnects email account.
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -324,6 +334,7 @@ Disconnects email account.
 ## Database Schema
 
 ### ml_models Table
+
 ```sql
 CREATE TABLE ml_models (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -338,6 +349,7 @@ CREATE TABLE ml_models (
 ```
 
 ### ml_inferences Table
+
 ```sql
 CREATE TABLE ml_inferences (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -354,6 +366,7 @@ CREATE INDEX idx_inferences_created ON ml_inferences(created_at);
 ```
 
 ### ml_corrections Table
+
 ```sql
 CREATE TABLE ml_corrections (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -370,6 +383,7 @@ CREATE INDEX idx_corrections_created ON ml_corrections(created_at);
 ```
 
 ### email_connections Table
+
 ```sql
 CREATE TABLE email_connections (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -387,6 +401,7 @@ CREATE INDEX idx_email_connections_user ON email_connections(user_id);
 ```
 
 ### recurring_patterns Table
+
 ```sql
 CREATE TABLE recurring_patterns (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -407,6 +422,7 @@ CREATE INDEX idx_recurring_next_date ON recurring_patterns(next_expected_date);
 ```
 
 ### user_features Table
+
 ```sql
 CREATE TABLE user_features (
   user_id UUID PRIMARY KEY REFERENCES auth.users(id),
@@ -418,6 +434,7 @@ CREATE TABLE user_features (
 ```
 
 ### merchant_features Table
+
 ```sql
 CREATE TABLE merchant_features (
   merchant_normalized VARCHAR(255) PRIMARY KEY,
@@ -493,4 +510,4 @@ The Sprint 11-12 implementation is considered successful when all criteria are m
 **Last Updated:** February 6, 2026  
 **Next Review:** End of Sprint 11-12
 
-*This architecture document guides the implementation of KOMPLEET's ML categorization and email integration system.*
+_This architecture document guides the implementation of KOMPLEET's ML categorization and email integration system._

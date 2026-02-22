@@ -9,7 +9,7 @@
   /* Brand Colors */
   --primary: 64 142 224; /* #408ee0 - Professional Blue */
   --primary-rgb: 64, 142, 224;
-  
+
   /* Light Theme (Default) */
   --background: 255 255 255; /* #FFFFFF */
   --surface: 249 250 251; /* #F9FAFB */
@@ -48,7 +48,15 @@ body {
 body {
   color: rgb(var(--text-primary));
   background: rgb(var(--background));
-  font-family: 'Inter', var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family:
+    "Inter",
+    var(--font-inter),
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.6;
@@ -111,19 +119,31 @@ html.dark .solid-nav {
 
 /* Hero Glow Effect */
 .hero-glow {
-  background: radial-gradient(circle at 50% 50%, rgba(var(--primary-rgb), 0.08) 0%, transparent 70%);
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(var(--primary-rgb), 0.08) 0%,
+    transparent 70%
+  );
 }
 
 /* Gradient Text Effect */
 .text-gradient {
-  background: linear-gradient(135deg, rgb(var(--text-primary)) 0%, rgb(var(--text-secondary)) 100%);
+  background: linear-gradient(
+    135deg,
+    rgb(var(--text-primary)) 0%,
+    rgb(var(--text-secondary)) 100%
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .text-gradient-primary {
-  background: linear-gradient(135deg, rgb(var(--primary)) 0%, rgba(var(--primary-rgb), 0.6) 100%);
+  background: linear-gradient(
+    135deg,
+    rgb(var(--primary)) 0%,
+    rgba(var(--primary-rgb), 0.6) 100%
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -131,7 +151,9 @@ html.dark .solid-nav {
 
 /* Hover Animations */
 .hover-lift {
-  transition: transform 200ms ease, box-shadow 200ms ease;
+  transition:
+    transform 200ms ease,
+    box-shadow 200ms ease;
 }
 
 .hover-lift:hover {
@@ -303,4 +325,3 @@ input::placeholder,
 textarea::placeholder {
   color: rgb(var(--text-tertiary));
 }
-

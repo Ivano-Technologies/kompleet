@@ -5,6 +5,7 @@
 ## Overview
 
 The KOMPLEET Web Platform provides:
+
 - **User Authentication** - Clerk-based authentication with Google OAuth, email/password, and magic links
 - **Transaction Management** - Income and expense tracking with categorization
 - **Tax Calculators** - Business Tax (CIT), Individual Tax (PIT), VAT, Capital Allowances, Stamp Duty, Property Tax
@@ -15,6 +16,7 @@ The KOMPLEET Web Platform provides:
 ## Tech Stack
 
 ### Frontend
+
 - **Framework:** Next.js 15 (App Router)
 - **Language:** TypeScript 5.9
 - **Styling:** Tailwind CSS
@@ -22,12 +24,14 @@ The KOMPLEET Web Platform provides:
 - **Charts:** Recharts
 
 ### Backend & Services
+
 - **Authentication:** Clerk (migrated from Supabase Auth)
 - **Database:** Supabase PostgreSQL with Row Level Security (RLS)
 - **Deployment:** Vercel
 - **Package Manager:** pnpm
 
 ### Key Integrations
+
 - **Clerk:** User authentication and management
 - **Supabase:** Database, RLS policies, and data storage
 - **Vercel:** Hosting and serverless functions
@@ -72,6 +76,7 @@ kompleet-platform/
 ## Setup
 
 ### Prerequisites
+
 - Node.js 18+ and pnpm
 - Clerk account (https://clerk.com)
 - Supabase project (https://supabase.com)
@@ -99,12 +104,14 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 ### Installation
 
 1. **Clone the repository:**
+
    ```bash
    git clone https://github.com/Ivano-Technologies/KOMPLEET-PLATFORM.git
    cd KOMPLEET-PLATFORM
    ```
 
 2. **Install dependencies:**
+
    ```bash
    pnpm install
    ```
@@ -138,6 +145,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
    - Copy webhook secret to `.env.local`
 
 6. **Run development server:**
+
    ```bash
    pnpm dev
    ```
@@ -152,7 +160,9 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 The platform uses Supabase PostgreSQL with the following key tables:
 
 ### `clerk_users`
+
 Synced from Clerk via webhook, stores user profile data:
+
 - `clerk_user_id` (primary key) - Clerk user ID
 - `email` - User email address
 - `first_name`, `last_name` - User name
@@ -160,7 +170,9 @@ Synced from Clerk via webhook, stores user profile data:
 - `created_at`, `updated_at` - Timestamps
 
 ### `transactions`
+
 Financial transactions (income/expenses):
+
 - `id` (UUID primary key)
 - `user_id` (references `clerk_users.clerk_user_id`)
 - `type` - 'income' or 'expense'
@@ -171,7 +183,9 @@ Financial transactions (income/expenses):
 - RLS policies ensure users can only access their own transactions
 
 ### Row Level Security (RLS)
+
 All tables have RLS policies that:
+
 1. Extract Clerk user ID from JWT using `get_clerk_user_id()` helper function
 2. Restrict access to user's own data only
 3. Support both Clerk JWT and Supabase Auth during migration
@@ -179,6 +193,7 @@ All tables have RLS policies that:
 ## Authentication Flow
 
 ### User Sign-Up/Sign-In
+
 1. User signs up/in via Clerk UI components (`<SignIn />`, `<SignUp />`)
 2. Clerk creates user account and issues JWT
 3. Clerk webhook fires `user.created` event
@@ -186,6 +201,7 @@ All tables have RLS policies that:
 5. User is redirected to dashboard
 
 ### API Authentication
+
 1. Clerk middleware (`middleware.ts`) protects routes
 2. Supabase client (`lib/supabase/server.ts`) extracts Clerk JWT
 3. Supabase validates JWT using Clerk JWKS
@@ -194,7 +210,9 @@ All tables have RLS policies that:
 ## API Routes
 
 ### `/api/webhooks/clerk` (POST)
+
 Webhook endpoint for Clerk user sync:
+
 - **Events:** `user.created`, `user.updated`, `user.deleted`
 - **Authentication:** Clerk webhook signature verification
 - **Actions:** Upsert/delete user in `clerk_users` table
@@ -204,6 +222,7 @@ Webhook endpoint for Clerk user sync:
 ### Vercel Deployment
 
 1. **Connect repository to Vercel:**
+
    ```bash
    vercel
    ```
@@ -214,6 +233,7 @@ Webhook endpoint for Clerk user sync:
    - Ensure variables are set for Production, Preview, and Development
 
 3. **Deploy:**
+
    ```bash
    vercel --prod
    ```
@@ -222,6 +242,7 @@ Webhook endpoint for Clerk user sync:
    - Update webhook endpoint to production URL: `https://your-domain.com/api/webhooks/clerk`
 
 ### Important Notes
+
 - Clerk environment variables (`NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`) MUST be set in Vercel for production
 - Webhook secret must match between Clerk Dashboard and Vercel environment variables
 - Supabase JWT configuration must include Clerk JWKS URL
@@ -229,11 +250,13 @@ Webhook endpoint for Clerk user sync:
 ## Testing
 
 ### Test User Creation
+
 1. Sign up at `/signup`
 2. Check Supabase `clerk_users` table for synced user
 3. Verify RLS policies by querying transactions
 
 ### Test Webhook
+
 ```bash
 curl -X POST https://your-domain.com/api/webhooks/clerk \
   -H "Content-Type: application/json" \
@@ -246,6 +269,7 @@ curl -X POST https://your-domain.com/api/webhooks/clerk \
 ## Migration from Supabase Auth
 
 The platform has been migrated from Supabase Auth to Clerk. Key changes:
+
 - ✅ Clerk authentication UI components replace Supabase Auth UI
 - ✅ Clerk JWT replaces Supabase JWT
 - ✅ `clerk_users` table replaces `auth.users` references
@@ -268,6 +292,7 @@ The platform has been migrated from Supabase Auth to Clerk. Key changes:
 ## Support
 
 For issues or questions:
+
 - **GitHub Issues:** https://github.com/Ivano-Technologies/KOMPLEET-PLATFORM/issues
 - **Email:** support@techivano.com
 

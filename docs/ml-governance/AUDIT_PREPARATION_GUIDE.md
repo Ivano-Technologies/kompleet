@@ -321,4 +321,4 @@ Maintaining audit readiness requires ongoing commitment to governance best pract
 **Last Updated:** February 6, 2026  
 **Next Review:** February 6, 2027
 
-*This guide is part of the KOMPLEET ML Governance framework and should be reviewed quarterly to maintain audit readiness.*
+_This guide is part of the KOMPLEET ML Governance framework and should be reviewed quarterly to maintain audit readiness._

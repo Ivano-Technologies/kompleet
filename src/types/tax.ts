@@ -2,31 +2,31 @@
  * Tax Rules Engine Types
  */
 
-export type SourceType = 'primary' | 'secondary';
+export type SourceType = "primary" | "secondary";
 
 export type RuleType =
-  | 'individual_income_tax'
-  | 'business_tax'
-  | 'vat'
-  | 'stamp_duty'
-  | 'capital_allowance'
-  | 'development_levy'
-  | 'property_tax';
+  | "individual_income_tax"
+  | "business_tax"
+  | "vat"
+  | "stamp_duty"
+  | "capital_allowance"
+  | "development_levy"
+  | "property_tax";
 
-export type ConfidenceLevel = 'high' | 'medium' | 'low';
+export type ConfidenceLevel = "high" | "medium" | "low";
 
-export type ReviewStatus = 'pending' | 'in_review' | 'approved' | 'rejected';
+export type ReviewStatus = "pending" | "in_review" | "approved" | "rejected";
 
-export type ReviewPriority = 'low' | 'medium' | 'high' | 'critical';
+export type ReviewPriority = "low" | "medium" | "high" | "critical";
 
-export type ChangeType = 'new_rule' | 'rule_update' | 'rule_deprecation';
+export type ChangeType = "new_rule" | "rule_update" | "rule_deprecation";
 
 export type ReviewActionType =
-  | 'assigned'
-  | 'commented'
-  | 'approved'
-  | 'rejected'
-  | 'requested_changes';
+  | "assigned"
+  | "commented"
+  | "approved"
+  | "rejected"
+  | "requested_changes";
 
 export interface Source {
   id: string;
@@ -183,7 +183,7 @@ export interface VATInput {
 }
 
 export interface StampDutyInput {
-  transaction_type: 'property' | 'lease' | 'shares' | 'loan';
+  transaction_type: "property" | "lease" | "shares" | "loan";
   transaction_value: number;
   location?: string;
 }

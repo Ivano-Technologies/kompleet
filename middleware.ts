@@ -5,43 +5,49 @@
  * 2. Adds CORS headers for mobile app cross-origin requests
  */
 
-import { createServerClient } from '@supabase/ssr';
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { createServerClient } from "@supabase/ssr";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 function addCorsHeaders(response: NextResponse, origin: string) {
   const allowedOrigins = [
-    'http://localhost:8081',
-    'exp://localhost:8081',
+    "http://localhost:8081",
+    "exp://localhost:8081",
     process.env.NEXT_PUBLIC_MOBILE_APP_URL,
   ].filter(Boolean);
 
   const isAllowedOrigin =
     allowedOrigins.includes(origin) ||
-    origin.startsWith('exp://') ||
-    origin.startsWith('http://localhost') ||
-    origin.startsWith('http://192.168.') ||
-    origin.startsWith('http://10.0.');
+    origin.startsWith("exp://") ||
+    origin.startsWith("http://localhost") ||
+    origin.startsWith("http://192.168.") ||
+    origin.startsWith("http://10.0.");
 
   if (isAllowedOrigin) {
-    response.headers.set('Access-Control-Allow-Origin', origin);
-    response.headers.set('Access-Control-Allow-Credentials', 'true');
+    response.headers.set("Access-Control-Allow-Origin", origin);
+    response.headers.set("Access-Control-Allow-Credentials", "true");
   }
 
-  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  response.headers.set(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+  );
+  response.headers.set(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization, X-Requested-With",
+  );
 
   return response;
 }
 
 export async function middleware(request: NextRequest) {
-  const origin = request.headers.get('origin') || '';
+  const origin = request.headers.get("origin") || "";
 
   // Handle preflight OPTIONS — no need to refresh session
-  if (request.method === 'OPTIONS') {
+  if (request.method === "OPTIONS") {
     const response = new NextResponse(null, { status: 204 });
     addCorsHeaders(response, origin);
-    response.headers.set('Access-Control-Max-Age', '86400');
+    response.headers.set("Access-Control-Max-Age", "86400");
     return response;
   }
 
@@ -59,17 +65,17 @@ export async function middleware(request: NextRequest) {
         setAll(cookiesToSet) {
           // Set cookies on the request (for downstream server components)
           cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
+            request.cookies.set(name, value),
           );
           // Recreate the response with the updated request
           supabaseResponse = NextResponse.next({ request });
           // Set cookies on the response (for the browser)
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
+            supabaseResponse.cookies.set(name, value, options),
           );
         },
       },
-    }
+    },
   );
 
   // Refresh the session — this reads the auth cookie, refreshes if expired,
@@ -87,6 +93,6 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     // Match all routes except static assets
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

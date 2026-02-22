@@ -13,14 +13,15 @@ export interface ParsedReceipt {
 
 const NGN_AMOUNT = /(?:₦|NGN|N)\s*([\d,]+(?:\.\d{2})?)/gi;
 const DATE_DMY = /(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/g;
-const VAT_LIKE = /(?:VAT|vat|Tax)\s*(?:[:=]?\s*)?(?:₦|NGN)?\s*([\d,]+(?:\.\d{2})?)/gi;
+const VAT_LIKE =
+  /(?:VAT|vat|Tax)\s*(?:[:=]?\s*)?(?:₦|NGN)?\s*([\d,]+(?:\.\d{2})?)/gi;
 
 function parseAmountFromText(text: string): number | null {
   const matches = [...text.matchAll(NGN_AMOUNT)];
   if (matches.length === 0) return null;
   // Prefer last match (often total at bottom)
   const last = matches[matches.length - 1];
-  const value = last[1]!.replace(/,/g, '');
+  const value = last[1]!.replace(/,/g, "");
   const n = parseFloat(value);
   return Number.isFinite(n) ? n : null;
 }
@@ -42,7 +43,10 @@ function parseDateFromText(text: string): string | null {
 }
 
 function parseVendorFromText(text: string): string | null {
-  const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const lines = text
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
   // First non-empty line is often vendor/store name
   const first = lines[0];
   if (first && first.length > 1 && first.length < 80) return first;
@@ -53,13 +57,13 @@ function parseVatFromText(text: string): number | null {
   const match = text.match(VAT_LIKE);
   if (!match) return null;
   const last = match[match.length - 1];
-  const value = last?.replace(/,/g, '') ?? '';
+  const value = last?.replace(/,/g, "") ?? "";
   const n = parseFloat(value);
   return Number.isFinite(n) ? n : null;
 }
 
 export function parseReceiptText(rawText: string): ParsedReceipt {
-  const normalized = rawText.replace(/\r\n/g, '\n').trim();
+  const normalized = rawText.replace(/\r\n/g, "\n").trim();
   return {
     vendor: parseVendorFromText(normalized),
     date: parseDateFromText(normalized),

@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
 interface StatCard {
   label: string;
   value: string;
   change?: string;
-  changeType?: 'positive' | 'negative' | 'neutral';
+  changeType?: "positive" | "negative" | "neutral";
   icon: string;
 }
 
@@ -25,19 +25,23 @@ export function StatsCards({ stats }: StatsCardsProps) {
             {stat.change && (
               <span
                 className={`text-sm font-medium ${
-                  stat.changeType === 'positive'
-                    ? 'text-green-600'
-                    : stat.changeType === 'negative'
-                    ? 'text-red-600'
-                    : 'text-light-text-secondary dark:text-dark-text-secondary'
+                  stat.changeType === "positive"
+                    ? "text-green-600"
+                    : stat.changeType === "negative"
+                      ? "text-red-600"
+                      : "text-light-text-secondary dark:text-dark-text-secondary"
                 }`}
               >
                 {stat.change}
               </span>
             )}
           </div>
-          <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-1">{stat.label}</p>
-          <p className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">{stat.value}</p>
+          <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-1">
+            {stat.label}
+          </p>
+          <p className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">
+            {stat.value}
+          </p>
         </div>
       ))}
     </div>

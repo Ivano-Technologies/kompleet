@@ -1,1 +1,5 @@
-{"dependencies":{"pnpm":"9.12.0"}}
+{
+  "dependencies": {
+    "pnpm": "9.12.0"
+  }
+}

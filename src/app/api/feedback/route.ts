@@ -4,9 +4,13 @@
  * GET /api/feedback - Get feedback statistics
  */
 
-import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@/lib/supabase/server';
-import { recordFeedback, getFeedbackStatistics, getCategoryAccuracy } from '@/lib/ai/feedbackService';
+import { NextRequest, NextResponse } from "next/server";
+import { createServerClient } from "@/lib/supabase/server";
+import {
+  recordFeedback,
+  getFeedbackStatistics,
+  getCategoryAccuracy,
+} from "@/lib/ai/feedbackService";
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,17 +22,25 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json(
+        { success: false, message: "Unauthorized" },
+        { status: 401 },
+      );
     }
 
     // 2. Parse request body
-    const { transactionId, originalCategory, correctedCategory, originalConfidence, reason } =
-      await request.json();
+    const {
+      transactionId,
+      originalCategory,
+      correctedCategory,
+      originalConfidence,
+      reason,
+    } = await request.json();
 
     if (!transactionId || !originalCategory || !correctedCategory) {
       return NextResponse.json(
-        { success: false, message: 'Missing required fields' },
-        { status: 400 }
+        { success: false, message: "Missing required fields" },
+        { status: 400 },
       );
     }
 
@@ -45,17 +57,17 @@ export async function POST(request: NextRequest) {
     // 4. Return response
     return NextResponse.json({
       success: true,
-      message: 'Feedback recorded successfully',
+      message: "Feedback recorded successfully",
     });
   } catch (error) {
-    console.error('Feedback error:', error);
+    console.error("Feedback error:", error);
 
     return NextResponse.json(
       {
         success: false,
-        message: `Failed to record feedback: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        message: `Failed to record feedback: ${error instanceof Error ? error.message : "Unknown error"}`,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -70,16 +82,19 @@ export async function GET(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json(
+        { success: false, message: "Unauthorized" },
+        { status: 401 },
+      );
     }
 
     // 2. Get query parameters
     const searchParams = request.nextUrl.searchParams;
-    const type = searchParams.get('type') || 'statistics';
+    const type = searchParams.get("type") || "statistics";
 
     // 3. Get statistics or accuracy
     let data;
-    if (type === 'accuracy') {
+    if (type === "accuracy") {
       data = await getCategoryAccuracy(user.id);
     } else {
       data = await getFeedbackStatistics(user.id);
@@ -91,14 +106,14 @@ export async function GET(request: NextRequest) {
       data,
     });
   } catch (error) {
-    console.error('Feedback retrieval error:', error);
+    console.error("Feedback retrieval error:", error);
 
     return NextResponse.json(
       {
         success: false,
-        message: `Failed to retrieve feedback: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        message: `Failed to retrieve feedback: ${error instanceof Error ? error.message : "Unknown error"}`,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
