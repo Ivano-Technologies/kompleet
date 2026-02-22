@@ -64,6 +64,14 @@ KOMPLEET adopts NextAuth.js's extreme minimalism and high-contrast aesthetic, re
 | **error** | `#EF4444` | `#F87171` | Error messages, failed states |
 | **info** | `#3B82F6` | `#60A5FA` | Info messages, neutral alerts |
 
+### Toggle / Switch
+
+| Token | Hex | Usage |
+|-------|-----|-------|
+| **toggle-indicator** | `#CCFF00` | Toggle button indicators (on/active state) |
+
+Use **#CCFF00** for the visible indicator (thumb/knot) on toggle and switch components so the active state is clearly distinguishable.
+
 ---
 
 ## Typography
