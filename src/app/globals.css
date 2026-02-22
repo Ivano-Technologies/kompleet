@@ -24,11 +24,11 @@
 /* Dark Theme */
 html.dark,
 :root.dark {
-  --background: 5 10 8; /* #050A08 */
-  --surface: 12 20 16; /* #0C1410 */
-  --surface-hover: 20 33 26; /* #14211A */
-  --border: 26 46 38; /* #1A2E26 */
-  --border-hover: 42 74 58; /* #2A4A3A */
+  --background: 32 41 47; /* #20292F */
+  --surface: 40 49 55; /* #283137 */
+  --surface-hover: 48 57 63; /* #30393F */
+  --border: 56 65 71; /* #384147 */
+  --border-hover: 72 81 87; /* #485157 */
   --text-primary: 227 241 255; /* #E3F1FF */
   --text-secondary: 186 216 245; /* #BAD8F5 */
   --text-tertiary: 147 197 235; /* #93C5EB */
