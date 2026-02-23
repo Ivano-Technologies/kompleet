@@ -8,6 +8,9 @@
     "scheme": "kompleet",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+
+    "node": "20.19.1",
+
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
