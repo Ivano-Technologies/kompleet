@@ -47,4 +47,4 @@ t s c o n f i g . t s b u i l d i n f o
 apps/mobile/.expo/
 apps/mobile/apps/
 package-lock.json
-.npmrc
+..npmrc
