@@ -112,7 +112,10 @@
     "typescript": "^5.9.3",
     "vitest": "^4.0.18"
   },
-  "overrides": {
-    "iconv-lite": "0.6.3"
-  }
+  "pnpm": {
+    "overrides": {
+      "iconv-lite": "0.6.3"
+    }
+  },
+  "packageManager": "pnpm@9.12.0"
 }
