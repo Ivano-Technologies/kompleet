@@ -24,3 +24,18 @@ tsconfig.tsbuildinfo
 .ml-models-cache/
 ml-training/
 .local/
+# Large binaries and caches
+*.joblib
+*.pkl
+*.csv
+.browser_data_dir/
+generated/
+.prisma/
+# Tooling / not needed for mobile build
+scripts/
+.husky/
+__tests__/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx

@@ -16,13 +16,13 @@
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest",
     "format": "prettier --write .",
-    "prepare": "husky",
+    "prepare": "node -e \"if(process.env.EAS_BUILD)process.exit(0);require('child_process').execSync('npx husky',{stdio:'inherit'})\" || true",
     "precommit": "pnpm lint && pnpm typecheck && pnpm test",
     "ci": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
     "prisma:pull": "prisma db pull",
     "prisma:generate": "prisma generate",
     "prisma:studio": "prisma studio",
-    "postinstall": "prisma generate || true",
+    "postinstall": "node -e \"if(process.env.EAS_BUILD)process.exit(0);require('child_process').execSync('npx prisma generate',{stdio:'inherit'})\" || true",
     "supabase": "supabase"
   },
   "dependencies": {
