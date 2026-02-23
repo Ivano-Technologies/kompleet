@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "9f1ff663-b1b6-4bfb-9a9f-f6d55ad05107"
+      }
+    },
+    "android": {
+      "package": "com.ivanotechnologies.kompleet"
+    }
+  }
+}
