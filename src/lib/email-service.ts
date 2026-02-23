@@ -87,7 +87,7 @@ export function generate7DayReminderEmail(
     </ol>
     
     <div style="text-align: center; margin: 30px 0;">
-      <a href="https://kompleet.com/filing" style="display: inline-block; background: #10b981; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">Go to Filing Center</a>
+      <a href="https://www.ivanotechnologies.com/filing" style="display: inline-block; background: #10b981; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">Go to Filing Center</a>
     </div>
     
     <div style="background: #fef3c7; padding: 15px; border-radius: 5px; margin: 20px 0;">
@@ -95,7 +95,7 @@ export function generate7DayReminderEmail(
     </div>
     
     <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
-      Need help? Contact our support team at <a href="mailto:support@kompleet.com" style="color: #10b981;">support@kompleet.com</a>
+      Need help? Contact our support team at <a href="mailto:support@ivanotechnologies.com" style="color: #10b981;">support@ivanotechnologies.com</a>
     </p>
   </div>
   
@@ -103,8 +103,8 @@ export function generate7DayReminderEmail(
     <p>This is an automated reminder from KOMPLEET Platform</p>
     <p>Ivano Technologies Ltd | Nigerian Tax Compliance</p>
     <p>
-      <a href="https://kompleet.com/notifications" style="color: #10b981; text-decoration: none;">Manage Notifications</a> |
-      <a href="https://kompleet.com/privacy" style="color: #10b981; text-decoration: none;">Privacy Policy</a>
+      <a href="https://www.ivanotechnologies.com/notifications" style="color: #10b981; text-decoration: none;">Manage Notifications</a> |
+      <a href="https://www.ivanotechnologies.com/privacy" style="color: #10b981; text-decoration: none;">Privacy Policy</a>
     </p>
   </div>
 </body>
@@ -130,11 +130,11 @@ What You Need to Do:
 4. Review and download the PDF
 5. Submit to the Nigerian Revenue Service
 
-Go to Filing Center: https://kompleet.com/filing
+Go to Filing Center: https://www.ivanotechnologies.com/filing
 
 ⚠️ Important: Late filing may result in penalties as prescribed by the Nigeria Tax Act 2025.
 
-Need help? Contact our support team at support@kompleet.com
+Need help? Contact our support team at support@ivanotechnologies.com
 
 ---
 This is an automated reminder from KOMPLEET Platform
@@ -209,11 +209,11 @@ export function generate3DayReminderEmail(
     </div>
     
     <div style="text-align: center; margin: 30px 0;">
-      <a href="https://kompleet.com/filing" style="display: inline-block; background: #ef4444; color: white; padding: 16px 40px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 18px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">File Now →</a>
+      <a href="https://www.ivanotechnologies.com/filing" style="display: inline-block; background: #ef4444; color: white; padding: 16px 40px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 18px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">File Now →</a>
     </div>
     
     <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
-      Need urgent assistance? Contact us at <a href="mailto:support@kompleet.com" style="color: #ef4444;">support@kompleet.com</a>
+      Need urgent assistance? Contact us at <a href="mailto:support@ivanotechnologies.com" style="color: #ef4444;">support@ivanotechnologies.com</a>
     </p>
   </div>
   
@@ -240,9 +240,9 @@ Days Remaining: ${deadline.daysRemaining} days
 🚨 ACTION REQUIRED NOW
 Don't wait until the last minute! Generate and submit your tax form today to avoid late filing penalties.
 
-File Now: https://kompleet.com/filing
+File Now: https://www.ivanotechnologies.com/filing
 
-Need urgent assistance? Contact us at support@kompleet.com
+Need urgent assistance? Contact us at support@ivanotechnologies.com
 
 ---
 This is an automated urgent reminder from KOMPLEET Platform
@@ -316,11 +316,11 @@ export function generate1DayReminderEmail(
     </div>
     
     <div style="text-align: center; margin: 30px 0;">
-      <a href="https://kompleet.com/filing" style="display: inline-block; background: #dc2626; color: white; padding: 18px 50px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 20px; box-shadow: 0 6px 12px rgba(0,0,0,0.2); animation: pulse 2s infinite;">FILE NOW - DON'T DELAY →</a>
+      <a href="https://www.ivanotechnologies.com/filing" style="display: inline-block; background: #dc2626; color: white; padding: 18px 50px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 20px; box-shadow: 0 6px 12px rgba(0,0,0,0.2); animation: pulse 2s infinite;">FILE NOW - DON'T DELAY →</a>
     </div>
     
     <div style="background: #fef3c7; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #f59e0b;">
-      <p style="margin: 0; color: #78350f;"><strong>Need Help?</strong> Our support team is standing by. Email <a href="mailto:support@kompleet.com" style="color: #dc2626;">support@kompleet.com</a> or call our hotline.</p>
+      <p style="margin: 0; color: #78350f;"><strong>Need Help?</strong> Our support team is standing by. Email <a href="mailto:support@ivanotechnologies.com" style="color: #dc2626;">support@ivanotechnologies.com</a> or call our hotline.</p>
     </div>
   </div>
   
@@ -345,10 +345,10 @@ TIME REMAINING: 24 HOURS
 ⏰ FILE IMMEDIATELY
 Late filing will result in penalties and interest charges. Don't risk it - file your ${formName} return now!
 
-FILE NOW: https://kompleet.com/filing
+FILE NOW: https://www.ivanotechnologies.com/filing
 
 Need Help? Our support team is standing by.
-Email: support@kompleet.com
+Email: support@ivanotechnologies.com
 
 ---
 This is your FINAL automated reminder from KOMPLEET Platform
@@ -385,7 +385,7 @@ export async function sendEmail(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "KOMPLEET <noreply@kompleet.com>",
+        from: "KOMPLEET <noreply@ivanotechnologies.com>",
         to: [to],
         subject: template.subject,
         html: template.html,

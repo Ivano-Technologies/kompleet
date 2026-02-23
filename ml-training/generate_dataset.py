@@ -93,7 +93,7 @@ NIGERIAN_MERCHANTS = {
         "Wedding Gift", "Birthday Present", "Family Support"
     ],
     "Taxes": [
-        "FIRS Tax Payment", "LIRS Tax", "VAT Payment", "Company Tax",
+        "NRS Tax Payment", "Tax Payment", "VAT Payment", "Company Tax",
         "Personal Income Tax", "Property Tax"
     ],
     "Other": [

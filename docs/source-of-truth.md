@@ -125,7 +125,7 @@ className =
 - **Must Include:**
   - Fixed top navigation with solid background
   - Hero section with CTA buttons
-  - Social proof logos (FIRS, LIRS, NDPR, CAC)
+  - Social proof logos (NRS, NDPR, CAC)
   - Feature sections with solid cards
   - Metrics section
   - Testimonials
@@ -271,7 +271,7 @@ className =
 
 ### Nigerian Market Specifics
 
-- Display compliance with FIRS, LIRS, NDPR, CAC
+- Display compliance with NRS, NDPR, CAC
 - Use Naira symbol (₦) for currency
 - Support multi-currency (NGN, USD)
 - Tax automation features prominent

@@ -190,7 +190,7 @@ export class RulesEngineService {
       "This calculation is based on the Nigeria Tax Act 2025 and related regulations. Tax laws are subject to interpretation and change.";
 
     const confidenceText = {
-      high: "This interpretation is based on primary sources (official legislation and FIRS guidance) and has high confidence.",
+      high: "This interpretation is based on primary sources (official legislation and NRS guidance) and has high confidence.",
       medium:
         "This interpretation is based on secondary sources (professional tax firms) and has medium confidence. Please consult a tax professional for confirmation.",
       low: "This interpretation has low confidence due to legal ambiguity or lack of official guidance. Professional tax advice is strongly recommended.",

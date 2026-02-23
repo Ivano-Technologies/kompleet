@@ -485,11 +485,7 @@ export default function VATCalculatorPage() {
                           vat_rate: `${result.vatRate}%`,
                         },
                         ruleVersion: "v1.0.0-2025-tax-act",
-                        sources: [
-                          "Nigerian Revenue Service (NRS)",
-                          "EY Analysis",
-                          "KPMG Analysis",
-                        ],
+                        sources: ["Nigerian Revenue Service (NRS)"],
                         confidenceLevel: "High",
                       });
                     }}
@@ -519,7 +515,7 @@ export default function VATCalculatorPage() {
             </p>
             <p>
               <strong>Data Source:</strong> Nigerian Revenue Service (NRS),
-              validated by EY and KPMG analyses. Confidence level:{" "}
+              Confidence level:{" "}
               {rules?.standard_rate?.confidence || "high"}.
             </p>
             <p>

@@ -507,7 +507,7 @@ export default function IndividualTaxCalculatorPage() {
             </p>
             <p>
               <strong>Data Source:</strong> Nigerian Revenue Service (NRS),
-              validated by EY and KPMG analyses. Confidence level:{" "}
+              Confidence level:{" "}
               {rules?.tax_bracket_1?.confidence || "high"}.
             </p>
             <p>

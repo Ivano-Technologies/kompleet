@@ -157,6 +157,10 @@ When working on tax-related features, understand:
 
 See tax logic in `src/lib/services/tax-computation-service.ts` for implementation details.
 
+### Content & Branding
+
+**Avoid brand names and legal entities** in user-facing copy and documentation to reduce litigation risk. Use generic terms instead (e.g., "CEO, Lagos SME" rather than "CEO, Acme Corp"). **Exceptions**: (1) Public institutions may be referenced (NRS, CAC, JTB, NDPR). (2) **Ivano Technologies Ltd** as the product owner is allowed on this and other products unless explicitly directed otherwise. Use "KOMPLEET" for product branding; copyright and owner attribution may include Ivano Technologies Ltd.
+
 ### Related Documentation
 
 - Setup: `README.md`

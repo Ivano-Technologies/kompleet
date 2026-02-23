@@ -50,7 +50,7 @@ export default function PricingPage() {
             <li className="flex items-start gap-3">
               <span className="text-green-600 mt-0.5">&#10003;</span>
               <span className="text-light-text-secondary dark:text-dark-text-secondary">
-                FIRS &amp; LIRS filing preparation
+                NRS &amp; JTB filing preparation
               </span>
             </li>
             <li className="flex items-start gap-3">
@@ -89,7 +89,7 @@ export default function PricingPage() {
             href="/signup"
             className="block w-full text-center bg-green-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-green-800 transition-colors"
           >
-            Get Started for Free
+            Start Free (14 days)
           </Link>
         </div>
 

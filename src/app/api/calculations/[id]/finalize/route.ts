@@ -4,7 +4,7 @@
  * Protected: Requires authentication + ownership (via RLS)
  *
  * Once finalized, calculations cannot be modified or deleted.
- * This is intended for calculations that have been filed with FIRS.
+ * This is intended for calculations that have been filed with NRS.
  */
 
 import { NextRequest, NextResponse } from "next/server";

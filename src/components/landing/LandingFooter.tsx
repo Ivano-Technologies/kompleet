@@ -32,14 +32,14 @@ export default function LandingFooter() {
                 </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-[rgb(var(--text-primary))] transition-colors">
+                <Link href="/#features" className="hover:text-[rgb(var(--text-primary))] transition-colors">
                   Security
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-[rgb(var(--text-primary))] transition-colors">
+                <Link href="/api-docs" className="hover:text-[rgb(var(--text-primary))] transition-colors">
                   API Docs
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -52,14 +52,14 @@ export default function LandingFooter() {
                 </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-[rgb(var(--text-primary))] transition-colors">
+                <Link href="/help" className="hover:text-[rgb(var(--text-primary))] transition-colors">
                   Blog
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-[rgb(var(--text-primary))] transition-colors">
+                <Link href="/careers" className="hover:text-[rgb(var(--text-primary))] transition-colors">
                   Careers
-                </a>
+                </Link>
               </li>
               <li>
                 <Link href="/contact" className="hover:text-[rgb(var(--text-primary))] transition-colors">
@@ -77,14 +77,14 @@ export default function LandingFooter() {
                 </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-[rgb(var(--text-primary))] transition-colors">
+                <Link href="/help" className="hover:text-[rgb(var(--text-primary))] transition-colors">
                   Guides
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-[rgb(var(--text-primary))] transition-colors">
+                <Link href="/help" className="hover:text-[rgb(var(--text-primary))] transition-colors">
                   Webinars
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -102,9 +102,9 @@ export default function LandingFooter() {
                 </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-[rgb(var(--text-primary))] transition-colors">
+                <Link href="/cookies" className="hover:text-[rgb(var(--text-primary))] transition-colors">
                   Cookies
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -112,13 +112,13 @@ export default function LandingFooter() {
         <div className="border-t border-[rgb(var(--border))] pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-[rgb(var(--text-secondary))]">
           <p>&copy; 2026 KOMPLEET by Ivano Technologies Ltd. All rights reserved.</p>
           <div className="flex gap-5">
-            <a href="#" className="hover:text-[rgb(var(--text-primary))] transition-colors">
+            <a href="https://twitter.com/kompleetng" target="_blank" rel="noopener noreferrer" className="hover:text-[rgb(var(--text-primary))] transition-colors">
               Twitter
             </a>
-            <a href="#" className="hover:text-[rgb(var(--text-primary))] transition-colors">
+            <a href="https://www.linkedin.com/company/kompleet" target="_blank" rel="noopener noreferrer" className="hover:text-[rgb(var(--text-primary))] transition-colors">
               LinkedIn
             </a>
-            <a href="#" className="hover:text-[rgb(var(--text-primary))] transition-colors">
+            <a href="https://instagram.com/kompleet.ng" target="_blank" rel="noopener noreferrer" className="hover:text-[rgb(var(--text-primary))] transition-colors">
               Instagram
             </a>
           </div>

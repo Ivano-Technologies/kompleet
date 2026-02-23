@@ -172,12 +172,11 @@
 - [ ] **Naira symbol** - Currency displayed as ₦ (not N or NGN)
 - [ ] **Date format** - Dates use DD/MM/YYYY format (Nigerian standard)
 - [ ] **Phone format** - Phone numbers support +234 format
-- [ ] **Tax terminology** - Correct use of VAT, WHT, PAYE, FIRS, LIRS
+- [ ] **Tax terminology** - Correct use of VAT, WHT, PAYE, NRS
 
 ### Compliance Badges
 
-- [ ] **FIRS mentioned** - Federal Inland Revenue Service compliance shown
-- [ ] **LIRS mentioned** - Lagos Inland Revenue Service compliance shown
+- [ ] **NRS mentioned** - Nigerian Revenue Service compliance shown
 - [ ] **NDPR badge** - Nigerian Data Protection Regulation badge displayed
 - [ ] **CAC registration** - Corporate Affairs Commission registration mentioned
 
