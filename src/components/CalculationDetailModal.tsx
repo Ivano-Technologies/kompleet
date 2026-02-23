@@ -124,7 +124,7 @@ export function CalculationDetailModal({
               </div>
               <div className="flex justify-between">
                 <span className="text-sm font-medium">Data Sources:</span>
-                <span className="text-sm">FIRS, EY, KPMG, PwC, Deloitte</span>
+                <span className="text-sm">NRS</span>
               </div>
             </div>
           </div>

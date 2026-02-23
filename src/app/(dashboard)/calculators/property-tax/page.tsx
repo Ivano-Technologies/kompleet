@@ -299,7 +299,7 @@ export default function PropertyTaxCalculator() {
               <InfoIcon className="h-4 w-4" />
               <AlertDescription>
                 <strong>Important:</strong> The tenant is responsible for
-                withholding the WHT and remitting it to FIRS on behalf of the
+                withholding the WHT and remitting it to NRS on behalf of the
                 landlord.
               </AlertDescription>
             </Alert>
@@ -405,16 +405,15 @@ export default function PropertyTaxCalculator() {
           </p>
           <p>
             <strong>Responsibility:</strong> The tenant must withhold the WHT
-            from rent payments and remit it to FIRS using the appropriate
+            from rent payments and remit it to NRS using the appropriate
             remittance form.
           </p>
           <p>
-            <strong>Remittance:</strong> WHT should be remitted to FIRS within
+            <strong>Remittance:</strong> WHT should be remitted to NRS within
             21 days of the end of the month in which the rent was paid.
           </p>
           <p className="mt-4">
-            <strong>Data Source:</strong> Nigerian Revenue Service (NRS),
-            validated by EY and KPMG analyses. Confidence level:{" "}
+            <strong>Data Source:</strong> Nigerian Revenue Service (NRS). Confidence level:{" "}
             {rules.wht_rate?.confidence || "high"}.
           </p>
           <p>

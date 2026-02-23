@@ -152,10 +152,10 @@ export default function CookiesPage() {
             <p className="text-light-text-secondary dark:text-dark-text-secondary">
               If you have questions about our use of cookies, contact us at{" "}
               <a
-                href="mailto:privacy@techivano.com"
+                href="mailto:help@ivanotechnologies.com"
                 className="text-blue-600 hover:underline"
               >
-                privacy@techivano.com
+                help@ivanotechnologies.com
               </a>
               .
             </p>

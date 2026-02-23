@@ -414,7 +414,7 @@ export default function CapitalAllowancesCalculator() {
         <div className="text-sm space-y-2 text-light-text-tertiary dark:text-dark-text-tertiary">
           <p>
             <strong>Data Source:</strong> Nigerian Revenue Service (NRS),
-            validated by EY and KPMG analyses. Confidence level:{" "}
+            Confidence level:{" "}
             {rules.rate_10_percent?.confidence || "high"}.
           </p>
           <p>

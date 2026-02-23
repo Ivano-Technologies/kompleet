@@ -184,7 +184,7 @@ export default function TaxCenterPage() {
         </div>
         <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
           Professional tax calculators compliant with Nigerian Tax Act 2026 and
-          FIRS regulations.
+          NRS regulations.
         </p>
       </div>
 
@@ -251,7 +251,7 @@ export default function TaxCenterPage() {
               Accuracy
             </h4>
             <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary leading-relaxed">
-              All calculations follow the latest NTA 2026 and FIRS regulations.
+              All calculations follow the latest NTA 2026 and NRS regulations.
               For complex situations, consult a licensed tax professional.
             </p>
           </div>

@@ -83,10 +83,10 @@ export default function CareersPage() {
             <p className="text-light-text-secondary dark:text-dark-text-secondary">
               Send your CV and a brief introduction to{" "}
               <a
-                href="mailto:careers@techivano.com"
+                href="mailto:hi@ivanotechnologies.com"
                 className="text-blue-600 hover:underline"
               >
-                careers@techivano.com
+                hi@ivanotechnologies.com
               </a>{" "}
               and we will reach out when a role that fits your skills opens up.
             </p>

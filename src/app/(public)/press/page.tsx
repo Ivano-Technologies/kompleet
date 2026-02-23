@@ -4,7 +4,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Press | KOMPLEET",
   description:
-    "Press resources and media information for KOMPLEET by Ivano Technologies.",
+    "Press resources and media information for KOMPLEET by Ivano Technologies Ltd.",
 };
 
 export default function PressPage() {
@@ -38,10 +38,10 @@ export default function PressPage() {
             </p>
             <p className="text-light-text-secondary dark:text-dark-text-secondary">
               <a
-                href="mailto:press@techivano.com"
+                href="mailto:hi@ivanotechnologies.com"
                 className="text-blue-600 hover:underline"
               >
-                press@techivano.com
+                hi@ivanotechnologies.com
               </a>
             </p>
           </div>
@@ -56,10 +56,10 @@ export default function PressPage() {
             <p className="text-sm text-light-text-tertiary dark:text-dark-text-tertiary">
               Contact{" "}
               <a
-                href="mailto:press@techivano.com"
+                href="mailto:hi@ivanotechnologies.com"
                 className="text-blue-600 hover:underline"
               >
-                press@techivano.com
+                hi@ivanotechnologies.com
               </a>{" "}
               to request the media kit.
             </p>

@@ -9,12 +9,38 @@ const inter = Inter({
   display: "swap",
 });
 
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL || "https://www.ivanotechnologies.com";
+
 export const metadata: Metadata = {
-  title: "KOMPLEET - Tax Compliance Platform",
-  description: "Kompleet records. Kompleet filings. Kompleet compliance.",
+  title: "Kompleet — Track Every Naira & Stay Compliant in Nigeria",
+  description:
+    "Track spending, send invoices, export tax-ready reports for Nigerian SMEs.",
+  keywords: [
+    "expense tracking Nigeria",
+    "SME finance Nigeria",
+    "tax compliance Nigeria",
+    "cash flow Nigeria",
+    "Kompleet app",
+  ],
   icons: {
     icon: "/favicon.png",
     apple: "/favicon.png",
+  },
+  openGraph: {
+    title: "Kompleet — Track Every Naira & Stay Compliant in Nigeria",
+    description:
+      "Track spending, send invoices, export tax-ready reports for Nigerian SMEs.",
+    url: siteUrl,
+    siteName: "Kompleet",
+    locale: "en_NG",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Kompleet — Track Every Naira & Stay Compliant in Nigeria",
+    description:
+      "Track spending, send invoices, export tax-ready reports for Nigerian SMEs.",
   },
 };
 

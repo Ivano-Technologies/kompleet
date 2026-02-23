@@ -215,10 +215,10 @@ export default function PrivacyPage() {
             <p className="text-light-text-secondary dark:text-dark-text-secondary">
               To exercise any of these rights, please contact us at{" "}
               <a
-                href="mailto:privacy@techivano.com"
+                href="mailto:help@ivanotechnologies.com"
                 className="text-blue-600 hover:underline"
               >
-                privacy@techivano.com
+                help@ivanotechnologies.com
               </a>
               .
             </p>
@@ -339,19 +339,19 @@ export default function PrivacyPage() {
               <p className="text-light-text-secondary dark:text-dark-text-secondary mb-2">
                 Email:{" "}
                 <a
-                  href="mailto:privacy@techivano.com"
+                  href="mailto:help@ivanotechnologies.com"
                   className="text-blue-600 hover:underline"
                 >
-                  privacy@techivano.com
+                  help@ivanotechnologies.com
                 </a>
               </p>
               <p className="text-light-text-secondary dark:text-dark-text-secondary mb-2">
                 Support:{" "}
                 <a
-                  href="mailto:support@techivano.com"
+                  href="mailto:support@ivanotechnologies.com"
                   className="text-blue-600 hover:underline"
                 >
-                  support@techivano.com
+                  support@ivanotechnologies.com
                 </a>
               </p>
               <p className="text-light-text-secondary dark:text-dark-text-secondary">

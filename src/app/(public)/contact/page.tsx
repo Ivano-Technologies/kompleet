@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import ContactFormClient from "@/components/contact/ContactFormClient";
 
 export const metadata: Metadata = {
-  title: "Contact Us | KOMPLEET",
+  title: "Contact Us | Ivano Technologies Ltd",
   description:
-    "Get in touch with the KOMPLEET team for support, partnerships, or inquiries.",
+    "Get in touch with the Ivano Technologies Ltd team for support, partnerships, or inquiries.",
 };
 
 export default function ContactPage() {
@@ -28,79 +29,7 @@ export default function ContactPage() {
         <div className="grid md:grid-cols-3 gap-8">
           <div className="md:col-span-2">
             <div className="bg-light-surface dark:bg-dark-surface rounded-lg p-8">
-              <form className="space-y-6">
-                <div>
-                  <label
-                    htmlFor="name"
-                    className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1"
-                  >
-                    Full Name
-                  </label>
-                  <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    className="w-full px-4 py-2 border border-light-border dark:border-dark-border rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent text-light-text-primary dark:text-dark-text-primary"
-                    placeholder="Your full name"
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="email"
-                    className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1"
-                  >
-                    Email Address
-                  </label>
-                  <input
-                    type="email"
-                    id="email"
-                    name="email"
-                    className="w-full px-4 py-2 border border-light-border dark:border-dark-border rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent text-light-text-primary dark:text-dark-text-primary"
-                    placeholder="you@example.com"
-                  />
-                </div>
-                <div>
-                  <label
-                    htmlFor="subject"
-                    className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1"
-                  >
-                    Subject
-                  </label>
-                  <select
-                    id="subject"
-                    name="subject"
-                    className="w-full px-4 py-2 border border-light-border dark:border-dark-border rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent text-light-text-primary dark:text-dark-text-primary"
-                  >
-                    <option value="">Select a subject</option>
-                    <option value="general">General Inquiry</option>
-                    <option value="support">Technical Support</option>
-                    <option value="billing">Billing &amp; Account</option>
-                    <option value="partnership">Partnership</option>
-                    <option value="feedback">Feedback</option>
-                  </select>
-                </div>
-                <div>
-                  <label
-                    htmlFor="message"
-                    className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1"
-                  >
-                    Message
-                  </label>
-                  <textarea
-                    id="message"
-                    name="message"
-                    rows={5}
-                    className="w-full px-4 py-2 border border-light-border dark:border-dark-border rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent text-light-text-primary dark:text-dark-text-primary"
-                    placeholder="How can we help you?"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  className="w-full bg-green-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-green-800 transition-colors"
-                >
-                  Send Message
-                </button>
-              </form>
+              <ContactFormClient />
             </div>
           </div>
 
@@ -112,19 +41,19 @@ export default function ContactPage() {
               <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-1">
                 General:{" "}
                 <a
-                  href="mailto:hello@techivano.com"
+                  href="mailto:hi@ivanotechnologies.com"
                   className="text-blue-600 hover:underline"
                 >
-                  hello@techivano.com
+                  hi@ivanotechnologies.com
                 </a>
               </p>
               <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
                 Support:{" "}
                 <a
-                  href="mailto:support@techivano.com"
+                  href="mailto:support@ivanotechnologies.com"
                   className="text-blue-600 hover:underline"
                 >
-                  support@techivano.com
+                  support@ivanotechnologies.com
                 </a>
               </p>
             </div>

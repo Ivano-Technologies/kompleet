@@ -315,8 +315,8 @@ export default function TermsPage() {
               8. Indemnification
             </h2>
             <p className="text-light-text-secondary dark:text-dark-text-secondary">
-              You agree to indemnify, defend, and hold harmless Ivano
-              Technologies Ltd, its officers, directors, employees, and agents
+              You agree to indemnify, defend, and hold harmless Ivano Technologies Ltd,
+              its officers, directors, employees, and agents
               from any claims, liabilities, damages, losses, costs, or expenses
               (including legal fees) arising from:
             </p>
@@ -456,10 +456,10 @@ export default function TermsPage() {
             <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
               If you have any dispute with us, please contact us first at{" "}
               <a
-                href="mailto:support@techivano.com"
+                href="mailto:support@ivanotechnologies.com"
                 className="text-blue-600 hover:underline"
               >
-                support@techivano.com
+                support@ivanotechnologies.com
               </a>{" "}
               to attempt to resolve the issue informally.
             </p>
@@ -573,28 +573,28 @@ export default function TermsPage() {
               <p className="text-light-text-secondary dark:text-dark-text-secondary mb-2">
                 Email:{" "}
                 <a
-                  href="mailto:support@techivano.com"
+                  href="mailto:support@ivanotechnologies.com"
                   className="text-blue-600 hover:underline"
                 >
-                  support@techivano.com
+                  support@ivanotechnologies.com
                 </a>
               </p>
               <p className="text-light-text-secondary dark:text-dark-text-secondary mb-2">
                 Legal:{" "}
                 <a
-                  href="mailto:legal@techivano.com"
+                  href="mailto:help@ivanotechnologies.com"
                   className="text-blue-600 hover:underline"
                 >
-                  legal@techivano.com
+                  help@ivanotechnologies.com
                 </a>
               </p>
               <p className="text-light-text-secondary dark:text-dark-text-secondary mb-2">
                 Website:{" "}
                 <a
-                  href="https://techivano.com"
+                  href="https://www.ivanotechnologies.com"
                   className="text-blue-600 hover:underline"
                 >
-                  https://techivano.com
+                  https://www.ivanotechnologies.com
                 </a>
               </p>
               <p className="text-light-text-secondary dark:text-dark-text-secondary">

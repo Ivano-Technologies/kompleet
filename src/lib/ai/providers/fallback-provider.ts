@@ -139,7 +139,7 @@ const CATEGORY_RULES: CategoryRule[] = [
   },
   {
     category: "Taxes & Levies",
-    keywords: ["tax", "vat", "wht", "levy", "firs", "lirs"],
+    keywords: ["tax", "vat", "wht", "levy", "nrs"],
     transactionType: "debit",
     confidence: 90,
   },
@@ -159,7 +159,7 @@ const CATEGORY_RULES: CategoryRule[] = [
   },
   {
     category: "Insurance",
-    keywords: ["insurance", "premium", "aiico", "leadway"],
+    keywords: ["insurance", "premium", "policy"],
     transactionType: "debit",
     confidence: 90,
   },

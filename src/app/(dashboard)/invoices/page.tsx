@@ -305,7 +305,7 @@ export default function InvoicesPage() {
                   <div className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary space-y-0.5">
                     <p>Plot 42, Lekki Phase 1</p>
                     <p>Lagos, Nigeria</p>
-                    <p className="text-primary-500">billing@kompleet.tax</p>
+                    <p className="text-primary-500">support@ivanotechnologies.com</p>
                   </div>
                 </div>
                 <div className="text-right">

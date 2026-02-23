@@ -67,7 +67,7 @@ export default function LandingNav() {
             href="/signup"
             className="btn-primary px-4 py-2 rounded-lg text-sm font-semibold inline-flex items-center gap-1.5"
           >
-            Get Started <ArrowRight className="w-3.5 h-3.5" />
+            Start Free (14 days) <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
@@ -108,7 +108,7 @@ export default function LandingNav() {
               Log In
             </Link>
             <Link href="/signup" className="btn-primary px-4 py-2 rounded-lg text-sm font-semibold flex-1 text-center">
-              Get Started
+              Start Free (14 days)
             </Link>
           </div>
         </div>

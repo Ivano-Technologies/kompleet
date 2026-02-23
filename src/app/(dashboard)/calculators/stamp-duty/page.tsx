@@ -444,7 +444,7 @@ export default function StampDutyCalculator() {
             <strong className="text-light-text-primary dark:text-dark-text-primary">
               Data Source:
             </strong>{" "}
-            Nigerian Revenue Service (NRS), validated by EY and KPMG analyses.
+            Nigerian Revenue Service (NRS), based on official NRS guidelines.
             Confidence level:{" "}
             {rules.property_transfer_rate?.confidence || "high"}.
           </p>
