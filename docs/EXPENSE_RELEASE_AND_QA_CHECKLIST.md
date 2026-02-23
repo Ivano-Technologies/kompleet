@@ -12,7 +12,7 @@ Use this before merging all sprint branches into `main` (or `release/expense-v1`
 |-------|-------------|--------|--------|
 | **Phase 0** | Env readiness (EAS login, app.json version/versionCode, env vars) | ✅ | EAS login ✅ · Project linked (`5a45be5b`) ✅ · Supabase env vars ✅ |
 | **Phase 1** | Pre-build gates (lint, tests, secrets scan, debug flags) | ✅ | Cursor: mobile lint + 55 expense tests pass. |
-| **Phase 2** | Staging / preview build (`eas build --profile preview`) | 🔄 IN PROGRESS | Release branch creation started. |
+| **Phase 2** | Staging / preview build (`eas build --profile preview`) | 🔄 IN PROGRESS | Branch ✅ · Merges ✅ · 39/39 tests ✅ · Build ✅ · Pushed ✅ · linter fixes committed ✅ · **EAS preview build: queued/running** |
 | **Phase 3** | QA (install, smoke tests, Play checklist) | ⏳ | |
 | **Phase 4** | Prod build + Play Store | 🚫 BLOCKED until Claude GO | Cursor does not run prod build or submit |
 
