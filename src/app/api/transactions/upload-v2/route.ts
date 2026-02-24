@@ -198,7 +198,6 @@ async function handlePOST(request: NextRequest) {
             balance: t.balance,
             reference: t.reference,
             source: `${bankCode}_import`,
-            metadata: t.metadata,
           })),
         )
         .select();
