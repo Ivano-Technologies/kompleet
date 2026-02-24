@@ -4,7 +4,7 @@
  * DELETE /api/expenses/[id] - Delete expense.
  */
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { z } from "zod";
 
 const patchBodySchema = z.object({
@@ -27,7 +27,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const supabase = await createServerClient();
+    const supabase = await getSupabaseForRequest(request);
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -60,7 +60,7 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params;
-    const supabase = await createServerClient();
+    const supabase = await getSupabaseForRequest(request);
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -111,7 +111,7 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const supabase = await createServerClient();
+    const supabase = await getSupabaseForRequest(request);
     const {
       data: { user },
     } = await supabase.auth.getUser();

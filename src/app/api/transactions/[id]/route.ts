@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient as createClient } from "@/lib/supabase/server";
+import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
 
 export const runtime = "nodejs";
@@ -15,7 +15,7 @@ async function handleGET(
   { params }: RouteParams,
 ): Promise<NextResponse> {
   try {
-    const supabase = await createClient();
+    const supabase = await getSupabaseForRequest(request);
     const { id } = await params;
 
     // Check authentication
@@ -62,7 +62,7 @@ async function handlePUT(
   { params }: RouteParams,
 ): Promise<NextResponse> {
   try {
-    const supabase = await createClient();
+    const supabase = await getSupabaseForRequest(request);
     const { id } = await params;
 
     // Check authentication
@@ -141,7 +141,7 @@ async function handleDELETE(
   { params }: RouteParams,
 ): Promise<NextResponse> {
   try {
-    const supabase = await createClient();
+    const supabase = await getSupabaseForRequest(request);
     const { id } = await params;
 
     // Check authentication

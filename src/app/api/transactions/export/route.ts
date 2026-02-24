@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient as createClient } from "@/lib/supabase/server";
+import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { withAudit } from "@/lib/with-audit";
 import { z } from "zod";
@@ -21,7 +21,7 @@ const exportQuerySchema = z.object({
 
 async function handleGET(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const supabase = await getSupabaseForRequest(request);
 
     // Check authentication
     const {

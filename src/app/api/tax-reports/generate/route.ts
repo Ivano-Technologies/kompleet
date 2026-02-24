@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient as createClient } from "@/lib/supabase/server";
+import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { TaxComputationService } from "@/lib/services/tax-computation-service";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { z } from "zod";
@@ -31,7 +31,7 @@ export const runtime = "nodejs";
 
 async function handlePOST(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const supabase = await getSupabaseForRequest(request);
 
     // Check authentication
     const {

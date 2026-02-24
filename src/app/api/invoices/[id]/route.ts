@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { withAudit } from "@/lib/with-audit";
 
@@ -17,7 +17,7 @@ interface RouteContext {
 async function handleGET(request: NextRequest, context: RouteContext) {
   try {
     const { id } = await context.params;
-    const supabase = await createServerClient();
+    const supabase = await getSupabaseForRequest(request);
 
     const {
       data: { user },
@@ -50,7 +50,7 @@ async function handleGET(request: NextRequest, context: RouteContext) {
 async function handleDELETE(request: NextRequest, context: RouteContext) {
   try {
     const { id } = await context.params;
-    const supabase = await createServerClient();
+    const supabase = await getSupabaseForRequest(request);
 
     const {
       data: { user },

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { createServerClient } from "@/lib/supabase/server";
+import { getSupabaseForRequest } from "@/lib/supabase/server";
 import type { Role } from "@/lib/auth/rbac";
 
 const VALID_ROLES: Role[] = [
@@ -24,7 +24,7 @@ function getAdminClient() {
  * Requires: owner role
  */
 export async function GET(request: NextRequest) {
-  const supabase = await createServerClient();
+  const supabase = await getSupabaseForRequest(request);
   const {
     data: { user },
     error: authError,
@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
  * Body: { userId: string, role: Role }
  */
 export async function PATCH(request: NextRequest) {
-  const supabase = await createServerClient();
+  const supabase = await getSupabaseForRequest(request);
   const {
     data: { user },
     error: authError,

@@ -1,13 +1,13 @@
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient as createClient } from "@/lib/supabase/server";
+import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { FinancialStatementsService } from "@/lib/services/financial-statements-service";
 
 export const runtime = "nodejs";
 
 async function handlePOST(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const supabase = await getSupabaseForRequest(request);
 
     // Check authentication
     const {

@@ -15,14 +15,14 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { ingestStatement } from "@/lib/ingestion/ingestionWorker";
 import { IngestionRequest } from "@/lib/ingestion/types";
 
 export async function POST(request: NextRequest) {
   try {
     // 1. Authenticate user
-    const supabase = await createServerClient();
+    const supabase = await getSupabaseForRequest(request);
     const {
       data: { user },
       error: authError,

@@ -2,7 +2,7 @@
  * GET /api/expenses/workspaces/[id]/members - List workspace members. Premium gated (402).
  */
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { requirePremium } from "@/lib/expense-premium";
 
 export async function GET(
@@ -11,7 +11,7 @@ export async function GET(
 ) {
   try {
     const { id: workspaceId } = await params;
-    const supabase = await createServerClient();
+    const supabase = await getSupabaseForRequest(request);
     const {
       data: { user },
     } = await supabase.auth.getUser();

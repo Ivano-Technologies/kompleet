@@ -5,7 +5,7 @@ import {
   categorizeTransaction,
   type Category,
 } from "@/lib/services/categorization-service";
-import { createServerClient } from "@/lib/supabase/server";
+import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
@@ -28,7 +28,7 @@ const getAdminClient = () =>
 async function handlePOST(request: NextRequest) {
   try {
     // Auth check
-    const supabase = await createServerClient();
+    const supabase = await getSupabaseForRequest(request);
     const {
       data: { user },
       error: authError,

@@ -3,7 +3,7 @@
  * POST /api/expenses - Create expense.
  */
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { z } from "zod";
 
 const querySchema = z.object({
@@ -33,7 +33,7 @@ const postBodySchema = z.object({
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createServerClient();
+    const supabase = await getSupabaseForRequest(request);
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createServerClient();
+    const supabase = await getSupabaseForRequest(request);
     const {
       data: { user },
     } = await supabase.auth.getUser();

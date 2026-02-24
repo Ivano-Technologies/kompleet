@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient as createClient } from "@/lib/supabase/server";
+import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
 
 export const runtime = "nodejs";
@@ -16,7 +16,7 @@ export const dynamic = "force-dynamic";
  */
 async function handleGET(request: NextRequest): Promise<Response> {
   try {
-    const supabase = await createClient();
+    const supabase = await getSupabaseForRequest(request);
 
     // Check authentication
     const {
@@ -73,7 +73,7 @@ async function handleGET(request: NextRequest): Promise<Response> {
  */
 async function handlePOST(request: NextRequest): Promise<Response> {
   try {
-    const supabase = await createClient();
+    const supabase = await getSupabaseForRequest(request);
 
     // Check authentication
     const {

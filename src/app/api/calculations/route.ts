@@ -5,12 +5,12 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
 
 async function handleGET(request: NextRequest) {
   try {
-    const supabase = await createServerClient();
+    const supabase = await getSupabaseForRequest(request);
 
     // Get authenticated user
     const {

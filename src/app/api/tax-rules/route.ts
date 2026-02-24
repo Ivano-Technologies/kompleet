@@ -4,7 +4,7 @@
  * Protected: Requires 'calculators:read' permission
  */
 
-import { createServerClient } from "@/lib/supabase/server";
+import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@/lib/auth/with-auth";
 
@@ -20,7 +20,7 @@ async function handleGET(request: NextRequest) {
       );
     }
 
-    const supabase = await createServerClient();
+    const supabase = await getSupabaseForRequest(request);
 
     // Get active rule version
     const { data: activeVersion, error: versionError } = await supabase

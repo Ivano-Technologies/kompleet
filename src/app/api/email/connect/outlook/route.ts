@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthorizationUrl } from "@/lib/email/outlook";
 import { randomBytes } from "crypto";
 import { withRateLimit } from "@/lib/with-rate-limit";
-import { createServerClient } from "@/lib/supabase/server";
+import { getSupabaseForRequest } from "@/lib/supabase/server";
 
 async function handlePOST(request: NextRequest) {
   try {
     // Auth check
-    const supabase = await createServerClient();
+    const supabase = await getSupabaseForRequest(request);
     const {
       data: { user },
       error: authError,

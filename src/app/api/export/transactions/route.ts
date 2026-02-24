@@ -1,6 +1,6 @@
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient as createClient } from "@/lib/supabase/server";
+import { getSupabaseForRequest } from "@/lib/supabase/server";
 import {
   exportTransactionsCSV,
   exportTransactionsExcel,
@@ -8,7 +8,7 @@ import {
 
 async function handlePOST(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const supabase = await getSupabaseForRequest(request);
 
     // Get authenticated user
     const {

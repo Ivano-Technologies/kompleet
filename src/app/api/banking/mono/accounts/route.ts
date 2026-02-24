@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
-import { createServerClient as createClient } from "@/lib/supabase/server";
+import { getSupabaseForRequest } from "@/lib/supabase/server";
 
 /**
  * GET /api/banking/mono/accounts
@@ -8,7 +8,7 @@ import { createServerClient as createClient } from "@/lib/supabase/server";
  */
 async function handleGET() {
   try {
-    const supabase = await createClient();
+    const supabase = await getSupabaseForRequest(request);
     const {
       data: { user },
       error: authError,
