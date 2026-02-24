@@ -65,7 +65,7 @@ describe("PDF Parser", () => {
   it("returns errors when PDF text extraction yields too little text", async () => {
     const { parsePDF } =
       await import("../../lib/transaction-import/pdf-parser");
-    const { __setGetTextResult } = await import("pdf-parse");
+    const { __setGetTextResult } = (await import("pdf-parse")) as any;
     (__setGetTextResult as (text: string, total?: number) => void)("short", 1);
 
     const buffer = Buffer.alloc(200);
