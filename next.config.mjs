@@ -5,13 +5,6 @@ import { withSentryConfig } from "@sentry/nextjs";
 const nextConfig = {
   reactStrictMode: true,
 
-  // Pre-existing TS errors in drizzle.config.ts / prisma.config.ts (non-app
-  // config files with version-mismatch issues) block the build. Allow build
-  // to proceed; track fix in a separate cleanup task.
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-
   env: {
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
@@ -80,8 +73,13 @@ export default withSentryConfig(nextConfig, {
   authToken: process.env.SENTRY_AUTH_TOKEN,
   widenClientFileUpload: true,
   silent: !process.env.CI,
-  disableLogger: true,
   tunnelRoute: "/monitoring",
-  autoInstrumentServerFunctions: false,
   hideSourceMaps: true,
+  webpack: {
+    autoInstrumentServerFunctions: false,
+    treeshake: {
+      removeDebugLogging: true,
+    },
+  },
 });
+
