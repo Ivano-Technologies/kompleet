@@ -30,8 +30,8 @@ async function handlePOST(request: NextRequest) {
       );
     }
 
-    // Log export action
-    await supabase.from("audit_logs").insert({
+    // Log export action (fire-and-forget — don't block the download)
+    supabase.from("audit_logs").insert({
       user_id: user.id,
       action: "export",
       resource_type: "transactions",
@@ -39,7 +39,7 @@ async function handlePOST(request: NextRequest) {
       metadata: { format },
       ip_address: request.headers.get("x-forwarded-for") || "unknown",
       user_agent: request.headers.get("user-agent") || "unknown",
-    });
+    }).then(() => {}).catch(() => {});
 
     // Generate export
     let buffer: Buffer;
