@@ -23,9 +23,9 @@ async function fetchTransactions(userId: string, taxYear?: number) {
 
   let query = supabase
     .from("transactions")
-    .select("*")
+    .select("*, categories(name)")
     .eq("user_id", userId)
-    .order("date", { ascending: false });
+    .order("transaction_date", { ascending: false });
 
   if (taxYear) {
     query = query.eq("tax_year", taxYear);
@@ -59,9 +59,9 @@ export async function exportTransactionsCSV(
   ];
   const rows =
     transactions?.map((t) => [
-      t.date || "",
-      t.type || "",
-      t.category || "",
+      t.transaction_date || "",
+      t.transaction_type || "",
+      (t.categories as any)?.name || "",
       t.description || "",
       t.amount?.toString() || "0",
       t.tax_year?.toString() || "",
@@ -116,9 +116,9 @@ export async function exportTransactionsExcel(
   // Add data rows
   transactions?.forEach((t) => {
     worksheet.addRow({
-      date: t.date || "",
-      type: t.type || "",
-      category: t.category || "",
+      date: t.transaction_date || "",
+      type: t.transaction_type || "",
+      category: (t.categories as any)?.name || "",
       description: t.description || "",
       amount: t.amount || 0,
       tax_year: t.tax_year || "",
