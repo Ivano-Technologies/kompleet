@@ -80,6 +80,6 @@ export default withSentryConfig(nextConfig, {
   silent: !process.env.CI,
   disableLogger: true,
   tunnelRoute: "/monitoring",
-  autoInstrumentServerFunctions: true,
+  autoInstrumentServerFunctions: false,
   hideSourceMaps: true,
 });
