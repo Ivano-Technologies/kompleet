@@ -94,10 +94,7 @@ async function handlePOST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error in /api/export/transactions:", error);
-    return NextResponse.json({
-      error: "Export failed",
-      detail: error instanceof Error ? error.message : String(error),
-    }, { status: 500 });
+    return NextResponse.json({ error: "Export failed" }, { status: 500 });
   }
 }
 
