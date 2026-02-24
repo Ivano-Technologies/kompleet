@@ -37,11 +37,11 @@ async function handlePOST(request: NextRequest, user: any) {
       ? `kompleet_data_${tax_year}.zip`
       : "kompleet_data_all.zip";
 
-    // Create export history record
+    // Create export history record (fire-and-forget — don't block the download)
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7); // 7 days TTL
 
-    await supabase.from("export_history").insert({
+    supabase.from("export_history").insert({
       user_id: user.id,
       export_type: "bulk",
       format: "zip",
@@ -50,7 +50,7 @@ async function handlePOST(request: NextRequest, user: any) {
       file_size: buffer.length,
       expires_at: expiresAt.toISOString(),
       completed_at: new Date().toISOString(),
-    });
+    }).then(() => {}).catch(() => {});
 
     // Convert Buffer to ReadableStream for Next.js 15 + TypeScript 5.9.3 compatibility
     const stream = new ReadableStream({
