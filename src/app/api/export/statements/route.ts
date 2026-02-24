@@ -49,7 +49,7 @@ async function handlePOST(request: NextRequest) {
       metadata: { statement_type },
       ip_address: request.headers.get("x-forwarded-for") || "unknown",
       user_agent: request.headers.get("user-agent") || "unknown",
-    }).then(() => {}).catch(() => {});
+    }).then(undefined, () => {});
 
     // Generate Word document
     const buffer = await exportFinancialStatementWord(
@@ -79,7 +79,7 @@ async function handlePOST(request: NextRequest) {
       file_size: buffer.length,
       expires_at: expiresAt.toISOString(),
       completed_at: new Date().toISOString(),
-    }).then(() => {}).catch(() => {});
+    }).then(undefined, () => {});
 
     // Convert Buffer to ReadableStream for Next.js 15 + TypeScript 5.9.3 compatibility
     const stream = new ReadableStream({
