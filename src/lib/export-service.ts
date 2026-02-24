@@ -28,7 +28,10 @@ async function fetchTransactions(userId: string, taxYear?: number) {
     .order("transaction_date", { ascending: false });
 
   if (taxYear) {
-    query = query.eq("tax_year", taxYear);
+    // Filter by transaction_date year range — avoids dependency on generated column
+    query = query
+      .gte("transaction_date", `${taxYear}-01-01`)
+      .lte("transaction_date", `${taxYear}-12-31`);
   }
 
   const { data: transactions, error } = await query;
