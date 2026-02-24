@@ -1,0 +1,7 @@
+@"
+node_modules
+.next/cache
+apps/
+*.tgz
+.git
+"@ | Out-File -FilePath .vercelignore -Encoding utf8

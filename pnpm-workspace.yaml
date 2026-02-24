@@ -1,6 +1,6 @@
 packages:
   - "."
-  - "apps/*"
+  # apps/mobile uses npm for isolated install (avoids duplicate react/react-dom with root)
 
 ignoredBuiltDependencies:
   - core-js

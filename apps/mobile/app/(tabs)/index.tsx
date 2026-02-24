@@ -55,10 +55,8 @@ export default function HomeScreen() {
           const ok = r.ok;
           setIsOnline(ok);
           if (ok) {
-            getSupabaseClient()
-              .then((supabase) => runSync(supabase))
-              .then(() => loadExpenses())
-              .catch(() => {});
+            const supabase = getSupabaseClient();
+            runSync(supabase).then(() => loadExpenses()).catch(() => {});
           }
         })
         .catch(() => setIsOnline(false));
