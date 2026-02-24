@@ -33,15 +33,16 @@ async function handlePOST(request: NextRequest) {
       );
     }
 
-    const recipient = getRecipientForSubject(subject || "general");
-    const subjectLabel =
-      {
-        general: "General Inquiry",
-        support: "Technical Support",
-        billing: "Billing & Account",
-        partnership: "Partnership",
-        feedback: "Feedback",
-      }[subject || "general"] || "General Inquiry";
+    const subjectKey = String(subject || "general").toLowerCase();
+    const recipient = getRecipientForSubject(subjectKey);
+    const subjectLabels: Record<string, string> = {
+      general: "General Inquiry",
+      support: "Technical Support",
+      billing: "Billing & Account",
+      partnership: "Partnership",
+      feedback: "Feedback",
+    };
+    const subjectLabel = subjectLabels[subjectKey] ?? "General Inquiry";
 
     const resendApiKey = process.env.RESEND_API_KEY;
     if (!resendApiKey) {
