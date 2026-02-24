@@ -6,7 +6,6 @@
 import { getBankConfig, BANK_CONFIGS } from "./bank-configs";
 import { parseCSV, ParseResult } from "./csv-parser";
 import { parseExcel } from "./excel-parser";
-import { parsePDF } from "./pdf-parser";
 
 export type FileType = "csv" | "excel" | "pdf";
 
@@ -23,6 +22,7 @@ export async function parseBankStatement(
       ? fileContent
       : Buffer.from(fileContent);
     const bankConfig = getBankConfig(bankCode);
+    const { parsePDF } = await import("./pdf-parser");
     return parsePDF(buffer, bankConfig?.name);
   }
 
