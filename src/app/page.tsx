@@ -1,10 +1,14 @@
 import {
   ArrowRight,
   BarChart3,
+  Bell,
+  Calculator,
   CheckCircle2,
   ChevronRight,
+  Clock,
   FileText,
   Globe,
+  Shield,
   Zap,
 } from "lucide-react";
 import Image from "next/image";
@@ -23,61 +27,96 @@ const FEATURE_ANALYTICS =
   "https://private-us-east-1.manuscdn.com/sessionFile/FHlfXyMgxU2Pt2Bnt6svnm/sandbox/luUcO3vrTWrHIzYBS4i6AR-img-5_1771075983000_na1fn_ZmVhdHVyZS1hbmFseXRpY3M.png?x-oss-process=image/resize,w_1920,h_1920/format,webp/quality,q_80&Expires=1798761600&Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly9wcml2YXRlLXVzLWVhc3QtMS5tYW51c2Nkbi5jb20vc2Vzc2lvbkZpbGUvRkhsZlh5TWd4VTJQdDJCbnQ2c3ZubS9zYW5kYm94L2x1VWNPM3ZyVFdySEl6WUJTNGk2QVItaW1nLTVfMTc3MTA3NTk4MzAwMF9uYTFmbl9abVZoZEhWeVpTMWhibUZzZVhScFkzTS5wbmc~eC1vc3MtcHJvY2Vzcz1pbWFnZS9yZXNpemUsd18xOTIwLGhfMTkyMC9mb3JtYXQsd2VicC9xdWFsaXR5LHFfODAiLCJDb25kaXRpb24iOnsiRGF0ZUxlc3NUaGFuIjp7IkFXUzpFcG9jaFRpbWUiOjE3OTg3NjE2MDB9fX1dfQ__&Key-Pair-Id=K2HSFNDJXOU9YS&Signature=Bp9deiyIQL0PC1TCDt7L-INU1HMMhgknbkr8kfvUML525syXfMsrpkYhsC5hcHzvIAm8PP0s5go6AxfoVAzsINW-y7ulbcc~Cj8Bf-nwd-vRI5OEBiquOGA1NIiqkUWDeAJkmehHovwUUlO5B3qxPOrkNuYnfSKU-cInNv7rr9aROrx8OkRva5vz0wm2GXU1yjDI60LNpXsRWc7BVRA0wSZkB-1N2itUe3RGanQpyintqmLJ7GVMNtR-TQbdoK5F0ru8zIrs51hSgVR-uYpSqcXTqerYHFMO8Kj8P4E0ZWEaATho2wm0rYuRyyZJ9YNWe7XzpGEk5zWFXcxGAG5sOw__";
 
 const features = [
-  { icon: Zap, title: "Smart Expense Tracking", desc: "Track every naira with instant categorisation and clear visibility." },
-  { icon: FileText, title: "Professional Invoicing", desc: "Send branded invoices and get paid faster." },
-  { icon: BarChart3, title: "Compliance-Ready Reports", desc: "Export reports formatted for NRS and JTB filing." },
-  { icon: Globe, title: "Real-Time Insights", desc: "Cash-flow dashboards and business analytics." },
-  { icon: FileText, title: "PDF/CSV/Excel Exports", desc: "Download your data in the format you need." },
+  {
+    icon: Zap,
+    title: "Automated VAT & WHT",
+    desc: "Auto-calculate and generate reports for value-added and withholding taxes under the 2025 Nigeria Tax Act.",
+  },
+  {
+    icon: FileText,
+    title: "Direct Filing",
+    desc: "Streamlined process to submit directly to NRS and JTB portals with pre-filled forms.",
+  },
+  {
+    icon: BarChart3,
+    title: "Real-time Analytics",
+    desc: "Gain visibility into revenue, expenses, and tax obligations with interactive dashboards.",
+  },
+  {
+    icon: Clock,
+    title: "Smart Reminders",
+    desc: "Never miss a filing deadline with automated notifications and compliance calendar.",
+  },
+  {
+    icon: Globe,
+    title: "Multi-Currency",
+    desc: "Bill clients in Naira or USD with real-time CBN exchange rates and automatic conversion.",
+  },
+  {
+    icon: Calculator,
+    title: "Tax Calculators",
+    desc: "Built-in calculators for VAT, WHT, stamp duty, capital allowances, and property tax.",
+  },
+  {
+    icon: Shield,
+    title: "Bank-Grade Security",
+    desc: "End-to-end encryption, SOC 2 compliance, and role-based access controls.",
+  },
+  {
+    icon: Bell,
+    title: "Notifications",
+    desc: "Real-time alerts for invoice payments, tax deadlines, and account activity.",
+  },
+  {
+    icon: FileText,
+    title: "Professional Invoicing",
+    desc: "Send branded invoices in seconds with automatic payment tracking and reminders.",
+  },
 ];
 
-const valueProps = [
-  {
-    title: "See Where Your Money Goes",
-    desc: "Instant expense tracking and clear categories.",
-  },
-  {
-    title: "Stay Compliant, Stress-Free",
-    desc: "Organised records for NRS/JTB.",
-  },
-  {
-    title: "Grow with Confidence",
-    desc: "Cash-flow insights to plan, save, and scale.",
-  },
+const stats = [
+  { value: "₦2.5B+", label: "Processed Monthly" },
+  { value: "100%", label: "Compliance Rate" },
+  { value: "5,000+", label: "Active Businesses" },
+  { value: "24/7", label: "Priority Support" },
 ];
 
 const steps = [
   {
     step: "01",
-    title: "Connect your bank statements or upload files",
-    desc: "Link your bank accounts or upload CSV/Excel/PDF statements. We support all major Nigerian banks.",
+    title: "Connect Your Accounts",
+    desc: "Link your bank accounts and import transactions automatically. We support all major Nigerian banks.",
   },
   {
     step: "02",
-    title: "Track & Categorise automatically",
-    desc: "Our system auto-categorises transactions and keeps your records organised for compliance.",
+    title: "Categorize & Calculate",
+    desc: "Our ML engine auto-categorizes transactions and calculates your tax obligations in real-time.",
   },
   {
     step: "03",
-    title: "Export Reports for compliance and decisions",
-    desc: "Generate tax-ready reports and export in PDF, CSV, or Excel for NRS/JTB filing.",
+    title: "File & Report",
+    desc: "Generate compliant reports and file directly to NRS/JTB. Download professional financial statements.",
   },
 ];
 
 const testimonials = [
   {
-    quote: "We stopped guessing our expenses. Cash-flow is finally clear.",
-    city: "Lagos",
-    role: "SME Owner, Lagos",
+    quote:
+      "KOMPLEET saved us 20 hours per month on tax calculations. The automated VAT filing alone is worth the subscription.",
+    name: "Adebayo Ogunlesi",
+    role: "CEO, TechVentures Lagos",
   },
   {
-    quote: "Compliance reports saved us hours every month.",
-    city: "Abuja",
-    role: "SME Owner, Abuja",
+    quote:
+      "Finally, a platform that understands Nigerian tax law. The 2025 Tax Act compliance features are exactly what we needed.",
+    name: "Chioma Nwosu",
+    role: "CFO, GreenField Agritech",
   },
   {
-    quote: "Simple to use. My team picked it up in one day.",
-    city: "Kaduna",
-    role: "SME Owner, Kaduna",
+    quote:
+      "The invoicing system is professional and the multi-currency support makes billing international clients seamless.",
+    name: "Emeka Okafor",
+    role: "Founder, Okafor & Associates",
   },
 ];
 
@@ -113,28 +152,33 @@ export default function Home() {
               </div>
 
               <h1 className="text-4xl md:text-5xl lg:text-[3.5rem] font-bold tracking-tight leading-[1.1]">
-                Track every naira, stay compliant, and avoid surprises.
+                Control{" "}
+                <span className="text-[rgb(var(--primary))]">
+                  Your Money
+                </span>
+                . Grow{" "}
+                <span className="text-[rgb(var(--primary))]">
+                  Your Business
+                </span>
+                .
               </h1>
 
               <p className="text-lg text-[rgb(var(--text-secondary))] max-w-lg leading-relaxed">
-                Track your spending in real-time, handle invoices, and tax-ready
-                reports.
+                Track your spending, handle invoices, and avoid surprises.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
                 <Link
                   href="/signup"
                   className="btn-primary btn-with-icon px-6 py-3 rounded-lg text-base font-semibold"
-                  aria-label="Start free 14-day trial"
                 >
-                  Start Free (14 days) <ArrowRight className="w-4 h-4" />
+                  Start for Free <ArrowRight className="w-4 h-4" />
                 </Link>
                 <a
                   href="#demo"
                   className="btn-secondary px-6 py-3 rounded-lg text-base font-semibold text-center"
-                  aria-label="Watch 60-second product demo"
                 >
-                  Watch 60-sec Demo
+                  Watch Demo
                 </a>
               </div>
 
@@ -173,68 +217,20 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ─── VALUE PROPOSITION STRIP ─── */}
-      <section className="border-y border-[rgb(var(--border))] bg-[rgb(var(--surface))] py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-3 gap-8">
-            {valueProps.map((vp, i) => (
-              <AnimatedSection key={vp.title} delay={i * 0.1}>
-                <div className="p-6 rounded-lg border border-[rgb(var(--border))] solid-card h-full">
-                  <h3 className="font-semibold text-lg mb-2">{vp.title}</h3>
-                  <p className="text-sm text-[rgb(var(--text-secondary))] leading-relaxed">
-                    {vp.desc}
-                  </p>
+      {/* ─── STATS BAR ─── */}
+      <section className="border-y border-[rgb(var(--border))] bg-[rgb(var(--surface))]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            {stats.map((stat) => (
+              <div key={stat.label} className="text-center">
+                <div className="text-2xl md:text-3xl font-bold text-[rgb(var(--primary))]">
+                  {stat.value}
                 </div>
-              </AnimatedSection>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ─── WHY KOMPLEET ─── */}
-      <section className="py-20 md:py-28" aria-labelledby="why-kompleet-heading">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12 max-w-2xl mx-auto">
-            <p className="text-sm font-semibold text-[rgb(var(--primary))] uppercase tracking-wider mb-3">
-              Why KOMPLEET
-            </p>
-            <h2 id="why-kompleet-heading" className="text-3xl md:text-4xl font-bold mb-4">
-              Nigeria-first. Built for Nigerian Businesses.
-            </h2>
-            <p className="text-[rgb(var(--text-secondary))] text-lg">
-              Designed from the ground up for Nigerian SMEs, NRS/JTB compliance, and local business needs.
-            </p>
-          </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-            {[
-              "Built for Nigerian Businesses (NRS/JTB workflows)",
-              "Works on Low Bandwidth",
-              "Secure by Default (encrypted data)",
-              "Local Support (Nigeria-based team)",
-            ].map((item, i) => (
-              <AnimatedSection key={item} delay={i * 0.05}>
-                <div className="flex items-start gap-3 p-4 rounded-lg border border-[rgb(var(--border))] solid-card">
-                  <CheckCircle2 className="w-5 h-5 text-[rgb(var(--primary))] shrink-0 mt-0.5" />
-                  <span className="text-sm font-medium text-[rgb(var(--text-primary))]">
-                    {item}
-                  </span>
+                <div className="text-sm text-[rgb(var(--text-secondary))] mt-1">
+                  {stat.label}
                 </div>
-              </AnimatedSection>
+              </div>
             ))}
-          </div>
-          <div className="flex flex-wrap justify-center gap-6 text-sm text-[rgb(var(--text-secondary))]">
-            <span className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-[rgb(var(--primary))]" />
-              Used by SMEs in Lagos, Abuja & Kaduna
-            </span>
-            <span className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-[rgb(var(--primary))]" />
-              Built for mobile & desktop
-            </span>
-            <span className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-[rgb(var(--primary))]" />
-              Secure data handling
-            </span>
           </div>
         </div>
       </section>
@@ -543,7 +539,7 @@ export default function Home() {
                     &ldquo;{t.quote}&rdquo;
                   </p>
                   <div>
-                    <p className="font-semibold text-sm">{t.city}</p>
+                    <p className="font-semibold text-sm">{t.name}</p>
                     <p className="text-xs text-[rgb(var(--text-secondary))]">
                       {t.role}
                     </p>
@@ -604,17 +600,18 @@ export default function Home() {
       <section id="demo" className="py-20 md:py-28 bg-[rgb(var(--primary))] text-white">
         <div className="max-w-3xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Start Free — No Card Required
+            Ready to Automate Your Business Finances?
           </h2>
           <p className="text-white/80 text-lg mb-8 max-w-xl mx-auto">
-            14-day free trial. Upgrade when ready.
+            Join thousands of Nigerian businesses already saving time and
+            staying compliant with KOMPLEET.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
               href="/signup"
               className="btn-white btn-with-icon px-6 py-3 rounded-lg text-base font-semibold"
             >
-              Start Free (14 days) <ArrowRight className="w-4 h-4" />
+              Create Free Account <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
               href="/contact"
