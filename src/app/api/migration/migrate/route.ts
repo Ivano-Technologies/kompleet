@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient as createClient } from "@/lib/supabase/server";
+import { getSupabaseForRequest } from "@/lib/supabase/server";
 import {
   migrateYearData,
   type MigrationOptions,
@@ -14,7 +14,7 @@ import { withAuth } from "@/lib/auth/with-auth";
 
 async function handlePOST(request: NextRequest, user: any) {
   try {
-    const supabase = await createClient();
+    const supabase = await getSupabaseForRequest(request);
 
     // Parse request body
     const body = await request.json();

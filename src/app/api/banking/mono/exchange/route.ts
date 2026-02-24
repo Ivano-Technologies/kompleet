@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
-import { createServerClient as createClient } from "@/lib/supabase/server";
+import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { exchangeToken, getAccountInfo } from "@/lib/services/mono-service";
 
 /**
@@ -9,7 +9,7 @@ import { exchangeToken, getAccountInfo } from "@/lib/services/mono-service";
  */
 async function handlePOST(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const supabase = await getSupabaseForRequest(request);
     const {
       data: { user },
       error: authError,

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient as createClient } from "@/lib/supabase/server";
+import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { createInvoice } from "@/lib/invoice-service";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { withAudit } from "@/lib/with-audit";
@@ -7,7 +7,7 @@ import { createInvoiceSchema } from "@/lib/schemas/invoices";
 
 async function handlePOST(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const supabase = await getSupabaseForRequest(request);
     const {
       data: { user },
     } = await supabase.auth.getUser();

@@ -1,4 +1,4 @@
-import { createServerClient } from "@/lib/supabase/server";
+import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
 
@@ -7,7 +7,7 @@ async function handleDELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const supabase = await createServerClient();
+    const supabase = await getSupabaseForRequest(request);
 
     // Check authentication
     const {

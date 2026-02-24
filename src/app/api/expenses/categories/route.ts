@@ -2,11 +2,11 @@
  * GET /api/expenses/categories - List expense categories (system + user's custom).
  */
 import { NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { getSupabaseForRequest } from "@/lib/supabase/server";
 
 export async function GET() {
   try {
-    const supabase = await createServerClient();
+    const supabase = await getSupabaseForRequest(request);
     const {
       data: { user },
     } = await supabase.auth.getUser();

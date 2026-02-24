@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { exchangeCodeForTokens, getUserEmail } from "@/lib/email/gmail";
-import { createServerClient as createClient } from "@/lib/supabase/server";
+import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { encrypt } from "@/lib/crypto";
 import { withRateLimit } from "@/lib/with-rate-limit";
 
@@ -39,7 +39,7 @@ async function handleGET(request: NextRequest) {
     const emailAddress = await getUserEmail(tokens.access_token);
 
     // Get current user
-    const supabase = await createClient();
+    const supabase = await getSupabaseForRequest(request);
     const {
       data: { user },
     } = await supabase.auth.getUser();

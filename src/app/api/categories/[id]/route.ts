@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient as createClient } from "@/lib/supabase/server";
+import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
 
 export const runtime = "nodejs";
@@ -10,7 +10,7 @@ async function handlePUT(
 ) {
   try {
     const { id } = await params;
-    const supabase = await createClient();
+    const supabase = await getSupabaseForRequest(request);
 
     // Check authentication
     const {

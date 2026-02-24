@@ -7,7 +7,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { updateCalculationSchema } from "@/lib/schemas/calculations";
 
@@ -20,7 +20,7 @@ interface RouteContext {
 async function handleGET(request: NextRequest, context: RouteContext) {
   try {
     const { id } = await context.params;
-    const supabase = await createServerClient();
+    const supabase = await getSupabaseForRequest(request);
 
     // Get authenticated user
     const {
@@ -68,7 +68,7 @@ async function handleGET(request: NextRequest, context: RouteContext) {
 async function handlePATCH(request: NextRequest, context: RouteContext) {
   try {
     const { id } = await context.params;
-    const supabase = await createServerClient();
+    const supabase = await getSupabaseForRequest(request);
 
     // Get authenticated user
     const {
@@ -159,7 +159,7 @@ async function handlePATCH(request: NextRequest, context: RouteContext) {
 async function handleDELETE(request: NextRequest, context: RouteContext) {
   try {
     const { id } = await context.params;
-    const supabase = await createServerClient();
+    const supabase = await getSupabaseForRequest(request);
 
     // Get authenticated user
     const {

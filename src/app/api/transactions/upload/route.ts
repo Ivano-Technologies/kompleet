@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient as createClient } from "@/lib/supabase/server";
+import { getSupabaseForRequest } from "@/lib/supabase/server";
 import {
   parseCSV,
   parseExcel,
@@ -31,7 +31,7 @@ async function handlePOST(
   request: NextRequest,
 ): Promise<NextResponse<UploadResponse>> {
   try {
-    const supabase = await createClient();
+    const supabase = await getSupabaseForRequest(request);
 
     // Check authentication
     const {

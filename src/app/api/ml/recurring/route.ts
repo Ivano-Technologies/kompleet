@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient as createClient } from "@/lib/supabase/server";
+import { getSupabaseForRequest } from "@/lib/supabase/server";
 import {
   detectRecurringPatterns,
   saveRecurringPatterns,
@@ -10,7 +10,7 @@ import { withRateLimit } from "@/lib/with-rate-limit";
 async function handlePOST(request: NextRequest) {
   try {
     // Get current user
-    const supabase = await createClient();
+    const supabase = await getSupabaseForRequest(request);
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -42,7 +42,7 @@ async function handlePOST(request: NextRequest) {
 async function handleGET(request: NextRequest) {
   try {
     // Get current user
-    const supabase = await createClient();
+    const supabase = await getSupabaseForRequest(request);
     const {
       data: { user },
     } = await supabase.auth.getUser();

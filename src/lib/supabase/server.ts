@@ -3,11 +3,55 @@
  *
  * This module provides factory functions for creating Supabase clients
  * that work with Supabase Auth in Server Components, Route Handlers, and Middleware.
+ * Route handlers should use getSupabaseForRequest(request) so that both cookie-based
+ * (web) and Bearer token (mobile) authentication work.
  */
 import { createServerClient as createSupabaseServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@supabase/supabase-js";
+
+const getEnv = () => {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error(
+      "Missing Supabase environment variables. " +
+        "Ensure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set.",
+    );
+  }
+  return { supabaseUrl, supabaseAnonKey };
+};
+
+/**
+ * Returns a Supabase client for the current request. Accepts either cookie-based
+ * session (web) or Authorization: Bearer <access_token> (e.g. mobile). Use this
+ * in API route handlers so mobile app requests with Bearer token are authenticated.
+ */
+export async function getSupabaseForRequest(
+  request: Request,
+): Promise<SupabaseClient> {
+  const authHeader = request.headers.get("Authorization");
+  const token =
+    authHeader?.startsWith("Bearer ") ? authHeader.slice(7).trim() : null;
+
+  if (token) {
+    const { supabaseUrl, supabaseAnonKey } = getEnv();
+    const client = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    const { error } = await client.auth.setSession({
+      access_token: token,
+      refresh_token: "",
+    });
+    if (error) {
+      throw new Error(`Invalid auth token: ${error.message}`);
+    }
+    return client;
+  }
+
+  return createServerClient();
+}
 
 /**
  * Creates a Supabase client configured for server-side use with Supabase Auth.
@@ -32,16 +76,7 @@ import { createClient } from "@supabase/supabase-js";
  * ```
  */
 export async function createServerClient(): Promise<SupabaseClient> {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error(
-      "Missing Supabase environment variables. " +
-        "Ensure NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY are set.",
-    );
-  }
-
+  const { supabaseUrl, supabaseAnonKey } = getEnv();
   const cookieStore = await cookies();
 
   return createSupabaseServerClient(supabaseUrl, supabaseAnonKey, {

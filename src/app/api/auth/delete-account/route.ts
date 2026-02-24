@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { createClient } from "@supabase/supabase-js";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { z } from "zod";
@@ -19,7 +19,7 @@ const deleteAccountSchema = z.object({
 
 async function handlePOST(request: NextRequest) {
   try {
-    const supabase = await createServerClient();
+    const supabase = await getSupabaseForRequest(request);
 
     // Check authentication
     const {

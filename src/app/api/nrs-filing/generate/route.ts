@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient as createClient } from "@/lib/supabase/server";
+import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { generateIncomeStatement } from "@/lib/financial-statements/income-statement";
 import { generateTaxComputation } from "@/lib/financial-statements/tax-computation";
@@ -21,7 +21,7 @@ export const dynamic = "force-dynamic";
 
 async function handlePOST(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    const supabase = await getSupabaseForRequest(request);
 
     // Check authentication
     const {
