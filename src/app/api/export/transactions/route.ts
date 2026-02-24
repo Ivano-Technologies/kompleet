@@ -61,11 +61,11 @@ async function handlePOST(request: NextRequest) {
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
     }
 
-    // Create export history record
+    // Create export history record (fire-and-forget — don't block the download)
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7); // 7 days TTL
 
-    await supabase.from("export_history").insert({
+    supabase.from("export_history").insert({
       user_id: user.id,
       export_type: "transactions",
       format,
@@ -74,7 +74,7 @@ async function handlePOST(request: NextRequest) {
       file_size: buffer.length,
       expires_at: expiresAt.toISOString(),
       completed_at: new Date().toISOString(),
-    });
+    }).then(() => {}).catch(() => {});
 
     // Convert Buffer to ReadableStream for Next.js 15 + TypeScript 5.9.3 compatibility
     const stream = new ReadableStream({
@@ -94,7 +94,10 @@ async function handlePOST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error in /api/export/transactions:", error);
-    return NextResponse.json({ error: "Export failed" }, { status: 500 });
+    return NextResponse.json({
+      error: "Export failed",
+      detail: error instanceof Error ? error.message : String(error),
+    }, { status: 500 });
   }
 }
 
