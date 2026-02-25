@@ -1,41 +1,46 @@
-# Reduce EAS upload size (monorepo: keep root package.json, pnpm-*, apps/mobile)
-node_modules/
+﻿# Root-level .easignore — EAS archives from git root, exclusions must live here.
+# Keeps only apps/mobile/ content relevant for the Android build.
+
+# Next.js web platform files (not needed for mobile build)
 .next/
-.git/
-docs/
-marketing/
-tests/
-drizzle/
 src/
 public/
-*.md
-!.easignore
-.env
-.env.*
-.vercel/
-out/
+prisma/
+drizzle/
+scripts/
+
+# Root node_modules (mobile installs its own in apps/mobile/node_modules)
+node_modules/
+
+# Build artifacts & caches
+.cache/
 dist/
 build/
-.cache/
-.expo/
-*.log
-tsconfig.tsbuildinfo
-.backup_migrations/
-.ml-models-cache/
-ml-training/
+out/
+.vercel/
 .local/
-# Large binaries and caches
+
+# Dev tooling
+.git/
+.husky/
+.playwright-mcp/
+
+# Large/unnecessary files
+*.log
 *.joblib
 *.pkl
-*.csv
-.browser_data_dir/
+tsconfig.tsbuildinfo
+
+# Env files (use EAS Secrets instead)
+.env
+.env.*
+
+# Test & misc
+tests/
+docs/
+marketing/
+ml-training/
+.ml-models-cache/
+.backup_migrations/
 generated/
 .prisma/
-# Tooling / not needed for mobile build
-scripts/
-.husky/
-__tests__/
-*.test.ts
-*.test.tsx
-*.spec.ts
-*.spec.tsx
