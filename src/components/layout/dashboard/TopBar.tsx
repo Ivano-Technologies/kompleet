@@ -27,6 +27,7 @@ const pageTitles: Record<string, string> = {
   "/reports": "Reports",
   "/reports/profit-loss": "Profit & Loss",
   "/reports/balance-sheet": "Balance Sheet",
+  "/reports/expense-reports": "Expense Reports",
   "/filing": "Tax Filing",
   "/notifications": "Notifications",
   "/settings": "Settings",
@@ -56,9 +57,10 @@ function getBreadcrumbs(pathname: string): { label: string; href: string }[] {
 
 interface TopBarProps {
   onMenuToggle: () => void;
+  onOpenSettings?: (section?: "general" | "notifications" | "preferences" | "admin" | "legal") => void;
 }
 
-export function TopBar({ onMenuToggle }: TopBarProps) {
+export function TopBar({ onMenuToggle, onOpenSettings }: TopBarProps) {
   const pathname = usePathname();
   const breadcrumbs = getBreadcrumbs(pathname || "/dashboard");
   const pageTitle = pageTitles[pathname || ""] || "Dashboard";
@@ -113,15 +115,18 @@ export function TopBar({ onMenuToggle }: TopBarProps) {
           </span>
         </div>
 
-        {/* Right: actions */}
+        {/* Right: Settings (opens modal; notifications moved inside Settings) */}
         <div className="flex items-center gap-2">
-          <Link
-            href="/notifications"
-            className="p-2 rounded-lg text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover transition-colors relative"
-            aria-label="Notifications"
-          >
-            <Bell className="w-5 h-5" />
-          </Link>
+          {onOpenSettings && (
+            <button
+              type="button"
+              onClick={() => onOpenSettings("notifications")}
+              className="p-2 rounded-lg text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover transition-colors relative"
+              aria-label="Notifications and settings"
+            >
+              <Bell className="w-5 h-5" />
+            </button>
+          )}
         </div>
       </div>
     </header>
