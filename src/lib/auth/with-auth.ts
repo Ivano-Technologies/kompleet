@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { hasPermission, type Permission, type Role } from "./rbac";
 
 interface AuthOptions {
@@ -42,7 +42,7 @@ export function withAuth<T extends Request | NextRequest = Request>(
 ): (request: T, context?: any) => Promise<Response> {
   return async (request: T, context?: any) => {
     try {
-      const supabase = await createServerClient();
+      const supabase = await getSupabaseForRequest(request);
 
       // Check authentication
       const {
