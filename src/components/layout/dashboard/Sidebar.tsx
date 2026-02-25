@@ -15,16 +15,13 @@ import {
   FileText,
   Receipt,
   Calculator,
-  Tags,
   BarChart3,
   FileSpreadsheet,
   PieChart,
-  Bell,
   Settings,
   LogOut,
   ChevronDown,
   ChevronRight,
-  User,
   Shield,
   ClipboardList,
   Users,
@@ -68,52 +65,34 @@ const navItems: NavItem[] = [
     children: [{ href: "/expenses/teams", label: "Workspaces", icon: Users }],
   },
   {
-    href: "/tax-reports",
-    label: "Tax Reports",
-    icon: FileText,
-  },
-  {
-    href: "/calculators",
-    label: "Calculators",
-    icon: Calculator,
-  },
-  {
-    href: "/categories",
-    label: "Categories",
-    icon: Tags,
-  },
-  {
     href: "/reports",
     label: "Reports",
     icon: BarChart3,
     children: [
+      { href: "/tax-reports", label: "Tax Reports", icon: FileText },
+      { href: "/filing", label: "Filing", icon: ClipboardList },
       { href: "/reports/profit-loss", label: "Profit & Loss", icon: PieChart },
       {
         href: "/reports/balance-sheet",
         label: "Balance Sheet",
         icon: FileSpreadsheet,
       },
-      {
-        href: "/reports/expense-reports",
-        label: "Expense Reports",
-        icon: Wallet,
-      },
+      { href: "/reports", label: "Compliance Reports", icon: FileText },
+      { href: "/export", label: "Audit Exports", icon: FileSpreadsheet },
     ],
   },
   {
-    href: "/filing",
-    label: "Filing",
-    icon: ClipboardList,
-  },
-  {
-    href: "/notifications",
-    label: "Notifications",
-    icon: Bell,
-  },
-  {
-    href: "/settings",
-    label: "Settings",
-    icon: Settings,
+    href: "/calculators",
+    label: "Calculators",
+    icon: Calculator,
+    children: [
+      { href: "/calculators/business-tax", label: "CIT Calculator", icon: Calculator },
+      { href: "/calculators/individual-tax", label: "PIT Calculator", icon: Calculator },
+      { href: "/calculators/vat", label: "VAT Calculator", icon: Calculator },
+      { href: "/calculators/stamp-duty", label: "Stamp Duty", icon: Calculator },
+      { href: "/calculators/capital-allowances", label: "Capital Allowances", icon: Calculator },
+      { href: "/calculators/property-tax", label: "Property Tax", icon: Calculator },
+    ],
   },
 ];
 
@@ -128,6 +107,7 @@ interface SidebarProps {
   userRole?: string;
   isMobileOpen: boolean;
   onMobileClose: () => void;
+  onOpenSettings?: () => void;
 }
 
 export function Sidebar({
@@ -135,6 +115,7 @@ export function Sidebar({
   userRole,
   isMobileOpen,
   onMobileClose,
+  onOpenSettings,
 }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -265,6 +246,25 @@ export function Sidebar({
             </div>
           );
         })}
+
+        {/* Settings — opens modal, no navigation */}
+        {onOpenSettings && (
+          <button
+            type="button"
+            onClick={() => {
+              onOpenSettings();
+              onMobileClose();
+            }}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left ${
+              pathname?.startsWith("/settings")
+                ? "bg-primary-500 text-white"
+                : "text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover hover:text-light-text-primary dark:hover:text-dark-text-primary"
+            }`}
+          >
+            <Settings className="w-[18px] h-[18px] shrink-0" />
+            <span>Settings</span>
+          </button>
+        )}
 
         {/* Admin Section — visible to owner and admin roles */}
         {(userRole === "owner" || userRole === "admin") && (
