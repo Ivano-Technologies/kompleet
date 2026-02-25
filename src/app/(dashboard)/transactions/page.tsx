@@ -8,6 +8,7 @@ import {
   ArrowLeft,
   ArrowRight,
   ArrowUp,
+  Camera,
   ChevronLeft,
   ChevronRight,
   Download,
@@ -245,6 +246,12 @@ export default function TransactionsPage() {
               </div>
             )}
           </div>
+          <Link
+            href="/transactions/add-from-receipt"
+            className="btn-secondary text-sm px-3 py-2 flex items-center gap-1.5"
+          >
+            <Camera className="w-3.5 h-3.5" /> Add from receipt
+          </Link>
           <Link
             href="/transactions/upload"
             className="btn-secondary text-sm px-3 py-2 flex items-center gap-1.5"
