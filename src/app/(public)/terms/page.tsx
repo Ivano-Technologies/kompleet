@@ -1,20 +1,29 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Terms of Service | KOMPLEET",
   description:
-    "Terms of Service for KOMPLEET - Nigerian Tax Compliance Platform",
+    "Terms of Service for KOMPLEET — Nigerian tax compliance and financial management platform. User responsibilities, disclaimers, and governing law.",
+  alternates: { canonical: "https://techivano.com/terms" },
 };
 
 export default function TermsPage() {
   return (
     <div className="min-h-screen bg-light-background dark:bg-dark-background py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto bg-light-surface dark:bg-dark-surface rounded-lg p-8">
-        <h1 className="text-4xl font-bold text-light-text-primary dark:text-dark-text-primary mb-4">
-          Terms of Service
-        </h1>
+      <div className="max-w-4xl mx-auto">
+        <Link
+          href="/"
+          className="text-sm text-blue-600 hover:underline dark:text-blue-400 mb-6 inline-block"
+        >
+          &larr; Back to Home
+        </Link>
+        <div className="bg-light-surface dark:bg-dark-surface rounded-lg p-8">
+          <h1 className="text-4xl font-bold text-light-text-primary dark:text-dark-text-primary mb-4">
+            Terms of Service
+          </h1>
         <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-8">
-          Last updated: February 6, 2026
+          Last updated: February 25, 2026. Effective date: February 25, 2026.
         </p>
 
         <div className="prose prose-lg max-w-none">
@@ -62,10 +71,18 @@ export default function TermsPage() {
                 Comply with the Nigeria Tax Act 2025 and related legislation
               </li>
             </ul>
-            <p className="text-light-text-secondary dark:text-dark-text-secondary">
+            <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
               Our Services are provided for informational and calculation
               purposes only and do not constitute professional tax advice, legal
-              advice, or accounting services.
+              advice, or accounting services. KOMPLEET is not a substitute for
+              professional tax or legal advice from a qualified advisor.
+            </p>
+            <p className="text-light-text-secondary dark:text-dark-text-secondary">
+              Features such as transaction categorization may use automated or
+              AI-assisted tools. These are for convenience only and are not
+              legal or tax advice; you remain responsible for verifying
+              categorizations and accuracy before relying on them for compliance
+              or filing.
             </p>
           </section>
 
@@ -230,8 +247,9 @@ export default function TermsPage() {
             </h3>
             <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
               <strong>IMPORTANT:</strong> KOMPLEET provides tax calculation
-              tools and information for general guidance only. Our Services do
-              not constitute:
+              tools and information for general guidance only. Our Services are
+              not a substitute for professional tax, legal, or accounting
+              advice. Our Services do not constitute:
             </p>
             <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
               <li>Professional tax advice</li>
@@ -456,10 +474,10 @@ export default function TermsPage() {
             <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
               If you have any dispute with us, please contact us first at{" "}
               <a
-                href="mailto:support@ivanotechnologies.com"
+                href="mailto:support@techivano.com"
                 className="text-blue-600 hover:underline"
               >
-                support@ivanotechnologies.com
+                support@techivano.com
               </a>{" "}
               to attempt to resolve the issue informally.
             </p>
@@ -573,28 +591,19 @@ export default function TermsPage() {
               <p className="text-light-text-secondary dark:text-dark-text-secondary mb-2">
                 Email:{" "}
                 <a
-                  href="mailto:support@ivanotechnologies.com"
+                  href="mailto:support@techivano.com"
                   className="text-blue-600 hover:underline"
                 >
-                  support@ivanotechnologies.com
-                </a>
-              </p>
-              <p className="text-light-text-secondary dark:text-dark-text-secondary mb-2">
-                Legal:{" "}
-                <a
-                  href="mailto:help@ivanotechnologies.com"
-                  className="text-blue-600 hover:underline"
-                >
-                  help@ivanotechnologies.com
+                  support@techivano.com
                 </a>
               </p>
               <p className="text-light-text-secondary dark:text-dark-text-secondary mb-2">
                 Website:{" "}
                 <a
-                  href="https://www.ivanotechnologies.com"
+                  href="https://techivano.com"
                   className="text-blue-600 hover:underline"
                 >
-                  https://www.ivanotechnologies.com
+                  https://techivano.com
                 </a>
               </p>
               <p className="text-light-text-secondary dark:text-dark-text-secondary">
@@ -614,10 +623,11 @@ export default function TermsPage() {
           </section>
         </div>
 
-        <div className="mt-12 pt-8 border-t border-light-border dark:border-dark-border">
-          <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary text-center">
-            © 2026 Ivano Technologies Ltd. All rights reserved.
-          </p>
+          <div className="mt-12 pt-8 border-t border-light-border dark:border-dark-border">
+            <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary text-center">
+              © 2026 Ivano Technologies Ltd. All rights reserved.
+            </p>
+          </div>
         </div>
       </div>
     </div>

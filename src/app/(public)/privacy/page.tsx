@@ -1,19 +1,29 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Privacy Policy | KOMPLEET",
-  description: "Privacy Policy for KOMPLEET - Nigerian Tax Compliance Platform",
+  description:
+    "Privacy Policy for KOMPLEET — Nigerian tax compliance and financial management. Data collection, use, storage, and your rights under Nigerian law.",
+  alternates: { canonical: "https://techivano.com/privacy" },
 };
 
 export default function PrivacyPage() {
   return (
     <div className="min-h-screen bg-light-background dark:bg-dark-background py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto bg-light-surface dark:bg-dark-surface rounded-lg p-8">
-        <h1 className="text-4xl font-bold text-light-text-primary dark:text-dark-text-primary mb-4">
-          Privacy Policy
-        </h1>
+      <div className="max-w-4xl mx-auto">
+        <Link
+          href="/"
+          className="text-sm text-blue-600 hover:underline dark:text-blue-400 mb-6 inline-block"
+        >
+          &larr; Back to Home
+        </Link>
+        <div className="bg-light-surface dark:bg-dark-surface rounded-lg p-8">
+          <h1 className="text-4xl font-bold text-light-text-primary dark:text-dark-text-primary mb-4">
+            Privacy Policy
+          </h1>
         <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-8">
-          Last updated: February 6, 2026
+          Last updated: February 25, 2026. Effective date: February 25, 2026.
         </p>
 
         <div className="prose prose-lg max-w-none">
@@ -58,6 +68,10 @@ export default function PrivacyPage() {
                 business type)
               </li>
               <li>Financial information necessary for tax calculations</li>
+              <li>
+                Uploaded documents (e.g. bank statements, receipts) for
+                transaction import and receipt storage
+              </li>
             </ul>
 
             <h3 className="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-3">
@@ -143,7 +157,10 @@ export default function PrivacyPage() {
             <p className="text-light-text-secondary dark:text-dark-text-secondary">
               Your data is stored on secure servers provided by Supabase, a
               trusted cloud infrastructure provider that complies with
-              international security standards.
+              international security standards. We may use third-party OCR and
+              document processing services to extract data from uploaded
+              documents; such processors are bound by appropriate data
+              protection terms.
             </p>
           </section>
 
@@ -215,10 +232,10 @@ export default function PrivacyPage() {
             <p className="text-light-text-secondary dark:text-dark-text-secondary">
               To exercise any of these rights, please contact us at{" "}
               <a
-                href="mailto:help@ivanotechnologies.com"
+                href="mailto:support@techivano.com"
                 className="text-blue-600 hover:underline"
               >
-                help@ivanotechnologies.com
+                support@techivano.com
               </a>
               .
             </p>
@@ -276,11 +293,16 @@ export default function PrivacyPage() {
                 <strong>Google OAuth:</strong> For authentication services
               </li>
               <li>
-                <strong>Supabase:</strong> For database and authentication
-                infrastructure
+                <strong>Supabase:</strong> For database, authentication, and
+                cloud storage
               </li>
               <li>
-                <strong>Vercel:</strong> For hosting and deployment
+                <strong>OCR / document processing:</strong> To extract data from
+                uploaded bank statements and receipts
+              </li>
+              <li>
+                <strong>Hosting and analytics:</strong> For deployment and
+                product improvement
               </li>
             </ul>
             <p className="text-light-text-secondary dark:text-dark-text-secondary">
@@ -339,19 +361,19 @@ export default function PrivacyPage() {
               <p className="text-light-text-secondary dark:text-dark-text-secondary mb-2">
                 Email:{" "}
                 <a
-                  href="mailto:help@ivanotechnologies.com"
+                  href="mailto:support@techivano.com"
                   className="text-blue-600 hover:underline"
                 >
-                  help@ivanotechnologies.com
+                  support@techivano.com
                 </a>
               </p>
               <p className="text-light-text-secondary dark:text-dark-text-secondary mb-2">
-                Support:{" "}
+                Website:{" "}
                 <a
-                  href="mailto:support@ivanotechnologies.com"
+                  href="https://techivano.com"
                   className="text-blue-600 hover:underline"
                 >
-                  support@ivanotechnologies.com
+                  https://techivano.com
                 </a>
               </p>
               <p className="text-light-text-secondary dark:text-dark-text-secondary">
@@ -373,10 +395,11 @@ export default function PrivacyPage() {
           </section>
         </div>
 
-        <div className="mt-12 pt-8 border-t border-light-border dark:border-dark-border">
-          <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary text-center">
-            © 2026 Ivano Technologies Ltd. All rights reserved.
-          </p>
+          <div className="mt-12 pt-8 border-t border-light-border dark:border-dark-border">
+            <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary text-center">
+              © 2026 Ivano Technologies Ltd. All rights reserved.
+            </p>
+          </div>
         </div>
       </div>
     </div>
