@@ -1,15 +1,26 @@
 /**
  * POST /api/expenses/ocr
  * Receipt OCR: accept base64 image, return extracted text and parsed fields (vendor, date, amount, vat).
- * Used by mobile app for server-side OCR fallback.
+ * Used by web (Add from receipt) and mobile app for server-side OCR.
  */
 import { NextRequest, NextResponse } from "next/server";
 import { createWorker } from "tesseract.js";
 import { logger } from "@/lib/logger";
 import { parseReceiptText } from "@/lib/expense-ocr/parse-receipt-text";
+import { getSupabaseForRequest } from "@/lib/supabase/server";
+import { withRateLimit } from "@/lib/with-rate-limit";
 
-export async function POST(request: NextRequest) {
+async function handlePOST(request: NextRequest) {
   try {
+    const supabase = await getSupabaseForRequest(request);
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await request.json();
     const imageBase64 = body?.imageBase64 as string | undefined;
     if (!imageBase64 || typeof imageBase64 !== "string") {
@@ -54,3 +65,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const POST = withRateLimit(handlePOST, { limit: 20 });

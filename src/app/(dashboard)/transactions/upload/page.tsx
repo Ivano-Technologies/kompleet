@@ -394,6 +394,15 @@ export default function TransactionUploadPage() {
         </ol>
 
         <div className="mt-4 pt-4 border-t border-blue-200 dark:border-blue-900/50">
+          <p className="text-sm text-blue-800 dark:text-blue-400 mb-2">
+            Or add a single transaction from a receipt photo:{" "}
+            <Link
+              href="/transactions/add-from-receipt"
+              className="font-medium underline hover:no-underline"
+            >
+              Add from receipt
+            </Link>
+          </p>
           <p className="text-sm text-blue-800 dark:text-blue-400 font-medium mb-2">
             Supported banks:
           </p>
