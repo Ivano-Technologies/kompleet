@@ -1,10 +1,10 @@
 /**
  * GET /api/expenses/categories - List expense categories (system + user's custom).
  */
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseForRequest } from "@/lib/supabase/server";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const supabase = await getSupabaseForRequest(request);
     const {

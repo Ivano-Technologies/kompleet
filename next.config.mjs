@@ -40,6 +40,15 @@ const nextConfig = {
     cpus: 1,
   },
 
+  webpack: (config, { isServer }) => {
+    // natural pulls in classifiers that require webworker-threads (optional native);
+    // we only use PorterStemmer. Stub so build does not fail resolving it.
+    config.resolve ??= {};
+    config.resolve.fallback ??= {};
+    config.resolve.fallback["webworker-threads"] = false;
+    return config;
+  },
+
   images: {
     remotePatterns: [
       {

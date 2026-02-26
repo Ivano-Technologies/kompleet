@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { getSupabaseForRequest } from "@/lib/supabase/server";
 
@@ -6,7 +6,7 @@ import { getSupabaseForRequest } from "@/lib/supabase/server";
  * GET /api/banking/mono/accounts
  * List user's linked Mono bank accounts
  */
-async function handleGET() {
+async function handleGET(request: NextRequest) {
   try {
     const supabase = await getSupabaseForRequest(request);
     const {

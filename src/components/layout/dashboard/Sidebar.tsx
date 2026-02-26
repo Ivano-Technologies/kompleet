@@ -77,6 +77,7 @@ const navItems: NavItem[] = [
         label: "Balance Sheet",
         icon: FileSpreadsheet,
       },
+      { href: "/reports/expense-reports", label: "Expense Reports", icon: Wallet },
       { href: "/reports", label: "Compliance Reports", icon: FileText },
       { href: "/export", label: "Audit Exports", icon: FileSpreadsheet },
     ],
