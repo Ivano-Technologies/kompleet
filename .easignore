@@ -9,8 +9,10 @@ prisma/
 drizzle/
 scripts/
 
-# Root node_modules (mobile installs its own in apps/mobile/node_modules)
+# node_modules — exclude at all levels (explicit paths for nested dirs)
 node_modules/
+**/node_modules/
+apps/mobile/node_modules/
 
 # Build artifacts & caches
 .cache/
