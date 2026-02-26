@@ -12,6 +12,15 @@ import { withRateLimit } from "@/lib/with-rate-limit";
 
 async function handlePOST(request: NextRequest) {
   try {
+    const body = await request.json().catch(() => ({}));
+    const imageBase64 = body?.imageBase64 as string | undefined;
+    if (!imageBase64 || typeof imageBase64 !== "string") {
+      return NextResponse.json(
+        { error: "Missing or invalid imageBase64" },
+        { status: 400 },
+      );
+    }
+
     const supabase = await getSupabaseForRequest(request);
     const {
       data: { user },
@@ -19,15 +28,6 @@ async function handlePOST(request: NextRequest) {
     } = await supabase.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const body = await request.json();
-    const imageBase64 = body?.imageBase64 as string | undefined;
-    if (!imageBase64 || typeof imageBase64 !== "string") {
-      return NextResponse.json(
-        { error: "Missing or invalid imageBase64" },
-        { status: 400 },
-      );
     }
 
     const buffer = Buffer.from(imageBase64, "base64");

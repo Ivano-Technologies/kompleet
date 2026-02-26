@@ -10,18 +10,18 @@ import { NextRequest } from "next/server";
 const mockGetUser = vi
   .fn()
   .mockResolvedValue({ data: { user: null }, error: null });
+const mockSupabase = {
+  auth: { getUser: mockGetUser },
+  from: vi.fn(() => ({
+    insert: vi.fn(),
+    select: vi.fn(),
+    eq: vi.fn(),
+    update: vi.fn(),
+  })),
+};
 vi.mock("@/lib/supabase/server", () => ({
-  createServerClient: vi.fn(() =>
-    Promise.resolve({
-      auth: { getUser: mockGetUser },
-      from: vi.fn(() => ({
-        insert: vi.fn(),
-        select: vi.fn(),
-        eq: vi.fn(),
-        update: vi.fn(),
-      })),
-    }),
-  ),
+  createServerClient: vi.fn(() => Promise.resolve(mockSupabase)),
+  getSupabaseForRequest: vi.fn(() => Promise.resolve(mockSupabase)),
 }));
 
 describe("POST /api/transactions/upload-v2", () => {

@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
 
-async function handleGET() {
+async function handleGET(request: NextRequest) {
   try {
     const supabase = await getSupabaseForRequest(request);
 
