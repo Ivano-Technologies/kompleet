@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { useTheme } from '@/contexts/ThemeContext';
 import { ArrowRight, Menu, Moon, Sun, X } from 'lucide-react';
 
-const LOGO_URL = '/assets/logo-primary.png';
+const LOGO_URL = "/logo.png";
 
 export default function LandingNav() {
   const { theme, toggleTheme } = useTheme();

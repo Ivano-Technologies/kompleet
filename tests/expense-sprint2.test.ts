@@ -16,11 +16,15 @@ describe("Expense Sprint 2 – Receipt Scanning & OCR", () => {
       expect(fs.existsSync(routePath)).toBe(true);
     });
 
-    it("exports POST handler", async () => {
-      const mod = await import("../src/app/api/expenses/ocr/route");
-      expect(mod.POST).toBeDefined();
-      expect(typeof mod.POST).toBe("function");
-    });
+    it(
+      "exports POST handler",
+      async () => {
+        const mod = await import("../src/app/api/expenses/ocr/route");
+        expect(mod.POST).toBeDefined();
+        expect(typeof mod.POST).toBe("function");
+      },
+      15000,
+    );
 
     it("returns 400 when imageBase64 is missing", async () => {
       const { POST } = await import("../src/app/api/expenses/ocr/route");

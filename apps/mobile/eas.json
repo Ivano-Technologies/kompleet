@@ -7,6 +7,9 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
       "node": "20.19.4"
     },
     "preview": {
@@ -20,13 +23,15 @@
       "android": {
         "buildType": "app-bundle"
       },
+      "autoIncrement": true,
       "node": "20.19.4"
     }
   },
   "submit": {
     "production": {
       "android": {
-        "serviceAccountKeyPath": "./google-service-account.json"
+        "serviceAccountKeyPath": "./google-service-account.json",
+        "track": "internal"
       }
     }
   }

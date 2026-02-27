@@ -8,7 +8,7 @@ import Image from 'next/image';
 import { ArrowLeft, KeyRound, Mail, Moon, Sun } from 'lucide-react';
 
 const LOGO_URL =
-  '/assets/logo-primary.png';
+  "/logo.png";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
