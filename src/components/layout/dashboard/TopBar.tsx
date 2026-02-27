@@ -66,13 +66,13 @@ export function TopBar({ onMenuToggle, onOpenSettings }: TopBarProps) {
   const pageTitle = pageTitles[pathname || ""] || "Dashboard";
 
   return (
-    <header className="sticky top-0 z-30 bg-light-background dark:bg-dark-background border-b border-light-border dark:border-dark-border px-4 lg:px-6">
+    <header className="sticky top-0 z-30 bg-bg dark:bg-dark-bg border-b border-border dark:border-dark-border px-4 lg:px-6">
       <div className="flex items-center justify-between h-14">
         {/* Left: hamburger + breadcrumbs */}
         <div className="flex items-center gap-3">
           <button
             onClick={onMenuToggle}
-            className="lg:hidden p-2 rounded-lg text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover transition-colors"
+            className="lg:hidden p-2 rounded-lg text-text-2 dark:text-dark-text-2 hover:bg-surface-2 dark:hover:bg-dark-surface-hover transition-colors"
             aria-label="Toggle sidebar"
           >
             <Menu className="w-5 h-5" />
@@ -86,16 +86,16 @@ export function TopBar({ onMenuToggle, onOpenSettings }: TopBarProps) {
             {breadcrumbs.map((crumb, i) => (
               <span key={crumb.href} className="flex items-center gap-1">
                 {i > 0 && (
-                  <ChevronRight className="w-3.5 h-3.5 text-light-text-tertiary dark:text-dark-text-tertiary" />
+                  <ChevronRight className="w-3.5 h-3.5 text-text-3 dark:text-dark-text-3" />
                 )}
                 {i === breadcrumbs.length - 1 ? (
-                  <span className="font-medium text-light-text-primary dark:text-dark-text-primary">
+                  <span className="font-medium text-text-1 dark:text-dark-text-1">
                     {crumb.label}
                   </span>
                 ) : (
                   <Link
                     href={crumb.href}
-                    className="text-light-text-secondary dark:text-dark-text-secondary hover:text-light-text-primary dark:hover:text-dark-text-primary transition-colors"
+                    className="text-text-2 dark:text-dark-text-2 hover:text-text-1 dark:hover:text-dark-text-1 transition-colors"
                   >
                     {crumb.label}
                   </Link>
@@ -103,14 +103,14 @@ export function TopBar({ onMenuToggle, onOpenSettings }: TopBarProps) {
               </span>
             ))}
             {breadcrumbs.length === 0 && (
-              <span className="font-medium text-light-text-primary dark:text-dark-text-primary">
+              <span className="font-medium text-text-1 dark:text-dark-text-1">
                 {pageTitle}
               </span>
             )}
           </nav>
 
           {/* Mobile: just page title */}
-          <span className="sm:hidden font-medium text-light-text-primary dark:text-dark-text-primary text-sm">
+          <span className="sm:hidden font-medium text-text-1 dark:text-dark-text-1 text-sm">
             {pageTitle}
           </span>
         </div>
@@ -121,7 +121,7 @@ export function TopBar({ onMenuToggle, onOpenSettings }: TopBarProps) {
             <button
               type="button"
               onClick={() => onOpenSettings("notifications")}
-              className="p-2 rounded-lg text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover transition-colors relative"
+              className="p-2 rounded-lg text-text-2 dark:text-dark-text-2 hover:bg-surface-2 dark:hover:bg-dark-surface-hover transition-colors relative"
               aria-label="Notifications and settings"
             >
               <Bell className="w-5 h-5" />
