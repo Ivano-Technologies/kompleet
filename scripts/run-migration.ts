@@ -26,7 +26,6 @@ async function runMigration(migrationFile: string) {
   const migrationPath = path.join(
     __dirname,
     "..",
-    "src",
     "supabase",
     "migrations",
     migrationFile,
