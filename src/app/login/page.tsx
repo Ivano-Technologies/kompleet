@@ -87,7 +87,7 @@ function LoginForm() {
               height={40}
               className="rounded-lg shadow-4"
             />
-            <span className="font-display text-xl font-bold text-white tracking-wider">
+            <span className="font-ceoruse text-xl font-bold text-white">
               KOMPLEET
             </span>
           </div>

@@ -89,6 +89,7 @@ module.exports = {
       },
       fontFamily: {
         display: ["Clash Display", "Inter", "sans-serif"],
+        ceoruse: ["Ceoruse", "Clash Display", "sans-serif"],
         body: ["Inter", "sans-serif"],
       },
       spacing: {

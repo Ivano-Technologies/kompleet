@@ -4,6 +4,20 @@
 @config "../../tailwind.config.cjs";
 @source "../../src/**/*.{js,ts,jsx,tsx,mdx}";
 
+/* Ceoruse — Brand wordmark font for KOMPLEET */
+@font-face {
+  font-family: 'Ceoruse';
+  src: url('/fonts/ceoruse.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+.font-ceoruse {
+  font-family: 'Ceoruse', 'Clash Display', sans-serif;
+  letter-spacing: 0.08em;
+}
+
 /* KOMPLEET Design System 2026 - Approved 27 Feb 2026 */
 
 :root {
