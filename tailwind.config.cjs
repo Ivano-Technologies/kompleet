@@ -1,130 +1,125 @@
 /** @type {import('tailwindcss').Config} */
-// UI Rebuild - Stitch Design System (No Glassmorphism)
-// Updated: February 14, 2026 - Fixed spacing/borderRadius conflicts with Tailwind v4
-//
-// IMPORTANT: In Tailwind CSS v4, custom spacing keys like "sm", "md", "lg", "xl", "2xl"
-// override the built-in sizing tokens used by max-w-*, p-*, gap-*, rounded-*, etc.
-// This caused max-w-lg to resolve to 40px instead of 32rem, breaking all layouts.
-// Custom spacing/radius keys have been renamed to avoid conflicts.
+// KOMPLEET Design System 2026 - Approved 27 Feb 2026
 module.exports = {
   content: [
-    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
-  darkMode: 'class',
+  darkMode: "class",
   theme: {
     extend: {
-      fontFamily: {
-        sans: ['var(--font-inter)', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
-        mono: ['Fira Code', 'Courier New', 'monospace'],
-      },
       colors: {
-        // Primary Brand Color
+        // APPROVED BRAND PALETTE
         primary: {
-          DEFAULT: '#408ee0',
-          50: '#E8F3FC',
-          100: '#D1E7F9',
-          200: '#A3CEF3',
-          300: '#75B6ED',
-          400: '#479DE7',
-          500: '#408ee0',
-          600: '#2D7BC7',
-          700: '#2461A0',
-          800: '#1B4879',
-          900: '#122F52',
-          950: '#0A1C31',
+          DEFAULT: "#0F4C75",
+          deep: "#0A2F4E",
+          mid: "#1B6CA8",
         },
-        
-        // Light Theme Colors
-        light: {
-          background: '#FFFFFF',
-          surface: '#F9FAFB',
-          'surface-hover': '#F3F4F6',
-          border: '#E5E7EB',
-          'border-hover': '#D1D5DB',
-          text: {
-            primary: '#0F172A',
-            secondary: '#475569',
-            tertiary: '#94A3B8',
-          },
+        accent: {
+          DEFAULT: "#C8F000",
+          hover: "#B5D900",
         },
-        
-        // Dark Theme Colors
+        charcoal: {
+          DEFAULT: "#38464B",
+          dk: "#252E32",
+        },
+
+        // APPROVED LIGHT THEME
+        bg: "#EEF1F5",
+        surface: {
+          DEFAULT: "#FFFFFF",
+          2: "#F5F7FA",
+        },
+        border: {
+          DEFAULT: "#E2E8F0",
+          hover: "#CBD5E1",
+        },
+        text: {
+          1: "#0D1B2A",
+          2: "#334155",
+          3: "#64748B",
+          4: "#94A3B8",
+        },
+
+        // APPROVED DARK THEME
         dark: {
-          background: '#20292F',
-          surface: '#2B373F',
-          'surface-hover': '#333F47',
-          border: '#384147',
-          'border-hover': '#485157',
+          bg: "#080F18",
+          surface: {
+            DEFAULT: "#0F1E2E",
+            2: "#162438",
+          },
+          border: {
+            DEFAULT: "#1A3050",
+            hover: "#244060",
+          },
           text: {
-            primary: '#E3F1FF',
-            secondary: '#BAD8F5',
-            tertiary: '#93C5EB',
+            1: "#F0F9FF",
+            2: "#BAD8F5",
+            3: "#7BA8CC",
+            4: "#4A7A9B",
           },
         },
-        
-        // Semantic Colors (Theme-Adaptive)
+
+        // APPROVED SEMANTIC COLORS (UNCHANGED)
         success: {
-          light: '#22C55E',
-          dark: '#4ADE80',
+          DEFAULT: "#16A34A",
+          bg: "#F0FDF4",
+          dark: "#4ADE80",
+          darkBg: "#052e16",
         },
         warning: {
-          light: '#F59E0B',
-          dark: '#FBBF24',
+          DEFAULT: "#D97706",
+          bg: "#FFFBEB",
+          dark: "#FBBF24",
+          darkBg: "#1c1400",
         },
         error: {
-          light: '#EF4444',
-          dark: '#F87171',
+          DEFAULT: "#DC2626",
+          bg: "#FEF2F2",
+          dark: "#F87171",
+          darkBg: "#1a0505",
         },
         info: {
-          light: '#3B82F6',
-          dark: '#60A5FA',
+          DEFAULT: "#2563EB",
+          bg: "#EFF6FF",
+          dark: "#60A5FA",
+          darkBg: "#0c1a3a",
         },
       },
-      fontSize: {
-        // Typography Scale
-        hero: ['72px', { lineHeight: '1.1', fontWeight: '900' }],
-        'h1': ['48px', { lineHeight: '1.2', fontWeight: '800' }],
-        'h2': ['32px', { lineHeight: '1.3', fontWeight: '700' }],
-        'h3': ['24px', { lineHeight: '1.4', fontWeight: '600' }],
-        'h4': ['20px', { lineHeight: '1.4', fontWeight: '600' }],
-        body: ['16px', { lineHeight: '1.5', fontWeight: '400' }],
-        small: ['14px', { lineHeight: '1.4', fontWeight: '400' }],
-        caption: ['12px', { lineHeight: '1.4', fontWeight: '400' }],
+      fontFamily: {
+        display: ["Clash Display", "Inter", "sans-serif"],
+        body: ["Inter", "sans-serif"],
       },
-      // Design-system spacing aliases — prefixed to avoid colliding with
-      // Tailwind v4 built-in tokens (sm, md, lg, xl, 2xl).
       spacing: {
-        'k-xs': '8px',
-        'k-sm': '16px',
-        'k-md': '24px',
-        'k-lg': '40px',
-        'k-xl': '64px',
-        'k-2xl': '96px',
+        1: "4px",
+        2: "8px",
+        3: "12px",
+        4: "16px",
+        5: "20px",
+        6: "24px",
+        8: "32px",
+        10: "40px",
+        12: "48px",
+        16: "64px",
+        24: "96px",
       },
-      // Design-system radius aliases — prefixed for the same reason.
       borderRadius: {
-        'k-sm': '4px',
-        'k-md': '8px',
-        'k-lg': '12px',
-        'k-xl': '16px',
-        'k-2xl': '24px',
+        sm: "6px",
+        md: "10px",
+        lg: "16px",
+        xl: "24px",
       },
       boxShadow: {
-        // Subtle Shadows (No Glassmorphism)
-        'soft': '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
-        'soft-lg': '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
-        'card': '0 1px 3px 0 rgb(0 0 0 / 0.05)',
-        'card-hover': '0 4px 12px 0 rgb(0 0 0 / 0.08)',
-      },
-      maxWidth: {
-        container: '1200px',
-      },
-      transitionDuration: {
-        DEFAULT: '200ms',
+        1: "0 1px 3px rgba(13,27,42,0.08), 0 1px 2px rgba(13,27,42,0.05)",
+        2: "0 4px 12px rgba(13,27,42,0.10), 0 2px 6px rgba(13,27,42,0.06)",
+        3: "0 8px 24px rgba(13,27,42,0.12), 0 4px 12px rgba(13,27,42,0.07)",
+        4: "0 16px 48px rgba(13,27,42,0.16), 0 8px 20px rgba(13,27,42,0.09)",
+        5: "0 24px 64px rgba(13,27,42,0.20), 0 12px 28px rgba(13,27,42,0.11)",
+        primary: "0 8px 32px rgba(15,76,117,0.40)",
+        accent: "0 8px 24px rgba(200,240,0,0.35)",
       },
     },
   },
   plugins: [],
-}
+};

@@ -165,7 +165,7 @@ export function Sidebar({
           onClick={onMobileClose}
         >
           <Image
-            src="/assets/logo-primary.png"
+            src="/logo.png"
             alt="KOMPLEET Logo"
             width={36}
             height={36}

@@ -9,7 +9,7 @@ import Image from 'next/image';
 import { AlertCircle, CheckCircle2, Eye, EyeOff, KeyRound, Moon, Sun } from 'lucide-react';
 
 const LOGO_URL =
-  '/assets/logo-primary.png';
+  "/logo.png";
 
 type PageState = 'loading' | 'valid' | 'expired' | 'already_logged_in' | 'success' | 'error';
 

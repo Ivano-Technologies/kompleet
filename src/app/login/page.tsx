@@ -1,125 +1,50 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useMemo, FormEvent, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { createSupabaseClient } from '@/lib/supabase/client';
-import { useTheme } from '@/contexts/ThemeContext';
-import Link from 'next/link';
-import Image from 'next/image';
-import { ArrowLeft, Eye, EyeOff, Moon, Shield, Lock, Sun } from 'lucide-react';
+import { useState, useEffect, FormEvent, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Image from "next/image";
+import Link from "next/link";
+import { createSupabaseClient } from "@/lib/supabase/client";
 
-const LOGO_URL =
-  '/assets/logo-primary.png';
+const BASKET_WEAVE_DARK =
+  "url(\"data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='24'%20height='24'%3E%3Cline%20x1='0'%20y1='5'%20x2='24'%20y2='5'%20stroke='rgba(56,70,75,0.38)'%20stroke-width='2.2'%20stroke-linecap='square'/%3E%3Cline%20x1='0'%20y1='8'%20x2='24'%20y2='8'%20stroke='rgba(56,70,75,0.22)'%20stroke-width='1.0'%20stroke-linecap='square'/%3E%3Cline%20x1='0'%20y1='17'%20x2='11'%20y2='17'%20stroke='rgba(56,70,75,0.38)'%20stroke-width='2.2'%20stroke-linecap='square'/%3E%3Cline%20x1='13'%20y1='17'%20x2='24'%20y2='17'%20stroke='rgba(56,70,75,0.38)'%20stroke-width='2.2'%20stroke-linecap='square'/%3E%3Cline%20x1='0'%20y1='20'%20x2='11'%20y2='20'%20stroke='rgba(56,70,75,0.22)'%20stroke-width='1.0'%20stroke-linecap='square'/%3E%3Cline%20x1='13'%20y1='20'%20x2='24'%20y2='20'%20stroke='rgba(56,70,75,0.22)'%20stroke-width='1.0'%20stroke-linecap='square'/%3E%3Cline%20x1='5'%20y1='0'%20x2='5'%20y2='24'%20stroke='rgba(56,70,75,0.28)'%20stroke-width='2.2'%20stroke-linecap='square'/%3E%3Cline%20x1='8'%20y1='0'%20x2='8'%20y2='24'%20stroke='rgba(56,70,75,0.16)'%20stroke-width='1.0'%20stroke-linecap='square'/%3E%3Cline%20x1='17'%20y1='0'%20x2='17'%20y2='3'%20stroke='rgba(56,70,75,0.28)'%20stroke-width='2.2'%20stroke-linecap='square'/%3E%3Cline%20x1='17'%20y1='10'%20x2='17'%20y2='24'%20stroke='rgba(56,70,75,0.28)'%20stroke-width='2.2'%20stroke-linecap='square'/%3E%3Cline%20x1='20'%20y1='0'%20x2='20'%20y2='3'%20stroke='rgba(56,70,75,0.16)'%20stroke-width='1.0'%20stroke-linecap='square'/%3E%3Cline%20x1='20'%20y1='10'%20x2='20'%20y2='24'%20stroke='rgba(56,70,75,0.16)'%20stroke-width='1.0'%20stroke-linecap='square'/%3E%3C/svg%3E\")";
+const BASKET_WEAVE_LIGHT =
+  "url(\"data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='24'%20height='24'%3E%3Cline%20x1='0'%20y1='5'%20x2='24'%20y2='5'%20stroke='rgba(56,70,75,0.12)'%20stroke-width='2.2'%20stroke-linecap='square'/%3E%3Cline%20x1='0'%20y1='8'%20x2='24'%20y2='8'%20stroke='rgba(56,70,75,0.07)'%20stroke-width='1.0'%20stroke-linecap='square'/%3E%3Cline%20x1='0'%20y1='17'%20x2='11'%20y2='17'%20stroke='rgba(56,70,75,0.12)'%20stroke-width='2.2'%20stroke-linecap='square'/%3E%3Cline%20x1='13'%20y1='17'%20x2='24'%20y2='17'%20stroke='rgba(56,70,75,0.12)'%20stroke-width='2.2'%20stroke-linecap='square'/%3E%3Cline%20x1='0'%20y1='20'%20x2='11'%20y2='20'%20stroke='rgba(56,70,75,0.07)'%20stroke-width='1.0'%20stroke-linecap='square'/%3E%3Cline%20x1='13'%20y1='20'%20x2='24'%20y2='20'%20stroke='rgba(56,70,75,0.07)'%20stroke-width='1.0'%20stroke-linecap='square'/%3E%3Cline%20x1='5'%20y1='0'%20x2='5'%20y2='24'%20stroke='rgba(56,70,75,0.09)'%20stroke-width='2.2'%20stroke-linecap='square'/%3E%3Cline%20x1='8'%20y1='0'%20x2='8'%20y2='24'%20stroke='rgba(56,70,75,0.05)'%20stroke-width='1.0'%20stroke-linecap='square'/%3E%3Cline%20x1='17'%20y1='0'%20x2='17'%20y2='3'%20stroke='rgba(56,70,75,0.09)'%20stroke-width='2.2'%20stroke-linecap='square'/%3E%3Cline%20x1='17'%20y1='10'%20x2='17'%20y2='24'%20stroke='rgba(56,70,75,0.09)'%20stroke-width='2.2'%20stroke-linecap='square'/%3E%3Cline%20x1='20'%20y1='0'%20x2='20'%20y2='3'%20stroke='rgba(56,70,75,0.05)'%20stroke-width='1.0'%20stroke-linecap='square'/%3E%3Cline%20x1='20'%20y1='10'%20x2='20'%20y2='24'%20stroke='rgba(56,70,75,0.05)'%20stroke-width='1.0'%20stroke-linecap='square'/%3E%3C/svg%3E\")";
 
 function LoginForm() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [failedAttempts, setFailedAttempts] = useState(0);
-  const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
-  const { theme, toggleTheme } = useTheme();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get('redirectTo') || '/dashboard';
-
-  // Handle error messages from auth callback
-  const callbackError = searchParams.get('error');
-  const callbackMessage = searchParams.get('message');
+  const redirectTo = searchParams.get("redirectTo") || "/dashboard";
 
   useEffect(() => {
-    if (callbackError) {
-      const errorMessages: Record<string, string> = {
-        'auth_failed': 'Authentication failed. Please try again.',
-        'expired_link': callbackMessage || 'This link has expired. Please request a new one.',
-        'link_used': callbackMessage || 'This link has already been used. Please request a new one.',
-        'no_session': 'Failed to create session. Please try again.',
-        'missing_code': 'Invalid authentication link.',
-        'access_denied': 'Access was denied. Please try again.',
-        'server_error': 'Server error occurred. Please try again later.',
-        'temporarily_unavailable': 'Service temporarily unavailable. Please try again later.',
-        'invalid_request': 'Invalid request. Please try again.',
-        'unexpected': 'An unexpected error occurred. Please try again.',
-      };
-      setError(errorMessages[callbackError] || callbackMessage || 'Authentication error occurred.');
-    }
-  }, [callbackError, callbackMessage]);
-
-  const [isCoolingDown, setIsCoolingDown] = useState(false);
-
-  useEffect(() => {
-    if (cooldownUntil === null) {
-      setIsCoolingDown(false);
-      return;
-    }
-
-    const checkCooldown = () => {
-      const now = Date.now();
-      if (now < cooldownUntil) {
-        setIsCoolingDown(true);
-      } else {
-        setIsCoolingDown(false);
-        setCooldownUntil(null);
-      }
-    };
-
-    checkCooldown();
-    const interval = setInterval(checkCooldown, 1000);
-
-    return () => clearInterval(interval);
-  }, [cooldownUntil]);
+    const err = searchParams.get("error");
+    const msg = searchParams.get("message");
+    if (err === "auth_failed") setError(msg || "Authentication failed.");
+    if (err === "expired_link") setError(msg || "This link has expired.");
+  }, [searchParams]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
-
-    if (isCoolingDown) {
-      setError('Too many attempts. Please wait before trying again.');
-      return;
-    }
-
     setLoading(true);
-
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-
       const data = await res.json();
 
-      if (res.status === 429) {
-        const retryAfterSec = data.retryAfterSec || 60;
-        setCooldownUntil(Date.now() + retryAfterSec * 1000);
-        setError(`Too many login attempts. Please try again in ${Math.ceil(retryAfterSec / 60)} minute(s).`);
-        setLoading(false);
-        return;
-      }
-
       if (!res.ok) {
-        const attempts = failedAttempts + 1;
-        setFailedAttempts(attempts);
-
-        if (attempts >= 3) {
-          const cooldownSec = Math.min(attempts * 30, 300);
-          setCooldownUntil(Date.now() + cooldownSec * 1000);
-          setError(`Too many failed attempts. Please wait ${cooldownSec} seconds before trying again.`);
-        } else {
-          setError(data.error || 'Invalid email or password.');
-        }
-
+        setError(data.error || "Invalid email or password.");
         setLoading(false);
         return;
       }
 
-      // Success — reset counters
-      setFailedAttempts(0);
-      setCooldownUntil(null);
-
-      // Set session via the SSR browser client — this writes to cookies,
-      // making the session visible to server components and middleware.
       if (data.session) {
         const supabase = createSupabaseClient();
         await supabase.auth.setSession({
@@ -128,162 +53,140 @@ function LoginForm() {
         });
         router.push(redirectTo);
         router.refresh();
+      } else {
+        setLoading(false);
       }
     } catch {
-      setError('An unexpected error occurred. Please try again.');
+      setError("An unexpected error occurred.");
+    } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[rgb(var(--background))] text-[rgb(var(--text-primary))] flex">
-      {/* Left panel - branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-[rgb(var(--primary))] relative overflow-hidden flex-col justify-between p-12">
-        <div className="absolute inset-0 bg-gradient-to-br from-[rgb(var(--primary))] via-[rgb(var(--primary))] to-[rgba(var(--primary-rgb),0.8)]" />
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-20 w-64 h-64 border border-white/20 rounded-full" />
-          <div className="absolute bottom-32 right-16 w-48 h-48 border border-white/20 rounded-full" />
-          <div className="absolute top-1/2 left-1/3 w-32 h-32 border border-white/20 rounded-full" />
-        </div>
-        <div className="relative z-10">
-          <Link href="/" className="flex items-center gap-2.5">
-            <Image src={LOGO_URL} alt="KOMPLEET" width={36} height={36} className="rounded" />
-            <span className="text-xl font-bold text-white">KOMPLEET</span>
-          </Link>
-        </div>
-        <div className="relative z-10 space-y-6">
-          <h2 className="text-3xl font-bold text-white leading-tight">
-            Tax compliance<br />made effortless.
-          </h2>
-          <p className="text-white/70 text-base max-w-sm leading-relaxed">
-            Join thousands of Nigerian businesses automating their tax filings, invoicing, and financial reporting.
-          </p>
-          <div className="flex gap-6 text-white/60 text-sm">
-            <span className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-white/60" /> 5,000+ businesses
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-white/60" /> NRS compliant
+    <div className="grid lg:grid-cols-2 min-h-screen">
+      {/* Left Panel */}
+      <div className="bg-gradient-to-br from-primary-deep to-primary p-8 md:p-12 flex flex-col justify-between relative overflow-hidden">
+        <div
+          className="absolute inset-0 z-10 opacity-100"
+          style={{
+            backgroundImage: BASKET_WEAVE_DARK,
+            backgroundSize: "24px 24px",
+            maskImage:
+              "linear-gradient(to right, black 0%, rgba(0,0,0,0.9) 18%, rgba(0,0,0,0.3) 52%, rgba(0,0,0,0) 76%)",
+            WebkitMaskImage:
+              "linear-gradient(to right, black 0%, rgba(0,0,0,0.9) 18%, rgba(0,0,0,0.3) 52%, rgba(0,0,0,0) 76%)",
+          }}
+        />
+        <div className="relative z-20">
+          <div className="flex items-center gap-3">
+            <Image
+              src="/logo.png"
+              alt="Kompleet Logo"
+              width={40}
+              height={40}
+              className="rounded-lg shadow-4"
+            />
+            <span className="font-display text-xl font-bold text-white tracking-wider">
+              KOMPLEET
             </span>
           </div>
         </div>
-        <div className="relative z-10 text-white/40 text-xs">
-          &copy; 2026 Ivano Technologies Ltd
+        <div className="relative z-20">
+          <h2 className="font-display text-3xl md:text-4xl font-bold text-white leading-tight tracking-tighter">
+            Control Your Money.
+            <br />
+            <em className="text-accent not-italic">Grow</em> Your Business.
+          </h2>
+          <p className="text-base text-white/50 mt-4 max-w-sm">
+            The financial operating system for Nigerian SMEs.
+          </p>
+        </div>
+        <div className="relative z-20 grid grid-cols-2 gap-3">
+          <div className="bg-white/10 border border-white/15 rounded-md p-4">
+            <div className="font-display text-2xl font-bold text-accent">
+              ₦2.5B+
+            </div>
+            <div className="text-xs text-white/40 mt-1">Processed</div>
+          </div>
+          <div className="bg-white/10 border border-white/15 rounded-md p-4">
+            <div className="font-display text-2xl font-bold text-accent">
+              5,000+
+            </div>
+            <div className="text-xs text-white/40 mt-1">Businesses</div>
+          </div>
         </div>
       </div>
 
-      {/* Right panel - form */}
-      <div className="flex-1 flex flex-col">
-        <div className="flex items-center justify-between p-6">
-          <Link href="/" className="flex items-center gap-2 text-sm text-[rgb(var(--text-secondary))] hover:text-[rgb(var(--text-primary))] transition-colors">
-            <ArrowLeft className="w-4 h-4" /> Back
-          </Link>
-          <button
-            onClick={toggleTheme}
-            className="p-2 rounded-md border border-[rgb(var(--border))] hover:bg-[rgb(var(--surface))] transition-colors"
-            aria-label="Toggle theme"
-          >
-            {theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
-          </button>
-        </div>
-
-        <div className="flex-1 flex items-center justify-center px-6">
-          <div className="w-full max-w-sm space-y-8">
-            {/* Mobile logo */}
-            <div className="lg:hidden flex items-center justify-center gap-2 mb-4">
-              <Image src={LOGO_URL} alt="KOMPLEET" width={32} height={32} className="rounded" />
-              <span className="text-lg font-bold">KOMPLEET</span>
-            </div>
-
-            <div className="space-y-2">
-              <h1 className="text-2xl font-bold">Welcome back</h1>
-              <p className="text-sm text-[rgb(var(--text-secondary))]">Enter your credentials to access your account</p>
-            </div>
-
-            {error && callbackError && (
-              <div className="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/30 rounded-lg">
-                <p className="text-amber-700 dark:text-amber-400 text-sm">{error}</p>
-              </div>
-            )}
-            
-            {error && !callbackError && (
-              <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 rounded-lg">
-                <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-1.5">
-                <label htmlFor="email" className="text-sm font-medium">Email</label>
-                <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@company.com"
-                  required
-                  className="w-full"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <label htmlFor="password" className="text-sm font-medium">Password</label>
-                  <Link href="/forgot-password" className="text-xs text-[rgb(var(--primary))] hover:underline">
-                    Forgot password?
-                  </Link>
-                </div>
-                <div className="relative">
-                  <input
-                    id="password"
-                    type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter your password"
-                    required
-                    minLength={6}
-                    className="w-full pr-10"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[rgb(var(--text-tertiary))] hover:text-[rgb(var(--text-primary))]"
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading || isCoolingDown}
-                className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? 'Signing in...' : isCoolingDown ? 'Please wait...' : 'Sign In'}
-              </button>
-            </form>
-
-            <p className="text-center text-sm text-[rgb(var(--text-secondary))]">
-              Don&apos;t have an account?{' '}
-              <Link href="/signup" className="text-[rgb(var(--primary))] font-medium hover:underline">
-                Create one
-              </Link>
-            </p>
-
-            {/* Trust Badges */}
-            <div className="pt-6 border-t border-[rgb(var(--border))]">
-              <div className="flex items-center justify-center gap-4 text-xs text-[rgb(var(--text-tertiary))]">
-                <div className="flex items-center gap-1">
-                  <Shield className="w-3.5 h-3.5" />
-                  <span>NDPR Compliant</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Lock className="w-3.5 h-3.5" />
-                  <span>256-bit SSL</span>
-                </div>
-              </div>
-            </div>
+      {/* Right Panel */}
+      <div className="bg-surface dark:bg-dark-bg p-8 md:p-12 flex items-center justify-center relative overflow-hidden">
+        <div
+          className="absolute inset-0 z-10 opacity-100"
+          style={{
+            backgroundImage: BASKET_WEAVE_LIGHT,
+            backgroundSize: "24px 24px",
+            maskImage:
+              "linear-gradient(to left, black 0%, rgba(0,0,0,0.8) 14%, rgba(0,0,0,0.12) 40%, rgba(0,0,0,0) 62%)",
+            WebkitMaskImage:
+              "linear-gradient(to left, black 0%, rgba(0,0,0,0.8) 14%, rgba(0,0,0,0.12) 40%, rgba(0,0,0,0) 62%)",
+          }}
+        />
+        <div className="w-full max-w-sm relative z-20">
+          <div className="text-xs font-bold text-text-4 dark:text-dark-text-4 uppercase tracking-widest mb-2">
+            Welcome Back
           </div>
+          <h2 className="font-display text-3xl font-bold text-text-1 dark:text-dark-text-1 mb-2">
+            Sign in to KOMPLEET
+          </h2>
+          <p className="text-sm text-text-3 dark:text-dark-text-3 mb-8">
+            Access your business financial dashboard.
+          </p>
+          {error && (
+            <div className="mb-6 p-3 rounded-md bg-error-bg dark:bg-error-darkBg border border-error/30 text-error dark:text-error-dark text-sm">
+              {error}
+            </div>
+          )}
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label className="text-xs font-bold text-text-2 dark:text-dark-text-2 uppercase tracking-wider">
+                Business Email
+              </label>
+              <input
+                type="email"
+                placeholder="you@company.ng"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full mt-2 bg-surface dark:bg-dark-surface border-2 border-border dark:border-dark-border rounded-md p-3 text-sm focus:border-accent focus:ring-2 focus:ring-accent/20"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-bold text-text-2 dark:text-dark-text-2 uppercase tracking-wider">
+                Password
+              </label>
+              <input
+                type="password"
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full mt-2 bg-surface dark:bg-dark-surface border-2 border-border dark:border-dark-border rounded-md p-3 text-sm focus:border-accent focus:ring-2 focus:ring-accent/20"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-primary text-white font-bold text-sm py-3.5 rounded-md shadow-primary hover:bg-primary-deep transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:transform-none"
+            >
+              {loading ? "Signing in…" : "Sign In →"}
+            </button>
+          </form>
+          <p className="text-center text-sm text-text-3 dark:text-dark-text-3 mt-6">
+            New to Kompleet?{" "}
+            <Link href="/signup" className="font-bold text-primary">
+              Get Started for Free
+            </Link>
+          </p>
         </div>
       </div>
     </div>
@@ -294,8 +197,8 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-[rgb(var(--background))]">
-          <div className="text-[rgb(var(--text-primary))]">Loading...</div>
+        <div className="min-h-screen flex items-center justify-center bg-bg dark:bg-dark-bg">
+          <div className="text-text-1 dark:text-dark-text-1">Loading...</div>
         </div>
       }
     >

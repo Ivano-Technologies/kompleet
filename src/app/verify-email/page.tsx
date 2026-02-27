@@ -8,7 +8,7 @@ import Image from 'next/image';
 import { Mail, Moon, Sun } from 'lucide-react';
 
 const LOGO_URL =
-  '/assets/logo-primary.png';
+  "/logo.png";
 
 export default function VerifyEmailPage() {
   const [resending, setResending] = useState(false);

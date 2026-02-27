@@ -9,7 +9,7 @@ import Image from 'next/image';
 import { ArrowLeft, ArrowRight, CheckCircle2, Eye, EyeOff, Moon, Shield, Lock, Sun } from 'lucide-react';
 
 const LOGO_URL =
-  '/assets/logo-primary.png';
+  "/logo.png";
 
 function getPasswordStrength(pw: string) {
   const checks = { minLength: pw.length >= 8, hasNumber: /\d/.test(pw) };

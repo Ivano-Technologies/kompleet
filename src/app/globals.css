@@ -1,9 +1,10 @@
+@import url("https://fonts.googleapis.com/css2?family=Clash+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap");
+
 @import "tailwindcss";
 @config "../../tailwind.config.cjs";
 @source "../../src/**/*.{js,ts,jsx,tsx,mdx}";
 
-/* KOMPLEET Design System - Solid Surfaces (No Glassmorphism) */
-/* Updated: February 13, 2026 - UI Rebuild */
+/* KOMPLEET Design System 2026 - Approved 27 Feb 2026 */
 
 :root {
   /* Brand Colors */
@@ -69,12 +70,16 @@ body {
   outline-offset: 2px;
 }
 
-/* Smooth Transitions - scoped to avoid interfering with Tailwind utilities */
+/* Base layers - design system 2026 */
 @layer base {
   body {
+    @apply bg-bg text-text-1 font-body;
     transition-property: background-color, border-color, color;
     transition-duration: 200ms;
     transition-timing-function: ease;
+  }
+  .dark body {
+    @apply bg-dark-bg text-dark-text-1;
   }
 }
 

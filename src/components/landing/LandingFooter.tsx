@@ -2,7 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 
 const LOGO_URL =
-  '/assets/logo-primary.png';
+  "/logo.png";
 
 export default function LandingFooter() {
   return (
