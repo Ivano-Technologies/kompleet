@@ -155,10 +155,22 @@ export function Sidebar({
 
   const userInitial = userEmail?.charAt(0).toUpperCase() || "U";
 
+  // Shared class helpers using approved design tokens
+  const navItemBase =
+    "flex-1 flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors";
+  const navItemActive =
+    "bg-accent/15 text-accent border border-accent/25 font-semibold";
+  const navItemInactive =
+    "text-white/55 hover:bg-white/10 hover:text-white";
+  const childItemActive =
+    "bg-accent/10 text-accent font-medium";
+  const childItemInactive =
+    "text-white/50 hover:bg-white/10 hover:text-white";
+
   const sidebarContent = (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-gradient-to-b from-primary-deep to-primary">
       {/* Logo */}
-      <div className="p-6 border-b border-light-border dark:border-dark-border">
+      <div className="flex items-center gap-3 p-5 border-b border-white/10">
         <Link
           href="/dashboard"
           className="flex items-center gap-3"
@@ -167,11 +179,11 @@ export function Sidebar({
           <Image
             src="/logo.png"
             alt="KOMPLEET Logo"
-            width={36}
-            height={36}
-            className="rounded-lg"
+            width={34}
+            height={34}
+            className="rounded-lg shadow-4"
           />
-          <span className="text-xl font-bold text-light-text-primary dark:text-dark-text-primary">
+          <span className="font-display text-base font-bold text-white tracking-wider">
             KOMPLEET
           </span>
         </Link>
@@ -179,6 +191,9 @@ export function Sidebar({
 
       {/* Navigation */}
       <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
+        <p className="px-3 pt-3 pb-2 text-xs font-bold uppercase tracking-widest text-white/30">
+          Main Menu
+        </p>
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = isActive(item.href);
@@ -192,10 +207,8 @@ export function Sidebar({
                 <Link
                   href={item.href}
                   onClick={onMobileClose}
-                  className={`flex-1 flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                    active || childActive
-                      ? "bg-primary-500 text-white"
-                      : "text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover hover:text-light-text-primary dark:hover:text-dark-text-primary"
+                  className={`${navItemBase} ${
+                    active || childActive ? navItemActive : navItemInactive
                   }`}
                 >
                   <Icon className="w-[18px] h-[18px] shrink-0" />
@@ -206,8 +219,8 @@ export function Sidebar({
                     onClick={() => toggleSection(item.href)}
                     className={`p-1.5 rounded-md transition-colors ${
                       active || childActive
-                        ? "text-white/70 hover:text-white"
-                        : "text-light-text-tertiary dark:text-dark-text-tertiary hover:text-light-text-primary dark:hover:text-dark-text-primary"
+                        ? "text-accent/70 hover:text-accent"
+                        : "text-white/30 hover:text-white/70"
                     }`}
                     aria-label={`Toggle ${item.label} submenu`}
                   >
@@ -222,7 +235,7 @@ export function Sidebar({
 
               {/* Children */}
               {hasChildren && expanded && (
-                <div className="ml-4 mt-0.5 space-y-0.5 border-l-2 border-light-border dark:border-dark-border pl-3">
+                <div className="ml-4 mt-0.5 space-y-0.5 border-l-2 border-white/10 pl-3">
                   {item.children!.map((child) => {
                     const ChildIcon = child.icon;
                     const childIsActive = pathname?.startsWith(child.href);
@@ -231,10 +244,8 @@ export function Sidebar({
                         key={child.href}
                         href={child.href}
                         onClick={onMobileClose}
-                        className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors ${
-                          childIsActive
-                            ? "bg-primary-500/10 text-primary-600 dark:text-primary-400 font-medium"
-                            : "text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover hover:text-light-text-primary dark:hover:text-dark-text-primary"
+                        className={`flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors ${
+                          childIsActive ? childItemActive : childItemInactive
                         }`}
                       >
                         <ChildIcon className="w-4 h-4 shrink-0" />
@@ -248,7 +259,7 @@ export function Sidebar({
           );
         })}
 
-        {/* Settings — opens modal, no navigation */}
+        {/* Settings — opens modal */}
         {onOpenSettings && (
           <button
             type="button"
@@ -256,10 +267,8 @@ export function Sidebar({
               onOpenSettings();
               onMobileClose();
             }}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left ${
-              pathname?.startsWith("/settings")
-                ? "bg-primary-500 text-white"
-                : "text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover hover:text-light-text-primary dark:hover:text-dark-text-primary"
+            className={`w-full ${navItemBase} ${
+              pathname?.startsWith("/settings") ? navItemActive : navItemInactive
             }`}
           >
             <Settings className="w-[18px] h-[18px] shrink-0" />
@@ -267,10 +276,10 @@ export function Sidebar({
           </button>
         )}
 
-        {/* Admin Section — visible to owner and admin roles */}
+        {/* Admin Section */}
         {(userRole === "owner" || userRole === "admin") && (
-          <div className="mt-4 pt-3 border-t border-light-border dark:border-dark-border">
-            <p className="px-3 mb-1 text-xs font-semibold uppercase tracking-wider text-light-text-tertiary dark:text-dark-text-tertiary">
+          <div className="mt-4 pt-3 border-t border-white/10">
+            <p className="px-3 mb-1 text-xs font-bold uppercase tracking-widest text-white/30">
               Admin
             </p>
             {adminItems.map((item) => {
@@ -281,10 +290,8 @@ export function Sidebar({
                   key={item.href}
                   href={item.href}
                   onClick={onMobileClose}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                    active
-                      ? "bg-primary-500 text-white"
-                      : "text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover hover:text-light-text-primary dark:hover:text-dark-text-primary"
+                  className={`${navItemBase} ${
+                    active ? navItemActive : navItemInactive
                   }`}
                 >
                   <Icon className="w-[18px] h-[18px] shrink-0" />
@@ -297,31 +304,34 @@ export function Sidebar({
       </nav>
 
       {/* User Section */}
-      <div className="p-3 border-t border-light-border dark:border-dark-border space-y-1">
+      <div className="p-3 border-t border-white/10 space-y-1">
         <Link
           href="/profile"
           onClick={onMobileClose}
-          className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
             pathname?.startsWith("/profile")
-              ? "bg-primary-500/10 text-primary-600 dark:text-primary-400"
-              : "text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover hover:text-light-text-primary dark:hover:text-dark-text-primary"
+              ? "bg-accent/15 text-accent"
+              : "text-white/55 hover:bg-white/10 hover:text-white"
           }`}
         >
-          <div className="w-7 h-7 rounded-full bg-primary-500 flex items-center justify-center text-white text-xs font-semibold">
+          <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center font-display text-sm font-bold text-charcoal shrink-0">
             {userInitial}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="truncate">{userEmail || "User"}</p>
+            <p className="text-sm font-semibold text-white truncate">
+              {userEmail || "User"}
+            </p>
+            <p className="text-xs text-white/35">Free Beta</p>
           </div>
         </Link>
 
         <button
           onClick={handleSignOut}
           disabled={signingOut}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-white/40 hover:bg-error/15 hover:text-error-dark transition-colors"
         >
           <LogOut className="w-[18px] h-[18px] shrink-0" />
-          <span>{signingOut ? "Signing out..." : "Sign Out"}</span>
+          <span>{signingOut ? "Signing out…" : "Sign Out"}</span>
         </button>
       </div>
     </div>
@@ -330,7 +340,7 @@ export function Sidebar({
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex w-64 shrink-0 bg-light-surface dark:bg-dark-surface border-r border-light-border dark:border-dark-border flex-col h-screen sticky top-0">
+      <aside className="hidden lg:flex w-64 shrink-0 flex-col h-screen sticky top-0 overflow-hidden">
         {sidebarContent}
       </aside>
 
@@ -342,7 +352,7 @@ export function Sidebar({
             onClick={onMobileClose}
             aria-label="Close sidebar"
           />
-          <aside className="fixed inset-y-0 left-0 w-72 bg-light-surface dark:bg-dark-surface border-r border-light-border dark:border-dark-border z-50 shadow-xl">
+          <aside className="fixed inset-y-0 left-0 w-72 z-50 shadow-5 overflow-hidden">
             {sidebarContent}
           </aside>
         </div>

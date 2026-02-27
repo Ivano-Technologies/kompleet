@@ -137,8 +137,7 @@ export default function HomePage() {
               Finances
             </h1>
             <p className="text-base text-white/60 max-w-md">
-              Track spending, handle invoices, and stay fully tax-compliant —
-              all in one platform built specifically for Nigerian SMEs.
+              Track your spending, handle invoices, and avoid surprises.
             </p>
             <div className="flex items-center gap-4 pt-4">
               <Link

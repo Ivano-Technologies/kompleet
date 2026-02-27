@@ -110,10 +110,10 @@ export default function DashboardClient({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">
+          <h1 className="text-2xl font-bold text-text-1 dark:text-dark-text-1">
             Dashboard
           </h1>
-          <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mt-1">
+          <p className="text-sm text-text-2 dark:text-dark-text-2 mt-1">
             Financial overview for February 2026
           </p>
         </div>
@@ -137,24 +137,24 @@ export default function DashboardClient({
           return (
             <div
               key={kpi.label}
-              className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface"
+              className="p-5 rounded-xl border border-border dark:border-dark-border bg-surface dark:bg-dark-surface"
             >
               <div className="flex items-center justify-between mb-3">
-                <span className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
+                <span className="text-sm text-text-2 dark:text-dark-text-2">
                   {kpi.label}
                 </span>
-                <div className="w-8 h-8 rounded-lg bg-primary-500/10 flex items-center justify-center">
-                  <Icon className="w-4 h-4 text-primary-500" />
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Icon className="w-4 h-4 text-primary" />
                 </div>
               </div>
-              <div className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary mb-1">
+              <div className="text-2xl font-bold text-text-1 dark:text-dark-text-1 mb-1">
                 {kpi.value}
               </div>
               <div
                 className={`text-xs font-medium flex items-center gap-1 ${
                   kpi.up
                     ? "text-green-600 dark:text-green-400"
-                    : "text-light-text-tertiary dark:text-dark-text-tertiary"
+                    : "text-text-3 dark:text-dark-text-3"
                 }`}
               >
                 {kpi.up && <ArrowUpRight className="w-3 h-3" />}
@@ -168,13 +168,13 @@ export default function DashboardClient({
       {/* Charts Row */}
       <div className="grid lg:grid-cols-3 gap-4">
         {/* Revenue vs Expenses Chart */}
-        <div className="lg:col-span-2 p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
+        <div className="lg:col-span-2 p-5 rounded-xl border border-border dark:border-dark-border bg-surface dark:bg-dark-surface">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="font-semibold text-sm text-light-text-primary dark:text-dark-text-primary">
+              <h3 className="font-semibold text-sm text-text-1 dark:text-dark-text-1">
                 Revenue vs Expenses
               </h3>
-              <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary mt-0.5">
+              <p className="text-xs text-text-3 dark:text-dark-text-3 mt-0.5">
                 Last 8 months
               </p>
             </div>
@@ -232,11 +232,11 @@ export default function DashboardClient({
         </div>
 
         {/* Tax Breakdown */}
-        <div className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
-          <h3 className="font-semibold text-sm text-light-text-primary dark:text-dark-text-primary mb-1">
+        <div className="p-5 rounded-xl border border-border dark:border-dark-border bg-surface dark:bg-dark-surface">
+          <h3 className="font-semibold text-sm text-text-1 dark:text-dark-text-1 mb-1">
             Tax Breakdown
           </h3>
-          <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary mb-4">
+          <p className="text-xs text-text-3 dark:text-dark-text-3 mb-4">
             Current quarter obligations
           </p>
           <div className="h-44 flex items-center justify-center">
@@ -273,14 +273,14 @@ export default function DashboardClient({
                 key={t.name}
                 className="flex items-center justify-between text-xs"
               >
-                <span className="flex items-center gap-2 text-light-text-secondary dark:text-dark-text-secondary">
+                <span className="flex items-center gap-2 text-text-2 dark:text-dark-text-2">
                   <span
                     className="w-2.5 h-2.5 rounded-sm"
                     style={{ backgroundColor: t.color }}
                   />
                   {t.name}
                 </span>
-                <span className="font-medium text-light-text-primary dark:text-dark-text-primary">
+                <span className="font-medium text-text-1 dark:text-dark-text-1">
                   ₦{t.value.toLocaleString()}
                 </span>
               </div>
@@ -290,13 +290,13 @@ export default function DashboardClient({
       </div>
 
       {/* Recent Transactions */}
-      <div className="rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
-        <div className="flex items-center justify-between p-5 border-b border-light-border dark:border-dark-border">
+      <div className="rounded-xl border border-border dark:border-dark-border bg-surface dark:bg-dark-surface">
+        <div className="flex items-center justify-between p-5 border-b border-border dark:border-dark-border">
           <div>
-            <h3 className="font-semibold text-sm text-light-text-primary dark:text-dark-text-primary">
+            <h3 className="font-semibold text-sm text-text-1 dark:text-dark-text-1">
               Recent Transactions
             </h3>
-            <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary mt-0.5">
+            <p className="text-xs text-text-3 dark:text-dark-text-3 mt-0.5">
               Latest financial activity
             </p>
           </div>
@@ -310,17 +310,17 @@ export default function DashboardClient({
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-light-border dark:border-dark-border">
-                <th className="text-left font-medium text-light-text-tertiary dark:text-dark-text-tertiary px-5 py-3 text-xs">
+              <tr className="border-b border-border dark:border-dark-border">
+                <th className="text-left font-medium text-text-3 dark:text-dark-text-3 px-5 py-3 text-xs">
                   Transaction
                 </th>
-                <th className="text-left font-medium text-light-text-tertiary dark:text-dark-text-tertiary px-5 py-3 text-xs hidden sm:table-cell">
+                <th className="text-left font-medium text-text-3 dark:text-dark-text-3 px-5 py-3 text-xs hidden sm:table-cell">
                   Date
                 </th>
-                <th className="text-left font-medium text-light-text-tertiary dark:text-dark-text-tertiary px-5 py-3 text-xs hidden md:table-cell">
+                <th className="text-left font-medium text-text-3 dark:text-dark-text-3 px-5 py-3 text-xs hidden md:table-cell">
                   Status
                 </th>
-                <th className="text-right font-medium text-light-text-tertiary dark:text-dark-text-tertiary px-5 py-3 text-xs">
+                <th className="text-right font-medium text-text-3 dark:text-dark-text-3 px-5 py-3 text-xs">
                   Amount
                 </th>
               </tr>
@@ -329,17 +329,17 @@ export default function DashboardClient({
               {recentTransactions.map((txn) => (
                 <tr
                   key={txn.id}
-                  className="border-b border-light-border/50 dark:border-dark-border/50 last:border-0 hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover transition-colors"
+                  className="border-b border-border/50 dark:border-dark-border/50 last:border-0 hover:bg-surface-2 dark:hover:bg-dark-surface-hover transition-colors"
                 >
                   <td className="px-5 py-3.5">
-                    <div className="font-medium text-sm text-light-text-primary dark:text-dark-text-primary">
+                    <div className="font-medium text-sm text-text-1 dark:text-dark-text-1">
                       {txn.desc}
                     </div>
-                    <div className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary mt-0.5">
+                    <div className="text-xs text-text-3 dark:text-dark-text-3 mt-0.5">
                       {txn.id}
                     </div>
                   </td>
-                  <td className="px-5 py-3.5 text-light-text-secondary dark:text-dark-text-secondary text-xs hidden sm:table-cell">
+                  <td className="px-5 py-3.5 text-text-2 dark:text-dark-text-2 text-xs hidden sm:table-cell">
                     {txn.date}
                   </td>
                   <td className="px-5 py-3.5 hidden md:table-cell">
@@ -357,7 +357,7 @@ export default function DashboardClient({
                     className={`px-5 py-3.5 text-right font-medium text-sm ${
                       txn.amount > 0
                         ? "text-green-600 dark:text-green-400"
-                        : "text-light-text-primary dark:text-dark-text-primary"
+                        : "text-text-1 dark:text-dark-text-1"
                     }`}
                   >
                     {txn.amount > 0 ? "+" : ""}₦

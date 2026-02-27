@@ -68,14 +68,14 @@ function LoginForm() {
       {/* Left Panel */}
       <div className="bg-gradient-to-br from-primary-deep to-primary p-8 md:p-12 flex flex-col justify-between relative overflow-hidden">
         <div
-          className="absolute inset-0 z-10 opacity-100"
+          className="absolute inset-0 z-10 pointer-events-none"
           style={{
             backgroundImage: BASKET_WEAVE_DARK,
             backgroundSize: "24px 24px",
             maskImage:
-              "linear-gradient(to right, black 0%, rgba(0,0,0,0.9) 18%, rgba(0,0,0,0.3) 52%, rgba(0,0,0,0) 76%)",
+              "radial-gradient(ellipse 80% 80% at 50% 50%, transparent 45%, rgba(0,0,0,0.4) 65%, rgba(0,0,0,0.85) 82%, black 100%)",
             WebkitMaskImage:
-              "linear-gradient(to right, black 0%, rgba(0,0,0,0.9) 18%, rgba(0,0,0,0.3) 52%, rgba(0,0,0,0) 76%)",
+              "radial-gradient(ellipse 80% 80% at 50% 50%, transparent 45%, rgba(0,0,0,0.4) 65%, rgba(0,0,0,0.85) 82%, black 100%)",
           }}
         />
         <div className="relative z-20">
@@ -121,14 +121,14 @@ function LoginForm() {
       {/* Right Panel */}
       <div className="bg-surface dark:bg-dark-bg p-8 md:p-12 flex items-center justify-center relative overflow-hidden">
         <div
-          className="absolute inset-0 z-10 opacity-100"
+          className="absolute inset-0 z-10 pointer-events-none"
           style={{
             backgroundImage: BASKET_WEAVE_LIGHT,
             backgroundSize: "24px 24px",
             maskImage:
-              "linear-gradient(to left, black 0%, rgba(0,0,0,0.8) 14%, rgba(0,0,0,0.12) 40%, rgba(0,0,0,0) 62%)",
+              "radial-gradient(ellipse 75% 75% at 50% 50%, transparent 50%, rgba(0,0,0,0.3) 68%, rgba(0,0,0,0.7) 84%, black 100%)",
             WebkitMaskImage:
-              "linear-gradient(to left, black 0%, rgba(0,0,0,0.8) 14%, rgba(0,0,0,0.12) 40%, rgba(0,0,0,0) 62%)",
+              "radial-gradient(ellipse 75% 75% at 50% 50%, transparent 50%, rgba(0,0,0,0.3) 68%, rgba(0,0,0,0.7) 84%, black 100%)",
           }}
         />
         <div className="w-full max-w-sm relative z-20">
@@ -157,7 +157,7 @@ function LoginForm() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full mt-2 bg-surface dark:bg-dark-surface border-2 border-border dark:border-dark-border rounded-md p-3 text-sm focus:border-accent focus:ring-2 focus:ring-accent/20"
+                className="w-full mt-2 bg-surface dark:bg-dark-surface border-2 border-border dark:border-dark-border rounded-md p-3 text-sm text-text-1 dark:text-dark-text-1 focus:border-accent focus:ring-2 focus:ring-accent/20"
               />
             </div>
             <div>
@@ -170,7 +170,7 @@ function LoginForm() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full mt-2 bg-surface dark:bg-dark-surface border-2 border-border dark:border-dark-border rounded-md p-3 text-sm focus:border-accent focus:ring-2 focus:ring-accent/20"
+                className="w-full mt-2 bg-surface-2 dark:bg-dark-surface-2 border-2 border-border dark:border-dark-border rounded-md p-3 text-sm text-text-1 dark:text-dark-text-1 focus:border-accent focus:ring-2 focus:ring-accent/20"
               />
             </div>
             <button

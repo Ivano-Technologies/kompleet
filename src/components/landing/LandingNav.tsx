@@ -22,6 +22,7 @@ export default function LandingNav() {
           </span>
         </Link>
 
+        {/* Desktop nav — Features and Contact only */}
         <div className="hidden md:flex items-center gap-8">
           <a
             href="#features"
@@ -30,22 +31,10 @@ export default function LandingNav() {
             Features
           </a>
           <a
-            href="#how-it-works"
+            href="#contact"
             className="text-sm font-medium text-[rgb(var(--text-secondary))] hover:text-[rgb(var(--text-primary))] transition-colors"
           >
-            How It Works
-          </a>
-          <Link
-            href="/pricing"
-            className="text-sm font-medium text-[rgb(var(--text-secondary))] hover:text-[rgb(var(--text-primary))] transition-colors"
-          >
-            Pricing
-          </Link>
-          <a
-            href="#compliance"
-            className="text-sm font-medium text-[rgb(var(--text-secondary))] hover:text-[rgb(var(--text-primary))] transition-colors"
-          >
-            Compliance
+            Contact
           </a>
         </div>
 
@@ -67,7 +56,7 @@ export default function LandingNav() {
             href="/signup"
             className="btn-primary px-4 py-2 rounded-lg text-sm font-semibold inline-flex items-center gap-1.5"
           >
-            Start Free (14 days) <ArrowRight className="w-3.5 h-3.5" />
+            Get Started for Free <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
@@ -80,20 +69,14 @@ export default function LandingNav() {
         </button>
       </div>
 
-      {/* Mobile menu */}
+      {/* Mobile menu — Features and Contact only */}
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-[rgb(var(--border))] bg-[rgb(var(--background))] px-4 py-4 space-y-3">
           <a href="#features" className="block text-sm font-medium py-2 text-[rgb(var(--text-primary))]">
             Features
           </a>
-          <a href="#how-it-works" className="block text-sm font-medium py-2 text-[rgb(var(--text-primary))]">
-            How It Works
-          </a>
-          <Link href="/pricing" className="block text-sm font-medium py-2 text-[rgb(var(--text-primary))]">
-            Pricing
-          </Link>
-          <a href="#compliance" className="block text-sm font-medium py-2 text-[rgb(var(--text-primary))]">
-            Compliance
+          <a href="#contact" className="block text-sm font-medium py-2 text-[rgb(var(--text-primary))]">
+            Contact
           </a>
           <button
             onClick={toggleTheme}
@@ -108,7 +91,7 @@ export default function LandingNav() {
               Log In
             </Link>
             <Link href="/signup" className="btn-primary px-4 py-2 rounded-lg text-sm font-semibold flex-1 text-center">
-              Start Free (14 days)
+              Get Started for Free
             </Link>
           </div>
         </div>
