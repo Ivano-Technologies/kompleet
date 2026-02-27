@@ -30,7 +30,7 @@ export function AppSidebar() {
           height={32}
           className="rounded-lg"
         />
-        <span className="font-display text-base font-bold tracking-wide">
+        <span className="font-ceoruse text-base font-bold">
           KOMPLEET
         </span>
       </div>

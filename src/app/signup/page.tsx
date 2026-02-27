@@ -128,7 +128,7 @@ export default function SignUpPage() {
         <div className="relative z-20">
           <Link href="/" className="flex items-center gap-3">
             <Image src={LOGO_URL} alt="KOMPLEET" width={40} height={40} className="rounded-lg shadow-4" />
-            <span className="font-display text-xl font-bold text-white tracking-wider">KOMPLEET</span>
+            <span className="font-ceoruse text-xl font-bold text-white">KOMPLEET</span>
           </Link>
         </div>
         {/* Brand copy */}
@@ -195,7 +195,7 @@ export default function SignUpPage() {
             {/* Mobile logo */}
             <div className="lg:hidden flex items-center gap-2 mb-8">
               <Image src={LOGO_URL} alt="KOMPLEET" width={32} height={32} className="rounded" />
-              <span className="font-display text-lg font-bold text-text-1 dark:text-dark-text-1">KOMPLEET</span>
+              <span className="font-ceoruse text-lg font-bold text-text-1 dark:text-dark-text-1">KOMPLEET</span>
             </div>
 
             <div className="mb-8">

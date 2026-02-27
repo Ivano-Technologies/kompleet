@@ -6,8 +6,6 @@ const HERO_GRID_PATTERN =
 
 const navLinks = [
   { name: "Features", href: "#features" },
-  { name: "How It Works", href: "#how-it-works" },
-  { name: "Compliance", href: "#compliance" },
   { name: "Contact", href: "/contact" },
 ];
 
@@ -34,7 +32,7 @@ const features = [
   {
     icon: "🏛️",
     title: "Tax Compliance Centre",
-    desc: "Never miss a FIRS or LIRS deadline again. Kompleet tracks your VAT, WHT, CIT, and PAYE obligations.",
+    desc: "Never miss an NRS or JTB deadline again. Kompleet tracks your VAT, WHT, CIT, and PAYE obligations automatically — with smart reminders before every filing date.",
   },
   {
     icon: "📈",
@@ -57,7 +55,7 @@ const testimonials = [
   {
     name: "Adebayo Ogunlesi",
     role: "CEO, TechVentures Lagos",
-    text: "Kompleet has completely transformed how we handle our finances. The tax compliance alerts alone have saved us from two potential FIRS penalties.",
+    text: "Kompleet has completely transformed how we handle our finances. The tax compliance alerts alone have saved us from two potential NRS penalties.",
   },
   {
     name: "Chioma Nwosu",
@@ -84,7 +82,7 @@ export default function HomePage() {
             height={32}
             className="rounded-lg"
           />
-          <span className="font-display text-lg font-bold text-primary dark:text-dark-text-1 tracking-wide">
+          <span className="font-ceoruse text-lg font-bold text-primary dark:text-dark-text-1">
             KOMPLEET
           </span>
         </Link>
@@ -130,11 +128,9 @@ export default function HomePage() {
               </span>
             </div>
             <h1 className="font-display text-4xl md:text-5xl font-bold leading-tight tracking-tighter">
-              The Smartest Way to
+              Control Your Money.
               <br />
-              Manage Your <em className="text-accent not-italic">Business</em>
-              <br />
-              Finances
+              <em className="text-accent not-italic">Grow Your Business.</em>
             </h1>
             <p className="text-base text-white/60 max-w-md">
               Track your spending, handle invoices, and avoid surprises.
