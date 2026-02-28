@@ -49,6 +49,16 @@ const nextConfig = {
     return config;
   },
 
+  async redirects() {
+    return [
+      {
+        source: '/dashboard/overview',
+        destination: '/dashboard',
+        permanent: false,
+      },
+    ];
+  },
+
   images: {
     remotePatterns: [
       {

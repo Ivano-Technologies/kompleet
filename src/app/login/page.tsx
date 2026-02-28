@@ -173,10 +173,15 @@ function LoginForm() {
                 className="w-full mt-2 bg-surface-2 dark:bg-dark-surface-2 border-2 border-border dark:border-dark-border rounded-md p-3 text-sm text-text-1 dark:text-dark-text-1 focus:border-accent focus:ring-2 focus:ring-accent/20"
               />
             </div>
+            <div className="flex justify-end -mt-2">
+              <Link href="/forgot-password" className="text-xs text-primary hover:text-primary-deep hover:underline transition-colors">
+                Forgot password?
+              </Link>
+            </div>
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-primary text-white font-bold text-sm py-3.5 rounded-md shadow-primary hover:bg-primary-deep transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:transform-none"
+              className="w-full bg-accent text-charcoal font-bold text-sm py-3.5 rounded-md shadow-accent hover:bg-accent-hover transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:transform-none"
             >
               {loading ? "Signing in…" : "Sign In →"}
             </button>

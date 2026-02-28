@@ -15,7 +15,7 @@
 
 @layer utilities {
   .font-ceoruse {
-    font-family: 'Ceoruse', 'Clash Display', sans-serif;
+    font-family: var(--font-ceoruse), 'Clash Display', sans-serif;
     letter-spacing: 0.08em;
   }
 }
