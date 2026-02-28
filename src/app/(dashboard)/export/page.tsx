@@ -156,44 +156,36 @@ export default function ExportCenterPage() {
       </div>
 
       {/* Export Options */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 items-stretch">
         {/* Transactions Export */}
-        <div className="rounded-lg bg-light-surface dark:bg-dark-surface p-6 shadow">
-          <div className="flex items-center gap-3">
-            <div className="rounded-full bg-green-100 p-3">
-              <svg
-                className="h-6 w-6 text-green-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                />
+        <div className="flex flex-col rounded-xl bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border p-6 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
+          {/* Icon + Title — centered */}
+          <div className="flex flex-col items-center text-center mb-4">
+            <div className="rounded-full bg-green-100 p-3 mb-3">
+              <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
             <h3 className="text-lg font-semibold text-light-text-primary dark:text-dark-text-primary">
               Transactions
             </h3>
+            <p className="mt-1 text-sm text-light-text-secondary dark:text-dark-text-secondary">
+              Export all transactions for {selectedYear}
+            </p>
           </div>
-          <p className="mt-2 text-sm text-light-text-secondary dark:text-dark-text-secondary">
-            Export all transactions for {selectedYear}
-          </p>
-          <div className="mt-4 space-y-2">
+          {/* Buttons — pushed to bottom */}
+          <div className="mt-auto space-y-2">
             <button
               onClick={() => handleExport("transactions", "csv")}
               disabled={isExporting || !consentGiven}
-              className="w-full rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:bg-light-border dark:bg-dark-border"
+              className="w-full rounded-lg bg-green-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Download CSV
             </button>
             <button
               onClick={() => handleExport("transactions", "excel")}
               disabled={isExporting || !consentGiven}
-              className="w-full rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:bg-light-border dark:bg-dark-border"
+              className="w-full rounded-lg bg-green-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Download Excel
             </button>
@@ -201,53 +193,41 @@ export default function ExportCenterPage() {
         </div>
 
         {/* Financial Statements Export */}
-        <div className="rounded-lg bg-light-surface dark:bg-dark-surface p-6 shadow">
-          <div className="flex items-center gap-3">
-            <div className="rounded-full bg-blue-100 p-3">
-              <svg
-                className="h-6 w-6 text-blue-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                />
+        <div className="flex flex-col rounded-xl bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border p-6 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
+          {/* Icon + Title — centered */}
+          <div className="flex flex-col items-center text-center mb-4">
+            <div className="rounded-full bg-blue-100 p-3 mb-3">
+              <svg className="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
             <h3 className="text-lg font-semibold text-light-text-primary dark:text-dark-text-primary">
               Financial Statements
             </h3>
+            <p className="mt-1 text-sm text-light-text-secondary dark:text-dark-text-secondary">
+              Export statements as Word documents
+            </p>
           </div>
-          <p className="mt-2 text-sm text-light-text-secondary dark:text-dark-text-secondary">
-            Export statements as Word documents
-          </p>
-          <div className="mt-4 space-y-2">
+          {/* Buttons — pushed to bottom */}
+          <div className="mt-auto space-y-2">
             <button
-              onClick={() =>
-                handleExport("statement", undefined, "balance_sheet")
-              }
+              onClick={() => handleExport("statement", undefined, "balance_sheet")}
               disabled={isExporting || !consentGiven}
-              className="w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:bg-light-border dark:bg-dark-border"
+              className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Balance Sheet
             </button>
             <button
               onClick={() => handleExport("statement", undefined, "pnl")}
               disabled={isExporting || !consentGiven}
-              className="w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:bg-light-border dark:bg-dark-border"
+              className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Profit & Loss
             </button>
             <button
-              onClick={() =>
-                handleExport("statement", undefined, "tax_summary")
-              }
+              onClick={() => handleExport("statement", undefined, "tax_summary")}
               disabled={isExporting || !consentGiven}
-              className="w-full rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:bg-light-border dark:bg-dark-border"
+              className="w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Tax Summary
             </button>
@@ -255,41 +235,32 @@ export default function ExportCenterPage() {
         </div>
 
         {/* Bulk Export */}
-        <div className="rounded-lg bg-light-surface dark:bg-dark-surface p-6 shadow">
-          <div className="flex items-center gap-3">
-            <div className="rounded-full bg-purple-100 p-3">
-              <svg
-                className="h-6 w-6 text-purple-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                />
+        <div className="flex flex-col rounded-xl bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border p-6 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
+          {/* Icon + Title — centered */}
+          <div className="flex flex-col items-center text-center mb-4">
+            <div className="rounded-full bg-purple-100 p-3 mb-3">
+              <svg className="h-6 w-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
             </div>
             <h3 className="text-lg font-semibold text-light-text-primary dark:text-dark-text-primary">
               Bulk Export
             </h3>
+            <p className="mt-1 text-sm text-light-text-secondary dark:text-dark-text-secondary">
+              Download all data as ZIP archive
+            </p>
           </div>
-          <p className="mt-2 text-sm text-light-text-secondary dark:text-dark-text-secondary">
-            Download all data as ZIP archive
-          </p>
-          <div className="mt-4">
+          {/* Button — pushed to bottom */}
+          <div className="mt-auto space-y-2">
             <button
               onClick={() => handleExport("bulk")}
               disabled={isExporting || !consentGiven}
-              className="w-full rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 disabled:bg-light-border dark:bg-dark-border"
+              className="w-full rounded-lg bg-purple-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Download Complete Archive
             </button>
-            <p className="mt-2 text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
-              Includes: Transactions (CSV + Excel), Balance Sheet, P&L, Tax
-              Summary
+            <p className="text-xs text-center text-light-text-tertiary dark:text-dark-text-tertiary">
+              Includes: Transactions (CSV + Excel), Balance Sheet, P&amp;L, Tax Summary
             </p>
           </div>
         </div>

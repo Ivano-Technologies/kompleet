@@ -52,7 +52,7 @@ const features = [
   {
     icon: "landmark",
     title: "Tax Compliance Centre",
-    desc: "Never miss an NRS or JTB deadline again. Kompleet tracks your VAT, WHT, CIT, and PAYE obligations automatically — with smart reminders before every filing date.",
+    desc: "Never miss an FIRS or LIRS deadline again. Kompleet tracks your VAT, WHT, CIT, and PAYE obligations automatically — with smart reminders before every filing date.",
     image: null,
   },
   {
@@ -67,14 +67,13 @@ const features = [
     desc: "Your financial data is protected with 256-bit encryption and full NDPR compliance. Your data stays in Nigeria.",
     image: null,
   },
-
 ];
 
 const testimonials = [
   {
     name: "Adebayo Ogunlesi",
     role: "CEO, TechVentures Lagos",
-    text: "Kompleet has completely transformed how we handle our finances. The tax compliance alerts alone have saved us from two potential NRS penalties.",
+    text: "Kompleet has completely transformed how we handle our finances. The tax compliance alerts alone have saved us from two potential FIRS penalties.",
   },
   {
     name: "Chioma Nwosu",
@@ -126,7 +125,7 @@ export default function HomePage() {
                 href="#features"
                 className="bg-white/10 text-white border-2 border-white/20 px-6 py-3 rounded-md text-sm font-semibold hover:bg-white/20 hover:border-white/40 transition-all"
               >
-                Watch Demo
+                See Features
               </a>
             </div>
             <div className="flex flex-wrap gap-5 pt-6 text-xs text-white/50 font-medium">
@@ -141,13 +140,14 @@ export default function HomePage() {
               </span>
             </div>
           </div>
-          <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-white/10">
+          {/* Hero image — full laptop visible, no crop */}
+          <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-white/10 bg-primary-deep/60 flex items-center justify-center p-4">
             <Image
               src="/assets/hero-laptop.webp"
               alt="Kompleet Dashboard Preview"
               width={644}
-              height={355}
-              className="w-full h-auto object-cover"
+              height={483}
+              className="w-full h-auto object-contain"
               priority
             />
           </div>
@@ -184,15 +184,45 @@ export default function HomePage() {
           </p>
         </div>
 
-        {/* Featured row: 3 skeuomorphic cards (Automated VAT & WHT, Direct Filing, Real-time Analytics) */}
-        <div className="grid md:grid-cols-3 gap-6 mb-12">
+        {/* TOP ROW: 2 large photo cards */}
+        <div className="grid md:grid-cols-2 gap-6 mb-6">
+          {features.filter(f => f.image).map((f) => (
+            <div
+              key={f.title}
+              className="bg-surface dark:bg-dark-surface border border-border dark:border-dark-border rounded-xl overflow-hidden shadow-1 hover:shadow-3 hover:-translate-y-1 hover:border-accent/40 transition-all relative group flex flex-col"
+            >
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent opacity-0 group-hover:opacity-100 transition-opacity z-10" />
+              {/* Photo — 16:9 aspect ratio (compact height) */}
+              <div className="relative w-full aspect-[16/9] overflow-hidden bg-surface-2 dark:bg-dark-surface-2">
+                <Image
+                  src={f.image!}
+                  alt={f.title}
+                  fill
+                  className="object-cover object-top"
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                />
+              </div>
+              <div className="p-6">
+                <h3 className="font-display text-lg font-bold text-text-1 dark:text-dark-text-1 mb-2">
+                  {f.title}
+                </h3>
+                <p className="text-sm text-text-3 dark:text-dark-text-3 leading-relaxed">
+                  {f.desc}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* MIDDLE ROW: 3 skeuomorphic icon cards (VAT, Filing, Analytics) */}
+        <div className="grid md:grid-cols-3 gap-6 mb-6">
           {featuredCards.map((card) => {
             const Icon = card.icon;
             return (
               <div
                 key={card.title}
-                className="bg-surface dark:bg-dark-surface border border-border dark:border-dark-border rounded-xl shadow-outer-soft border-t border-l border-black/5 dark:border-white/5 p-6 flex flex-col"
-              >
+                className="bg-surface dark:bg-dark-surface border border-border dark:border-dark-border rounded-xl shadow-outer-soft border-t border-l border-black/5 dark:border-white/5 p-6 flex flex-col hover:shadow-3 hover:-translate-y-1 hover:border-accent/40 transition-all relative group">
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent opacity-0 group-hover:opacity-100 transition-opacity rounded-t-xl" />
                 <div className="w-11 h-11 rounded-lg bg-surface-2 dark:bg-dark-surface-2 flex items-center justify-center mb-4 shadow-inner-subtle gradient-convex border border-black/5 dark:border-white/10">
                   <Icon className="w-5 h-5 text-accent" />
                 </div>
@@ -207,45 +237,21 @@ export default function HomePage() {
           })}
         </div>
 
-        {/* Top row: 2 large image cards */}
-        <div className="grid md:grid-cols-2 gap-6 mb-6">
-          {features.filter(f => f.image).map((f) => (
-            <div
-              key={f.title}
-              className="bg-surface dark:bg-dark-surface border border-border dark:border-dark-border rounded-lg overflow-hidden shadow-1 hover:shadow-3 hover:-translate-y-1 transition-all relative group flex flex-col h-full"
-            >
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="relative w-full aspect-[4/3] min-h-48 overflow-hidden">
-                <Image
-                  src={f.image!}
-                  alt={f.title}
-                  fill
-                  className="object-contain"
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                />
-              </div>
-              <div className="p-8">
-                <h3 className="font-display text-lg font-bold text-text-1 dark:text-dark-text-1 mb-2">
-                  {f.title}
-                </h3>
-                <p className="text-sm text-text-3 dark:text-dark-text-3 leading-relaxed">
-                  {f.desc}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-        {/* Bottom row: 3 icon-only cards */}
+        {/* BOTTOM ROW: 3 icon-only feature cards */}
         <div className="grid md:grid-cols-3 gap-6">
           {features.filter(f => !f.image).map((f) => (
             <div
               key={f.title}
-              className="bg-surface dark:bg-dark-surface border border-border dark:border-dark-border rounded-lg overflow-hidden shadow-1 hover:shadow-3 hover:-translate-y-1 transition-all relative group"
+              className="bg-surface dark:bg-dark-surface border border-border dark:border-dark-border rounded-xl overflow-hidden shadow-1 hover:shadow-3 hover:-translate-y-1 hover:border-accent/40 transition-all relative group"
             >
               <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="p-8">
+              <div className="p-6">
                 <div className="w-11 h-11 rounded-md bg-primary flex items-center justify-center text-xl mb-5 shadow-primary">
-                  {f.icon === 'landmark' ? <Landmark className="w-5 h-5 text-white" /> : f.icon}
+                  {f.icon === "landmark" ? (
+                    <Landmark className="w-5 h-5 text-white" />
+                  ) : (
+                    f.icon
+                  )}
                 </div>
                 <h3 className="font-display text-lg font-bold text-text-1 dark:text-dark-text-1 mb-2">
                   {f.title}
@@ -269,18 +275,20 @@ export default function HomePage() {
             What Our Users Are Saying
           </h2>
         </div>
-        <div className="grid lg:grid-cols-3 gap-6">
+        {/* Testimonial cards — equal height, author pinned to bottom */}
+        <div className="grid lg:grid-cols-3 gap-6 items-stretch">
           {testimonials.map((t) => (
             <div
               key={t.name}
-              className="bg-surface dark:bg-dark-surface-2 border border-border dark:border-dark-border rounded-lg p-8 shadow-1"
+              className="bg-surface dark:bg-dark-surface-2 border border-border dark:border-dark-border rounded-lg p-8 shadow-1 flex flex-col"
             >
               <div className="text-accent text-sm mb-4">★★★★★</div>
-              <p className="text-sm text-text-2 dark:text-dark-text-2 leading-relaxed italic mb-6">
+              <p className="text-sm text-text-2 dark:text-dark-text-2 leading-relaxed italic mb-6 flex-1">
                 &ldquo;{t.text}&rdquo;
               </p>
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center font-display text-sm font-bold text-accent">
+              {/* Author row — always at the bottom of the card */}
+              <div className="flex items-center gap-3 mt-auto">
+                <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center font-display text-sm font-bold text-accent flex-shrink-0">
                   {t.name
                     .split(" ")
                     .map((n) => n[0])
@@ -312,8 +320,8 @@ export default function HomePage() {
             Your <em className="text-accent not-italic">Business Finances?</em>
           </h2>
           <p className="text-base text-white/60 max-w-md mx-auto mt-4 mb-8">
-            Join 5,000+ Nigerian businesses already using Kompleet. Free during
-            Beta — no credit card required.
+            Join Nigerian businesses already using Kompleet. Free during Beta —
+            no credit card required.
           </p>
           <Link
             href="/signup"

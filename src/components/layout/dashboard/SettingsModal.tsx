@@ -607,21 +607,12 @@ export function SettingsModal({
                       <button
                         key={t.value}
                         type="button"
-                        onClick={() => {
-                          if (t.value === "system") {
-                            const systemPrefersDark = window.matchMedia(
-                              "(prefers-color-scheme: dark)"
-                            ).matches;
-                            setTheme(systemPrefersDark ? "dark" : "light");
-                          } else {
-                            setTheme(t.value);
-                          }
-                        }}
+                        onClick={() => setTheme(t.value)}
                         className={cn(
                           "py-2.5 rounded-lg border-2 transition-all flex items-center justify-center gap-2 text-sm",
                           theme === t.value
-                            ? "border-primary-500 bg-primary-50 dark:bg-primary-900/20"
-                            : "border-light-border dark:border-dark-border bg-light-background dark:bg-dark-background hover:border-primary-500/30"
+                            ? "border-accent bg-accent/10 dark:bg-accent/10"
+                            : "border-light-border dark:border-dark-border bg-light-background dark:bg-dark-background hover:border-accent/30"
                         )}
                       >
                         <t.Icon className={cn("w-4 h-4", t.iconColor)} />
@@ -722,14 +713,14 @@ export function SettingsModal({
           </div>
         </div>
 
-        {/* Close button - top right */}
+        {/* Close button — bold red, clear of modal border */}
         <button
           type="button"
           onClick={() => onOpenChange(false)}
-          className="absolute right-3 top-3 p-1.5 rounded-lg text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover transition-colors z-10"
+          className="absolute right-4 top-4 p-1.5 rounded-lg text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors z-20 bg-white dark:bg-dark-surface shadow-sm border border-red-200 dark:border-red-800/40"
           aria-label="Close settings"
         >
-          <X className="w-5 h-5" />
+          <X className="w-5 h-5 stroke-[2.5]" />
         </button>
       </DialogContent>
     </Dialog>

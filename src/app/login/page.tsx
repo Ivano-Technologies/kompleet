@@ -21,7 +21,7 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, toggleTheme } = useTheme();
   const redirectTo = searchParams.get("redirectTo") || "/dashboard";
 
   useEffect(() => {
@@ -116,11 +116,11 @@ function LoginForm() {
           <Link href="/contact" className="text-xs font-medium text-text-2 dark:text-dark-text-2 hover:text-primary">Contact</Link>
           <button
             type="button"
-            onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+            onClick={toggleTheme}
             className="p-2 rounded-md border border-border dark:border-dark-border hover:bg-surface-2 dark:hover:bg-dark-surface-2 transition-colors"
             aria-label="Toggle theme"
           >
-            {theme === "light" ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+            {resolvedTheme === "light" ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
           </button>
         </div>
         <div
@@ -198,11 +198,7 @@ function LoginForm() {
                 {loading ? "Signing in…" : "Sign In →"}
               </button>
             </div>
-            <div className="flex justify-end -mt-2">
-              <Link href="/forgot-password" className="text-xs text-primary hover:text-primary-deep hover:underline transition-colors">
-                Forgot password?
-              </Link>
-            </div>
+
           </form>
           <p className="text-center text-sm text-text-3 dark:text-dark-text-3 mt-6">
             New to Kompleet?{" "}

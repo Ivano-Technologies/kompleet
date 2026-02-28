@@ -58,7 +58,7 @@ export default function ResetPasswordClient() {
   const [error, setError] = useState<string | null>(null);
   const [pageState, setPageState] = useState<PageState>('loading');
   const [loading, setLoading] = useState(false);
-  const { theme, toggleTheme } = useTheme();
+  const { resolvedTheme, toggleTheme } = useTheme();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -173,7 +173,7 @@ export default function ResetPasswordClient() {
           className="p-2 rounded-md border border-border dark:border-dark-border hover:bg-surface-2 dark:hover:bg-dark-surface-2 transition-colors"
           aria-label="Toggle theme"
         >
-          {theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+          {resolvedTheme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
         </button>
       </div>
     </>

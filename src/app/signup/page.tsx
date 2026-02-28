@@ -30,7 +30,7 @@ function getPasswordStrength(pw: string) {
 
 export default function SignUpPage() {
   const router = useRouter();
-  const { theme, toggleTheme } = useTheme();
+  const { resolvedTheme, toggleTheme } = useTheme();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [businessName, setBusinessName] = useState('');
@@ -170,7 +170,7 @@ export default function SignUpPage() {
             className="p-2 rounded-md border border-border dark:border-dark-border hover:bg-surface-2 dark:hover:bg-dark-surface-2 transition-colors"
             aria-label="Toggle theme"
           >
-            {theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+            {resolvedTheme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
           </button>
           <span className="text-sm text-text-3 dark:text-dark-text-3">
             Already have an account?{' '}
