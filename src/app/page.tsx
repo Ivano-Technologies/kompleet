@@ -12,12 +12,14 @@ const navLinks = [
 ];
 
 const trustBarItems = [
-  "NRS Certified",
-  "JTB Registered",
+  "Mobile-First Design",
+  "Real-Time Expense Tracking",
+  "Instant Invoicing",
   "NDPR Compliant",
-  "CAC Integrated",
   "256-bit SSL",
   "Nigerian Data Residency",
+  "CAC Integrated",
+  "Free During Beta",
 ];
 
 const features = [
