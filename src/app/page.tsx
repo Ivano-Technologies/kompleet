@@ -51,12 +51,7 @@ const features = [
     desc: "Your financial data is protected with 256-bit encryption and full NDPR compliance. Your data stays in Nigeria.",
     image: null,
   },
-  {
-    icon: "📱",
-    title: "Mobile-First Design",
-    desc: "Manage your business finances from anywhere. Full feature parity on mobile — built for the way Nigerian entrepreneurs work.",
-    image: null,
-  },
+
 ];
 
 const testimonials = [
@@ -169,38 +164,15 @@ export default function HomePage() {
               </span>
             </div>
           </div>
-          <div className="space-y-4">
-            <div className="bg-accent/10 border border-accent/25 rounded-lg p-6 backdrop-blur-sm">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <div className="font-display text-3xl font-bold text-accent">
-                    ₦2.5B+
-                  </div>
-                  <div className="text-xs text-white/50 mt-1">
-                    Processed Monthly
-                  </div>
-                </div>
-                <div>
-                  <div className="font-display text-3xl font-bold text-accent">
-                    5,000+
-                  </div>
-                  <div className="text-xs text-white/50 mt-1">
-                    Active Businesses
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="bg-white/10 border border-white/15 rounded-lg p-5 backdrop-blur-sm">
-              <div className="font-display text-xl font-bold text-white">
-                100% Compliance Rate
-              </div>
-              <div className="text-xs text-white/50 mt-1">
-                Across all registered businesses
-              </div>
-              <div className="inline-flex items-center gap-1.5 bg-success/20 border border-success/30 rounded-full px-3 py-1 mt-3 text-xs font-bold text-green-300">
-                ↑ NRS & JTB Verified
-              </div>
-            </div>
+          <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-white/10">
+            <Image
+              src="/assets/hero-laptop.webp"
+              alt="Kompleet Dashboard Preview"
+              width={644}
+              height={355}
+              className="w-full h-auto object-cover"
+              priority
+            />
           </div>
         </div>
       </header>
@@ -234,30 +206,46 @@ export default function HomePage() {
             the financial complexity so you can focus on growth.
           </p>
         </div>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map((f) => (
+        {/* Top row: 2 large image cards */}
+        <div className="grid md:grid-cols-2 gap-6 mb-6">
+          {features.filter(f => f.image).map((f) => (
             <div
               key={f.title}
               className="bg-surface dark:bg-dark-surface border border-border dark:border-dark-border rounded-lg overflow-hidden shadow-1 hover:shadow-3 hover:-translate-y-1 transition-all relative group"
             >
               <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent opacity-0 group-hover:opacity-100 transition-opacity" />
-              {f.image ? (
-                <div className="relative w-full h-44 overflow-hidden">
-                  <Image
-                    src={f.image}
-                    alt={f.title}
-                    fill
-                    className="object-cover object-top"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  />
-                </div>
-              ) : null}
+              <div className="relative w-full h-56 overflow-hidden">
+                <Image
+                  src={f.image!}
+                  alt={f.title}
+                  fill
+                  className="object-cover object-top"
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                />
+              </div>
               <div className="p-8">
-                {!f.image && (
-                  <div className="w-11 h-11 rounded-md bg-primary flex items-center justify-center text-xl mb-5 shadow-primary">
-                    {f.icon === 'landmark' ? <Landmark className="w-5 h-5 text-white" /> : f.icon}
-                  </div>
-                )}
+                <h3 className="font-display text-lg font-bold text-text-1 dark:text-dark-text-1 mb-2">
+                  {f.title}
+                </h3>
+                <p className="text-sm text-text-3 dark:text-dark-text-3 leading-relaxed">
+                  {f.desc}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+        {/* Bottom row: 3 icon-only cards */}
+        <div className="grid md:grid-cols-3 gap-6">
+          {features.filter(f => !f.image).map((f) => (
+            <div
+              key={f.title}
+              className="bg-surface dark:bg-dark-surface border border-border dark:border-dark-border rounded-lg overflow-hidden shadow-1 hover:shadow-3 hover:-translate-y-1 transition-all relative group"
+            >
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="p-8">
+                <div className="w-11 h-11 rounded-md bg-primary flex items-center justify-center text-xl mb-5 shadow-primary">
+                  {f.icon === 'landmark' ? <Landmark className="w-5 h-5 text-white" /> : f.icon}
+                </div>
                 <h3 className="font-display text-lg font-bold text-text-1 dark:text-dark-text-1 mb-2">
                   {f.title}
                 </h3>

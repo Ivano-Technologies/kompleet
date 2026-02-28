@@ -102,20 +102,7 @@ function LoginForm() {
             The financial operating system for Nigerian SMEs.
           </p>
         </div>
-        <div className="relative z-20 grid grid-cols-2 gap-3">
-          <div className="bg-white/10 border border-white/15 rounded-md p-4">
-            <div className="font-display text-2xl font-bold text-accent">
-              ₦2.5B+
-            </div>
-            <div className="text-xs text-white/40 mt-1">Processed</div>
-          </div>
-          <div className="bg-white/10 border border-white/15 rounded-md p-4">
-            <div className="font-display text-2xl font-bold text-accent">
-              5,000+
-            </div>
-            <div className="text-xs text-white/40 mt-1">Businesses</div>
-          </div>
-        </div>
+
       </div>
 
       {/* Right Panel */}
