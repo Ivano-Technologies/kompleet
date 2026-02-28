@@ -33,7 +33,7 @@ export function DashboardShell({ user, children }: DashboardShellProps) {
   };
 
   return (
-    <div className="flex h-screen bg-bg dark:bg-dark-bg overflow-hidden">
+    <div className="flex h-screen bg-bg bg-[url('/textures/noise.svg')] bg-repeat bg-[length:180px_180px] dark:bg-none dark:bg-dark-bg overflow-hidden">
       <Sidebar
         userEmail={user.email || undefined}
         userRole={user.role}

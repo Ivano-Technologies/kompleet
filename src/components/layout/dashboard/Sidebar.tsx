@@ -183,7 +183,7 @@ export function Sidebar({
             height={34}
             className="rounded-lg shadow-4"
           />
-          <span className="font-ceoruse text-base font-bold text-white">
+          <span className="font-ceoruse text-base font-bold text-white tracking-wider">
             KOMPLEET
           </span>
         </Link>
@@ -207,9 +207,8 @@ export function Sidebar({
                 <Link
                   href={item.href}
                   onClick={onMobileClose}
-                  className={`${navItemBase} ${
-                    active || childActive ? navItemActive : navItemInactive
-                  }`}
+                  className={`${navItemBase} ${active || childActive ? navItemActive : navItemInactive
+                    }`}
                 >
                   <Icon className="w-[18px] h-[18px] shrink-0" />
                   <span>{item.label}</span>
@@ -217,11 +216,10 @@ export function Sidebar({
                 {hasChildren && (
                   <button
                     onClick={() => toggleSection(item.href)}
-                    className={`p-1.5 rounded-md transition-colors ${
-                      active || childActive
-                        ? "text-accent/70 hover:text-accent"
-                        : "text-white/30 hover:text-white/70"
-                    }`}
+                    className={`p-1.5 rounded-md transition-colors ${active || childActive
+                      ? "text-accent/70 hover:text-accent"
+                      : "text-white/30 hover:text-white/70"
+                      }`}
                     aria-label={`Toggle ${item.label} submenu`}
                   >
                     {expanded ? (
@@ -244,9 +242,8 @@ export function Sidebar({
                         key={child.href}
                         href={child.href}
                         onClick={onMobileClose}
-                        className={`flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors ${
-                          childIsActive ? childItemActive : childItemInactive
-                        }`}
+                        className={`flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors ${childIsActive ? childItemActive : childItemInactive
+                          }`}
                       >
                         <ChildIcon className="w-4 h-4 shrink-0" />
                         <span>{child.label}</span>
@@ -267,9 +264,8 @@ export function Sidebar({
               onOpenSettings();
               onMobileClose();
             }}
-            className={`w-full ${navItemBase} ${
-              pathname?.startsWith("/settings") ? navItemActive : navItemInactive
-            }`}
+            className={`w-full ${navItemBase} ${pathname?.startsWith("/settings") ? navItemActive : navItemInactive
+              }`}
           >
             <Settings className="w-[18px] h-[18px] shrink-0" />
             <span>Settings</span>
@@ -290,9 +286,8 @@ export function Sidebar({
                   key={item.href}
                   href={item.href}
                   onClick={onMobileClose}
-                  className={`${navItemBase} ${
-                    active ? navItemActive : navItemInactive
-                  }`}
+                  className={`${navItemBase} ${active ? navItemActive : navItemInactive
+                    }`}
                 >
                   <Icon className="w-[18px] h-[18px] shrink-0" />
                   <span>{item.label}</span>
@@ -308,11 +303,10 @@ export function Sidebar({
         <Link
           href="/profile"
           onClick={onMobileClose}
-          className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${
-            pathname?.startsWith("/profile")
-              ? "bg-accent/15 text-accent"
-              : "text-white/55 hover:bg-white/10 hover:text-white"
-          }`}
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${pathname?.startsWith("/profile")
+            ? "bg-accent/15 text-accent"
+            : "text-white/55 hover:bg-white/10 hover:text-white"
+            }`}
         >
           <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center font-display text-sm font-bold text-charcoal shrink-0">
             {userInitial}
@@ -340,7 +334,7 @@ export function Sidebar({
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex w-64 shrink-0 flex-col h-screen sticky top-0 overflow-hidden">
+      <aside className="hidden lg:flex w-80 shrink-0 flex-col h-screen sticky top-0 overflow-hidden shadow-outer-deep">
         {sidebarContent}
       </aside>
 
@@ -352,7 +346,7 @@ export function Sidebar({
             onClick={onMobileClose}
             aria-label="Close sidebar"
           />
-          <aside className="fixed inset-y-0 left-0 w-72 z-50 shadow-5 overflow-hidden">
+          <aside className="fixed inset-y-0 left-0 w-80 z-50 shadow-outer-deep overflow-hidden">
             {sidebarContent}
           </aside>
         </div>

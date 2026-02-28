@@ -89,7 +89,7 @@ module.exports = {
       },
       fontFamily: {
         display: ["Clash Display", "Inter", "sans-serif"],
-        ceoruse: ["Ceoruse", "Clash Display", "sans-serif"],
+        ceoruse: ["var(--font-ceoruse)", "Clash Display", "sans-serif"],
         body: ["Inter", "sans-serif"],
       },
       spacing: {
@@ -119,6 +119,14 @@ module.exports = {
         5: "0 24px 64px rgba(13,27,42,0.20), 0 12px 28px rgba(13,27,42,0.11)",
         primary: "0 8px 32px rgba(15,76,117,0.40)",
         accent: "0 8px 24px rgba(200,240,0,0.35)",
+        // Phase 3 skeuomorphic primitives (light source: top-left)
+        "inner-subtle": "inset 0 1px 2px rgba(0,0,0,0.1)",
+        "outer-soft":
+          "0 4px 8px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.08)",
+        "outer-deep":
+          "0 10px 20px rgba(0,0,0,0.1), 0 3px 6px rgba(0,0,0,0.07)",
+        pressed:
+          "inset 0 2px 4px rgba(0,0,0,0.15), 0 1px 2px rgba(0,0,0,0.05)",
       },
     },
   },

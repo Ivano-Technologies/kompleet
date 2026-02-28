@@ -4,51 +4,77 @@
 @config "../../tailwind.config.cjs";
 @source "../../src/**/*.{js,ts,jsx,tsx,mdx}";
 
-/* Ceoruse — Brand wordmark font for KOMPLEET */
-@font-face {
-  font-family: 'Ceoruse';
-  src: url('/fonts/ceoruse.otf') format('opentype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
+/* KOMPLEET Design System 2026 - Approved 27 Feb 2026 */
 
 @layer utilities {
   .font-ceoruse {
     font-family: var(--font-ceoruse), 'Clash Display', sans-serif;
     letter-spacing: 0.08em;
   }
+
+  /* Skeuomorphic lighting primitives */
+  .gradient-convex {
+    background-image: linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.5),
+      rgba(255, 255, 255, 0)
+    );
+  }
+
+  .gradient-concave {
+    background-image: linear-gradient(
+      145deg,
+      rgba(0, 0, 0, 0.05),
+      rgba(0, 0, 0, 0)
+    );
+  }
 }
 
-/* KOMPLEET Design System 2026 - Approved 27 Feb 2026 */
 
 :root {
   /* Brand Colors */
-  --primary: 64 142 224; /* #408ee0 - Professional Blue */
+  --primary: 64 142 224;
+  /* #408ee0 - Professional Blue */
   --primary-rgb: 64, 142, 224;
 
   /* Light Theme (Default) */
-  --background: 255 255 255; /* #FFFFFF */
-  --surface: 249 250 251; /* #F9FAFB */
-  --surface-hover: 243 244 246; /* #F3F4F6 */
-  --border: 229 231 235; /* #E5E7EB */
-  --border-hover: 209 213 219; /* #D1D5DB */
-  --text-primary: 15 23 42; /* #0F172A */
-  --text-secondary: 71 85 105; /* #475569 */
-  --text-tertiary: 148 163 184; /* #94A3B8 */
+  --background: 255 255 255;
+  /* #FFFFFF */
+  --surface: 249 250 251;
+  /* #F9FAFB */
+  --surface-hover: 243 244 246;
+  /* #F3F4F6 */
+  --border: 229 231 235;
+  /* #E5E7EB */
+  --border-hover: 209 213 219;
+  /* #D1D5DB */
+  --text-primary: 15 23 42;
+  /* #0F172A */
+  --text-secondary: 71 85 105;
+  /* #475569 */
+  --text-tertiary: 148 163 184;
+  /* #94A3B8 */
 }
 
 /* Dark Theme */
 html.dark,
 :root.dark {
-  --background: 32 41 47; /* #20292F */
-  --surface: 43 55 63; /* #2B373F */
-  --surface-hover: 51 63 71; /* #333F47 */
-  --border: 56 65 71; /* #384147 */
-  --border-hover: 72 81 87; /* #485157 */
-  --text-primary: 227 241 255; /* #E3F1FF */
-  --text-secondary: 186 216 245; /* #BAD8F5 */
-  --text-tertiary: 147 197 235; /* #93C5EB */
+  --background: 32 41 47;
+  /* #20292F */
+  --surface: 43 55 63;
+  /* #2B373F */
+  --surface-hover: 51 63 71;
+  /* #333F47 */
+  --border: 56 65 71;
+  /* #384147 */
+  --border-hover: 72 81 87;
+  /* #485157 */
+  --text-primary: 227 241 255;
+  /* #E3F1FF */
+  --text-secondary: 186 216 245;
+  /* #BAD8F5 */
+  --text-tertiary: 147 197 235;
+  /* #93C5EB */
 }
 
 /* Base Styles */
@@ -94,6 +120,7 @@ body {
     transition-duration: 200ms;
     transition-timing-function: ease;
   }
+
   .dark body {
     @apply bg-dark-bg text-dark-text-1;
   }
@@ -140,31 +167,25 @@ html.dark .solid-nav {
 
 /* Hero Glow Effect */
 .hero-glow {
-  background: radial-gradient(
-    circle at 50% 50%,
-    rgba(var(--primary-rgb), 0.08) 0%,
-    transparent 70%
-  );
+  background: radial-gradient(circle at 50% 50%,
+      rgba(var(--primary-rgb), 0.08) 0%,
+      transparent 70%);
 }
 
 /* Gradient Text Effect */
 .text-gradient {
-  background: linear-gradient(
-    135deg,
-    rgb(var(--text-primary)) 0%,
-    rgb(var(--text-secondary)) 100%
-  );
+  background: linear-gradient(135deg,
+      rgb(var(--text-primary)) 0%,
+      rgb(var(--text-secondary)) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .text-gradient-primary {
-  background: linear-gradient(
-    135deg,
-    rgb(var(--primary)) 0%,
-    rgba(var(--primary-rgb), 0.6) 100%
-  );
+  background: linear-gradient(135deg,
+      rgb(var(--primary)) 0%,
+      rgba(var(--primary-rgb), 0.6) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;

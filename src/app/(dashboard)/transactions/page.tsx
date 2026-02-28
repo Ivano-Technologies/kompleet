@@ -17,6 +17,7 @@ import {
   Search,
   Upload,
 } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface Transaction {
   id: string;
@@ -327,16 +328,13 @@ export default function TransactionsPage() {
             </p>
           </div>
         ) : transactions.length === 0 ? (
-          <div className="p-12 text-center">
-            <p className="text-light-text-secondary dark:text-dark-text-secondary mb-3">
-              No transactions found
-            </p>
-            <Link
-              href="/transactions/upload"
-              className="text-primary-500 hover:text-primary-400 text-sm font-medium"
-            >
-              Upload your first bank statement →
-            </Link>
+          <div className="p-6">
+            <EmptyState
+              icon={Upload}
+              title="No transactions yet"
+              description="Upload a bank statement to start tracking income, expenses, and taxes."
+              action={{ label: "Upload bank statement", href: "/transactions/upload" }}
+            />
           </div>
         ) : (
           <>
