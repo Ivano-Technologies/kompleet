@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Landmark, Zap, FileUp, BarChart3 } from "lucide-react";
+import { Landmark, Zap, FileUp, BarChart3, TrendingUp, Lock } from "lucide-react";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 
@@ -38,31 +38,31 @@ const featuredCards = [
 
 const features = [
   {
-    icon: "📊",
+    icon: Landmark,
     title: "Smart Expense Tracking",
     desc: "Automatically categorise every naira spent. Connect your bank account and watch your expenses organise themselves in real time.",
     image: "/assets/features/expense-tracking.png",
   },
   {
-    icon: "📄",
+    icon: FileUp,
     title: "Professional Invoicing",
     desc: "Create, send, and track invoices in seconds. Accept payments via bank transfer, Paystack, or Flutterwave.",
     image: "/assets/features/invoicing.png",
   },
   {
-    icon: "landmark",
+    icon: Landmark,
     title: "Tax Compliance Centre",
     desc: "Never miss an FIRS or LIRS deadline again. Kompleet tracks your VAT, WHT, CIT, and PAYE obligations automatically — with smart reminders before every filing date.",
     image: null,
   },
   {
-    icon: "📈",
+    icon: TrendingUp,
     title: "Business Reports",
     desc: "Profit & loss, cash flow, and balance sheet reports generated automatically. Share with your accountant or investors.",
     image: null,
   },
   {
-    icon: "🔒",
+    icon: Lock,
     title: "Bank-Grade Security",
     desc: "Your financial data is protected with 256-bit encryption and full NDPR compliance. Your data stays in Nigeria.",
     image: null,
@@ -223,8 +223,8 @@ export default function HomePage() {
                 key={card.title}
                 className="bg-surface dark:bg-dark-surface border border-border dark:border-dark-border rounded-xl shadow-outer-soft border-t border-l border-black/5 dark:border-white/5 p-6 flex flex-col hover:shadow-3 hover:-translate-y-1 hover:border-accent/40 transition-all relative group overflow-hidden">
                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="w-11 h-11 rounded-lg bg-surface-2 dark:bg-dark-surface-2 flex items-center justify-center mb-4 shadow-inner-subtle gradient-convex border border-black/5 dark:border-white/10">
-                  <Icon className="w-5 h-5 text-accent" />
+                <div className="w-11 h-11 rounded-lg bg-primary flex items-center justify-center mb-4 shadow-primary">
+                  <Icon className="w-5 h-5 text-white" />
                 </div>
                 <h3 className="font-display text-lg font-bold text-text-1 dark:text-dark-text-1 mb-2">
                   {card.title}
@@ -246,12 +246,8 @@ export default function HomePage() {
             >
               <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="p-6">
-                <div className="w-11 h-11 rounded-md bg-primary flex items-center justify-center text-xl mb-5 shadow-primary">
-                  {f.icon === "landmark" ? (
-                    <Landmark className="w-5 h-5 text-white" />
-                  ) : (
-                    f.icon
-                  )}
+                <div className="w-11 h-11 rounded-lg bg-primary flex items-center justify-center mb-4 shadow-primary">
+                  <f.icon className="w-5 h-5 text-white" />
                 </div>
                 <h3 className="font-display text-lg font-bold text-text-1 dark:text-dark-text-1 mb-2">
                   {f.title}
