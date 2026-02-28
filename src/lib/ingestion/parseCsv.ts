@@ -3,10 +3,7 @@
  * Handles encoding detection, delimiter detection, and CSV parsing
  */
 
-import Papa from "papaparse";
-import chardet from "chardet";
-import iconv from "iconv-lite";
-import { RawRow, ParseResult, ParseError } from "./types";
+import { RawRow, ParseResult } from "./types";
 import { normalizeTransactions } from "./normalizeTransactions";
 
 /**
@@ -18,13 +15,22 @@ export async function parseCsv(
   sourceFileId: string,
 ): Promise<ParseResult> {
   try {
+    // 🔥 Dynamic imports
+    const PapaModule = await import("papaparse");
+    const chardetModule = await import("chardet");
+    const iconvModule = await import("iconv-lite");
+
+    const Papa = (PapaModule as any).default ?? PapaModule;
+    const chardet = (chardetModule as any).default ?? chardetModule;
+    const iconv = (iconvModule as any).default ?? iconvModule;
+
     // 1. Detect encoding
-    const encoding = detectEncoding(buffer);
+    const encoding = detectEncoding(buffer, chardet);
 
-    // 2. Decode buffer to string
-    const csvText = decodeBuffer(buffer, encoding);
+    // 2. Decode buffer
+    const csvText = decodeBuffer(buffer, encoding, iconv);
 
-    // 3. Auto-detect delimiter
+    // 3. Detect delimiter
     const delimiter = detectDelimiter(csvText);
 
     // 4. Parse CSV
@@ -36,22 +42,17 @@ export async function parseCsv(
       transformHeader: (header: string) => header.trim(),
     });
 
-    if (parseResult.errors && parseResult.errors.length > 0) {
-      console.warn("CSV parsing warnings:", parseResult.errors);
-    }
-
-    // 5. Extract rows and normalize field names
     const rawRows = (parseResult.data as Record<string, string>[])
-      .filter((row) => Object.values(row).some((v) => v)) // Filter empty rows
+      .filter((row) => Object.values(row).some((v) => v))
       .map((row) => normalizeRowFields(row));
 
-    // 6. Normalize transactions
-    const { transactions, errors: normalizationErrors } = normalizeTransactions(
-      rawRows,
-      "csv",
-      userId,
-      sourceFileId,
-    );
+    const { transactions, errors: normalizationErrors } =
+      normalizeTransactions(
+        rawRows,
+        "csv",
+        userId,
+        sourceFileId,
+      );
 
     return {
       transactions,
@@ -67,17 +68,17 @@ export async function parseCsv(
     };
   } catch (error) {
     throw new Error(
-      `CSV parsing failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+      `CSV parsing failed: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`,
     );
   }
 }
 
 /**
- * Detect encoding of buffer
- * Supports: UTF-8, UTF-8 with BOM, Latin-1, Windows-1252
+ * Detect encoding
  */
-function detectEncoding(buffer: Buffer): string {
-  // Check for UTF-8 BOM
+function detectEncoding(buffer: Buffer, chardet: any): string {
   if (
     buffer.length >= 3 &&
     buffer[0] === 0xef &&
@@ -87,27 +88,27 @@ function detectEncoding(buffer: Buffer): string {
     return "UTF-8";
   }
 
-  // Use chardet for other encodings
   try {
     const detected = chardet.detect(buffer);
     if (detected && detected !== "UTF-8") {
       return detected;
     }
-  } catch (error) {
-    console.warn("Chardet detection failed:", error);
-  }
+  } catch {}
 
-  // Default to UTF-8
   return "UTF-8";
 }
 
 /**
- * Decode buffer to string using detected encoding
+ * Decode buffer
  */
-function decodeBuffer(buffer: Buffer, encoding: string): string {
+function decodeBuffer(
+  buffer: Buffer,
+  encoding: string,
+  iconv: any,
+): string {
   try {
-    // Remove BOM if present
     let data = buffer;
+
     if (
       buffer.length >= 3 &&
       buffer[0] === 0xef &&
@@ -117,30 +118,23 @@ function decodeBuffer(buffer: Buffer, encoding: string): string {
       data = buffer.slice(3);
     }
 
-    // Decode using iconv-lite
     if (encoding.toUpperCase() === "UTF-8") {
       return data.toString("utf-8");
     }
 
     return iconv.decode(data, encoding);
-  } catch (error) {
-    console.warn(
-      `Decoding with ${encoding} failed, falling back to UTF-8:`,
-      error,
-    );
+  } catch {
     return buffer.toString("utf-8");
   }
 }
 
 /**
- * Auto-detect CSV delimiter
- * Supports: comma, semicolon, tab, pipe
+ * Detect delimiter
  */
 function detectDelimiter(csvText: string): string {
-  // Get first few lines
   const lines = csvText.split("\n").slice(0, 3);
-
   const delimiters = [",", ";", "\t", "|"];
+
   let bestDelimiter = ",";
   let bestScore = 0;
 
@@ -150,9 +144,7 @@ function detectDelimiter(csvText: string): string {
     for (const line of lines) {
       const count = (line.match(new RegExp(`\\${delimiter}`, "g")) || [])
         .length;
-      if (count > 0) {
-        score += count;
-      }
+      score += count;
     }
 
     if (score > bestScore) {
@@ -165,8 +157,7 @@ function detectDelimiter(csvText: string): string {
 }
 
 /**
- * Normalize field names to standard transaction fields
- * Maps common bank statement column names to standard fields
+ * Normalize row fields
  */
 function normalizeRowFields(row: Record<string, string>): RawRow {
   const normalized: RawRow = {
@@ -175,7 +166,6 @@ function normalizeRowFields(row: Record<string, string>): RawRow {
     amount: "",
   };
 
-  // Map common field names
   const fieldMappings = {
     date: [
       "date",
@@ -194,24 +184,16 @@ function normalizeRowFields(row: Record<string, string>): RawRow {
       "payee",
       "reference",
     ],
-    amount: ["amount", "debit", "credit", "value", "transaction amount", "amt"],
-    type: ["type", "transaction type", "dr/cr", "debit/credit", "direction"],
-    balance: [
-      "balance",
-      "running balance",
-      "available balance",
-      "account balance",
-    ],
-    reference: [
-      "reference",
-      "ref",
-      "transaction ref",
-      "cheque no",
-      "check number",
+    amount: [
+      "amount",
+      "debit",
+      "credit",
+      "value",
+      "transaction amount",
+      "amt",
     ],
   };
 
-  // Try to match fields
   for (const [standardField, aliases] of Object.entries(fieldMappings)) {
     for (const [key, value] of Object.entries(row)) {
       const lowerKey = key.toLowerCase().trim();
@@ -222,28 +204,13 @@ function normalizeRowFields(row: Record<string, string>): RawRow {
     }
   }
 
-  // If no match found, try to infer from position
-  if (!normalized.date) {
-    const keys = Object.keys(row);
-    if (keys.length > 0) normalized.date = row[keys[0]] || "";
-  }
+  const keys = Object.keys(row);
 
-  if (!normalized.description) {
-    const keys = Object.keys(row);
-    if (keys.length > 1) normalized.description = row[keys[1]] || "";
-  }
-
-  if (!normalized.amount) {
-    const keys = Object.keys(row);
-    if (keys.length > 2) normalized.amount = row[keys[2]] || "";
-  }
-
-  // Copy any extra fields
-  for (const [key, value] of Object.entries(row)) {
-    if (!Object.values(normalized).includes(value)) {
-      normalized[key] = value;
-    }
-  }
+  if (!normalized.date && keys[0]) normalized.date = row[keys[0]] || "";
+  if (!normalized.description && keys[1])
+    normalized.description = row[keys[1]] || "";
+  if (!normalized.amount && keys[2])
+    normalized.amount = row[keys[2]] || "";
 
   return normalized;
 }

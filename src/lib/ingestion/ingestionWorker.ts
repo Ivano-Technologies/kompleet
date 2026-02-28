@@ -5,10 +5,6 @@
 
 import { detectFileType, isSupportedFileType } from "./detectFileType";
 import { detectEncryption } from "./detectEncryption";
-import { parsePdf } from "./parsePdf";
-import { parseExcel } from "./parseExcel";
-import { parseCsv } from "./parseCsv";
-import { parseZip } from "./parseZip";
 import { deduplicateTransactions } from "./deduplicate";
 import { sanitizeTransactions } from "./sanitizeForAI";
 import { validateTransactions } from "./validate";
@@ -16,7 +12,6 @@ import { IngestionRequest, IngestionResponse, ParseResult } from "./types";
 
 /**
  * Main ingestion function
- * Orchestrates: file detection → encryption → parsing → normalization → validation → sanitization
  */
 export async function ingestStatement(
   request: IngestionRequest,
@@ -57,12 +52,13 @@ export async function ingestStatement(
       };
     }
 
-    // 4. Parse file
+    // 4. Parse file (DYNAMIC IMPORTS HERE)
     let parseResult: ParseResult;
 
     try {
       switch (fileType) {
-        case "pdf":
+        case "pdf": {
+          const { parsePdf } = await import("./parsePdf");
           parseResult = await parsePdf(
             buffer,
             userId,
@@ -70,28 +66,29 @@ export async function ingestStatement(
             request.password,
           );
           break;
+        }
+
         case "xlsx":
+        case "xls": {
+          const { parseExcel } = await import("./parseExcel");
           parseResult = await parseExcel(
             buffer,
-            "xlsx",
+            fileType,
             userId,
             sourceFileId,
             request.password,
           );
           break;
-        case "xls":
-          parseResult = await parseExcel(
-            buffer,
-            "xls",
-            userId,
-            sourceFileId,
-            request.password,
-          );
-          break;
-        case "csv":
+        }
+
+        case "csv": {
+          const { parseCsv } = await import("./parseCsv");
           parseResult = await parseCsv(buffer, userId, sourceFileId);
           break;
-        case "zip":
+        }
+
+        case "zip": {
+          const { parseZip } = await import("./parseZip");
           parseResult = await parseZip(
             buffer,
             userId,
@@ -99,6 +96,8 @@ export async function ingestStatement(
             request.password,
           );
           break;
+        }
+
         default:
           throw new Error(`Unsupported file type: ${fileType}`);
       }
@@ -139,7 +138,7 @@ export async function ingestStatement(
     // 7. Combine all errors
     const allErrors = [...parseResult.errors, ...validationErrors];
 
-    // 8. Sanitize for AI (remove sensitive data)
+    // 8. Sanitize for AI
     const sanitized = sanitizeTransactions(validTransactions);
 
     return {
@@ -163,50 +162,14 @@ export async function ingestStatement(
             error instanceof Error ? error.message : "Unknown error",
         },
       ],
-      message: `Ingestion failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+      message: `Ingestion failed: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`,
     };
   }
 }
 
-/**
- * Convert File to Buffer
- */
 async function fileToBuffer(file: File): Promise<Buffer> {
   const arrayBuffer = await file.arrayBuffer();
   return Buffer.from(arrayBuffer);
-}
-
-/**
- * Get ingestion status
- */
-export function getIngestionStatus(response: IngestionResponse): {
-  status: "success" | "error" | "partial";
-  message: string;
-  transactionCount: number;
-  errorCount: number;
-} {
-  if (response.success && response.errors.length === 0) {
-    return {
-      status: "success",
-      message: response.message || "Ingestion completed successfully",
-      transactionCount: response.transactionCount,
-      errorCount: 0,
-    };
-  }
-
-  if (!response.success && response.transactionCount === 0) {
-    return {
-      status: "error",
-      message: response.message || "Ingestion failed",
-      transactionCount: 0,
-      errorCount: response.errors.length,
-    };
-  }
-
-  return {
-    status: "partial",
-    message: `Ingestion completed with errors: ${response.transactionCount} transactions, ${response.errors.length} errors`,
-    transactionCount: response.transactionCount,
-    errorCount: response.errors.length,
-  };
 }

@@ -13,7 +13,6 @@ import {
 } from "@/lib/services/categorization-service";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import * as XLSX from "xlsx";
-import { PDFParse } from "pdf-parse";
 
 export const runtime = "nodejs";
 export const maxDuration = 60; // 60 seconds for large files
@@ -125,9 +124,10 @@ async function handlePOST(
         bankType === "auto" ? detectBankType(csvContent) : bankType;
       parsedTransactions = parseCSV(csvContent, detectedBank as any);
     } else if (isPDF) {
-      // Read PDF as binary
+      // Read PDF as binary — dynamic import to avoid pulling pdf-parse (browser deps) at build time
       const arrayBuffer = await file.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
+      const { PDFParse } = await import("pdf-parse");
       const parser = new PDFParse({ data: buffer });
       const pdfData = await parser.getText();
       const pdfText = pdfData.text;

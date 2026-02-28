@@ -3,15 +3,9 @@
  * Handles encrypted ZIPs, multiple files, and format detection
  */
 
-import unzipper from "unzipper";
-import { Readable } from "stream";
 import { detectFileType } from "./detectFileType";
-import { parseCsv } from "./parseCsv";
-import { parseExcel } from "./parseExcel";
-import { parsePdf } from "./parsePdf";
 import { deduplicateTransactions } from "./deduplicate";
-import { RawRow, ParseResult, ParseError } from "./types";
-import { normalizeTransactions } from "./normalizeTransactions";
+import { ParseResult, ParseError } from "./types";
 
 /**
  * Parse ZIP file containing multiple statements
@@ -23,14 +17,12 @@ export async function parseZip(
   password?: string,
 ): Promise<ParseResult> {
   try {
-    // 1. Extract ZIP contents
     const entries = await extractZipEntries(buffer, password);
 
     if (entries.length === 0) {
       throw new Error("ZIP file is empty or could not be extracted");
     }
 
-    // 2. Find statement files
     const statementFiles = entries.filter((entry) => {
       const ext = entry.name.toLowerCase().split(".").pop() || "";
       return ["pdf", "xlsx", "xls", "csv"].includes(ext);
@@ -40,7 +32,6 @@ export async function parseZip(
       throw new Error("No statement files found in ZIP");
     }
 
-    // 3. Parse each file
     const allTransactions: any[] = [];
     const allErrors: ParseError[] = [];
 
@@ -52,10 +43,19 @@ export async function parseZip(
         let result: ParseResult;
 
         switch (fileType) {
-          case "pdf":
-            result = await parsePdf(fileBuffer, userId, sourceFileId, password);
+          case "pdf": {
+            const { parsePdf } = await import("./parsePdf");
+            result = await parsePdf(
+              fileBuffer,
+              userId,
+              sourceFileId,
+              password,
+            );
             break;
-          case "xlsx":
+          }
+
+          case "xlsx": {
+            const { parseExcel } = await import("./parseExcel");
             result = await parseExcel(
               fileBuffer,
               "xlsx",
@@ -64,7 +64,10 @@ export async function parseZip(
               password,
             );
             break;
-          case "xls":
+          }
+
+          case "xls": {
+            const { parseExcel } = await import("./parseExcel");
             result = await parseExcel(
               fileBuffer,
               "xls",
@@ -73,9 +76,18 @@ export async function parseZip(
               password,
             );
             break;
-          case "csv":
-            result = await parseCsv(fileBuffer, userId, sourceFileId);
+          }
+
+          case "csv": {
+            const { parseCsv } = await import("./parseCsv");
+            result = await parseCsv(
+              fileBuffer,
+              userId,
+              sourceFileId,
+            );
             break;
+          }
+
           default:
             throw new Error(`Unsupported file type: ${fileType}`);
         }
@@ -86,12 +98,13 @@ export async function parseZip(
         allErrors.push({
           rowNumber: 0,
           errorType: "FILE_PARSING_ERROR",
-          errorMessage: `Failed to parse ${file.name}: ${error instanceof Error ? error.message : "Unknown error"}`,
+          errorMessage: `Failed to parse ${file.name}: ${
+            error instanceof Error ? error.message : "Unknown error"
+          }`,
         });
       }
     }
 
-    // 4. Deduplicate across files
     const deduplicated = deduplicateTransactions(allTransactions);
 
     return {
@@ -108,13 +121,15 @@ export async function parseZip(
     };
   } catch (error) {
     throw new Error(
-      `ZIP parsing failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+      `ZIP parsing failed: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`,
     );
   }
 }
 
 /**
- * Extract ZIP entries
+ * Extract ZIP entries (dynamic unzipper import)
  */
 async function extractZipEntries(
   buffer: Buffer,
@@ -122,12 +137,19 @@ async function extractZipEntries(
 ): Promise<Array<{ name: string; buffer: Buffer }>> {
   const entries: Array<{ name: string; buffer: Buffer }> = [];
 
+  const unzipperModule = await import("unzipper");
+  const streamModule = await import("stream");
+
+  const unzipper =
+    (unzipperModule as any).default ?? unzipperModule;
+  const { Readable } = streamModule as any;
+
   return new Promise((resolve, reject) => {
     const stream = Readable.from(buffer);
 
     stream
       .pipe(unzipper.Parse())
-      .on("entry", async (entry) => {
+      .on("entry", async (entry: any) => {
         try {
           const chunks: Buffer[] = [];
 
@@ -144,15 +166,14 @@ async function extractZipEntries(
             }
           });
 
-          entry.on("error", (error: unknown) => {
-            console.warn(`Error reading entry ${entry.path}:`, error);
-          });
-        } catch (error) {
-          console.warn("Error processing entry:", error);
-        }
+          entry.on("error", () => {});
+        } catch {}
       })
-      .on("error", (error) => {
-        if (error instanceof Error && error.message.includes("password")) {
+      .on("error", (error: any) => {
+        if (
+          error instanceof Error &&
+          error.message.includes("password")
+        ) {
           reject(new Error("PASSWORD_REQUIRED"));
         } else {
           reject(error);
