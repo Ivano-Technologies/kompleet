@@ -11,16 +11,20 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <button
         className={cn(
-          "inline-flex items-center justify-center rounded-md font-medium transition-colors",
+          "inline-flex items-center justify-center rounded-md font-medium transition-all select-none",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
           "disabled:pointer-events-none disabled:opacity-50",
+          // Skeuomorphic base (convex + pressable)
+          "shadow-outer-soft gradient-convex border border-black/5",
+          "active:shadow-pressed active:gradient-concave active:translate-y-px",
           {
-            "bg-primary text-primary-foreground hover:bg-primary/90":
+            "bg-primary text-white hover:brightness-[0.98]":
               variant === "default",
-            "border border-input bg-background hover:bg-accent hover:text-accent-foreground":
+            "bg-surface text-text-1 hover:bg-surface-2 dark:bg-dark-surface dark:text-dark-text-1 dark:hover:bg-dark-surface-2":
               variant === "outline",
-            "hover:bg-accent hover:text-accent-foreground": variant === "ghost",
-            "bg-destructive text-destructive-foreground hover:bg-destructive/90":
+            "shadow-none border-transparent bg-transparent text-text-1 hover:bg-surface-2 dark:text-dark-text-1 dark:hover:bg-dark-surface-2":
+              variant === "ghost",
+            "bg-error text-white hover:brightness-[0.98]":
               variant === "destructive",
           },
           {
@@ -29,6 +33,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             "h-11 rounded-md px-8": size === "lg",
             "h-10 w-10": size === "icon",
           },
+          "dark:border-white/10",
           className,
         )}
         ref={ref}

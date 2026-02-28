@@ -12,6 +12,7 @@ import {
   Download,
   ChevronDown,
 } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 
 type DbInvoice = Database["public"]["Tables"]["invoices"]["Row"];
 
@@ -188,17 +189,13 @@ export default function InvoicesPage() {
               </p>
             </div>
           ) : filteredInvoices.length === 0 ? (
-            <div className="p-8 text-center">
-              <FileText className="w-8 h-8 mx-auto mb-2 text-light-text-tertiary dark:text-dark-text-tertiary opacity-40" />
-              <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-2">
-                No invoices found
-              </p>
-              <button
-                onClick={() => router.push("/invoices/new")}
-                className="text-primary-500 hover:text-primary-400 text-xs font-medium"
-              >
-                Create your first invoice →
-              </button>
+            <div className="p-6">
+              <EmptyState
+                icon={FileText}
+                title="No invoices yet"
+                description="Create an invoice to track revenue and keep your records tax-ready."
+                action={{ label: "Create invoice", onClick: () => router.push("/invoices/new") }}
+              />
             </div>
           ) : (
             <div className="divide-y divide-light-border/50 dark:divide-dark-border/50">

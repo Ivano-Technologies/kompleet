@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Landmark } from "lucide-react";
+import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 
 const HERO_GRID_PATTERN =
@@ -77,46 +78,7 @@ const testimonials = [
 export default function HomePage() {
   return (
     <div className="bg-bg text-text-1">
-      {/* Navigation */}
-      <nav className="sticky top-0 z-50 bg-surface/95 dark:bg-dark-bg/95 backdrop-blur-lg border-b border-border dark:border-dark-border h-16 flex items-center justify-between px-6 md:px-12">
-        <Link href="/" className="flex items-center gap-3">
-          <Image
-            src="/logo.png"
-            alt="Kompleet Logo"
-            width={32}
-            height={32}
-            className="rounded-lg"
-          />
-          <span className="font-ceoruse text-lg font-bold text-primary dark:text-dark-text-1">
-            KOMPLEET
-          </span>
-        </Link>
-        <div className="hidden md:flex items-center gap-8">
-          {navLinks.map((link) => (
-            <Link
-              key={link.name}
-              href={link.href}
-              className="text-sm font-medium text-text-3 hover:text-primary dark:hover:text-dark-text-1 transition-colors"
-            >
-              {link.name}
-            </Link>
-          ))}
-        </div>
-        <div className="flex items-center gap-3">
-          <Link
-            href="/login"
-            className="hidden sm:block bg-transparent border-2 border-border dark:border-dark-border text-text-2 dark:text-dark-text-2 px-5 py-2.5 rounded-md text-xs font-semibold hover:border-primary hover:text-primary dark:hover:border-dark-text-1 dark:hover:text-dark-text-1 transition-all"
-          >
-            Log In
-          </Link>
-          <Link
-            href="/signup"
-            className="bg-accent text-charcoal border-none px-6 py-2.5 rounded-md text-xs font-bold shadow-accent hover:bg-accent-hover transition-all transform hover:-translate-y-0.5"
-          >
-            Get Started for Free
-          </Link>
-        </div>
-      </nav>
+      <LandingNav />
 
       {/* Hero Section */}
       <header className="bg-gradient-to-br from-primary-deep via-primary to-primary-mid text-white py-24 px-6 md:px-12 relative overflow-hidden">
@@ -213,7 +175,7 @@ export default function HomePage() {
           {features.filter(f => f.image).map((f) => (
             <div
               key={f.title}
-              className="bg-surface dark:bg-dark-surface border border-border dark:border-dark-border rounded-lg overflow-hidden shadow-1 hover:shadow-3 hover:-translate-y-1 transition-all relative group"
+              className="bg-surface dark:bg-dark-surface border border-border dark:border-dark-border rounded-lg overflow-hidden shadow-1 hover:shadow-3 hover:-translate-y-1 transition-all relative group flex flex-col h-full"
             >
               <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent opacity-0 group-hover:opacity-100 transition-opacity" />
               <div className="relative w-full h-56 overflow-hidden">

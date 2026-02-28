@@ -9,6 +9,8 @@ import {
   TrendingUp,
   Wallet,
 } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
 import {
   Area,
   AreaChart,
@@ -74,6 +76,10 @@ export default function DashboardClient({
   taxBreakdown,
   recentTransactions,
 }: DashboardClientProps) {
+  const hasRevenueData =
+    revenueData?.length > 0 &&
+    revenueData.some((p) => (p.revenue ?? 0) !== 0 || (p.expenses ?? 0) !== 0);
+
   const kpis = [
     {
       label: "Total Revenue",
@@ -135,15 +141,15 @@ export default function DashboardClient({
         {kpis.map((kpi) => {
           const Icon = kpi.icon;
           return (
-            <div
+            <Card
               key={kpi.label}
-              className="p-5 rounded-xl border border-border dark:border-dark-border bg-surface dark:bg-dark-surface"
+              className="p-5 rounded-xl gradient-convex"
             >
               <div className="flex items-center justify-between mb-3">
                 <span className="text-sm text-text-2 dark:text-dark-text-2">
                   {kpi.label}
                 </span>
-                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-lg bg-surface-2 gradient-concave shadow-inner-subtle ring-1 ring-black/5 flex items-center justify-center dark:bg-dark-surface-2 dark:ring-white/10">
                   <Icon className="w-4 h-4 text-primary" />
                 </div>
               </div>
@@ -151,16 +157,15 @@ export default function DashboardClient({
                 {kpi.value}
               </div>
               <div
-                className={`text-xs font-medium flex items-center gap-1 ${
-                  kpi.up
+                className={`text-xs font-medium flex items-center gap-1 ${kpi.up
                     ? "text-green-600 dark:text-green-400"
                     : "text-text-3 dark:text-dark-text-3"
-                }`}
+                  }`}
               >
                 {kpi.up && <ArrowUpRight className="w-3 h-3" />}
                 {kpi.change}
               </div>
-            </div>
+            </Card>
           );
         })}
       </div>
@@ -168,7 +173,7 @@ export default function DashboardClient({
       {/* Charts Row */}
       <div className="grid lg:grid-cols-3 gap-4">
         {/* Revenue vs Expenses Chart */}
-        <div className="lg:col-span-2 p-5 rounded-xl border border-border dark:border-dark-border bg-surface dark:bg-dark-surface">
+        <Card className="lg:col-span-2 p-5 rounded-xl">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h3 className="font-semibold text-sm text-text-1 dark:text-dark-text-1">
@@ -180,59 +185,69 @@ export default function DashboardClient({
             </div>
           </div>
           <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={revenueData}>
-                <defs>
-                  <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#166534" stopOpacity={0.2} />
-                    <stop offset="100%" stopColor="#166534" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  className="stroke-light-border dark:stroke-dark-border"
-                />
-                <XAxis
-                  dataKey="month"
-                  tick={{ fontSize: 12 }}
-                  className="fill-light-text-tertiary dark:fill-dark-text-tertiary"
-                />
-                <YAxis
-                  tickFormatter={(v) => `₦${formatNaira(v)}`}
-                  tick={{ fontSize: 12 }}
-                  className="fill-light-text-tertiary dark:fill-dark-text-tertiary"
-                />
-                <Tooltip
-                  formatter={(v) => [`₦${Number(v).toLocaleString()}`, ""]}
-                  contentStyle={{
-                    backgroundColor: "var(--tooltip-bg, #fff)",
-                    border: "1px solid var(--tooltip-border, #e5e7eb)",
-                    borderRadius: 8,
-                    fontSize: 12,
-                  }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="revenue"
-                  stroke="#166534"
-                  fill="url(#revGrad)"
-                  strokeWidth={2}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="expenses"
-                  stroke="#ef4444"
-                  fill="transparent"
-                  strokeWidth={1.5}
-                  strokeDasharray="4 4"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+            {hasRevenueData ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={revenueData}>
+                  <defs>
+                    <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#166534" stopOpacity={0.2} />
+                      <stop offset="100%" stopColor="#166534" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    className="stroke-light-border dark:stroke-dark-border"
+                  />
+                  <XAxis
+                    dataKey="month"
+                    tick={{ fontSize: 12 }}
+                    className="fill-light-text-tertiary dark:fill-dark-text-tertiary"
+                  />
+                  <YAxis
+                    tickFormatter={(v) => `₦${formatNaira(v)}`}
+                    tick={{ fontSize: 12 }}
+                    className="fill-light-text-tertiary dark:fill-dark-text-tertiary"
+                  />
+                  <Tooltip
+                    formatter={(v) => [`₦${Number(v).toLocaleString()}`, ""]}
+                    contentStyle={{
+                      backgroundColor: "var(--tooltip-bg, #fff)",
+                      border: "1px solid var(--tooltip-border, #e5e7eb)",
+                      borderRadius: 8,
+                      fontSize: 12,
+                    }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="revenue"
+                    stroke="#166534"
+                    fill="url(#revGrad)"
+                    strokeWidth={2}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="expenses"
+                    stroke="#ef4444"
+                    fill="transparent"
+                    strokeWidth={1.5}
+                    strokeDasharray="4 4"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <EmptyState
+                icon={TrendingUp}
+                title="No revenue data yet"
+                description="Upload transactions to see your revenue and expenses over time."
+                action={{ label: "Upload transactions", href: "/transactions/upload" }}
+                className="h-full justify-center"
+              />
+            )}
           </div>
-        </div>
+        </Card>
 
         {/* Tax Breakdown */}
-        <div className="p-5 rounded-xl border border-border dark:border-dark-border bg-surface dark:bg-dark-surface">
+        <Card className="p-5 rounded-xl">
           <h3 className="font-semibold text-sm text-text-1 dark:text-dark-text-1 mb-1">
             Tax Breakdown
           </h3>
@@ -286,11 +301,11 @@ export default function DashboardClient({
               </div>
             ))}
           </div>
-        </div>
+        </Card>
       </div>
 
       {/* Recent Transactions */}
-      <div className="rounded-xl border border-border dark:border-dark-border bg-surface dark:bg-dark-surface">
+      <Card className="rounded-xl">
         <div className="flex items-center justify-between p-5 border-b border-border dark:border-dark-border">
           <div>
             <h3 className="font-semibold text-sm text-text-1 dark:text-dark-text-1">
@@ -307,68 +322,77 @@ export default function DashboardClient({
             View All
           </Link>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border dark:border-dark-border">
-                <th className="text-left font-medium text-text-3 dark:text-dark-text-3 px-5 py-3 text-xs">
-                  Transaction
-                </th>
-                <th className="text-left font-medium text-text-3 dark:text-dark-text-3 px-5 py-3 text-xs hidden sm:table-cell">
-                  Date
-                </th>
-                <th className="text-left font-medium text-text-3 dark:text-dark-text-3 px-5 py-3 text-xs hidden md:table-cell">
-                  Status
-                </th>
-                <th className="text-right font-medium text-text-3 dark:text-dark-text-3 px-5 py-3 text-xs">
-                  Amount
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentTransactions.map((txn) => (
-                <tr
-                  key={txn.id}
-                  className="border-b border-border/50 dark:border-dark-border/50 last:border-0 hover:bg-surface-2 dark:hover:bg-dark-surface-hover transition-colors"
-                >
-                  <td className="px-5 py-3.5">
-                    <div className="font-medium text-sm text-text-1 dark:text-dark-text-1">
-                      {txn.desc}
-                    </div>
-                    <div className="text-xs text-text-3 dark:text-dark-text-3 mt-0.5">
-                      {txn.id}
-                    </div>
-                  </td>
-                  <td className="px-5 py-3.5 text-text-2 dark:text-dark-text-2 text-xs hidden sm:table-cell">
-                    {txn.date}
-                  </td>
-                  <td className="px-5 py-3.5 hidden md:table-cell">
-                    <span
-                      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                        txn.status === "completed"
-                          ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                          : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-                      }`}
-                    >
-                      {txn.status}
-                    </span>
-                  </td>
-                  <td
-                    className={`px-5 py-3.5 text-right font-medium text-sm ${
-                      txn.amount > 0
-                        ? "text-green-600 dark:text-green-400"
-                        : "text-text-1 dark:text-dark-text-1"
-                    }`}
-                  >
-                    {txn.amount > 0 ? "+" : ""}₦
-                    {Math.abs(txn.amount).toLocaleString()}
-                  </td>
+        {recentTransactions.length === 0 ? (
+          <div className="p-6">
+            <EmptyState
+              icon={FileText}
+              title="No transactions yet"
+              description="Once you upload a statement, your latest activity will show up here."
+              action={{ label: "Upload transactions", href: "/transactions/upload" }}
+            />
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border dark:border-dark-border">
+                  <th className="text-left font-medium text-text-3 dark:text-dark-text-3 px-5 py-3 text-xs">
+                    Transaction
+                  </th>
+                  <th className="text-left font-medium text-text-3 dark:text-dark-text-3 px-5 py-3 text-xs hidden sm:table-cell">
+                    Date
+                  </th>
+                  <th className="text-left font-medium text-text-3 dark:text-dark-text-3 px-5 py-3 text-xs hidden md:table-cell">
+                    Status
+                  </th>
+                  <th className="text-right font-medium text-text-3 dark:text-dark-text-3 px-5 py-3 text-xs">
+                    Amount
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+              </thead>
+              <tbody>
+                {recentTransactions.map((txn) => (
+                  <tr
+                    key={txn.id}
+                    className="border-b border-border/50 dark:border-dark-border/50 last:border-0 hover:bg-surface-2 dark:hover:bg-dark-surface-hover transition-colors"
+                  >
+                    <td className="px-5 py-3.5">
+                      <div className="font-medium text-sm text-text-1 dark:text-dark-text-1">
+                        {txn.desc}
+                      </div>
+                      <div className="text-xs text-text-3 dark:text-dark-text-3 mt-0.5">
+                        {txn.id}
+                      </div>
+                    </td>
+                    <td className="px-5 py-3.5 text-text-2 dark:text-dark-text-2 text-xs hidden sm:table-cell">
+                      {txn.date}
+                    </td>
+                    <td className="px-5 py-3.5 hidden md:table-cell">
+                      <span
+                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${txn.status === "completed"
+                            ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                            : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                          }`}
+                      >
+                        {txn.status}
+                      </span>
+                    </td>
+                    <td
+                      className={`px-5 py-3.5 text-right font-medium text-sm ${txn.amount > 0
+                          ? "text-green-600 dark:text-green-400"
+                          : "text-text-1 dark:text-dark-text-1"
+                        }`}
+                    >
+                      {txn.amount > 0 ? "+" : ""}₦
+                      {Math.abs(txn.amount).toLocaleString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
     </div>
   );
 }

@@ -1,11 +1,14 @@
 "use client";
 
+import type { ReactNode } from "react";
+import { Card } from "@/components/ui/card";
+
 interface StatCard {
   label: string;
   value: string;
   change?: string;
   changeType?: "positive" | "negative" | "neutral";
-  icon: string;
+  icon: ReactNode;
 }
 
 interface StatsCardsProps {
@@ -16,12 +19,9 @@ export function StatsCards({ stats }: StatsCardsProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {stats.map((stat, index) => (
-        <div
-          key={index}
-          className="bg-light-surface dark:bg-dark-surface rounded-lg border border-light-border dark:border-dark-border p-6 hover:shadow-md transition-shadow"
-        >
+        <Card key={index} className="p-6">
           <div className="flex items-center justify-between mb-4">
-            <span className="text-3xl">{stat.icon}</span>
+            <span className="text-primary">{stat.icon}</span>
             {stat.change && (
               <span
                 className={`text-sm font-medium ${
@@ -29,20 +29,20 @@ export function StatsCards({ stats }: StatsCardsProps) {
                     ? "text-green-600"
                     : stat.changeType === "negative"
                       ? "text-red-600"
-                      : "text-light-text-secondary dark:text-dark-text-secondary"
+                      : "text-text-3 dark:text-dark-text-3"
                 }`}
               >
                 {stat.change}
               </span>
             )}
           </div>
-          <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-1">
+          <p className="text-sm text-text-3 dark:text-dark-text-3 mb-1">
             {stat.label}
           </p>
-          <p className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">
+          <p className="text-2xl font-bold text-text-1 dark:text-dark-text-1">
             {stat.value}
           </p>
-        </div>
+        </Card>
       ))}
     </div>
   );

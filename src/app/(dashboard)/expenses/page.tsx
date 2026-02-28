@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Wallet, Plus, Search, ChevronRight } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface Expense {
   id: string;
@@ -141,8 +142,13 @@ export default function ExpensesPage() {
         {loading ? (
           <div className="p-8 text-center text-muted-foreground">Loading…</div>
         ) : expenses.length === 0 ? (
-          <div className="p-8 text-center text-muted-foreground">
-            No expenses found. Add one from the mobile app or create via API.
+          <div className="p-6">
+            <EmptyState
+              icon={Wallet}
+              title="No expenses yet"
+              description="Upload a bank statement to automatically detect and categorize expenses."
+              action={{ label: "Upload bank statement", href: "/transactions/upload" }}
+            />
           </div>
         ) : (
           <ul className="divide-y divide-border">

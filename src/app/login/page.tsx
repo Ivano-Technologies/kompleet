@@ -147,31 +147,36 @@ function LoginForm() {
                 className="w-full mt-2 bg-surface dark:bg-dark-surface border-2 border-border dark:border-dark-border rounded-md p-3 text-sm text-text-1 dark:text-dark-text-1 focus:border-accent focus:ring-2 focus:ring-accent/20"
               />
             </div>
-            <div>
+            <div className="flex justify-between items-center mt-2 mb-2">
               <label className="text-xs font-bold text-text-2 dark:text-dark-text-2 uppercase tracking-wider">
                 Password
               </label>
-              <input
-                type="password"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full mt-2 bg-surface-2 dark:bg-dark-surface-2 border-2 border-border dark:border-dark-border rounded-md p-3 text-sm text-text-1 dark:text-dark-text-1 focus:border-accent focus:ring-2 focus:ring-accent/20"
-              />
+              <Link href="/forgot-password" className="text-xs font-bold text-primary hover:underline">
+                Forgot Password?
+              </Link>
+            </div>
+            <input
+              type="password"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="w-full bg-surface-2 dark:bg-dark-surface-2 border-2 border-border dark:border-dark-border rounded-md p-3 text-sm text-text-1 dark:text-dark-text-1 focus:border-accent focus:ring-2 focus:ring-accent/20"
+            />
+            <div className="pt-2">
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-accent text-charcoal font-bold text-sm py-3.5 rounded-md shadow-accent hover:bg-accent-hover transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:transform-none"
+              >
+                {loading ? "Signing in…" : "Sign In →"}
+              </button>
             </div>
             <div className="flex justify-end -mt-2">
               <Link href="/forgot-password" className="text-xs text-primary hover:text-primary-deep hover:underline transition-colors">
                 Forgot password?
               </Link>
             </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-accent text-charcoal font-bold text-sm py-3.5 rounded-md shadow-accent hover:bg-accent-hover transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:transform-none"
-            >
-              {loading ? "Signing in…" : "Sign In →"}
-            </button>
           </form>
           <p className="text-center text-sm text-text-3 dark:text-dark-text-3 mt-6">
             New to Kompleet?{" "}

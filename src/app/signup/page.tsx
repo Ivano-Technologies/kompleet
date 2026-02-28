@@ -35,6 +35,7 @@ export default function SignUpPage() {
   const [lastName, setLastName] = useState('');
   const [businessName, setBusinessName] = useState('');
   const [businessEmail, setBusinessEmail] = useState('');
+  const [businessName, setBusinessName] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -162,10 +163,7 @@ export default function SignUpPage() {
           }}
         />
         {/* Top bar */}
-        <div className="relative z-20 flex items-center justify-between p-6 border-b border-border dark:border-dark-border">
-          <Link href="/" className="flex items-center gap-2 text-sm text-text-3 dark:text-dark-text-3 hover:text-text-1 dark:hover:text-dark-text-1 transition-colors">
-            <ArrowLeft className="w-4 h-4" /> Back
-          </Link>
+        <div className="relative z-20 flex items-center justify-end p-6 border-b border-border dark:border-dark-border">
           <div className="flex items-center gap-3">
             <span className="text-sm text-text-3 dark:text-dark-text-3">
               Already have an account?{' '}
