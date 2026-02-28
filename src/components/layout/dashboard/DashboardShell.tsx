@@ -1,7 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useEffect, type ReactNode } from "react";
 import { useSearchParams } from "next/navigation";
+import { Bug } from "lucide-react";
 import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
 import { SettingsModal } from "./SettingsModal";
@@ -59,6 +61,16 @@ export function DashboardShell({ user, children }: DashboardShellProps) {
         userRole={user.role}
         initialSection={settingsSection}
       />
+
+      {/* Report a bug — option 3: small, low-prominence floating link */}
+      <Link
+        href="/contact?subject=bug"
+        className="fixed bottom-4 right-4 z-20 flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-surface-2/90 dark:bg-dark-surface/90 border border-border dark:border-dark-border text-[11px] text-text-4 dark:text-dark-text-3 hover:text-text-2 dark:hover:text-dark-text-1 transition-colors shadow-sm"
+        title="Report a bug"
+      >
+        <Bug className="w-3 h-3 shrink-0" />
+        <span>Report a bug</span>
+      </Link>
     </div>
   );
 }

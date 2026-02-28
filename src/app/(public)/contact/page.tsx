@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function ContactPage() {
   return (
-    <div className="min-h-screen bg-[rgb(var(--background))] text-[rgb(var(--text-primary))] flex flex-col">
+    <div className="min-h-screen bg-[rgb(var(--background))] dark:bg-dark-bg text-[rgb(var(--text-primary))] dark:text-dark-text-1 flex flex-col">
       <LandingNav />
 
       <main className="flex-1 py-16 px-6 sm:px-12 md:px-24 max-w-7xl mx-auto w-full">
@@ -40,22 +40,22 @@ export default function ContactPage() {
               <h3 className="font-display font-bold text-lg mb-2">
                 Email Us
               </h3>
-              <p className="text-sm text-[rgb(var(--text-secondary))] mb-1">
+              <p className="text-sm text-[rgb(var(--text-secondary))] dark:text-white mb-1">
                 General:{" "}
                 <a
-                  href="mailto:hi@kompleet.com"
-                  className="text-primary hover:underline font-medium"
+                  href="mailto:hi@ivanotechnologies.com"
+                  className="text-primary dark:text-white hover:underline font-medium"
                 >
-                  hi@kompleet.com
+                  hi@ivanotechnologies.com
                 </a>
               </p>
-              <p className="text-sm text-[rgb(var(--text-secondary))]">
+              <p className="text-sm text-[rgb(var(--text-secondary))] dark:text-white">
                 Support:{" "}
                 <a
-                  href="mailto:support@kompleet.com"
-                  className="text-primary hover:underline font-medium"
+                  href="mailto:support@ivanotechnologies.com"
+                  className="text-primary dark:text-white hover:underline font-medium"
                 >
-                  support@kompleet.com
+                  support@ivanotechnologies.com
                 </a>
               </p>
             </div>

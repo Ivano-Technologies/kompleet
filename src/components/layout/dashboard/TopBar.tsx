@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, Bell, ChevronRight } from "lucide-react";
+import { Menu, Bell, ChevronRight, Sun, Moon } from "lucide-react";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const pageTitles: Record<string, string> = {
   "/dashboard": "Dashboard",
@@ -27,6 +28,8 @@ const pageTitles: Record<string, string> = {
   "/reports": "Reports",
   "/reports/profit-loss": "Profit & Loss",
   "/reports/balance-sheet": "Balance Sheet",
+  "/reports/cash-flow": "Cash Flow",
+  "/reports/tax-summary": "Tax Summary",
   "/reports/expense-reports": "Expense Reports",
   "/filing": "Tax Filing",
   "/notifications": "Notifications",
@@ -62,6 +65,7 @@ interface TopBarProps {
 
 export function TopBar({ onMenuToggle, onOpenSettings }: TopBarProps) {
   const pathname = usePathname();
+  const { theme, setTheme } = useTheme();
   const breadcrumbs = getBreadcrumbs(pathname || "/dashboard");
   const pageTitle = pageTitles[pathname || ""] || "Dashboard";
 
@@ -115,8 +119,16 @@ export function TopBar({ onMenuToggle, onOpenSettings }: TopBarProps) {
           </span>
         </div>
 
-        {/* Right: Settings (opens modal; notifications moved inside Settings) */}
-        <div className="flex items-center gap-2">
+        {/* Right: Theme toggle + Notifications/Settings */}
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+            className="p-2 rounded-lg text-text-2 dark:text-dark-text-2 hover:bg-surface-2 dark:hover:bg-dark-surface-hover transition-colors"
+            aria-label="Toggle theme"
+          >
+            {theme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
+          </button>
           {onOpenSettings && (
             <button
               type="button"

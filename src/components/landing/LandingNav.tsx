@@ -15,30 +15,27 @@ export default function LandingNav() {
   return (
     <nav className="sticky top-0 z-50 border-b border-[rgb(var(--border))] bg-[rgb(var(--background))]/90 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex h-16 items-center justify-between">
-        <Link href="/" className="flex items-center gap-2.5">
+        <Link href="/dashboard" className="flex items-center gap-2.5">
           <Image src={LOGO_URL} alt="KOMPLEET" width={32} height={32} className="rounded" />
-          <span className="text-lg font-bold tracking-tight text-[rgb(var(--text-primary))]">
+          <span className="font-ceoruse text-lg font-bold tracking-wider text-[rgb(var(--text-primary))]">
             KOMPLEET
           </span>
         </Link>
 
-        {/* Desktop nav — Features and Contact only */}
-        <div className="hidden md:flex items-center gap-8">
+        {/* Desktop nav — Features and Contact closer to Login + theme toggle */}
+        <div className="hidden md:flex items-center gap-4 flex-1 justify-end">
           <a
             href="#features"
             className="text-sm font-medium text-[rgb(var(--text-secondary))] hover:text-[rgb(var(--text-primary))] transition-colors"
           >
             Features
           </a>
-          <a
-            href="#contact"
+          <Link
+            href="/contact"
             className="text-sm font-medium text-[rgb(var(--text-secondary))] hover:text-[rgb(var(--text-primary))] transition-colors"
           >
             Contact
-          </a>
-        </div>
-
-        <div className="hidden md:flex items-center gap-3">
+          </Link>
           <button
             onClick={toggleTheme}
             className="p-2 rounded-md border border-[rgb(var(--border))] hover:bg-[rgb(var(--surface))] transition-colors"
@@ -75,9 +72,9 @@ export default function LandingNav() {
           <a href="#features" className="block text-sm font-medium py-2 text-[rgb(var(--text-primary))]">
             Features
           </a>
-          <a href="#contact" className="block text-sm font-medium py-2 text-[rgb(var(--text-primary))]">
+          <Link href="/contact" className="block text-sm font-medium py-2 text-[rgb(var(--text-primary))]">
             Contact
-          </a>
+          </Link>
           <button
             onClick={toggleTheme}
             className="w-full p-2 rounded-md border border-[rgb(var(--border))] hover:bg-[rgb(var(--surface))] transition-colors flex items-center justify-center gap-2"

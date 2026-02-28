@@ -128,7 +128,7 @@ export default function SignUpPage() {
         />
         {/* Logo */}
         <div className="relative z-20">
-          <Link href="/" className="flex items-center gap-3">
+          <Link href="/dashboard" className="flex items-center gap-3">
             <Image src={LOGO_URL} alt="KOMPLEET" width={40} height={40} className="rounded-lg shadow-4" />
             <span className="font-ceoruse text-xl font-bold text-white">KOMPLEET</span>
           </Link>
@@ -138,7 +138,7 @@ export default function SignUpPage() {
           <h2 className="font-display text-3xl md:text-4xl font-bold text-white leading-tight tracking-tighter">
             Control Your Money.
             <br />
-            <em className="text-accent not-italic">Grow</em> Your Business.
+            <em className="text-accent not-italic">Grow Your Business.</em>
           </h2>
           <p className="text-base text-white/50 max-w-sm">
             The financial operating system for Nigerian SMEs.
@@ -161,21 +161,21 @@ export default function SignUpPage() {
               'radial-gradient(ellipse 75% 75% at 50% 50%, transparent 50%, rgba(0,0,0,0.3) 68%, rgba(0,0,0,0.7) 84%, black 100%)',
           }}
         />
-        {/* Top bar */}
-        <div className="relative z-20 flex items-center justify-end p-6 border-b border-border dark:border-dark-border">
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-text-3 dark:text-dark-text-3">
-              Already have an account?{' '}
-              <Link href="/login" className="font-bold text-primary hover:underline">Log in</Link>
-            </span>
-            <button
-              onClick={toggleTheme}
-              className="p-2 rounded-md border border-border dark:border-dark-border hover:bg-surface-2 dark:hover:bg-dark-surface-2 transition-colors"
-              aria-label="Toggle theme"
-            >
-              {theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
-            </button>
-          </div>
+        {/* Top bar — Features, Contact, theme, Log in */}
+        <div className="relative z-20 flex items-center justify-end gap-4 p-6 border-b border-border dark:border-dark-border">
+          <Link href="/#features" className="text-xs font-medium text-text-2 dark:text-dark-text-2 hover:text-primary">Features</Link>
+          <Link href="/contact" className="text-xs font-medium text-text-2 dark:text-dark-text-2 hover:text-primary">Contact</Link>
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-md border border-border dark:border-dark-border hover:bg-surface-2 dark:hover:bg-dark-surface-2 transition-colors"
+            aria-label="Toggle theme"
+          >
+            {theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+          </button>
+          <span className="text-sm text-text-3 dark:text-dark-text-3">
+            Already have an account?{' '}
+            <Link href="/login" className="font-bold text-primary hover:underline">Log in</Link>
+          </span>
         </div>
 
         {/* Form */}

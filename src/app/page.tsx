@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Landmark } from "lucide-react";
+import { Landmark, Zap, FileUp, BarChart3 } from "lucide-react";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 
@@ -13,14 +13,27 @@ const navLinks = [
 ];
 
 const trustBarItems = [
-  "Mobile-First Design",
-  "Real-Time Expense Tracking",
   "Instant Invoicing",
-  "NDPR Compliant",
-  "256-bit SSL",
-  "Nigerian Data Residency",
-  "CAC Integrated",
-  "Free During Beta",
+  "Real-Time Expense Tracking",
+  "Mobile-First Design",
+];
+
+const featuredCards = [
+  {
+    icon: Zap,
+    title: "Automated VAT & WHT",
+    desc: "Auto-calculate and generate reports for value-added and withholding taxes under the 2025 Nigeria Tax Act.",
+  },
+  {
+    icon: FileUp,
+    title: "Direct Filing",
+    desc: "Streamlined process to submit directly to FIRS and LIRS portals with pre-filled forms.",
+  },
+  {
+    icon: BarChart3,
+    title: "Real-time Analytics",
+    desc: "Gain visibility into revenue, expenses, and tax obligations with interactive dashboards.",
+  },
 ];
 
 const features = [
@@ -77,7 +90,7 @@ const testimonials = [
 
 export default function HomePage() {
   return (
-    <div className="bg-bg text-text-1">
+    <div className="bg-bg dark:bg-dark-bg text-text-1 dark:text-dark-text-1">
       <LandingNav />
 
       {/* Hero Section */}
@@ -170,6 +183,30 @@ export default function HomePage() {
             the financial complexity so you can focus on growth.
           </p>
         </div>
+
+        {/* Featured row: 3 skeuomorphic cards (Automated VAT & WHT, Direct Filing, Real-time Analytics) */}
+        <div className="grid md:grid-cols-3 gap-6 mb-12">
+          {featuredCards.map((card) => {
+            const Icon = card.icon;
+            return (
+              <div
+                key={card.title}
+                className="bg-dark-surface dark:bg-dark-surface border border-dark-border dark:border-dark-border rounded-xl shadow-outer-soft border-t border-l border-white/10 dark:border-white/5 p-6 flex flex-col"
+              >
+                <div className="w-11 h-11 rounded-lg bg-dark-surface-2 dark:bg-dark-surface-2 flex items-center justify-center mb-4 shadow-inner-subtle gradient-convex border border-white/10">
+                  <Icon className="w-5 h-5 text-accent" />
+                </div>
+                <h3 className="font-display text-lg font-bold text-white mb-2">
+                  {card.title}
+                </h3>
+                <p className="text-sm text-white/70 dark:text-dark-text-3 leading-relaxed flex-1">
+                  {card.desc}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+
         {/* Top row: 2 large image cards */}
         <div className="grid md:grid-cols-2 gap-6 mb-6">
           {features.filter(f => f.image).map((f) => (

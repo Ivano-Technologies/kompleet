@@ -122,7 +122,7 @@ export interface GetRulesRequest {
 
 export interface GetRulesResponse {
   rules: TaxRule[];
-  version: RuleVersion;
+  version: RuleVersion | null;
   source: string;
 }
 

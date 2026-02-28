@@ -20,9 +20,9 @@ export default function HeroButtons() {
         <Link
           href="/signup"
           className="btn-primary btn-with-icon px-8 py-4 rounded-lg font-bold text-lg"
-          aria-label="Start for free"
+          aria-label="Get started for free"
         >
-          Start for Free <ArrowRight className="w-5 h-5" />
+          Get started for Free <ArrowRight className="w-5 h-5" />
         </Link>
         <button
           type="button"

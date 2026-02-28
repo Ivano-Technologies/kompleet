@@ -327,6 +327,14 @@ export function Sidebar({
           <LogOut className="w-[18px] h-[18px] shrink-0" />
           <span>{signingOut ? "Signing out…" : "Sign Out"}</span>
         </button>
+
+        <a
+          href="/contact?subject=bug"
+          className="block text-center text-[10px] text-white/30 hover:text-white/50 mt-1.5 py-0.5 transition-colors"
+          title="Report a bug"
+        >
+          Report a bug
+        </a>
       </div>
     </div>
   );

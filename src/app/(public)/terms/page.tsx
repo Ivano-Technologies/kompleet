@@ -474,10 +474,10 @@ export default function TermsPage() {
             <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
               If you have any dispute with us, please contact us first at{" "}
               <a
-                href="mailto:support@techivano.com"
+                href="mailto:support@ivanotechnologies.com"
                 className="text-blue-600 hover:underline"
               >
-                support@techivano.com
+                support@ivanotechnologies.com
               </a>{" "}
               to attempt to resolve the issue informally.
             </p>
@@ -591,10 +591,10 @@ export default function TermsPage() {
               <p className="text-light-text-secondary dark:text-dark-text-secondary mb-2">
                 Email:{" "}
                 <a
-                  href="mailto:support@techivano.com"
+                  href="mailto:support@ivanotechnologies.com"
                   className="text-blue-600 hover:underline"
                 >
-                  support@techivano.com
+                  support@ivanotechnologies.com
                 </a>
               </p>
               <p className="text-light-text-secondary dark:text-dark-text-secondary mb-2">
