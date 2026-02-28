@@ -14,9 +14,10 @@
  * - message: string
  */
 
+export const runtime = "nodejs";
+
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseForRequest } from "@/lib/supabase/server";
-import { ingestStatement } from "@/lib/ingestion/ingestionWorker";
 import { IngestionRequest } from "@/lib/ingestion/types";
 
 export async function POST(request: NextRequest) {
@@ -63,7 +64,11 @@ export async function POST(request: NextRequest) {
     // 4. Create source file record
     const sourceFileId = crypto.randomUUID();
 
-    // 5. Run ingestion
+    // 5. Run ingestion (dynamic import to prevent build-time evaluation)
+    const { ingestStatement } = await import(
+      "@/lib/ingestion/ingestionWorker"
+    );
+
     const ingestionRequest: IngestionRequest = {
       file,
       password: password || undefined,
@@ -97,7 +102,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        message: `Ingestion failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+        message: `Ingestion failed: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
         errors: [
           {
             rowNumber: 0,
@@ -115,7 +122,7 @@ export async function POST(request: NextRequest) {
 /**
  * OPTIONS handler for CORS
  */
-export async function OPTIONS(request: NextRequest) {
+export async function OPTIONS() {
   return new NextResponse(null, {
     status: 200,
     headers: {
