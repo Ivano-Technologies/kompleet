@@ -76,20 +76,27 @@ const nextConfig = {
   },
 };
 
-export default withSentryConfig(nextConfig, {
-  org: "ivano-technologies",
-  project: "kompleet-platform",
-  authToken: process.env.SENTRY_AUTH_TOKEN,
-  widenClientFileUpload: true,
-  silent: !process.env.CI,
-  telemetry: false,
-  tunnelRoute: "/monitoring",
-  hideSourceMaps: true,
-  webpack: {
-    autoInstrumentServerFunctions: false,
-    treeshake: {
-      removeDebugLogging: true,
+export default withSentryConfig(
+  nextConfig,
+  {
+    org: "ivano-technologies",
+    project: "kompleet-platform",
+    authToken: process.env.SENTRY_AUTH_TOKEN,
+    silent: !process.env.CI,
+    telemetry: false,
+    tunnelRoute: "/monitoring",
+    disableClientSourceMaps: true,
+    disableServerSourceMaps: true,
+    webpack: {
+      autoInstrumentServerFunctions: false,
+      treeshake: {
+        removeDebugLogging: true,
+      },
     },
   },
-});
+  {
+    widenClientFileUpload: true,
+    hideSourceMaps: true,
+  }
+);
 
