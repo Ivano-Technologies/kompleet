@@ -299,7 +299,7 @@ export default function TransactionUploadPage() {
 
         <div className="mt-6">
           <button
-            onClick={handleUpload}
+            onClick={() => handleUpload()}
             disabled={!file || !bankCode || uploading}
             className="w-full btn-primary"
           >

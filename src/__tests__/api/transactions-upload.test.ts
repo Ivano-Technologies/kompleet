@@ -51,7 +51,7 @@ describe("POST /api/transactions/upload-v2", () => {
 
     expect(res.status).toBe(401);
     const data = await res.json();
-    expect(data.error).toMatch(/[Uu]nauthorized|Unauthorized/);
+    expect(data.error).toMatch(/[Uu]nauthorized|sign in/);
   });
 });
 
