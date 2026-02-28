@@ -69,10 +69,10 @@ export default function TransactionsPage() {
       const params = new URLSearchParams({
         page: pagination.page.toString(),
         limit: pagination.limit.toString(),
-        ...(filters.search && { search: filters.search }),
-        ...(filters.type && { type: filters.type }),
-        ...(filters.startDate && { startDate: filters.startDate }),
-        ...(filters.endDate && { endDate: filters.endDate }),
+        ...(filters.search ? { search: filters.search } : {}),
+        ...(filters.type ? { type: filters.type } : {}),
+        ...(filters.startDate ? { startDate: filters.startDate } : {}),
+        ...(filters.endDate ? { endDate: filters.endDate } : {}),
       });
 
       const response = await fetch(`/api/transactions?${params}`);
@@ -162,9 +162,9 @@ export default function TransactionsPage() {
     try {
       const params = new URLSearchParams({
         format,
-        ...(filters.type && { type: filters.type }),
-        ...(filters.startDate && { startDate: filters.startDate }),
-        ...(filters.endDate && { endDate: filters.endDate }),
+        ...(filters.type ? { type: filters.type } : {}),
+        ...(filters.startDate ? { startDate: filters.startDate } : {}),
+        ...(filters.endDate ? { endDate: filters.endDate } : {}),
       });
 
       const response = await fetch(`/api/transactions/export?${params}`);
@@ -427,11 +427,10 @@ export default function TransactionsPage() {
                       </td>
                       <td className="px-5 py-3.5 text-right">
                         <span
-                          className={`font-semibold text-sm ${
-                            transaction.transaction_type === "credit"
-                              ? "text-green-600 dark:text-green-400"
-                              : "text-light-text-primary dark:text-dark-text-primary"
-                          }`}
+                          className={`font-semibold text-sm ${transaction.transaction_type === "credit"
+                            ? "text-green-600 dark:text-green-400"
+                            : "text-light-text-primary dark:text-dark-text-primary"
+                            }`}
                         >
                           {transaction.transaction_type === "credit" ? "+" : ""}
                           {formatCurrency(transaction.amount)}
@@ -439,11 +438,10 @@ export default function TransactionsPage() {
                       </td>
                       <td className="px-5 py-3.5 text-center hidden sm:table-cell">
                         <span
-                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                            transaction.is_reconciled
-                              ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                              : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-                          }`}
+                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${transaction.is_reconciled
+                            ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                            : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                            }`}
                         >
                           {transaction.is_reconciled ? "Reconciled" : "Pending"}
                         </span>

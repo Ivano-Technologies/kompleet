@@ -42,9 +42,9 @@ export default function ExpensesPage() {
       const params = new URLSearchParams({
         page: "1",
         limit: "100",
-        ...(filters.startDate && { startDate: filters.startDate }),
-        ...(filters.endDate && { endDate: filters.endDate }),
-        ...(filters.categoryId && { categoryId: filters.categoryId }),
+        ...(filters.startDate ? { startDate: filters.startDate } : {}),
+        ...(filters.endDate ? { endDate: filters.endDate } : {}),
+        ...(filters.categoryId ? { categoryId: filters.categoryId } : {}),
       });
       const res = await fetch(`/api/expenses?${params}`);
       const data = await res.json();
@@ -69,7 +69,7 @@ export default function ExpensesPage() {
     fetch("/api/expenses/categories")
       .then((r) => r.json())
       .then((d) => setCategories(d.categories ?? []))
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const formatCurrency = (amount: number, currency: string) =>
