@@ -104,7 +104,7 @@ export default function HomePage() {
             <div className="inline-flex items-center gap-2 bg-accent/10 border border-accent/25 rounded-full px-4 py-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
               <span className="text-xs font-bold text-accent uppercase tracking-widest">
-                Built for Nigerian Business
+                Built for Nigerian SMEs
               </span>
             </div>
             <h1 className="font-display text-4xl md:text-5xl font-bold leading-tight tracking-tighter">
@@ -191,15 +191,15 @@ export default function HomePage() {
             return (
               <div
                 key={card.title}
-                className="bg-dark-surface dark:bg-dark-surface border border-dark-border dark:border-dark-border rounded-xl shadow-outer-soft border-t border-l border-white/10 dark:border-white/5 p-6 flex flex-col"
+                className="bg-surface dark:bg-dark-surface border border-border dark:border-dark-border rounded-xl shadow-outer-soft border-t border-l border-black/5 dark:border-white/5 p-6 flex flex-col"
               >
-                <div className="w-11 h-11 rounded-lg bg-dark-surface-2 dark:bg-dark-surface-2 flex items-center justify-center mb-4 shadow-inner-subtle gradient-convex border border-white/10">
+                <div className="w-11 h-11 rounded-lg bg-surface-2 dark:bg-dark-surface-2 flex items-center justify-center mb-4 shadow-inner-subtle gradient-convex border border-black/5 dark:border-white/10">
                   <Icon className="w-5 h-5 text-accent" />
                 </div>
-                <h3 className="font-display text-lg font-bold text-white mb-2">
+                <h3 className="font-display text-lg font-bold text-text-1 dark:text-dark-text-1 mb-2">
                   {card.title}
                 </h3>
-                <p className="text-sm text-white/70 dark:text-dark-text-3 leading-relaxed flex-1">
+                <p className="text-sm text-text-3 dark:text-dark-text-3 leading-relaxed flex-1">
                   {card.desc}
                 </p>
               </div>
@@ -215,12 +215,12 @@ export default function HomePage() {
               className="bg-surface dark:bg-dark-surface border border-border dark:border-dark-border rounded-lg overflow-hidden shadow-1 hover:shadow-3 hover:-translate-y-1 transition-all relative group flex flex-col h-full"
             >
               <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="relative w-full h-56 overflow-hidden">
+              <div className="relative w-full aspect-[4/3] min-h-48 overflow-hidden">
                 <Image
                   src={f.image!}
                   alt={f.title}
                   fill
-                  className="object-cover object-top"
+                  className="object-contain"
                   sizes="(max-width: 768px) 100vw, 50vw"
                 />
               </div>

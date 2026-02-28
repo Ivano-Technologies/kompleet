@@ -332,47 +332,45 @@ export default function InvoiceDetailPage() {
             Line Items
           </h2>
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="w-full table-fixed">
               <thead className="bg-light-background dark:bg-dark-background border-b border-light-border dark:border-dark-border">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary uppercase">
+                  <th className="w-[35%] px-4 py-3 text-left text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary uppercase">
                     Description
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary uppercase">
+                  <th className="w-[10%] min-w-[4rem] px-4 py-3 text-right text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary uppercase">
                     Qty
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary uppercase">
-                    Unit Price
+                  <th className="w-[20%] min-w-[6rem] px-4 py-3 text-right text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary uppercase">
+                    Unit Price (₦)
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary uppercase">
+                  <th className="w-[10%] min-w-[4rem] px-4 py-3 text-right text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary uppercase">
                     VAT
                   </th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary uppercase">
-                    Amount
+                  <th className="w-[25%] min-w-[7rem] px-4 py-3 text-right text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary uppercase">
+                    Amount (₦)
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-light-border dark:divide-dark-border">
                 {invoice.line_items.map((item, index) => (
                   <tr key={index}>
-                    <td className="px-4 py-3 text-sm text-light-text-primary dark:text-dark-text-primary">
+                    <td className="px-4 py-3 text-sm text-light-text-primary dark:text-dark-text-primary break-words">
                       {item.description}
                     </td>
-                    <td className="px-4 py-3 text-sm text-light-text-primary dark:text-dark-text-primary text-right">
+                    <td className="px-4 py-3 text-sm text-light-text-primary dark:text-dark-text-primary text-right tabular-nums">
                       {item.quantity}
                     </td>
-                    <td className="px-4 py-3 text-sm text-light-text-primary dark:text-dark-text-primary text-right">
-                      ₦
-                      {item.unit_price.toLocaleString("en-NG", {
+                    <td className="px-4 py-3 text-sm text-light-text-primary dark:text-dark-text-primary text-right tabular-nums whitespace-nowrap">
+                      ₦{item.unit_price.toLocaleString("en-NG", {
                         minimumFractionDigits: 2,
                       })}
                     </td>
-                    <td className="px-4 py-3 text-sm text-light-text-primary dark:text-dark-text-primary text-right">
+                    <td className="px-4 py-3 text-sm text-light-text-primary dark:text-dark-text-primary text-right tabular-nums">
                       {item.vat_rate}%
                     </td>
-                    <td className="px-4 py-3 text-sm text-light-text-primary dark:text-dark-text-primary text-right">
-                      ₦
-                      {item.amount.toLocaleString("en-NG", {
+                    <td className="px-4 py-3 text-sm text-light-text-primary dark:text-dark-text-primary text-right tabular-nums whitespace-nowrap">
+                      ₦{item.amount.toLocaleString("en-NG", {
                         minimumFractionDigits: 2,
                       })}
                     </td>

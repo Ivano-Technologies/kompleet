@@ -11,6 +11,7 @@ import {
   Loader2,
   CheckCircle2,
   AlertTriangle,
+  Lock,
 } from "lucide-react";
 import { SUPPORTED_BANKS } from "@/lib/transaction-import/bank-configs";
 
@@ -34,6 +35,8 @@ export default function TransactionUploadPage() {
   const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
   const [bankCode, setBankCode] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [passwordRequired, setPasswordRequired] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [result, setResult] = useState<UploadResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -60,10 +63,11 @@ export default function TransactionUploadPage() {
       setFile(selectedFile);
       setError(null);
       setResult(null);
+      setPasswordRequired(false);
     }
   };
 
-  const handleUpload = async () => {
+  const handleUpload = async (passwordOverride?: string) => {
     if (!file) {
       setError("Please select a file");
       return;
@@ -76,15 +80,21 @@ export default function TransactionUploadPage() {
     setUploading(true);
     setError(null);
     setResult(null);
+    setPasswordRequired(false);
 
     try {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("bankCode", bankCode);
+      const pwd = passwordOverride ?? password;
+      if (pwd.trim()) {
+        formData.append("password", pwd.trim());
+      }
 
       const response = await fetch("/api/transactions/upload-v2", {
         method: "POST",
         body: formData,
+        credentials: "include",
       });
 
       const data = await response.json();
@@ -92,10 +102,14 @@ export default function TransactionUploadPage() {
       if (response.ok && data.success) {
         setResult(data as UploadResult);
         setFile(null);
+        setPassword("");
         const fileInput = document.getElementById(
           "file-input",
         ) as HTMLInputElement;
         if (fileInput) fileInput.value = "";
+      } else if (data.requiresPassword) {
+        setPasswordRequired(true);
+        setError("This file is password-protected. Please enter the password above and try again.");
       } else {
         setError(data.error || data.message || "Upload failed");
       }
@@ -164,6 +178,29 @@ export default function TransactionUploadPage() {
       </div>
 
       <div className="bg-light-surface dark:bg-dark-surface rounded-xl p-5 border border-light-border dark:border-dark-border mb-6">
+        {file && (
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2">
+              <Lock className="w-4 h-4 inline mr-1" />
+              Password (if file is encrypted)
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                setPasswordRequired(false);
+              }}
+              placeholder="Leave blank if not password-protected"
+              className="w-full px-4 py-2 border border-light-border dark:border-dark-border rounded-lg bg-light-background dark:bg-dark-background focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              aria-label="Password for encrypted file"
+            />
+            <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary mt-1">
+              We use the password only to unlock the file and never store it.
+            </p>
+          </div>
+        )}
+
         <div className="mb-6">
           <label className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2">
             Select Bank
@@ -252,6 +289,11 @@ export default function TransactionUploadPage() {
         {error && (
           <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/30 rounded-lg">
             <p className="text-red-800 dark:text-red-400 text-sm">{error}</p>
+            {passwordRequired && (
+              <p className="text-red-700 dark:text-red-300 text-sm mt-2">
+                Enter the password in the field above and click Upload again.
+              </p>
+            )}
           </div>
         )}
 

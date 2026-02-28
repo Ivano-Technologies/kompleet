@@ -9,23 +9,29 @@ import { ParsedTransaction, ParseResult, ParseError } from "./csv-parser";
 
 /**
  * Parse Excel file using bank-specific configuration
+ * @param password - Optional password for encrypted workbooks
  */
 export async function parseExcel(
   fileBuffer: Buffer,
   bankConfig: BankConfig,
+  password?: string,
 ): Promise<ParseResult> {
   const transactions: ParsedTransaction[] = [];
   const errors: ParseError[] = [];
   let totalRows = 0;
 
   try {
-    // Read workbook
-    const workbook = XLSX.read(fileBuffer, {
+    // Read workbook (password option for encrypted files)
+    const readOpts: XLSX.ParsingOptions = {
       type: "buffer",
       cellDates: true,
       cellNF: false,
       cellText: false,
-    });
+    };
+    if (password && password.trim()) {
+      readOpts.password = password;
+    }
+    const workbook = XLSX.read(fileBuffer, readOpts);
 
     // Get target sheet
     const sheetName =
@@ -90,10 +96,17 @@ export async function parseExcel(
       successfulRows: transactions.length,
     };
   } catch (error) {
+    const errMsg = error instanceof Error ? error.message : String(error);
+    if (
+      errMsg.toLowerCase().includes("password") ||
+      errMsg.toLowerCase().includes("encrypted")
+    ) {
+      throw new Error("PASSWORD_REQUIRED");
+    }
     errors.push({
       rowNumber: 0,
       errorType: "FILE_PARSING_ERROR",
-      errorMessage: error instanceof Error ? error.message : "Unknown error",
+      errorMessage: errMsg,
       rawData: {},
     });
 

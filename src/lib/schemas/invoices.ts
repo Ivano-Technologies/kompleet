@@ -5,7 +5,9 @@ const lineItemSchema = z.object({
   quantity: z.number().positive("Quantity must be positive"),
   unit_price: z.number().min(0, "Unit price must be non-negative"),
   amount: z.number().min(0).optional(),
-  tax_rate: z.number().min(0).max(100).optional(),
+  vat_rate: z.number().min(0).max(100).optional().default(7.5),
+  discount: z.number().min(0).optional().default(0),
+  tax_rate: z.number().min(0).max(100).optional(), // legacy alias
 });
 
 const customerInfoSchema = z.object({

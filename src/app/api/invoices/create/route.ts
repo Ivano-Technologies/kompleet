@@ -36,17 +36,20 @@ async function handlePOST(request: NextRequest) {
       notes,
     } = parsed.data;
 
-    // Create invoice
-    const invoice = await createInvoice({
-      user_id: user.id,
-      tax_year: tax_year ?? new Date().getFullYear(),
-      customer_info,
-      line_items,
-      invoice_date,
-      due_date,
-      payment_terms,
-      notes,
-    } as any);
+    // Create invoice (pass supabase so we use the same authenticated session)
+    const invoice = await createInvoice(
+      {
+        user_id: user.id,
+        tax_year: tax_year ?? new Date().getFullYear(),
+        customer_info,
+        line_items,
+        invoice_date: invoice_date || new Date().toISOString().split("T")[0],
+        due_date,
+        payment_terms,
+        notes,
+      } as any,
+      supabase,
+    );
 
     return NextResponse.json(
       {
@@ -57,7 +60,19 @@ async function handlePOST(request: NextRequest) {
     );
   } catch (error: any) {
     console.error("Error creating invoice:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const message =
+      error?.message ||
+      error?.error_description ||
+      (typeof error === "string" ? error : "Failed to create invoice");
+    const code = error?.code;
+    return NextResponse.json(
+      {
+        error: message,
+        details: error?.details,
+        ...(code && { code }),
+      },
+      { status: 500 },
+    );
   }
 }
 

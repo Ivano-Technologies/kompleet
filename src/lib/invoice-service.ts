@@ -1,4 +1,5 @@
 import { createServerClient as createClient } from "@/lib/supabase/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import QRCode from "qrcode";
@@ -94,11 +95,12 @@ export function calculateInvoiceTotals(
 export async function getNextInvoiceNumber(
   userId: string,
   taxYear: number,
+  supabase?: SupabaseClient,
 ): Promise<string> {
-  const supabase = await createClient();
+  const client = supabase ?? (await createClient());
 
   // Call database function to get next number
-  const { data, error } = await supabase.rpc("get_next_invoice_number", {
+  const { data, error } = await client.rpc("get_next_invoice_number", {
     p_user_id: userId,
     p_tax_year: taxYear,
   });
@@ -117,8 +119,9 @@ export async function getNextInvoiceNumber(
 
 export async function createInvoice(
   invoiceData: InvoiceData,
+  supabaseClient?: SupabaseClient,
 ): Promise<{ id: string; invoice_number: string }> {
-  const supabase = await createClient();
+  const supabase = supabaseClient ?? (await createClient());
 
   // Calculate totals
   const totals = calculateInvoiceTotals(invoiceData.line_items);
@@ -127,7 +130,12 @@ export async function createInvoice(
   const invoiceNumber = await getNextInvoiceNumber(
     invoiceData.user_id,
     invoiceData.tax_year,
+    supabase,
   );
+
+  // Fallback invoice_date if not provided
+  const invoiceDate =
+    invoiceData.invoice_date || new Date().toISOString().split("T")[0];
 
   // Insert invoice
   const { data, error } = await supabase
@@ -136,7 +144,7 @@ export async function createInvoice(
       user_id: invoiceData.user_id,
       tax_year: invoiceData.tax_year,
       invoice_number: invoiceNumber,
-      invoice_date: invoiceData.invoice_date,
+      invoice_date: invoiceDate,
       due_date: invoiceData.due_date,
       customer_info: invoiceData.customer_info,
       line_items: invoiceData.line_items,
@@ -154,16 +162,17 @@ export async function createInvoice(
 
   if (error) {
     console.error("Error creating invoice:", error);
-    throw new Error("Failed to create invoice");
+    throw new Error(error.message || "Failed to create invoice");
   }
 
-  // Log audit trail
-  await supabase.from("invoice_audit_logs").insert({
+  // Log audit trail (non-blocking; invoice creation succeeds even if audit fails)
+  const { error: auditError } = await supabase.from("invoice_audit_logs").insert({
     invoice_id: data.id,
     user_id: invoiceData.user_id,
     action: "created",
     metadata: { invoice_number: invoiceNumber },
   });
+  if (auditError) console.warn("Audit log insert failed (invoice created):", auditError);
 
   return { id: data.id, invoice_number: data.invoice_number };
 }
@@ -195,12 +204,13 @@ export async function issueInvoice(
     throw new Error("Failed to issue invoice");
   }
 
-  // Log audit trail
-  await supabase.from("invoice_audit_logs").insert({
+  // Log audit trail (non-blocking)
+  const { error: auditError } = await supabase.from("invoice_audit_logs").insert({
     invoice_id: invoiceId,
     user_id: userId,
     action: "issued",
   });
+  if (auditError) console.warn("Audit log insert failed (invoice issued):", auditError);
 }
 
 // ============================================
