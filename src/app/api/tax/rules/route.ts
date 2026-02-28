@@ -22,13 +22,6 @@ async function handleGET(request: NextRequest) {
       rule_keys: ruleKeys,
     });
 
-    if (!response) {
-      return NextResponse.json(
-        { error: "Failed to fetch rules" },
-        { status: 500 },
-      );
-    }
-
     return NextResponse.json(response);
   } catch (error) {
     console.error("Error in GET /api/tax/rules:", error);

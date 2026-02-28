@@ -68,14 +68,14 @@ export function AvatarUpload() {
   return (
     <div className="flex flex-col items-center gap-4">
       <div className="relative">
-        <div className="w-32 h-32 rounded-full overflow-hidden bg-light-border dark:bg-dark-border border-4 border-white">
+        <div className="w-32 h-32 rounded-full overflow-hidden bg-light-border dark:bg-dark-border border-4 border-white flex items-center justify-center">
           {displayAvatarUrl ? (
             <Image
               src={displayAvatarUrl}
               alt="User avatar"
               width={128}
               height={128}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-blue-500 text-white text-4xl font-bold">

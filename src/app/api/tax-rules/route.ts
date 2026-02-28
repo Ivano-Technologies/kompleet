@@ -22,7 +22,7 @@ async function handleGET(request: NextRequest) {
 
     const supabase = await getSupabaseForRequest(request);
 
-    // Get active rule version
+    // Get active rule version (optional: allow no active version and return empty rules)
     const { data: activeVersion, error: versionError } = await supabase
       .from("rule_versions")
       .select("id")
@@ -30,10 +30,13 @@ async function handleGET(request: NextRequest) {
       .single();
 
     if (versionError || !activeVersion) {
-      return NextResponse.json(
-        { error: "No active rule version found" },
-        { status: 404 },
-      );
+      return NextResponse.json({
+        success: true,
+        ruleType,
+        versionId: null,
+        rules: {},
+        count: 0,
+      });
     }
 
     // Fetch tax rules for the specified type
@@ -46,14 +49,17 @@ async function handleGET(request: NextRequest) {
 
     if (rulesError) {
       console.error("Error fetching tax rules:", rulesError);
-      return NextResponse.json(
-        { error: "Failed to fetch tax rules" },
-        { status: 500 },
-      );
+      return NextResponse.json({
+        success: true,
+        ruleType,
+        versionId: activeVersion.id,
+        rules: {},
+        count: 0,
+      });
     }
 
     // Transform rules into a more usable format
-    const rulesMap = rules.reduce(
+    const rulesMap = (rules ?? []).reduce(
       (acc, rule) => {
         acc[rule.rule_key] = {
           value: rule.rule_value,
@@ -71,7 +77,7 @@ async function handleGET(request: NextRequest) {
       ruleType,
       versionId: activeVersion.id,
       rules: rulesMap,
-      count: rules.length,
+      count: (rules ?? []).length,
     });
   } catch (error) {
     console.error("Unexpected error:", error);

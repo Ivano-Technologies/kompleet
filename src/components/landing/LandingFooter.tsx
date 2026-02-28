@@ -6,7 +6,7 @@ const LOGO_URL =
 
 export default function LandingFooter() {
   return (
-    <footer className="border-t border-[rgb(var(--border))] bg-[rgb(var(--surface))] py-12">
+    <footer className="border-t border-[rgb(var(--border))] bg-[rgb(var(--surface))] dark:bg-dark-bg py-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-10">
           <div className="col-span-2 md:col-span-1">
@@ -109,16 +109,20 @@ export default function LandingFooter() {
             </ul>
           </div>
         </div>
-        <div className="border-t border-[rgb(var(--border))] pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-[rgb(var(--text-secondary))]">
+        <div className="border-t border-[rgb(var(--border))] pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-[rgb(var(--text-secondary))] dark:text-white">
           <p>&copy; 2026 KOMPLEET by Ivano Technologies Ltd. All rights reserved.</p>
+          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1">
+            <a href="mailto:hi@ivanotechnologies.com" className="hover:text-[rgb(var(--text-primary))] dark:hover:text-accent transition-colors">hi@ivanotechnologies.com</a>
+            <a href="mailto:support@ivanotechnologies.com" className="hover:text-[rgb(var(--text-primary))] dark:hover:text-accent transition-colors">support@ivanotechnologies.com</a>
+          </div>
           <div className="flex gap-5">
-            <a href="https://twitter.com/kompleetng" target="_blank" rel="noopener noreferrer" className="hover:text-[rgb(var(--text-primary))] transition-colors">
+            <a href="https://twitter.com/kompleetng" target="_blank" rel="noopener noreferrer" className="hover:text-[rgb(var(--text-primary))] dark:hover:text-accent transition-colors">
               Twitter
             </a>
-            <a href="https://www.linkedin.com/company/kompleet" target="_blank" rel="noopener noreferrer" className="hover:text-[rgb(var(--text-primary))] transition-colors">
+            <a href="https://www.linkedin.com/company/kompleet" target="_blank" rel="noopener noreferrer" className="hover:text-[rgb(var(--text-primary))] dark:hover:text-accent transition-colors">
               LinkedIn
             </a>
-            <a href="https://instagram.com/kompleet.ng" target="_blank" rel="noopener noreferrer" className="hover:text-[rgb(var(--text-primary))] transition-colors">
+            <a href="https://instagram.com/kompleet.ng" target="_blank" rel="noopener noreferrer" className="hover:text-[rgb(var(--text-primary))] dark:hover:text-accent transition-colors">
               Instagram
             </a>
           </div>

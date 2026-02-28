@@ -12,10 +12,29 @@ export default function AdminSourcesPage() {
   const [sources, setSources] = useState<Source[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [checkingId, setCheckingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchSources();
   }, []);
+
+  const checkSource = async (sourceId: string) => {
+    setCheckingId(sourceId);
+    try {
+      const res = await fetch("/api/tax/sources/check", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sourceId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Check failed");
+      await fetchSources();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Check failed");
+    } finally {
+      setCheckingId(null);
+    }
+  };
 
   const fetchSources = async () => {
     try {
@@ -193,8 +212,12 @@ export default function AdminSourcesPage() {
                   </div>
 
                   <div className="flex gap-2">
-                    <button className="px-4 py-2 text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-lg hover:bg-light-background dark:bg-dark-background">
-                      Check Now
+                    <button
+                      onClick={() => checkSource(source.id)}
+                      disabled={checkingId !== null}
+                      className="px-4 py-2 text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-lg hover:bg-light-background dark:bg-dark-background disabled:opacity-50"
+                    >
+                      {checkingId === source.id ? "Checking…" : "Check Now"}
                     </button>
                     <button className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700">
                       Edit

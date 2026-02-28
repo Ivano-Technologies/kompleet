@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { createSupabaseClient } from "@/lib/supabase/client";
+import { useTheme } from "@/contexts/ThemeContext";
+import { Eye, EyeOff, Moon, Sun } from "lucide-react";
 
 const BASKET_WEAVE_DARK =
   "url(\"data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='24'%20height='24'%3E%3Cline%20x1='0'%20y1='5'%20x2='24'%20y2='5'%20stroke='rgba(56,70,75,0.38)'%20stroke-width='2.2'%20stroke-linecap='square'/%3E%3Cline%20x1='0'%20y1='8'%20x2='24'%20y2='8'%20stroke='rgba(56,70,75,0.22)'%20stroke-width='1.0'%20stroke-linecap='square'/%3E%3Cline%20x1='0'%20y1='17'%20x2='11'%20y2='17'%20stroke='rgba(56,70,75,0.38)'%20stroke-width='2.2'%20stroke-linecap='square'/%3E%3Cline%20x1='13'%20y1='17'%20x2='24'%20y2='17'%20stroke='rgba(56,70,75,0.38)'%20stroke-width='2.2'%20stroke-linecap='square'/%3E%3Cline%20x1='0'%20y1='20'%20x2='11'%20y2='20'%20stroke='rgba(56,70,75,0.22)'%20stroke-width='1.0'%20stroke-linecap='square'/%3E%3Cline%20x1='13'%20y1='20'%20x2='24'%20y2='20'%20stroke='rgba(56,70,75,0.22)'%20stroke-width='1.0'%20stroke-linecap='square'/%3E%3Cline%20x1='5'%20y1='0'%20x2='5'%20y2='24'%20stroke='rgba(56,70,75,0.28)'%20stroke-width='2.2'%20stroke-linecap='square'/%3E%3Cline%20x1='8'%20y1='0'%20x2='8'%20y2='24'%20stroke='rgba(56,70,75,0.16)'%20stroke-width='1.0'%20stroke-linecap='square'/%3E%3Cline%20x1='17'%20y1='0'%20x2='17'%20y2='3'%20stroke='rgba(56,70,75,0.28)'%20stroke-width='2.2'%20stroke-linecap='square'/%3E%3Cline%20x1='17'%20y1='10'%20x2='17'%20y2='24'%20stroke='rgba(56,70,75,0.28)'%20stroke-width='2.2'%20stroke-linecap='square'/%3E%3Cline%20x1='20'%20y1='0'%20x2='20'%20y2='3'%20stroke='rgba(56,70,75,0.16)'%20stroke-width='1.0'%20stroke-linecap='square'/%3E%3Cline%20x1='20'%20y1='10'%20x2='20'%20y2='24'%20stroke='rgba(56,70,75,0.16)'%20stroke-width='1.0'%20stroke-linecap='square'/%3E%3C/svg%3E\")";
@@ -14,10 +16,12 @@ const BASKET_WEAVE_LIGHT =
 function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { theme, setTheme } = useTheme();
   const redirectTo = searchParams.get("redirectTo") || "/dashboard";
 
   useEffect(() => {
@@ -79,7 +83,7 @@ function LoginForm() {
           }}
         />
         <div className="relative z-20">
-          <div className="flex items-center gap-3">
+          <Link href="/dashboard" className="flex items-center gap-3">
             <Image
               src="/logo.png"
               alt="Kompleet Logo"
@@ -90,13 +94,13 @@ function LoginForm() {
             <span className="font-ceoruse text-xl font-bold text-white">
               KOMPLEET
             </span>
-          </div>
+          </Link>
         </div>
         <div className="relative z-20">
           <h2 className="font-display text-3xl md:text-4xl font-bold text-white leading-tight tracking-tighter">
             Control Your Money.
             <br />
-            <em className="text-accent not-italic">Grow</em> Your Business.
+            <em className="text-accent not-italic">Grow Your Business.</em>
           </h2>
           <p className="text-base text-white/50 mt-4 max-w-sm">
             The financial operating system for Nigerian SMEs.
@@ -106,7 +110,19 @@ function LoginForm() {
       </div>
 
       {/* Right Panel */}
-      <div className="bg-surface dark:bg-dark-bg p-8 md:p-12 flex items-center justify-center relative overflow-hidden">
+      <div className="bg-surface dark:bg-dark-bg p-8 md:p-12 flex flex-col items-center justify-center relative overflow-hidden">
+        <div className="absolute top-6 right-6 z-20 flex items-center gap-2">
+          <Link href="/" className="text-xs font-medium text-text-2 dark:text-dark-text-2 hover:text-primary">Features</Link>
+          <Link href="/contact" className="text-xs font-medium text-text-2 dark:text-dark-text-2 hover:text-primary">Contact</Link>
+          <button
+            type="button"
+            onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+            className="p-2 rounded-md border border-border dark:border-dark-border hover:bg-surface-2 dark:hover:bg-dark-surface-2 transition-colors"
+            aria-label="Toggle theme"
+          >
+            {theme === "light" ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+          </button>
+        </div>
         <div
           className="absolute inset-0 z-10 pointer-events-none"
           style={{
@@ -155,14 +171,24 @@ function LoginForm() {
                 Forgot Password?
               </Link>
             </div>
-            <input
-              type="password"
-              placeholder="Enter your password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full bg-surface-2 dark:bg-dark-surface-2 border-2 border-border dark:border-dark-border rounded-md p-3 text-sm text-text-1 dark:text-dark-text-1 focus:border-accent focus:ring-2 focus:ring-accent/20"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full bg-surface-2 dark:bg-dark-surface-2 border-2 border-border dark:border-dark-border rounded-md p-3 pr-10 text-sm text-text-1 dark:text-dark-text-1 focus:border-accent focus:ring-2 focus:ring-accent/20"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-text-3 dark:text-dark-text-3 hover:text-text-1 dark:hover:text-dark-text-1"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
             <div className="pt-2">
               <button
                 type="submit"

@@ -28,6 +28,8 @@ import {
   FileText,
   Users,
   ExternalLink,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -50,7 +52,7 @@ function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
       onClick={onToggle}
       className={cn(
         "relative inline-flex h-5 w-9 items-center rounded-full transition-colors",
-        on ? "bg-primary-500" : "bg-light-border dark:bg-dark-border"
+        on ? "bg-accent" : "bg-light-border dark:bg-dark-border"
       )}
       aria-pressed={on}
     >
@@ -90,6 +92,9 @@ export function SettingsModal({
     new: "",
     confirm: "",
   });
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [language, setLanguage] = useState("English (US)");
@@ -220,17 +225,18 @@ export function SettingsModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className={cn(
-          "p-0 gap-0 overflow-hidden border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface",
+          "p-0 gap-0 overflow-hidden border border-light-border dark:border-dark-border",
+          "bg-white dark:bg-dark-surface shadow-xl",
           "max-sm:inset-0 max-sm:left-0 max-sm:top-0 max-sm:translate-x-0 max-sm:translate-y-0 max-sm:w-full max-sm:h-full max-sm:max-h-none max-sm:rounded-none",
-          "sm:w-[calc(100%-2rem)] sm:max-w-3xl sm:max-h-[85vh] sm:rounded-lg md:max-w-4xl"
+          "sm:w-[calc(100%-2rem)] sm:min-w-[min(calc(100%-2rem),28rem)] sm:max-w-4xl sm:h-[85vh] sm:max-h-[85vh] sm:rounded-lg md:min-w-[32rem]"
         )}
         onPointerDownOutside={(e) => onOpenChange(false)}
         onEscapeKeyDown={() => onOpenChange(false)}
       >
-        <div className="flex flex-col md:flex-row h-full max-h-[90vh] sm:max-h-[85vh]">
-          {/* Left: section nav */}
+        <div className="flex flex-col md:flex-row h-full sm:min-h-[85vh] max-h-[90vh] sm:max-h-[85vh]">
+          {/* Left: section nav — opaque background for visibility in light and dark theme */}
           <nav
-            className="flex md:flex-col md:w-52 shrink-0 border-b md:border-b-0 md:border-r border-light-border dark:border-dark-border bg-light-background dark:bg-dark-background p-2 gap-0.5 overflow-x-auto md:overflow-y-auto"
+            className="flex md:flex-col md:w-52 shrink-0 border-b md:border-b-0 md:border-r border-light-border dark:border-dark-border bg-white dark:bg-dark-background p-2 gap-0.5 overflow-x-auto md:overflow-y-auto"
             aria-label="Settings sections"
           >
             {navSections.map(({ id, label, icon: Icon }) => (
@@ -241,8 +247,8 @@ export function SettingsModal({
                 className={cn(
                   "flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium w-full text-left whitespace-nowrap transition-colors",
                   section === id
-                    ? "bg-primary-500 text-white"
-                    : "text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover hover:text-light-text-primary dark:hover:text-dark-text-primary"
+                    ? "bg-accent text-charcoal"
+                    : "text-slate-600 dark:text-dark-text-secondary hover:bg-slate-100 dark:hover:bg-dark-surface-hover hover:text-slate-900 dark:hover:text-dark-text-primary"
                 )}
               >
                 <Icon className="w-4 h-4 shrink-0" />
@@ -251,8 +257,8 @@ export function SettingsModal({
             ))}
           </nav>
 
-          {/* Right: content */}
-          <div className="flex-1 overflow-y-auto p-4 md:p-6 min-h-0">
+          {/* Right: content — fixed min height so modal size stays consistent when switching tabs */}
+          <div className="flex-1 overflow-y-auto p-4 md:p-6 min-h-0 sm:min-h-[70vh]">
             <DialogTitle className="sr-only">Settings</DialogTitle>
 
             {success && (
@@ -364,42 +370,72 @@ export function SettingsModal({
                   </div>
                   {showPasswordChange && (
                     <div className="space-y-3 mt-4 pt-4 border-t border-light-border dark:border-dark-border">
-                      <input
-                        type="password"
-                        placeholder="Current password"
-                        value={passwordForm.current}
-                        onChange={(e) =>
-                          setPasswordForm({
-                            ...passwordForm,
-                            current: e.target.value,
-                          })
-                        }
-                        className={inputCls}
-                      />
-                      <input
-                        type="password"
-                        placeholder="New password (min 8 characters)"
-                        value={passwordForm.new}
-                        onChange={(e) =>
-                          setPasswordForm({
-                            ...passwordForm,
-                            new: e.target.value,
-                          })
-                        }
-                        className={inputCls}
-                      />
-                      <input
-                        type="password"
-                        placeholder="Confirm new password"
-                        value={passwordForm.confirm}
-                        onChange={(e) =>
-                          setPasswordForm({
-                            ...passwordForm,
-                            confirm: e.target.value,
-                          })
-                        }
-                        className={inputCls}
-                      />
+                      <div className="relative">
+                        <input
+                          type={showCurrentPassword ? "text" : "password"}
+                          placeholder="Current password"
+                          value={passwordForm.current}
+                          onChange={(e) =>
+                            setPasswordForm({
+                              ...passwordForm,
+                              current: e.target.value,
+                            })
+                          }
+                          className={inputCls + " pr-10"}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-light-text-tertiary dark:text-dark-text-tertiary hover:text-light-text-primary dark:hover:text-dark-text-primary"
+                          aria-label={showCurrentPassword ? "Hide password" : "Show password"}
+                        >
+                          {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                      <div className="relative">
+                        <input
+                          type={showNewPassword ? "text" : "password"}
+                          placeholder="New password (min 8 characters)"
+                          value={passwordForm.new}
+                          onChange={(e) =>
+                            setPasswordForm({
+                              ...passwordForm,
+                              new: e.target.value,
+                            })
+                          }
+                          className={inputCls + " pr-10"}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-light-text-tertiary dark:text-dark-text-tertiary hover:text-light-text-primary dark:hover:text-dark-text-primary"
+                          aria-label={showNewPassword ? "Hide password" : "Show password"}
+                        >
+                          {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                      <div className="relative">
+                        <input
+                          type={showConfirmPassword ? "text" : "password"}
+                          placeholder="Confirm new password"
+                          value={passwordForm.confirm}
+                          onChange={(e) =>
+                            setPasswordForm({
+                              ...passwordForm,
+                              confirm: e.target.value,
+                            })
+                          }
+                          className={inputCls + " pr-10"}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-light-text-tertiary dark:text-dark-text-tertiary hover:text-light-text-primary dark:hover:text-dark-text-primary"
+                          aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                        >
+                          {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
                       <button
                         type="button"
                         onClick={handleChangePassword}

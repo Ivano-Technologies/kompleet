@@ -42,16 +42,23 @@ export class RulesEngineService {
   }
 
   /**
-   * Get rules by version and optional filters
+   * Get rules by version and optional filters.
+   * Returns empty rules when no active version or on error, so admin UI and calculators always get a valid response.
    */
-  async getRules(request: GetRulesRequest): Promise<GetRulesResponse | null> {
+  async getRules(request: GetRulesRequest): Promise<GetRulesResponse> {
+    const emptyResponse: GetRulesResponse = {
+      rules: [],
+      version: null,
+      source: "Nigeria Tax Act 2025",
+    };
+
     let versionId = request.version_id;
 
     // If no version specified, get active version
     if (!versionId) {
       const activeVersion = await this.getActiveRuleVersion();
       if (!activeVersion) {
-        throw new Error("No active rule version found");
+        return emptyResponse;
       }
       versionId = activeVersion.id;
     }
@@ -81,15 +88,15 @@ export class RulesEngineService {
 
     if (error) {
       console.error("Error fetching rules:", error);
-      return null;
+      return emptyResponse;
     }
 
-    const rules = data as TaxRule[];
-    const version = rules[0]?.rule_version;
+    const rules = (data ?? []) as TaxRule[];
+    const version = rules[0]?.rule_version ?? null;
 
     return {
       rules,
-      version: version!,
+      version,
       source: "Nigeria Tax Act 2025",
     };
   }

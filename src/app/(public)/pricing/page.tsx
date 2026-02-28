@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function PricingPage() {
   return (
-    <div className="min-h-screen bg-[rgb(var(--background))] text-[rgb(var(--text-primary))] flex flex-col">
+    <div className="min-h-screen bg-[rgb(var(--background))] dark:bg-dark-bg text-[rgb(var(--text-primary))] dark:text-dark-text-1 flex flex-col">
       <LandingNav />
 
       <main className="flex-1 py-16 px-6 sm:px-12 md:px-24 max-w-7xl mx-auto w-full">
@@ -64,7 +64,7 @@ export default function PricingPage() {
             href="/signup"
             className="block w-full text-center bg-primary text-white font-bold text-sm py-3.5 rounded-md shadow-primary hover:bg-primary-deep transition-all transform hover:-translate-y-0.5"
           >
-            Start Free (14 days)
+            Get started for Free
           </Link>
         </div>
 
