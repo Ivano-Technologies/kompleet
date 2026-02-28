@@ -33,13 +33,20 @@ async function handlePOST(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        {
+          error: "Please sign in to upload bank statements",
+          message: authError?.message || "Unauthorized",
+        },
+        { status: 401 },
+      );
     }
 
     // Parse form data
     const formData = await request.formData();
     const file = formData.get("file") as File;
     const bankCode = (formData.get("bankCode") as string)?.toUpperCase();
+    const password = (formData.get("password") as string)?.trim() || undefined;
 
     if (!file) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
@@ -88,7 +95,10 @@ async function handlePOST(request: NextRequest) {
 
     if (sessionError || !session) {
       return NextResponse.json(
-        { error: "Failed to create import session" },
+        {
+          error: "Failed to create import session",
+          message: sessionError?.message || "Database error",
+        },
         { status: 500 },
       );
     }
@@ -101,8 +111,33 @@ async function handlePOST(request: NextRequest) {
       // PDF files work with any bank code (LLM handles format detection)
       // For CSV/Excel, bank config is required
 
-      // Parse bank statement
-      const parseResult = await parseBankStatement(content, bankCode, fileType);
+      // Parse bank statement (password for encrypted PDF/Excel)
+      let parseResult: Awaited<ReturnType<typeof parseBankStatement>>;
+      try {
+        parseResult = await parseBankStatement(
+          content,
+          bankCode,
+          fileType,
+          password,
+        );
+      } catch (parseError) {
+        const errMsg =
+          parseError instanceof Error ? parseError.message : String(parseError);
+        if (errMsg === "PASSWORD_REQUIRED") {
+          await supabase
+            .from("import_sessions")
+            .update({ status: "failed" })
+            .eq("id", session.id);
+          return NextResponse.json(
+            {
+              error: "This file is password-protected. Please provide the password.",
+              requiresPassword: true,
+            },
+            { status: 400 },
+          );
+        }
+        throw parseError;
+      }
 
       if (parseResult.errors.length > 0) {
         // Log errors
@@ -244,17 +279,25 @@ async function handlePOST(request: NextRequest) {
         .update({ status: "failed" })
         .eq("id", session.id);
 
+      const errMsg =
+        error instanceof Error ? error.message : "Unknown error";
       return NextResponse.json(
         {
-          error: "Import failed",
-          message: error instanceof Error ? error.message : "Unknown error",
+          error: errMsg,
+          message: errMsg,
+          ...(error instanceof Error && error.cause && { cause: String(error.cause) }),
         },
         { status: 500 },
       );
     }
-  } catch (error) {
+    } catch (error) {
     console.error("Upload error:", error);
-    return NextResponse.json({ error: "Upload failed" }, { status: 500 });
+    const message =
+      error instanceof Error ? error.message : "Upload failed";
+    return NextResponse.json(
+      { error: message, message },
+      { status: 500 },
+    );
   }
 }
 

@@ -11,11 +11,13 @@ export type FileType = "csv" | "excel" | "pdf";
 
 /**
  * Parse bank statement file using appropriate adapter
+ * @param password - Optional password for encrypted PDF or Excel files
  */
 export async function parseBankStatement(
   fileContent: Buffer | string,
   bankCode: string,
   fileType: FileType,
+  password?: string,
 ): Promise<ParseResult> {
   if (fileType === "pdf") {
     const buffer = Buffer.isBuffer(fileContent)
@@ -23,7 +25,7 @@ export async function parseBankStatement(
       : Buffer.from(fileContent);
     const bankConfig = getBankConfig(bankCode);
     const { parsePDF } = await import("./pdf-parser");
-    return parsePDF(buffer, bankConfig?.name);
+    return parsePDF(buffer, bankConfig?.name, password);
   }
 
   const bankConfig = getBankConfig(bankCode);
@@ -42,7 +44,7 @@ export async function parseBankStatement(
     const buffer = Buffer.isBuffer(fileContent)
       ? fileContent
       : Buffer.from(fileContent);
-    return parseExcel(buffer, bankConfig);
+    return parseExcel(buffer, bankConfig, password);
   } else {
     throw new Error(`Unsupported file type: ${fileType}`);
   }

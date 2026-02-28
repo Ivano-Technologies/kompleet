@@ -160,6 +160,7 @@ export default function NewInvoicePage() {
       const response = await fetch("/api/invoices/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           user_id: user.id,
           tax_year: new Date(invoiceDate).getFullYear(),
@@ -173,7 +174,8 @@ export default function NewInvoicePage() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to create invoice");
+        const body = await response.json().catch(() => ({}));
+        throw new Error(body?.error || "Failed to create invoice");
       }
 
       const { invoice_id } = await response.json();
@@ -210,6 +212,7 @@ export default function NewInvoicePage() {
       const createResponse = await fetch("/api/invoices/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           user_id: user.id,
           tax_year: new Date(invoiceDate).getFullYear(),
@@ -223,7 +226,8 @@ export default function NewInvoicePage() {
       });
 
       if (!createResponse.ok) {
-        throw new Error("Failed to create invoice");
+        const body = await createResponse.json().catch(() => ({}));
+        throw new Error(body?.error || "Failed to create invoice");
       }
 
       const { invoice_id } = await createResponse.json();
@@ -422,12 +426,14 @@ export default function NewInvoicePage() {
                 />
               </div>
 
-              <div className="col-span-6 md:col-span-1">
+              <div className="col-span-6 md:col-span-2 min-w-[4.5rem]">
                 <label className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2">
                   Qty
                 </label>
                 <input
                   type="number"
+                  min={0}
+                  step={1}
                   value={item.quantity}
                   onChange={(e) =>
                     updateLineItem(
@@ -458,12 +464,15 @@ export default function NewInvoicePage() {
                 />
               </div>
 
-              <div className="col-span-6 md:col-span-1">
+              <div className="col-span-6 md:col-span-2 min-w-[4.5rem]">
                 <label className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2">
                   VAT %
                 </label>
                 <input
                   type="number"
+                  min={0}
+                  max={100}
+                  step={0.1}
                   value={item.vat_rate}
                   onChange={(e) =>
                     updateLineItem(
@@ -494,13 +503,12 @@ export default function NewInvoicePage() {
                 />
               </div>
 
-              <div className="col-span-10 md:col-span-1">
+              <div className="col-span-10 md:col-span-2 min-w-[6rem]">
                 <label className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2">
-                  Amount
+                  Amount (₦)
                 </label>
-                <p className="px-3 py-2 text-light-text-primary dark:text-dark-text-primary font-medium">
-                  {" "}
-                  {item.amount.toFixed(2)}
+                <p className="px-3 py-2 text-light-text-primary dark:text-dark-text-primary font-medium tabular-nums">
+                  ₦{item.amount.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
                 </p>
               </div>
 
@@ -547,35 +555,35 @@ export default function NewInvoicePage() {
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-light-text-secondary dark:text-dark-text-secondary">
-                Subtotal
+                Subtotal (₦)
               </span>
-              <span className="font-medium text-light-text-primary dark:text-dark-text-primary">
-                {totals.subtotal.toFixed(2)}
+              <span className="font-medium text-light-text-primary dark:text-dark-text-primary tabular-nums">
+                ₦{totals.subtotal.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-light-text-secondary dark:text-dark-text-secondary">
-                Discount
+                Discount (₦)
               </span>
-              <span className="font-medium text-light-text-primary dark:text-dark-text-primary">
-                {totals.discountAmount.toFixed(2)}
+              <span className="font-medium text-light-text-primary dark:text-dark-text-primary tabular-nums">
+                ₦{totals.discountAmount.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-light-text-secondary dark:text-dark-text-secondary">
                 VAT ({lineItems[0]?.vat_rate || 7.5}%)
               </span>
-              <span className="font-medium text-light-text-primary dark:text-dark-text-primary">
-                {totals.vatAmount.toFixed(2)}
+              <span className="font-medium text-light-text-primary dark:text-dark-text-primary tabular-nums">
+                ₦{totals.vatAmount.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
               </span>
             </div>
             <div className="border-t border-light-border dark:border-dark-border my-2"></div>
             <div className="flex justify-between text-lg font-bold">
               <span className="text-light-text-primary dark:text-dark-text-primary">
-                Total
+                Total (₦)
               </span>
-              <span className="text-primary-600">
-                {totals.total.toFixed(2)}
+              <span className="text-primary-600 tabular-nums">
+                ₦{totals.total.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
               </span>
             </div>
           </div>

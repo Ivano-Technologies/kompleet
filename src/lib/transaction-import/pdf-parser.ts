@@ -63,20 +63,59 @@ function checkPDFEncryption(buffer: Buffer): boolean {
 }
 
 /**
+ * Extract text from password-protected PDF using pdfjs-dist
+ */
+async function extractTextWithPdfJs(
+  buffer: Buffer,
+  password: string,
+): Promise<string> {
+  const { getDocument } = await import("pdfjs-dist");
+  const uint8 = new Uint8Array(buffer);
+  const loadingTask = getDocument({ data: uint8, password });
+  const pdf = await loadingTask.promise;
+  const numPages = pdf.numPages;
+  const textParts: string[] = [];
+
+  for (let i = 1; i <= numPages; i++) {
+    const page = await pdf.getPage(i);
+    const textContent = await page.getTextContent();
+    const pageText = textContent.items
+      .map((item: { str?: string }) => item.str || "")
+      .join(" ");
+    textParts.push(pageText);
+  }
+
+  await pdf.destroy();
+  return textParts.join("\n");
+}
+
+/**
  * Parse PDF bank statement — extracts text then uses LLM to structure transactions
  * CRIT-005: Enhanced with OCR fallback for scanned PDFs
  * CRIT-006: Enhanced with encryption detection
+ * Supports password-protected PDFs when password is provided
  */
 export async function parsePDF(
   fileBuffer: Buffer,
   bankName?: string,
+  password?: string,
 ): Promise<ParseResult> {
   const errors: ParseError[] = [];
 
   try {
     // Step 0: Check if PDF is encrypted
     const isEncrypted = checkPDFEncryption(fileBuffer);
-    if (isEncrypted) {
+
+    // If encrypted and no password provided, signal that password is required
+    if (isEncrypted && (!password || !password.trim())) {
+      throw new Error("PASSWORD_REQUIRED");
+    }
+
+    if (isEncrypted && password) {
+      console.log(
+        "PDF is password-protected. Attempting decryption with provided password...",
+      );
+    } else if (isEncrypted) {
       console.log(
         "PDF is encrypted with copy protection. Attempting OCR extraction...",
       );
@@ -85,7 +124,18 @@ export async function parsePDF(
     // Step 1: Extract raw text from PDF
     let rawText = "";
 
-    if (!isEncrypted) {
+    if (isEncrypted && password) {
+      try {
+        rawText = await extractTextWithPdfJs(fileBuffer, password);
+      } catch (decryptError) {
+        const errMsg =
+          decryptError instanceof Error ? decryptError.message : String(decryptError);
+        if (errMsg.toLowerCase().includes("password") || errMsg.includes("correct password")) {
+          throw new Error("PASSWORD_REQUIRED");
+        }
+        throw decryptError;
+      }
+    } else if (!isEncrypted) {
       // Try normal text extraction for non-encrypted PDFs (dynamic import for build-safe bundle)
       try {
         const { PDFParse } = await import("pdf-parse");
@@ -97,15 +147,21 @@ export async function parsePDF(
             : "";
         await parser.destroy();
       } catch (parseError) {
-        console.log(
-          "PDF text extraction failed:",
-          parseError instanceof Error ? parseError.message : "Unknown error",
-        );
+        const errMsg =
+          parseError instanceof Error ? parseError.message : String(parseError);
+        if (errMsg.toLowerCase().includes("password")) {
+          throw new Error("PASSWORD_REQUIRED");
+        }
+        console.log("PDF text extraction failed:", errMsg);
       }
     }
 
-    // If encrypted or no text extracted, try OCR
-    if (isEncrypted || !rawText || rawText.trim().length === 0) {
+    // If encrypted (without password path) or no text extracted, try OCR
+    if (
+      (isEncrypted && !password) ||
+      !rawText ||
+      rawText.trim().length === 0
+    ) {
       console.log(
         "Attempting OCR extraction for encrypted or text-less PDF...",
       );
@@ -114,7 +170,7 @@ export async function parsePDF(
 
     if (!rawText || rawText.trim().length < 50) {
       const encryptedMsg = isEncrypted
-        ? " The PDF appears to be encrypted with copy protection. Please try: 1) Removing the copy protection in your PDF reader, 2) Exporting as a new PDF without encryption, or 3) Using a CSV/Excel export from your bank instead."
+        ? " The PDF appears to be encrypted. Please provide the password to unlock it, or use a CSV/Excel export from your bank instead."
         : "";
 
       return {
@@ -199,14 +255,17 @@ export async function parsePDF(
       successfulRows: deduplicated.length,
     };
   } catch (error) {
+    const errMsg = error instanceof Error ? error.message : String(error);
+    if (errMsg === "PASSWORD_REQUIRED") {
+      throw error;
+    }
     return {
       transactions: [],
       errors: [
         {
           rowNumber: 0,
           errorType: "PDF_PARSE_ERROR",
-          errorMessage:
-            error instanceof Error ? error.message : "Failed to parse PDF file",
+          errorMessage: errMsg,
           rawData: {},
         },
       ],
