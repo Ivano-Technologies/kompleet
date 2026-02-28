@@ -13,9 +13,11 @@
   font-display: swap;
 }
 
-.font-ceoruse {
-  font-family: 'Ceoruse', 'Clash Display', sans-serif;
-  letter-spacing: 0.08em;
+@layer utilities {
+  .font-ceoruse {
+    font-family: 'Ceoruse', 'Clash Display', sans-serif;
+    letter-spacing: 0.08em;
+  }
 }
 
 /* KOMPLEET Design System 2026 - Approved 27 Feb 2026 */
