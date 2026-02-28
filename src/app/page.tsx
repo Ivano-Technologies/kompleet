@@ -140,14 +140,14 @@ export default function HomePage() {
               </span>
             </div>
           </div>
-          {/* Hero image — full laptop visible, no crop */}
-          <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-white/10 bg-primary-deep/60 flex items-center justify-center p-4">
+          {/* Hero image — natural edges, no frame */}
+          <div className="relative rounded-2xl shadow-2xl">
             <Image
               src="/assets/hero-laptop.webp"
               alt="Kompleet Dashboard Preview"
               width={644}
               height={483}
-              className="w-full h-auto object-contain"
+              className="w-full h-auto rounded-2xl"
               priority
             />
           </div>
@@ -221,8 +221,8 @@ export default function HomePage() {
             return (
               <div
                 key={card.title}
-                className="bg-surface dark:bg-dark-surface border border-border dark:border-dark-border rounded-xl shadow-outer-soft border-t border-l border-black/5 dark:border-white/5 p-6 flex flex-col hover:shadow-3 hover:-translate-y-1 hover:border-accent/40 transition-all relative group">
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent opacity-0 group-hover:opacity-100 transition-opacity rounded-t-xl" />
+                className="bg-surface dark:bg-dark-surface border border-border dark:border-dark-border rounded-xl shadow-outer-soft border-t border-l border-black/5 dark:border-white/5 p-6 flex flex-col hover:shadow-3 hover:-translate-y-1 hover:border-accent/40 transition-all relative group overflow-hidden">
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent opacity-0 group-hover:opacity-100 transition-opacity" />
                 <div className="w-11 h-11 rounded-lg bg-surface-2 dark:bg-dark-surface-2 flex items-center justify-center mb-4 shadow-inner-subtle gradient-convex border border-black/5 dark:border-white/10">
                   <Icon className="w-5 h-5 text-accent" />
                 </div>
