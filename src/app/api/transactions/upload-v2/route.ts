@@ -285,7 +285,7 @@ async function handlePOST(request: NextRequest) {
         {
           error: errMsg,
           message: errMsg,
-          ...(error instanceof Error && error.cause && { cause: String(error.cause) }),
+          ...(error instanceof Error && error.cause ? { cause: String(error.cause) } : {}),
         },
         { status: 500 },
       );

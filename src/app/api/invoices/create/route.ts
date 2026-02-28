@@ -69,7 +69,7 @@ async function handlePOST(request: NextRequest) {
       {
         error: message,
         details: error?.details,
-        ...(code && { code }),
+        ...(code ? { code } : {}),
       },
       { status: 500 },
     );
