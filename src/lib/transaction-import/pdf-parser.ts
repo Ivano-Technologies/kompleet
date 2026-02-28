@@ -80,7 +80,7 @@ async function extractTextWithPdfJs(
     const page = await pdf.getPage(i);
     const textContent = await page.getTextContent();
     const pageText = textContent.items
-      .map((item: { str?: string }) => item.str || "")
+      .map((item) => ("str" in item ? (item as { str?: string }).str || "" : ""))
       .join(" ");
     textParts.push(pageText);
   }
