@@ -107,6 +107,8 @@ export default withSentryConfig(
     tunnelRoute: "/monitoring",
     disableClientSourceMaps: true,
     disableServerSourceMaps: true,
+    // Disable all source map uploads to avoid Edge build crash (Sentry reads .length on undefined manifest)
+    sourcemaps: { disable: true },
     webpack: {
       autoInstrumentServerFunctions: false,
       treeshake: {
