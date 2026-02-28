@@ -1,5 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Landmark } from "lucide-react";
+import LandingFooter from "@/components/landing/LandingFooter";
 
 const HERO_GRID_PATTERN =
   "data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2248%22%20height=%2248%22%20viewBox=%220%200%2048%2048%22%3E%3Cpath%20fill=%22rgba(255,255,255,0.03)%22%20d=%22M0%201h48v-1H0zm0%2047h48v-1H0zM1%200v48H0V0zm47%200v48h-1V0z%22/%3E%3C/svg%3E";
@@ -32,7 +34,7 @@ const features = [
     image: "/assets/features/invoicing.png",
   },
   {
-    icon: "🏛️",
+    icon: "landmark",
     title: "Tax Compliance Centre",
     desc: "Never miss an NRS or JTB deadline again. Kompleet tracks your VAT, WHT, CIT, and PAYE obligations automatically — with smart reminders before every filing date.",
     image: null,
@@ -245,7 +247,7 @@ export default function HomePage() {
                     src={f.image}
                     alt={f.title}
                     fill
-                    className="object-cover object-center"
+                    className="object-cover object-top"
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   />
                 </div>
@@ -253,7 +255,7 @@ export default function HomePage() {
               <div className="p-8">
                 {!f.image && (
                   <div className="w-11 h-11 rounded-md bg-primary flex items-center justify-center text-xl mb-5 shadow-primary">
-                    {f.icon}
+                    {f.icon === 'landmark' ? <Landmark className="w-5 h-5 text-white" /> : f.icon}
                   </div>
                 )}
                 <h3 className="font-display text-lg font-bold text-text-1 dark:text-dark-text-1 mb-2">
@@ -332,6 +334,7 @@ export default function HomePage() {
           </Link>
         </div>
       </section>
+      <LandingFooter />
     </div>
   );
 }

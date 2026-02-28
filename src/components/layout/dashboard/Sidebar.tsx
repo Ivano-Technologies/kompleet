@@ -183,7 +183,7 @@ export function Sidebar({
             height={34}
             className="rounded-lg shadow-4"
           />
-          <span className="font-display text-base font-bold text-white tracking-wider">
+          <span className="font-ceoruse text-base font-bold text-white">
             KOMPLEET
           </span>
         </Link>

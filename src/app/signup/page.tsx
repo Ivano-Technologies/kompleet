@@ -33,6 +33,7 @@ export default function SignUpPage() {
   const { theme, toggleTheme } = useTheme();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [businessName, setBusinessName] = useState('');
   const [businessEmail, setBusinessEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -67,6 +68,7 @@ export default function SignUpPage() {
             first_name: firstName,
             last_name: lastName,
             full_name: `${firstName} ${lastName}`,
+            business_name: businessName,
           },
           emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
@@ -244,6 +246,20 @@ export default function SignUpPage() {
                     className="w-full mt-2 bg-surface dark:bg-dark-surface border-2 border-border dark:border-dark-border rounded-md p-3 text-sm focus:border-accent focus:ring-2 focus:ring-accent/20 text-text-1 dark:text-dark-text-1"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-text-2 dark:text-dark-text-2 uppercase tracking-wider">
+                  Business Name
+                </label>
+                <input
+                  type="text"
+                  value={businessName}
+                  onChange={(e) => setBusinessName(e.target.value)}
+                  required
+                  placeholder="e.g. Tunde Ventures Ltd"
+                  className="w-full mt-2 bg-surface dark:bg-dark-surface border-2 border-border dark:border-dark-border rounded-md p-3 text-sm focus:border-accent focus:ring-2 focus:ring-accent/20 text-text-1 dark:text-dark-text-1"
+                />
               </div>
 
               <div>
