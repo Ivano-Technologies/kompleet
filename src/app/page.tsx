@@ -23,31 +23,37 @@ const features = [
     icon: "📊",
     title: "Smart Expense Tracking",
     desc: "Automatically categorise every naira spent. Connect your bank account and watch your expenses organise themselves in real time.",
+    image: "/assets/features/expense-tracking.png",
   },
   {
     icon: "📄",
     title: "Professional Invoicing",
     desc: "Create, send, and track invoices in seconds. Accept payments via bank transfer, Paystack, or Flutterwave.",
+    image: "/assets/features/invoicing.png",
   },
   {
     icon: "🏛️",
     title: "Tax Compliance Centre",
     desc: "Never miss an NRS or JTB deadline again. Kompleet tracks your VAT, WHT, CIT, and PAYE obligations automatically — with smart reminders before every filing date.",
+    image: null,
   },
   {
     icon: "📈",
     title: "Business Reports",
     desc: "Profit & loss, cash flow, and balance sheet reports generated automatically. Share with your accountant or investors.",
+    image: null,
   },
   {
     icon: "🔒",
     title: "Bank-Grade Security",
     desc: "Your financial data is protected with 256-bit encryption and full NDPR compliance. Your data stays in Nigeria.",
+    image: null,
   },
   {
     icon: "📱",
     title: "Mobile-First Design",
     desc: "Manage your business finances from anywhere. Full feature parity on mobile — built for the way Nigerian entrepreneurs work.",
+    image: null,
   },
 ];
 
@@ -190,7 +196,7 @@ export default function HomePage() {
                 Across all registered businesses
               </div>
               <div className="inline-flex items-center gap-1.5 bg-success/20 border border-success/30 rounded-full px-3 py-1 mt-3 text-xs font-bold text-green-300">
-                ↑ FIRS & LIRS Verified
+                ↑ NRS & JTB Verified
               </div>
             </div>
           </div>
@@ -230,18 +236,33 @@ export default function HomePage() {
           {features.map((f) => (
             <div
               key={f.title}
-              className="bg-surface dark:bg-dark-surface border border-border dark:border-dark-border rounded-lg p-8 shadow-1 hover:shadow-3 hover:-translate-y-1 transition-all relative group"
+              className="bg-surface dark:bg-dark-surface border border-border dark:border-dark-border rounded-lg overflow-hidden shadow-1 hover:shadow-3 hover:-translate-y-1 transition-all relative group"
             >
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent opacity-0 group-hover:opacity-100 transition-opacity rounded-t-lg" />
-              <div className="w-11 h-11 rounded-md bg-primary flex items-center justify-center text-xl mb-5 shadow-primary">
-                {f.icon}
+              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent opacity-0 group-hover:opacity-100 transition-opacity" />
+              {f.image ? (
+                <div className="relative w-full h-44 overflow-hidden">
+                  <Image
+                    src={f.image}
+                    alt={f.title}
+                    fill
+                    className="object-cover object-center"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  />
+                </div>
+              ) : null}
+              <div className="p-8">
+                {!f.image && (
+                  <div className="w-11 h-11 rounded-md bg-primary flex items-center justify-center text-xl mb-5 shadow-primary">
+                    {f.icon}
+                  </div>
+                )}
+                <h3 className="font-display text-lg font-bold text-text-1 dark:text-dark-text-1 mb-2">
+                  {f.title}
+                </h3>
+                <p className="text-sm text-text-3 dark:text-dark-text-3 leading-relaxed">
+                  {f.desc}
+                </p>
               </div>
-              <h3 className="font-display text-lg font-bold text-text-1 dark:text-dark-text-1 mb-2">
-                {f.title}
-              </h3>
-              <p className="text-sm text-text-3 dark:text-dark-text-3 leading-relaxed">
-                {f.desc}
-              </p>
             </div>
           ))}
         </div>
