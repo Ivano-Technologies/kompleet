@@ -35,7 +35,6 @@ export default function SignUpPage() {
   const [lastName, setLastName] = useState('');
   const [businessName, setBusinessName] = useState('');
   const [businessEmail, setBusinessEmail] = useState('');
-  const [businessName, setBusinessName] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);

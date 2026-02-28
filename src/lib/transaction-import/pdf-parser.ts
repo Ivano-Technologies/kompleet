@@ -3,11 +3,11 @@
  * Extracts transactions from PDF bank statements using pdf-parse + LLM
  * CRIT-005: Added OCR fallback for scanned/image-based PDFs
  * CRIT-006: Added encryption detection and better error handling
+ * Build-safe: pdf-parse and tesseract.js are dynamically imported to avoid
+ * pulling browser/native deps (DOMMatrix, canvas) into Next.js/Vercel build.
  */
 
-import { PDFParse } from "pdf-parse";
 import OpenAI from "openai";
-import { createWorker } from "tesseract.js";
 import { ParsedTransaction, ParseResult, ParseError } from "./csv-parser";
 
 let _openai: OpenAI | null = null;
@@ -35,6 +35,7 @@ function getOpenAI(): OpenAI {
 async function extractTextWithOCR(buffer: Buffer): Promise<string> {
   console.log("Attempting OCR extraction...");
   try {
+    const { createWorker } = await import("tesseract.js");
     const worker = await createWorker("eng");
     const {
       data: { text },
@@ -85,8 +86,9 @@ export async function parsePDF(
     let rawText = "";
 
     if (!isEncrypted) {
-      // Try normal text extraction for non-encrypted PDFs
+      // Try normal text extraction for non-encrypted PDFs (dynamic import for build-safe bundle)
       try {
+        const { PDFParse } = await import("pdf-parse");
         const parser = new PDFParse({ data: fileBuffer });
         const pdfData = await parser.getText();
         rawText =
