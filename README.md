@@ -1,12 +1,12 @@
 # KOMPLEET Platform (Web)
 
-**KOMPLEET** is a comprehensive tax compliance and financial management platform for Nigerian businesses and individuals, built to comply with the Nigerian Tax Act 2026.
+**KOMPLEET** is a comprehensive financial management platform for Nigerian businesses and individuals, built to comply with the Nigerian Tax Act 2026.
 
 ## Overview
 
 The KOMPLEET Web Platform provides:
 
-- **User Authentication** - Clerk-based authentication with Google OAuth, email/password, and magic links
+- **User Authentication** - Supabase authentication with Google OAuth, email/password, and magic links
 - **Transaction Management** - Income and expense tracking with categorization
 - **Tax Calculators** - Business Tax (CIT), Individual Tax (PIT), VAT, Capital Allowances, Stamp Duty, Property Tax
 - **Financial Reports** - Tax summaries, balance sheets, profit & loss statements with PDF export
@@ -25,14 +25,14 @@ The KOMPLEET Web Platform provides:
 
 ### Backend & Services
 
-- **Authentication:** Clerk (migrated from Supabase Auth)
+- **Authentication:** Supabase Auth
 - **Database:** Supabase PostgreSQL with Row Level Security (RLS)
 - **Deployment:** Vercel
 - **Package Manager:** pnpm
 
 ### Key Integrations
 
-- **Clerk:** User authentication and management
+- **Supabase:** User authentication and management
 - **Supabase:** Database, RLS policies, and data storage
 - **Vercel:** Hosting and serverless functions
 - **Webhooks:** Clerk user sync to Supabase
