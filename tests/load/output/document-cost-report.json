@@ -1,0 +1,9 @@
+{
+  "averageOcrDurationMs": 10.12,
+  "averageCpuDurationMs": 21.94,
+  "averagePipelineDurationMs": 21.86,
+  "estimatedUsdPerDocument": 0.000001,
+  "estimatedUsdPer1000Documents": 0.001,
+  "averageQueueLatencyMs": 553.02,
+  "averageExtractionDurationMs": 0.32
+}

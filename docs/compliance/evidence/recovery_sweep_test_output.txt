@@ -1,0 +1,21 @@
+Command:
+pnpm test tests/document-processing-recovery.test.ts
+
+Observed output (latest):
+
+> kompleet-platform@0.1.0 test C:\Antigravity\Projects\kompleet-platform
+> vitest run --passWithNoTests "tests/document-processing-recovery.test.ts"
+
+ RUN  v4.0.18 C:/Antigravity/Projects/kompleet-platform
+
+ ✓ tests/document-processing-recovery.test.ts (1 test) 8ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+
+Assertion significance:
+- Stale `processing` document detected by recovery sweep.
+- Status reset to `queued`.
+- Job re-enqueued.
+- Recovery metrics incremented.
+- Audit record emitted.

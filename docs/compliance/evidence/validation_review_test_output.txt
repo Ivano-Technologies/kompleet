@@ -1,0 +1,21 @@
+Command:
+pnpm test tests/document-intelligence-validation-review.test.ts
+
+Observed output (latest):
+
+> kompleet-platform@0.1.0 test C:\Antigravity\Projects\kompleet-platform
+> vitest run --passWithNoTests "tests/document-intelligence-validation-review.test.ts"
+
+ RUN  v4.0.18 C:/Antigravity/Projects/kompleet-platform
+
+ ✓ tests/document-intelligence-validation-review.test.ts (1 test) 35ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  12:19:55
+   Duration  2.42s
+
+Assertion significance:
+- VAT mismatch path triggers `markNeedsReview`.
+- Manual review queue stub called.
+- `completeProcessing` not called for mismatch case.

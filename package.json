@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "packageManager": "pnpm@10.4.1",
+  "packageManager": "pnpm@9.12.0",
   "description": "Professional platform migration with quality gates",
   "author": "Kezie Okpala",
   "license": "ISC",
@@ -23,6 +23,7 @@
     "prisma:pull": "prisma db pull",
     "prisma:generate": "prisma generate",
     "prisma:studio": "prisma studio",
+    "security:scan-ocr-logs": "node scripts/scan-ocr-log-safety.js",
     "postinstall": "node -e \"if(process.env.EAS_BUILD)process.exit(0);require('child_process').execSync('npx prisma generate',{stdio:'inherit'})\"",
     "supabase": "supabase",
     "mobile:install": "node scripts/mobile-install.js",
@@ -47,6 +48,7 @@
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.45.0",
     "archiver": "^4.0.2",
+    "bullmq": "^5.70.1",
     "chardet": "^2.1.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -152,6 +154,5 @@
         "@types/react-dom": "18 || 19"
       }
     }
-  },
-  "packageManager": "pnpm@9.12.0"
+  }
 }

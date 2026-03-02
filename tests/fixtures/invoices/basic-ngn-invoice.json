@@ -1,0 +1,10 @@
+{
+  "name": "basic_ngn_invoice",
+  "ocrData": {
+    "rawText": "Lagos Office Supplies Ltd\nInvoice No: INV-2026-0001\nDate: 2026-02-15\nCurrency: NGN\nSubtotal: 100000.00\nVAT: 7500.00\nTotal: 107500.00",
+    "confidenceScore": 94.2,
+    "textHash": "fixture-hash-basic",
+    "pageCount": 1,
+    "fileSizeBytes": 24567
+  }
+}
