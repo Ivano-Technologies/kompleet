@@ -111,11 +111,12 @@ export default function SignUpPage() {
         <div className="mb-2 text-xs font-bold uppercase tracking-widest text-text-4 dark:text-dark-text-4">
           Create Account
         </div>
-        <h1 className="mb-2 font-display text-3xl font-bold text-text-1 dark:text-dark-text-1">
-          Get Started for Free
+        <h1 className="mb-2 inline-flex items-center gap-2 text-base font-bold uppercase tracking-wider text-accent dark:text-accent">
+          <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden />
+          Built for Nigerian <span className="normal-case">SMEs</span>
         </h1>
         <p className="text-sm text-text-3 dark:text-dark-text-3">
-          Join 5,000+ Nigerian businesses automating their tax compliance.
+          Track your spending, handle invoices, and avoid surprises.
         </p>
       </div>
 

@@ -1,0 +1,130 @@
+name: EAS Update
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Environment to update
+        required: true
+        default: preview
+        type: choice
+        options:
+          - development
+          - preview
+          - production
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    outputs:
+      ok: ${{ steps.check.outputs.ok }}
+
+    steps:
+      - name: Validate required secrets
+        id: check
+        run: |
+          if [ -z "${{ secrets.EXPO_TOKEN }}" ]; then
+            echo "Missing EXPO_TOKEN"
+            exit 1
+          fi
+          if [ "${{ github.event.inputs.environment }}" = "production" ] && [ -z "${{ secrets.SENTRY_TOKEN }}" ]; then
+            echo "Missing SENTRY_TOKEN for production OTA crash-free check"
+            exit 1
+          fi
+          echo "ok=true" >> $GITHUB_OUTPUT
+
+  update:
+    needs: preflight
+    if: needs.preflight.outputs.ok == 'true'
+    environment: ${{ github.event.inputs.environment }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        run: echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install EAS CLI
+        run: npm install -g eas-cli
+
+      - name: Install dependencies for crash check
+        if: github.event.inputs.environment == 'production'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq bc
+
+      - name: Resolve Sentry release version
+        if: github.event.inputs.environment == 'production'
+        id: version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          if [ "$VERSION" = "$GITHUB_REF" ] || [ -z "$VERSION" ]; then
+            VERSION="${{ vars.SENTRY_RELEASE_VERSION }}"
+          fi
+          if [ -z "$VERSION" ]; then
+            echo "Unable to resolve release version from tag or SENTRY_RELEASE_VERSION"
+            exit 1
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Check Sentry crash-free rate
+        if: github.event.inputs.environment == 'production'
+        run: |
+          if [ -z "${{ vars.SENTRY_ORG_SLUG }}" ]; then
+            echo "Missing required repository variable: SENTRY_ORG_SLUG"
+            exit 1
+          fi
+
+          RESPONSE=$(curl -fsSL \
+            -H "Authorization: Bearer ${{ secrets.SENTRY_TOKEN }}" \
+            "https://sentry.io/api/0/organizations/${{ vars.SENTRY_ORG_SLUG }}/releases/${{ steps.version.outputs.version }}/health/")
+
+          CRASH_FREE=$(echo "$RESPONSE" | jq -r '.crashFreeRate')
+          if [ "$CRASH_FREE" = "null" ] || [ -z "$CRASH_FREE" ]; then
+            echo "Release health not found. Blocking OTA."
+            exit 1
+          fi
+
+          echo "Crash-free rate: $CRASH_FREE"
+
+          THRESHOLD=99
+          if (( $(echo "$CRASH_FREE < $THRESHOLD" | bc -l) )); then
+            echo "Crash-free rate below threshold. Blocking OTA."
+            exit 1
+          fi
+
+      - name: Publish OTA update (10% rollout)
+        if: github.event.inputs.environment == 'production'
+        working-directory: apps/mobile
+        run: eas update --channel production --rollout 0.1 --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Publish OTA update
+        if: github.event.inputs.environment != 'production'
+        working-directory: apps/mobile
+        run: eas update --channel ${{ github.event.inputs.environment }} --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}

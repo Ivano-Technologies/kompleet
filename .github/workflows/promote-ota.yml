@@ -1,0 +1,43 @@
+name: Promote OTA Rollout
+
+on:
+  workflow_dispatch:
+    inputs:
+      rollout:
+        description: Rollout percentage
+        required: true
+        default: "1.0"
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    outputs:
+      ok: ${{ steps.check.outputs.ok }}
+
+    steps:
+      - name: Validate required secrets
+        id: check
+        run: |
+          if [ -z "${{ secrets.EXPO_TOKEN }}" ]; then
+            echo "Missing EXPO_TOKEN"
+            exit 1
+          fi
+          echo "ok=true" >> $GITHUB_OUTPUT
+
+  promote:
+    needs: preflight
+    if: needs.preflight.outputs.ok == 'true'
+    environment: production
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install EAS CLI
+        run: npm install -g eas-cli
+
+      - name: Promote OTA rollout
+        working-directory: apps/mobile
+        run: eas update:edit --channel production --rollout ${{ github.event.inputs.rollout }} --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}

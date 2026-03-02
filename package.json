@@ -16,19 +16,24 @@
     "check:types": "./scripts/check-type-drift.sh",
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
     "format": "prettier --write .",
-    "prepare": "node -e \"if(process.env.EAS_BUILD)process.exit(0);require('child_process').execSync('npx husky',{stdio:'inherit'})\" || true",
+    "prepare": "node -e \"if(process.env.EAS_BUILD)process.exit(0);require('child_process').execSync('pnpm exec husky install',{stdio:'inherit'})\" || true",
+    "postinstall": "node -e \"if(process.env.EAS_BUILD)process.exit(0);require('child_process').execSync('pnpm exec prisma generate',{stdio:'inherit'})\"",
     "precommit": "pnpm lint && pnpm typecheck && pnpm test",
     "ci": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
+    "audit:ci": "pnpm audit --audit-level=high",
     "prisma:pull": "prisma db pull",
     "prisma:generate": "prisma generate",
     "prisma:studio": "prisma studio",
     "security:scan-ocr-logs": "node scripts/scan-ocr-log-safety.js",
-    "postinstall": "node -e \"if(process.env.EAS_BUILD)process.exit(0);require('child_process').execSync('npx prisma generate',{stdio:'inherit'})\"",
-    "supabase": "supabase",
+    "supabase": "pnpm dlx supabase@2",
     "mobile:install": "node scripts/mobile-install.js",
     "mobile:doctor": "node scripts/mobile-doctor.js",
-    "mobile:prebuild": "cd apps/mobile && npx expo prebuild"
+    "mobile:prebuild": "cd apps/mobile && pnpm exec expo prebuild",
+    "verify:workspace": "pnpm list react",
+    "commitlint": "commitlint --edit"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.1",
@@ -58,7 +63,6 @@
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.45.1",
     "exceljs": "^4.1.1",
-    "expo": "^49.0.23",
     "formidable": "^3.5.4",
     "googleapis": "^171.4.0",
     "iconv-lite": "^0.6.3",
@@ -76,9 +80,6 @@
     "pino": "^10.3.0",
     "postgres": "^3.4.8",
     "qrcode": "^1.5.4",
-    "react": "19.1.0",
-    "react-countup": "^6.5.0",
-    "react-dom": "19.1.0",
     "recharts": "^3.7.0",
     "svix": "^1.84.1",
     "tailwind-merge": "^3.4.0",
@@ -89,7 +90,14 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@commitlint/cli": "^20.4.2",
+    "@commitlint/config-conventional": "^20.4.2",
     "@playwright/mcp": "^0.0.68",
+    "@playwright/test": "^1.58.2",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/commit-analyzer": "^13.0.1",
+    "@semantic-release/github": "^12.0.6",
+    "@semantic-release/release-notes-generator": "^14.1.0",
     "@tailwindcss/postcss": "^4.1.18",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
@@ -106,8 +114,8 @@
     "@types/qrcode": "^1.5.6",
     "@types/react": "~19.1.10",
     "@types/react-dom": "~19.2.0",
-    "@types/unzipper": "^0.10.11",
     "autoprefixer": "^10.4.24",
+    "conventional-changelog-conventionalcommits": "^9.2.0",
     "drizzle-kit": "^0.18.1",
     "eslint": "^8.57.0",
     "eslint-config-next": "^0.2.4",
@@ -118,7 +126,7 @@
     "prettier": "^3.8.1",
     "prisma": "^6.19.2",
     "rimraf": "^6.1.2",
-    "supabase": "^2.75.0",
+    "semantic-release": "^25.0.3",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.9.3",
     "vitest": "^4.0.18"
@@ -126,33 +134,15 @@
   "pnpm": {
     "overrides": {
       "iconv-lite": "0.6.3",
-      "react": "19.1.0",
-      "react-dom": "19.1.0",
-      "@types/react": "19.1.10",
-      "@types/react-dom": "19.2.0",
-      "react-native": "0.81.5",
       "esbuild@<=0.24.2": ">=0.25.0",
       "formidable@>=3.1.1-canary.20211030 <3.5.3": ">=3.5.3",
-      "axios@>=1.0.0 <1.12.0": ">=1.12.0",
+      "axios@>=1.0.0 <1.13.4": ">=1.13.5",
       "lodash@>=4.0.0 <=4.17.22": ">=4.17.23",
-      "hono@<4.11.7": ">=4.11.7",
-      "qs@>=6.7.0 <=6.14.1": ">=6.14.2",
-      "axios@>=1.0.0 <=1.13.4": ">=1.13.5",
-      "jspdf@<4.2.0": ">=4.2.0",
       "hono@<4.11.10": ">=4.11.10",
+      "qs@>=6.7.0 <=6.14.1": ">=6.14.2",
+      "jspdf@<4.2.0": ">=4.2.0",
       "fast-xml-parser@>=4.1.3 <5.3.6": ">=5.3.6",
-      "minimatch@<10.2.1": ">=10.2.1",
-      "fast-xml-parser@>=4.1.3 <5.3.5": ">=5.3.5",
-      "ajv@<6.14.0": ">=6.14.0",
-      "ajv": "6.12.6"
-    },
-    "peerDependencyRules": {
-      "allowedVersions": {
-        "react": "18 || 19",
-        "@types/react": "18 || 19",
-        "react-dom": "18 || 19",
-        "@types/react-dom": "18 || 19"
-      }
+      "minimatch@<10.2.1": ">=10.2.1"
     }
   }
 }

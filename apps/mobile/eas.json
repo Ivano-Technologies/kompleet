@@ -1,38 +1,38 @@
 {
   "cli": {
-    "version": ">= 12.0.0",
-    "appVersionSource": "local"
+    "version": ">= 3.17.0",
+    "appVersionSource": "remote"
   },
   "build": {
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "android": {
-        "buildType": "apk"
+      "env": {
+        "APP_ENV": "development"
       },
-      "node": "20.19.4"
+      "node": "22.0.0",
+      "installCommand": "pnpm install --filter ./apps/mobile..."
     },
     "preview": {
       "distribution": "internal",
-      "android": {
-        "buildType": "apk"
+      "channel": "preview",
+      "env": {
+        "APP_ENV": "preview"
       },
-      "node": "20.19.4"
+      "node": "22.0.0",
+      "installCommand": "pnpm install --filter ./apps/mobile..."
     },
     "production": {
-      "android": {
-        "buildType": "app-bundle"
-      },
       "autoIncrement": true,
-      "node": "20.19.4"
+      "channel": "production",
+      "env": {
+        "APP_ENV": "production"
+      },
+      "node": "22.0.0",
+      "installCommand": "pnpm install --filter ./apps/mobile..."
     }
   },
   "submit": {
-    "production": {
-      "android": {
-        "serviceAccountKeyPath": "./google-service-account.json",
-        "track": "internal"
-      }
-    }
+    "production": {}
   }
 }

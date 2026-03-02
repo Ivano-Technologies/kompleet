@@ -66,7 +66,9 @@ export function AuthLayout({
             {headerLeftAddon}
           </div>
           <div className="flex items-center gap-3">
-            {headerRightAddon}
+            {headerRightAddon ? (
+              <span className="hidden md:inline">{headerRightAddon}</span>
+            ) : null}
             <Link
               href="/#features"
               className="text-xs font-medium text-white/90 drop-shadow-sm hover:text-white"
@@ -93,6 +95,10 @@ export function AuthLayout({
             </button>
           </div>
         </header>
+
+        {headerRightAddon ? (
+          <div className="px-6 pt-3 text-center md:hidden">{headerRightAddon}</div>
+        ) : null}
 
         <main className="flex flex-1 items-center justify-center overflow-x-hidden px-6 pb-10 pt-8 md:px-10 md:pb-16 md:pt-0 lg:px-16">
           <div className="flex w-full max-w-full justify-center md:justify-end">

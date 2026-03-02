@@ -35,6 +35,15 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - name: Security audit (high severity gate)
+        if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
+        run: |
+          echo "Running production dependency audit..."
+          pnpm audit --audit-level=high --prod || {
+            echo "High or critical vulnerability detected. Failing build."
+            exit 1
+          }
+
       - run: pnpm build
         env:
           CI: "true"
