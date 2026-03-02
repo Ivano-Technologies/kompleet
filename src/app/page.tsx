@@ -103,7 +103,7 @@ export default function HomePage() {
             <div className="inline-flex items-center gap-2 bg-accent/10 border border-accent/25 rounded-full px-4 py-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
               <span className="text-xs font-bold text-accent uppercase tracking-widest">
-                Built for Nigerian SMEs
+                Built for Nigerian <span className="normal-case">SMEs</span>
               </span>
             </div>
             <h1 className="font-display text-4xl md:text-5xl font-bold leading-tight tracking-tighter">

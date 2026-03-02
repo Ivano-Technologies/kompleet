@@ -6,10 +6,10 @@
       }
     },
     "android": {
-      "package": "com.ivanotechnologies.kompleet"
+      "package": "com.ivano.kompleet"
     },
     "ios": {
-      "bundleIdentifier": "com.ivanotechnologies.kompleet",
+      "bundleIdentifier": "com.ivano.kompleet",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }

@@ -145,8 +145,8 @@ function LoginForm() {
       </form>
       <p className="mt-6 text-center text-sm text-text-3 dark:text-dark-text-3">
         New to Kompleet?{" "}
-        <Link href="/signup" className="font-bold text-primary">
-          Get Started for Free
+        <Link href="/signup" className="font-bold uppercase tracking-wider text-accent hover:text-accent-hover dark:text-accent">
+          Built for Nigerian <span className="normal-case">SMEs</span>
         </Link>
       </p>
     </AuthLayout>

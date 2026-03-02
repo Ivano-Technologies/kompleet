@@ -1,0 +1,4 @@
+/apps/mobile/ @mobile-team
+/src/modules/document-intelligence/ @backend-team
+/supabase/migrations/ @data-team
+/docs/ocr/ @backend-team
