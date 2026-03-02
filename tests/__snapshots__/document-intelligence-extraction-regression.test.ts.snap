@@ -1,0 +1,79 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Document extraction regression corpus > produces stable structured JSON snapshots for golden invoice corpus > basic_ngn_invoice:hash 1`] = `"7d7a3f77723a23bfb491c63e337fe69cac1cc5d0e183085584a2a0ff3c1dfd82"`;
+
+exports[`Document extraction regression corpus > produces stable structured JSON snapshots for golden invoice corpus > basic_ngn_invoice:structured 1`] = `
+{
+  "__deterministicHash": "7d7a3f77723a23bfb491c63e337fe69cac1cc5d0e183085584a2a0ff3c1dfd82",
+  "__metadata": {
+    "anchorCoverage": 1,
+    "confidenceBucket": "very_high",
+    "extractionVersion": "v1",
+    "structuredHash": "7d7a3f77723a23bfb491c63e337fe69cac1cc5d0e183085584a2a0ff3c1dfd82",
+  },
+  "confidenceScore": 94.2,
+  "currency": "NGN",
+  "fileSizeBytes": 24567,
+  "invoiceNumber": "INV-2026-0001",
+  "issueDate": "2026-02-15",
+  "lineItems": [],
+  "pageCount": 1,
+  "subtotal": 100000,
+  "textHash": "fixture-hash-basic",
+  "totalAmount": 107500,
+  "vatAmount": 7500,
+  "vendorName": "Lagos Office Supplies Ltd",
+}
+`;
+
+exports[`Document extraction regression corpus > produces stable structured JSON snapshots for golden invoice corpus > multi_format_date_invoice:hash 1`] = `"4e49d356cb8edc0a36987d8fb35f18aa4e0e11b2eb3db5f95ca88609d60ae50c"`;
+
+exports[`Document extraction regression corpus > produces stable structured JSON snapshots for golden invoice corpus > multi_format_date_invoice:structured 1`] = `
+{
+  "__deterministicHash": "4e49d356cb8edc0a36987d8fb35f18aa4e0e11b2eb3db5f95ca88609d60ae50c",
+  "__metadata": {
+    "anchorCoverage": 0.86,
+    "confidenceBucket": "high",
+    "extractionVersion": "v1",
+    "structuredHash": "4e49d356cb8edc0a36987d8fb35f18aa4e0e11b2eb3db5f95ca88609d60ae50c",
+  },
+  "confidenceScore": 88.7,
+  "currency": "USD",
+  "fileSizeBytes": 18032,
+  "invoiceNumber": "unknown",
+  "issueDate": "28/02/2026",
+  "lineItems": [],
+  "pageCount": 1,
+  "subtotal": 550,
+  "textHash": "fixture-hash-usd",
+  "totalAmount": 591.25,
+  "vatAmount": 41.25,
+  "vendorName": "Omni Industrial Services",
+}
+`;
+
+exports[`Document extraction regression corpus > produces stable structured JSON snapshots for golden invoice corpus > sparse_low_anchor_invoice:hash 1`] = `"a36ded337c16d01e1ec3d2a970e2ebd9c2bd261fc10d404d44456b694e56755d"`;
+
+exports[`Document extraction regression corpus > produces stable structured JSON snapshots for golden invoice corpus > sparse_low_anchor_invoice:structured 1`] = `
+{
+  "__deterministicHash": "a36ded337c16d01e1ec3d2a970e2ebd9c2bd261fc10d404d44456b694e56755d",
+  "__metadata": {
+    "anchorCoverage": 0.43,
+    "confidenceBucket": "medium",
+    "extractionVersion": "v1",
+    "structuredHash": "a36ded337c16d01e1ec3d2a970e2ebd9c2bd261fc10d404d44456b694e56755d",
+  },
+  "confidenceScore": 79.1,
+  "currency": "NGN",
+  "fileSizeBytes": 9050,
+  "invoiceNumber": "INV-9002",
+  "issueDate": "2026-03-01",
+  "lineItems": [],
+  "pageCount": 1,
+  "subtotal": 3000,
+  "textHash": "fixture-hash-sparse",
+  "totalAmount": 3200,
+  "vatAmount": 200,
+  "vendorName": "Vertex Trade Hub",
+}
+`;

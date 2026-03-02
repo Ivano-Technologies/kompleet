@@ -1,0 +1,21 @@
+Command:
+pnpm test tests/document-intelligence-duplicate-processing.test.ts
+
+Observed output (latest):
+
+> kompleet-platform@0.1.0 test C:\Antigravity\Projects\kompleet-platform
+> vitest run --passWithNoTests "tests/document-intelligence-duplicate-processing.test.ts"
+
+ RUN  v4.0.18 C:/Antigravity/Projects/kompleet-platform
+
+ ✓ tests/document-intelligence-duplicate-processing.test.ts (1 test) 36ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  12:19:55
+   Duration  2.42s
+
+Assertion significance:
+- Concurrent race simulation completed.
+- One completion path only.
+- Duplicate claim metric increment validated by test.

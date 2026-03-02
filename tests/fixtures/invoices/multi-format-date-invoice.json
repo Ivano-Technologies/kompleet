@@ -1,0 +1,10 @@
+{
+  "name": "multi_format_date_invoice",
+  "ocrData": {
+    "rawText": "Omni Industrial Services\nINVOICE # OIS-77-A\nIssue Date: 28/02/2026\nCurrency USD\nSubtotal 550.00\nTax 41.25\nGrand Total 591.25",
+    "confidenceScore": 88.7,
+    "textHash": "fixture-hash-usd",
+    "pageCount": 1,
+    "fileSizeBytes": 18032
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "sparse_low_anchor_invoice",
+  "ocrData": {
+    "rawText": "Vertex Trade Hub\nINV NO INV-9002\nDate 2026-03-01\nAmount Due 3200.00",
+    "confidenceScore": 79.1,
+    "invoiceNumber": "INV-9002",
+    "vendorName": "Vertex Trade Hub",
+    "currency": "NGN",
+    "subtotal": 3000,
+    "vatAmount": 200,
+    "totalAmount": 3200,
+    "textHash": "fixture-hash-sparse",
+    "pageCount": 1,
+    "fileSizeBytes": 9050
+  }
+}

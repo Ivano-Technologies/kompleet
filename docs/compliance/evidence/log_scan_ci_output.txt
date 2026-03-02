@@ -1,0 +1,13 @@
+Command:
+pnpm security:scan-ocr-logs
+
+Observed output (latest):
+
+> kompleet-platform@0.1.0 security:scan-ocr-logs C:\Antigravity\Projects\kompleet-platform
+> node scripts/scan-ocr-log-safety.js
+
+OCR log safety scan passed.
+
+Assertion significance:
+- OCR-sensitive logging patterns are scanned in worker/module/test paths.
+- Build can fail on prohibited logging patterns.
