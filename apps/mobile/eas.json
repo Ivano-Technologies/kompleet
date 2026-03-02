@@ -10,8 +10,7 @@
       "env": {
         "APP_ENV": "development"
       },
-      "node": "22.0.0",
-      "installCommand": "pnpm install --filter ./apps/mobile..."
+      "node": "22.0.0"
     },
     "preview": {
       "distribution": "internal",
@@ -19,8 +18,7 @@
       "env": {
         "APP_ENV": "preview"
       },
-      "node": "22.0.0",
-      "installCommand": "pnpm install --filter ./apps/mobile..."
+      "node": "22.0.0"
     },
     "production": {
       "autoIncrement": true,
@@ -28,8 +26,7 @@
       "env": {
         "APP_ENV": "production"
       },
-      "node": "22.0.0",
-      "installCommand": "pnpm install --filter ./apps/mobile..."
+      "node": "22.0.0"
     }
   },
   "submit": {
