@@ -1,186 +1,146 @@
 'use client';
 
 import { useState } from 'react';
-import { useTheme } from '@/contexts/ThemeContext';
-import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, KeyRound, Mail, Moon, Sun } from 'lucide-react';
+import { useTheme } from '@/contexts/ThemeContext';
+import { Moon, Sun, ShieldCheck, Zap, TrendingUp, CheckCircle2, ArrowLeft } from 'lucide-react';
 
-const LOGO_URL = "/logo.png";
+const LIFESTYLE_PHOTO = "/assets/auth-lifestyle.jpg";
 
-const BASKET_WEAVE_DARK =
-  "url(\"data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='24'%20height='24'%3E%3Cline%20x1='0'%20y1='5'%20x2='24'%20y2='5'%20stroke='rgba(56,70,75,0.38)'%20stroke-width='2.2'%20stroke-linecap='square'/%3E%3Cline%20x1='0'%20y1='8'%20x2='24'%20y2='8'%20stroke='rgba(56,70,75,0.22)'%20stroke-width='1.0'%20stroke-linecap='square'/%3E%3Cline%20x1='0'%20y1='17'%20x2='11'%20y2='17'%20stroke='rgba(56,70,75,0.38)'%20stroke-width='2.2'%20stroke-linecap='square'/%3E%3Cline%20x1='13'%20y1='17'%20x2='24'%20y2='17'%20stroke='rgba(56,70,75,0.38)'%20stroke-width='2.2'%20stroke-linecap='square'/%3E%3Cline%20x1='0'%20y1='20'%20x2='11'%20y2='20'%20stroke='rgba(56,70,75,0.22)'%20stroke-width='1.0'%20stroke-linecap='square'/%3E%3Cline%20x1='13'%20y1='20'%20x2='24'%20y2='20'%20stroke='rgba(56,70,75,0.22)'%20stroke-width='1.0'%20stroke-linecap='square'/%3E%3Cline%20x1='5'%20y1='0'%20x2='5'%20y2='24'%20stroke='rgba(56,70,75,0.28)'%20stroke-width='2.2'%20stroke-linecap='square'/%3E%3Cline%20x1='8'%20y1='0'%20x2='8'%20y2='24'%20stroke='rgba(56,70,75,0.16)'%20stroke-width='1.0'%20stroke-linecap='square'/%3E%3Cline%20x1='17'%20y1='0'%20x2='17'%20y2='3'%20stroke='rgba(56,70,75,0.28)'%20stroke-width='2.2'%20stroke-linecap='square'/%3E%3Cline%20x1='17'%20y1='10'%20x2='17'%20y2='24'%20stroke='rgba(56,70,75,0.28)'%20stroke-width='2.2'%20stroke-linecap='square'/%3E%3Cline%20x1='20'%20y1='0'%20x2='20'%20y2='3'%20stroke='rgba(56,70,75,0.16)'%20stroke-width='1.0'%20stroke-linecap='square'/%3E%3Cline%20x1='20'%20y1='10'%20x2='20'%20y2='24'%20stroke='rgba(56,70,75,0.16)'%20stroke-width='1.0'%20stroke-linecap='square'/%3E%3C/svg%3E\")";
-const BASKET_WEAVE_LIGHT =
-  "url(\"data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='24'%20height='24'%3E%3Cline%20x1='0'%20y1='5'%20x2='24'%20y2='5'%20stroke='rgba(56,70,75,0.12)'%20stroke-width='2.2'%20stroke-linecap='square'/%3E%3Cline%20x1='0'%20y1='8'%20x2='24'%20y2='8'%20stroke='rgba(56,70,75,0.07)'%20stroke-width='1.0'%20stroke-linecap='square'/%3E%3Cline%20x1='0'%20y1='17'%20x2='11'%20y2='17'%20stroke='rgba(56,70,75,0.12)'%20stroke-width='2.2'%20stroke-linecap='square'/%3E%3Cline%20x1='13'%20y1='17'%20x2='24'%20y2='17'%20stroke='rgba(56,70,75,0.12)'%20stroke-width='2.2'%20stroke-linecap='square'/%3E%3Cline%20x1='0'%20y1='20'%20x2='11'%20y2='20'%20stroke='rgba(56,70,75,0.07)'%20stroke-width='1.0'%20stroke-linecap='square'/%3E%3Cline%20x1='13'%20y1='20'%20x2='24'%20y2='20'%20stroke='rgba(56,70,75,0.07)'%20stroke-width='1.0'%20stroke-linecap='square'/%3E%3Cline%20x1='5'%20y1='0'%20x2='5'%20y2='24'%20stroke='rgba(56,70,75,0.09)'%20stroke-width='2.2'%20stroke-linecap='square'/%3E%3Cline%20x1='8'%20y1='0'%20x2='8'%20y2='24'%20stroke='rgba(56,70,75,0.05)'%20stroke-width='1.0'%20stroke-linecap='square'/%3E%3Cline%20x1='17'%20y1='0'%20x2='17'%20y2='3'%20stroke='rgba(56,70,75,0.09)'%20stroke-width='2.2'%20stroke-linecap='square'/%3E%3Cline%20x1='17'%20y1='10'%20x2='17'%20y2='24'%20stroke='rgba(56,70,75,0.09)'%20stroke-width='2.2'%20stroke-linecap='square'/%3E%3Cline%20x1='20'%20y1='0'%20x2='20'%20y2='3'%20stroke='rgba(56,70,75,0.05)'%20stroke-width='1.0'%20stroke-linecap='square'/%3E%3Cline%20x1='20'%20y1='10'%20x2='20'%20y2='24'%20stroke='rgba(56,70,75,0.05)'%20stroke-width='1.0'%20stroke-linecap='square'/%3E%3C/svg%3E\")";
+const TRUST_BULLETS = [
+  { icon: ShieldCheck, label: "Bank-grade encryption & NDPR compliant" },
+  { icon: Zap,         label: "Real-time expense tracking, zero lag" },
+  { icon: TrendingUp,  label: "Built for Nigerian SMEs — free during Beta" },
+];
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const [sent, setSent] = useState(false);
   const { resolvedTheme, toggleTheme } = useTheme();
 
-  const handleResetPassword = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setLoading(true);
     setError(null);
-
+    setLoading(true);
     try {
-      const supabase = createClient();
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/callback?redirect=/reset-password`,
+      const res = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
       });
-      if (error) throw error;
-      setSuccess(true);
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to send reset email';
-      setError(errorMessage);
+      const data = await res.json();
+      if (!res.ok) { setError(data.error || 'Failed to send reset email.'); setLoading(false); return; }
+      setSent(true);
+    } catch {
+      setError('An unexpected error occurred.');
     } finally {
       setLoading(false);
     }
   };
 
-  if (success) {
-    return (
-      <div className="grid lg:grid-cols-2 min-h-screen">
-        <div className="hidden lg:block bg-gradient-to-br from-primary-deep to-primary" />
-        <div className="bg-surface dark:bg-dark-bg p-8 md:p-12 flex flex-col items-center justify-center">
-          <div className="w-full max-w-sm space-y-6 text-center">
-            <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto">
-              <Mail className="w-8 h-8 text-accent" />
-            </div>
-            <h1 className="font-display text-2xl font-bold text-text-1 dark:text-dark-text-1">Check Your Email</h1>
-            <p className="text-sm text-text-3 dark:text-dark-text-3">
-              We&apos;ve sent a password reset link to <strong className="text-text-1 dark:text-dark-text-1">{email}</strong>
-            </p>
-            <Link
-              href="/login"
-              className="block w-full bg-accent text-charcoal font-bold text-sm py-3.5 rounded-md shadow-accent hover:bg-accent-hover transition-all text-center"
-            >
-              Back to Login
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="grid lg:grid-cols-2 min-h-screen">
-      {/* Left Panel — same as login/signup */}
-      <div className="bg-gradient-to-br from-primary-deep to-primary p-8 md:p-12 flex flex-col justify-between relative overflow-hidden">
-        <div
-          className="absolute inset-0 z-10 pointer-events-none"
-          style={{
-            backgroundImage: BASKET_WEAVE_DARK,
-            backgroundSize: "24px 24px",
-            maskImage:
-              "radial-gradient(ellipse 80% 80% at 50% 50%, transparent 45%, rgba(0,0,0,0.4) 65%, rgba(0,0,0,0.85) 82%, black 100%)",
-            WebkitMaskImage:
-              "radial-gradient(ellipse 80% 80% at 50% 50%, transparent 45%, rgba(0,0,0,0.4) 65%, rgba(0,0,0,0.85) 82%, black 100%)",
-          }}
-        />
-        <div className="relative z-20">
-          <Link href="/dashboard" className="flex items-center gap-3">
-            <Image src={LOGO_URL} alt="KOMPLEET" width={40} height={40} className="rounded-lg shadow-4" />
-            <span className="font-ceoruse text-xl font-bold text-white">KOMPLEET</span>
+    <div className="min-h-screen lg:grid lg:grid-cols-2">
+      {/* LEFT: Form panel */}
+      <div className="flex flex-col min-h-screen bg-white dark:bg-dark-bg px-8 py-10 md:px-14">
+        {/* Top bar */}
+        <div className="flex items-center justify-between mb-12">
+          <Link href="/">
+            <Image src="/assets/logo-primary.png" alt="Kompleet" width={130} height={36} className="h-9 w-auto dark:hidden" priority />
+            <Image src="/assets/logo-inverted.png" alt="Kompleet" width={130} height={36} className="h-9 w-auto hidden dark:block" priority />
           </Link>
-        </div>
-        <div className="relative z-20">
-          <h2 className="font-display text-3xl md:text-4xl font-bold text-white leading-tight tracking-tighter">
-            Control Your Money.
-            <br />
-            <em className="text-accent not-italic">Grow Your Business.</em>
-          </h2>
-          <p className="text-base text-white/50 mt-4 max-w-sm">
-            The financial operating system for Nigerian SMEs.
-          </p>
-        </div>
-      </div>
-
-      {/* Right Panel — form */}
-      <div className="bg-surface dark:bg-dark-bg p-8 md:p-12 flex flex-col items-center justify-center relative overflow-hidden">
-        <div
-          className="absolute inset-0 z-10 pointer-events-none"
-          style={{
-            backgroundImage: BASKET_WEAVE_LIGHT,
-            backgroundSize: "24px 24px",
-            maskImage:
-              "radial-gradient(ellipse 75% 75% at 50% 50%, transparent 50%, rgba(0,0,0,0.3) 68%, rgba(0,0,0,0.7) 84%, black 100%)",
-            WebkitMaskImage:
-              "radial-gradient(ellipse 75% 75% at 50% 50%, transparent 50%, rgba(0,0,0,0.3) 68%, rgba(0,0,0,0.7) 84%, black 100%)",
-          }}
-        />
-        <div className="absolute top-6 left-6 z-20">
-          <Link
-            href="/login"
-            className="flex items-center gap-2 text-sm text-text-3 dark:text-dark-text-3 hover:text-text-1 dark:hover:text-dark-text-1 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" /> Back to Login
-          </Link>
-        </div>
-        <div className="absolute top-6 right-6 z-20 flex items-center gap-2">
-          <Link href="/#features" className="text-xs font-medium text-text-2 dark:text-dark-text-2 hover:text-primary">Features</Link>
-          <Link href="/contact" className="text-xs font-medium text-text-2 dark:text-dark-text-2 hover:text-primary">Contact</Link>
-          <button
-            type="button"
-            onClick={toggleTheme}
-            className="p-2 rounded-md border border-border dark:border-dark-border hover:bg-surface-2 dark:hover:bg-dark-surface-2 transition-colors"
-            aria-label="Toggle theme"
-          >
-            {resolvedTheme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+          <button type="button" onClick={toggleTheme} className="p-2 rounded-full border border-gray-200 dark:border-dark-border hover:bg-gray-50 dark:hover:bg-dark-surface-2 transition-colors" aria-label="Toggle theme">
+            {resolvedTheme === 'light' ? <Moon className="w-4 h-4 text-gray-500" /> : <Sun className="w-4 h-4 text-yellow-400" />}
           </button>
         </div>
 
-        <div className="w-full max-w-sm relative z-20 mt-12">
-          <div className="flex items-center justify-center gap-3 mb-6 lg:hidden">
-            <Image src={LOGO_URL} alt="KOMPLEET" width={40} height={40} className="rounded-lg shadow-4" />
-            <span className="font-ceoruse text-xl font-bold text-text-1 dark:text-dark-text-1">KOMPLEET</span>
-          </div>
-          <div className="text-center mb-2">
-            <div className="w-14 h-14 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <KeyRound className="w-7 h-7 text-accent" />
+        {/* Form body */}
+        <div className="flex-1 flex flex-col justify-center max-w-sm w-full mx-auto">
+          {sent ? (
+            <div className="text-center">
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-5">
+                <CheckCircle2 className="w-8 h-8 text-primary" />
+              </div>
+              <h2 className="font-display text-2xl font-bold text-gray-900 dark:text-dark-text-1 mb-2">Check your inbox</h2>
+              <p className="text-sm text-gray-500 dark:text-dark-text-3 mb-6">
+                We sent a password reset link to <strong>{email}</strong>. It expires in 1 hour.
+              </p>
+              <Link href="/login" className="w-full bg-primary hover:bg-primary/90 text-white font-bold text-sm py-3.5 rounded-full transition-all flex items-center justify-center gap-2">
+                <ArrowLeft className="w-4 h-4" /> Back to Sign In
+              </Link>
             </div>
-            <h1 className="font-display text-2xl font-bold text-text-1 dark:text-dark-text-1 mb-2">Reset your password</h1>
-            <p className="text-sm text-text-3 dark:text-dark-text-3 mb-6">
-              Enter your email and we&apos;ll send you a link to reset your password.
-            </p>
-          </div>
+          ) : (
+            <>
+              <p className="text-xs font-bold text-primary dark:text-accent uppercase tracking-widest mb-2">Account recovery</p>
+              <h1 className="font-display text-3xl font-bold text-gray-900 dark:text-dark-text-1 mb-1">Reset your password</h1>
+              <p className="text-sm text-gray-500 dark:text-dark-text-3 mb-8">
+                Enter your business email and we will send you a secure reset link.
+              </p>
 
-          {error && (
-            <div className="mb-6 p-3 rounded-md bg-error-bg dark:bg-error-darkBg border border-error/30 text-error dark:text-error-dark text-sm">
-              {error}
-            </div>
+              {error && (
+                <div className="mb-5 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm">{error}</div>
+              )}
+
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-600 dark:text-dark-text-2 mb-1.5">Business Email</label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    placeholder="you@company.ng"
+                    className="w-full bg-gray-50 dark:bg-dark-surface border border-gray-200 dark:border-dark-border rounded-full px-5 py-3 text-sm text-gray-900 dark:text-dark-text-1 placeholder:text-gray-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                  />
+                </div>
+                <div className="pt-2">
+                  <button type="submit" disabled={loading}
+                    className="w-full bg-primary hover:bg-primary/90 text-white font-bold text-sm py-3.5 rounded-full shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:transform-none">
+                    {loading ? 'Sending…' : 'Send Reset Link →'}
+                  </button>
+                </div>
+              </form>
+
+              <p className="text-center text-sm text-gray-500 dark:text-dark-text-3 mt-6">
+                Remembered it?{' '}
+                <Link href="/login" className="font-bold text-primary hover:underline">Back to Sign In</Link>
+              </p>
+            </>
           )}
+        </div>
 
-          <form onSubmit={handleResetPassword} className="space-y-5">
-            <div>
-              <label htmlFor="email" className="text-xs font-bold text-text-2 dark:text-dark-text-2 uppercase tracking-wider">
-                Email address
-              </label>
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                placeholder="name@company.com"
-                className="w-full mt-2 bg-surface dark:bg-dark-surface border-2 border-border dark:border-dark-border rounded-md p-3 text-sm text-text-1 dark:text-dark-text-1 focus:border-accent focus:ring-2 focus:ring-accent/20"
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-accent text-charcoal font-bold text-sm py-3.5 rounded-md shadow-accent hover:bg-accent-hover transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:transform-none"
-            >
-              {loading ? 'Sending...' : 'Send Reset Link'}
-            </button>
-          </form>
+        <p className="text-center text-xs text-gray-400 dark:text-dark-text-4 mt-10">
+          © {new Date().getFullYear()} Ivano Technologies Ltd ·{' '}
+          <Link href="/kompleet-privacy.html" className="hover:underline">Privacy</Link>{' · '}
+          <Link href="/kompleet-terms.html" className="hover:underline">Terms</Link>
+        </p>
+      </div>
 
-          <p className="text-center text-xs text-text-4 dark:text-dark-text-4 mt-6">
-            Secure link expires in 60 minutes for your protection.
-          </p>
+      {/* RIGHT: Lifestyle photo panel */}
+      <div className="hidden lg:block relative overflow-hidden">
+        <Image src={LIFESTYLE_PHOTO} alt="Business professional using Kompleet" fill className="object-cover object-center" priority sizes="50vw" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/45 to-black/20" />
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent" />
+        <div className="absolute inset-0 flex flex-col justify-end p-12 z-10">
+          <blockquote className="mb-8">
+            <p className="text-white text-2xl font-display font-bold leading-snug max-w-sm">&ldquo;Your finances,<br />finally in control.&rdquo;</p>
+            <p className="text-white/60 text-sm mt-3 font-medium">— Built for Nigerian entrepreneurs</p>
+          </blockquote>
+          <ul className="space-y-3">
+            {TRUST_BULLETS.map(({ icon: Icon, label }) => (
+              <li key={label} className="flex items-center gap-3">
+                <span className="flex-shrink-0 w-7 h-7 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
+                  <Icon className="w-3.5 h-3.5 text-accent" />
+                </span>
+                <span className="text-white/80 text-sm">{label}</span>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-10 pt-6 border-t border-white/10">
+            <Image src="/assets/logo-inverted.png" alt="Kompleet" width={100} height={28} className="h-7 w-auto opacity-60" />
+          </div>
         </div>
       </div>
     </div>
