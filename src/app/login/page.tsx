@@ -6,15 +6,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { createSupabaseClient } from "@/lib/supabase/client";
 import { useTheme } from "@/contexts/ThemeContext";
-import { Eye, EyeOff, Moon, Sun, ShieldCheck, Zap, TrendingUp } from "lucide-react";
+import { Eye, EyeOff, Moon, Sun } from "lucide-react";
 
-const LIFESTYLE_PHOTO = "/assets/auth-lifestyle.jpg";
-
-const TRUST_BULLETS = [
-  { icon: ShieldCheck, label: "Bank-grade encryption & NDPR compliant" },
-  { icon: Zap,         label: "Real-time expense tracking, zero lag" },
-  { icon: TrendingUp,  label: "Built for Nigerian SMEs — free during Beta" },
-];
+const BASKET_WEAVE_DARK =
+  "url(\"data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='24'%20height='24'%3E%3Cline%20x1='0'%20y1='5'%20x2='24'%20y2='5'%20stroke='rgba(56,70,75,0.38)'%20stroke-width='2.2'%20stroke-linecap='square'/%3E%3Cline%20x1='0'%20y1='8'%20x2='24'%20y2='8'%20stroke='rgba(56,70,75,0.22)'%20stroke-width='1.0'%20stroke-linecap='square'/%3E%3Cline%20x1='0'%20y1='17'%20x2='11'%20y2='17'%20stroke='rgba(56,70,75,0.38)'%20stroke-width='2.2'%20stroke-linecap='square'/%3E%3Cline%20x1='13'%20y1='17'%20x2='24'%20y2='17'%20stroke='rgba(56,70,75,0.38)'%20stroke-width='2.2'%20stroke-linecap='square'/%3E%3Cline%20x1='0'%20y1='20'%20x2='11'%20y2='20'%20stroke='rgba(56,70,75,0.22)'%20stroke-width='1.0'%20stroke-linecap='square'/%3E%3Cline%20x1='13'%20y1='20'%20x2='24'%20y2='20'%20stroke='rgba(56,70,75,0.22)'%20stroke-width='1.0'%20stroke-linecap='square'/%3E%3Cline%20x1='5'%20y1='0'%20x2='5'%20y2='24'%20stroke='rgba(56,70,75,0.28)'%20stroke-width='2.2'%20stroke-linecap='square'/%3E%3Cline%20x1='8'%20y1='0'%20x2='8'%20y2='24'%20stroke='rgba(56,70,75,0.16)'%20stroke-width='1.0'%20stroke-linecap='square'/%3E%3Cline%20x1='17'%20y1='0'%20x2='17'%20y2='3'%20stroke='rgba(56,70,75,0.28)'%20stroke-width='2.2'%20stroke-linecap='square'/%3E%3Cline%20x1='17'%20y1='10'%20x2='17'%20y2='24'%20stroke='rgba(56,70,75,0.28)'%20stroke-width='2.2'%20stroke-linecap='square'/%3E%3Cline%20x1='20'%20y1='0'%20x2='20'%20y2='3'%20stroke='rgba(56,70,75,0.16)'%20stroke-width='1.0'%20stroke-linecap='square'/%3E%3Cline%20x1='20'%20y1='10'%20x2='20'%20y2='24'%20stroke='rgba(56,70,75,0.16)'%20stroke-width='1.0'%20stroke-linecap='square'/%3E%3C/svg%3E\")";
+const BASKET_WEAVE_LIGHT =
+  "url(\"data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='24'%20height='24'%3E%3Cline%20x1='0'%20y1='5'%20x2='24'%20y2='5'%20stroke='rgba(56,70,75,0.12)'%20stroke-width='2.2'%20stroke-linecap='square'/%3E%3Cline%20x1='0'%20y1='8'%20x2='24'%20y2='8'%20stroke='rgba(56,70,75,0.07)'%20stroke-width='1.0'%20stroke-linecap='square'/%3E%3Cline%20x1='0'%20y1='17'%20x2='11'%20y2='17'%20stroke='rgba(56,70,75,0.12)'%20stroke-width='2.2'%20stroke-linecap='square'/%3E%3Cline%20x1='13'%20y1='17'%20x2='24'%20y2='17'%20stroke='rgba(56,70,75,0.12)'%20stroke-width='2.2'%20stroke-linecap='square'/%3E%3Cline%20x1='0'%20y1='20'%20x2='11'%20y2='20'%20stroke='rgba(56,70,75,0.07)'%20stroke-width='1.0'%20stroke-linecap='square'/%3E%3Cline%20x1='13'%20y1='20'%20x2='24'%20y2='20'%20stroke='rgba(56,70,75,0.07)'%20stroke-width='1.0'%20stroke-linecap='square'/%3E%3Cline%20x1='5'%20y1='0'%20x2='5'%20y2='24'%20stroke='rgba(56,70,75,0.09)'%20stroke-width='2.2'%20stroke-linecap='square'/%3E%3Cline%20x1='8'%20y1='0'%20x2='8'%20y2='24'%20stroke='rgba(56,70,75,0.05)'%20stroke-width='1.0'%20stroke-linecap='square'/%3E%3Cline%20x1='17'%20y1='0'%20x2='17'%20y2='3'%20stroke='rgba(56,70,75,0.09)'%20stroke-width='2.2'%20stroke-linecap='square'/%3E%3Cline%20x1='17'%20y1='10'%20x2='17'%20y2='24'%20stroke='rgba(56,70,75,0.09)'%20stroke-width='2.2'%20stroke-linecap='square'/%3E%3Cline%20x1='20'%20y1='0'%20x2='20'%20y2='3'%20stroke='rgba(56,70,75,0.05)'%20stroke-width='1.0'%20stroke-linecap='square'/%3E%3Cline%20x1='20'%20y1='10'%20x2='20'%20y2='24'%20stroke='rgba(56,70,75,0.05)'%20stroke-width='1.0'%20stroke-linecap='square'/%3E%3C/svg%3E\")";
 
 function LoginForm() {
   const [email, setEmail] = useState("");
@@ -45,11 +42,13 @@ function LoginForm() {
         body: JSON.stringify({ email, password }),
       });
       const data = await res.json();
+
       if (!res.ok) {
         setError(data.error || "Invalid email or password.");
         setLoading(false);
         return;
       }
+
       if (data.session) {
         const supabase = createSupabaseClient();
         await supabase.auth.setSession({
@@ -69,64 +68,90 @@ function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen lg:grid lg:grid-cols-2">
-
-      {/* ── LEFT: Form panel ── */}
-      <div className="flex flex-col min-h-screen bg-white dark:bg-dark-bg px-8 py-10 md:px-14">
-
-        {/* Top bar */}
-        <div className="flex items-center justify-between mb-12">
-          <Link href="/">
+    <div className="grid lg:grid-cols-2 min-h-screen">
+      {/* Left Panel */}
+      <div className="bg-gradient-to-br from-primary-deep to-primary p-8 md:p-12 flex flex-col justify-between relative overflow-hidden">
+        <div
+          className="absolute inset-0 z-10 pointer-events-none"
+          style={{
+            backgroundImage: BASKET_WEAVE_DARK,
+            backgroundSize: "24px 24px",
+            maskImage:
+              "radial-gradient(ellipse 80% 80% at 50% 50%, transparent 45%, rgba(0,0,0,0.4) 65%, rgba(0,0,0,0.85) 82%, black 100%)",
+            WebkitMaskImage:
+              "radial-gradient(ellipse 80% 80% at 50% 50%, transparent 45%, rgba(0,0,0,0.4) 65%, rgba(0,0,0,0.85) 82%, black 100%)",
+          }}
+        />
+        <div className="relative z-20">
+          <Link href="/dashboard" className="flex items-center gap-3">
             <Image
-              src="/assets/logo-primary.png"
-              alt="Kompleet"
-              width={130}
-              height={36}
-              className="h-9 w-auto dark:hidden"
-              priority
+              src="/logo.png"
+              alt="Kompleet Logo"
+              width={40}
+              height={40}
+              className="rounded-lg shadow-4"
             />
-            <Image
-              src="/assets/logo-inverted.png"
-              alt="Kompleet"
-              width={130}
-              height={36}
-              className="h-9 w-auto hidden dark:block"
-              priority
-            />
+            <span className="font-ceoruse text-xl font-bold text-white">
+              KOMPLEET
+            </span>
           </Link>
+        </div>
+        <div className="relative z-20">
+          <h2 className="font-display text-3xl md:text-4xl font-bold text-white leading-tight tracking-tighter">
+            Control Your Money.
+            <br />
+            <em className="text-accent not-italic">Grow Your Business.</em>
+          </h2>
+          <p className="text-base text-white/50 mt-4 max-w-sm">
+            The financial operating system for Nigerian SMEs.
+          </p>
+        </div>
+
+      </div>
+
+      {/* Right Panel */}
+      <div className="bg-surface dark:bg-dark-bg p-8 md:p-12 flex flex-col items-center justify-center relative overflow-hidden">
+        <div className="absolute top-6 right-6 z-20 flex items-center gap-2">
+          <Link href="/" className="text-xs font-medium text-text-2 dark:text-dark-text-2 hover:text-primary">Features</Link>
+          <Link href="/contact" className="text-xs font-medium text-text-2 dark:text-dark-text-2 hover:text-primary">Contact</Link>
           <button
             type="button"
             onClick={toggleTheme}
-            className="p-2 rounded-full border border-gray-200 dark:border-dark-border hover:bg-gray-50 dark:hover:bg-dark-surface-2 transition-colors"
+            className="p-2 rounded-md border border-border dark:border-dark-border hover:bg-surface-2 dark:hover:bg-dark-surface-2 transition-colors"
             aria-label="Toggle theme"
           >
-            {resolvedTheme === "light"
-              ? <Moon className="w-4 h-4 text-gray-500" />
-              : <Sun className="w-4 h-4 text-yellow-400" />}
+            {resolvedTheme === "light" ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
           </button>
         </div>
-
-        {/* Form body */}
-        <div className="flex-1 flex flex-col justify-center max-w-sm w-full mx-auto">
-          <p className="text-xs font-bold text-primary dark:text-accent uppercase tracking-widest mb-2">
-            Welcome back
-          </p>
-          <h1 className="font-display text-3xl font-bold text-gray-900 dark:text-dark-text-1 mb-1">
-            Sign in to Kompleet
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-dark-text-3 mb-8">
+        <div
+          className="absolute inset-0 z-10 pointer-events-none"
+          style={{
+            backgroundImage: BASKET_WEAVE_LIGHT,
+            backgroundSize: "24px 24px",
+            maskImage:
+              "radial-gradient(ellipse 75% 75% at 50% 50%, transparent 50%, rgba(0,0,0,0.3) 68%, rgba(0,0,0,0.7) 84%, black 100%)",
+            WebkitMaskImage:
+              "radial-gradient(ellipse 75% 75% at 50% 50%, transparent 50%, rgba(0,0,0,0.3) 68%, rgba(0,0,0,0.7) 84%, black 100%)",
+          }}
+        />
+        <div className="w-full max-w-sm relative z-20">
+          <div className="text-xs font-bold text-text-4 dark:text-dark-text-4 uppercase tracking-widest mb-2">
+            Welcome Back
+          </div>
+          <h2 className="font-display text-3xl font-bold text-text-1 dark:text-dark-text-1 mb-2">
+            Sign in to KOMPLEET
+          </h2>
+          <p className="text-sm text-text-3 dark:text-dark-text-3 mb-8">
             Access your business financial dashboard.
           </p>
-
           {error && (
-            <div className="mb-5 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm">
+            <div className="mb-6 p-3 rounded-md bg-error-bg dark:bg-error-darkBg border border-error/30 text-error dark:text-error-dark text-sm">
               {error}
             </div>
           )}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-xs font-semibold text-gray-600 dark:text-dark-text-2 mb-1.5">
+              <label className="text-xs font-bold text-text-2 dark:text-dark-text-2 uppercase tracking-wider">
                 Business Email
               </label>
               <input
@@ -135,116 +160,54 @@ function LoginForm() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full bg-gray-50 dark:bg-dark-surface border border-gray-200 dark:border-dark-border rounded-full px-5 py-3 text-sm text-gray-900 dark:text-dark-text-1 placeholder:text-gray-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                className="w-full mt-2 bg-surface dark:bg-dark-surface border-2 border-border dark:border-dark-border rounded-md p-3 text-sm text-text-1 dark:text-dark-text-1 focus:border-accent focus:ring-2 focus:ring-accent/20"
               />
             </div>
-
-            <div>
-              <div className="flex justify-between items-center mb-1.5">
-                <label className="text-xs font-semibold text-gray-600 dark:text-dark-text-2">
-                  Password
-                </label>
-                <Link href="/forgot-password" className="text-xs font-semibold text-primary hover:underline">
-                  Forgot password?
-                </Link>
-              </div>
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="w-full bg-gray-50 dark:bg-dark-surface border border-gray-200 dark:border-dark-border rounded-full px-5 py-3 pr-12 text-sm text-gray-900 dark:text-dark-text-1 placeholder:text-gray-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-dark-text-1"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
+            <div className="flex justify-between items-center mt-2 mb-2">
+              <label className="text-xs font-bold text-text-2 dark:text-dark-text-2 uppercase tracking-wider">
+                Password
+              </label>
+              <Link href="/forgot-password" className="text-xs font-bold text-primary hover:underline">
+                Forgot Password?
+              </Link>
             </div>
-
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full bg-surface-2 dark:bg-dark-surface-2 border-2 border-border dark:border-dark-border rounded-md p-3 pr-10 text-sm text-text-1 dark:text-dark-text-1 focus:border-accent focus:ring-2 focus:ring-accent/20"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-text-3 dark:text-dark-text-3 hover:text-text-1 dark:hover:text-dark-text-1"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
             <div className="pt-2">
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-primary hover:bg-primary/90 text-white font-bold text-sm py-3.5 rounded-full shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:transform-none"
+                className="w-full bg-accent text-charcoal font-bold text-sm py-3.5 rounded-md shadow-accent hover:bg-accent-hover transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:transform-none"
               >
                 {loading ? "Signing in…" : "Sign In →"}
               </button>
             </div>
-          </form>
 
-          <p className="text-center text-sm text-gray-500 dark:text-dark-text-3 mt-6">
+          </form>
+          <p className="text-center text-sm text-text-3 dark:text-dark-text-3 mt-6">
             New to Kompleet?{" "}
-            <Link href="/signup" className="font-bold text-primary hover:underline">
-              Create a free account
+            <Link href="/signup" className="font-bold text-primary">
+              Get Started for Free
             </Link>
           </p>
         </div>
-
-        {/* Footer */}
-        <p className="text-center text-xs text-gray-400 dark:text-dark-text-4 mt-10">
-          © {new Date().getFullYear()} Ivano Technologies Ltd ·{" "}
-          <Link href="/kompleet-privacy.html" className="hover:underline">Privacy</Link>
-          {" · "}
-          <Link href="/kompleet-terms.html" className="hover:underline">Terms</Link>
-        </p>
       </div>
-
-      {/* ── RIGHT: Lifestyle photo panel (desktop only) ── */}
-      <div className="hidden lg:block relative overflow-hidden">
-        <Image
-          src={LIFESTYLE_PHOTO}
-          alt="Business professional using Kompleet"
-          fill
-          className="object-cover object-center"
-          priority
-          sizes="50vw"
-        />
-        {/* Dark gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/45 to-black/20" />
-        {/* Accent top strip */}
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent" />
-
-        {/* Brand content */}
-        <div className="absolute inset-0 flex flex-col justify-end p-12 z-10">
-          <blockquote className="mb-8">
-            <p className="text-white text-2xl font-display font-bold leading-snug max-w-sm">
-              &ldquo;Your finances,<br />finally in control.&rdquo;
-            </p>
-            <p className="text-white/60 text-sm mt-3 font-medium">
-              — Built for Nigerian entrepreneurs
-            </p>
-          </blockquote>
-
-          <ul className="space-y-3">
-            {TRUST_BULLETS.map(({ icon: Icon, label }) => (
-              <li key={label} className="flex items-center gap-3">
-                <span className="flex-shrink-0 w-7 h-7 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
-                  <Icon className="w-3.5 h-3.5 text-accent" />
-                </span>
-                <span className="text-white/80 text-sm">{label}</span>
-              </li>
-            ))}
-          </ul>
-
-          <div className="mt-10 pt-6 border-t border-white/10">
-            <Image
-              src="/assets/logo-inverted.png"
-              alt="Kompleet"
-              width={100}
-              height={28}
-              className="h-7 w-auto opacity-60"
-            />
-          </div>
-        </div>
-      </div>
-
     </div>
   );
 }
@@ -253,8 +216,8 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-white dark:bg-dark-bg">
-          <div className="text-gray-400">Loading…</div>
+        <div className="min-h-screen flex items-center justify-center bg-bg dark:bg-dark-bg">
+          <div className="text-text-1 dark:text-dark-text-1">Loading...</div>
         </div>
       }
     >
