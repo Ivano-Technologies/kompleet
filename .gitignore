@@ -49,3 +49,27 @@ apps/mobile/apps/
 package-lock.json
 !apps/mobile/package-lock.json
 ..npmrc
+# -------------------------------------------------
+# Local caches / system artifacts
+# -------------------------------------------------
+.local/
+.config/
+.pki/
+.secrets/
+
+# Node / package manager
+node_modules/
+.pnpm-store/
+
+# Runtime files
+*.pid
+
+# Upload scratch files
+upload/
+
+# Generated load test output
+tests/load/output/
+
+# OS
+.DS_Store
+Thumbs.db
