@@ -66,6 +66,9 @@ export function createSupabaseClient(): TypedSupabaseClient {
   );
 }
 
+// Minimal singleton for client components that prefer direct import usage.
+export const supabase = createSupabaseClient();
+
 // ============================================================
 // ALIASES FOR BACKWARDS COMPATIBILITY
 // ============================================================

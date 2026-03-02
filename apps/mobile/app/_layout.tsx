@@ -8,6 +8,10 @@ export default function RootLayout() {
   const [dbReady, setDbReady] = useState(false);
 
   useEffect(() => {
+    if (__DEV__) {
+      logger.info("Development mode active", { module: "RootLayout" });
+    }
+
     initDb()
       .then(() => setDbReady(true))
       .catch((e: unknown) => {
