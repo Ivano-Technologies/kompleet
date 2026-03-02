@@ -1,5 +1,10 @@
 # Phase 5 Scale Runbook
 
+Runbook Version: 1.0  
+Applies To: OCR Subsystem vX.Y.Z  
+Last Updated: YYYY-MM-DD  
+Owner: Engineering
+
 This runbook operationalizes Phase 5 controls for scale, cost, and multi-entity growth without weakening idempotency, recovery, or extraction drift controls.
 
 ## Scope
