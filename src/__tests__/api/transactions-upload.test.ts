@@ -30,26 +30,6 @@ describe("POST /api/transactions/upload-v2", () => {
   });
 
   it("returns 401 when not authenticated", async () => {
-    const startedAt = Date.now();
-    // #region agent log
-    fetch("http://127.0.0.1:7618/ingest/0be0fd3d-ce28-4416-8e00-446736413fdd", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Debug-Session-Id": "b3c43a"
-      },
-      body: JSON.stringify({
-        sessionId: "b3c43a",
-        runId: "pre-fix",
-        hypothesisId: "H3",
-        location: "src/__tests__/api/transactions-upload.test.ts:34",
-        message: "upload-v2 unauthorized test started",
-        data: {},
-        timestamp: Date.now()
-      })
-    }).catch(() => {});
-    // #endregion
-
     const form = new FormData();
     form.set(
       "file",
@@ -68,25 +48,6 @@ describe("POST /api/transactions/upload-v2", () => {
 
     const { POST } = await import("@/app/api/transactions/upload-v2/route");
     const res = await POST(req);
-
-    // #region agent log
-    fetch("http://127.0.0.1:7618/ingest/0be0fd3d-ce28-4416-8e00-446736413fdd", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Debug-Session-Id": "b3c43a"
-      },
-      body: JSON.stringify({
-        sessionId: "b3c43a",
-        runId: "pre-fix",
-        hypothesisId: "H3",
-        location: "src/__tests__/api/transactions-upload.test.ts:72",
-        message: "upload-v2 unauthorized test completed",
-        data: { status: res.status, elapsedMs: Date.now() - startedAt },
-        timestamp: Date.now()
-      })
-    }).catch(() => {});
-    // #endregion
 
     expect(res.status).toBe(401);
     const data = await res.json();
