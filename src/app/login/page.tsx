@@ -61,14 +61,14 @@ function LoginForm() {
   };
 
   return (
-    <AuthLayout imagePriority>
+    <AuthLayout variant="dark-split" imagePriority>
       <div className="mb-2 text-xs font-bold uppercase tracking-widest text-text-4 dark:text-dark-text-4">
         Welcome Back
       </div>
       <h2 className="mb-2 font-display text-3xl font-bold text-text-1 dark:text-dark-text-1">
         Sign in
       </h2>
-      <p className="mb-5 text-sm text-text-3 dark:text-dark-text-3">
+      <p className="mb-6 text-sm text-text-3 dark:text-dark-text-3">
         Access your business financial dashboard.
       </p>
       {error && (
@@ -87,7 +87,7 @@ function LoginForm() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="mt-2 w-full rounded-md border-2 border-border bg-surface p-3 text-sm text-text-1 focus:border-accent focus:ring-2 focus:ring-accent/20 dark:border-dark-border dark:bg-dark-surface dark:text-dark-text-1"
+            className="mt-2 h-[52px] w-full rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 text-sm text-text-1 focus:border-accent focus:ring-2 focus:ring-accent/20 dark:text-dark-text-1"
           />
         </div>
         <div className="mt-2 mb-2 flex items-center justify-between">
@@ -108,7 +108,7 @@ function LoginForm() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            className="w-full rounded-md border-2 border-border bg-surface-2 p-3 pr-10 text-sm text-text-1 focus:border-accent focus:ring-2 focus:ring-accent/20 dark:border-dark-border dark:bg-dark-surface-2 dark:text-dark-text-1"
+            className="h-[52px] w-full rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 pr-11 text-sm text-text-1 focus:border-accent focus:ring-2 focus:ring-accent/20 dark:text-dark-text-1"
           />
           <button
             type="button"
@@ -123,17 +123,17 @@ function LoginForm() {
             )}
           </button>
         </div>
-        <div className="pt-2">
+        <div className="pt-1">
           <button
             type="submit"
             disabled={loading}
-            className="w-full transform rounded-md bg-accent py-3.5 text-sm font-bold text-charcoal shadow-accent transition-all hover:-translate-y-0.5 hover:bg-accent-hover disabled:opacity-50 disabled:transform-none"
+            className="mt-6 h-[52px] w-full rounded-xl bg-accent text-sm font-bold text-charcoal transition-colors hover:bg-accent-hover disabled:opacity-50"
           >
             {loading ? "Signing in…" : "Sign In →"}
           </button>
         </div>
       </form>
-      <p className="mt-6 text-center text-sm text-text-3 dark:text-dark-text-3">
+      <p className="mt-4 text-center text-sm text-text-3 dark:text-dark-text-3">
         New to Kompleet?{" "}
         <Link href="/signup" className="font-bold uppercase tracking-wider text-accent hover:text-accent-hover dark:text-accent">
           Get Started for Free
