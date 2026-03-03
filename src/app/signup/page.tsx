@@ -77,29 +77,27 @@ export default function SignUpPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-bg dark:bg-dark-bg">
-        <div className="w-full max-w-md p-6">
-          <div className="bg-surface dark:bg-dark-surface border border-border dark:border-dark-border p-8 rounded-lg text-center shadow-3">
-            <div className="w-16 h-16 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <CheckCircle2 className="w-8 h-8 text-success dark:text-success-dark" />
-            </div>
-            <h1 className="font-display text-2xl font-bold text-text-1 dark:text-dark-text-1 mb-2">Account Created!</h1>
-            <p className="text-text-3 dark:text-dark-text-3 mb-6">
-              Check your email to verify your account before signing in.
-            </p>
-            <Link href="/login" className="bg-primary text-white font-bold text-sm py-3 px-6 rounded-md block w-full text-center hover:bg-primary-deep transition-colors">
-              Go to Login
-            </Link>
+      <AuthLayout>
+        <div className="space-y-6 text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-success/10">
+            <CheckCircle2 className="h-8 w-8 text-success dark:text-success-dark" />
           </div>
+          <h1 className="font-display text-2xl font-bold text-text-1 dark:text-dark-text-1">Account Created!</h1>
+          <p className="text-text-3 dark:text-dark-text-3">
+            Check your email to verify your account before signing in.
+          </p>
+          <Link href="/login" className="bg-primary text-white font-bold text-sm py-3 px-6 rounded-md block w-full text-center hover:bg-primary-deep transition-colors">
+            Go to Login
+          </Link>
         </div>
-      </div>
+      </AuthLayout>
     );
   }
 
   return (
     <AuthLayout
       headerRightAddon={
-        <span className="text-sm text-white/90 drop-shadow-sm">
+        <span className="text-sm text-text-3">
           Already have an account?{' '}
           <Link href="/login" className="font-bold text-primary hover:underline">
             Log in

@@ -66,21 +66,11 @@ function LoginForm() {
         Welcome Back
       </div>
       <h2 className="mb-2 font-display text-3xl font-bold text-text-1 dark:text-dark-text-1">
-        Sign in to KOMPLEET
+        Sign in
       </h2>
       <p className="mb-5 text-sm text-text-3 dark:text-dark-text-3">
         Access your business financial dashboard.
       </p>
-      <div className="mb-6">
-        <h3 className="font-display text-xl font-semibold text-text-1 dark:text-dark-text-1">
-          Control Your Money.
-          <br />
-          <em className="not-italic text-accent">Grow Your Business.</em>
-        </h3>
-        <p className="mt-3 text-sm text-text-3 dark:text-dark-text-3">
-          The financial operating system for Nigerian SMEs.
-        </p>
-      </div>
       {error && (
         <div className="mb-6 rounded-md border border-error/30 bg-error-bg p-3 text-sm text-error dark:bg-error-darkBg dark:text-error-dark">
           {error}
@@ -146,7 +136,7 @@ function LoginForm() {
       <p className="mt-6 text-center text-sm text-text-3 dark:text-dark-text-3">
         New to Kompleet?{" "}
         <Link href="/signup" className="font-bold uppercase tracking-wider text-accent hover:text-accent-hover dark:text-accent">
-          Built for Nigerian <span className="normal-case">SMEs</span>
+          Get Started for Free
         </Link>
       </p>
     </AuthLayout>
