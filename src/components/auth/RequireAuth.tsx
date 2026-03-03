@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase/client";
+import { createSupabaseClient } from "@/lib/supabase/client";
 
 type RequireAuthProps = {
   children: ReactNode;
@@ -13,6 +13,7 @@ export function RequireAuth({ children }: RequireAuthProps) {
   const router = useRouter();
 
   useEffect(() => {
+    const supabase = createSupabaseClient();
     supabase.auth.getSession().then(({ data }) => {
       if (!data.session) {
         router.replace("/login");

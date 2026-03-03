@@ -16,9 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 10
+      - uses: pnpm/action-setup@v4
 
       - uses: actions/setup-node@v4
         with:
@@ -39,7 +37,7 @@ jobs:
         if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
         run: |
           echo "Running production dependency audit..."
-          pnpm audit --audit-level=high --prod || {
+          pnpm audit:ci || {
             echo "High or critical vulnerability detected. Failing build."
             exit 1
           }
@@ -60,9 +58,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 10
+      - uses: pnpm/action-setup@v4
 
       - uses: actions/setup-node@v4
         with:
@@ -86,9 +82,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 10
+      - uses: pnpm/action-setup@v4
 
       - uses: actions/setup-node@v4
         with:
