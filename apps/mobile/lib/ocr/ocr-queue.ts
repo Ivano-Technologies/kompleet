@@ -1,7 +1,7 @@
 /**
  * OCR queue: enqueue image path when offline; process when online (API + upload + expense).
  */
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import { getDb } from "@/lib/db/init";
 import { createExpense } from "@/lib/db/expense-repository";
 import { parseReceiptText, type ParsedReceipt } from "./parse-receipt";

@@ -34,7 +34,7 @@ export default function ForgotPasswordPage() {
 
   if (success) {
     return (
-      <AuthLayout>
+      <AuthLayout variant="dark-split">
         <div className="space-y-6 text-center">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-accent/10">
             <Mail className="h-8 w-8 text-accent" />
@@ -56,6 +56,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <AuthLayout
+      variant="dark-split"
       headerLeftAddon={
         <Link
           href="/login"
@@ -93,13 +94,13 @@ export default function ForgotPasswordPage() {
             onChange={(e) => setEmail(e.target.value)}
             required
             placeholder="name@company.com"
-            className="mt-2 w-full rounded-md border-2 border-border bg-surface p-3 text-sm text-text-1 focus:border-accent focus:ring-2 focus:ring-accent/20 dark:border-dark-border dark:bg-dark-surface dark:text-dark-text-1"
+            className="mt-2 h-[52px] w-full rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 text-sm text-text-1 focus:border-accent focus:ring-2 focus:ring-accent/20 dark:text-dark-text-1"
           />
         </div>
         <button
           type="submit"
           disabled={loading}
-          className="w-full transform rounded-md bg-accent py-3.5 text-sm font-bold text-charcoal shadow-accent transition-all hover:-translate-y-0.5 hover:bg-accent-hover disabled:opacity-50 disabled:transform-none"
+          className="mt-6 h-[52px] w-full rounded-xl bg-accent text-sm font-bold text-charcoal shadow-accent transition-all hover:-translate-y-0.5 hover:bg-accent-hover disabled:opacity-50 disabled:transform-none"
         >
           {loading ? 'Sending...' : 'Send Reset Link'}
         </button>

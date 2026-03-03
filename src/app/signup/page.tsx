@@ -77,7 +77,7 @@ export default function SignUpPage() {
 
   if (success) {
     return (
-      <AuthLayout>
+      <AuthLayout variant="dark-split">
         <div className="space-y-6 text-center">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-success/10">
             <CheckCircle2 className="h-8 w-8 text-success dark:text-success-dark" />
@@ -96,6 +96,7 @@ export default function SignUpPage() {
 
   return (
     <AuthLayout
+      variant="dark-split"
       headerRightAddon={
         <span className="text-sm text-text-3">
           Already have an account?{' '}
@@ -105,7 +106,7 @@ export default function SignUpPage() {
         </span>
       }
     >
-      <div className="mb-8">
+      <div className="mb-6">
         <div className="mb-2 text-xs font-bold uppercase tracking-widest text-text-4 dark:text-dark-text-4">
           Create Account
         </div>
@@ -136,7 +137,7 @@ export default function SignUpPage() {
               onChange={(e) => setFirstName(e.target.value)}
               required
               placeholder="e.g. Tunde"
-              className="mt-2 w-full rounded-md border-2 border-border bg-surface p-3 text-sm text-text-1 focus:border-accent focus:ring-2 focus:ring-accent/20 dark:border-dark-border dark:bg-dark-surface dark:text-dark-text-1"
+              className="mt-2 h-[52px] w-full rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 text-sm text-text-1 focus:border-accent focus:ring-2 focus:ring-accent/20 dark:text-dark-text-1"
             />
           </div>
           <div>
@@ -149,7 +150,7 @@ export default function SignUpPage() {
               onChange={(e) => setLastName(e.target.value)}
               required
               placeholder="e.g. Balogun"
-              className="mt-2 w-full rounded-md border-2 border-border bg-surface p-3 text-sm text-text-1 focus:border-accent focus:ring-2 focus:ring-accent/20 dark:border-dark-border dark:bg-dark-surface dark:text-dark-text-1"
+              className="mt-2 h-[52px] w-full rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 text-sm text-text-1 focus:border-accent focus:ring-2 focus:ring-accent/20 dark:text-dark-text-1"
             />
           </div>
         </div>
@@ -164,7 +165,7 @@ export default function SignUpPage() {
             onChange={(e) => setBusinessName(e.target.value)}
             required
             placeholder="e.g. Tunde Ventures Ltd"
-            className="mt-2 w-full rounded-md border-2 border-border bg-surface p-3 text-sm text-text-1 focus:border-accent focus:ring-2 focus:ring-accent/20 dark:border-dark-border dark:bg-dark-surface dark:text-dark-text-1"
+            className="mt-2 h-[52px] w-full rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 text-sm text-text-1 focus:border-accent focus:ring-2 focus:ring-accent/20 dark:text-dark-text-1"
           />
         </div>
 
@@ -178,7 +179,7 @@ export default function SignUpPage() {
             onChange={(e) => setBusinessEmail(e.target.value)}
             required
             placeholder="name@company.ng"
-            className="mt-2 w-full rounded-md border-2 border-border bg-surface p-3 text-sm text-text-1 focus:border-accent focus:ring-2 focus:ring-accent/20 dark:border-dark-border dark:bg-dark-surface dark:text-dark-text-1"
+            className="mt-2 h-[52px] w-full rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 text-sm text-text-1 focus:border-accent focus:ring-2 focus:ring-accent/20 dark:text-dark-text-1"
           />
         </div>
 
@@ -194,7 +195,7 @@ export default function SignUpPage() {
               required
               minLength={8}
               placeholder="Minimum 8 characters"
-              className="w-full rounded-md border-2 border-border bg-surface-2 p-3 pr-10 text-sm text-text-1 focus:border-accent focus:ring-2 focus:ring-accent/20 dark:border-dark-border dark:bg-dark-surface-2 dark:text-dark-text-1"
+              className="h-[52px] w-full rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 pr-11 text-sm text-text-1 focus:border-accent focus:ring-2 focus:ring-accent/20 dark:text-dark-text-1"
             />
             <button
               type="button"
@@ -222,7 +223,7 @@ export default function SignUpPage() {
         <button
           type="submit"
           disabled={loading}
-          className="flex w-full transform items-center justify-center gap-2 rounded-md bg-accent py-3.5 text-sm font-bold text-charcoal shadow-accent transition-all hover:-translate-y-0.5 hover:bg-accent-hover disabled:opacity-50 disabled:transform-none"
+          className="mt-6 flex h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-accent text-sm font-bold text-charcoal shadow-accent transition-all hover:-translate-y-0.5 hover:bg-accent-hover disabled:opacity-50 disabled:transform-none"
         >
           {loading ? 'Creating account…' : 'Create Free Account'}
           {!loading && <ArrowRight className="w-4 h-4" />}

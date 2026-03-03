@@ -122,7 +122,7 @@ export default function ResetPasswordClient() {
   // Success state
   if (pageState === 'success') {
     return (
-      <AuthLayout headerLeftAddon={headerLeftAddon}>
+      <AuthLayout variant="dark-split" headerLeftAddon={headerLeftAddon}>
         <div className="space-y-6 text-center">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-accent/10">
             <CheckCircle2 className="h-8 w-8 text-accent" />
@@ -139,7 +139,7 @@ export default function ResetPasswordClient() {
   // Expired link state
   if (pageState === 'expired') {
     return (
-      <AuthLayout headerLeftAddon={headerLeftAddon}>
+      <AuthLayout variant="dark-split" headerLeftAddon={headerLeftAddon}>
         <div className="space-y-6 text-center">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20">
             <AlertCircle className="h-8 w-8 text-red-600 dark:text-red-400" />
@@ -165,7 +165,7 @@ export default function ResetPasswordClient() {
   // Already logged in state
   if (pageState === 'already_logged_in') {
     return (
-      <AuthLayout headerLeftAddon={headerLeftAddon}>
+      <AuthLayout variant="dark-split" headerLeftAddon={headerLeftAddon}>
         <div className="space-y-6 text-center">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-accent/10">
             <AlertCircle className="h-8 w-8 text-accent" />
@@ -191,7 +191,7 @@ export default function ResetPasswordClient() {
   // Error state
   if (pageState === 'error') {
     return (
-      <AuthLayout headerLeftAddon={headerLeftAddon}>
+      <AuthLayout variant="dark-split" headerLeftAddon={headerLeftAddon}>
         <div className="space-y-6 text-center">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20">
             <AlertCircle className="h-8 w-8 text-red-600 dark:text-red-400" />
@@ -216,7 +216,7 @@ export default function ResetPasswordClient() {
 
   // Main form (loading or valid state)
   return (
-    <AuthLayout headerLeftAddon={headerLeftAddon}>
+    <AuthLayout variant="dark-split" headerLeftAddon={headerLeftAddon}>
       <div className="mb-6 text-center">
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-accent/10">
           <KeyRound className="h-7 w-7 text-accent" />
@@ -253,7 +253,7 @@ export default function ResetPasswordClient() {
                 required
                 minLength={6}
                 placeholder="At least 6 characters"
-                className="w-full rounded-md border-2 border-border bg-surface p-3 pr-10 text-sm text-text-1 focus:border-accent focus:ring-2 focus:ring-accent/20 dark:border-dark-border dark:bg-dark-surface dark:text-dark-text-1"
+                className="h-[52px] w-full rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 pr-11 text-sm text-text-1 focus:border-accent focus:ring-2 focus:ring-accent/20 dark:text-dark-text-1"
               />
               <button
                 type="button"
@@ -280,13 +280,13 @@ export default function ResetPasswordClient() {
               required
               minLength={6}
               placeholder="Re-enter your password"
-              className="mt-2 w-full rounded-md border-2 border-border bg-surface p-3 text-sm text-text-1 focus:border-accent focus:ring-2 focus:ring-accent/20 dark:border-dark-border dark:bg-dark-surface dark:text-dark-text-1"
+              className="mt-2 h-[52px] w-full rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 text-sm text-text-1 focus:border-accent focus:ring-2 focus:ring-accent/20 dark:text-dark-text-1"
             />
           </div>
           <button
             type="submit"
             disabled={loading}
-            className="w-full transform rounded-md bg-accent py-3.5 text-sm font-bold text-charcoal shadow-accent transition-all hover:-translate-y-0.5 hover:bg-accent-hover disabled:opacity-50 disabled:transform-none"
+            className="mt-6 h-[52px] w-full rounded-xl bg-accent text-sm font-bold text-charcoal shadow-accent transition-all hover:-translate-y-0.5 hover:bg-accent-hover disabled:opacity-50 disabled:transform-none"
           >
             {loading ? 'Updating...' : 'Update Password'}
           </button>

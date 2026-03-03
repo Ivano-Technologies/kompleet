@@ -4,7 +4,7 @@
  * Uses ArrayBuffer (React Native–compatible) per Supabase docs.
  */
 import { decode } from "base64-arraybuffer";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import { getSupabaseClient } from "@/lib/supabase/client";
 
 /** Returns the current Supabase user id if signed in, otherwise null. */

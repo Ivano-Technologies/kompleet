@@ -13,7 +13,7 @@ import {
   TextInput,
   ScrollView,
 } from "react-native";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
 import { getUserId } from "@/lib/auth/user-id";
 import { listExpensesInRange } from "@/lib/db/expense-repository";
