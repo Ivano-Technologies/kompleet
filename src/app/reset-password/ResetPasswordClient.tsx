@@ -12,7 +12,7 @@ type PageState = 'loading' | 'valid' | 'expired' | 'already_logged_in' | 'succes
 const headerLeftAddon = (
   <Link
     href="/login"
-    className="flex items-center gap-2 text-sm text-white/90 drop-shadow-sm hover:text-white"
+    className="flex items-center gap-2 text-sm text-text-3 hover:text-text-1"
   >
     Back to Login
   </Link>

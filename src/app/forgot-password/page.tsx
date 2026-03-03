@@ -34,26 +34,23 @@ export default function ForgotPasswordPage() {
 
   if (success) {
     return (
-      <div className="grid min-h-screen lg:grid-cols-2">
-        <div className="hidden bg-gradient-to-br from-primary-deep to-primary lg:block" />
-        <div className="flex flex-col items-center justify-center bg-surface p-8 dark:bg-dark-bg md:p-12">
-          <div className="w-full max-w-sm space-y-6 text-center">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-accent/10">
-              <Mail className="h-8 w-8 text-accent" />
-            </div>
-            <h1 className="font-display text-2xl font-bold text-text-1 dark:text-dark-text-1">Check Your Email</h1>
-            <p className="text-sm text-text-3 dark:text-dark-text-3">
-              We&apos;ve sent a password reset link to <strong className="text-text-1 dark:text-dark-text-1">{email}</strong>
-            </p>
-            <Link
-              href="/login"
-              className="block w-full rounded-md bg-accent py-3.5 text-center text-sm font-bold text-charcoal shadow-accent transition-all hover:bg-accent-hover"
-            >
-              Back to Login
-            </Link>
+      <AuthLayout>
+        <div className="space-y-6 text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-accent/10">
+            <Mail className="h-8 w-8 text-accent" />
           </div>
+          <h1 className="font-display text-2xl font-bold text-text-1 dark:text-dark-text-1">Check Your Email</h1>
+          <p className="text-sm text-text-3 dark:text-dark-text-3">
+            We&apos;ve sent a password reset link to <strong className="text-text-1 dark:text-dark-text-1">{email}</strong>
+          </p>
+          <Link
+            href="/login"
+            className="block w-full rounded-md bg-accent py-3.5 text-center text-sm font-bold text-charcoal shadow-accent transition-all hover:bg-accent-hover"
+          >
+            Back to Login
+          </Link>
         </div>
-      </div>
+      </AuthLayout>
     );
   }
 
@@ -62,7 +59,7 @@ export default function ForgotPasswordPage() {
       headerLeftAddon={
         <Link
           href="/login"
-          className="flex items-center gap-2 text-sm text-white/90 drop-shadow-sm hover:text-white"
+          className="flex items-center gap-2 text-sm text-text-3 hover:text-text-1"
         >
           <ArrowLeft className="h-4 w-4" /> Back to Login
         </Link>
