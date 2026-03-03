@@ -60,14 +60,33 @@ export type TypedSupabaseClient = SupabaseClient<Database>;
  * - Compatible with the server-side createServerClient
  */
 export function createSupabaseClient(): TypedSupabaseClient {
+  // #region agent log
+  fetch("http://127.0.0.1:7618/ingest/0be0fd3d-ce28-4416-8e00-446736413fdd", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Debug-Session-Id": "b3c43a"
+    },
+    body: JSON.stringify({
+      sessionId: "b3c43a",
+      runId: "pre-fix",
+      hypothesisId: "H2",
+      location: "src/lib/supabase/client.ts:63",
+      message: "createSupabaseClient invoked",
+      data: {
+        hasUrl: Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL),
+        hasAnon: Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+      },
+      timestamp: Date.now()
+    })
+  }).catch(() => {});
+  // #endregion
+
   return createSSRBrowserClient<Database>(
     getSupabaseUrl(),
     getSupabaseAnonKey(),
   );
 }
-
-// Minimal singleton for client components that prefer direct import usage.
-export const supabase = createSupabaseClient();
 
 // ============================================================
 // ALIASES FOR BACKWARDS COMPATIBILITY
