@@ -10,6 +10,7 @@ This directory contains all marketing materials for the KOMPLEET platform, incor
 
 - **ONE_PAGER.md** - Comprehensive marketing one-pager covering platform features, benefits, pricing, and target audience
 - **BRANDING.md** - Complete brand guidelines (located in parent directory)
+- **../docs/plans/IVA-5_google_ads_distribution_marketing_plan.md** - Issue-specific Google Ads + distribution execution plan for first campaign launch
 
 ### Visual Assets
 
