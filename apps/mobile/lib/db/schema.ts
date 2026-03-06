@@ -51,16 +51,7 @@ export const OCR_QUEUE_TABLE = `
 create table if not exists ocr_queue (
   id integer primary key autoincrement,
   image_path text not null,
-  idempotency_key text unique,
-  state text not null default 'pending',
-  attempts integer not null default 0,
-  next_attempt_at text,
-  last_error text,
-  ocr_payload text,
-  receipt_id text,
-  entry_id text,
   created_at text default (datetime('now')),
-  updated_at text default (datetime('now')),
   processed_at text,
   expense_id text
 );
@@ -73,43 +64,10 @@ create table if not exists sync_meta (
 );
 `;
 
-export const WORK_ORDERS_TABLE = `
-create table if not exists work_orders (
-  id text primary key,
-  tenant_id text not null,
-  technician_id text not null,
-  asset_id text,
-  title text not null,
-  status text not null default 'open',
-  priority text not null default 'medium',
-  scheduled_for text,
-  due_date text,
-  qr_payload text,
-  signature text,
-  notes text,
-  created_at text default (datetime('now')),
-  updated_at text default (datetime('now')),
-  sync_status text default 'pending'
-);
-`;
-
-export const WORK_ORDER_PHOTOS_TABLE = `
-create table if not exists work_order_photos (
-  id text primary key,
-  work_order_id text not null,
-  local_uri text not null,
-  uploaded_url text,
-  created_at text default (datetime('now')),
-  foreign key(work_order_id) references work_orders(id) on delete cascade
-);
-`;
-
 export const ALL_SCHEMAS = [
   EXPENSES_TABLE,
   EXPENSE_CATEGORIES_TABLE,
   SYNC_QUEUE_TABLE,
   OCR_QUEUE_TABLE,
   SYNC_META_TABLE,
-  WORK_ORDERS_TABLE,
-  WORK_ORDER_PHOTOS_TABLE,
 ];
