@@ -14,6 +14,7 @@ export default defineConfig({
     exclude: [
       ...configDefaults.exclude,
       "e2e/**",
+      "nrcs-eam/**",
       "playwright-report/**",
       "test-results/**",
     ],
