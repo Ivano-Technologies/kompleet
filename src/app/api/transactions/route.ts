@@ -2,9 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { withAudit } from "@/lib/with-audit";
+import { ensureTenantMatch, resolveTenantId } from "@/lib/tenant/context";
 import { z } from "zod";
 
 export const runtime = "nodejs";
+
+/**
+ * @deprecated v2 compatibility endpoint.
+ * New mobile-first flows should use `/api/entries`.
+ * Kept during migration window to avoid breaking legacy screens.
+ */
 
 const getQuerySchema = z.object({
   startDate: z
@@ -18,6 +25,8 @@ const getQuerySchema = z.object({
   categoryId: z.string().uuid("Invalid category ID").optional(),
   type: z.enum(["debit", "credit"]).optional(),
   search: z.string().max(200).optional(),
+  tenant_id: z.string().uuid().optional(),
+  business_id: z.string().uuid().optional(),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(50),
 });
@@ -43,6 +52,8 @@ const createBodySchema = z.object({
     .optional(),
   category_id: z.string().uuid().nullable().optional(),
   category: z.string().optional(),
+  tenant_id: z.string().uuid().optional(),
+  business_id: z.string().uuid().optional(),
 }).refine(
   (data) =>
     data.transaction_type !== undefined ||
@@ -81,6 +92,12 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
     }
 
     const filters = parsed.data;
+    try {
+      ensureTenantMatch(user.id, filters);
+    } catch {
+      return NextResponse.json({ error: "Forbidden tenant context" }, { status: 403 });
+    }
+    const tenantId = resolveTenantId(user.id, filters);
 
     // Build query
     let query = supabase
@@ -92,7 +109,7 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
       `,
         { count: "exact" },
       )
-      .eq("user_id", user.id);
+      .eq("user_id", tenantId);
 
     // Apply filters
     if (filters.startDate) {
@@ -230,6 +247,12 @@ async function handlePOST(request: NextRequest): Promise<NextResponse> {
     }
 
     const p = parsed.data;
+    try {
+      ensureTenantMatch(user.id, p);
+    } catch {
+      return NextResponse.json({ error: "Forbidden tenant context" }, { status: 403 });
+    }
+    const tenantId = resolveTenantId(user.id, p);
     const transactionType =
       p.transaction_type ??
       (p.type === "income" ? "credit" : p.type === "expense" ? "debit" : "debit");
@@ -240,7 +263,7 @@ async function handlePOST(request: NextRequest): Promise<NextResponse> {
       const { data: categories } = await supabase
         .from("categories")
         .select("id, name")
-        .eq("user_id", user.id);
+        .eq("user_id", tenantId);
       const match = (categories ?? []).find(
         (c) =>
           c.name.toLowerCase() === p.category!.toLowerCase() ||
@@ -252,7 +275,7 @@ async function handlePOST(request: NextRequest): Promise<NextResponse> {
     const { data: transaction, error } = await supabase
       .from("transactions")
       .insert({
-        user_id: user.id,
+        user_id: tenantId,
         description: p.description,
         amount: p.amount,
         transaction_type: transactionType,
