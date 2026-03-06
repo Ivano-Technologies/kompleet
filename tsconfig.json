@@ -33,10 +33,5 @@
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts"
   ],
-  "exclude": [
-    "node_modules",
-    "scripts",
-    "apps/mobile",
-    "nrcs-eam"
-  ]
+  "exclude": ["node_modules", "scripts", "apps/mobile"]
 }
