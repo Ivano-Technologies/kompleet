@@ -23,6 +23,12 @@ jobs:
           node-version: 20
           cache: pnpm
 
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: pnpm-store-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+
       - name: Restore Next.js cache
         uses: actions/cache@v4
         with:
@@ -31,16 +37,23 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nextjs-
 
-      - run: pnpm install --frozen-lockfile
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
-      - name: Security audit (high severity gate)
+      - name: Attempt automatic security fixes
         if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
-        run: |
-          echo "Running production dependency audit..."
-          pnpm audit:ci || {
-            echo "High or critical vulnerability detected. Failing build."
-            exit 1
-          }
+        run: node scripts/security-fix.mjs
+
+      - name: Check for modified lockfile
+        run: git diff --exit-code pnpm-lock.yaml
+
+      - name: Run security gate
+        if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
+        run: node scripts/audit-ci.mjs
+
+      - name: Run OSV vulnerability scan
+        if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
+        uses: google/osv-scanner-action@v1
 
       - run: pnpm build
         env:
@@ -65,6 +78,12 @@ jobs:
           node-version: 20
           cache: pnpm
 
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: pnpm-store-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+
       - run: pnpm install --frozen-lockfile
 
       - run: pnpm test
@@ -88,6 +107,12 @@ jobs:
         with:
           node-version: 20
           cache: pnpm
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ~/.pnpm-store
+          key: pnpm-store-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
 
       - run: pnpm install --frozen-lockfile
 
