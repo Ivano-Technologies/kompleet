@@ -53,7 +53,7 @@ jobs:
 
       - name: Run OSV vulnerability scan
         if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
-        uses: google/osv-scanner-action@v1
+        uses: google/osv-scanner-action@v2.3.3
         continue-on-error: true
 
       - run: pnpm build

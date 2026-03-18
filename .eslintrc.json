@@ -1,6 +1,6 @@
 {
   "extends": ["next"],
-  "ignorePatterns": [".next/", "node_modules/", "out/", "build/", "apps/", "scripts/", "*.config.js", "*.config.cjs", "*.config.mjs", "*.config.ts"],
+  "ignorePatterns": [".next/", "node_modules/", "out/", "build/", "dist/", "apps/", "scripts/", "*.config.js", "*.config.cjs", "*.config.mjs", "*.config.ts"],
   "rules": {
     "linebreak-style": "off",
     "quotes": "off",
