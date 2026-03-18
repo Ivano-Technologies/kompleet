@@ -16,7 +16,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     : "Kompleet Dev";
 
   const BUNDLE_ID = IS_PROD
-    ? "com.ivano.kompleet"
+    ? "com.ivanotechnologies.kompleet"
     : IS_PREVIEW
     ? "com.ivano.kompleet.preview"
     : "com.ivano.kompleet.dev";
@@ -29,9 +29,7 @@ export default ({ config }: ConfigContext): ExpoConfig => {
     owner: "techivano",
 
     version: "1.0.0",
-    runtimeVersion: {
-      policy: "appVersion"
-    },
+    runtimeVersion: "1.0.0",
 
     scheme: "kompleet",
 
@@ -43,11 +41,17 @@ export default ({ config }: ConfigContext): ExpoConfig => {
 
     android: {
       package: BUNDLE_ID,
+      googleServicesFile: "./google-services.json",
       adaptiveIcon: {
         foregroundImage: "./assets/adaptive-icon.png",
         backgroundColor: "#000000"
       }
     },
+
+    plugins: [
+      "expo-updates",
+      "@react-native-firebase/app"
+    ],
 
     updates: {
       url: "https://u.expo.dev/9f1ff663-b1b6-4bfb-9a9f-f6d55ad05107"
