@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "966478937568",
+    "project_id": "kompleet-e3c66",
+    "storage_bucket": "kompleet-e3c66.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:966478937568:android:d62fd6f7e00c703f1cff85",
+        "android_client_info": {
+          "package_name": "com.ivano.kompleet"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "966478937568-6strac4qfj00n3mvc9g48o7ob4upb8uc.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ivano.kompleet",
+            "certificate_hash": "5d116bb6d3df36b42f00f66a5e0fb529988e96cd"
+          }
+        },
+        {
+          "client_id": "966478937568-tpupdm14e092pc91ji84unclq1eq3frh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCpU3dzBsQ9E5sBTczv0jcrSwrSTcebrkU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "966478937568-tpupdm14e092pc91ji84unclq1eq3frh.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

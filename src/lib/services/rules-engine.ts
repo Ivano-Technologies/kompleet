@@ -13,14 +13,21 @@ import type {
   ConfidenceLevel,
 } from "@/types/tax";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
 
 export class RulesEngineService {
-  private supabase;
+  private _supabase: ReturnType<typeof createClient> | null = null;
 
-  constructor() {
-    this.supabase = createClient(supabaseUrl, supabaseKey);
+  /** Client for tax tables (rule_versions, audit_logs); permissive type so tables not in main DB schema compile. */
+  private get supabase(): any {
+    if (!this._supabase) {
+      if (!supabaseUrl || !supabaseKey || !/^https?:\/\//.test(supabaseUrl)) {
+        throw new Error("RulesEngine: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY must be set and URL must be valid.");
+      }
+      this._supabase = createClient(supabaseUrl, supabaseKey);
+    }
+    return this._supabase;
   }
 
   /**
