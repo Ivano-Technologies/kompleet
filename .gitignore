@@ -2,6 +2,11 @@ node_modules/
 # Secrets
 .env
 .env.local
+# Keystores, prebuild output, temp (do not commit)
+apps/mobile/release.keystore/
+apps/mobile/android/
+audit-out.json
+/google-services.json
 .env.production
 .env.development
 .cache/
