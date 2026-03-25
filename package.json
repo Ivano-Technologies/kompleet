@@ -65,7 +65,7 @@
     "exceljs": "^4.1.1",
     "formidable": "^3.5.4",
     "googleapis": "^171.4.0",
-    "iconv-lite": "^0.6.3",
+    "iconv-lite": "^0.7.2",
     "jspdf": "^4.1.0",
     "jspdf-autotable": "^5.0.7",
     "lucide-react": "^0.563.0",
@@ -139,7 +139,7 @@
   "pnpm": {
     "overrides": {
       "tar": "^7.5.10",
-      "iconv-lite": "0.6.3",
+      "iconv-lite": "0.7.2",
       "esbuild@<=0.24.2": ">=0.25.0",
       "formidable@>=3.1.1-canary.20211030 <3.5.3": ">=3.5.3",
       "axios@>=1.0.0 <1.13.4": ">=1.13.5",

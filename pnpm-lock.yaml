@@ -6,7 +6,7 @@ settings:
 
 overrides:
   tar: ^7.5.10
-  iconv-lite: 0.6.3
+  iconv-lite: 0.7.2
   esbuild@<=0.24.2: '>=0.25.0'
   formidable@>=3.1.1-canary.20211030 <3.5.3: '>=3.5.3'
   axios@>=1.0.0 <1.13.4: '>=1.13.5'
@@ -116,8 +116,8 @@ importers:
         specifier: ^171.4.0
         version: 171.4.0
       iconv-lite:
-        specifier: 0.6.3
-        version: 0.6.3
+        specifier: 0.7.2
+        version: 0.7.2
       jspdf:
         specifier: '>=4.2.1'
         version: 4.2.1
@@ -6135,8 +6135,8 @@ packages:
     resolution: {integrity: sha512-1dhVQZXhcHje7798IVM+xoo/1ZdVfzOMIc8/rgVSijRK38EDqOJoGula9N/8ZI5RD8QTxNQtK/Gozpr+qUqRRA==}
     engines: {node: '>=20.0.0'}
 
-  iconv-lite@0.6.3:
-    resolution: {integrity: sha512-4fCk79wshMdzMp2rH06qWrJE4iolqLhCUH+OiuIgU++RB0+94NlDL81atO7GX55uUKueo0txHNtvEyI6D7WdMw==}
+  iconv-lite@0.7.2:
+    resolution: {integrity: sha512-im9DjEDQ55s9fL4EYzOAv0yMqmMBSZp6G0VvFyTMPKWxiSBHUj9NW/qqLmXUwXrrM7AvqSlTCfvqRb0cM8yYqw==}
     engines: {node: '>=0.10.0'}
 
   idb-keyval@6.2.2:
@@ -16207,7 +16207,7 @@ snapshots:
 
   iceberg-js@0.8.1: {}
 
-  iconv-lite@0.6.3:
+  iconv-lite@0.7.2:
     dependencies:
       safer-buffer: 2.1.2
 
@@ -19355,7 +19355,7 @@ snapshots:
 
   whatwg-encoding@3.1.1:
     dependencies:
-      iconv-lite: 0.6.3
+      iconv-lite: 0.7.2
 
   whatwg-fetch@3.6.20: {}
 
