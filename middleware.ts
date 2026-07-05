@@ -8,37 +8,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-
-function addCorsHeaders(response: NextResponse, origin: string) {
-  const allowedOrigins = [
-    "http://localhost:8081",
-    "exp://localhost:8081",
-    process.env.NEXT_PUBLIC_MOBILE_APP_URL,
-  ].filter(Boolean);
-
-  const isAllowedOrigin =
-    allowedOrigins.includes(origin) ||
-    origin.startsWith("exp://") ||
-    origin.startsWith("http://localhost") ||
-    origin.startsWith("http://192.168.") ||
-    origin.startsWith("http://10.0.");
-
-  if (isAllowedOrigin) {
-    response.headers.set("Access-Control-Allow-Origin", origin);
-    response.headers.set("Access-Control-Allow-Credentials", "true");
-  }
-
-  response.headers.set(
-    "Access-Control-Allow-Methods",
-    "GET, POST, PUT, PATCH, DELETE, OPTIONS",
-  );
-  response.headers.set(
-    "Access-Control-Allow-Headers",
-    "Content-Type, Authorization, X-Requested-With",
-  );
-
-  return response;
-}
+import { addCorsHeaders } from "@/lib/cors";
 
 export async function middleware(request: NextRequest) {
   const origin = request.headers.get("origin") || "";
