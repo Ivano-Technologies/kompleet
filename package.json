@@ -115,7 +115,7 @@
     "@types/unzipper": "^0.10.11",
     "autoprefixer": "^10.4.24",
     "conventional-changelog-conventionalcommits": "^9.2.0",
-    "drizzle-kit": "^0.18.1",
+    "drizzle-kit": "^0.31.10",
     "eslint": "^8.57.0",
     "eslint-config-next": "^0.2.4",
     "husky": "^9.0.11",
