@@ -238,7 +238,7 @@ If deployment causes data issues:
    - Use PITR to restore to pre-deployment timestamp
    - Follow recovery process above
 
-See [PRODUCTION_DEPLOYMENT_CHECKLIST.md](../PRODUCTION_DEPLOYMENT_CHECKLIST.md#rollback-plan) for full rollback procedure.
+See [PRODUCTION_DEPLOYMENT_CHECKLIST.md](archive/PRODUCTION_DEPLOYMENT_CHECKLIST.md#rollback-plan) for full rollback procedure.
 
 ---
 

@@ -11,27 +11,27 @@ I've created **comprehensive deployment documentation** in multiple formats:
 
 ### Main Deployment Guide
 
-1. **SAFE_DEPLOYMENT_GUIDE.md** (Markdown)
+1. **docs/archive/SAFE_DEPLOYMENT_GUIDE.md** (Markdown)
    - Full step-by-step deployment guide
    - 45-60 minute process
    - Includes checkpoints and rollback procedures
 
-2. **SAFE_DEPLOYMENT_GUIDE.html** (HTML - formatted)
+2. **docs/archive/SAFE_DEPLOYMENT_GUIDE.html** (HTML - formatted)
    - Same content, beautifully formatted
    - Open in browser for easy reading
    - Can be printed or converted to PDF
 
-3. **HOW_TO_CONVERT_GUIDE.md**
+3. **docs/archive/HOW_TO_CONVERT_GUIDE.md**
    - Instructions to convert HTML → PDF
    - Instructions to convert HTML → Word
    - Multiple methods provided
 
 ### Supporting Documentation
 
-4. **DEPLOY.md** - Quick 30-minute deployment guide
-5. **DEPLOYMENT_README.md** - Quick reference
-6. **MVP_COMPLETION_STATUS.md** - Full MVP status report
-7. **SESSION_SUMMARY.md** - Session accomplishments
+4. **docs/archive/DEPLOY.md** - Quick 30-minute deployment guide
+5. **docs/archive/DEPLOYMENT_README.md** - Quick reference
+6. **docs/archive/MVP_COMPLETION_STATUS.md** - Full MVP status report
+7. **docs/archive/SESSION_SUMMARY.md** - Session accomplishments
 
 ---
 
@@ -41,7 +41,7 @@ I've created **comprehensive deployment documentation** in multiple formats:
 
 **If you're confident and want to deploy quickly:**
 
-1. Open: `DEPLOY.md`
+1. Open: `docs/archive/DEPLOY.md`
 2. Follow the fast-track instructions
 3. Deploy to Vercel
 
@@ -53,7 +53,7 @@ I've created **comprehensive deployment documentation** in multiple formats:
 
 **If you want step-by-step guidance with safety checks:**
 
-1. Open: `SAFE_DEPLOYMENT_GUIDE.html` in your browser
+1. Open: `docs/archive/SAFE_DEPLOYMENT_GUIDE.html` in your browser
 2. Follow each step carefully
 3. Complete all checkpoints
 4. Deploy with confidence
@@ -66,7 +66,7 @@ I've created **comprehensive deployment documentation** in multiple formats:
 
 **If you want to print or share the guide:**
 
-1. Open: `HOW_TO_CONVERT_GUIDE.md`
+1. Open: `docs/archive/HOW_TO_CONVERT_GUIDE.md`
 2. Follow conversion instructions
 3. Create PDF or Word document
 4. Print or share as needed
@@ -79,14 +79,14 @@ I've created **comprehensive deployment documentation** in multiple formats:
 
 ### Step 1: Read the Guide (5 min)
 
-Open `SAFE_DEPLOYMENT_GUIDE.html` in your browser:
+Open `docs/archive/SAFE_DEPLOYMENT_GUIDE.html` in your browser:
 
 ```bash
 # Navigate to project folder
 cd c:\Users\Windows\OneDrive\Documents\Antigravity\Projects\kompleet-platform
 
 # Open in default browser (Windows)
-start SAFE_DEPLOYMENT_GUIDE.html
+start docs/archive/SAFE_DEPLOYMENT_GUIDE.html
 ```
 
 Or just double-click the file.
@@ -171,14 +171,14 @@ If you don't have one:
 
 ### Deployment Guides
 
-- **Safe Deployment** (60 min): `SAFE_DEPLOYMENT_GUIDE.html` ⭐
-- **Quick Deployment** (30 min): `DEPLOY.md`
+- **Safe Deployment** (60 min): `docs/archive/SAFE_DEPLOYMENT_GUIDE.html` ⭐
+- **Quick Deployment** (30 min): `docs/archive/DEPLOY.md`
 - **Full Guide** (comprehensive): `docs/DEPLOYMENT_GUIDE.md`
 
 ### Documentation
 
-- **MVP Status**: `MVP_COMPLETION_STATUS.md`
-- **Session Summary**: `SESSION_SUMMARY.md`
+- **MVP Status**: `docs/archive/MVP_COMPLETION_STATUS.md`
+- **Session Summary**: `docs/archive/SESSION_SUMMARY.md`
 - **API Docs**: `docs/API_CALCULATIONS.md`
 - **PITR Setup**: `docs/DATABASE_PITR_GUIDE.md`
 - **Test Status**: `docs/TEST_STATUS.md`
@@ -261,7 +261,7 @@ Deployment is successful when:
 
 ### Your Next Action
 
-1. **Open this file**: `SAFE_DEPLOYMENT_GUIDE.html`
+1. **Open this file**: `docs/archive/SAFE_DEPLOYMENT_GUIDE.html`
 2. **Read Step 1** (Pre-Deployment Verification)
 3. **Follow the guide** step by step
 4. **Complete all checkpoints** ✅
