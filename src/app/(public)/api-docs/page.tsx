@@ -10,23 +10,6 @@ export const metadata: Metadata = {
 const endpoints = [
   {
     method: "GET",
-    path: "/api/v1/dashboard/summary",
-    description:
-      "Retrieve dashboard summary including revenue, tax obligations, and invoice counts.",
-  },
-  {
-    method: "GET",
-    path: "/api/v1/records",
-    description:
-      "List financial records with pagination and filtering support.",
-  },
-  {
-    method: "GET",
-    path: "/api/v1/records/:id",
-    description: "Retrieve a specific financial record by ID.",
-  },
-  {
-    method: "GET",
     path: "/api/transactions",
     description:
       "List transactions with category, date range, and status filters.",
