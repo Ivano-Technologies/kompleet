@@ -4,12 +4,9 @@ import { fileURLToPath } from "node:url";
 
 /**
  * Time-limited exceptions: expired entries become blocking.
- * TRANSITIONAL until the xlsx tarball migration lands in the lockfile.
+ * Empty after xlsx migrated to SheetJS CDN tarball 0.20.3.
  */
-const ALLOWED_GHSA = {
-  "GHSA-4r6h-8v6p-xvw6": { package: "xlsx", expires: "2026-09-30" },
-  "GHSA-5pgg-2g8v-p4x9": { package: "xlsx", expires: "2026-09-30" },
-};
+const ALLOWED_GHSA = {};
 
 const BULK_URL = "https://registry.npmjs.org/-/npm/v1/security/advisories/bulk";
 const CHUNK_SIZE = 400;
