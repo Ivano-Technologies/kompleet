@@ -79,7 +79,7 @@
     "react-countup": "^6.5.3",
     "react-dom": "19.1.0",
     "recharts": "^3.7.0",
-    "svix": "^1.84.1",
+    "svix": "^1.98.0",
     "tailwind-merge": "^3.4.0",
     "tesseract.js": "^7.0.0",
     "unzipper": "^0.12.3",
