@@ -11,7 +11,7 @@ tax calculation, receipt OCR, and data export.
 
 | Spec | Money path | External calls stubbed? |
 | --- | --- | --- |
-| `auth-layout.spec.ts` | Shared auth page chrome | — |
+| ~~`auth-layout.spec.ts`~~ | Deleted — asserted header/nav/theme toggle `AuthLayout` does not render | — |
 | `auth-flow.spec.ts` | signup → verify prompt → login → protected-route redirects | Supabase `POST /auth/v1/signup` is intercepted so runs never create real accounts |
 | `statement-upload.spec.ts` | CSV bank statement → parse → transactions in the ledger | No — hits `POST /api/transactions/upload-v2` and the real GTBank adapter |
 | `tax-calculation.spec.ts` | PIT calculation → save → calculation history | No — hits `/api/tax-rules`, `/api/calculations/save`, `/api/calculations` |
@@ -71,10 +71,12 @@ Reads the service role key from your environment; do not paste it into a file.
 ```bash
 curl -sS -X POST "$NEXT_PUBLIC_SUPABASE_URL/auth/v1/admin/users" \
   -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
-  -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
   -H "Content-Type: application/json" \
   -d "{\"email\":\"$E2E_USER_EMAIL\",\"password\":\"$E2E_USER_PASSWORD\",\"email_confirm\":true}"
 ```
+
+New `sb_secret_…` keys are not JWTs — do not send them on `Authorization: Bearer`.
+`apikey` alone is correct for both legacy and new secret keys when calling the Auth Admin API from curl.
 
 ### Other data the specs expect
 

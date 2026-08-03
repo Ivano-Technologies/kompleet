@@ -1,8 +1,32 @@
 # Missing Tables — Recovery Plan
 
-**Date:** 2026-08-03
-**Problem:** 14 tables referenced by live application code do not exist in the database. ~15–19 API routes fail at runtime.
+**Date:** 2026-08-03 · **Revised** 2026-08-04 after the Phase 1 drift detector ran.
+**Problem:** **27** tables referenced by live application code do not exist in the database.
 **Verified against:** live `pg_class` lookup (all schemas) + full `.from("…")` reference map across `src/`.
+
+> ## Inventory correction
+>
+> This plan originally listed **14** tables. The Phase 1 drift detector found **27**. The original inventory was built from a hand-written regex over `.from("…")` calls in `src/app/api/` and `src/lib/`, and missed consumers in `src/modules/` and several service files. **The detector is authoritative; this document has been corrected to match it.**
+>
+> This is the guardrail working as intended — it caught an incomplete inventory *before* anything was built on it. That is precisely why it was sequenced first.
+>
+> **None of the 15 additional tables has DDL anywhere** in `supabase/migrations/` or `drizzle/`. All must be reconstructed from code per §1.
+
+---
+
+## 0. Revised totals
+
+| Disposition | Count |
+|---|---|
+| Cleared by Phase 2 deletions (detector-visible) | **8** |
+| Application bug, not a missing table (`users`) | **1** |
+| Still missing after Phase 2 (detector) | **18** |
+| **To build in Phase 3** | **18** + `merchant_categorizations` = **19** |
+| **Total (Phase 1 detector baseline)** | **27** |
+
+**Standing rule:** the drift detector's count is authoritative. Any figure in planning docs that disagrees is stale — correct the doc, do not reconcile to it.
+
+`records`/`customers` had zero `.from()` refs (Drizzle-only) and were never in the 27. Clearances: 8 deletions + `users` fix = 9 → 27 − 9 = 18 still missing.
 
 ---
 
@@ -75,6 +99,47 @@ Verdicts from the live reference map. "Refs" counts files containing `.from("<ta
 |---|---|---|---|
 | `ml_inference_logs` | 3 | `lib/ml/monitoring.ts`, `ai/categorize` | Not user-facing. **Make writes non-fatal** so a missing or failing log never breaks categorization. |
 
+### Build — the 9 found by the drift detector
+
+| Table | Refs | Consumer | Note |
+|---|---|---|---|
+| `documents` | **13** | `modules/document-intelligence/infrastructure/persistence/supabase-document.repository.ts` | The entire OCR / document-intelligence pipeline — the best-engineered module in the repo — has no table. Highest reference count of anything missing. |
+| `invoice_audit_logs` | **7** | `invoice-service.ts`, `invoice-security.ts`, `invoice-archiving.ts` | Invoice audit trail. NRS compliance relevant. |
+| `invoice_archives` | 4 | `invoice-archiving.ts` | Statutory invoice retention. |
+| `filing_deadlines` | 5 | `deadline-service.ts`, `reminder-job.ts` | Distinct from `deadline_reminders` — this is the deadline *definitions*, that is the *sent reminders*. Both needed. |
+| `user_keys` | 2 | `invoice-security.ts` | **Security-sensitive.** Holds cryptographic signing key material for NRS-compliant invoice QR codes. Requires encryption at rest, tight RLS, explicit `revoke … from anon`, and must never be readable cross-tenant. Design this one deliberately — do not reconstruct it mechanically. |
+| `recurring_patterns` | 3 | `lib/ml/recurring-detection.ts` | **Keep** — recurring detection is statistical, not ML, and survives the AI simplification. |
+| `import_batches` | 2 | `lib/supabase/queries.ts` | Statement-import batch tracking. |
+| `data_migration_logs` | 2 | `data-migration-service.ts` | Year-to-year data migration audit. |
+| `categorization_feedback` + `user_learning_profiles` | 6 | `lib/ai/feedbackService.ts` | The surviving correction store — see §2c. |
+
+### Not a table — an application bug (1)
+
+**`users`** — `app/api/auth/delete-account/route.ts:56` runs:
+
+```ts
+await supabase.from("users").update({ status: "deactivated" }).eq("id", user.id);
+```
+
+`public.users` has never existed; only `auth.users` does. **The return value is not checked**, so this fails silently. The next statement calls `adminClient.auth.admin.deleteUser(user.id)` — a hard delete — so account deletion *appears* to work while the intended soft-delete/deactivation audit trail never happens.
+
+Fix: soft-delete against `profiles` (which does exist), check the error, and decide deliberately whether deletion is soft or hard. Per `docs/TENANCY_DESIGN.md` risk #12 this route also needs review before any multi-tenant model ships — deleting a practitioner must not cascade their clients' statutory records.
+
+---
+
+## 2c. Two competing correction stores — consolidate
+
+The duplicate AI stacks identified in `docs/AI_SIMPLIFICATION_PLAN.md` §1 each have their own correction persistence:
+
+| Stack | Tables | Consumer | Disposition |
+|---|---|---|---|
+| `lib/ml/continuous-learning.ts` | `ml_corrections`, `ml_models`, `ml_retraining_jobs` | `api/ml/corrections` imports `recordCorrection` / `getCorrectionStats` from here | **Delete.** Model registry and retraining are gone with the ML tier. |
+| `lib/ai/feedbackService.ts` | `categorization_feedback`, `user_learning_profiles` | Currently no route consumer | **Keep.** Richer — `getUserLearningContext()` is exactly the few-shot example source a Claude prompt wants. |
+
+**Action:** repoint `api/ml/corrections/route.ts` at `feedbackService` (`recordFeedback` / `getFeedbackStatistics`), then delete `lib/ml/continuous-learning.ts` and `lib/ml/monitoring.ts`'s drift half.
+
+This is the correction feedback loop the owner chose to retain — it survives, just on the surviving stack.
+
 ### Delete — dead or descoped (4 tables)
 
 **Owner decisions, 2026-08-03.**
@@ -85,8 +150,12 @@ Verdicts from the live reference map. "Refs" counts files containing `.from("<ta
 | `customers` | **0** | Zero references. Drizzle-only. |
 | `bank_accounts` | 3 | **Mono contract is not live and the feature is cancelled.** Never build the table; delete the integration outright (§2a). |
 | `email_connections` | 1 | **Gmail/Outlook ingestion postponed.** Never build the table; remove the incomplete surface and document for later revival (§2b). |
+| `ml_models` | 1 | Model registry — no models exist after the AI simplification. |
+| `ml_retraining_jobs` | 1 | Retraining dropped with the ML tier. |
+| `ml_drift_alerts` | 1 | Drift monitoring dropped — owner decision. |
+| `ml_corrections` | 5 | Superseded by `categorization_feedback` — see §2c. |
 
-This is the best outcome available: **6 of the ~15–19 broken routes are resolved by deletion rather than construction.**
+**10 of 27 are resolved by deletion rather than construction** — the best outcome available.
 
 ---
 

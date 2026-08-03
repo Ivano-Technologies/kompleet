@@ -3,13 +3,12 @@
  * Migration-application check — KOMPLEET
  *
  * Compares local files in supabase/migrations/ against remote
- * supabase_migrations.schema_migrations (via `supabase migration list`).
+ * supabase_migrations.schema_migrations (via `supabase migration list --db-url`).
  * Fails when local and remote diverge in either direction.
  *
  * Env:
- *   SUPABASE_ACCESS_TOKEN  — required for remote list (CI secret)
- *   SUPABASE_PROJECT_REF   — default frlcvkmjuhnjcicwywrh
- *   SKIP_MIGRATION_CHECK=1 — exit 0 (escape hatch for forks without token)
+ *   DATABASE_URL or SUPABASE_DB_URL — Postgres connection string (required)
+ *   SKIP_MIGRATION_CHECK=1          — exit 0 (escape hatch for forks)
  *
  * Exit codes:
  *   0 — local and remote migration sets match
@@ -22,8 +21,6 @@ import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
 
-const PROJECT_REF =
-  process.env.SUPABASE_PROJECT_REF || "frlcvkmjuhnjcicwywrh";
 const MIGRATIONS_DIR = path.resolve("supabase/migrations");
 
 function localMigrationVersions() {
@@ -41,28 +38,74 @@ function localMigrationVersions() {
     .sort((a, b) => a.version.localeCompare(b.version));
 }
 
+/** Strip markdown backticks / whitespace from a table cell. */
+function stripCell(value) {
+  return value.replace(/`/g, "").trim();
+}
+
 function parseMigrationList(output) {
   /** @type {{ version: string, local: boolean, remote: boolean }[]} */
   const rows = [];
-  for (const line of output.split(/\r?\n/)) {
-    // supabase CLI table: VERSION | LOCAL | REMOTE  (formats vary by version)
-    const trimmed = line.trim();
-    if (!trimmed || /^(VERSION|─|Local|Remote)/i.test(trimmed)) continue;
-    const parts = trimmed.split("|").map((p) => p.trim());
-    if (parts.length >= 3 && /^\d+$/.test(parts[0])) {
-      rows.push({
-        version: parts[0],
-        local: Boolean(parts[1]) && parts[1] !== "",
-        remote: Boolean(parts[2]) && parts[2] !== "",
-      });
-      continue;
+
+  // supabase CLI ≥2 emits JSON when not a TTY (CI / pnpm dlx).
+  const trimmedAll = output.trim();
+  if (trimmedAll.startsWith("{") || trimmedAll.startsWith("[")) {
+    try {
+      const parsed = JSON.parse(trimmedAll);
+      const list = Array.isArray(parsed)
+        ? parsed
+        : Array.isArray(parsed.migrations)
+          ? parsed.migrations
+          : [];
+      for (const row of list) {
+        const local = typeof row.local === "string" ? row.local : "";
+        const remote = typeof row.remote === "string" ? row.remote : "";
+        const version = local || remote;
+        if (!version || !/^\d+$/.test(version)) continue;
+        rows.push({
+          version,
+          local: Boolean(local),
+          remote: Boolean(remote),
+        });
+      }
+      if (rows.length > 0) return rows;
+    } catch {
+      // fall through to text table parser
     }
-    // Fallback: whitespace-separated "version  localMark  remoteMark"
-    const ws = trimmed.split(/\s+/);
+  }
+
+  // Current CLI table (supabase@2):
+  //   Local            | Remote           | Time (UTC)
+  //  ------------------|------------------|-----------------------
+  //   `20260219000000` | `20260219000000` | `2026-02-19 00:00:00`
+  // Empty local/remote cells mean the version exists only on the other side.
+  for (const line of output.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    if (/^(VERSION|Local\b)/i.test(trimmed)) continue;
+    if (/^[-|:\s]+$/.test(trimmed)) continue;
+
+    const parts = trimmed.split("|").map((p) => stripCell(p));
+    if (parts.length >= 2) {
+      const localVer = /^\d+$/.test(parts[0]) ? parts[0] : "";
+      const remoteVer = /^\d+$/.test(parts[1]) ? parts[1] : "";
+      const version = localVer || remoteVer;
+      if (version) {
+        rows.push({
+          version,
+          local: Boolean(localVer),
+          remote: Boolean(remoteVer),
+        });
+        continue;
+      }
+    }
+
+    // Older whitespace-separated layouts: VERSION [LOCAL] [REMOTE]
+    const ws = trimmed.split(/\s+/).map(stripCell);
     if (ws.length >= 1 && /^\d{10,}$/.test(ws[0])) {
       rows.push({
         version: ws[0],
-        local: ws.length === 1 || ws[1] !== "",
+        local: ws.length === 1 || (ws[1] !== "" && ws[1] !== undefined),
         remote: ws.length >= 3 ? ws[2] !== "" : false,
       });
     }
@@ -70,16 +113,40 @@ function parseMigrationList(output) {
   return rows;
 }
 
+/** supabase CLI requires a percent-encoded --db-url value. */
+function percentEncodeDbUrl(connectionString) {
+  try {
+    const normalized = connectionString.replace(/^postgres(ql)?:/i, "http:");
+    const u = new URL(normalized);
+    const user = encodeURIComponent(decodeURIComponent(u.username));
+    const pass = encodeURIComponent(decodeURIComponent(u.password));
+    const auth = pass ? `${user}:${pass}` : user;
+    const host = u.host;
+    const pathname = u.pathname;
+    const search = u.search;
+    const scheme = connectionString.startsWith("postgres://")
+      ? "postgres"
+      : "postgresql";
+    return `${scheme}://${auth}@${host}${pathname}${search}`;
+  } catch {
+    return encodeURI(connectionString);
+  }
+}
+
 function main() {
   if (process.env.SKIP_MIGRATION_CHECK === "1") {
-    console.log("⏭️  SKIP_MIGRATION_CHECK=1 — skipping migration application check.");
+    console.log(
+      "⏭️  SKIP_MIGRATION_CHECK=1 — skipping migration application check.",
+    );
     process.exit(0);
   }
 
-  if (!process.env.SUPABASE_ACCESS_TOKEN) {
+  const connectionString =
+    process.env.DATABASE_URL || process.env.SUPABASE_DB_URL || "";
+  if (!connectionString) {
     console.error(
-      "❌ Missing SUPABASE_ACCESS_TOKEN.\n" +
-        "   Set it as a CI secret (or export locally) so `supabase migration list` can reach the project.",
+      "❌ Missing DATABASE_URL or SUPABASE_DB_URL.\n" +
+        "   Export a Session-pooler Postgres URL so `supabase migration list --db-url` can reach the DB.",
     );
     process.exit(2);
   }
@@ -87,26 +154,22 @@ function main() {
   const local = localMigrationVersions();
   console.log(`Local migration files: ${local.length}`);
 
+  const dbUrl = percentEncodeDbUrl(connectionString);
+  const pnpmBin = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
   let output;
   try {
     output = execFileSync(
-      "pnpm",
-      [
-        "dlx",
-        "supabase@2",
-        "migration",
-        "list",
-        "--project-ref",
-        PROJECT_REF,
-      ],
+      pnpmBin,
+      ["dlx", "supabase@2", "migration", "list", "--db-url", dbUrl],
       {
         encoding: "utf8",
         env: process.env,
         stdio: ["ignore", "pipe", "pipe"],
+        shell: process.platform === "win32",
       },
     );
   } catch (err) {
-    console.error("❌ `supabase migration list` failed:");
+    console.error("❌ `supabase migration list --db-url` failed:");
     console.error(err.stderr || err.message);
     process.exit(2);
   }
@@ -132,11 +195,15 @@ function main() {
   console.error("");
   console.error("❌ Migration application drift detected:");
   if (localOnly.length) {
-    console.error(`  Local-only (never applied remotely) — ${localOnly.length}:`);
+    console.error(
+      `  Local-only (never applied remotely) — ${localOnly.length}:`,
+    );
     for (const r of localOnly) console.error(`    - ${r.version}`);
   }
   if (remoteOnly.length) {
-    console.error(`  Remote-only (missing from repo) — ${remoteOnly.length}:`);
+    console.error(
+      `  Remote-only (missing from repo) — ${remoteOnly.length}:`,
+    );
     for (const r of remoteOnly) console.error(`    - ${r.version}`);
   }
   console.error("");

@@ -1,6 +1,6 @@
 # Cursor Execution Prompt — KOMPLEET Consolidation
 
-**Revision 4 — 2026-08-03.** Supersedes revisions 1–3. Written after live inspection of the resumed Supabase project, a full triage of the missing tables, and owner decisions on Mono, email ingestion and the AI stack. Where this document and any other doc disagree, **this one wins**.
+**Revision 5 — 2026-08-04.** Supersedes revisions 1–4. Written after live inspection of the resumed Supabase project, a full triage of the missing tables, owner decisions on Mono, email ingestion, the AI stack and tenancy, and the Phase 1 drift detector's corrected 27-table inventory. Where this document and any other doc disagree, **this one wins**.
 
 Paste everything below the horizontal rule into Cursor.
 
@@ -18,7 +18,7 @@ You are working on KOMPLEET, a Nigerian tax compliance platform (Next.js 16 / Su
 | `transactions`, `invoices`, `expenses`, `tax_filings` | **0 rows** |
 | Reference data | seeded — `tax_rules` 27, `categories` 23, `bank_configs` 15 |
 
-**Fourteen tables referenced by application code do not exist**, verified by `pg_class` across all schemas: `tax_calculations`, `user_tax_years`, `nrs_forms`, `filing_audit_logs`, `filing_status`, `email_connections`, `deadline_reminders`, `ml_inference_logs`, `categorization_predictions`, `bank_accounts`, `customers`, `records`, `workspaces`, `workspace_members`.
+**Twenty-seven tables referenced by application code do not exist.** Established by the Phase 1 drift detector on 2026-08-04, which corrected an earlier hand-built inventory of 14. **The detector is authoritative.** Full triage — 10 deleted in Phase 2, 1 application bug (`users`), 16 built in Phase 3 — is in `docs/MISSING_TABLES_RECOVERY_PLAN.md`. None of the 27 has DDL anywhere in `supabase/migrations/` or `drizzle/`.
 
 `workspaces`/`workspace_members` **have a repo migration that was never applied** — so repo migrations and live schema diverge in *both* directions.
 
@@ -40,15 +40,19 @@ You are working on KOMPLEET, a Nigerian tax compliance platform (Next.js 16 / Su
 
 ---
 
-## ⛔ DECISION GATE — resolve before Phase 2
+## ✅ DECISION — resolved 2026-08-04 by owner
 
-**Does KOMPLEET target individual SMEs, or accountants managing many client entities?**
+**KOMPLEET targets accountants and tax practitioners managing many client entities.** Multi-tenant from the start. Revised estimate ~4–6 weeks, because there is no data to migrate.
 
-This blocks table creation and nothing else can sensibly proceed past it. `docs/TENANCY_DESIGN.md` originally scoped multi-tenancy at 10–14 weeks; that estimate assumed migrating live data and is now **obsolete** — with 0 customer rows and 14 tables to build from scratch, the revised figure is **~4–6 weeks**.
+Binding on all later phases:
 
-If the practitioner model is going ahead, **every table built in Phase 2 must carry `client_id` from the start.** Building 10 tables now and retrofitting `client_id` next month is strictly worse than building them once, and retrofitting is exactly where the cross-tenant leakage risks in `docs/TENANCY_DESIGN.md` §3.2 live.
+1. **Every table created in Phase 3 carries `client_id` from birth.** Do not create a single `user_id`-only domain table intending to retrofit. Retrofitting is exactly where the cross-tenant leakage risks in `docs/TENANCY_DESIGN.md` §3.2 live.
+2. **Build the tenancy spine first**, before any domain table: `firms` → `firm_members` (roles `owner|admin|staff|viewer`) → `clients` → `client_assignments`, plus the `accessible_client_ids()` `SECURITY DEFINER` helper from §3.3. Every domain-table policy references that helper and nothing else.
+3. **`workspaces`/`workspace_members` are replaced by `firms`/`firm_members`** — already planned in Phase 2.5.
+4. Entity attributes currently on `profiles` — `tin`, `rc_number`, `company_name`, `entity_type`, `fiscal_year_start` — belong on `clients`. The practitioner is not a taxable entity. `subscription_tier` stays with the firm.
+5. **The cross-tenant negative test suite is a Phase 3 prerequisite, not a follow-up.** Two firms, real JWTs, assert firm A sees exactly its own rows and zero of firm B's for every table × every command. Build it before the first domain table, per `docs/TENANCY_DESIGN.md` risk #1.
 
-Put the question to the owner, get an answer, and record it in `docs/STATUS.md` before creating any table.
+Record in `docs/STATUS.md`.
 
 ---
 
@@ -60,7 +64,7 @@ Build the detector before fixing anything. It generates the work list mechanical
 
 `scripts/check-schema-drift.mjs` — greps every `.from("…")` in `src/`, queries `information_schema.tables` on the target project, exits non-zero listing any reference to a table that does not exist. Add as a CI job.
 
-**Expected first run: fails, listing exactly the 14 known tables.** If it lists more or fewer, stop and report — the ground truth above is then incomplete.
+**Status: built and run. It found 27, not the 14 previously assumed — and was right.** Treat its output as authoritative over any hand-written inventory.
 
 The absence of this check is the root cause of the entire problem. It would have caught all 14 on the day they were introduced.
 
@@ -72,13 +76,13 @@ The absence of this check is the root cause of the entire problem. It would have
 
 Add Supabase security advisors to CI as a **failing** gate, baseline = current count. Critical because `20260715144130_revoke_anon_access_user_data_tables.sql` is a **hardcoded list of 9 tables** — Supabase's default `GRANT ALL ON TABLES TO anon` means every table you create in Phase 2 is anon-exposed the moment it exists. Each new table's migration must carry its own `revoke all … from anon` in the same file.
 
-**Gate:** all three checks running in CI; 1.1 failing with exactly the 14 expected tables.
+**Gate:** all three checks running in CI. ✅ Complete — PR #56.
 
 ---
 
 ## PHASE 2 — Delete before you build
 
-Owner decisions of 2026-08-03. Each removes broken surface rather than repairing it. **Do this before Phase 3** — every later step then operates on a smaller codebase, and the drift script's count falling 14 → 8 is a free correctness check on the deletions.
+Owner decisions of 2026-08-03. Each removes broken surface rather than repairing it. **Do this before Phase 3** — every later step then operates on a smaller codebase, and the drift script's count falling 27 → 17 is a free correctness check on the deletions.
 
 ### 2.1 Mono open banking — cancelled
 
@@ -113,17 +117,19 @@ Record what was removed, the reviving commit SHA, and the note that `email_conne
 
 Do **not** apply the orphaned `20260221100000_sprint5_workspaces_premium.sql`. Build `firms`/`firm_members` instead per `docs/TENANCY_DESIGN.md` §2.5; delete the migration and the two `expenses/workspaces` routes.
 
-**Gate:** `pnpm typecheck` and `pnpm build` green. Drift script now lists **8** tables, not 14. `grep -ri "aws\|s3\|ML_SERVICE_URL" src/ scripts/` returns nothing outside comments.
+**Gate:** `pnpm typecheck` and `pnpm build` green. Drift script now lists **17** tables, not 27. `grep -ri "aws\|s3\|ML_SERVICE_URL" src/ scripts/` returns nothing outside comments.
 
 ---
 
 ## PHASE 3 — Rebuild the missing schema
 
-**Follow `docs/MISSING_TABLES_RECOVERY_PLAN.md`.** Triage is done — do not re-litigate it. Eight tables remain:
+**Follow `docs/MISSING_TABLES_RECOVERY_PLAN.md`.** Triage is done — do not re-litigate it. **Sixteen** tables remain, plus `merchant_categorizations` from Phase 2.3 = 17.
 
-`tax_calculations`, `user_tax_years`, `nrs_forms`, `filing_status`, `filing_audit_logs`, `deadline_reminders`, `categorization_predictions`, `ml_inference_logs` (make its writes **non-fatal** so a failed log never breaks categorization; consider renaming `ai_inference_logs`).
+**Build the tenancy spine first** (`firms`, `firm_members`, `clients`, `client_assignments`, `accessible_client_ids()`), then the cross-tenant negative test suite, then domain tables — **every one carrying `client_id`**.
 
-Plus the new `merchant_categorizations` cache table from Phase 2.3.
+Two need deliberate design rather than mechanical reconstruction: **`user_keys`** (cryptographic signing key material for NRS invoice QR codes — encryption at rest, tight RLS, explicit anon revoke, never cross-tenant readable) and **`documents`** (13 references, the whole document-intelligence pipeline).
+
+Also fix the **`users` bug**: `api/auth/delete-account/route.ts:56` updates a table that never existed and does not check the error, so the soft-delete silently no-ops before a hard delete runs.
 
 ### Method
 
@@ -144,6 +150,10 @@ Sequence: `tax_calculations` first (the dashboard landing page queries it client
 ---
 
 ## PHASE 4 — Simplify how the app works
+
+### 4.0 Calculator pages must be build-safe without env (hardening)
+
+July audit P0 #2 and the #58 Vercel preview failure are the same bug: `/calculators/business-tax` (and likely siblings) throw during prerender when `NEXT_PUBLIC_SUPABASE_*` is absent. Production was papered over by setting env; Preview was not. Fix properly: lazy client init and/or `export const dynamic = "force-dynamic"` on calculator routes so a missing env var cannot fail `pnpm build`. Do not rely on Preview env alone.
 
 ### 4.1 One schema source of truth
 
@@ -229,7 +239,8 @@ Per `docs/DEPENDENCY_TRIAGE.md`:
 
 `secret-scan`, `typecheck`, `e2e` jobs and five E2E specs are already in the working tree. Verify, then:
 
-- Fix or delete `e2e/auth-layout.spec.ts`.
+- ~~Fix or delete `e2e/auth-layout.spec.ts`.~~ Done (deleted on #58).
+- **Remove `continue-on-error` from the `e2e` job** in `.github/workflows/ci.yml` once the items below exist. A `continue-on-error` that nobody removes is worse than no job.
 - Seed an email-confirmed test user (`requireAuth()` bounces unverified users). `tax_rules` is already seeded.
 - Set CI variables/secrets: `E2E_BASE_URL`, `E2E_USER_EMAIL`, `E2E_USER_PASSWORD`, `NEXT_PUBLIC_SITE_URL`, `KEEPALIVE_TOKEN`.
 - Add `vitest --coverage` with a floor at measured coverage; ratchet up only.

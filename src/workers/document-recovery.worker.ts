@@ -8,7 +8,7 @@ import { DocumentRecoverySweeper } from "@/modules/document-intelligence/infrast
 
 const redisUrl = requireEnv("REDIS_URL");
 const supabaseUrl = process.env.SUPABASE_POOLER_URL ?? requireEnv("SUPABASE_URL");
-const supabaseServiceKey = requireEnv("SUPABASE_SERVICE_KEY");
+const supabaseServiceKey = requireEnv("SUPABASE_SERVICE_ROLE_KEY");
 
 const timeoutMinutes = parseInt(
   process.env.PROCESSING_TIMEOUT_MINUTES ?? "15",

@@ -87,15 +87,10 @@ kompleet-platform/
 Create a `.env.local` file in the project root:
 
 ```bash
-# Clerk Authentication
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
-CLERK_SECRET_KEY=sk_test_...
-CLERK_WEBHOOK_SECRET=whsec_...
-
-# Supabase
+# Supabase (prefer new API keys — legacy JWT anon/service_role deprecated end of 2026)
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_your_publishable_key
+SUPABASE_SERVICE_ROLE_KEY=sb_secret_your_secret_key
 
 # App Configuration
 NEXT_PUBLIC_APP_URL=http://localhost:3000

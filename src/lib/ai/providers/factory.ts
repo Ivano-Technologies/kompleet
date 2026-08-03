@@ -11,16 +11,20 @@ import { KimiProvider } from "./kimi-provider";
 import { FallbackProvider } from "./fallback-provider";
 
 /**
- * Provider priority order
- * The factory will try providers in this order until one succeeds
+ * Provider priority order — Claude first (owner decision 2026-08-03).
+ * OpenAI and Kimi remain registered as fallbacks; rule-based FallbackProvider last.
  */
 const DEFAULT_PROVIDER_ORDER: Array<"openai" | "claude" | "kimi" | "fallback"> =
   [
-    "openai", // Primary: OpenAI GPT-4 Turbo
-    "claude", // Secondary 1: Anthropic Claude 3.5 Sonnet
-    "kimi", // Secondary 2: Moonshot AI Kimi 2.5
-    "fallback", // Tertiary: Rule-based fallback (always available)
+    "claude",
+    "openai",
+    "kimi",
+    "fallback",
   ];
+
+/** Default Claude model for bulk categorization (short classification). */
+const DEFAULT_CLAUDE_MODEL =
+  process.env.ANTHROPIC_CATEGORIZE_MODEL || "claude-3-5-haiku-20241022";
 
 /**
  * Create a provider instance based on configuration
@@ -30,7 +34,10 @@ function createProvider(config: ProviderConfig): AIProvider {
     case "openai":
       return new OpenAIProvider(config.apiKey, config.model);
     case "claude":
-      return new ClaudeProvider(config.apiKey, config.model);
+      return new ClaudeProvider(
+        config.apiKey,
+        config.model || DEFAULT_CLAUDE_MODEL,
+      );
     case "kimi":
       return new KimiProvider(config.apiKey, config.model);
     case "fallback":
