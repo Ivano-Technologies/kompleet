@@ -111,7 +111,7 @@
     "@types/react": "~19.2.0",
     "@types/react-dom": "~19.2.0",
     "@types/unzipper": "^0.10.11",
-    "autoprefixer": "^10.4.24",
+    "autoprefixer": "^10.5.4",
     "conventional-changelog-conventionalcommits": "^9.2.0",
     "drizzle-kit": "^0.18.1",
     "eslint": "^8.57.0",
