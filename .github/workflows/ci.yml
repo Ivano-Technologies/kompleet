@@ -2,16 +2,58 @@ name: CI
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, staging]
   push:
-    branches: [main]
+    branches: [main, staging]
 
 env:
   NODE_OPTIONS: --max-old-space-size=4096
 
 jobs:
+  # This repository is PUBLIC by deliberate choice. Any credential that reaches
+  # a commit is world-readable within seconds, so secret scanning blocks the
+  # pipeline ahead of every other job.
+  secrets:
+    name: secret-scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          fetch-depth: 0 # full history — a leak in any commit is still a leak
+
+      - name: Scan history and working tree for secrets
+        # Pinned to the v2.3.9 commit for supply-chain hardening.
+        uses: gitleaks/gitleaks-action@83373cf2f8c4db6e24b41c1a9b086bb9619e9cd3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_CONFIG: .gitleaks.toml
+
+  typecheck:
+    name: typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Cache pnpm store
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: ~/.pnpm-store
+          key: pnpm-store-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm typecheck
+
   build:
     name: build
+    needs: secrets
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
@@ -62,7 +104,13 @@ jobs:
           CI: "true"
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-          NEXT_PUBLIC_SITE_URL: https://kompleet.ng
+          # Canonical host is NOT baked into the image. Set the repository (or
+          # environment) variable NEXT_PUBLIC_SITE_URL in GitHub → Settings →
+          # Secrets and variables → Actions → Variables. The literal below is a
+          # build-time fallback only, so CI still builds on forks where the
+          # variable is not defined. The value that actually ships is the one
+          # set per-environment on the Vercel project.
+          NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL || 'https://kompleet.techivano.com' }}
           SUPABASE_SERVICE_ROLE_KEY: "eyJ_ci_placeholder_for_build"
           OPENAI_API_KEY: "sk-ci_placeholder_for_build"
           DATABASE_URL: "postgresql://ci:placeholder@localhost:5432/ci_build"
@@ -123,3 +171,71 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - run: pnpm lint
+
+  e2e:
+    name: e2e
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CI: "true"
+      NODE_OPTIONS: --max-old-space-size=4096
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Cache pnpm store
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: ~/.pnpm-store
+          key: pnpm-store-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - run: pnpm install --frozen-lockfile
+
+      # Browser binaries are keyed on the Playwright version so a lockfile bump
+      # invalidates the cache automatically.
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+
+      # Target is configurable. Set the repository variable E2E_BASE_URL
+      # (Settings -> Secrets and variables -> Actions -> Variables) to run the
+      # suite against staging or a preview deployment. When it is empty
+      # Playwright boots `pnpm dev` on http://localhost:3000 itself.
+      #
+      # The authenticated specs skip themselves (rather than fail) when
+      # E2E_USER_EMAIL / E2E_USER_PASSWORD are not configured, so forks without
+      # access to the test account still get the unauthenticated coverage.
+      # See e2e/README.md for what to seed.
+      - name: Run Playwright E2E suite
+        run: pnpm test:e2e
+        env:
+          E2E_BASE_URL: ${{ vars.E2E_BASE_URL }}
+          E2E_USER_EMAIL: ${{ secrets.E2E_USER_EMAIL }}
+          E2E_USER_PASSWORD: ${{ secrets.E2E_USER_PASSWORD }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000' }}
+
+      - name: Upload Playwright report
+        if: always()
+        # Pinned to the v4.6.2 commit for supply-chain hardening.
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: playwright-report-${{ github.run_id }}
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+          if-no-files-found: ignore
