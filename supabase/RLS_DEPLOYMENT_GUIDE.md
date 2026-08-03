@@ -50,7 +50,7 @@ supabase db diff
 
 ```bash
 # Connect to your Supabase database
-psql "postgresql://postgres:[YOUR-PASSWORD]@db.frlcvkmjuhnjcicwywrh.supabase.co:5432/postgres"
+psql "postgresql://postgres:YOUR_PASSWORD@db.frlcvkmjuhnjcicwywrh.supabase.co:5432/postgres"
 
 # Run the migration file
 \i supabase/migrations/20260205_enable_rls_security.sql

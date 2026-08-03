@@ -12,9 +12,14 @@
  *   SCHEMA_DRIFT_IGNORE              — comma list of table names to skip
  *                                      (e.g. "users" when code means auth.users)
  *
+ * Baseline (ratchet):
+ *   `.schema-drift-baseline` — integer max allowed missing tables. Job fails
+ *   only when missing count **exceeds** this number. Phase 3 waves must
+ *   decrement the file by the number of tables they add (see PHASE_3_BRIEF).
+ *
  * Exit codes:
- *   0 — every referenced table exists
- *   1 — one or more referenced tables are missing
+ *   0 — missing count is 0, or ≤ baseline
+ *   1 — missing count exceeds baseline (or baseline file invalid)
  *   2 — configuration / connection error
  */
 
@@ -25,6 +30,26 @@ import pg from "pg";
 
 const FROM_RE = /\.from\(\s*['"]([a-zA-Z_][a-zA-Z0-9_]*)['"]\s*\)/g;
 const SRC_ROOT = path.resolve("src");
+const BASELINE_PATH = path.resolve(".schema-drift-baseline");
+
+function readBaseline() {
+  if (!fs.existsSync(BASELINE_PATH)) {
+    console.error(
+      `❌ Missing ${path.basename(BASELINE_PATH)}.\n` +
+        "   Create it with an integer max missing-table count (Phase 2 post-delete: 18).",
+    );
+    process.exit(2);
+  }
+  const raw = fs.readFileSync(BASELINE_PATH, "utf8").trim();
+  const n = Number.parseInt(raw, 10);
+  if (!Number.isFinite(n) || n < 0 || String(n) !== raw) {
+    console.error(
+      `❌ ${path.basename(BASELINE_PATH)} must contain a single non-negative integer (got ${JSON.stringify(raw)}).`,
+    );
+    process.exit(2);
+  }
+  return n;
+}
 
 function walk(dir, out = []) {
   for (const ent of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -139,29 +164,56 @@ async function main() {
   const missing = referenced.filter(
     (name) => !ignore.has(name) && !existing.has(name),
   );
+  const baseline = readBaseline();
 
   console.log(`Referenced tables in src/: ${referenced.length}`);
   console.log(`Existing in [${schemaList.join(", ")}]: ${existing.size}`);
   console.log(`Ignored: ${ignore.size ? [...ignore].join(", ") : "(none)"}`);
+  console.log(`Baseline (max missing): ${baseline}`);
+  console.log(`Missing: ${missing.length}`);
 
   if (missing.length === 0) {
     console.log("✅ No schema drift — every .from() target exists.");
+    if (baseline > 0) {
+      console.log(
+        `   Tip: .schema-drift-baseline is still ${baseline} — set it to 0 when the rebuild is done.`,
+      );
+    }
+    process.exit(0);
+  }
+
+  const listMissing = (write) => {
+    for (const name of missing) {
+      const files = [...references.get(name)].sort();
+      write(
+        `  - ${name}  (${files.length} file${files.length === 1 ? "" : "s"})`,
+      );
+      for (const f of files.slice(0, 8)) write(`      ${f}`);
+      if (files.length > 8) write(`      … +${files.length - 8} more`);
+    }
+  };
+
+  if (missing.length <= baseline) {
+    console.log("");
+    console.log(
+      `⚠️  Schema drift within baseline: ${missing.length} missing (≤ ${baseline}).`,
+    );
+    listMissing((line) => console.log(line));
+    console.log("");
+    console.log(
+      "Pass: count does not exceed .schema-drift-baseline. Phase 3 waves must decrement the baseline when tables are added.",
+    );
     process.exit(0);
   }
 
   console.error("");
   console.error(
-    `❌ Schema drift: ${missing.length} table(s) referenced in code but missing from the database:`,
+    `❌ Schema drift exceeds baseline: ${missing.length} missing > ${baseline} allowed:`,
   );
-  for (const name of missing) {
-    const files = [...references.get(name)].sort();
-    console.error(`  - ${name}  (${files.length} file${files.length === 1 ? "" : "s"})`);
-    for (const f of files.slice(0, 8)) console.error(`      ${f}`);
-    if (files.length > 8) console.error(`      … +${files.length - 8} more`);
-  }
+  listMissing((line) => console.error(line));
   console.error("");
   console.error(
-    "Fix: add a migration for each missing table, or delete the dead .from() call sites.",
+    "Fix: add migrations for missing tables, delete dead .from() call sites, or (only when intentional) raise .schema-drift-baseline.",
   );
   process.exit(1);
 }

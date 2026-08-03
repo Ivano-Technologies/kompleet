@@ -151,6 +151,10 @@ Sequence: `tax_calculations` first (the dashboard landing page queries it client
 
 ## PHASE 4 — Simplify how the app works
 
+### 4.0 Calculator pages must be build-safe without env (hardening)
+
+July audit P0 #2 and the #58 Vercel preview failure are the same bug: `/calculators/business-tax` (and likely siblings) throw during prerender when `NEXT_PUBLIC_SUPABASE_*` is absent. Production was papered over by setting env; Preview was not. Fix properly: lazy client init and/or `export const dynamic = "force-dynamic"` on calculator routes so a missing env var cannot fail `pnpm build`. Do not rely on Preview env alone.
+
 ### 4.1 One schema source of truth
 
 `src/db/schema/` (Drizzle) does not describe the live database: `banking.ts` defines `transactions` with **no `user_id`** (live has one), `users.ts` defines a `users` table with `password_hash` that does not exist, `filings.ts` defines `filings` (live: `tax_filings`), `records.ts` defines a table that exists nowhere.
@@ -235,7 +239,8 @@ Per `docs/DEPENDENCY_TRIAGE.md`:
 
 `secret-scan`, `typecheck`, `e2e` jobs and five E2E specs are already in the working tree. Verify, then:
 
-- Fix or delete `e2e/auth-layout.spec.ts`.
+- ~~Fix or delete `e2e/auth-layout.spec.ts`.~~ Done (deleted on #58).
+- **Remove `continue-on-error` from the `e2e` job** in `.github/workflows/ci.yml` once the items below exist. A `continue-on-error` that nobody removes is worse than no job.
 - Seed an email-confirmed test user (`requireAuth()` bounces unverified users). `tax_rules` is already seeded.
 - Set CI variables/secrets: `E2E_BASE_URL`, `E2E_USER_EMAIL`, `E2E_USER_PASSWORD`, `NEXT_PUBLIC_SITE_URL`, `KEEPALIVE_TOKEN`.
 - Add `vitest --coverage` with a floor at measured coverage; ratchet up only.

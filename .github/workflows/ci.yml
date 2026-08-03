@@ -187,10 +187,9 @@ jobs:
     name: e2e
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    # Phase 9 owns a seeded email-confirmed user + E2E_BASE_URL. Until then
-    # unauthenticated/auth-flow specs flake or fail against incomplete markup;
-    # do not block merge on that sequencing debt. Remove continue-on-error when
-    # e2e/README.md prerequisites are met.
+    # TODO(Phase 9): remove continue-on-error once a test user and E2E_BASE_URL exist.
+    # Until then auth-flow specs fail without a seeded email-confirmed user; do not
+    # block merge on that sequencing debt. Tracked in docs/CURSOR_EXECUTION_PROMPT.md §Phase 9.
     continue-on-error: true
     env:
       CI: "true"
@@ -279,9 +278,8 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # Expected to fail until Phase 2 deletions + Phase 3 table creation land.
-      # First measured count on 2026-08-03: 27 missing tables (not the 14 in the
-      # prior recovery-plan inventory — see docs/STATUS.md).
+      # Ratchet: fails only when missing count exceeds `.schema-drift-baseline`.
+      # Phase 3 waves must decrement that file by the number of tables added.
       - name: Detect .from() references to missing tables
         run: pnpm check:schema-drift
         env:
@@ -305,11 +303,11 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      # Uses Session-pooler DATABASE_URL via --db-url (no project link / access token).
       - name: Compare local vs remote migrations
         run: pnpm check:migrations
         env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF || 'frlcvkmjuhnjcicwywrh' }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
   security-advisors:
     name: check-security-advisors

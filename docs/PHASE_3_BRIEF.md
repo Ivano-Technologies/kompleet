@@ -86,6 +86,14 @@ Each wave: migration → `supabase gen types` → `pnpm typecheck` → negative 
 
 **Gate after each wave:** drift count decreases by exactly the number of tables in that wave. Advisors unchanged from baseline. Negative suite green.
 
+**CI enforces the drift gate via `.schema-drift-baseline`.** The file holds the max allowed missing-table count (currently `18`). `pnpm check:schema-drift` fails only when the live count **exceeds** that number. Every wave’s PR must:
+
+1. Add the tables for that wave.
+2. Decrement `.schema-drift-baseline` by the same number (visible in the diff).
+3. Leave the job failing if the count did not drop — do not raise the baseline to paper over missed tables.
+
+Wave A (spine only) adds no detector-visible domain tables — baseline stays put. Wave B is tests only. Waves C–G each decrement by their table count.
+
 ---
 
 ## 4. Cross-tenant negative suite — Wave B, non-negotiable
