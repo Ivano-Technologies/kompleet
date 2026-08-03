@@ -1,15 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { UserCog, ChevronLeft, Loader2 } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 
 export default function EditProfilePage() {
   const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState("");
   const [message, setMessage] = useState<{
     type: "success" | "error";
     text: string;
   } | null>(null);
+
+  // Show the signed-in user's own email. Never hard-code an address here —
+  // this repository is public.
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => {
+      setEmail(data.user?.email ?? "");
+    });
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,7 +85,8 @@ export default function EditProfilePage() {
                 id="email"
                 type="email"
                 disabled
-                value="kez.ivano@gmail.com"
+                value={email}
+                placeholder={email ? undefined : "Loading…"}
                 className="w-full px-4 py-2 border border-light-border dark:border-dark-border rounded-lg bg-light-background dark:bg-dark-background text-light-text-tertiary dark:text-dark-text-tertiary cursor-not-allowed"
               />
               <p className="mt-2 text-sm text-light-text-tertiary dark:text-dark-text-tertiary">
