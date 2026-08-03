@@ -2,9 +2,21 @@ import { createClient } from "@supabase/supabase-js";
 import fs from "fs";
 import path from "path";
 
-const SUPABASE_URL = "https://frlcvkmjuhnjcicwywrh.supabase.co";
-const SUPABASE_SERVICE_ROLE_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZybGN2a21qdWhuamNpY3d5d3JoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2OTE5ODQ2NywiZXhwIjoyMDg0Nzc0NDY3fQ.0hMAghaS-c9PbVtzt0ThmEG1OgYAjFwU4t2wqqKfDsE";
+const SUPABASE_URL = requireEnv("NEXT_PUBLIC_SUPABASE_URL");
+const SUPABASE_SERVICE_ROLE_KEY = requireEnv("SUPABASE_SERVICE_ROLE_KEY");
+
+function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) {
+    console.error(
+      `❌ Missing required environment variable: ${name}\n` +
+        `   Export it before running this script. Never hard-code credentials —\n` +
+        `   this repository is public and is scanned for secrets in CI.`,
+    );
+    process.exit(1);
+  }
+  return value;
+}
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
   auth: {

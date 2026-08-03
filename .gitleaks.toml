@@ -1,0 +1,61 @@
+# gitleaks configuration — KOMPLEET
+#
+# This repository is PUBLIC by deliberate choice. Secret scanning is therefore a
+# hard release gate, not an advisory check. Extends the upstream default ruleset
+# and adds rules for the credential classes that have previously leaked here.
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "supabase-service-role-jwt"
+description = "Supabase service_role JWT (bypasses all RLS)"
+regex = '''eyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]*(c2VydmljZV9yb2xl|service_role)[A-Za-z0-9_-]*\.[A-Za-z0-9_-]{20,}'''
+tags = ["supabase", "critical"]
+
+[[rules]]
+id = "supabase-any-jwt"
+description = "Supabase-issued JWT (anon or service_role)"
+regex = '''eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}'''
+tags = ["supabase"]
+
+[[rules]]
+id = "google-oauth-access-token"
+description = "Google OAuth access token"
+regex = '''ya29\.[A-Za-z0-9_-]{30,}'''
+tags = ["google"]
+
+[[rules]]
+id = "github-token-any"
+description = "GitHub PAT / user-to-server / app token"
+regex = '''gh[pousr]_[A-Za-z0-9]{16,}'''
+tags = ["github"]
+
+[[rules]]
+id = "postgres-connection-string-with-password"
+description = "Postgres URI with inline password"
+regex = '''postgres(ql)?://[^:\s/]+:[^@\s]{8,}@[^\s/]+'''
+tags = ["database"]
+
+[allowlist]
+description = "Non-secret fixtures, templates and CI placeholders"
+
+paths = [
+  '''pnpm-lock\.yaml''',
+  '''\.tsbuildinfo$''',
+  '''(^|/)docs/''',
+  '''(^|/)\.env\.example$''',
+  '''\.template$''',
+  '''(^|/)tests?/fixtures/''',
+  '''(^|/)e2e/''',
+]
+
+regexes = [
+  '''placeholder''',
+  '''example\.com''',
+  '''your[-_](key|token|secret|password)''',
+  '''ci[-_]placeholder''',
+  '''test[-_]placeholder''',
+  '''postgres(ql)?://(ci|test|user|postgres):(ci|test|password|placeholder)@localhost''',
+  '''xxxx+''',
+]

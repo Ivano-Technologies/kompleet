@@ -8,9 +8,22 @@ import {
 import fs from "fs";
 import path from "path";
 
-const AWS_ACCESS_KEY_ID = "AKIAUB7KGSIPWMQ6M3MN";
-const AWS_SECRET_ACCESS_KEY = "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";
-const AWS_REGION = "eu-west-1";
+function requireEnv(name: string): string {
+  const value = process.env[name];
+  if (!value) {
+    console.error(
+      `❌ Missing required environment variable: ${name}\n` +
+        `   Export it before running this script. Never hard-code credentials —\n` +
+        `   this repository is public and is scanned for secrets in CI.`,
+    );
+    process.exit(1);
+  }
+  return value;
+}
+
+const AWS_ACCESS_KEY_ID = requireEnv("AWS_ACCESS_KEY_ID");
+const AWS_SECRET_ACCESS_KEY = requireEnv("AWS_SECRET_ACCESS_KEY");
+const AWS_REGION = process.env.AWS_REGION ?? "eu-west-1";
 const BUCKET_NAME = "kompleet-ml-models";
 
 const s3Client = new S3Client({
