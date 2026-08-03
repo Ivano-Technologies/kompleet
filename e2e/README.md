@@ -11,7 +11,7 @@ tax calculation, receipt OCR, and data export.
 
 | Spec | Money path | External calls stubbed? |
 | --- | --- | --- |
-| `auth-layout.spec.ts` | Shared auth page chrome | — |
+| ~~`auth-layout.spec.ts`~~ | Deleted — asserted header/nav/theme toggle `AuthLayout` does not render | — |
 | `auth-flow.spec.ts` | signup → verify prompt → login → protected-route redirects | Supabase `POST /auth/v1/signup` is intercepted so runs never create real accounts |
 | `statement-upload.spec.ts` | CSV bank statement → parse → transactions in the ledger | No — hits `POST /api/transactions/upload-v2` and the real GTBank adapter |
 | `tax-calculation.spec.ts` | PIT calculation → save → calculation history | No — hits `/api/tax-rules`, `/api/calculations/save`, `/api/calculations` |
