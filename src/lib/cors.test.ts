@@ -7,7 +7,7 @@ describe("isAllowedCorsOrigin", () => {
   const originalMobileUrl = process.env.NEXT_PUBLIC_MOBILE_APP_URL;
 
   beforeEach(() => {
-    process.env.NEXT_PUBLIC_MOBILE_APP_URL = "https://app.kompleet.ng";
+    process.env.NEXT_PUBLIC_MOBILE_APP_URL = "https://app.kompleet.techivano.com";
   });
 
   afterEach(() => {
@@ -18,7 +18,32 @@ describe("isAllowedCorsOrigin", () => {
   it("allows explicit allowlist origins in production", () => {
     vi.stubEnv("NODE_ENV", "production");
 
-    expect(isAllowedCorsOrigin("https://app.kompleet.ng")).toBe(true);
+    expect(isAllowedCorsOrigin("https://app.kompleet.techivano.com")).toBe(true);
+  });
+
+  it("allows the canonical production host", () => {
+    vi.stubEnv("NODE_ENV", "production");
+
+    expect(isAllowedCorsOrigin("https://kompleet.techivano.com")).toBe(true);
+  });
+
+  it("rejects the retired ivanotechnologies.com hosts in production", () => {
+    vi.stubEnv("NODE_ENV", "production");
+
+    expect(isAllowedCorsOrigin("https://ivanotechnologies.com")).toBe(false);
+    expect(isAllowedCorsOrigin("https://www.ivanotechnologies.com")).toBe(false);
+  });
+
+  it("rejects Expo Metro localhost origins in production", () => {
+    vi.stubEnv("NODE_ENV", "production");
+
+    expect(isAllowedCorsOrigin("http://localhost:8081")).toBe(false);
+    expect(isAllowedCorsOrigin("exp://localhost:8081")).toBe(false);
+  });
+
+  it("allows Expo Metro localhost origins in non-production", () => {
+    vi.stubEnv("NODE_ENV", "development");
+
     expect(isAllowedCorsOrigin("http://localhost:8081")).toBe(true);
     expect(isAllowedCorsOrigin("exp://localhost:8081")).toBe(true);
   });
@@ -47,7 +72,7 @@ describe("addCorsHeaders", () => {
   const originalMobileUrl = process.env.NEXT_PUBLIC_MOBILE_APP_URL;
 
   beforeEach(() => {
-    process.env.NEXT_PUBLIC_MOBILE_APP_URL = "https://app.kompleet.ng";
+    process.env.NEXT_PUBLIC_MOBILE_APP_URL = "https://app.kompleet.techivano.com";
   });
 
   afterEach(() => {
@@ -59,10 +84,24 @@ describe("addCorsHeaders", () => {
     vi.stubEnv("NODE_ENV", "production");
     const response = new NextResponse();
 
-    addCorsHeaders(response, "https://app.kompleet.ng");
+    addCorsHeaders(response, "https://app.kompleet.techivano.com");
 
     expect(response.headers.get("Access-Control-Allow-Origin")).toBe(
-      "https://app.kompleet.ng",
+      "https://app.kompleet.techivano.com",
+    );
+    expect(response.headers.get("Access-Control-Allow-Credentials")).toBe(
+      "true",
+    );
+  });
+
+  it("sets credentialed CORS headers for the canonical production host", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    const response = new NextResponse();
+
+    addCorsHeaders(response, "https://kompleet.techivano.com");
+
+    expect(response.headers.get("Access-Control-Allow-Origin")).toBe(
+      "https://kompleet.techivano.com",
     );
     expect(response.headers.get("Access-Control-Allow-Credentials")).toBe(
       "true",
@@ -80,5 +119,15 @@ describe("addCorsHeaders", () => {
     expect(response.headers.get("Access-Control-Allow-Methods")).toBe(
       "GET, POST, PUT, PATCH, DELETE, OPTIONS",
     );
+  });
+
+  it("does not set credentialed CORS headers for Expo Metro in production", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    const response = new NextResponse();
+
+    addCorsHeaders(response, "http://localhost:8081");
+
+    expect(response.headers.get("Access-Control-Allow-Origin")).toBeNull();
+    expect(response.headers.get("Access-Control-Allow-Credentials")).toBeNull();
   });
 });
