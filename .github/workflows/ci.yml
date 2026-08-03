@@ -259,7 +259,9 @@ jobs:
   schema-drift:
     name: check-schema-drift
     runs-on: ubuntu-latest
-    if: ${{ secrets.DATABASE_URL != '' }}
+    # Repo is public: GitHub does not pass secrets to fork PR workflows.
+    # Without this guard the job fails (missing DATABASE_URL) instead of skipping.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
 
@@ -285,7 +287,7 @@ jobs:
   migrations:
     name: check-migrations-applied
     runs-on: ubuntu-latest
-    if: ${{ secrets.SUPABASE_ACCESS_TOKEN != '' }}
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
 
@@ -307,7 +309,9 @@ jobs:
   security-advisors:
     name: check-security-advisors
     runs-on: ubuntu-latest
-    if: ${{ secrets.SUPABASE_ACCESS_TOKEN != '' }}
+    # SUPABASE_ACCESS_TOKEN is account-wide (every project in the org), not
+    # scoped to this project alone — treat it as high-sensitivity.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
 

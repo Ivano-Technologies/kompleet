@@ -2,9 +2,9 @@
 /**
  * Schema drift detector — KOMPLEET
  *
- * Greps every `.from("…")` / `.from('…')` call in `src/`, queries
- * information_schema.tables on the target database, and exits non-zero if any
- * referenced table does not exist.
+ * Greps every `.from("…")` / `.from('…')` call in `src/` (skipping comments),
+ * queries information_schema.tables on the target database, and exits non-zero
+ * if any referenced table does not exist.
  *
  * Env:
  *   DATABASE_URL or SUPABASE_DB_URL  — Postgres connection string (required)
@@ -36,11 +36,19 @@ function walk(dir, out = []) {
   return out;
 }
 
+function stripComments(source) {
+  // Remove block comments then line comments so docstrings mentioning
+  // `.from("users")` do not create false positives.
+  return source
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/(^|[^:])\/\/.*$/gm, "$1");
+}
+
 function collectReferences() {
   /** @type {Map<string, Set<string>>} */
   const tables = new Map();
   for (const file of walk(SRC_ROOT)) {
-    const text = fs.readFileSync(file, "utf8");
+    const text = stripComments(fs.readFileSync(file, "utf8"));
     let m;
     FROM_RE.lastIndex = 0;
     while ((m = FROM_RE.exec(text))) {
