@@ -10,7 +10,7 @@ import {
   AlignmentType,
   WidthType,
 } from "docx";
-import archiver from "archiver";
+import { ZipArchive } from "archiver";
 import { createServerClient as createClient } from "@/lib/supabase/server";
 
 // =====================================================
@@ -678,7 +678,7 @@ export async function createBulkExportZIP(
 
   return new Promise(async (resolve, reject) => {
     try {
-      const archive = archiver("zip", { zlib: { level: 9 } });
+      const archive = new ZipArchive({ zlib: { level: 9 } });
       const chunks: Buffer[] = [];
 
       archive.on("data", (chunk) => chunks.push(chunk));
