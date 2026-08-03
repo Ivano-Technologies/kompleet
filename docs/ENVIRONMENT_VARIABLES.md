@@ -15,10 +15,12 @@ These variables are prefixed with `NEXT_PUBLIC_` and are exposed to the browser.
   - Required: Yes
   - Get from: Supabase Dashboard → Settings → API → Project URL
 
-- **`NEXT_PUBLIC_SUPABASE_ANON_KEY`** - Supabase anonymous key (public)
-  - Example: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`
+- **`NEXT_PUBLIC_SUPABASE_ANON_KEY`** - Supabase **publishable** key (public)
+  - **Preferred:** `sb_publishable_…` from Dashboard → Settings → **API Keys** → Publishable
+  - Legacy JWT `anon` (`eyJ…`) still works until deactivated; **deprecated end of 2026**
   - Required: Yes
-  - Get from: Supabase Dashboard → Settings → API → anon public key
+  - Env var name unchanged; `src/lib/env.ts` accepts `eyJ…` or `sb_publishable_…`
+  - See: [docs/KEY_MIGRATION_CHECKLIST.md](./KEY_MIGRATION_CHECKLIST.md)
 
 - **`NEXT_PUBLIC_SITE_URL`** - Application URL
   - Example: `https://kompleet.ng`
@@ -29,11 +31,15 @@ These variables are prefixed with `NEXT_PUBLIC_` and are exposed to the browser.
 
 These variables are NEVER exposed to the browser. They are only available on the server.
 
-- **`SUPABASE_SERVICE_ROLE_KEY`** - Supabase service role key
-  - Example: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` (starts with `eyJ`)
+- **`SUPABASE_SERVICE_ROLE_KEY`** - Supabase **secret** key (server-only; bypasses RLS)
+  - **Preferred:** `sb_secret_…` from Dashboard → Settings → **API Keys** → Secret keys
+  - Legacy JWT `service_role` (`eyJ…`) still works until deactivated; **deprecated end of 2026**
   - Required: Yes (except in CI)
   - **⚠️ CRITICAL**: Never expose this in frontend code or commit to git
-  - Get from: Supabase Dashboard → Settings → API → service_role key (click "Reveal")
+  - Canonical name only — document workers use this var (no `SUPABASE_SERVICE_KEY` alias)
+  - Do not send on `Authorization: Bearer` (new keys are not JWTs); use `apikey` / supabase-js
+  - `src/lib/env.ts` accepts `eyJ…` or `sb_secret_…`
+  - See: [docs/KEY_MIGRATION_CHECKLIST.md](./KEY_MIGRATION_CHECKLIST.md)
 
 - **`OPENAI_API_KEY`** - OpenAI API key for AI features
   - Example: `sk-...` (starts with `sk-`)
@@ -57,14 +63,14 @@ Create a `.env.local` file in the project root:
 ```bash
 # Public
 NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-local-anon-key
+NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_dev_placeholder
 
 # Secret (development placeholders are auto-provided)
-SUPABASE_SERVICE_ROLE_KEY=eyJ_dev_placeholder
+SUPABASE_SERVICE_ROLE_KEY=sb_secret_dev_placeholder
 OPENAI_API_KEY=sk-dev_placeholder
 ```
 
-**Note**: The `src/lib/env.ts` file provides fallback placeholder values in development mode, so you can run the app even without real API keys.
+**Note**: The `src/lib/env.ts` file provides fallback placeholder values in development mode (`eyJ_dev_placeholder` still satisfies the legacy branch of the refine), so you can run the app even without real API keys. Set GitHub/Vercel secrets yourself — never paste secret keys into chat transcripts.
 
 ---
 
@@ -98,9 +104,9 @@ This allows the build to pass without exposing real secrets in CI.
 | Variable                        | Environment | Value                                      |
 | ------------------------------- | ----------- | ------------------------------------------ |
 | `NEXT_PUBLIC_SUPABASE_URL`      | Production  | `https://frlcvkmjuhnjcicwywrh.supabase.co` |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Production  | `[Your anon key]`                          |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Production  | `[sb_publishable_…]`                       |
 | `NEXT_PUBLIC_SITE_URL`          | Production  | `https://kompleet.ng`                      |
-| `SUPABASE_SERVICE_ROLE_KEY`     | Production  | `[Your service role key]`                  |
+| `SUPABASE_SERVICE_ROLE_KEY`     | Production  | `[sb_secret_…]` (mark Secret)              |
 | `OPENAI_API_KEY`                | Production  | `[Your OpenAI key]`                        |
 
 **Steps to add**:
