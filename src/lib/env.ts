@@ -16,11 +16,14 @@ const serverSchema = z.object({
     .enum(["development", "production", "test"])
     .default("development"),
 
-  // Supabase (server-side service role)
+  // Supabase (server-side secret / legacy service_role)
   SUPABASE_SERVICE_ROLE_KEY: z
     .string()
     .min(1, "SUPABASE_SERVICE_ROLE_KEY is required")
-    .startsWith("eyJ", "SUPABASE_SERVICE_ROLE_KEY must be a valid JWT"),
+    .refine(
+      (v) => v.startsWith("eyJ") || v.startsWith("sb_secret_"),
+      "must be a legacy service_role JWT or an sb_secret_ key",
+    ),
 
   // OpenAI
   OPENAI_API_KEY: z
@@ -113,7 +116,10 @@ const clientSchema = z.object({
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z
     .string()
     .min(1, "NEXT_PUBLIC_SUPABASE_ANON_KEY is required")
-    .startsWith("eyJ", "NEXT_PUBLIC_SUPABASE_ANON_KEY must be a valid JWT"),
+    .refine(
+      (v) => v.startsWith("eyJ") || v.startsWith("sb_publishable_"),
+      "must be a legacy anon JWT or an sb_publishable_ key",
+    ),
 
   NEXT_PUBLIC_APP_URL: z.string().url().default("http://localhost:3000"),
 

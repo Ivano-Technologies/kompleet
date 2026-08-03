@@ -4,7 +4,7 @@ import {
   detectRecurringPatterns,
   saveRecurringPatterns,
   getRecurringPatterns,
-} from "@/lib/ml/recurring-detection";
+} from "@/lib/services/recurring-detection";
 import { withRateLimit } from "@/lib/with-rate-limit";
 
 async function handlePOST(request: NextRequest) {

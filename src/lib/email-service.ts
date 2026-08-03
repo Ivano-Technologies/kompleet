@@ -4,6 +4,17 @@
  * Sends deadline reminder emails using Resend API
  */
 
+/**
+ * Canonical host used for every link in an outbound email.
+ *
+ * Never hard-code the host here: emails outlive deployments, and a stale
+ * absolute URL in an inbox cannot be fixed by a redeploy. Set
+ * NEXT_PUBLIC_SITE_URL per-environment in Vercel. See docs/DOMAIN_MIGRATION.md.
+ */
+const SITE_URL = (
+  process.env.NEXT_PUBLIC_SITE_URL || "https://kompleet.techivano.com"
+).replace(/\/+$/, "");
+
 export interface EmailTemplate {
   subject: string;
   html: string;
@@ -87,7 +98,7 @@ export function generate7DayReminderEmail(
     </ol>
     
     <div style="text-align: center; margin: 30px 0;">
-      <a href="https://www.ivanotechnologies.com/filing" style="display: inline-block; background: #10b981; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">Go to Filing Center</a>
+      <a href="${SITE_URL}/filing" style="display: inline-block; background: #10b981; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">Go to Filing Center</a>
     </div>
     
     <div style="background: #fef3c7; padding: 15px; border-radius: 5px; margin: 20px 0;">
@@ -103,8 +114,8 @@ export function generate7DayReminderEmail(
     <p>This is an automated reminder from KOMPLEET Platform</p>
     <p>Ivano Technologies Ltd | Nigerian Tax Compliance</p>
     <p>
-      <a href="https://www.ivanotechnologies.com/notifications" style="color: #10b981; text-decoration: none;">Manage Notifications</a> |
-      <a href="https://www.ivanotechnologies.com/privacy" style="color: #10b981; text-decoration: none;">Privacy Policy</a>
+      <a href="${SITE_URL}/notifications" style="color: #10b981; text-decoration: none;">Manage Notifications</a> |
+      <a href="${SITE_URL}/privacy" style="color: #10b981; text-decoration: none;">Privacy Policy</a>
     </p>
   </div>
 </body>
@@ -130,7 +141,7 @@ What You Need to Do:
 4. Review and download the PDF
 5. Submit to the Nigerian Revenue Service
 
-Go to Filing Center: https://www.ivanotechnologies.com/filing
+Go to Filing Center: ${SITE_URL}/filing
 
 ⚠️ Important: Late filing may result in penalties as prescribed by the Nigeria Tax Act 2025.
 
@@ -209,7 +220,7 @@ export function generate3DayReminderEmail(
     </div>
     
     <div style="text-align: center; margin: 30px 0;">
-      <a href="https://www.ivanotechnologies.com/filing" style="display: inline-block; background: #ef4444; color: white; padding: 16px 40px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 18px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">File Now →</a>
+      <a href="${SITE_URL}/filing" style="display: inline-block; background: #ef4444; color: white; padding: 16px 40px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 18px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">File Now →</a>
     </div>
     
     <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
@@ -240,7 +251,7 @@ Days Remaining: ${deadline.daysRemaining} days
 🚨 ACTION REQUIRED NOW
 Don't wait until the last minute! Generate and submit your tax form today to avoid late filing penalties.
 
-File Now: https://www.ivanotechnologies.com/filing
+File Now: ${SITE_URL}/filing
 
 Need urgent assistance? Contact us at support@ivanotechnologies.com
 
@@ -316,7 +327,7 @@ export function generate1DayReminderEmail(
     </div>
     
     <div style="text-align: center; margin: 30px 0;">
-      <a href="https://www.ivanotechnologies.com/filing" style="display: inline-block; background: #dc2626; color: white; padding: 18px 50px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 20px; box-shadow: 0 6px 12px rgba(0,0,0,0.2); animation: pulse 2s infinite;">FILE NOW - DON'T DELAY →</a>
+      <a href="${SITE_URL}/filing" style="display: inline-block; background: #dc2626; color: white; padding: 18px 50px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 20px; box-shadow: 0 6px 12px rgba(0,0,0,0.2); animation: pulse 2s infinite;">FILE NOW - DON'T DELAY →</a>
     </div>
     
     <div style="background: #fef3c7; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #f59e0b;">
@@ -345,7 +356,7 @@ TIME REMAINING: 24 HOURS
 ⏰ FILE IMMEDIATELY
 Late filing will result in penalties and interest charges. Don't risk it - file your ${formName} return now!
 
-FILE NOW: https://www.ivanotechnologies.com/filing
+FILE NOW: ${SITE_URL}/filing
 
 Need Help? Our support team is standing by.
 Email: support@ivanotechnologies.com

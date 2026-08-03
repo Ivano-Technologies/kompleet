@@ -1,17 +1,28 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
-SERVICE_ROLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZybGN2a21qdWhuamNpY3d5d3JoIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2OTE5ODQ2NywiZXhwIjoyMDg0Nzc0NDY3fQ.0hMAghaS-c9PbVtzt0ThmEG1OgYAjFwU4t2wqqKfDsE"
-SUPABASE_URL="https://frlcvkmjuhnjcicwywrh.supabase.co"
+# Deploys RLS security policies to Supabase.
+#
+# Credentials are read from the environment — never hard-code them. This
+# repository is PUBLIC and is scanned for secrets in CI.
+#
+# Usage:
+#   export SUPABASE_DB_URL="<pooler connection string from Supabase dashboard>"
+#   ./deploy_rls.sh [path/to/migration.sql]
 
-echo "🚀 Deploying RLS Security Policies..."
+: "${SUPABASE_DB_URL:?Missing SUPABASE_DB_URL. Export the pooler connection string first (see docs/ENVIRONMENT_VARIABLES.md).}"
+
+SQL_FILE="${1:-supabase/migrations/20260205_enable_rls_security_v2.sql}"
+
+if [[ ! -f "$SQL_FILE" ]]; then
+  echo "❌ Migration file not found: $SQL_FILE" >&2
+  exit 1
+fi
+
+echo "🚀 Deploying RLS policies from $SQL_FILE ..."
 echo ""
 
-# Read and execute migration
-SQL_FILE="supabase/migrations/20260205_enable_rls_security_v2.sql"
-
-# Execute via psql-style connection string
-PGPASSWORD="$SERVICE_ROLE_KEY" psql "postgresql://postgres.frlcvkmjuhnjcicwywrh:$SERVICE_ROLE_KEY@aws-0-eu-west-1.pooler.supabase.com:6543/postgres" -f "$SQL_FILE" 2>&1 || echo "Note: Some statements may fail if already exist (this is normal)"
+psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f "$SQL_FILE"
 
 echo ""
-echo "✅ Deployment complete!"
+echo "✅ Deployment complete."

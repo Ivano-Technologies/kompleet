@@ -54,12 +54,21 @@ async function handlePOST(request: NextRequest) {
       name: c.name,
       type: c.category_type,
       tax_treatment: c.tax_treatment,
+      keywords: Array.isArray(c.keywords) ? c.keywords : [],
     }));
+
+    const rulesCategories = (categories || []).map((c) => ({
+      id: c.id,
+      name: c.name,
+      category_type: c.category_type,
+      tax_treatment: c.tax_treatment,
+      keywords: Array.isArray(c.keywords) ? c.keywords : [],
+    })) as Category[];
 
     // Step 1: Rules-based categorization for all transactions
     const rulesResults = parsed.data.transactions.map(
       (txn: { merchant: string }) =>
-        categorizeTransaction(txn.merchant, (categories || []) as Category[]),
+        categorizeTransaction(txn.merchant, rulesCategories),
     );
 
     // Step 2: Identify low-confidence items that need LLM

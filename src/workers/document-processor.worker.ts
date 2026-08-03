@@ -15,7 +15,7 @@ import { ReviewQueueStub } from "@/modules/document-intelligence/infrastructure/
 
 const redisUrl = requireEnv("REDIS_URL");
 const supabaseUrl = process.env.SUPABASE_POOLER_URL ?? requireEnv("SUPABASE_URL");
-const supabaseServiceKey = requireEnv("SUPABASE_SERVICE_KEY");
+const supabaseServiceKey = requireEnv("SUPABASE_SERVICE_ROLE_KEY");
 const workerConcurrency = parsePositiveInt(
   process.env.DOCUMENT_WORKER_CONCURRENCY,
   2,

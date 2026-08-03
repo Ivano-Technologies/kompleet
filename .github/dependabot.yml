@@ -1,18 +1,177 @@
+# Dependabot configuration for KOMPLEET
+#
+# Strategy (see docs/DEPENDENCY_TRIAGE.md):
+#   1. Patch + minor updates are BATCHED into one grouped PR per ecosystem,
+#      per week. These are the "read the diff, merge it" PRs.
+#   2. Major updates are deliberately left OUT of the groups, so each one
+#      opens its own PR and can be triaged, tested and reverted in isolation.
+#   3. The web app (root) and the Expo mobile app (apps/mobile) are separate
+#      entries. This is the important one: an Expo SDK major must never sit
+#      in the same PR as a web patch bump, or it blocks the whole batch.
+#   4. Security updates keep their own catch-all group and are never batched
+#      with routine version updates.
+#
+# This repo is a pnpm workspace (see pnpm-workspace.yaml: apps/*, packages/*).
+# Ecosystems present: npm (root, web) + npm (apps/mobile, Expo) + github-actions.
+
 version: 2
 
 updates:
+  # ---------------------------------------------------------------------------
+  # 1. WEB APP — Next.js, root package.json
+  # ---------------------------------------------------------------------------
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 10
+      day: "monday"
+      time: "06:00"
+    open-pull-requests-limit: 5
     labels:
       - dependencies
       - security
+      - web
     allow:
       - dependency-type: direct
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
+      include: "scope"
+    ignore:
+      # This is a pnpm workspace, so Dependabot can surface workspace-member
+      # dependencies from the root lockfile. Expo/React Native packages belong
+      # to apps/mobile and are handled by entry 2 below — never from here.
+      - dependency-name: "expo"
+      - dependency-name: "expo-*"
+      - dependency-name: "@expo/*"
+      - dependency-name: "react-native"
+      - dependency-name: "react-native-*"
+      - dependency-name: "@react-native-firebase/*"
+      - dependency-name: "@react-navigation/*"
+      # react/react-dom are pinned exactly (19.1.0) and must stay in lockstep
+      # with react-native 0.81.x in apps/mobile. Bump these by hand, together.
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]
+    groups:
+      # Security fixes: always their own group, any severity, any update type.
+      security-updates:
+        applies-to: security-updates
+        patterns:
+          - "*"
+      # The weekly batch. Everything non-major lands in ONE PR.
+      web-minor-and-patch:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+    # NOTE: no group matches `major`, so every major update (lucide-react,
+    # archiver, next, react, etc.) gets its own individual PR by design.
+
+  # ---------------------------------------------------------------------------
+  # 2. MOBILE APP — Expo / React Native, apps/mobile
+  # ---------------------------------------------------------------------------
+  - package-ecosystem: "npm"
+    directory: "/apps/mobile"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+    open-pull-requests-limit: 3
+    labels:
+      - dependencies
+      - security
+      - mobile
+    allow:
+      - dependency-type: direct
+    commit-message:
+      prefix: "chore(deps)"
+      prefix-development: "chore(deps-dev)"
+      include: "scope"
+    ignore:
+      # Expo SDK packages are version-locked to the installed SDK (currently
+      # ~54). Bumping expo-file-system or expo-updates on their own to an
+      # SDK 57 release produces a mobile app that will not build.
+      # Expo SDK upgrades are a deliberate, all-at-once operation:
+      #     cd apps/mobile && pnpm exec expo install --fix
+      #     pnpm exec expo-doctor
+      # So: block majors for Expo-managed packages, let patches through.
+      - dependency-name: "expo"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "expo-*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@expo/*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-native"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-native-*"
+        update-types: ["version-update:semver-major"]
+      # Must stay in lockstep with the web app's pinned React.
+      - dependency-name: "react"
+      - dependency-name: "react-dom"
     groups:
       security-updates:
         applies-to: security-updates
         patterns:
           - "*"
+      # Expo-managed packages move together or not at all. Grouping them means
+      # that even in-SDK patch bumps arrive as one coherent PR.
+      expo-sdk:
+        applies-to: version-updates
+        patterns:
+          - "expo"
+          - "expo-*"
+          - "@expo/*"
+          - "react-native"
+          - "react-native-*"
+        update-types:
+          - "minor"
+          - "patch"
+      mobile-minor-and-patch:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "expo"
+          - "expo-*"
+          - "@expo/*"
+          - "react-native"
+          - "react-native-*"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # ---------------------------------------------------------------------------
+  # 3. GITHUB ACTIONS — .github/workflows/*.yml
+  # Previously unmanaged. 6 workflows pin third-party actions by version.
+  # ---------------------------------------------------------------------------
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+    open-pull-requests-limit: 3
+    labels:
+      - dependencies
+      - security
+      - ci
+    commit-message:
+      prefix: "ci(deps)"
+    groups:
+      security-updates:
+        applies-to: security-updates
+        patterns:
+          - "*"
+      # Action majors (actions/checkout v4 -> v6 etc.) are usually safe but can
+      # change runner behaviour, so they stay individual like everything else.
+      actions-minor-and-patch:
+        applies-to: version-updates
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"

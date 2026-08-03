@@ -17,8 +17,10 @@ const ceoruse = localFont({
   display: "swap",
 });
 
+// Canonical host. Set NEXT_PUBLIC_SITE_URL per-environment in Vercel; the
+// fallback exists so local and preview builds still emit absolute OG URLs.
 const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://www.ivanotechnologies.com";
+  process.env.NEXT_PUBLIC_SITE_URL || "https://kompleet.techivano.com";
 
 export const metadata: Metadata = {
   title: "Kompleet — Track Every Naira & Stay Compliant in Nigeria",

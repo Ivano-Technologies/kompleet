@@ -49,8 +49,11 @@ supabase db diff
 ### Option 3: Direct SQL Connection
 
 ```bash
-# Connect to your Supabase database
-psql "postgresql://postgres:[YOUR-PASSWORD]@db.frlcvkmjuhnjcicwywrh.supabase.co:5432/postgres"
+# Connect with the Session pooler URL from the Supabase dashboard
+# (Dashboard → Project Settings → Database → Connection string).
+# Prefer exporting it rather than pasting a password into the shell history:
+export DATABASE_URL='postgresql://postgres.<project-ref>@aws-0-<region>.pooler.supabase.com:5432/postgres'
+psql "$DATABASE_URL"
 
 # Run the migration file
 \i supabase/migrations/20260205_enable_rls_security.sql

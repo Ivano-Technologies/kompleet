@@ -11,7 +11,6 @@ const pageTitles: Record<string, string> = {
   "/transactions/upload": "Upload Transactions",
   "/transactions/review": "Review Transactions",
   "/transactions/duplicates": "Duplicate Resolution",
-  "/transactions/connect": "Bank Connect",
   "/invoices": "Invoices",
   "/invoices/new": "New Invoice",
   "/tax-reports": "Tax Reports",
