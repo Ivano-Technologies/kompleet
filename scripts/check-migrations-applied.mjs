@@ -38,6 +38,11 @@ function localMigrationVersions() {
     .sort((a, b) => a.version.localeCompare(b.version));
 }
 
+/** Strip markdown backticks / whitespace from a table cell. */
+function stripCell(value) {
+  return value.replace(/`/g, "").trim();
+}
+
 function parseMigrationList(output) {
   /** @type {{ version: string, local: boolean, remote: boolean }[]} */
   const rows = [];
@@ -69,23 +74,38 @@ function parseMigrationList(output) {
     }
   }
 
+  // Current CLI table (supabase@2):
+  //   Local            | Remote           | Time (UTC)
+  //  ------------------|------------------|-----------------------
+  //   `20260219000000` | `20260219000000` | `2026-02-19 00:00:00`
+  // Empty local/remote cells mean the version exists only on the other side.
   for (const line of output.split(/\r?\n/)) {
     const trimmed = line.trim();
-    if (!trimmed || /^(VERSION|─|Local|Remote)/i.test(trimmed)) continue;
-    const parts = trimmed.split("|").map((p) => p.trim());
-    if (parts.length >= 3 && /^\d+$/.test(parts[0])) {
-      rows.push({
-        version: parts[0],
-        local: Boolean(parts[1]) && parts[1] !== "",
-        remote: Boolean(parts[2]) && parts[2] !== "",
-      });
-      continue;
+    if (!trimmed) continue;
+    if (/^(VERSION|Local\b)/i.test(trimmed)) continue;
+    if (/^[-|:\s]+$/.test(trimmed)) continue;
+
+    const parts = trimmed.split("|").map((p) => stripCell(p));
+    if (parts.length >= 2) {
+      const localVer = /^\d+$/.test(parts[0]) ? parts[0] : "";
+      const remoteVer = /^\d+$/.test(parts[1]) ? parts[1] : "";
+      const version = localVer || remoteVer;
+      if (version) {
+        rows.push({
+          version,
+          local: Boolean(localVer),
+          remote: Boolean(remoteVer),
+        });
+        continue;
+      }
     }
-    const ws = trimmed.split(/\s+/);
+
+    // Older whitespace-separated layouts: VERSION [LOCAL] [REMOTE]
+    const ws = trimmed.split(/\s+/).map(stripCell);
     if (ws.length >= 1 && /^\d{10,}$/.test(ws[0])) {
       rows.push({
         version: ws[0],
-        local: ws.length === 1 || ws[1] !== "",
+        local: ws.length === 1 || (ws[1] !== "" && ws[1] !== undefined),
         remote: ws.length >= 3 ? ws[2] !== "" : false,
       });
     }

@@ -1,6 +1,7 @@
 /**
  * Sprint 5 – Mileage + Premium (workspaces superseded by firms/firm_members).
- * Workspaces migration and API were never applied and are deleted in Phase 2.
+ * Workspace API/UI deleted in Phase 2. Migration files remain as historical
+ * no-op stubs so remote supabase_migrations history stays in sync.
  */
 import { describe, it, expect } from "vitest";
 import * as fs from "fs";
@@ -8,12 +9,16 @@ import * as path from "path";
 
 describe("Expense Sprint 5 – Mileage + Premium", () => {
   describe("Workspaces superseded", () => {
-    it("orphaned workspaces migration is removed (do not apply)", () => {
+    it("workspaces migration is a historical no-op stub (do not recreate tables)", () => {
       const migrationPath = path.join(
         __dirname,
         "../supabase/migrations/20260221100000_sprint5_workspaces_premium.sql",
       );
-      expect(fs.existsSync(migrationPath)).toBe(false);
+      expect(fs.existsSync(migrationPath)).toBe(true);
+      const content = fs.readFileSync(migrationPath, "utf-8");
+      expect(content).toMatch(/Historical no-op stub/i);
+      expect(content).not.toMatch(/create\s+table\s+workspaces/i);
+      expect(content).not.toMatch(/create\s+table\s+workspace_members/i);
     });
 
     it("workspaces API routes are removed", () => {
