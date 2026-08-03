@@ -11,7 +11,6 @@ import {
   Upload,
   CheckCircle,
   Copy,
-  Link2,
   FileText,
   Receipt,
   Calculator,
@@ -50,7 +49,6 @@ const navItems: NavItem[] = [
       { href: "/transactions/upload", label: "Upload", icon: Upload },
       { href: "/transactions/review", label: "Review", icon: CheckCircle },
       { href: "/transactions/duplicates", label: "Duplicates", icon: Copy },
-      { href: "/transactions/connect", label: "Bank Connect", icon: Link2 },
     ],
   },
   {
@@ -62,7 +60,6 @@ const navItems: NavItem[] = [
     href: "/expenses",
     label: "Expenses",
     icon: Wallet,
-    children: [{ href: "/expenses/teams", label: "Workspaces", icon: Users }],
   },
   {
     href: "/reports",

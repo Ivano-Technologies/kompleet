@@ -56,6 +56,9 @@ const nextConfig = {
     config.resolve ??= {};
     config.resolve.fallback ??= {};
     config.resolve.fallback["webworker-threads"] = false;
+    // unzipper optionally requires @aws-sdk/client-s3 for S3-backed opens.
+    // We never use that path; AWS SDK was removed with the ML tier.
+    config.resolve.fallback["@aws-sdk/client-s3"] = false;
     return config;
   },
 
