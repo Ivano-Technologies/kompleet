@@ -250,3 +250,78 @@ jobs:
             test-results/
           retention-days: 7
           if-no-files-found: ignore
+
+  # ---------------------------------------------------------------------------
+  # Schema / migration / advisor guardrails (Phase 1)
+  # These jobs fail closed when secrets are configured. Forks without the
+  # secrets skip via the `if:` guards so Dependabot/community PRs stay green.
+  # ---------------------------------------------------------------------------
+  schema-drift:
+    name: check-schema-drift
+    runs-on: ubuntu-latest
+    if: ${{ secrets.DATABASE_URL != '' }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Expected to fail until Phase 2 deletions + Phase 3 table creation land.
+      # First measured count on 2026-08-03: 27 missing tables (not the 14 in the
+      # prior recovery-plan inventory — see docs/STATUS.md).
+      - name: Detect .from() references to missing tables
+        run: pnpm check:schema-drift
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          # `users` exists only as auth.users; public.users was never created.
+          SCHEMA_DRIFT_IGNORE: users
+
+  migrations:
+    name: check-migrations-applied
+    runs-on: ubuntu-latest
+    if: ${{ secrets.SUPABASE_ACCESS_TOKEN != '' }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Compare local vs remote migrations
+        run: pnpm check:migrations
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF || 'frlcvkmjuhnjcicwywrh' }}
+
+  security-advisors:
+    name: check-security-advisors
+    runs-on: ubuntu-latest
+    if: ${{ secrets.SUPABASE_ACCESS_TOKEN != '' }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Gate security advisors against baseline
+        run: pnpm check:security-advisors
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF || 'frlcvkmjuhnjcicwywrh' }}

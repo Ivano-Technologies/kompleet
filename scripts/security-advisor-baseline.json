@@ -1,0 +1,12 @@
+{
+  "projectRef": "frlcvkmjuhnjcicwywrh",
+  "capturedAt": "2026-08-03",
+  "securityLintCount": 4,
+  "notes": [
+    "Baseline verified live via get_advisors(security) on 2026-08-03.",
+    "3× lint 0029 (authenticated can execute SECURITY DEFINER): get_clerk_user_id, get_current_user_id, get_next_invoice_number.",
+    "1× auth_leaked_password_protection disabled.",
+    "Performance advisors (133) are tracked separately and are not a failing gate in Phase 1.",
+    "Every new table migration must include `revoke all on <table> from anon` — Supabase defaults GRANT ALL TO anon."
+  ]
+}
