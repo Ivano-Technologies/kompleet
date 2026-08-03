@@ -8,8 +8,8 @@ intentionally preserved in git history for revival.
 ## Gmail / Outlook email ingestion — postponed 2026-08-03
 
 **Status:** postponed, not cancelled.  
-**Removed in:** Phase 2 (`chore/phase-2-delete-before-build`).  
-**Reviving commit:** find the parent of the Phase 2 commit that deletes these paths (search history for `src/lib/email/gmail.ts`).
+**Removed in:** Phase 2 (`chore/phase-2-delete-before-build`), commit `dd3cb4ec5`.  
+**Reviving commit:** `dd3cb4ec5^` (parent of the deletion commit — restore `src/lib/email/gmail.ts` and related paths from there).
 
 ### What was removed
 
