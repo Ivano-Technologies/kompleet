@@ -24,9 +24,12 @@ Original hand-built list of 14 was wrong (missed `src/modules/` and several serv
 
 | Disposition | Count |
 | --- | --- |
-| Cleared by Phase 2 deletions | 10 |
+| Cleared by Phase 2 deletions (detector-visible) | 8 |
 | Application bug (`users` → fix against `profiles`) | 1 |
-| Build in Phase 3 | 16 (+ `merchant_categorizations` = 17 new tables) |
+| Still missing after Phase 2 (detector) | **18** |
+| Build in Phase 3 | 18 + `merchant_categorizations` = **19** new tables |
+
+**Standing rule:** the drift detector's count is authoritative. Any figure in planning docs that disagrees is stale — correct the doc, do not reconcile to it.
 
 ---
 
@@ -41,7 +44,7 @@ Original hand-built list of 14 was wrong (missed `src/modules/` and several serv
 
 `pnpm check:schema-drift` lists **18** missing tables (authoritative).
 
-The brief asked for 17. Arithmetic check: the “10 deleted” figure included `records` + `customers`, which had **zero** `.from()` refs and were never in the detector’s 27. Real removals from the 27 = **9** (Mono, email, four ML tables, workspaces pair, `users` bug). 27 − 9 = **18**. Those 18 are exactly the Phase 3 build set.
+Clearances from the 27 = 8 deletions (`bank_accounts`, `email_connections`, `workspaces`, `workspace_members`, `ml_models`, `ml_retraining_jobs`, `ml_drift_alerts`, `ml_corrections`) + `users` resolved via `profiles` = **9**. 27 − 9 = **18**. Phase 3 creates those 18 plus `merchant_categorizations` = **19** tables. (`records`/`customers` lived only in Drizzle schema files — zero `.from()` refs — so the detector never counted them.)
 
 | Cleared from detector | Still missing (Phase 3) |
 | --- | --- |

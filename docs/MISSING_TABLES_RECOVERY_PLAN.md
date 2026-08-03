@@ -18,12 +18,15 @@
 
 | Disposition | Count |
 |---|---|
-| Cleared by Phase 2 deletions | **10** |
-| Application bug, not a missing table | **1** |
-| **To build in Phase 3** | **16** (+ `merchant_categorizations` = 17) |
-| **Total** | **27** |
+| Cleared by Phase 2 deletions (detector-visible) | **8** |
+| Application bug, not a missing table (`users`) | **1** |
+| Still missing after Phase 2 (detector) | **18** |
+| **To build in Phase 3** | **18** + `merchant_categorizations` = **19** |
+| **Total (Phase 1 detector baseline)** | **27** |
 
-**This roughly doubles the Phase 3 estimate** from the 8 tables previously assumed. It also strengthens the tenancy argument: 17 tables built once with `client_id` versus 17 retrofitted later.
+**Standing rule:** the drift detector's count is authoritative. Any figure in planning docs that disagrees is stale — correct the doc, do not reconcile to it.
+
+`records`/`customers` had zero `.from()` refs (Drizzle-only) and were never in the 27. Clearances: 8 deletions + `users` fix = 9 → 27 − 9 = 18 still missing.
 
 ---
 
