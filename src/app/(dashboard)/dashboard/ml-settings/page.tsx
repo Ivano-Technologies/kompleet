@@ -28,8 +28,12 @@ interface RecurringPattern {
 }
 
 export default function MLSettingsPage() {
+  // NOTE: email ingestion is postponed — see docs/DEFERRED_FEATURES.md.
+  // This previously hard-coded a connected Gmail account with a real
+  // third-party address, so the UI reported a connection that never existed.
+  // Defaults to disconnected until the feature ships and this reads real state.
   const [emailConnections, setEmailConnections] = useState({
-    gmail: { connected: true, email: "hello@untapped.africa" },
+    gmail: { connected: false, email: "" },
     outlook: { connected: false, email: "" },
   });
   const [correctionStats, setCorrectionStats] =

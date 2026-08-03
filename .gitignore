@@ -1,14 +1,41 @@
 node_modules/
-# Secrets
+
+# -------------------------------------------------
+# Secrets — THIS REPOSITORY IS PUBLIC.
+# Never commit credentials. CI runs gitleaks and will fail the build.
+# -------------------------------------------------
 .env
 .env.local
+.env.production
+.env.development
+.env*.local
+!.env.example
+!*.template
+
+# Shell env exports / rclone / cloud CLI config
+.user_env
+*.rclone.ini
+.gdrive-rclone.ini
+.rclone.conf
+.aws/
+.gcloud/
+gha-creds-*.json
+
+# Service-account and key material (any depth)
+**/google-services.json
+**/GoogleService-Info.plist
+**/service-account*.json
+*.pem
+*.key
+*.p8
+*.p12
+*.jks
+*.keystore
+
 # Keystores, prebuild output, temp (do not commit)
 apps/mobile/release.keystore/
 apps/mobile/android/
 audit-out.json
-/google-services.json
-.env.production
-.env.development
 .cache/
 .nvm/
 .npm/
