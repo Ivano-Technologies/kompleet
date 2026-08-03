@@ -2,7 +2,13 @@
  * Delete Account API
  * POST /api/auth/delete-account
  * Protected: Requires authentication + confirmation
- * Soft-deletes user data, then removes auth account
+ *
+ * Soft-deletes the profile (sets deleted_at), then removes the auth account.
+ * public.users never existed — a prior update against that name was a silent no-op.
+ *
+ * Tenancy note (docs/TENANCY_DESIGN.md risk #12): before multi-tenant launch,
+ * deleting a practitioner must not cascade clients' statutory records. That
+ * policy lands with the firms/clients spine in Phase 3.
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -21,7 +27,6 @@ async function handlePOST(request: NextRequest) {
   try {
     const supabase = await getSupabaseForRequest(request);
 
-    // Check authentication
     const {
       data: { user },
       error: authError,
@@ -40,8 +45,7 @@ async function handlePOST(request: NextRequest) {
       );
     }
 
-    // Log deletion to audit trail BEFORE deleting
-    await supabase.from("audit_logs").insert({
+    const { error: auditError } = await supabase.from("audit_logs").insert({
       user_id: user.id,
       action: "account_deletion",
       resource_type: "user",
@@ -51,13 +55,35 @@ async function handlePOST(request: NextRequest) {
       user_agent: request.headers.get("user-agent") || "unknown",
     });
 
-    // Soft-delete: mark user as deactivated in users table
-    await supabase
-      .from("users")
-      .update({ status: "deactivated" })
+    if (auditError) {
+      console.error("[Delete Account] audit_logs insert failed", auditError);
+      return NextResponse.json(
+        { error: "Failed to record deletion audit. Account was not deleted." },
+        { status: 500 },
+      );
+    }
+
+    // Soft-delete against profiles (the real user table). Check the error —
+    // a silent failure here previously left no deactivation trail.
+    const { error: softDeleteError } = await supabase
+      .from("profiles")
+      .update({
+        deleted_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
       .eq("id", user.id);
 
-    // Delete auth user using admin client (service role)
+    if (softDeleteError) {
+      console.error("[Delete Account] profiles soft-delete failed", softDeleteError);
+      return NextResponse.json(
+        {
+          error:
+            "Failed to deactivate profile. Account was not deleted. Please contact support.",
+        },
+        { status: 500 },
+      );
+    }
+
     const adminClient = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!,
@@ -75,7 +101,6 @@ async function handlePOST(request: NextRequest) {
       );
     }
 
-    // Sign out
     await supabase.auth.signOut();
 
     return NextResponse.json({
