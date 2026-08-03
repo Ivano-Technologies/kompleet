@@ -48,6 +48,18 @@ paths = [
   '''\.template$''',
   '''(^|/)tests?/fixtures/''',
   '''(^|/)e2e/''',
+  # Build / dependency trees — never contain first-party secrets, dominate scan time
+  '''(^|/)node_modules/''',
+  '''(^|/)\.next/''',
+  '''(^|/)apps/mobile/\.expo/''',
+  '''(^|/)apps/mobile/android/''',
+  '''(^|/)apps/mobile/ios/''',
+  '''(^|/)coverage/''',
+  '''(^|/)playwright-report/''',
+  '''(^|/)test-results/''',
+  '''(^|/)graphify-out/''',
+  '''(^|/)ml-service/venv/''',
+  '''(^|/)ml-training/venv/''',
 ]
 
 regexes = [
@@ -57,5 +69,6 @@ regexes = [
   '''ci[-_]placeholder''',
   '''test[-_]placeholder''',
   '''postgres(ql)?://(ci|test|user|postgres):(ci|test|password|placeholder)@localhost''',
+  '''postgres(ql)?://USER:PASSWORD@HOST''',
   '''xxxx+''',
 ]

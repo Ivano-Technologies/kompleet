@@ -7,7 +7,7 @@ set -euo pipefail
 # repository is PUBLIC and is scanned for secrets in CI.
 #
 # Usage:
-#   export SUPABASE_DB_URL="postgresql://postgres.<ref>:<password>@<host>:6543/postgres"
+#   export SUPABASE_DB_URL="<pooler connection string from Supabase dashboard>"
 #   ./deploy_rls.sh [path/to/migration.sql]
 
 : "${SUPABASE_DB_URL:?Missing SUPABASE_DB_URL. Export the pooler connection string first (see docs/ENVIRONMENT_VARIABLES.md).}"
