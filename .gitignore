@@ -4,6 +4,8 @@ node_modules/
 # Secrets — THIS REPOSITORY IS PUBLIC.
 # Never commit credentials. CI runs gitleaks and will fail the build.
 # -------------------------------------------------
+.gitleaks-baseline.json
+.gitleaks-report.json
 .env
 .env.local
 .env.production
