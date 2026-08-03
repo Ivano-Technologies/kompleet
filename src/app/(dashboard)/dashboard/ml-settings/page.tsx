@@ -4,10 +4,8 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  Mail,
   RefreshCw,
   TrendingUp,
-  CheckCircle,
   Loader2,
   BrainCircuit,
 } from "lucide-react";
@@ -27,11 +25,11 @@ interface RecurringPattern {
   occurrence_count: number;
 }
 
+/**
+ * Categorization & automation settings.
+ * Email ingestion postponed — see docs/DEFERRED_FEATURES.md.
+ */
 export default function MLSettingsPage() {
-  const [emailConnections, setEmailConnections] = useState({
-    gmail: { connected: true, email: "hello@untapped.africa" },
-    outlook: { connected: false, email: "" },
-  });
   const [correctionStats, setCorrectionStats] =
     useState<CorrectionStats | null>(null);
   const [recurringPatterns, setRecurringPatterns] = useState<
@@ -58,7 +56,7 @@ export default function MLSettingsPage() {
         setRecurringPatterns(data.patterns || []);
       }
     } catch (error) {
-      console.error("Error loading ML settings:", error);
+      console.error("Error loading automation settings:", error);
     } finally {
       setLoading(false);
     }
@@ -67,21 +65,6 @@ export default function MLSettingsPage() {
   useEffect(() => {
     loadData();
   }, []);
-
-  async function connectEmail(provider: "gmail" | "outlook") {
-    try {
-      const res = await fetch(`/api/email/connect/${provider}`, {
-        method: "POST",
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        window.location.href = data.authorization_url;
-      }
-    } catch (error) {
-      console.error(`Error connecting ${provider}:`, error);
-    }
-  }
 
   async function detectRecurringPatterns() {
     setIsDetecting(true);
@@ -117,110 +100,15 @@ export default function MLSettingsPage() {
         </div>
         <div>
           <h1 className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">
-            ML & Automation Settings
+            Categorization & Automation
           </h1>
           <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
-            Manage email integrations, view ML performance, and configure
-            automation.
+            Review correction feedback and recurring payment patterns.
           </p>
         </div>
       </div>
 
-      {/* Email Connections */}
-      <div className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
-        <div className="flex items-center gap-2 mb-4">
-          <Mail className="w-5 h-5 text-light-text-secondary dark:text-dark-text-secondary" />
-          <h2 className="text-lg font-semibold text-light-text-primary dark:text-dark-text-primary">
-            Email Integrations
-          </h2>
-        </div>
-        <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-6">
-          Connect your email accounts to automatically import transactions from
-          receipts.
-        </p>
-        <div className="space-y-4">
-          {/* Gmail */}
-          <div className="flex items-center justify-between p-4 border border-light-border dark:border-dark-border rounded-lg">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 bg-red-50 dark:bg-red-900/20 rounded-lg flex items-center justify-center">
-                <Mail className="w-5 h-5 text-red-600 dark:text-red-400" />
-              </div>
-              <div>
-                <p className="font-medium text-light-text-primary dark:text-dark-text-primary">
-                  Gmail
-                </p>
-                {emailConnections.gmail.connected ? (
-                  <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
-                    {emailConnections.gmail.email}
-                  </p>
-                ) : (
-                  <p className="text-sm text-light-text-tertiary dark:text-dark-text-tertiary">
-                    Not connected
-                  </p>
-                )}
-              </div>
-            </div>
-            {emailConnections.gmail.connected ? (
-              <Badge
-                variant="outline"
-                className="bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-900"
-              >
-                <CheckCircle className="w-3 h-3 mr-1.5" />
-                Connected
-              </Badge>
-            ) : (
-              <Button
-                onClick={() => connectEmail("gmail")}
-                className="btn-secondary"
-              >
-                Connect
-              </Button>
-            )}
-          </div>
-
-          {/* Outlook */}
-          <div className="flex items-center justify-between p-4 border border-light-border dark:border-dark-border rounded-lg">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex items-center justify-center">
-                <Mail className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div>
-                <p className="font-medium text-light-text-primary dark:text-dark-text-primary">
-                  Outlook
-                </p>
-                {emailConnections.outlook.connected ? (
-                  <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
-                    {emailConnections.outlook.email}
-                  </p>
-                ) : (
-                  <p className="text-sm text-light-text-tertiary dark:text-dark-text-tertiary">
-                    Not connected
-                  </p>
-                )}
-              </div>
-            </div>
-            {emailConnections.outlook.connected ? (
-              <Badge
-                variant="outline"
-                className="bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-900"
-              >
-                <CheckCircle className="w-3 h-3 mr-1.5" />
-                Connected
-              </Badge>
-            ) : (
-              <Button
-                onClick={() => connectEmail("outlook")}
-                className="btn-secondary"
-              >
-                Connect
-              </Button>
-            )}
-          </div>
-        </div>
-      </div>
-
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* ML Performance */}
         <div className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
           <div className="flex items-center gap-2 mb-4">
             <TrendingUp className="w-5 h-5 text-light-text-secondary dark:text-dark-text-secondary" />
@@ -229,7 +117,7 @@ export default function MLSettingsPage() {
             </h2>
           </div>
           <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-6">
-            Your corrections help improve the ML model for all users.
+            Your corrections improve future suggestions for your firm.
           </p>
           {correctionStats ? (
             <div className="space-y-6">
@@ -244,15 +132,15 @@ export default function MLSettingsPage() {
                 </div>
                 <div className="p-4 bg-light-background dark:bg-dark-background rounded-lg">
                   <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-1">
-                    Model Accuracy
+                    Agreement rate
                   </p>
                   <p className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">
-                    87%
+                    {Math.round((correctionStats.correctionRate || 0) * 100)}%
                   </p>
                 </div>
               </div>
 
-              {correctionStats.topMiscategorized.length > 0 && (
+              {correctionStats.topMiscategorized?.length > 0 && (
                 <div>
                   <p className="font-medium text-light-text-primary dark:text-dark-text-primary mb-3">
                     Most Common Corrections
@@ -286,7 +174,6 @@ export default function MLSettingsPage() {
           )}
         </div>
 
-        {/* Recurring Transactions */}
         <div className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">

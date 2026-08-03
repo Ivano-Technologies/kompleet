@@ -1,14 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseForRequest } from "@/lib/supabase/server";
 import {
-  recordCorrection,
-  getCorrectionStats,
-} from "@/lib/ml/continuous-learning";
+  recordFeedback,
+  getFeedbackStatistics,
+} from "@/lib/ai/feedbackService";
 import { withRateLimit } from "@/lib/with-rate-limit";
+
+/**
+ * Correction feedback — survives on the AI stack (feedbackService), not the
+ * deleted ML continuous-learning / ml_corrections path.
+ * See docs/MISSING_TABLES_RECOVERY_PLAN.md §2c.
+ */
 
 async function handlePOST(request: NextRequest) {
   try {
-    // Get current user
     const supabase = await getSupabaseForRequest(request);
     const {
       data: { user },
@@ -18,29 +23,38 @@ async function handlePOST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Parse request body
     const body = await request.json();
 
-    // Validate required fields
-    if (
-      !body.transaction_data ||
-      !body.predicted_category ||
-      !body.corrected_category
-    ) {
+    const transactionId =
+      body.transaction_id || body.transaction_data?.id || body.transactionId;
+    const predictedCategory =
+      body.predicted_category || body.originalCategory || body.original_category;
+    const correctedCategory =
+      body.corrected_category || body.correctedCategory;
+    const confidence =
+      typeof body.confidence === "number"
+        ? body.confidence
+        : typeof body.original_confidence === "number"
+          ? body.original_confidence
+          : 0;
+
+    if (!transactionId || !predictedCategory || !correctedCategory) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        {
+          error:
+            "Missing required fields (transaction_id, predicted_category, corrected_category)",
+        },
         { status: 400 },
       );
     }
 
-    // Record correction
-    await recordCorrection({
+    await recordFeedback({
+      transactionId: String(transactionId),
       userId: user.id,
-      inferenceId: body.inference_id,
-      transactionData: body.transaction_data,
-      predictedCategory: body.predicted_category,
-      correctedCategory: body.corrected_category,
-      confidence: body.confidence || 0,
+      originalCategory: String(predictedCategory),
+      correctedCategory: String(correctedCategory),
+      originalConfidence: confidence,
+      reason: body.reason,
     });
 
     return NextResponse.json({
@@ -58,7 +72,6 @@ async function handlePOST(request: NextRequest) {
 
 async function handleGET(request: NextRequest) {
   try {
-    // Get current user
     const supabase = await getSupabaseForRequest(request);
     const {
       data: { user },
@@ -68,10 +81,15 @@ async function handleGET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Get correction stats
-    const stats = await getCorrectionStats(user.id);
+    const stats = await getFeedbackStatistics(user.id);
 
-    return NextResponse.json(stats);
+    // Shape expected by ml-settings UI (totalCorrections / correctionRate / topMiscategorized)
+    return NextResponse.json({
+      totalCorrections: stats.totalFeedback,
+      correctionRate: stats.overallAccuracy,
+      topMiscategorized: [],
+      ...stats,
+    });
   } catch (error) {
     console.error("[Get Correction Stats API Error]", error);
     return NextResponse.json(

@@ -56,12 +56,21 @@ async function handlePOST(request: NextRequest) {
       name: c.name,
       type: c.category_type,
       tax_treatment: c.tax_treatment,
+      keywords: Array.isArray(c.keywords) ? c.keywords : [],
     }));
 
     // Step 1: Try rules-based categorization first (free, fast)
+    const rulesCategories = (categories || []).map((c) => ({
+      id: c.id,
+      name: c.name,
+      category_type: c.category_type,
+      tax_treatment: c.tax_treatment,
+      keywords: Array.isArray(c.keywords) ? c.keywords : [],
+    })) as Category[];
+
     const rulesResult = categorizeTransaction(
       parsed.data.merchant,
-      (categories || []) as Category[],
+      rulesCategories,
     );
 
     // If rules-based is confident enough, use it

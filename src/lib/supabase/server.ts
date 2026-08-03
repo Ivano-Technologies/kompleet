@@ -115,7 +115,7 @@ export async function createServerClient(): Promise<SupabaseClient> {
  * export async function POST() {
  *   const supabase = createAdminClient();
  *   // Admin operations that bypass RLS
- *   const { data } = await supabase.from('users').select();
+ *   const { data } = await supabase.from('profiles').select();
  *   return Response.json(data);
  * }
  * ```
