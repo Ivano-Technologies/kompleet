@@ -1,12 +1,39 @@
 import { NextResponse } from "next/server";
 
-/** Explicit origins always eligible when matched exactly. */
+/**
+ * Origins allowed in every environment, production included.
+ *
+ * `kompleet.techivano.com` is the canonical production host. The legacy
+ * `ivanotechnologies.com` hosts are intentionally absent — see
+ * docs/DOMAIN_MIGRATION.md for the cutover and rollback procedure.
+ */
+const ALWAYS_ALLOWED_ORIGINS = ["https://kompleet.techivano.com"];
+
+/**
+ * Expo Metro dev-server origins.
+ *
+ * These were previously allowlisted unconditionally, which meant a production
+ * deployment would hand credentialed CORS headers to anything served from the
+ * developer's own machine (flagged in docs/AUDIT_STATUS_2026-07-15.md). They
+ * are now only eligible outside production.
+ */
+const DEV_ONLY_ALLOWED_ORIGINS = [
+  "http://localhost:8081",
+  "exp://localhost:8081",
+];
+
+/** Explicit origins eligible when matched exactly, for the current NODE_ENV. */
 export function getExplicitAllowedOrigins(): string[] {
-  return [
-    "http://localhost:8081",
-    "exp://localhost:8081",
+  const origins: (string | undefined)[] = [
+    ...ALWAYS_ALLOWED_ORIGINS,
     process.env.NEXT_PUBLIC_MOBILE_APP_URL,
-  ].filter((origin): origin is string => Boolean(origin));
+  ];
+
+  if (process.env.NODE_ENV !== "production") {
+    origins.push(...DEV_ONLY_ALLOWED_ORIGINS);
+  }
+
+  return origins.filter((origin): origin is string => Boolean(origin));
 }
 
 /** Whether an Origin header value may receive credentialed CORS headers. */
