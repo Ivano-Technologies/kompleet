@@ -40,6 +40,17 @@ Do not revive against the cancelled Mono open-banking path; statement upload rem
 
 ---
 
+## Expo SDK 57 mobile bump — deferred 2026-08-04
+
+**Status:** deferred.  
+**Open PR:** [#60](https://github.com/Ivano-Technologies/kompleet/pull/60) (`dependabot/…/expo-sdk-9da05cfd37`) — grouped replacement for the closed individual #45/#53 majors.
+
+`apps/mobile` is on **Expo SDK 54**. The proper upgrade path is `expo install --fix` + `expo-doctor` + EAS rebuild (not piecemeal Dependabot majors). Last mobile artifact is the March 2026 internal AAB and was never distributed — there is no live OTA/client fleet to protect, and Wave A (tenancy spine) is the near-term focus.
+
+**When to revive:** schedule as its own mobile milestone before any Play/TestFlight distribution. Do not merge #60 into the web release train.
+
+---
+
 ## Mono open banking — cancelled 2026-08-03
 
 Contract is not live. Integration deleted outright. **Do not revive** without a new commercial decision. Never create `bank_accounts` for Mono. Statement upload (`transactions/upload-v2` + bank adapters) is the product ingestion path.
