@@ -4,7 +4,7 @@
 **Phase 1:** [PR #56](https://github.com/Ivano-Technologies/kompleet/pull/56) — merge commit into `staging`  
 **Phase 2:** [PR #58](https://github.com/Ivano-Technologies/kompleet/pull/58) squash → `staging`; [PR #59](https://github.com/Ivano-Technologies/kompleet/pull/59) squash → `main`  
 **Prep:** [PR #55](https://github.com/Ivano-Technologies/kompleet/pull/55)  
-**Tips (post-reconcile):** `main` = `staging` = `a38543c4b`
+**Tips (post-reconcile):** `main` = `staging` = `a3f81c537`
 
 ---
 
@@ -38,7 +38,9 @@ feature heads do not linger.
 pre-squash pieces of #59; the only path GAP was `scripts/upload-models-*.ts`, deleted
 later by Phase 2 on both sides). Reset `staging` → `a38543c4b`. Deleted remote
 `chore/archiver-8-ziparchive`, `chore/deps-smoke-jspdf-recharts`,
-`chore/lucide-react-1.28` after content verify.
+`chore/lucide-react-1.28` after content verify. The `--force-with-lease` reset was a
+one-off remedy for that squash-induced divergence — not a routine step; repeating it
+re-forks the branches and undoes decision (a).
 
 ### Tenancy — practitioner / multi-client
 
