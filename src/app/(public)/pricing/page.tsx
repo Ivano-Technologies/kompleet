@@ -43,13 +43,13 @@ export default function PricingPage() {
 
           <ul className="space-y-4 mb-8">
             {[
-              "Automated VAT & WHT calculations",
-              "NRS & JTB filing preparation",
-              "Professional invoicing with multi-currency",
-              "Cashflow analytics & reporting",
-              "Transaction categorization with AI",
-              "Tax deadline reminders",
-              "Priority email support"
+              "Bank statement import for 11 Nigerian banks",
+              "VAT calculator under Nigeria Tax Act 2025",
+              "Filing-ready NRS and LIRS form generation",
+              "Invoicing with NRS-compliant QR codes",
+              "P&L and balance sheet reports",
+              "Transaction categorization",
+              "Email support during beta",
             ].map((feature, i) => (
               <li key={i} className="flex items-start gap-3">
                 <Check className="w-5 h-5 text-success shrink-0 mt-0.5" />

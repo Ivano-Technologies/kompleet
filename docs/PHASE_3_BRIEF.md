@@ -1,189 +1,170 @@
-# Phase 3 Brief — Tenancy Spine + 19 Tables
+# Phase 3 Brief — Tenancy Spine, Invoicing First
 
-**Date:** 2026-08-04
-**Prereq:** #55 → #56 → #57 merged; `DATABASE_URL` + `SUPABASE_ACCESS_TOKEN` repo secrets set.
-**Scope:** the tenancy spine, a cross-tenant test harness, and 19 tables built multi-tenant from birth.
+**Revision 2 — 2026-08-05.** Supersedes revision 1. Rescoped after owner direction: target is **accountants serving 2–10 clients**, not mid-size practices; **first customer is the owner's own business**, needing e-invoicing immediately; **mobile is required** for receipt capture.
 
-This is the largest phase in the plan and the only one that is expensive to get wrong. Work in waves, gate each one, and stop at anything marked **ASK**.
+**Prereq:** `main` = `staging` (merge-commit promotion, per `docs/STATUS.md`). Guardrails green: drift 18, baseline 18, advisors 4 WARN, 504 tests.
+
+---
+
+## 0. What changed from revision 1
+
+| Was | Now | Why |
+|---|---|---|
+| Designed for 20–200 clients | **2–10 clients** | Owner direction. Removes the need for per-client access restriction and perf tuning. |
+| `client_assignments` in Wave A | **Deferred** | A two-person firm does not restrict staff to a subset of six clients. Add when someone asks. |
+| Roles `owner\|admin\|staff\|viewer` | **`owner\|staff`** | Two roles cover a small practice. Widening later is a CHECK-constraint change. |
+| Perf fixture (200 clients × 500k rows) | **Dropped** | Not a real risk at this scale. Keep the indexes; skip the fixture. |
+| Invoicing in Wave F (6th) | **Wave C (3rd)** | First real user is the owner, issuing e-invoices. This is now the shortest path to production use. |
+| `documents` in Wave E | **Wave D** | Mobile receipt capture is a stated requirement. |
+| Mobile deferred | **Back on the roadmap** | Receipt capture is the mobile use case. Expo SDK 54→57 still not Wave A blocking. |
+
+**Unchanged and still non-negotiable:** every domain table carries `client_id` from birth; every new table's migration carries its own `revoke all … from anon`; the cross-tenant negative suite exists before the first domain table. Leakage between clients' tax records does not care that there are only six of them.
 
 ---
 
 ## 1. Ground rules
 
-1. **All work on a Supabase branch.** `create_branch` → apply → verify → `merge_branch`. Never against production.
-2. **Every domain table carries `client_id` at creation.** No `user_id`-only table intended for retrofit. Retrofitting is where the L1–L8 leakage risks in `docs/TENANCY_DESIGN.md` §3.2 live.
-3. **Every migration that creates a table also contains its own `revoke all … from anon`.** Supabase grants `anon` by default; `20260715144130` is a hardcoded list of 9 tables and will not cover anything new. Miss this and the July security work silently regresses.
-4. **One migration per wave**, not per table — keeps policy creation atomic per wave.
-5. **The negative test suite exists before the first domain table.** Not after.
+1. **All schema work on a Supabase branch.** `create_branch` → apply → verify → `merge_branch`.
+2. **`client_id` at creation.** No `user_id`-only domain table intended for retrofit.
+3. **Every new table's migration contains `revoke all … from anon`.** `20260715144130` is a hardcoded list of 9 tables and covers nothing new.
+4. **Tables that already exist need policy replacement, not addition.** See §3 — this is the highest-risk operation in the phase.
+5. One migration per wave. Negative suite before the first domain table.
+6. Promotion: squash feature → `staging`, **merge commit** `staging` → `main`. Never force-push `staging`.
 
 ---
 
-## 2. Scoping decisions — read before writing any DDL
+## 2. Tenancy spine (Wave A)
 
-The most common way to get multi-tenancy wrong is scoping a table to the wrong axis. Three axes exist:
+```
+firms (id, name, owner_user_id, subscription_tier, created_at)
+  └── firm_members (firm_id, user_id, role ∈ owner|staff)
+  └── clients (id, firm_id, legal_name, tin, rc_number, entity_type,
+               fiscal_year_start, address, status, archived_at)
+```
 
-| Axis | Meaning | Policy predicate |
+Plus two `SECURITY DEFINER` helpers, both `STABLE`, both `SET search_path = public, pg_temp`, both `revoke execute … from anon, public`:
+
+```sql
+create or replace function public.accessible_client_ids()
+returns setof uuid language sql stable security definer
+set search_path = public, pg_temp as $$
+  select c.id from public.clients c
+  join public.firm_members fm on fm.firm_id = c.firm_id
+  where fm.user_id = auth.uid() and c.archived_at is null
+$$;
+```
+
+`my_firm_ids()` follows the same shape against `firm_members`.
+
+Policies use `client_id in (select public.accessible_client_ids())` — the subquery form, evaluated once per statement as an InitPlan. Not a correlated `EXISTS`.
+
+Write policies additionally require `role = 'owner'` or `'staff'`; there is no viewer role yet, so any member may write.
+
+---
+
+## 3. Existing tables — policy replacement, read before Wave C
+
+Waves C and D modify tables that **already exist with live `user_id`-scoped policies**: `invoices`, `invoice_sequences`, `expenses`, `transactions`, `file_uploads`, `tax_filings`, `tax_reports`, `financial_statements`, `export_history`, `import_sessions`.
+
+This is the retrofit case, and it is where the leakage risks in `docs/TENANCY_DESIGN.md` §3.2 live. Two rules:
+
+**Drop and create in the same transaction.** All policies here are `PERMISSIVE`, so same-command policies combine with **OR**. Adding a client-scoped policy alongside an existing `user_id` policy does not narrow access — it widens it. Every table's migration must `DROP POLICY` the old family and `CREATE POLICY` the new one atomically.
+
+**`transactions` carries two policy families** (`*_own` and `*_clerk`) and both are live. Drop both. The Clerk family is a second authorization path on your most sensitive table.
+
+Zero rows means backfill is trivial (`update … set client_id = <default client>` or simply none), but it does **not** make the policy swap safe by itself.
+
+---
+
+## 4. Wave order
+
+Each wave: migration → `supabase gen types` → `pnpm typecheck` → negative suite → relevant E2E → commit → decrement `.schema-drift-baseline`.
+
+| Wave | Contents | Rationale |
 |---|---|---|
-| **client** | Belongs to a taxable entity | `client_id in (select accessible_client_ids())` |
-| **firm** | Belongs to the practice, shared across its clients | `firm_id in (select my_firm_ids())` |
-| **actor** | Records who did something | `user_id = auth.uid()` **plus** `client_id` as context |
+| **A** | `firms`, `firm_members`, `clients`, `accessible_client_ids()`, `my_firm_ids()` | Everything references these. Baseline unchanged (no detector-visible domain tables). |
+| **B** | Cross-tenant negative suite (§5) | Before any domain table. Tests only, baseline unchanged. |
+| **C** | **Invoicing.** New: `invoice_archives`, `invoice_audit_logs`, `client_keys`. Modified: `invoices`, `invoice_sequences` (+`client_id`, policy replacement, re-key). | **Shortest path to the first real user.** `invoices` and `invoice_sequences` already exist — only three tables are genuinely missing. Baseline 18 → 15. |
+| **D** | **Receipts / documents.** New: `documents`. Modified: `expenses`, `file_uploads` (+`client_id`). Storage policies. | Mobile receipt capture. Baseline 15 → 14. |
+| **E** | `tax_calculations`, `client_tax_years`, `merchant_categorizations` | Dashboard landing page queries `tax_calculations` client-side. Baseline 14 → 11. |
+| **F** | `nrs_forms`, `filing_status`, `filing_audit_logs`, `filing_deadlines`, `deadline_reminders` | Filing output. Baseline 11 → 6. |
+| **G** | `import_batches`, `data_migration_logs`, `recurring_patterns`, `categorization_predictions`, `ml_inference_logs`, `categorization_feedback`, `firm_learning_profiles` | Remainder. Baseline 6 → 0 (with `merchant_categorizations` net-new). |
 
-### Table-by-table
-
-| Table | Axis | Note |
-|---|---|---|
-| `tax_calculations` | client | |
-| `nrs_forms` | client | |
-| `filing_status` | client | |
-| `filing_audit_logs` | client + actor | Keep `user_id` as *who filed*; add `client_id` as *for whom*. Do not swap. |
-| `filing_deadlines` | client | Deadline definitions |
-| `deadline_reminders` | client | Reminders actually sent |
-| `invoice_archives` | client | |
-| `invoice_audit_logs` | client + actor | Same pattern as `filing_audit_logs` |
-| `documents` | client | 13 refs — see §5 |
-| `import_batches` | client | |
-| `data_migration_logs` | client + actor | |
-| `recurring_patterns` | client | Detected per entity, not per practice |
-| `categorization_predictions` | client | |
-| `ml_inference_logs` | actor + client context | Observability. Writes **non-fatal**. |
-| `merchant_categorizations` | **firm** | A practice's learned categorizations apply across its own clients — but must never leak across firms |
-| `categorization_feedback` | **firm** + actor | The practitioner's corrections are practice knowledge |
-| `user_learning_profiles` | **firm** | Rename → `firm_learning_profiles` |
-| `user_tax_years` | client | Rename → `client_tax_years` — fiscal year is an entity property |
-| `user_keys` | client | Rename → `client_keys` — see §5 |
-
-### Renames — do these now, not later
-
-Three tables carry `user_` prefixes that will be actively misleading under the practitioner model:
-
-- `user_tax_years` → **`client_tax_years`**
-- `user_keys` → **`client_keys`**
-- `user_learning_profiles` → **`firm_learning_profiles`**
-
-Update the call sites in the same commit. Renaming later means touching the policies again.
-
-### Entity attributes moving off `profiles`
-
-`tin`, `rc_number`, `company_name`, `entity_type`, `fiscal_year_start` describe a *taxable entity*, not a practitioner. They belong on `clients`. `subscription_tier` stays with `firms` and drives billing.
-
-**ASK before migrating these** — `src/lib/expense-premium.ts` reads `subscription_tier` off `profiles`, and NRS form generation reads `tin`. Both need updating in lockstep or you will file returns with a missing or wrong TIN, which is real-world harm.
+**Renames, done at creation:** `user_tax_years` → `client_tax_years`, `user_keys` → `client_keys`, `user_learning_profiles` → `firm_learning_profiles`. Update call sites in the same commit.
 
 ---
 
-## 3. Wave order
+## 5. Cross-tenant negative suite — Wave B
 
-Each wave: migration → `supabase gen types` → `pnpm typecheck` → negative suite → relevant E2E → commit.
+Seed **two firms**, each with two clients and a real Supabase JWT per member. Table-driven from a list, so later waves gain coverage automatically. For every table and each of SELECT / INSERT / UPDATE / DELETE:
 
-| Wave | Contents | Why here |
-|---|---|---|
-| **A** | `firms`, `firm_members`, `clients`, `client_assignments`, `accessible_client_ids()`, `my_firm_ids()` | Everything else references these |
-| **B** | Cross-tenant negative test harness (§4) | Must exist before any domain table |
-| **C** | `tax_calculations`, `client_tax_years`, `merchant_categorizations` | `tax_calculations` is queried client-side by the dashboard landing page — the most visible breakage. `merchant_categorizations` unblocks the Claude cost control. |
-| **D** | `nrs_forms`, `filing_status`, `filing_audit_logs`, `filing_deadlines`, `deadline_reminders` | The compliance output — the product's purpose |
-| **E** | `documents` | Own wave; 13 refs, own module (§5) |
-| **F** | `invoice_archives`, `invoice_audit_logs`, `client_keys` | `client_keys` needs deliberate design (§5) |
-| **G** | `import_batches`, `data_migration_logs`, `recurring_patterns`, `categorization_predictions`, `ml_inference_logs`, `categorization_feedback`, `firm_learning_profiles` | Remainder |
+- Firm A's member sees exactly firm A's rows, and **zero** of firm B's
+- Firm A's member cannot write into firm B's client
+- Archived clients are excluded
 
-**Gate after each wave:** drift count decreases by exactly the number of tables in that wave. Advisors unchanged from baseline. Negative suite green.
-
-**CI enforces the drift gate via `.schema-drift-baseline`.** The file holds the max allowed missing-table count (currently `18`). `pnpm check:schema-drift` fails only when the live count **exceeds** that number. Every wave’s PR must:
-
-1. Add the tables for that wave.
-2. Decrement `.schema-drift-baseline` by the same number (visible in the diff).
-3. Leave the job failing if the count did not drop — do not raise the baseline to paper over missed tables.
-
-Wave A (spine only) adds no detector-visible domain tables — baseline stays put. Wave B is tests only. Waves C–G each decrement by their table count.
+**Plus a `pg_policies` snapshot test:** fail the build if any policy on a client-scoped table references bare `user_id` without a membership predicate. This catches the permissive-OR failure mechanically rather than by review.
 
 ---
 
-## 4. Cross-tenant negative suite — Wave B, non-negotiable
-
-The single highest-value artifact in this phase. Per `docs/TENANCY_DESIGN.md` risk #1.
-
-**Shape:** seed two firms, each with two clients and a real Supabase JWT per member. For every table in a generated list, and for each of SELECT / INSERT / UPDATE / DELETE, assert:
-
-- Firm A's member sees **exactly** firm A's rows
-- Firm A's member sees **zero** of firm B's rows
-- Firm A's member **cannot write** into firm B's client
-- A `viewer` role cannot write at all
-- A restricted client is invisible to a member without a `client_assignments` row
-
-**Plus a policy snapshot test:** dump `pg_policies`, fail the build if any policy on a client-scoped table references bare `user_id` without a membership predicate. This is what catches the L1 permissive-OR failure mechanically rather than by review.
-
-The suite must be **table-driven from a list**, so adding a table in a later wave automatically adds coverage. A hand-written per-table suite will drift.
-
----
-
-## 5. The two tables needing design, not reconstruction
+## 6. Wave C detail — invoicing (the critical path)
 
 ### `client_keys` (was `user_keys`)
 
-Holds cryptographic signing material for NRS-compliant invoice QR codes (`src/lib/invoice-security.ts`).
+Cryptographic signing material for NRS-compliant invoice QR codes (`src/lib/invoice-security.ts`).
 
-- **Private key material must be encrypted at rest** — not a plain `text` column. Use Supabase Vault or application-level envelope encryption with the key in env, never in the table.
-- RLS must be strictly client-scoped **and** write-restricted; a `viewer` must never read key material.
-- Explicit `revoke all … from anon` and from `authenticated` where possible — prefer access via a `SECURITY DEFINER` function over direct table reads.
-- **ASK** before implementing: confirm whether keys are per-client (invoice issued by the entity — most likely) or per-firm (practice signs on behalf). This determines whether a practitioner switching clients re-signs with different material, which has compliance implications.
+- **Scope: per client.** The invoice is issued by the taxable entity, so the signing key belongs to the entity, not the practice.
+- **Encrypt private key material at rest** — Supabase Vault or application-level envelope encryption with the wrapping key in env. Never a plain `text` column.
+- `revoke all … from anon`; prefer access via a `SECURITY DEFINER` function over direct table reads.
 
-### `documents`
+### `get_next_invoice_number`
 
-13 references from `modules/document-intelligence/infrastructure/persistence/supabase-document.repository.ts` — the OCR pipeline, and the best-engineered module in the codebase.
-
-- Read the repository port and the `document.entity.ts` domain model first; the entity is the schema specification here, more so than the `.from()` calls.
-- Storage-object paths are involved. **Storage policies must keep `auth.uid()` inside the predicate** — see `docs/TENANCY_DESIGN.md` §3.2 L2. A policy of the form `(storage.foldername(name))[1] = <client_id>` with no `auth.uid()` makes whatever supplies the client id the entire authorization decision.
-- There are no existing objects to migrate (0 rows), so choose the final path convention now: `<client_id>/<document_id>/…`.
-
----
-
-## 6. Migration template
-
-Every table follows this shape. Deviations should be deliberate and noted in the PR.
+Signature becomes `(p_client_id uuid, p_tax_year integer)`. **Generalise the July identity guard — do not delete it.** Replace `v_caller <> p_user_id` with:
 
 ```sql
-create table public.<table> (
-  id         uuid primary key default gen_random_uuid(),
-  client_id  uuid not null references public.clients(id) on delete cascade,
-  -- … columns reconstructed per docs/MISSING_TABLES_RECOVERY_PLAN.md §1 …
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
-);
-
--- Supabase grants anon by default; this is required on EVERY new table.
-revoke all on public.<table> from anon;
-
-alter table public.<table> enable row level security;
-
-create policy "<table>_select" on public.<table>
-  for select to authenticated
-  using (client_id in (select public.accessible_client_ids()));
-
-create policy "<table>_write" on public.<table>
-  for all to authenticated
-  using (client_id in (select public.writable_client_ids()))
-  with check (client_id in (select public.writable_client_ids()));
-
-create policy "<table>_service" on public.<table>
-  for all to service_role using (true) with check (true);
-
-create index idx_<table>_client on public.<table> (client_id, created_at desc);
+IF NOT EXISTS (SELECT 1 FROM public.accessible_client_ids() a WHERE a = p_client_id) THEN
+  RAISE EXCEPTION 'permission denied: client not accessible to caller';
+END IF;
 ```
 
-Note `(select public.accessible_client_ids())` — **not** a correlated `EXISTS`. The subquery form is evaluated once per statement as an InitPlan; the correlated form re-evaluates per row and collapses at scale.
+Deleting it reopens the IDOR that `20260716180723` closed, as a cross-tenant one.
+
+### `invoice_sequences`
+
+Re-key `UNIQUE(user_id, tax_year)` → `UNIQUE(client_id, tax_year)`. A shared sequence across a practice's clients produces duplicate invoice numbers across distinct taxable entities — an NRS compliance defect, irreversible once `is_immutable` invoices are issued.
+
+### Acceptance for Wave C
+
+The owner can create a client, issue a compliant e-invoice with a valid QR code, and archive it. That is the wave's definition of done — not just green migrations.
 
 ---
 
-## 7. Also in scope
+## 7. WHT calculator
 
-- **`profiles.deleted_at`** already landed in Phase 2. Finish the `delete-account` route: decide soft vs hard deletion deliberately, and **ASK** — under the practitioner model, deleting a firm owner must not cascade-delete their clients' statutory records (`docs/TENANCY_DESIGN.md` risk #12).
-- **`get_next_invoice_number`** — signature becomes `(p_client_id, p_tax_year)`. The July identity guard must be *generalised*, not deleted: replace `v_caller <> p_user_id` with a membership check against `accessible_client_ids()`. Deleting it reopens the IDOR as a cross-tenant one. Also re-key `invoice_sequences` to `UNIQUE(client_id, tax_year)` — sharing a sequence across a practice's clients corrupts invoice numbering, which is irreversible once `is_immutable` invoices exist.
-- **Practitioner UI is NOT in this phase.** Client switcher, client list, invite flow — all Phase 4+. Phase 3 is schema and policies only.
+Add withholding tax as a first-class calculator alongside the existing six.
+
+- **Rates live in `tax_rules`, not in code.** That table exists with 27 seeded rows and a `rules-engine.ts` consumer. Add WHT rates as rows with effective dates so a rate change is a data change, not a deploy.
+- Rates vary by payment type and payee type (company vs individual) — dividends, rent, royalties, professional/technical services, construction, contracts, commissions. Source the current schedule from the Nigeria Tax Act 2025 and **cite the source in the migration comment**.
+- Service at `src/lib/services/wht-service.ts`, mirroring `vat-service.ts`'s shape.
+- Page at `src/app/(dashboard)/calculators/wht/page.tsx`, following the existing calculator pattern.
+- `tax_type` enum already admits `'wht'` in `src/lib/schemas/calculations.ts` — no schema change needed there.
+- Unit tests per payment type, including the company/individual rate split.
+
+**ASK before implementing** if the rate schedule is ambiguous. A wrong WHT rate produces a wrong remittance, which is real-world harm.
 
 ---
 
-## 8. Stop and ask
+## 8. Deferred, recorded in `docs/DEFERRED_FEATURES.md`
 
-- Before moving entity attributes off `profiles` (§2)
-- Before implementing `client_keys` (§5)
-- On the `delete-account` cascade decision (§7)
-- If the negative suite cannot be made table-driven
-- If any wave's drift-count decrease does not match the number of tables added
+- `client_assignments` — per-client access restriction. Revisit above ~10 clients per firm.
+- `viewer` role.
+- Cross-client portfolio roll-ups (`analytics/yoy/summary`, `reports/*` aggregation). Net-new product, not refactor.
+- Mobile Expo SDK 54→57 migration — required eventually for receipt capture, but not Wave A blocking. Schedule as a mobile milestone with `expo install --fix` + `expo-doctor`, not a Dependabot bump.
+
+---
+
+## 9. Stop and ask
+
+- Before moving `tin`, `rc_number`, `company_name`, `entity_type`, `fiscal_year_start` off `profiles` onto `clients` — NRS form generation reads `tin`, and `src/lib/expense-premium.ts` reads `subscription_tier`. Both need updating in lockstep or you file returns with a wrong TIN.
+- On the `delete-account` cascade — deleting a firm owner must not cascade-delete clients' statutory records.
+- If any wave's drift-count decrease does not match the tables added.
+- If the WHT rate schedule is ambiguous.
