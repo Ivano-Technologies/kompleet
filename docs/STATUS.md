@@ -1,13 +1,44 @@
 # KOMPLEET — Status
 
 **Date:** 2026-08-03 (updated 2026-08-04)  
-**Phase 1:** [PR #56](https://github.com/Ivano-Technologies/kompleet/pull/56)  
-**Phase 2 branch:** `chore/phase-2-delete-before-build`  
-**Prep:** [PR #55](https://github.com/Ivano-Technologies/kompleet/pull/55)
+**Phase 1:** [PR #56](https://github.com/Ivano-Technologies/kompleet/pull/56) — merge commit into `staging`  
+**Phase 2:** [PR #58](https://github.com/Ivano-Technologies/kompleet/pull/58) squash → `staging`; [PR #59](https://github.com/Ivano-Technologies/kompleet/pull/59) squash → `main`  
+**Prep:** [PR #55](https://github.com/Ivano-Technologies/kompleet/pull/55)  
+**Tips (post-reconcile):** `main` = `staging` = `a38543c4b`
 
 ---
 
 ## Decisions (locked)
+
+### Branch workflow — squash features; merge-commit promotions
+
+Squash-merging a long-lived branch into another long-lived branch guarantees divergence:
+the originals stop being ancestors, so `git merge-base --is-ancestor` and cleanup gates
+false-negative, and `staging` forks from `main` the moment follow-up PRs land on `main`
+only. That stranded Phase 2 once (#57 into a dead base) and forked `staging` after #59.
+
+**Chosen: (a)** Squash only **feature → staging**. Use a **merge commit** for
+**staging → main**. Keeps the two long-lived tips reconcilable without
+`--force-with-lease` resets.
+
+Rejected for standing policy:
+
+- **(b)** Squash both hops and reset `staging` to `main` after every promotion — works,
+  but easy to forget and recreates this exact cleanup tax.
+- **(c)** Drop `staging` — viable for a solo + preview-per-PR workflow, but drops the
+  soak/promotion gate that caught the stranded Phase 2. Revisit only if staging stops
+  earning that role.
+
+**Ops note:** after any accidental squash of staging→main, content-verify then
+`git reset --hard origin/main && git push --force-with-lease origin staging`. Prefer
+not needing that. Enable GitHub **Automatically delete head branches** so squash-merged
+feature heads do not linger.
+
+**2026-08-04 reconcile:** confirmed staging tree ⊆ main (9 “ahead” commits were
+pre-squash pieces of #59; the only path GAP was `scripts/upload-models-*.ts`, deleted
+later by Phase 2 on both sides). Reset `staging` → `a38543c4b`. Deleted remote
+`chore/archiver-8-ziparchive`, `chore/deps-smoke-jspdf-recharts`,
+`chore/lucide-react-1.28` after content verify.
 
 ### Tenancy — practitioner / multi-client
 
