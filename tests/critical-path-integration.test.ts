@@ -3,7 +3,8 @@
  * Tests Sprint 5, 6, 7 features end-to-end
  */
 
-import { describe, it, expect, beforeAll } from "vitest";
+import { describe, it, expect } from "vitest";
+import { buildMockRuleBundle } from "./helpers/mock-rule-bundle";
 
 // Mock transaction data for testing
 const mockTransactions = [
@@ -11,7 +12,7 @@ const mockTransactions = [
     id: "1",
     transaction_date: "2026-01-15",
     description: "Sales Revenue - Client A",
-    amount: 500000,
+    amount: 5_000_000,
     transaction_type: "credit" as const,
     category: {
       name: "Sales Revenue",
@@ -22,7 +23,7 @@ const mockTransactions = [
     id: "2",
     transaction_date: "2026-01-20",
     description: "Office Rent",
-    amount: 150000,
+    amount: 1_500_000,
     transaction_type: "debit" as const,
     category: {
       name: "Rent",
@@ -33,7 +34,7 @@ const mockTransactions = [
     id: "3",
     transaction_date: "2026-01-25",
     description: "Utility Bills",
-    amount: 25000,
+    amount: 250_000,
     transaction_type: "debit" as const,
     category: {
       name: "Utilities",
@@ -41,6 +42,40 @@ const mockTransactions = [
     },
   },
 ];
+
+/**
+ * Mock RuleBundle mirroring the active seed (populate_tax_rules.sql) for
+ * business_tax and individual_income_tax rule types — everything
+ * TaxComputationService needs via requireRule().
+ */
+const ruleBundle = buildMockRuleBundle({
+  business_tax: {
+    small_company_turnover_threshold: { value: { value: 50_000_000 } },
+    small_company_assets_threshold: { value: { value: 250_000_000 } },
+    corporate_tax_rate_small: { value: { rate: 0 } },
+    corporate_tax_rate_other: { value: { rate: 30 } },
+    minimum_etr: { value: { rate: 15 }, confidenceLevel: "unverified" },
+    very_large_turnover_threshold: {
+      value: { threshold: 20_000_000_000 },
+      confidenceLevel: "unverified",
+    },
+    development_levy_rate: { value: { rate: 4 } },
+    development_levy_exemptions: {
+      value: { exempt: ["small_company", "non_resident_company"] },
+    },
+    capital_gains_integration: { value: { integrated: true } },
+  },
+  individual_income_tax: {
+    tax_bracket_1: { value: { from: 0, to: 800_000, rate: 0 } },
+    tax_bracket_2: { value: { from: 800_001, to: 3_000_000, rate: 15 } },
+    tax_bracket_3: { value: { from: 3_000_001, to: 12_000_000, rate: 18 } },
+    tax_bracket_4: { value: { from: 12_000_001, to: 25_000_000, rate: 21 } },
+    tax_bracket_5: { value: { from: 25_000_001, to: 50_000_000, rate: 23 } },
+    tax_bracket_6: { value: { from: 50_000_001, to: null, rate: 25 } },
+    rent_relief: { value: { cap: 500_000, percentage: 20 } },
+    owner_occupier_interest: { value: { deductible: true } },
+  },
+});
 
 describe("Sprint 5: Transaction Upload & Parsing", () => {
   it("should parse CSV file with GTBank format", async () => {
@@ -70,17 +105,17 @@ describe("Sprint 6: Financial Statement Generator", () => {
       "2026-01-31",
     );
 
-    expect(result.revenue.total).toBe(500000);
-    expect(result.expenses.total).toBe(175000);
-    expect(result.grossProfit).toBe(325000);
+    expect(result.revenue.total).toBe(5_000_000);
+    expect(result.expenses.total).toBe(1_750_000);
+    expect(result.grossProfit).toBe(3_250_000);
     expect(result.profitMargin).toBeGreaterThan(0);
   });
 
-  it("should generate Tax Computation with correct rates", async () => {
+  it("should generate Tax Computation with correct rates (individual, rule-driven brackets)", async () => {
     const { generateIncomeStatement } =
       await import("@/lib/financial-statements/income-statement");
-    const { generateTaxComputation } =
-      await import("@/lib/financial-statements/tax-computation");
+    const { computeTaxForPeriod } =
+      await import("@/lib/financial-statements/compute-tax-for-period");
 
     const incomeStatement = generateIncomeStatement(
       mockTransactions,
@@ -88,22 +123,25 @@ describe("Sprint 6: Financial Statement Generator", () => {
       "2026-01-31",
     );
 
-    const taxComputation = generateTaxComputation(
+    const { result } = computeTaxForPeriod({
       incomeStatement,
-      "individual",
-      500000,
-    );
+      entityType: "individual",
+      annualTurnover: 5_000_000,
+      rules: ruleBundle,
+    });
 
-    expect(taxComputation.taxableIncome).toBeGreaterThan(0);
-    expect(taxComputation.taxLiability).toBeGreaterThan(0);
-    expect(taxComputation.taxRate).toBeGreaterThan(0);
+    // Net profit (3,250,000) exceeds the tax-free first bracket
+    // (₦800,000), so tax should be > 0 under the progressive bands.
+    expect(result.taxableIncome).toBeGreaterThan(0);
+    expect(result.incomeTax).toBeGreaterThan(0);
+    expect(result.businessClassification).toBe("Individual Taxpayer");
   });
 
-  it("should apply correct CIT rate for small companies", async () => {
+  it("should apply 0% CIT for a small company (turnover ≤ ₦50m)", async () => {
     const { generateIncomeStatement } =
       await import("@/lib/financial-statements/income-statement");
-    const { generateTaxComputation } =
-      await import("@/lib/financial-statements/tax-computation");
+    const { computeTaxForPeriod } =
+      await import("@/lib/financial-statements/compute-tax-for-period");
 
     const incomeStatement = generateIncomeStatement(
       mockTransactions,
@@ -111,22 +149,24 @@ describe("Sprint 6: Financial Statement Generator", () => {
       "2026-01-31",
     );
 
-    // Small company (turnover <= ₦25M)
-    const taxComputation = generateTaxComputation(
+    const { result } = computeTaxForPeriod({
       incomeStatement,
-      "company",
-      20000000,
-    );
+      entityType: "company",
+      annualTurnover: 20_000_000,
+      rules: ruleBundle,
+    });
 
-    expect(taxComputation.taxRate).toBe(0); // 0% for small companies
-    expect(taxComputation.taxLiability).toBe(0);
+    expect(result.businessClassification).toBe("Small Company");
+    expect(result.qualifiesAsSmallCompany).toBe(true);
+    expect(result.incomeTax).toBe(0);
+    expect(result.developmentLevy).toBe(0);
   });
 
-  it("should apply correct CIT rate for medium companies", async () => {
+  it("should apply 30% CIT for an other company (turnover > ₦50m, < ₦20b)", async () => {
     const { generateIncomeStatement } =
       await import("@/lib/financial-statements/income-statement");
-    const { generateTaxComputation } =
-      await import("@/lib/financial-statements/tax-computation");
+    const { computeTaxForPeriod } =
+      await import("@/lib/financial-statements/compute-tax-for-period");
 
     const incomeStatement = generateIncomeStatement(
       mockTransactions,
@@ -134,14 +174,41 @@ describe("Sprint 6: Financial Statement Generator", () => {
       "2026-01-31",
     );
 
-    // Medium company (₦25M < turnover <= ₦100M)
-    const taxComputation = generateTaxComputation(
+    const { result } = computeTaxForPeriod({
       incomeStatement,
-      "company",
-      50000000,
+      entityType: "company",
+      annualTurnover: 60_000_000,
+      rules: ruleBundle,
+    });
+
+    expect(result.businessClassification).toBe("Other Company");
+    expect(result.qualifiesAsSmallCompany).toBe(false);
+    expect(result.incomeTax).toBeCloseTo(incomeStatement.netProfit * 0.3, 2);
+    expect(result.developmentLevy).toBeGreaterThan(0);
+  });
+
+  it("should throw MissingTaxRuleError when a required business_tax rule is absent", async () => {
+    const { generateIncomeStatement } =
+      await import("@/lib/financial-statements/income-statement");
+    const { computeTaxForPeriod } =
+      await import("@/lib/financial-statements/compute-tax-for-period");
+    const { buildMockRuleBundle: buildEmptyBundle } =
+      await import("./helpers/mock-rule-bundle");
+
+    const incomeStatement = generateIncomeStatement(
+      mockTransactions,
+      "2026-01-01",
+      "2026-01-31",
     );
 
-    expect(taxComputation.taxRate).toBe(20); // 20% for medium companies
+    expect(() =>
+      computeTaxForPeriod({
+        incomeStatement,
+        entityType: "company",
+        annualTurnover: 60_000_000,
+        rules: buildEmptyBundle({}),
+      }),
+    ).toThrow(/Missing tax rule/);
   });
 });
 
@@ -149,8 +216,8 @@ describe("Sprint 7: NRS Filing Integration", () => {
   it("should generate PIT form with correct structure", async () => {
     const { generateIncomeStatement } =
       await import("@/lib/financial-statements/income-statement");
-    const { generateTaxComputation } =
-      await import("@/lib/financial-statements/tax-computation");
+    const { computeTaxForPeriod } =
+      await import("@/lib/financial-statements/compute-tax-for-period");
     const { generatePITForm } = await import("@/lib/nrs-filing/form-generator");
 
     const incomeStatement = generateIncomeStatement(
@@ -159,11 +226,12 @@ describe("Sprint 7: NRS Filing Integration", () => {
       "2026-01-31",
     );
 
-    const taxComputation = generateTaxComputation(
+    const { data: taxComputation } = computeTaxForPeriod({
       incomeStatement,
-      "individual",
-      500000,
-    );
+      entityType: "individual",
+      annualTurnover: 5_000_000,
+      rules: ruleBundle,
+    });
 
     const pitForm = generatePITForm(
       { name: "Test Taxpayer", tin: "12345678-0001" },
@@ -182,8 +250,8 @@ describe("Sprint 7: NRS Filing Integration", () => {
   it("should generate CIT form with correct structure", async () => {
     const { generateIncomeStatement } =
       await import("@/lib/financial-statements/income-statement");
-    const { generateTaxComputation } =
-      await import("@/lib/financial-statements/tax-computation");
+    const { computeTaxForPeriod } =
+      await import("@/lib/financial-statements/compute-tax-for-period");
     const { generateCITForm } = await import("@/lib/nrs-filing/form-generator");
 
     const incomeStatement = generateIncomeStatement(
@@ -192,11 +260,12 @@ describe("Sprint 7: NRS Filing Integration", () => {
       "2026-01-31",
     );
 
-    const taxComputation = generateTaxComputation(
+    const { data: taxComputation } = computeTaxForPeriod({
       incomeStatement,
-      "company",
-      50000000,
-    );
+      entityType: "company",
+      annualTurnover: 60_000_000,
+      rules: ruleBundle,
+    });
 
     const citForm = generateCITForm(
       { name: "Test Company Ltd", tin: "12345678-0001" },
@@ -209,12 +278,12 @@ describe("Sprint 7: NRS Filing Integration", () => {
     expect(citForm.companyName).toBe("Test Company Ltd");
     expect(citForm.tin).toBe("12345678-0001");
     expect(citForm.taxYear).toBe(2026);
-    expect(citForm.turnover).toBe(500000);
-    expect(citForm.taxRate).toBe(20); // Medium company rate
+    expect(citForm.turnover).toBe(incomeStatement.revenue.total);
+    expect(citForm.taxRate).toBe(30); // Other Company rate
   });
 
   it("should calculate filing deadlines correctly", async () => {
-    const { getFilingDeadlines, getUpcomingDeadlines } =
+    const { getFilingDeadlines } =
       await import("@/lib/nrs-filing/deadline-manager");
 
     const deadlines = getFilingDeadlines(2026);
@@ -246,17 +315,18 @@ describe("End-to-End: Full Tax Filing Workflow", () => {
       "2026-01-31",
     );
 
-    expect(incomeStatement.revenue.total).toBe(500000);
-    expect(incomeStatement.expenses.total).toBe(175000);
+    expect(incomeStatement.revenue.total).toBe(5_000_000);
+    expect(incomeStatement.expenses.total).toBe(1_750_000);
 
-    // 3. Generate Tax Computation (Sprint 6)
-    const { generateTaxComputation } =
-      await import("@/lib/financial-statements/tax-computation");
-    const taxComputation = generateTaxComputation(
+    // 3. Compute tax through the shared FS/NRS helper (Sprint 6)
+    const { computeTaxForPeriod } =
+      await import("@/lib/financial-statements/compute-tax-for-period");
+    const { data: taxComputation } = computeTaxForPeriod({
       incomeStatement,
-      "individual",
-      500000,
-    );
+      entityType: "individual",
+      annualTurnover: 5_000_000,
+      rules: ruleBundle,
+    });
 
     expect(taxComputation.taxableIncome).toBeGreaterThan(0);
 
@@ -281,5 +351,3 @@ describe("End-to-End: Full Tax Filing Workflow", () => {
     expect(pitDeadline?.dueDate).toBe("2027-03-31");
   });
 });
-
-console.log("✅ All critical path integration tests defined");

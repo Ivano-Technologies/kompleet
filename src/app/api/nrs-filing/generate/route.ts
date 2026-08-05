@@ -8,7 +8,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { generateIncomeStatement } from "@/lib/financial-statements/income-statement";
-import { generateTaxComputation } from "@/lib/financial-statements/tax-computation";
+import { computeTaxForPeriod } from "@/lib/financial-statements/compute-tax-for-period";
+import { loadRuleBundle } from "@/lib/tax/rule-loader";
+import { MissingTaxRuleError } from "@/lib/tax/errors";
 import {
   generatePITForm,
   generateCITForm,
@@ -86,12 +88,17 @@ async function handlePOST(request: NextRequest) {
       endDate,
     );
 
-    // Generate Tax Computation
-    const taxComputation = generateTaxComputation(
+    // Compute tax via the shared FS/NRS helper (see
+    // src/lib/financial-statements/compute-tax-for-period.ts) so figures
+    // stay identical to /api/financial-statements/generate for the same
+    // inputs.
+    const rules = await loadRuleBundle({ client: supabase });
+    const { data: taxComputation } = computeTaxForPeriod({
       incomeStatement,
-      entityType || "individual",
-      annualTurnover || incomeStatement.revenue.total,
-    );
+      entityType: entityType === "company" ? "company" : "individual",
+      annualTurnover: annualTurnover || incomeStatement.revenue.total,
+      rules,
+    });
 
     // Generate appropriate form
     if (formType === "PIT") {
@@ -147,6 +154,9 @@ async function handlePOST(request: NextRequest) {
     }
   } catch (error) {
     console.error("Generate NRS form error:", error);
+    if (error instanceof MissingTaxRuleError) {
+      return NextResponse.json({ error: error.message }, { status: 422 });
+    }
     return NextResponse.json(
       { error: "Failed to generate NRS form" },
       { status: 500 },

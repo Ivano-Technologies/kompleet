@@ -1,9 +1,17 @@
 /**
- * Tax Computation Schedule Generator
- * Generates tax computation with 2026 Tax Act references
+ * Tax Computation Report Helpers
+ * ===============================
+ * `TaxComputationData` (the legacy report/form shape) + HTML renderer,
+ * consumed by src/lib/nrs-filing/form-generator.ts and the financial
+ * statements HTML report.
+ *
+ * This module intentionally contains NO tax rates or thresholds of its
+ * own — `toTaxComputationData` only reshapes an already-computed
+ * `TaxComputationResult` (from the rule-driven
+ * src/lib/services/tax-computation-service.ts) into the legacy field
+ * names these renderers expect. See docs/TAX_RULE_PROVENANCE.md.
  */
-
-import { IncomeStatementData } from "./income-statement";
+import type { TaxComputationResult } from "@/lib/services/tax-computation-service";
 
 export interface TaxComputationData {
   accountingProfit: number;
@@ -18,137 +26,60 @@ export interface TaxComputationData {
 }
 
 /**
- * Generate Tax Computation Schedule
+ * Adapt a `TaxComputationService.computeTax()` result into the legacy
+ * `TaxComputationData` shape. `addBack`/`deductions` are derived from the
+ * result's own labeled tax breakdown lines ("Add: ...", "Less: ...")
+ * rather than re-deriving them from raw income-statement categories.
  */
-export function generateTaxComputation(
-  incomeStatement: IncomeStatementData,
-  entityType: "individual" | "company",
-  annualTurnover: number,
+export function toTaxComputationData(
+  result: TaxComputationResult,
 ): TaxComputationData {
-  const accountingProfit = incomeStatement.netProfit;
-
-  // Tax adjustments (add-backs and deductions)
   const addBack: Record<string, number> = {};
   const deductions: Record<string, number> = {};
 
-  // Example adjustments (simplified)
-  // In production, these would be calculated from detailed expense analysis
-  if (incomeStatement.expenses.breakdown["Entertainment"]) {
-    addBack["Non-deductible Entertainment"] =
-      incomeStatement.expenses.breakdown["Entertainment"] * 0.5;
-  }
-
-  if (incomeStatement.expenses.breakdown["Depreciation"]) {
-    addBack["Accounting Depreciation"] =
-      incomeStatement.expenses.breakdown["Depreciation"];
-    deductions["Capital Allowances"] =
-      incomeStatement.expenses.breakdown["Depreciation"] * 0.8;
-  }
-
-  // Calculate total adjustments
-  const totalAddBack = Object.values(addBack).reduce(
-    (sum, val) => sum + val,
-    0,
-  );
-  const totalDeductions = Object.values(deductions).reduce(
-    (sum, val) => sum + val,
-    0,
-  );
-
-  // Calculate taxable income
-  const taxableIncome = Math.max(
-    0,
-    accountingProfit + totalAddBack - totalDeductions,
-  );
-
-  // Determine tax rate based on entity type and 2026 Tax Act
-  let taxRate = 0;
-  let taxLiability = 0;
-
-  if (entityType === "company") {
-    // Corporate Income Tax (CIT) rates under 2026 Tax Act
-    if (annualTurnover <= 25000000) {
-      // Small companies: 0% (first ₦25M turnover)
-      taxRate = 0;
-      taxLiability = 0;
-    } else if (annualTurnover <= 100000000) {
-      // Medium companies: 20%
-      taxRate = 20;
-      taxLiability = taxableIncome * 0.2;
-    } else {
-      // Large companies: 25%
-      taxRate = 25;
-      taxLiability = taxableIncome * 0.25;
-    }
-  } else {
-    // Personal Income Tax (PIT) progressive rates under 2026 Tax Act
-    if (taxableIncome <= 300000) {
-      taxRate = 7;
-      taxLiability = taxableIncome * 0.07;
-    } else if (taxableIncome <= 600000) {
-      taxRate = 11;
-      taxLiability = 300000 * 0.07 + (taxableIncome - 300000) * 0.11;
-    } else if (taxableIncome <= 1100000) {
-      taxRate = 15;
-      taxLiability =
-        300000 * 0.07 + 300000 * 0.11 + (taxableIncome - 600000) * 0.15;
-    } else if (taxableIncome <= 1600000) {
-      taxRate = 19;
-      taxLiability =
-        300000 * 0.07 +
-        300000 * 0.11 +
-        500000 * 0.15 +
-        (taxableIncome - 1100000) * 0.19;
-    } else if (taxableIncome <= 3200000) {
-      taxRate = 21;
-      taxLiability =
-        300000 * 0.07 +
-        300000 * 0.11 +
-        500000 * 0.15 +
-        500000 * 0.19 +
-        (taxableIncome - 1600000) * 0.21;
-    } else {
-      taxRate = 24;
-      taxLiability =
-        300000 * 0.07 +
-        300000 * 0.11 +
-        500000 * 0.15 +
-        500000 * 0.19 +
-        1600000 * 0.21 +
-        (taxableIncome - 3200000) * 0.24;
+  for (const item of result.taxBreakdown) {
+    if (item.description.startsWith("Add: ")) {
+      addBack[item.description.replace(/^Add: /, "")] = item.amount;
+    } else if (item.description.startsWith("Less: ")) {
+      deductions[item.description.replace(/^Less: /, "")] = Math.abs(
+        item.amount,
+      );
     }
   }
 
-  // Legal references from 2026 Tax Act
-  const legalReferences: Record<string, string> = {
-    "Tax Rates":
-      entityType === "company"
-        ? "Section 40(1) of Nigeria Tax Act 2025 - Corporate Income Tax rates"
-        : "Section 33 of Nigeria Tax Act 2025 - Personal Income Tax rates",
-    "Capital Allowances":
-      "Section 44 of Nigeria Tax Act 2025 - Capital allowances on qualifying expenditure",
-    "Non-deductible Expenses":
-      "Section 45(2) of Nigeria Tax Act 2025 - Expenses not deductible for tax purposes",
-    "Small Company Relief":
-      "Section 40(3) of Nigeria Tax Act 2025 - Small company tax relief",
-  };
+  const incomeTaxBreakdownItem = result.taxBreakdown.find(
+    (item) => item.description === "Income Tax",
+  );
+
+  const legalReferences: Record<string, string> =
+    result.businessClassification === "Individual Taxpayer"
+      ? {
+          "Tax Rates":
+            "Section 33 of Nigeria Tax Act 2025 - Personal Income Tax rates",
+          "Non-deductible Expenses":
+            "Section 45(2) of Nigeria Tax Act 2025 - Expenses not deductible for tax purposes",
+        }
+      : {
+          "Tax Rates":
+            "Section 40(1) of Nigeria Tax Act 2025 - Corporate Income Tax rates",
+          "Capital Allowances":
+            "Section 44 of Nigeria Tax Act 2025 - Capital allowances on qualifying expenditure",
+          "Non-deductible Expenses":
+            "Section 45(2) of Nigeria Tax Act 2025 - Expenses not deductible for tax purposes",
+          "Small Company Relief":
+            "Section 40(3) of Nigeria Tax Act 2025 - Small company tax relief",
+        };
 
   return {
-    accountingProfit,
-    taxAdjustments: {
-      addBack,
-      deductions,
-    },
-    taxableIncome,
-    taxRate,
-    taxLiability,
+    accountingProfit: result.grossIncome - result.deductibleExpenses,
+    taxAdjustments: { addBack, deductions },
+    taxableIncome: result.taxableIncome,
+    taxRate: incomeTaxBreakdownItem?.rate ?? 0,
+    taxLiability: result.incomeTax,
     legalReferences,
   };
 }
 
-/**
- * Format currency
- */
 function formatCurrency(amount: number): string {
   return `₦${amount.toLocaleString("en-NG", {
     minimumFractionDigits: 2,
@@ -157,7 +88,7 @@ function formatCurrency(amount: number): string {
 }
 
 /**
- * Generate Tax Computation as HTML
+ * Generate Tax Computation Schedule as HTML.
  */
 export function generateTaxComputationHTML(data: TaxComputationData): string {
   const {

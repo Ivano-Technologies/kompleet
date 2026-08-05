@@ -68,16 +68,39 @@ export default function CapitalAllowancesCalculator() {
     fetchRules();
   }, []);
 
+  const REQUIRED_RULE_KEYS = [
+    "rate_10_percent",
+    "rate_20_percent",
+    "rate_25_percent",
+  ] as const;
+
+  const missingRuleKeys = REQUIRED_RULE_KEYS.filter(
+    (key) => !rules[key]?.value,
+  );
+  const rulesUnavailable =
+    !rulesLoading && (!!rulesError || missingRuleKeys.length > 0);
+
   const getAssetRate = (type: string): number => {
     const rateMap: Record<string, number> = {
-      buildings: rules.rate_10_percent?.value?.rate || 10,
-      plant: rules.rate_20_percent?.value?.rate || 20,
-      vehicles: rules.rate_25_percent?.value?.rate || 25,
+      buildings: rules.rate_10_percent.value.rate,
+      plant: rules.rate_20_percent.value.rate,
+      vehicles: rules.rate_25_percent.value.rate,
     };
     return rateMap[type] || 0;
   };
 
   const calculateCapitalAllowance = () => {
+    if (rulesUnavailable) {
+      alert(
+        `Tax rules unavailable — cannot calculate capital allowance. Missing rule(s): ${
+          missingRuleKeys.length > 0
+            ? missingRuleKeys.join(", ")
+            : "capital_allowance.*"
+        }.`,
+      );
+      return;
+    }
+
     if (!assetType || !assetCost || !acquisitionDate) {
       alert("Please fill in all fields");
       return;
@@ -203,11 +226,17 @@ export default function CapitalAllowancesCalculator() {
         </div>
       </div>
 
-      {rulesError && (
-        <Alert className="mb-6 border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300">
+      {rulesUnavailable && (
+        <Alert
+          variant="destructive"
+          className="mb-6 bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-900/30 text-red-700 dark:text-red-300"
+        >
           <InfoIcon className="h-4 w-4" />
           <AlertDescription>
-            {rulesError}. Using fallback rates: 10%, 20%, 25%.
+            {rulesError
+              ? `Failed to load tax rules: ${rulesError}.`
+              : `Required capital allowance rules are unavailable (${missingRuleKeys.join(", ") || "capital_allowance.*"}).`}{" "}
+            Calculation is disabled until this is resolved.
           </AlertDescription>
         </Alert>
       )}
@@ -228,16 +257,27 @@ export default function CapitalAllowancesCalculator() {
               value={assetType}
               onChange={(e) => setAssetType(e.target.value)}
               className="w-full mt-1 p-2 border rounded-lg bg-light-background dark:bg-dark-background border-light-border dark:border-dark-border"
-              disabled={loading}
+              disabled={loading || rulesUnavailable}
             >
               <option value="">Select asset type...</option>
               <option value="buildings">
-                Buildings, Structures, Masts (10%)
+                Buildings, Structures, Masts
+                {rules.rate_10_percent?.value?.rate != null
+                  ? ` (${rules.rate_10_percent.value.rate}%)`
+                  : ""}
               </option>
               <option value="plant">
-                Plant, Machinery, Equipment, Furniture (20%)
+                Plant, Machinery, Equipment, Furniture
+                {rules.rate_20_percent?.value?.rate != null
+                  ? ` (${rules.rate_20_percent.value.rate}%)`
+                  : ""}
               </option>
-              <option value="vehicles">Vehicles, Software (25%)</option>
+              <option value="vehicles">
+                Vehicles, Software
+                {rules.rate_25_percent?.value?.rate != null
+                  ? ` (${rules.rate_25_percent.value.rate}%)`
+                  : ""}
+              </option>
             </select>
           </div>
 
@@ -249,7 +289,7 @@ export default function CapitalAllowancesCalculator() {
               placeholder="e.g., 10000000"
               value={assetCost}
               onChange={(e) => setAssetCost(e.target.value)}
-              disabled={loading}
+              disabled={loading || rulesUnavailable}
               className="rounded-lg"
             />
           </div>
@@ -261,7 +301,7 @@ export default function CapitalAllowancesCalculator() {
               type="date"
               value={acquisitionDate}
               onChange={(e) => setAcquisitionDate(e.target.value)}
-              disabled={loading}
+              disabled={loading || rulesUnavailable}
               max={new Date().toISOString().split("T")[0]}
               className="rounded-lg"
             />
@@ -269,7 +309,13 @@ export default function CapitalAllowancesCalculator() {
 
           <Button
             onClick={calculateCapitalAllowance}
-            disabled={loading || !assetType || !assetCost || !acquisitionDate}
+            disabled={
+              loading ||
+              rulesUnavailable ||
+              !assetType ||
+              !assetCost ||
+              !acquisitionDate
+            }
             className="w-full btn-primary rounded-lg"
           >
             {loading ? (
@@ -277,7 +323,11 @@ export default function CapitalAllowancesCalculator() {
             ) : (
               <Calculator className="mr-2 h-4 w-4" />
             )}
-            {loading ? "Calculating..." : "Calculate Allowance"}
+            {loading
+              ? "Calculating..."
+              : rulesUnavailable
+                ? "Rules Unavailable"
+                : "Calculate Allowance"}
           </Button>
         </div>
       </Card>
@@ -390,7 +440,8 @@ export default function CapitalAllowancesCalculator() {
                 },
                 ruleVersion: "v1.0.0-2025-tax-act",
                 sources: ["Nigerian Revenue Service (NRS)"],
-                confidenceLevel: "High",
+                confidenceLevel:
+                  rules.rate_10_percent?.confidence || "unavailable",
               });
             }}
             className="w-full mt-4 btn-secondary rounded-lg"
@@ -415,7 +466,7 @@ export default function CapitalAllowancesCalculator() {
           <p>
             <strong>Data Source:</strong> Nigerian Revenue Service (NRS),
             Confidence level:{" "}
-            {rules.rate_10_percent?.confidence || "high"}.
+            {rules.rate_10_percent?.confidence || "unavailable"}.
           </p>
           <p>
             <strong>Disclaimer:</strong> This is an estimate. Consult a

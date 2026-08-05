@@ -50,12 +50,34 @@ export default function IndividualTaxCalculatorPage() {
     error: rulesError,
   } = useTaxRules("individual_income_tax");
 
+  const REQUIRED_RULE_KEYS = [
+    "tax_bracket_1",
+    "tax_bracket_2",
+    "tax_bracket_3",
+    "tax_bracket_4",
+    "tax_bracket_5",
+    "tax_bracket_6",
+    "rent_relief",
+  ] as const;
+
+  const missingRuleKeys = rules
+    ? REQUIRED_RULE_KEYS.filter((key) => !rules[key]?.value)
+    : [];
+  const rulesUnavailable =
+    !rulesLoading && (!!rulesError || !rules || missingRuleKeys.length > 0);
+
   const calculateIndividualTax = () => {
     setError("");
     setResult(null);
 
-    if (!rules) {
-      setError("Tax rules are not loaded yet. Please wait...");
+    if (!rules || missingRuleKeys.length > 0) {
+      setError(
+        `Tax rules unavailable — cannot calculate individual tax. Missing rule(s): ${
+          missingRuleKeys.length > 0
+            ? missingRuleKeys.join(", ")
+            : "individual_income_tax.*"
+        }. Please try again later or contact support.`,
+      );
       return;
     }
 
@@ -79,41 +101,20 @@ export default function IndividualTaxCalculatorPage() {
     }
 
     const TAX_BRACKETS = [
-      {
-        from: rules.tax_bracket_1?.value?.from || 0,
-        to: rules.tax_bracket_1?.value?.to || 800_000,
-        rate: (rules.tax_bracket_1?.value?.rate || 0) / 100,
-      },
-      {
-        from: rules.tax_bracket_2?.value?.from || 800_001,
-        to: rules.tax_bracket_2?.value?.to || 3_000_000,
-        rate: (rules.tax_bracket_2?.value?.rate || 15) / 100,
-      },
-      {
-        from: rules.tax_bracket_3?.value?.from || 3_000_001,
-        to: rules.tax_bracket_3?.value?.to || 12_000_000,
-        rate: (rules.tax_bracket_3?.value?.rate || 18) / 100,
-      },
-      {
-        from: rules.tax_bracket_4?.value?.from || 12_000_001,
-        to: rules.tax_bracket_4?.value?.to || 25_000_000,
-        rate: (rules.tax_bracket_4?.value?.rate || 21) / 100,
-      },
-      {
-        from: rules.tax_bracket_5?.value?.from || 25_000_001,
-        to: rules.tax_bracket_5?.value?.to || 50_000_000,
-        rate: (rules.tax_bracket_5?.value?.rate || 23) / 100,
-      },
-      {
-        from: rules.tax_bracket_6?.value?.from || 50_000_001,
-        to: rules.tax_bracket_6?.value?.to || null,
-        rate: (rules.tax_bracket_6?.value?.rate || 25) / 100,
-      },
-    ];
+      rules.tax_bracket_1,
+      rules.tax_bracket_2,
+      rules.tax_bracket_3,
+      rules.tax_bracket_4,
+      rules.tax_bracket_5,
+      rules.tax_bracket_6,
+    ].map((bracket) => ({
+      from: bracket.value.from,
+      to: bracket.value.to,
+      rate: bracket.value.rate / 100,
+    }));
 
-    const rentReliefCap = rules.rent_relief?.value?.cap || 500_000;
-    const rentReliefPercentage =
-      (rules.rent_relief?.value?.percentage || 20) / 100;
+    const rentReliefCap = rules.rent_relief.value.cap;
+    const rentReliefPercentage = rules.rent_relief.value.percentage / 100;
     const rentRelief = Math.min(
       rentReliefCap,
       rentPaidNum * rentReliefPercentage,
@@ -195,14 +196,17 @@ export default function IndividualTaxCalculatorPage() {
           </div>
         </div>
 
-        {rulesError && (
+        {rulesUnavailable && (
           <Alert
             variant="destructive"
             className="mb-6 bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-900/30 text-red-800 dark:text-red-200"
           >
             <InfoIcon className="h-4 w-4" />
             <AlertDescription>
-              Failed to load tax rules: {rulesError}. Using fallback rates.
+              {rulesError
+                ? `Failed to load tax rules: ${rulesError}.`
+                : `Required individual tax rules are unavailable (${missingRuleKeys.join(", ") || "individual_income_tax.*"}).`}{" "}
+              Calculation is disabled until this is resolved.
             </AlertDescription>
           </Alert>
         )}
@@ -231,7 +235,7 @@ export default function IndividualTaxCalculatorPage() {
                   placeholder="e.g., 15000000"
                   value={grossIncome}
                   onChange={(e) => setGrossIncome(e.target.value)}
-                  disabled={rulesLoading}
+                  disabled={rulesLoading || rulesUnavailable}
                   className="rounded-lg bg-light-background dark:bg-dark-background border-light-border dark:border-dark-border"
                 />
               </div>
@@ -249,15 +253,14 @@ export default function IndividualTaxCalculatorPage() {
                   placeholder="e.g., 3000000"
                   value={rentPaid}
                   onChange={(e) => setRentPaid(e.target.value)}
-                  disabled={rulesLoading}
+                  disabled={rulesLoading || rulesUnavailable}
                   className="rounded-lg bg-light-background dark:bg-dark-background border-light-border dark:border-dark-border"
                 />
                 <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
-                  Relief: ₦
-                  {rules?.rent_relief?.value?.cap?.toLocaleString() ||
-                    "500,000"}{" "}
-                  or {rules?.rent_relief?.value?.percentage || 20}% of rent
-                  (whichever is lower)
+                  {rules?.rent_relief?.value?.cap != null &&
+                  rules?.rent_relief?.value?.percentage != null
+                    ? `Relief: ₦${rules.rent_relief.value.cap.toLocaleString()} or ${rules.rent_relief.value.percentage}% of rent (whichever is lower)`
+                    : "Relief amount unavailable — tax rules not loaded"}
                 </p>
               </div>
 
@@ -274,7 +277,7 @@ export default function IndividualTaxCalculatorPage() {
                   placeholder="e.g., 500000"
                   value={ownerOccupierInterest}
                   onChange={(e) => setOwnerOccupierInterest(e.target.value)}
-                  disabled={rulesLoading}
+                  disabled={rulesLoading || rulesUnavailable}
                   className="rounded-lg bg-light-background dark:bg-dark-background border-light-border dark:border-dark-border"
                 />
                 <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
@@ -285,12 +288,17 @@ export default function IndividualTaxCalculatorPage() {
               <Button
                 onClick={calculateIndividualTax}
                 className="w-full btn-primary rounded-lg"
-                disabled={rulesLoading}
+                disabled={rulesLoading || rulesUnavailable}
               >
                 {rulesLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Loading Rules...
+                  </>
+                ) : rulesUnavailable ? (
+                  <>
+                    <InfoIcon className="mr-2 h-4 w-4" />
+                    Rules Unavailable
                   </>
                 ) : (
                   <>
@@ -441,7 +449,8 @@ export default function IndividualTaxCalculatorPage() {
                       },
                       ruleVersion: "v1.0.0-2025-tax-act",
                       sources: ["Nigerian Revenue Service (NRS)"],
-                      confidenceLevel: "High",
+                      confidenceLevel:
+                        rules?.tax_bracket_1?.confidence || "unavailable",
                     });
                   }}
                   variant="outline"
@@ -461,32 +470,40 @@ export default function IndividualTaxCalculatorPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-0">
-                  <div className="space-y-2 text-sm text-light-text-secondary dark:text-dark-text-secondary">
-                    <p className="flex justify-between">
-                      <span>First ₦800,000</span>
-                      <span className="font-medium">0%</span>
+                  {rulesUnavailable ? (
+                    <p className="text-sm text-light-text-tertiary dark:text-dark-text-tertiary">
+                      Tax bracket rates are unavailable — tax rules failed to
+                      load.
                     </p>
-                    <p className="flex justify-between">
-                      <span>₦800,001 - ₦3,000,000</span>
-                      <span className="font-medium">15%</span>
-                    </p>
-                    <p className="flex justify-between">
-                      <span>₦3,000,001 - ₦12,000,000</span>
-                      <span className="font-medium">18%</span>
-                    </p>
-                    <p className="flex justify-between">
-                      <span>₦12,000,001 - ₦25,000,000</span>
-                      <span className="font-medium">21%</span>
-                    </p>
-                    <p className="flex justify-between">
-                      <span>₦25,000,001 - ₦50,000,000</span>
-                      <span className="font-medium">23%</span>
-                    </p>
-                    <p className="flex justify-between">
-                      <span>Above ₦50,000,000</span>
-                      <span className="font-medium">25%</span>
-                    </p>
-                  </div>
+                  ) : (
+                    <div className="space-y-2 text-sm text-light-text-secondary dark:text-dark-text-secondary">
+                      {(
+                        [
+                          "tax_bracket_1",
+                          "tax_bracket_2",
+                          "tax_bracket_3",
+                          "tax_bracket_4",
+                          "tax_bracket_5",
+                          "tax_bracket_6",
+                        ] as const
+                      ).map((key) => {
+                        const bracket = rules?.[key]?.value;
+                        if (!bracket) return null;
+                        return (
+                          <p key={key} className="flex justify-between">
+                            <span>
+                              {bracket.to
+                                ? `₦${bracket.from.toLocaleString()} - ₦${bracket.to.toLocaleString()}`
+                                : `Above ₦${bracket.from.toLocaleString()}`}
+                            </span>
+                            <span className="font-medium">
+                              {bracket.rate}%
+                            </span>
+                          </p>
+                        );
+                      })}
+                    </div>
+                  )}
                 </CardContent>
               </div>
             )}
@@ -508,7 +525,7 @@ export default function IndividualTaxCalculatorPage() {
             <p>
               <strong>Data Source:</strong> Nigerian Revenue Service (NRS),
               Confidence level:{" "}
-              {rules?.tax_bracket_1?.confidence || "high"}.
+              {rules?.tax_bracket_1?.confidence || "unavailable"}.
             </p>
             <p>
               <strong>Disclaimer:</strong> This is an estimate. Consult a

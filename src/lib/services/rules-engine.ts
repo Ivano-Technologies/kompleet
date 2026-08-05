@@ -203,11 +203,15 @@ export class RulesEngineService {
     const baseDisclaimer =
       "This calculation is based on the Nigeria Tax Act 2025 and related regulations. Tax laws are subject to interpretation and change.";
 
-    const confidenceText = {
+    const confidenceText: Record<ConfidenceLevel, string> = {
       high: "This interpretation is based on primary sources (official legislation and NRS guidance) and has high confidence.",
       medium:
         "This interpretation is based on secondary sources (professional tax firms) and has medium confidence. Please consult a tax professional for confirmation.",
       low: "This interpretation has low confidence due to legal ambiguity or lack of official guidance. Professional tax advice is strongly recommended.",
+      unverified:
+        "This figure is seeded as unverified pending practitioner review. Confirm with your tax advisor before relying on it for a filing.",
+      verified:
+        "This interpretation has been reviewed and verified by a tax practitioner against primary legislation.",
     };
 
     return `${baseDisclaimer} ${confidenceText[confidenceLevel]} Last reviewed: ${new Date().toISOString().split("T")[0]}.`;
