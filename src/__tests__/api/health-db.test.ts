@@ -4,10 +4,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const selectMock = vi.fn();
 const fromMock = vi.fn(() => ({ select: selectMock }));
-const createClientMock = vi.fn(() => ({ from: fromMock }));
+const createClientMock = vi.fn(
+  (_url: string, _key: string, _options?: unknown) => ({ from: fromMock }),
+);
 
 vi.mock("@supabase/supabase-js", () => ({
-  createClient: (...args: unknown[]) => createClientMock(...args),
+  createClient: (url: string, key: string, options?: unknown) =>
+    createClientMock(url, key, options),
 }));
 
 import { GET } from "@/app/api/health/db/route";
