@@ -32,7 +32,7 @@ Work that changes **RLS policies** gets a short-lived branch and a PR.
 
 Reason: a bad RLS change landing on `staging` and then promoted is the cross-tenant leakage scenario in `docs/TENANCY_DESIGN.md` §3.2. Everything else is recoverable by rolling back a deployment; that one is not, because it is a data-exposure event rather than a broken build.
 
-Branch, PR into `staging`, delete on merge. Schema itself still goes through a Supabase branch (`create_branch` → verify → `merge_branch`) per `docs/PHASE_3_BRIEF.md` §1.
+Branch, PR into `staging`, delete on merge. Schema itself is verified locally (`pnpm supabase start` → apply → negative suite + gen types), then applied to production via `apply_migration`, per `docs/PHASE_3_BRIEF.md` §1. Do not use billed Supabase branches.
 
 ## Dependabot
 
