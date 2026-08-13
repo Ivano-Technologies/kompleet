@@ -14,7 +14,11 @@
 #
 # Required GitHub config (owner):
 #   secrets.KEEPALIVE_TOKEN  — same value as Vercel production env KEEPALIVE_TOKEN
-#   vars.PRODUCTION_URL      — https://ivanotechnologies.com (no trailing slash)
+#   vars.PRODUCTION_URL      — https://www.ivanotechnologies.com
+#     Apex ivanotechnologies.com 307s to www. GitHub Actions IPs are challenged
+#     by Cloudflare Bot Fight on the custom domain (HTTP 403 HTML). Owner: add a
+#     WAF skip for GET /api/health/db. Until then this job failing is the alarm.
+#     Do not point PRODUCTION_URL at *.vercel.app — SSO is on for non-custom hosts.
 
 name: Database keep-alive
 
@@ -45,8 +49,9 @@ jobs:
           fi
           url="${PRODUCTION_URL%/}/api/health/db"
           echo "GET ${url}"
-          code=$(curl -sS -o /tmp/keepalive-body -w "%{http_code}" \
+          code=$(curl -sS -L --max-redirs 5 -o /tmp/keepalive-body -w "%{http_code}" \
             -H "x-keepalive-token: ${KEEPALIVE_TOKEN}" \
+            -A "KompleetKeepalive/1.0" \
             --max-time 30 \
             "$url")
           echo "HTTP ${code}"
