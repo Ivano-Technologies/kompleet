@@ -26,6 +26,7 @@
     "check:schema-drift": "node scripts/check-schema-drift.mjs",
     "check:migrations": "node scripts/check-migrations-applied.mjs",
     "check:security-advisors": "node scripts/check-security-advisors.mjs",
+    "check:tax-rates": "node scripts/check-no-hardcoded-tax-rates.mjs",
     "security:scan-ocr-logs": "node scripts/scan-ocr-log-safety.js",
     "supabase": "pnpm dlx supabase@2",
     "mobile:install": "node scripts/mobile-install.js",

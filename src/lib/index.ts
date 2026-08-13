@@ -4,7 +4,11 @@
  * Central export point for all utility modules.
  *
  * USAGE:
- *   import { env, logger, TAX_CONSTANTS } from '@/lib';
+ *   import { env, logger, SUBSCRIPTION_TIERS } from '@/lib';
+ *
+ * NOTE: Tax rates/thresholds are NOT exported here — they are loaded from
+ * the `tax_rules` database via `src/lib/tax/rule-loader.ts`. See
+ * docs/TAX_RULE_PROVENANCE.md.
  */
 
 // Environment configuration
@@ -28,21 +32,6 @@ export {
   nairaToKobo,
   koboToNaira,
   formatNaira,
-  // Tax constants
-  TAX_CONSTANTS,
-  PIT_BRACKETS,
-  PIT_RELIEFS,
-  PIT_MINIMUM_TAX,
-  CIT_RATES,
-  CIT_ADDITIONAL,
-  CIT_MINIMUM_TAX,
-  CAPITAL_ALLOWANCES,
-  VAT_RATE,
-  VAT_REGISTRATION_THRESHOLD,
-  VAT_EXEMPT_CATEGORIES,
-  VAT_ZERO_RATED,
-  WHT_RATES,
-  WHT_DEFAULT_THRESHOLD,
   // Subscriptions
   SUBSCRIPTION_TIERS,
   getSubscriptionTier,
@@ -51,10 +40,9 @@ export {
   SUPPORTED_BANKS,
   SUPPORTED_FILE_TYPES,
   DATE_FORMATS,
-  TAX_YEAR,
   AI_CONFIDENCE_THRESHOLDS,
   RATE_LIMITS,
   PAGINATION,
   APP_LIMITS,
 } from "./constants";
-export type { TaxBracket, WHTRate, SubscriptionTier } from "./constants";
+export type { SubscriptionTier } from "./constants";

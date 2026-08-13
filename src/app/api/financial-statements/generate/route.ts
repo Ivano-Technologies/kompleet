@@ -10,10 +10,10 @@ import {
   generateIncomeStatement,
   generateIncomeStatementHTML,
 } from "@/lib/financial-statements/income-statement";
-import {
-  generateTaxComputation,
-  generateTaxComputationHTML,
-} from "@/lib/financial-statements/tax-computation";
+import { generateTaxComputationHTML } from "@/lib/financial-statements/tax-computation-html";
+import { computeTaxForPeriod } from "@/lib/financial-statements/compute-tax-for-period";
+import { loadRuleBundle } from "@/lib/tax/rule-loader";
+import { MissingTaxRuleError } from "@/lib/tax/errors";
 import { withRateLimit } from "@/lib/with-rate-limit";
 
 export const runtime = "nodejs";
@@ -76,12 +76,16 @@ async function handlePOST(request: NextRequest) {
       endDate,
     );
 
-    // Generate Tax Computation
-    const taxComputation = generateTaxComputation(
+    // Load tax rules and compute tax via the shared FS/NRS helper (see
+    // src/lib/financial-statements/compute-tax-for-period.ts) so figures
+    // stay identical to /api/nrs-filing/generate for the same inputs.
+    const rules = await loadRuleBundle({ client: supabase });
+    const { data: taxComputation } = computeTaxForPeriod({
       incomeStatement,
-      entityType || "individual",
-      annualTurnover || incomeStatement.revenue.total,
-    );
+      entityType: entityType === "company" ? "company" : "individual",
+      annualTurnover: annualTurnover || incomeStatement.revenue.total,
+      rules,
+    });
 
     // Return data based on format
     if (format === "html") {
@@ -102,6 +106,9 @@ async function handlePOST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Generate financial statements error:", error);
+    if (error instanceof MissingTaxRuleError) {
+      return NextResponse.json({ error: error.message }, { status: 422 });
+    }
     return NextResponse.json(
       { error: "Failed to generate financial statements" },
       { status: 500 },

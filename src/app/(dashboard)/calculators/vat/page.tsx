@@ -25,14 +25,45 @@ import { useTaxRules } from "@/hooks/useTaxRules";
 import { logCalculation } from "@/hooks/useAuditLog";
 import { generateCalculationPDF } from "@/lib/pdf-generator";
 import { SaveCalculationButton } from "@/components/calculators/SaveCalculationButton";
+import {
+  resolveVatObligationStatus,
+  type VatObligationStatus,
+} from "@/lib/tax/rule-loader";
+import type { LoadedRule, RuleBundle } from "@/lib/tax/types";
 
 interface VATResult {
-  isExempt: boolean;
+  /** Rent-schedule exemption only — never SME registration/filing assertion. */
+  isRentExempt: boolean;
   exemptionReason: string | null;
   netAmount: number;
   vatAmount: number;
   grossAmount: number;
   vatRate: number;
+  obligation: VatObligationStatus;
+}
+
+/** Build a RuleBundle from the flat useTaxRules map for obligation resolution. */
+function bundleFromRulesMap(
+  rules: Record<string, { value: any; confidence: string; notes: string }>,
+): RuleBundle {
+  const map = new Map<string, LoadedRule>();
+  for (const [ruleKey, rule] of Object.entries(rules)) {
+    map.set(`vat.${ruleKey}`, {
+      ruleType: "vat",
+      ruleKey,
+      value: rule.value,
+      confidenceLevel: rule.confidence as LoadedRule["confidenceLevel"],
+      sourceId: "",
+      ruleVersionId: "",
+      notes: rule.notes ?? null,
+      lastReviewedAt: "",
+    });
+  }
+  return {
+    activeVersionId: null,
+    unverifiedVersionId: null,
+    rules: map,
+  };
 }
 
 export default function VATCalculatorPage() {
@@ -52,12 +83,26 @@ export default function VATCalculatorPage() {
     error: rulesError,
   } = useTaxRules("vat");
 
+  // Rate calculation only needs the standard rate. Registration/filing
+  // obligation is a separate, unresolved determination (ASK 1).
+  const REQUIRED_RULE_KEYS = ["standard_rate"] as const;
+
+  const missingRuleKeys = rules
+    ? REQUIRED_RULE_KEYS.filter((key) => !rules[key]?.value)
+    : [];
+  const rulesUnavailable =
+    !rulesLoading && (!!rulesError || !rules || missingRuleKeys.length > 0);
+
   const calculateVAT = () => {
     setError("");
     setResult(null);
 
-    if (!rules) {
-      setError("Tax rules are not loaded yet. Please wait...");
+    if (!rules || missingRuleKeys.length > 0) {
+      setError(
+        `Tax rules unavailable — cannot calculate VAT. Missing rule(s): ${
+          missingRuleKeys.length > 0 ? missingRuleKeys.join(", ") : "vat.*"
+        }. Please try again later or contact support.`,
+      );
       return;
     }
 
@@ -80,56 +125,62 @@ export default function VATCalculatorPage() {
       return;
     }
 
-    const VAT_RATE = (rules.standard_rate?.value?.rate || 7.5) / 100;
-    const SMALL_BUSINESS_TURNOVER_THRESHOLD =
-      rules.small_business_exemption_turnover?.value?.threshold || 100_000_000;
-    const SMALL_BUSINESS_ASSETS_THRESHOLD =
-      rules.small_business_exemption_assets?.value?.threshold || 250_000_000;
+    const ratePercent = rules.standard_rate.value.rate;
+    if (typeof ratePercent !== "number") {
+      setError("VAT standard_rate rule is malformed — calculation blocked.");
+      return;
+    }
+    const VAT_RATE = ratePercent / 100;
 
-    let isExempt = false;
+    // Rent exemption is schedule-driven and separate from the disputed SME
+    // registration threshold. Only assert rent when the rent_exemption rule exists.
+    let isRentExempt = false;
     let exemptionReason: string | null = null;
-
     if (isRentTransaction) {
-      isExempt = true;
-      exemptionReason = "Rent transactions are exempt from VAT";
+      if (!rules.rent_exemption?.value?.exempt) {
+        setError(
+          "Rent exemption rule unavailable — cannot treat this as exempt without a verified schedule entry.",
+        );
+        return;
+      }
+      isRentExempt = true;
+      exemptionReason = "Rent (land or building) is exempt from VAT";
     }
 
-    if (
-      !isExempt &&
-      turnoverNum < SMALL_BUSINESS_TURNOVER_THRESHOLD &&
-      assetsNum < SMALL_BUSINESS_ASSETS_THRESHOLD
-    ) {
-      isExempt = true;
-      exemptionReason = `Small business exemption (turnover < ₦${(SMALL_BUSINESS_TURNOVER_THRESHOLD / 1_000_000).toFixed(0)}M and assets < ₦${(SMALL_BUSINESS_ASSETS_THRESHOLD / 1_000_000).toFixed(0)}M)`;
-    }
+    // Obligation determination: NEVER assert register/exempt from a disputed
+    // threshold. Surface all candidate readings for the practitioner.
+    const obligation = resolveVatObligationStatus(
+      bundleFromRulesMap(rules),
+      turnoverNum,
+      assetsNum,
+    );
 
     let netAmount: number;
     let vatAmount: number;
     let grossAmount: number;
 
-    if (isExempt) {
+    if (isRentExempt) {
       netAmount = amountNum;
       vatAmount = 0;
       grossAmount = amountNum;
+    } else if (calculationType === "add") {
+      netAmount = amountNum;
+      vatAmount = amountNum * VAT_RATE;
+      grossAmount = netAmount + vatAmount;
     } else {
-      if (calculationType === "add") {
-        netAmount = amountNum;
-        vatAmount = amountNum * VAT_RATE;
-        grossAmount = netAmount + vatAmount;
-      } else {
-        grossAmount = amountNum;
-        netAmount = amountNum / (1 + VAT_RATE);
-        vatAmount = grossAmount - netAmount;
-      }
+      grossAmount = amountNum;
+      netAmount = amountNum / (1 + VAT_RATE);
+      vatAmount = grossAmount - netAmount;
     }
 
-    const calculationResult = {
-      isExempt,
+    const calculationResult: VATResult = {
+      isRentExempt,
       exemptionReason,
       netAmount,
       vatAmount,
       grossAmount,
       vatRate: VAT_RATE * 100,
+      obligation,
     };
 
     setResult(calculationResult);
@@ -170,14 +221,17 @@ export default function VATCalculatorPage() {
           </div>
         </div>
 
-        {rulesError && (
+        {rulesUnavailable && (
           <Alert
             variant="destructive"
             className="mb-6 bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-900/30 text-red-700 dark:text-red-300"
           >
             <InfoIcon className="h-4 w-4" />
             <AlertDescription>
-              Failed to load tax rules: {rulesError}. Using fallback rates.
+              {rulesError
+                ? `Failed to load tax rules: ${rulesError}.`
+                : `Required VAT rules are unavailable (${missingRuleKeys.join(", ") || "vat.*"}).`}{" "}
+              Calculation is disabled until this is resolved.
             </AlertDescription>
           </Alert>
         )}
@@ -202,22 +256,22 @@ export default function VATCalculatorPage() {
                     <input
                       type="radio"
                       value="add"
-                      checked={calculationType === "add"}
-                      onChange={(e) => setCalculationType("add")}
-                      className="h-4 w-4 rounded-lg"
-                      disabled={rulesLoading}
-                    />
-                    <span>Add VAT</span>
-                  </label>
-                  <label className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      value="extract"
-                      checked={calculationType === "extract"}
-                      onChange={(e) => setCalculationType("extract")}
-                      className="h-4 w-4 rounded-lg"
-                      disabled={rulesLoading}
-                    />
+                    checked={calculationType === "add"}
+                    onChange={(e) => setCalculationType("add")}
+                    className="h-4 w-4 rounded-lg"
+                    disabled={rulesLoading || rulesUnavailable}
+                  />
+                  <span>Add VAT</span>
+                </label>
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    value="extract"
+                    checked={calculationType === "extract"}
+                    onChange={(e) => setCalculationType("extract")}
+                    className="h-4 w-4 rounded-lg"
+                    disabled={rulesLoading || rulesUnavailable}
+                  />
                     <span>Extract VAT</span>
                   </label>
                 </div>
@@ -238,7 +292,7 @@ export default function VATCalculatorPage() {
                   placeholder="e.g., 100000"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  disabled={rulesLoading}
+                  disabled={rulesLoading || rulesUnavailable}
                   className="rounded-lg bg-light-background dark:bg-dark-background border-light-border dark:border-dark-border"
                 />
               </div>
@@ -256,7 +310,7 @@ export default function VATCalculatorPage() {
                   placeholder="e.g., 50000000"
                   value={turnover}
                   onChange={(e) => setTurnover(e.target.value)}
-                  disabled={rulesLoading}
+                  disabled={rulesLoading || rulesUnavailable}
                   className="rounded-lg bg-light-background dark:bg-dark-background border-light-border dark:border-dark-border"
                 />
                 <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
@@ -277,7 +331,7 @@ export default function VATCalculatorPage() {
                   placeholder="e.g., 200000000"
                   value={totalAssets}
                   onChange={(e) => setTotalAssets(e.target.value)}
-                  disabled={rulesLoading}
+                  disabled={rulesLoading || rulesUnavailable}
                   className="rounded-lg bg-light-background dark:bg-dark-background border-light-border dark:border-dark-border"
                 />
                 <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
@@ -292,7 +346,7 @@ export default function VATCalculatorPage() {
                   checked={isRentTransaction}
                   onChange={(e) => setIsRentTransaction(e.target.checked)}
                   className="h-4 w-4 rounded-lg"
-                  disabled={rulesLoading}
+                  disabled={rulesLoading || rulesUnavailable}
                 />
                 <Label
                   htmlFor="rent"
@@ -305,12 +359,17 @@ export default function VATCalculatorPage() {
               <Button
                 onClick={calculateVAT}
                 className="w-full btn-primary rounded-lg"
-                disabled={rulesLoading}
+                disabled={rulesLoading || rulesUnavailable}
               >
                 {rulesLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Loading Rules...
+                  </>
+                ) : rulesUnavailable ? (
+                  <>
+                    <InfoIcon className="mr-2 h-4 w-4" />
+                    Rules Unavailable
                   </>
                 ) : (
                   <>
@@ -347,20 +406,25 @@ export default function VATCalculatorPage() {
                         Standard VAT Rate
                       </p>
                       <p className="text-light-text-secondary dark:text-dark-text-secondary">
-                        {rules?.standard_rate?.value?.rate || 7.5}% (unchanged
-                        from previous law)
+                        {rules?.standard_rate?.value?.rate != null
+                          ? `${rules.standard_rate.value.rate}%`
+                          : "Unavailable"}{" "}
+                        (unchanged from previous law)
                       </p>
                     </div>
                   </div>
 
                   <div className="flex items-start">
-                    <CheckCircle2 className="h-4 w-4 mr-2 mt-0.5 text-green-500 dark:text-green-400" />
+                    <InfoIcon className="h-4 w-4 mr-2 mt-0.5 text-amber-500 dark:text-amber-400" />
                     <div>
                       <p className="font-medium text-light-text-primary dark:text-dark-text-primary">
-                        Small Business Exemption
+                        Registration / filing obligation
                       </p>
                       <p className="text-light-text-secondary dark:text-dark-text-secondary">
-                        Turnover &lt; ₦100M and Assets &lt; ₦250M
+                        Unverified — three mutually exclusive threshold
+                        candidates are under review. VAT amount calculation
+                        still uses the 7.5% rate; this calculator will not
+                        assert whether you must register or file.
                       </p>
                     </div>
                   </div>
@@ -386,11 +450,36 @@ export default function VATCalculatorPage() {
                   <CardTitle className="text-light-text-primary dark:text-dark-text-primary">
                     VAT Calculation Result
                   </CardTitle>
-                  {result.isExempt && (
+                  {result.isRentExempt && (
                     <Alert className="mt-2 bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-900/30 text-green-700 dark:text-green-300">
                       <CheckCircle2 className="h-4 w-4" />
                       <AlertDescription>
                         {result.exemptionReason}
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                  {result.obligation.status === "unresolved" && (
+                    <Alert className="mt-2 bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-900/30 text-amber-900 dark:text-amber-200">
+                      <InfoIcon className="h-4 w-4" />
+                      <AlertDescription className="space-y-2">
+                        <p className="font-medium">
+                          Registration/filing threshold unverified
+                        </p>
+                        <p className="text-sm">{result.obligation.reason}</p>
+                        <ul className="text-sm list-disc pl-4 space-y-1">
+                          {result.obligation.candidates.map((c) => (
+                            <li key={c.ruleKey}>
+                              <span className="font-mono text-xs">
+                                {c.ruleKey}
+                              </span>
+                              : ₦{c.thresholdNgn.toLocaleString("en-NG")}
+                              {c.assetsThresholdNgn != null
+                                ? ` / assets ₦${c.assetsThresholdNgn.toLocaleString("en-NG")}`
+                                : ""}{" "}
+                              — {c.resultUnderThisCandidate}
+                            </li>
+                          ))}
+                        </ul>
                       </AlertDescription>
                     </Alert>
                   )}
@@ -419,7 +508,7 @@ export default function VATCalculatorPage() {
                     <span>{formatCurrency(result.grossAmount)}</span>
                   </div>
 
-                  {!result.isExempt && (
+                  {!result.isRentExempt && (
                     <Alert className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-900/30 text-blue-700 dark:text-blue-300">
                       <InfoIcon className="h-4 w-4" />
                       <AlertDescription>
@@ -448,10 +537,11 @@ export default function VATCalculatorPage() {
                     taxDue={result.vatAmount}
                     effectiveRate={result.vatRate}
                     breakdown={{
-                      isExempt: result.isExempt,
+                      isRentExempt: result.isRentExempt,
                       exemptionReason: result.exemptionReason,
                       netAmount: result.netAmount,
                       vatAmount: result.vatAmount,
+                      obligationStatus: result.obligation.status,
                     }}
                     className="w-full mt-4 btn-primary rounded-lg"
                   />
@@ -477,8 +567,11 @@ export default function VATCalculatorPage() {
                           is_rent_transaction: isRentTransaction ? "Yes" : "No",
                         },
                         results: {
-                          vat_status: result.isExempt ? "Exempt" : "Applicable",
+                          vat_status: result.isRentExempt
+                            ? "Rent exempt"
+                            : "Rate applied",
                           exemption_reason: result.exemptionReason || "N/A",
+                          obligation: result.obligation.status,
                           net_amount: result.netAmount,
                           vat_amount: result.vatAmount,
                           gross_amount: result.grossAmount,
@@ -486,7 +579,8 @@ export default function VATCalculatorPage() {
                         },
                         ruleVersion: "v1.0.0-2025-tax-act",
                         sources: ["Nigerian Revenue Service (NRS)"],
-                        confidenceLevel: "High",
+                        confidenceLevel:
+                          rules?.standard_rate?.confidence || "unavailable",
                       });
                     }}
                     variant="outline"
@@ -509,14 +603,15 @@ export default function VATCalculatorPage() {
           </CardHeader>
           <CardContent className="text-sm text-light-text-secondary dark:text-dark-text-secondary space-y-2">
             <p>
-              This calculator implements the Nigeria Tax Act 2025 VAT
-              provisions. VAT rates and exemption thresholds are fetched
-              dynamically from the KOMPLEET Tax Rules Engine.
+              This calculator applies the Nigeria Tax Act 2025 VAT{" "}
+              <em>rate</em> from the rules engine. Registration and filing
+              obligation thresholds are disputed across sources and are shown
+              as unverified candidates — they do not change the VAT amount.
             </p>
             <p>
               <strong>Data Source:</strong> Nigerian Revenue Service (NRS),
               Confidence level:{" "}
-              {rules?.standard_rate?.confidence || "high"}.
+              {rules?.standard_rate?.confidence || "unavailable"}.
             </p>
             <p>
               <strong>Disclaimer:</strong> This is an estimate. Consult a
