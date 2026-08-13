@@ -24,7 +24,11 @@
 
 ## 1. Ground rules
 
-1. **All schema work on a Supabase branch.** `create_branch` → apply → verify → `merge_branch`.
+1. **All schema work verified locally first, then applied to production.** Run `pnpm supabase start` (local Postgres + Auth in Docker, free), apply the migration, run the negative suite and `supabase gen types` against it, then apply to production via `apply_migration`.
+
+   **Do not use Supabase branches.** They are billed hourly and the owner has ruled out paid Supabase services. They were specified in an earlier revision of this brief; that was the wrong call here. A branch protects production *data* during schema change — production holds 4 test accounts and zero customer records, and Wave A is purely additive. The real safety net is the negative suite (§5) and a tested rollback migration, neither of which needs a branch.
+
+   Every migration ships with a matching `down` migration, tested locally before the `up` is applied to production.
 2. **`client_id` at creation.** No `user_id`-only domain table intended for retrofit.
 3. **Every new table's migration contains `revoke all … from anon`.** `20260715144130` is a hardcoded list of 9 tables and covers nothing new.
 4. **Tables that already exist need policy replacement, not addition.** See §3 — this is the highest-risk operation in the phase.
