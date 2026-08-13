@@ -2,7 +2,7 @@
 -- Not a substitute for the Wave B JWT negative suite.
 --
 -- Usage (after `pnpm supabase start`):
---   psql postgresql://postgres:postgres@127.0.0.1:54322/postgres -v ON_ERROR_STOP=1 -f scripts/verify-tenancy-spine.sql
+--   docker exec -i supabase_db_kompleet-platform psql -U postgres -d postgres -v ON_ERROR_STOP=1 -f - < scripts/verify-tenancy-spine.sql
 
 do $$
 begin
