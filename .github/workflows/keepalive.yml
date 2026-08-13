@@ -1,0 +1,58 @@
+# Database keep-alive for the free-tier Supabase project.
+#
+# Free-tier projects pause after 7 days of database inactivity. This job hits
+# GET /api/health/db (one real query) every 3 days so a single missed run still
+# leaves a recovery window. Fail the workflow on non-200 — a silent keep-alive
+# failure is worse than none.
+#
+# Caveats (accepted, time-limited; see docs/STATUS.md):
+# 1. GitHub disables scheduled workflows in public repos after 60 days without
+#    commit activity. Dependabot security updates normally prevent this; a quiet
+#    repo kills the keep-alive exactly when it matters.
+# 2. This is a workaround for a free-tier limit, not a fix. Supabase Pro
+#    (~$25/mo) does not pause. Revisit before real users exist.
+#
+# Required GitHub config (owner):
+#   secrets.KEEPALIVE_TOKEN  — same value as Vercel production env KEEPALIVE_TOKEN
+#   vars.PRODUCTION_URL      — https://ivanotechnologies.com (no trailing slash)
+
+name: Database keep-alive
+
+on:
+  schedule:
+    # 05:17 UTC every 3rd day-of-month (1, 4, 7, …). Offset from round hours.
+    - cron: "17 5 */3 * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Query production /api/health/db
+        env:
+          PRODUCTION_URL: ${{ vars.PRODUCTION_URL }}
+          KEEPALIVE_TOKEN: ${{ secrets.KEEPALIVE_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${PRODUCTION_URL:-}" ]; then
+            echo "::error::GitHub Actions variable PRODUCTION_URL is not set"
+            exit 1
+          fi
+          if [ -z "${KEEPALIVE_TOKEN:-}" ]; then
+            echo "::error::GitHub Actions secret KEEPALIVE_TOKEN is not set"
+            exit 1
+          fi
+          url="${PRODUCTION_URL%/}/api/health/db"
+          echo "GET ${url}"
+          code=$(curl -sS -o /tmp/keepalive-body -w "%{http_code}" \
+            -H "x-keepalive-token: ${KEEPALIVE_TOKEN}" \
+            --max-time 30 \
+            "$url")
+          echo "HTTP ${code}"
+          cat /tmp/keepalive-body || true
+          echo
+          if [ "$code" != "200" ]; then
+            echo "::error::Keep-alive failed: expected HTTP 200, got ${code}"
+            exit 1
+          fi

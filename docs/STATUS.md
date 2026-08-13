@@ -89,5 +89,5 @@ Clearances from the 27 = 8 deletions (`bank_accounts`, `email_connections`, `wor
 
 - Credential rotation deferred; history purge declined. Secret-scan covers working tree only.
 - `SUPABASE_ACCESS_TOKEN` is account-wide — reaches every project in the org.
-- Keep-alive / Pro upgrade — Phase 6.
+- Keep-alive is required infrastructure, not optional. `GET /api/health/db` plus `.github/workflows/keepalive.yml` (cron every 3 days) ping production so the free-tier project does not pause. Accepted, time-limited: GitHub disables scheduled workflows in public repos after 60 days without commits; this is a workaround, not a fix — Supabase Pro (~$25/mo) does not pause. Revisit before real users exist. Owner must set `KEEPALIVE_TOKEN` (Vercel production + GitHub Actions secret) and `PRODUCTION_URL` (GitHub Actions variable).
 - Domain cutover — Phase 7 (code in PR #55).
