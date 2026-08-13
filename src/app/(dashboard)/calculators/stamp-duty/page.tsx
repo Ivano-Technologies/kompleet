@@ -37,6 +37,19 @@ export default function StampDutyCalculator() {
 
   const [rules, setRules] = useState<Record<string, any>>({});
 
+  const REQUIRED_RULE_KEYS = [
+    "low_value_exemption",
+    "property_transfer_rate",
+    "lease_rate_short",
+    "lease_rate_long",
+  ] as const;
+
+  const missingRuleKeys = REQUIRED_RULE_KEYS.filter(
+    (key) => !rules[key]?.value,
+  );
+  const rulesUnavailable =
+    !rulesLoading && (!!rulesError || missingRuleKeys.length > 0);
+
   useEffect(() => {
     const fetchRules = async () => {
       try {
@@ -61,6 +74,15 @@ export default function StampDutyCalculator() {
   }, []);
 
   const calculateStampDuty = () => {
+    if (rulesUnavailable) {
+      alert(
+        `Tax rules unavailable — cannot calculate stamp duty. Missing rule(s): ${
+          missingRuleKeys.length > 0 ? missingRuleKeys.join(", ") : "stamp_duty.*"
+        }.`,
+      );
+      return;
+    }
+
     if (!amount) {
       alert("Please enter an amount");
       return;
@@ -75,8 +97,7 @@ export default function StampDutyCalculator() {
 
     try {
       const amountValue = parseFloat(amount);
-      const lowValueThreshold =
-        rules.low_value_exemption?.value?.threshold || 10000000;
+      const lowValueThreshold = rules.low_value_exemption.value.threshold;
 
       let stampDuty = 0;
       let applicableRate = 0;
@@ -88,14 +109,14 @@ export default function StampDutyCalculator() {
         exemptionReason = `Transaction value below ₦${lowValueThreshold.toLocaleString()} threshold`;
       } else {
         if (transactionType === "transfer") {
-          applicableRate = rules.property_transfer_rate?.value?.rate || 1.5;
+          applicableRate = rules.property_transfer_rate.value.rate;
           stampDuty = amountValue * (applicableRate / 100);
         } else {
           const duration = parseInt(leaseDuration);
           if (duration <= 7) {
-            applicableRate = rules.lease_rate_short?.value?.rate || 0.78;
+            applicableRate = rules.lease_rate_short.value.rate;
           } else {
-            applicableRate = rules.lease_rate_long?.value?.rate || 3;
+            applicableRate = rules.lease_rate_long.value.rate;
           }
           stampDuty = amountValue * (applicableRate / 100);
         }
@@ -183,12 +204,17 @@ export default function StampDutyCalculator() {
         </div>
       </div>
 
-      {rulesError && (
-        <Alert className="mb-6 border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200">
+      {rulesUnavailable && (
+        <Alert
+          variant="destructive"
+          className="mb-6 bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-900/30 text-red-800 dark:text-red-200"
+        >
           <InfoIcon className="h-4 w-4" />
           <AlertDescription>
-            {rulesError}. Using fallback rates: Transfer 1.5%, Lease ≤7yrs
-            0.78%, Lease {">"}7yrs 3%.
+            {rulesError
+              ? `Failed to load tax rules: ${rulesError}.`
+              : `Required stamp duty rules are unavailable (${missingRuleKeys.join(", ") || "stamp_duty.*"}).`}{" "}
+            Calculation is disabled until this is resolved.
           </AlertDescription>
         </Alert>
       )}
@@ -215,7 +241,7 @@ export default function StampDutyCalculator() {
                   onChange={(e) =>
                     setTransactionType(e.target.value as "transfer")
                   }
-                  disabled={loading}
+                  disabled={loading || rulesUnavailable}
                   className="mr-2 rounded-lg"
                 />
                 Property Transfer (Sale/Purchase)
@@ -228,7 +254,7 @@ export default function StampDutyCalculator() {
                   onChange={(e) =>
                     setTransactionType(e.target.value as "lease")
                   }
-                  disabled={loading}
+                  disabled={loading || rulesUnavailable}
                   className="mr-2 rounded-lg"
                 />
                 Lease Agreement
@@ -255,7 +281,7 @@ export default function StampDutyCalculator() {
               }
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              disabled={loading}
+              disabled={loading || rulesUnavailable}
               className="rounded-lg"
             />
           </div>
@@ -274,12 +300,15 @@ export default function StampDutyCalculator() {
                 placeholder="e.g., 5"
                 value={leaseDuration}
                 onChange={(e) => setLeaseDuration(e.target.value)}
-                disabled={loading}
+                disabled={loading || rulesUnavailable}
                 min="1"
                 className="rounded-lg"
               />
               <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary mt-1">
-                ≤7 years: 0.78% rate | {">"}7 years: 3% rate
+                {rules.lease_rate_short?.value?.rate != null &&
+                rules.lease_rate_long?.value?.rate != null
+                  ? `≤7 years: ${rules.lease_rate_short.value.rate}% rate | >7 years: ${rules.lease_rate_long.value.rate}% rate`
+                  : "Lease rates unavailable — tax rules not loaded"}
               </p>
             </div>
           )}
@@ -288,6 +317,7 @@ export default function StampDutyCalculator() {
             onClick={calculateStampDuty}
             disabled={
               loading ||
+              rulesUnavailable ||
               !amount ||
               (transactionType === "lease" && !leaseDuration)
             }
@@ -298,7 +328,11 @@ export default function StampDutyCalculator() {
             ) : (
               <Calculator className="mr-2 h-4 w-4" />
             )}
-            {loading ? "Calculating..." : "Calculate Stamp Duty"}
+            {loading
+              ? "Calculating..."
+              : rulesUnavailable
+                ? "Rules Unavailable"
+                : "Calculate Stamp Duty"}
           </Button>
         </div>
       </div>
@@ -392,7 +426,8 @@ export default function StampDutyCalculator() {
                 },
                 ruleVersion: "v1.0.0-2025-tax-act",
                 sources: ["Nigerian Revenue Service (NRS)"],
-                confidenceLevel: "High",
+                confidenceLevel:
+                  rules.property_transfer_rate?.confidence || "unavailable",
               });
             }}
             variant="outline"
@@ -423,21 +458,27 @@ export default function StampDutyCalculator() {
           <ul className="list-disc list-inside ml-2 space-y-1">
             <li>
               Property Transfer:{" "}
-              {rules.property_transfer_rate?.value?.rate || 1.5}%
+              {rules.property_transfer_rate?.value?.rate != null
+                ? `${rules.property_transfer_rate.value.rate}%`
+                : "Unavailable"}
             </li>
             <li>
               Short-term Lease (≤7 years):{" "}
-              {rules.lease_rate_short?.value?.rate || 0.78}%
+              {rules.lease_rate_short?.value?.rate != null
+                ? `${rules.lease_rate_short.value.rate}%`
+                : "Unavailable"}
             </li>
             <li>
               Long-term Lease ({">"}7 years):{" "}
-              {rules.lease_rate_long?.value?.rate || 3}%
+              {rules.lease_rate_long?.value?.rate != null
+                ? `${rules.lease_rate_long.value.rate}%`
+                : "Unavailable"}
             </li>
             <li>
               Low-value Exemption: Below ₦
-              {(
-                rules.low_value_exemption?.value?.threshold || 10000000
-              ).toLocaleString()}
+              {rules.low_value_exemption?.value?.threshold != null
+                ? rules.low_value_exemption.value.threshold.toLocaleString()
+                : "Unavailable"}
             </li>
           </ul>
           <p className="mt-4">
@@ -446,7 +487,7 @@ export default function StampDutyCalculator() {
             </strong>{" "}
             Nigerian Revenue Service (NRS), based on official NRS guidelines.
             Confidence level:{" "}
-            {rules.property_transfer_rate?.confidence || "high"}.
+            {rules.property_transfer_rate?.confidence || "unavailable"}.
           </p>
           <p>
             <strong className="text-light-text-primary dark:text-dark-text-primary">

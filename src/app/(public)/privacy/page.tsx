@@ -155,12 +155,11 @@ export default function PrivacyPage() {
               </li>
             </ul>
             <p className="text-light-text-secondary dark:text-dark-text-secondary">
-              Your data is stored on secure servers provided by Supabase, a
-              trusted cloud infrastructure provider that complies with
-              international security standards. We may use third-party OCR and
-              document processing services to extract data from uploaded
-              documents; such processors are bound by appropriate data
-              protection terms.
+              Your data is stored on secure servers provided by Supabase in the
+              EU (Ireland). We do not claim Nigerian data residency. We may use
+              third-party OCR and document processing services to extract data
+              from uploaded documents; such processors are bound by appropriate
+              data protection terms.
             </p>
           </section>
 

@@ -3,7 +3,7 @@
  * Generates NRS-compliant tax forms (PIT, CIT, VAT)
  */
 
-import { TaxComputationData } from "../financial-statements/tax-computation";
+import { TaxComputationData } from "../financial-statements/tax-computation-html";
 import { IncomeStatementData } from "../financial-statements/income-statement";
 
 export interface PITFormData {

@@ -1,9 +1,16 @@
 /**
  * VAT (Value Added Tax) Service
- * Implements Nigeria VAT calculations per VAT Act
- * Standard Rate: 7.5%
- * Effective Date: January 1, 2026
+ * Implements Nigeria VAT calculations per the Nigeria Tax Act 2025.
+ *
+ * All rates, thresholds, and category treatments are sourced from a
+ * `RuleBundle` (see src/lib/tax) — nothing here is hardcoded. Category-based
+ * VAT treatment (exempt/zero-rated schedules) is UNAVAILABLE except for the
+ * rent exemption, because no Act schedule citation exists yet for the other
+ * categories. See docs/TAX_RULE_PROVENANCE.md.
  */
+import { requireRule, resolveVatObligationStatus } from "@/lib/tax/rule-loader";
+import type { RuleBundle } from "@/lib/tax/types";
+import type { VatObligationStatus } from "@/lib/tax/rule-loader";
 
 export interface VATTransaction {
   id: string;
@@ -85,100 +92,91 @@ export interface VATFormData {
   authorizedSignatory?: string;
 }
 
+const RENT_CATEGORY_PATTERN = /rent/i;
+
 /**
- * VAT Service - Handles all VAT calculations and compliance
+ * VAT Service - Handles all VAT calculations and compliance.
+ * Every method requires a `RuleBundle` (or an explicit rate) — there are no
+ * static hardcoded rate/threshold/category constants on this class.
  */
 export class VATService {
-  // VAT rates
-  private static readonly STANDARD_RATE = 0.075; // 7.5%
-  private static readonly ZERO_RATE = 0.0;
-
-  // VAT registration threshold (annual turnover)
-  private static readonly REGISTRATION_THRESHOLD = 25_000_000; // ₦25 million
-
-  // Exempt supplies (no VAT charged, no VAT recovery)
-  private static readonly EXEMPT_CATEGORIES = [
-    "medical_services",
-    "education",
-    "financial_services",
-    "insurance",
-    "residential_rent",
-    "agricultural_produce",
-  ];
-
-  // Zero-rated supplies (no VAT charged, VAT recovery allowed)
-  private static readonly ZERO_RATED_CATEGORIES = [
-    "exported_goods",
-    "export_services",
-    "agricultural_products",
-    "food_items",
-  ];
-
   /**
-   * Determine VAT treatment for a transaction
+   * Determine VAT treatment for a transaction category.
+   *
+   * Only two outcomes can be determined without a verified category
+   * schedule:
+   *   - "out-of-scope": unregistered businesses don't charge VAT on income.
+   *   - "exempt": ONLY for rent-like categories, backed by the verified
+   *     vat.rent_exemption rule.
+   *
+   * Every other category throws, because the exempt/zero-rated category
+   * schedules have not been seeded (no Act schedule citation available —
+   * see docs/TAX_RULE_PROVENANCE.md). Callers that already know a
+   * transaction's treatment (e.g. loaded from stored data) should NOT call
+   * this method — pass `transaction.vatTreatment` straight into
+   * `calculateTransactionVAT` instead.
    */
   static determineVATTreatment(
+    bundle: RuleBundle,
     category: string,
     type: "income" | "expense",
     isRegistered: boolean,
-  ): "standard" | "exempt" | "zero-rated" | "out-of-scope" {
-    // Unregistered businesses don't charge VAT
+  ): "exempt" | "out-of-scope" {
     if (!isRegistered && type === "income") {
       return "out-of-scope";
     }
 
-    // Check if exempt
-    if (this.EXEMPT_CATEGORIES.includes(category.toLowerCase())) {
-      return "exempt";
+    if (RENT_CATEGORY_PATTERN.test(category)) {
+      const rentExemption = requireRule(bundle, "vat", "rent_exemption");
+      if (rentExemption.value.exempt === true) {
+        return "exempt";
+      }
     }
 
-    // Check if zero-rated
-    if (this.ZERO_RATED_CATEGORIES.includes(category.toLowerCase())) {
-      return "zero-rated";
-    }
-
-    // Default to standard rate
-    return "standard";
+    throw new Error(
+      `VAT category schedule unavailable — exempt/zero-rated lists not verified. ` +
+        `Category "${category}" cannot be classified beyond the rent exemption. ` +
+        "See docs/TAX_RULE_PROVENANCE.md.",
+    );
   }
 
   /**
-   * Calculate VAT for a single transaction
+   * Calculate VAT for a single transaction.
+   *
+   * Trusts the transaction's own `vatTreatment` (already classified
+   * upstream) rather than re-deriving it — `determineVATTreatment` is
+   * intentionally too strict to run on arbitrary stored categories.
    */
   static calculateTransactionVAT(
     transaction: VATTransaction,
-    isRegistered: boolean,
+    bundle: RuleBundle,
   ): VATCalculation {
-    const treatment = this.determineVATTreatment(
-      transaction.category,
-      transaction.type,
-      isRegistered,
-    );
+    const treatment = transaction.vatTreatment;
 
     let vatRate = 0;
     let vatAmount = 0;
     let isRecoverable = false;
 
     switch (treatment) {
-      case "standard":
-        vatRate = this.STANDARD_RATE;
+      case "standard": {
+        vatRate = requireRule(bundle, "vat", "standard_rate").value.rate / 100;
         vatAmount = transaction.amount * vatRate;
-        // For expenses, VAT is recoverable if marked as such
         isRecoverable =
           transaction.type === "expense" &&
           (transaction.vatRecoverable ?? true);
         break;
+      }
 
-      case "zero-rated":
-        vatRate = this.ZERO_RATE;
+      case "zero-rated": {
+        vatRate = requireRule(bundle, "vat", "zero_rate").value.rate / 100;
         vatAmount = 0;
-        // Zero-rated supplies allow VAT recovery on inputs
         isRecoverable = transaction.type === "expense";
         break;
+      }
 
       case "exempt":
         vatRate = 0;
         vatAmount = 0;
-        // Exempt supplies do NOT allow VAT recovery
         isRecoverable = false;
         break;
 
@@ -203,12 +201,13 @@ export class VATService {
   }
 
   /**
-   * Calculate VAT summary for a period
+   * Calculate VAT summary for a period.
    */
   static calculateVATSummary(
     transactions: VATTransaction[],
     period: string,
     isRegistered: boolean,
+    bundle: RuleBundle,
   ): VATSummary {
     const breakdown: Map<string, VATBreakdownItem> = new Map();
     let totalSalesGross = 0;
@@ -217,14 +216,9 @@ export class VATService {
     let totalPurchasesVAT = 0;
     let recoverableVAT = 0;
 
-    // Process each transaction
     for (const transaction of transactions) {
-      const calculation = this.calculateTransactionVAT(
-        transaction,
-        isRegistered,
-      );
+      const calculation = this.calculateTransactionVAT(transaction, bundle);
 
-      // Update totals
       if (transaction.type === "income") {
         totalSalesGross += calculation.grossAmount;
         totalSalesVAT += calculation.vatAmount;
@@ -236,7 +230,6 @@ export class VATService {
         }
       }
 
-      // Update breakdown
       const key = transaction.category;
       if (!breakdown.has(key)) {
         breakdown.set(key, {
@@ -255,7 +248,6 @@ export class VATService {
       item.count += 1;
     }
 
-    // Calculate net VAT payable
     const netVATPayable = totalSalesVAT - recoverableVAT;
 
     // Filing deadline (last day of month following the quarter)
@@ -280,10 +272,18 @@ export class VATService {
   }
 
   /**
-   * Check if business qualifies for VAT registration
+   * Determine VAT registration/exemption obligation for a given turnover
+   * and asset base. NEVER asserts a single answer while the three
+   * candidate thresholds remain mutually exclusive and unverified — always
+   * returns the full set of candidates instead. See
+   * src/lib/tax/rule-loader.ts#resolveVatObligationStatus.
    */
-  static qualifiesForRegistration(annualTurnover: number): boolean {
-    return annualTurnover >= this.REGISTRATION_THRESHOLD;
+  static getRegistrationObligation(
+    bundle: RuleBundle,
+    annualTurnover: number,
+    totalAssets: number = 0,
+  ): VatObligationStatus {
+    return resolveVatObligationStatus(bundle, annualTurnover, totalAssets);
   }
 
   /**
@@ -333,12 +333,12 @@ export class VATService {
   }
 
   /**
-   * Calculate VAT on inclusive price (price includes VAT)
-   * Useful for retail transactions
+   * Extract VAT from a VAT-inclusive price. `rate` (e.g. 0.075 for 7.5%)
+   * must be supplied by the caller — there is no default rate.
    */
   static extractVATFromInclusive(
     inclusivePrice: number,
-    rate: number = this.STANDARD_RATE,
+    rate: number,
   ): {
     netAmount: number;
     vatAmount: number;
@@ -354,12 +354,12 @@ export class VATService {
   }
 
   /**
-   * Calculate VAT on exclusive price (price excludes VAT)
-   * Useful for B2B transactions
+   * Add VAT to a VAT-exclusive price. `rate` (e.g. 0.075 for 7.5%) must be
+   * supplied by the caller — there is no default rate.
    */
   static addVATToExclusive(
     exclusivePrice: number,
-    rate: number = this.STANDARD_RATE,
+    rate: number,
   ): {
     netAmount: number;
     vatAmount: number;
@@ -376,9 +376,15 @@ export class VATService {
   }
 
   /**
-   * Validate VAT compliance
+   * Validate VAT compliance. Registration/exemption obligation is surfaced
+   * as a warning (never a hard "must register" issue) while the threshold
+   * conflict remains unresolved.
    */
-  static validateCompliance(summary: VATSummary): {
+  static validateCompliance(
+    summary: VATSummary,
+    bundle: RuleBundle,
+    totalAssets: number = 0,
+  ): {
     isCompliant: boolean;
     issues: string[];
     warnings: string[];
@@ -386,22 +392,24 @@ export class VATService {
     const issues: string[] = [];
     const warnings: string[] = [];
 
-    // Check if registered but no sales
     if (summary.isRegistered && summary.totalSalesGross === 0) {
       warnings.push("Registered for VAT but no sales recorded in period");
     }
 
-    // Check if unregistered but high turnover
-    if (
-      !summary.isRegistered &&
-      summary.totalSalesGross > this.REGISTRATION_THRESHOLD
-    ) {
-      issues.push(
-        `Turnover (₦${summary.totalSalesGross.toLocaleString()}) exceeds registration threshold (₦${this.REGISTRATION_THRESHOLD.toLocaleString()}). Must register for VAT.`,
+    if (!summary.isRegistered) {
+      const obligation = resolveVatObligationStatus(
+        bundle,
+        summary.totalSalesGross,
+        totalAssets,
       );
+      if (obligation.status === "unresolved") {
+        warnings.push(
+          `VAT registration/exemption threshold is unresolved (${obligation.candidates.length} conflicting unverified candidates — see review_queue). ` +
+            `Verify turnover of ₦${summary.totalSalesGross.toLocaleString()} manually before assuming no obligation to register.`,
+        );
+      }
     }
 
-    // Check for negative net VAT (refund due)
     if (summary.netVATPayable < 0) {
       warnings.push(
         `VAT refund due: ₦${Math.abs(summary.netVATPayable).toLocaleString()}. Submit refund claim.`,

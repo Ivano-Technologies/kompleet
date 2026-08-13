@@ -11,27 +11,27 @@ const faqs = [
   {
     question: "How do I get started with KOMPLEET?",
     answer:
-      "Sign up for a free account, complete your business profile, and start by uploading your transactions or creating your first invoice. Our onboarding guide will walk you through each step.",
+      "Sign up for a free account, complete your business profile, and start by uploading a Nigerian bank statement or creating your first invoice.",
   },
   {
     question: "What tax types does KOMPLEET support?",
     answer:
-      "KOMPLEET supports VAT (Value Added Tax), WHT (Withholding Tax), CIT (Company Income Tax), PAYE (Pay As You Earn), and other Nigerian tax obligations. We calculate amounts automatically based on current NRS and JTB rates.",
+      "VAT (Value Added Tax) and related calculators under the Nigeria Tax Act 2025 are live today, including CIT and personal income tax tools. Filing-ready NRS and LIRS forms can be generated for download. A dedicated WHT calculator is on the roadmap. There is no PAYE calculator and no automated deadline reminders yet.",
   },
   {
     question: "Can I file taxes directly through KOMPLEET?",
     answer:
-      "KOMPLEET generates all the necessary forms and reports for NRS and JTB filing. You can download completed forms ready for submission. Direct e-filing integration is coming soon.",
+      "No. KOMPLEET generates filing-ready forms and reports for NRS and LIRS. You download them and submit through the official portals yourself. Direct portal submission is not available.",
   },
   {
     question: "How does the invoicing feature work?",
     answer:
-      "Create professional invoices in Naira or USD, send them directly to clients via email, and track payment status. All invoices automatically include the correct VAT calculations.",
+      "Create invoices with VAT line items and NRS-compliant QR codes, then track payment status when your customer settles. Online checkout (Paystack/Flutterwave) is not live — payment recording is manual for now.",
   },
   {
     question: "Is my financial data secure?",
     answer:
-      "Yes. All data is encrypted in transit and at rest. We use Supabase for secure data storage with row-level security policies. Your data is never shared with third parties without your consent.",
+      "Yes. Data is encrypted in transit and at rest. We use Supabase with row-level security. Production data is hosted in the EU (Ireland). We do not claim Nigerian data residency.",
   },
   {
     question: "What happens after the beta period?",
@@ -44,9 +44,9 @@ const faqs = [
       "Yes. You can export transactions, invoices, tax reports, and financial statements in CSV and PDF formats at any time from the Export section of your dashboard.",
   },
   {
-    question: "How do I categorize transactions?",
+    question: "How do I import bank transactions?",
     answer:
-      "KOMPLEET uses AI to automatically categorize your transactions. You can review and adjust categories, and the system learns from your corrections to improve over time.",
+      "Upload statements from any of 11 supported Nigerian banks. Parsers extract transactions and validate running balances before they enter your books. Open-banking account linking is not available.",
   },
 ];
 
@@ -87,7 +87,7 @@ export default function HelpPage() {
               Tax Compliance
             </h3>
             <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
-              Learn about VAT, WHT, and PAYE calculations and filing processes.
+              Learn about VAT, CIT, and filing-ready NRS and LIRS form generation.
             </p>
           </div>
           <div className="bg-light-surface dark:bg-dark-surface rounded-lg p-6 text-center">
