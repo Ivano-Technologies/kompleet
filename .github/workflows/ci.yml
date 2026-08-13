@@ -39,6 +39,18 @@ jobs:
       - name: Scan working tree for secrets
         run: gitleaks detect --source . --config .gitleaks.toml --no-git --verbose --exit-code 1
 
+  # Static scan — no DB credentials, no pnpm install. Blocks like secret-scan.
+  # Script lands with #80 (PR 3a); until then this job fails closed if the
+  # file is missing, which is the correct failure mode for a rate-shadow guard.
+  tax-rates:
+    name: check-tax-rates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+
+      - name: Check no hardcoded tax rates
+        run: node scripts/check-no-hardcoded-tax-rates.mjs
+
   typecheck:
     name: typecheck
     runs-on: ubuntu-latest
