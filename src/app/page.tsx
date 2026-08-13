@@ -7,83 +7,60 @@ import LandingFooter from "@/components/landing/LandingFooter";
 const HERO_GRID_PATTERN =
   "data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2248%22%20height=%2248%22%20viewBox=%220%200%2048%2048%22%3E%3Cpath%20fill=%22rgba(255,255,255,0.03)%22%20d=%22M0%201h48v-1H0zm0%2047h48v-1H0zM1%200v48H0V0zm47%200v48h-1V0z%22/%3E%3C/svg%3E";
 
-const navLinks = [
-  { name: "Features", href: "#features" },
-  { name: "Contact", href: "/contact" },
-];
-
 const trustBarItems = [
-  "Instant Invoicing",
-  "Real-Time Expense Tracking",
-  "Mobile-First Design",
+  "11 Nigerian bank parsers",
+  "Nigeria Tax Act 2025 engine",
+  "NRS-compliant invoice QR",
 ];
 
 const featuredCards = [
   {
     icon: Zap,
-    title: "Automated VAT & WHT",
-    desc: "Auto-calculate and generate reports for value-added and withholding taxes under the 2025 Nigeria Tax Act.",
+    title: "VAT Calculator",
+    desc: "Calculate value-added tax under the Nigeria Tax Act 2025 — standard, zero-rated, and exempt treatments.",
   },
   {
     icon: FileUp,
-    title: "Direct Filing",
-    desc: "Streamlined process to submit directly to FIRS and LIRS portals with pre-filled forms.",
+    title: "Filing-Ready Forms",
+    desc: "Generate NRS and LIRS filing packages as downloadable forms you submit yourself. No portal auto-filing.",
   },
   {
     icon: BarChart3,
-    title: "Real-time Analytics",
-    desc: "Gain visibility into revenue, expenses, and tax obligations with interactive dashboards.",
+    title: "P&L and Balance Sheet",
+    desc: "Profit & loss and balance sheet reports generated from your books — ready to share with an accountant.",
   },
 ];
 
 const features = [
   {
     icon: Landmark,
-    title: "Smart Expense Tracking",
-    desc: "Automatically categorise every naira spent. Connect your bank account and watch your expenses organise themselves in real time.",
+    title: "Bank Statement Import",
+    desc: "Upload statements from 11 Nigerian banks. Parsers extract transactions and validate running balances so imports stay trustworthy.",
     image: "/assets/features/expense-tracking.png",
   },
   {
     icon: FileUp,
     title: "Professional Invoicing",
-    desc: "Create, send, and track invoices in seconds. Accept payments via bank transfer, Paystack, or Flutterwave.",
+    desc: "Create and track invoices with NRS-compliant QR codes for e-invoicing. Record payment when your customer settles — checkout integrations are not live yet.",
     image: "/assets/features/invoicing.png",
   },
   {
     icon: Landmark,
     title: "Tax Compliance Centre",
-    desc: "Never miss an FIRS or LIRS deadline again. Kompleet tracks your VAT, WHT, CIT, and PAYE obligations automatically — with smart reminders before every filing date.",
+    desc: "Run VAT, CIT, and related calculations against the Nigeria Tax Act 2025 engine. Export filing-ready packages for NRS and LIRS.",
     image: null,
   },
   {
     icon: TrendingUp,
     title: "Business Reports",
-    desc: "Profit & loss, cash flow, and balance sheet reports generated automatically. Share with your accountant or investors.",
+    desc: "Profit & loss and balance sheet reports generated from your recorded activity. Share with your accountant or investors.",
     image: null,
   },
   {
     icon: Lock,
     title: "Bank-Grade Security",
-    desc: "Your financial data is protected with 256-bit encryption and full NDPR compliance. Your data stays in Nigeria.",
+    desc: "Financial data is protected with encryption in transit and at rest, with NDPR-minded access controls. Hosted on Supabase in the EU (Ireland).",
     image: null,
-  },
-];
-
-const testimonials = [
-  {
-    name: "Adebayo Ogunlesi",
-    role: "CEO, TechVentures Lagos",
-    text: "Kompleet has completely transformed how we handle our finances. The tax compliance alerts alone have saved us from two potential FIRS penalties.",
-  },
-  {
-    name: "Chioma Nwosu",
-    role: "Founder, GreenField Agritech",
-    text: "As a growing agritech startup, keeping track of expenses across multiple states was a nightmare. Kompleet made it simple.",
-  },
-  {
-    name: "Emeka Okafor",
-    role: "Partner, Okafor & Associates",
-    text: "I've tried every accounting tool. None of them understood Nigerian tax law the way Kompleet does. The VAT filing feature is accurate and fast.",
   },
 ];
 
@@ -112,7 +89,9 @@ export default function HomePage() {
               <em className="text-accent not-italic">Grow Your Business.</em>
             </h1>
             <p className="text-base text-white/60 max-w-md">
-              Track your spending, handle invoices, and avoid surprises.
+              Import Nigerian bank statements, run the Nigeria Tax Act 2025
+              engine, issue NRS-ready invoices, and export P&amp;L and balance
+              sheets.
             </p>
             <div className="flex items-center gap-4 pt-4">
               <Link
@@ -171,57 +150,60 @@ export default function HomePage() {
       <section id="features" className="py-24 px-6 md:px-12">
         <div className="text-center mb-12">
           <div className="text-xs font-bold text-primary dark:text-accent uppercase tracking-widest mb-3">
-            Core Features
+            What ships today
           </div>
           <h2 className="font-display text-3xl md:text-4xl font-bold text-text-1 dark:text-dark-text-1 leading-tight tracking-tighter">
-            Everything Your Business Needs
+            Real Nigerian finance tooling
             <br />
-            to Stay Financially Healthy
+            — not a feature wish list
           </h2>
           <p className="text-base text-text-3 dark:text-dark-text-3 max-w-xl mx-auto mt-4">
-            From daily expense tracking to annual tax filing — Kompleet handles
-            the financial complexity so you can focus on growth.
+            Statement parsers with balance validation, the Nigeria Tax Act 2025
+            engine, invoicing with NRS-compliant QR codes, and financial
+            statements you can export.
           </p>
         </div>
 
         {/* TOP ROW: 2 large photo cards */}
         <div className="grid md:grid-cols-2 gap-6 mb-6">
-          {features.filter(f => f.image).map((f) => (
-            <div
-              key={f.title}
-              className="bg-surface dark:bg-dark-surface border border-border dark:border-dark-border rounded-xl overflow-hidden shadow-1 hover:shadow-3 hover:-translate-y-1 hover:border-accent/40 transition-all relative group flex flex-col"
-            >
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent opacity-0 group-hover:opacity-100 transition-opacity z-10" />
-              {/* Photo — 16:9 aspect ratio (compact height) */}
-              <div className="relative w-full aspect-[16/9] overflow-hidden bg-surface-2 dark:bg-dark-surface-2">
-                <Image
-                  src={f.image!}
-                  alt={f.title}
-                  fill
-                  className="object-cover object-top"
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                />
+          {features
+            .filter((f) => f.image)
+            .map((f) => (
+              <div
+                key={f.title}
+                className="bg-surface dark:bg-dark-surface border border-border dark:border-dark-border rounded-xl overflow-hidden shadow-1 hover:shadow-3 hover:-translate-y-1 hover:border-accent/40 transition-all relative group flex flex-col"
+              >
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent opacity-0 group-hover:opacity-100 transition-opacity z-10" />
+                <div className="relative w-full aspect-[16/9] overflow-hidden bg-surface-2 dark:bg-dark-surface-2">
+                  <Image
+                    src={f.image!}
+                    alt={f.title}
+                    fill
+                    className="object-cover object-top"
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                  />
+                </div>
+                <div className="p-6">
+                  <h3 className="font-display text-lg font-bold text-text-1 dark:text-dark-text-1 mb-2">
+                    {f.title}
+                  </h3>
+                  <p className="text-sm text-text-3 dark:text-dark-text-3 leading-relaxed">
+                    {f.desc}
+                  </p>
+                </div>
               </div>
-              <div className="p-6">
-                <h3 className="font-display text-lg font-bold text-text-1 dark:text-dark-text-1 mb-2">
-                  {f.title}
-                </h3>
-                <p className="text-sm text-text-3 dark:text-dark-text-3 leading-relaxed">
-                  {f.desc}
-                </p>
-              </div>
-            </div>
-          ))}
+            ))}
         </div>
 
-        {/* MIDDLE ROW: 3 skeuomorphic icon cards (VAT, Filing, Analytics) */}
+        {/* MIDDLE ROW: 3 featured cards */}
         <div className="grid md:grid-cols-3 gap-6 mb-6">
           {featuredCards.map((card) => {
             const Icon = card.icon;
             return (
               <div
                 key={card.title}
-                className="bg-surface dark:bg-dark-surface border border-border dark:border-dark-border rounded-xl shadow-outer-soft border-t border-l border-black/5 dark:border-white/5 p-6 flex flex-col hover:shadow-3 hover:-translate-y-1 hover:border-accent/40 transition-all relative group overflow-hidden">
+                className="bg-surface dark:bg-dark-surface border border-border dark:border-dark-border rounded-xl shadow-outer-soft border-t border-l border-black/5 dark:border-white/5 p-6 flex flex-col hover:shadow-3 hover:-translate-y-1 hover:border-accent/40 transition-all relative group overflow-hidden"
+              >
                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent opacity-0 group-hover:opacity-100 transition-opacity" />
                 <div className="w-11 h-11 rounded-lg bg-primary flex items-center justify-center mb-4 shadow-primary">
                   <Icon className="w-5 h-5 text-white" />
@@ -237,74 +219,33 @@ export default function HomePage() {
           })}
         </div>
 
-        {/* BOTTOM ROW: 3 icon-only feature cards */}
+        {/* BOTTOM ROW: remaining feature cards */}
         <div className="grid md:grid-cols-3 gap-6">
-          {features.filter(f => !f.image).map((f) => (
-            <div
-              key={f.title}
-              className="bg-surface dark:bg-dark-surface border border-border dark:border-dark-border rounded-xl overflow-hidden shadow-1 hover:shadow-3 hover:-translate-y-1 hover:border-accent/40 transition-all relative group"
-            >
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="p-6">
-                <div className="w-11 h-11 rounded-lg bg-primary flex items-center justify-center mb-4 shadow-primary">
-                  <f.icon className="w-5 h-5 text-white" />
+          {features
+            .filter((f) => !f.image)
+            .map((f) => (
+              <div
+                key={f.title}
+                className="bg-surface dark:bg-dark-surface border border-border dark:border-dark-border rounded-xl overflow-hidden shadow-1 hover:shadow-3 hover:-translate-y-1 hover:border-accent/40 transition-all relative group"
+              >
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="p-6">
+                  <div className="w-11 h-11 rounded-lg bg-primary flex items-center justify-center mb-4 shadow-primary">
+                    <f.icon className="w-5 h-5 text-white" />
+                  </div>
+                  <h3 className="font-display text-lg font-bold text-text-1 dark:text-dark-text-1 mb-2">
+                    {f.title}
+                  </h3>
+                  <p className="text-sm text-text-3 dark:text-dark-text-3 leading-relaxed">
+                    {f.desc}
+                  </p>
                 </div>
-                <h3 className="font-display text-lg font-bold text-text-1 dark:text-dark-text-1 mb-2">
-                  {f.title}
-                </h3>
-                <p className="text-sm text-text-3 dark:text-dark-text-3 leading-relaxed">
-                  {f.desc}
-                </p>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="bg-surface-2 dark:bg-dark-surface py-24 px-6 md:px-12">
-        <div className="text-center mb-12">
-          <div className="text-xs font-bold text-primary dark:text-accent uppercase tracking-widest mb-3">
-            Trusted by Nigerian Businesses
-          </div>
-          <h2 className="font-display text-3xl md:text-4xl font-bold text-text-1 dark:text-dark-text-1">
-            What Our Users Are Saying
-          </h2>
-        </div>
-        {/* Testimonial cards — equal height, author pinned to bottom */}
-        <div className="grid lg:grid-cols-3 gap-6 items-stretch">
-          {testimonials.map((t) => (
-            <div
-              key={t.name}
-              className="bg-surface dark:bg-dark-surface-2 border border-border dark:border-dark-border rounded-lg p-8 shadow-1 flex flex-col"
-            >
-              <div className="text-accent text-sm mb-4">★★★★★</div>
-              <p className="text-sm text-text-2 dark:text-dark-text-2 leading-relaxed italic mb-6 flex-1">
-                &ldquo;{t.text}&rdquo;
-              </p>
-              {/* Author row — always at the bottom of the card */}
-              <div className="flex items-center gap-3 mt-auto">
-                <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center font-display text-sm font-bold text-accent flex-shrink-0">
-                  {t.name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")}
-                </div>
-                <div>
-                  <div className="text-sm font-bold text-text-1 dark:text-dark-text-1">
-                    {t.name}
-                  </div>
-                  <div className="text-xs text-text-4 dark:text-dark-text-4 mt-0.5">
-                    {t.role}
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Final CTA */}
+      {/* Final CTA — no fabricated social proof */}
       <section className="bg-gradient-to-br from-primary-deep to-primary py-24 px-6 md:px-12 text-center relative overflow-hidden">
         <div className="absolute inset-0 text-[280px] md:text-[320px] font-bold font-display text-white/5 leading-none flex items-center justify-center pointer-events-none">
           ₦
@@ -316,8 +257,7 @@ export default function HomePage() {
             Your <em className="text-accent not-italic">Business Finances?</em>
           </h2>
           <p className="text-base text-white/60 max-w-md mx-auto mt-4 mb-8">
-            Join Nigerian businesses already using Kompleet. Free during Beta —
-            no credit card required.
+            Free during Beta — no credit card required.
           </p>
           <Link
             href="/signup"

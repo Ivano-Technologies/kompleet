@@ -282,7 +282,7 @@ The platform has been migrated from Supabase Auth to Clerk. Key changes:
 - **Clerk Documentation:** https://clerk.com/docs
 - **Supabase Documentation:** https://supabase.com/docs
 - **Next.js Documentation:** https://nextjs.org/docs
-- **Nigerian Tax Act 2026:** https://firs.gov.ng
+- **Nigeria Tax Act 2025 / Nigerian Revenue Service (NRS):** consult official NRS guidance for current rates and filing rules
 
 ## Support
 
