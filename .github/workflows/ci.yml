@@ -39,6 +39,18 @@ jobs:
       - name: Scan working tree for secrets
         run: gitleaks detect --source . --config .gitleaks.toml --no-git --verbose --exit-code 1
 
+  # Static scan — no DB credentials, no pnpm install. Blocks like secret-scan.
+  # Script lands with #80 (PR 3a); until then this job fails closed if the
+  # file is missing, which is the correct failure mode for a rate-shadow guard.
+  tax-rates:
+    name: check-tax-rates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+
+      - name: Check no hardcoded tax rates
+        run: node scripts/check-no-hardcoded-tax-rates.mjs
+
   typecheck:
     name: typecheck
     runs-on: ubuntu-latest
@@ -106,8 +118,8 @@ jobs:
 
       - name: Run OSV vulnerability scan
         if: github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
-        # Pinned to the v2.3.3 commit for supply-chain hardening.
-        uses: google/osv-scanner-action/osv-scanner-action@c5996e0193a3df57d695c1b8a1dec2a4c62e8730
+        # Pinned to the v2.5.0 commit for supply-chain hardening.
+        uses: google/osv-scanner-action/osv-scanner-action@8deb546fdb875b9996d27d4950be7312dac076a1
         continue-on-error: true
 
       - run: pnpm build
@@ -257,78 +269,91 @@ jobs:
 
   # ---------------------------------------------------------------------------
   # Schema / migration / advisor guardrails (Phase 1)
-  # These jobs fail closed when secrets are configured. Forks without the
-  # secrets skip via the `if:` guards so Dependabot/community PRs stay green.
+  # Gate on credential availability, not authorship. Forks and Dependabot PRs
+  # lack DATABASE_URL / SUPABASE_ACCESS_TOKEN (and must not receive them in
+  # Dependabot secrets — those are a supply-chain exfiltration path). When the
+  # secret is empty the check step skips; whoever opened the PR, the job stays
+  # green. Do not add `if: github.actor != 'dependabot[bot]'` or fork allowlists.
+  # Dependabot secrets should carry only NEXT_PUBLIC_SUPABASE_URL and
+  # NEXT_PUBLIC_SUPABASE_ANON_KEY (public by design) so build/typecheck/test/lint run.
   # ---------------------------------------------------------------------------
   schema-drift:
     name: check-schema-drift
     runs-on: ubuntu-latest
-    # Repo is public: GitHub does not pass secrets to fork PR workflows.
-    # Without this guard the job fails (missing DATABASE_URL) instead of skipping.
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      # `users` exists only as auth.users; public.users was never created.
+      SCHEMA_DRIFT_IGNORE: users
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
 
       - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320
+        if: env.DATABASE_URL != ''
 
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        if: env.DATABASE_URL != ''
         with:
           node-version: 20
           cache: pnpm
 
-      - run: pnpm install --frozen-lockfile
+      - if: env.DATABASE_URL != ''
+        run: pnpm install --frozen-lockfile
 
       # Ratchet: fails only when missing count exceeds `.schema-drift-baseline`.
       # Phase 3 waves must decrement that file by the number of tables added.
-      - name: Detect .from() references to missing tables
+      - name: Check schema drift
+        if: env.DATABASE_URL != ''
         run: pnpm check:schema-drift
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          # `users` exists only as auth.users; public.users was never created.
-          SCHEMA_DRIFT_IGNORE: users
 
   migrations:
     name: check-migrations-applied
     runs-on: ubuntu-latest
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    env:
+      # Script uses Session-pooler DATABASE_URL via --db-url (not the access token).
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
 
       - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320
+        if: env.DATABASE_URL != ''
 
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        if: env.DATABASE_URL != ''
         with:
           node-version: 20
           cache: pnpm
 
-      - run: pnpm install --frozen-lockfile
+      - if: env.DATABASE_URL != ''
+        run: pnpm install --frozen-lockfile
 
-      # Uses Session-pooler DATABASE_URL via --db-url (no project link / access token).
-      - name: Compare local vs remote migrations
+      - name: Check migrations applied
+        if: env.DATABASE_URL != ''
         run: pnpm check:migrations
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
   security-advisors:
     name: check-security-advisors
     runs-on: ubuntu-latest
     # SUPABASE_ACCESS_TOKEN is account-wide (every project in the org), not
-    # scoped to this project alone — treat it as high-sensitivity.
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    # scoped to this project alone — treat it as high-sensitivity. Never put
+    # it in Dependabot secrets.
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF || 'frlcvkmjuhnjcicwywrh' }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
 
       - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320
+        if: env.SUPABASE_ACCESS_TOKEN != ''
 
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        if: env.SUPABASE_ACCESS_TOKEN != ''
         with:
           node-version: 20
           cache: pnpm
 
-      - run: pnpm install --frozen-lockfile
+      - if: env.SUPABASE_ACCESS_TOKEN != ''
+        run: pnpm install --frozen-lockfile
 
       - name: Gate security advisors against baseline
+        if: env.SUPABASE_ACCESS_TOKEN != ''
         run: pnpm check:security-advisors
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF || 'frlcvkmjuhnjcicwywrh' }}

@@ -64,7 +64,23 @@ export default function PropertyTaxCalculator() {
     fetchRules();
   }, []);
 
+  const REQUIRED_RULE_KEYS = ["withholding_tax_on_rent"] as const;
+
+  const missingRuleKeys = REQUIRED_RULE_KEYS.filter((key) => {
+    const rule = rules[key];
+    return !rule?.value || rule.value.rate == null;
+  });
+  const rulesUnavailable =
+    !rulesLoading && (!!rulesError || missingRuleKeys.length > 0);
+
   const calculatePropertyTax = () => {
+    if (rulesUnavailable) {
+      alert(
+        "Tax rules unavailable — cannot calculate property tax WHT. The withholding_tax_on_rent rate has not been verified in the tax rules database.",
+      );
+      return;
+    }
+
     if (!annualRent) {
       alert("Please enter annual rent");
       return;
@@ -74,7 +90,7 @@ export default function PropertyTaxCalculator() {
 
     try {
       const rent = parseFloat(annualRent);
-      const whtRate = rules.wht_rate?.value?.rate || 10;
+      const whtRate = rules.withholding_tax_on_rent.value.rate;
       const whtAmount = rent * (whtRate / 100);
       const netRent = rent - whtAmount;
 
@@ -190,11 +206,17 @@ export default function PropertyTaxCalculator() {
         </div>
       </div>
 
-      {rulesError && (
-        <Alert className="mb-6 border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200">
+      {rulesUnavailable && (
+        <Alert
+          variant="destructive"
+          className="mb-6 bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-900/30 text-red-800 dark:text-red-200"
+        >
           <InfoIcon className="h-4 w-4" />
           <AlertDescription>
-            {rulesError}. Using fallback rate: 10% WHT.
+            {rulesError
+              ? `Failed to load tax rules: ${rulesError}.`
+              : "The withholding tax rate on rent has not been verified in the tax rules database (withholding_tax_on_rent.rate is missing)."}{" "}
+            Calculation is disabled until this is resolved.
           </AlertDescription>
         </Alert>
       )}
@@ -216,7 +238,7 @@ export default function PropertyTaxCalculator() {
               placeholder="e.g., 6000000"
               value={annualRent}
               onChange={(e) => setAnnualRent(e.target.value)}
-              disabled={loading}
+              disabled={loading || rulesUnavailable}
               className="rounded-lg"
             />
           </div>
@@ -228,7 +250,7 @@ export default function PropertyTaxCalculator() {
               value={propertyType}
               onChange={(e) => setPropertyType(e.target.value)}
               className="w-full mt-1 p-2 border rounded-lg bg-light-surface dark:bg-dark-surface border-light-border dark:border-dark-border text-light-text-primary dark:text-dark-text-primary"
-              disabled={loading}
+              disabled={loading || rulesUnavailable}
             >
               <option value="residential">Residential</option>
               <option value="commercial">Commercial</option>
@@ -243,7 +265,7 @@ export default function PropertyTaxCalculator() {
               value={landlordType}
               onChange={(e) => setLandlordType(e.target.value)}
               className="w-full mt-1 p-2 border rounded-lg bg-light-surface dark:bg-dark-surface border-light-border dark:border-dark-border text-light-text-primary dark:text-dark-text-primary"
-              disabled={loading}
+              disabled={loading || rulesUnavailable}
             >
               <option value="individual">Individual</option>
               <option value="company">Company</option>
@@ -252,7 +274,7 @@ export default function PropertyTaxCalculator() {
 
           <Button
             onClick={calculatePropertyTax}
-            disabled={loading || !annualRent}
+            disabled={loading || rulesUnavailable || !annualRent}
             className="w-full btn-primary rounded-lg"
           >
             {loading ? (
@@ -260,7 +282,11 @@ export default function PropertyTaxCalculator() {
             ) : (
               <Calculator className="mr-2 h-4 w-4" />
             )}
-            {loading ? "Calculating..." : "Calculate WHT"}
+            {loading
+              ? "Calculating..."
+              : rulesUnavailable
+                ? "Rules Unavailable"
+                : "Calculate WHT"}
           </Button>
         </div>
       </Card>
@@ -376,7 +402,8 @@ export default function PropertyTaxCalculator() {
                 },
                 ruleVersion: "v1.0.0-2025-tax-act",
                 sources: ["Nigerian Revenue Service (NRS)"],
-                confidenceLevel: "High",
+                confidenceLevel:
+                  rules.withholding_tax_on_rent?.confidence || "unavailable",
               });
             }}
             variant="outline"
@@ -400,8 +427,10 @@ export default function PropertyTaxCalculator() {
         </p>
         <div className="text-sm space-y-2 text-blue-700/90 dark:text-blue-300/70">
           <p>
-            <strong>WHT on Rent:</strong> {rules.wht_rate?.value?.rate || 10}%
-            of gross rent
+            <strong>WHT on Rent:</strong>{" "}
+            {rules.withholding_tax_on_rent?.value?.rate != null
+              ? `${rules.withholding_tax_on_rent.value.rate}% of gross rent`
+              : "Rate unavailable — not yet verified in the tax rules database"}
           </p>
           <p>
             <strong>Responsibility:</strong> The tenant must withhold the WHT
@@ -414,7 +443,7 @@ export default function PropertyTaxCalculator() {
           </p>
           <p className="mt-4">
             <strong>Data Source:</strong> Nigerian Revenue Service (NRS). Confidence level:{" "}
-            {rules.wht_rate?.confidence || "high"}.
+            {rules.withholding_tax_on_rent?.confidence || "unavailable"}.
           </p>
           <p>
             <strong>Disclaimer:</strong> This is an estimate. Consult a

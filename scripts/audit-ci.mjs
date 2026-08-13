@@ -5,8 +5,15 @@ import { fileURLToPath } from "node:url";
 /**
  * Time-limited exceptions: expired entries become blocking.
  * Empty after xlsx migrated to SheetJS CDN tarball 0.20.3.
+ *
+ * image-size GHSA-w3rx-r6r6-pgpr / GHSA-5p2g-fcmc-qvqq: advisories name
+ * 2.0.3 as the patch, but that version was never published (latest is 2.0.2;
+ * repo archived). No installable fix exists. Revisit when a fork or 2.0.3 ships.
  */
-const ALLOWED_GHSA = {};
+const ALLOWED_GHSA = {
+  "GHSA-w3rx-r6r6-pgpr": { expires: "2026-11-13" },
+  "GHSA-5p2g-fcmc-qvqq": { expires: "2026-11-13" },
+};
 
 const BULK_URL = "https://registry.npmjs.org/-/npm/v1/security/advisories/bulk";
 const CHUNK_SIZE = 400;

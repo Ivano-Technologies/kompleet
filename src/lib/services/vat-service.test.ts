@@ -1,37 +1,65 @@
 import { describe, it, expect } from "vitest";
 import { VATService, VATTransaction } from "./vat-service";
+import { buildMockRuleBundle } from "../../../tests/helpers/mock-rule-bundle";
+
+/**
+ * Bundle mirroring the active seed (populate_tax_rules.sql) plus the
+ * unverified candidates from
+ * supabase/migrations/20260805140000_tax_rule_provenance_unverified.sql.
+ */
+const bundle = buildMockRuleBundle({
+  vat: {
+    standard_rate: { value: { rate: 7.5, unit: "percentage" } },
+    rent_exemption: {
+      value: {
+        exempt: true,
+        items: [
+          "land_rent",
+          "building_rent",
+          "interest_in_land",
+          "interest_in_building",
+        ],
+      },
+    },
+    zero_rate: {
+      value: { rate: 0, unit: "percentage" },
+      confidenceLevel: "unverified",
+    },
+    registration_threshold_legacy_25m: {
+      value: { threshold: 25_000_000, operator: ">=" },
+      confidenceLevel: "unverified",
+    },
+    small_business_exemption_100m: {
+      value: { threshold: 100_000_000, operator: "<" },
+      confidenceLevel: "unverified",
+    },
+    small_business_exemption_50m: {
+      value: { threshold: 50_000_000, operator: "<" },
+      confidenceLevel: "unverified",
+    },
+    small_business_exemption_assets_for_100m: {
+      value: { threshold: 250_000_000, operator: "<" },
+      confidenceLevel: "unverified",
+    },
+    small_business_exemption_assets_for_50m: {
+      value: { threshold: 250_000_000, operator: "<" },
+      confidenceLevel: "unverified",
+    },
+  },
+});
+
+/** Bundle with only the rent exemption rule (no standard/zero rate). */
+const rentOnlyBundle = buildMockRuleBundle({
+  vat: {
+    rent_exemption: { value: { exempt: true, items: ["building_rent"] } },
+  },
+});
 
 describe("VAT Service", () => {
   describe("VAT Treatment Determination", () => {
-    it("should classify standard-rated supplies", () => {
-      const treatment = VATService.determineVATTreatment(
-        "office_supplies",
-        "income",
-        true,
-      );
-      expect(treatment).toBe("standard");
-    });
-
-    it("should classify exempt supplies", () => {
-      const treatment = VATService.determineVATTreatment(
-        "medical_services",
-        "income",
-        true,
-      );
-      expect(treatment).toBe("exempt");
-    });
-
-    it("should classify zero-rated supplies", () => {
-      const treatment = VATService.determineVATTreatment(
-        "exported_goods",
-        "income",
-        true,
-      );
-      expect(treatment).toBe("zero-rated");
-    });
-
     it("should classify unregistered business income as out-of-scope", () => {
       const treatment = VATService.determineVATTreatment(
+        bundle,
         "office_supplies",
         "income",
         false,
@@ -39,18 +67,37 @@ describe("VAT Service", () => {
       expect(treatment).toBe("out-of-scope");
     });
 
-    it("should allow VAT on expenses regardless of registration", () => {
+    it("should classify rent as exempt using the verified rent exemption rule", () => {
       const treatment = VATService.determineVATTreatment(
-        "office_supplies",
-        "expense",
-        false,
+        rentOnlyBundle,
+        "residential_rent",
+        "income",
+        true,
       );
-      expect(treatment).toBe("standard");
+      expect(treatment).toBe("exempt");
+    });
+
+    it("should throw for any non-rent category since the exempt/zero-rated schedule is unverified", () => {
+      expect(() =>
+        VATService.determineVATTreatment(bundle, "office_supplies", "income", true),
+      ).toThrow(/category schedule unavailable/i);
+    });
+
+    it("should throw for zero-rated-sounding categories since no zero-rated schedule is seeded", () => {
+      expect(() =>
+        VATService.determineVATTreatment(bundle, "exported_goods", "income", true),
+      ).toThrow(/category schedule unavailable/i);
+    });
+
+    it("should throw for expense categories too (registration doesn't grant a category schedule)", () => {
+      expect(() =>
+        VATService.determineVATTreatment(bundle, "office_supplies", "expense", false),
+      ).toThrow(/category schedule unavailable/i);
     });
   });
 
   describe("Transaction VAT Calculation", () => {
-    it("should calculate VAT on standard-rated income", () => {
+    it("should calculate VAT on standard-rated income using the standard_rate rule", () => {
       const transaction: VATTransaction = {
         id: "1",
         type: "income",
@@ -61,12 +108,29 @@ describe("VAT Service", () => {
         vatTreatment: "standard",
       };
 
-      const calculation = VATService.calculateTransactionVAT(transaction, true);
+      const calculation = VATService.calculateTransactionVAT(transaction, bundle);
 
       expect(calculation.vatRate).toBe(0.075);
       expect(calculation.vatAmount).toBe(7_500);
       expect(calculation.netAmount).toBe(107_500);
       expect(calculation.isRecoverable).toBe(false);
+    });
+
+    it("should throw if the standard_rate rule is missing from the bundle", () => {
+      const emptyBundle = buildMockRuleBundle({});
+      const transaction: VATTransaction = {
+        id: "1",
+        type: "income",
+        amount: 100_000,
+        description: "Sales",
+        date: "2026-02-01",
+        category: "sales",
+        vatTreatment: "standard",
+      };
+
+      expect(() =>
+        VATService.calculateTransactionVAT(transaction, emptyBundle),
+      ).toThrow(/Missing tax rule "vat\.standard_rate"/);
     });
 
     it("should calculate recoverable VAT on expenses", () => {
@@ -81,7 +145,7 @@ describe("VAT Service", () => {
         vatRecoverable: true,
       };
 
-      const calculation = VATService.calculateTransactionVAT(transaction, true);
+      const calculation = VATService.calculateTransactionVAT(transaction, bundle);
 
       expect(calculation.vatAmount).toBe(3_750);
       expect(calculation.isRecoverable).toBe(true);
@@ -98,14 +162,14 @@ describe("VAT Service", () => {
         vatTreatment: "exempt",
       };
 
-      const calculation = VATService.calculateTransactionVAT(transaction, true);
+      const calculation = VATService.calculateTransactionVAT(transaction, bundle);
 
       expect(calculation.vatAmount).toBe(0);
       expect(calculation.vatTreatment).toBe("exempt");
       expect(calculation.isRecoverable).toBe(false);
     });
 
-    it("should charge zero VAT on zero-rated supplies but allow recovery", () => {
+    it("should charge zero VAT on zero-rated supplies (using unverified vat.zero_rate) but allow recovery", () => {
       const transaction: VATTransaction = {
         id: "4",
         type: "expense",
@@ -116,14 +180,14 @@ describe("VAT Service", () => {
         vatTreatment: "zero-rated",
       };
 
-      const calculation = VATService.calculateTransactionVAT(transaction, true);
+      const calculation = VATService.calculateTransactionVAT(transaction, bundle);
 
       expect(calculation.vatAmount).toBe(0);
       expect(calculation.vatTreatment).toBe("zero-rated");
       expect(calculation.isRecoverable).toBe(true);
     });
 
-    it("should not charge VAT for unregistered business", () => {
+    it("should not charge VAT for unregistered business (trusts pre-set out-of-scope treatment)", () => {
       const transaction: VATTransaction = {
         id: "5",
         type: "income",
@@ -131,13 +195,10 @@ describe("VAT Service", () => {
         description: "Sales",
         date: "2026-02-01",
         category: "sales",
-        vatTreatment: "standard",
+        vatTreatment: "out-of-scope",
       };
 
-      const calculation = VATService.calculateTransactionVAT(
-        transaction,
-        false,
-      );
+      const calculation = VATService.calculateTransactionVAT(transaction, bundle);
 
       expect(calculation.vatAmount).toBe(0);
       expect(calculation.vatTreatment).toBe("out-of-scope");
@@ -172,6 +233,7 @@ describe("VAT Service", () => {
         transactions,
         "2026-02",
         true,
+        bundle,
       );
 
       expect(summary.totalSalesGross).toBe(1_000_000);
@@ -183,12 +245,7 @@ describe("VAT Service", () => {
     });
 
     it("should calculate correct filing deadline", () => {
-      const transactions: VATTransaction[] = [];
-      const summary = VATService.calculateVATSummary(
-        transactions,
-        "2026-01",
-        true,
-      );
+      const summary = VATService.calculateVATSummary([], "2026-01", true, bundle);
 
       // Q1 (Jan-Mar) deadline is last day of April
       expect(summary.filingDeadline).toBe("2026-04-28");
@@ -221,19 +278,56 @@ describe("VAT Service", () => {
         transactions,
         "2026-02",
         true,
+        bundle,
       );
 
       expect(summary.totalSalesVAT).toBe(0); // Zero-rated
       expect(summary.recoverableVAT).toBe(7_500); // Input VAT recoverable
       expect(summary.netVATPayable).toBe(-7_500); // Refund due
     });
+
+    it("should handle empty transaction list", () => {
+      const summary = VATService.calculateVATSummary([], "2026-02", true, bundle);
+
+      expect(summary.totalSalesGross).toBe(0);
+      expect(summary.totalSalesVAT).toBe(0);
+      expect(summary.netVATPayable).toBe(0);
+    });
   });
 
-  describe("VAT Registration", () => {
-    it("should determine registration threshold", () => {
-      expect(VATService.qualifiesForRegistration(25_000_000)).toBe(true);
-      expect(VATService.qualifiesForRegistration(24_999_999)).toBe(false);
-      expect(VATService.qualifiesForRegistration(30_000_000)).toBe(true);
+  describe("VAT Registration Obligation", () => {
+    it("returns unresolved with all three mutually exclusive candidates", () => {
+      const obligation = VATService.getRegistrationObligation(
+        bundle,
+        30_000_000,
+        10_000_000,
+      );
+
+      expect(obligation.status).toBe("unresolved");
+      if (obligation.status === "unresolved") {
+        expect(obligation.candidates).toHaveLength(3);
+        expect(
+          obligation.candidates.map((c) => c.ruleKey).sort(),
+        ).toEqual(
+          [
+            "registration_threshold_legacy_25m",
+            "small_business_exemption_100m",
+            "small_business_exemption_50m",
+          ].sort(),
+        );
+      }
+    });
+
+    it("never asserts a definitive registered/exempt boolean", () => {
+      const obligation = VATService.getRegistrationObligation(bundle, 60_000_000);
+      expect(obligation).not.toHaveProperty("isRegistered");
+      expect(obligation).not.toHaveProperty("isExempt");
+    });
+
+    it("returns no_data when no threshold rules are loaded", () => {
+      const emptyBundle = buildMockRuleBundle({});
+      const obligation = VATService.getRegistrationObligation(emptyBundle, 1_000_000);
+      expect(obligation.status).toBe("no_data");
     });
   });
 
@@ -255,12 +349,9 @@ describe("VAT Service", () => {
         transactions,
         "2026-02",
         true,
+        bundle,
       );
-      const form = VATService.generateFormA(
-        summary,
-        "Test Business",
-        "TIN123456",
-      );
+      const form = VATService.generateFormA(summary, "Test Business", "TIN123456");
 
       expect(form.formType).toBe("A");
       expect(form.businessName).toBe("Test Business");
@@ -269,7 +360,7 @@ describe("VAT Service", () => {
     });
 
     it("should throw error generating Form A for unregistered trader", () => {
-      const summary = VATService.calculateVATSummary([], "2026-02", false);
+      const summary = VATService.calculateVATSummary([], "2026-02", false, bundle);
 
       expect(() => {
         VATService.generateFormA(summary, "Test Business", "TIN123456");
@@ -286,15 +377,15 @@ describe("VAT Service", () => {
   });
 
   describe("VAT Price Calculations", () => {
-    it("should extract VAT from inclusive price", () => {
-      const result = VATService.extractVATFromInclusive(107_500);
+    it("should require an explicit rate to extract VAT from an inclusive price", () => {
+      const result = VATService.extractVATFromInclusive(107_500, 0.075);
 
       expect(result.netAmount).toBe(100_000);
       expect(result.vatAmount).toBe(7_500);
     });
 
-    it("should add VAT to exclusive price", () => {
-      const result = VATService.addVATToExclusive(100_000);
+    it("should require an explicit rate to add VAT to an exclusive price", () => {
+      const result = VATService.addVATToExclusive(100_000, 0.075);
 
       expect(result.netAmount).toBe(100_000);
       expect(result.vatAmount).toBe(7_500);
@@ -327,14 +418,15 @@ describe("VAT Service", () => {
         transactions,
         "2026-02",
         true,
+        bundle,
       );
-      const validation = VATService.validateCompliance(summary);
+      const validation = VATService.validateCompliance(summary, bundle);
 
       expect(validation.isCompliant).toBe(true);
       expect(validation.issues).toHaveLength(0);
     });
 
-    it("should flag unregistered business with high turnover", () => {
+    it("should warn (never hard-fail) about an unresolved VAT threshold for unregistered high-turnover businesses", () => {
       const transactions: VATTransaction[] = [
         {
           id: "1",
@@ -343,7 +435,7 @@ describe("VAT Service", () => {
           description: "Sales",
           date: "2026-02-01",
           category: "sales",
-          vatTreatment: "standard",
+          vatTreatment: "out-of-scope",
         },
       ];
 
@@ -351,11 +443,15 @@ describe("VAT Service", () => {
         transactions,
         "2026-02",
         false,
+        bundle,
       );
-      const validation = VATService.validateCompliance(summary);
+      const validation = VATService.validateCompliance(summary, bundle);
 
-      expect(validation.isCompliant).toBe(false);
-      expect(validation.issues.length).toBeGreaterThan(0);
+      // Never assert non-compliance from an unresolved threshold conflict.
+      expect(validation.issues).toHaveLength(0);
+      expect(
+        validation.warnings.some((w) => /unresolved/i.test(w)),
+      ).toBe(true);
     });
 
     it("should warn about VAT refund due", () => {
@@ -376,8 +472,9 @@ describe("VAT Service", () => {
         transactions,
         "2026-02",
         true,
+        bundle,
       );
-      const validation = VATService.validateCompliance(summary);
+      const validation = VATService.validateCompliance(summary, bundle);
 
       expect(validation.warnings.length).toBeGreaterThan(0);
     });
@@ -395,7 +492,7 @@ describe("VAT Service", () => {
         vatTreatment: "standard",
       };
 
-      const calculation = VATService.calculateTransactionVAT(transaction, true);
+      const calculation = VATService.calculateTransactionVAT(transaction, bundle);
 
       expect(calculation.vatAmount).toBe(0);
       expect(calculation.netAmount).toBe(0);
@@ -412,17 +509,9 @@ describe("VAT Service", () => {
         vatTreatment: "standard",
       };
 
-      const calculation = VATService.calculateTransactionVAT(transaction, true);
+      const calculation = VATService.calculateTransactionVAT(transaction, bundle);
 
       expect(calculation.vatAmount).toBe(75_000_000);
-    });
-
-    it("should handle empty transaction list", () => {
-      const summary = VATService.calculateVATSummary([], "2026-02", true);
-
-      expect(summary.totalSalesGross).toBe(0);
-      expect(summary.totalSalesVAT).toBe(0);
-      expect(summary.netVATPayable).toBe(0);
     });
   });
 });

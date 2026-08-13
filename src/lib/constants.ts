@@ -2,42 +2,24 @@
  * Application Constants
  * =====================
  * Centralized constants for the KOMPLEET platform.
- * Includes Nigerian tax rates, subscription limits, and configuration.
+ * Includes subscription limits, application configuration, and currency
+ * helpers.
  *
  * IMPORTANT:
  *   - All monetary values are in KOBO (1 Naira = 100 Kobo)
- *   - Tax rates are based on Nigeria 2024/2025 tax laws
- *   - Update annually when tax laws change
+ *   - Tax rates, thresholds, and brackets are NOT defined here. They are
+ *     loaded from the `tax_rules` database table via `src/lib/tax/rule-loader.ts`
+ *     and `RuleBundle`. See docs/TAX_RULE_PROVENANCE.md for why: every tax
+ *     figure must be traceable to a dated, cited, human-verified rule rather
+ *     than hardcoded in application code.
  *
  * USAGE:
- *   import { TAX_CONSTANTS, SUBSCRIPTION_LIMITS } from '@/lib/constants';
+ *   import { SUBSCRIPTION_TIERS, SUPPORTED_BANKS } from '@/lib/constants';
  */
 
 // ============================================================
 // TYPE DEFINITIONS
 // ============================================================
-
-export interface TaxBracket {
-  /** Minimum amount for this bracket (in Kobo) */
-  min: number;
-  /** Maximum amount for this bracket (in Kobo, null = unlimited) */
-  max: number | null;
-  /** Tax rate as decimal (e.g., 0.07 = 7%) */
-  rate: number;
-  /** Human-readable description */
-  description: string;
-}
-
-export interface WHTRate {
-  /** Category of payment */
-  category: string;
-  /** Rate for resident recipients */
-  residentRate: number;
-  /** Rate for non-resident recipients */
-  nonResidentRate: number;
-  /** Minimum amount before WHT applies (in Kobo) */
-  threshold: number;
-}
 
 export interface SubscriptionTier {
   /** Tier identifier */
@@ -102,342 +84,6 @@ export function formatNaira(kobo: number, showSymbol = true): string {
 
   return showSymbol ? `${CURRENCY.SYMBOL}${formatted}` : formatted;
 }
-
-// ============================================================
-// PERSONAL INCOME TAX (PIT) CONSTANTS
-// ============================================================
-
-/**
- * Nigeria Personal Income Tax (PIT) brackets for 2024/2025
- * Based on the Personal Income Tax Act (PITA) as amended
- *
- * Progressive tax rates on taxable income after reliefs
- */
-export const PIT_BRACKETS: readonly TaxBracket[] = [
-  {
-    min: 0,
-    max: nairaToKobo(300_000),
-    rate: 0.07,
-    description: "First ₦300,000 at 7%",
-  },
-  {
-    min: nairaToKobo(300_000),
-    max: nairaToKobo(600_000),
-    rate: 0.11,
-    description: "Next ₦300,000 at 11%",
-  },
-  {
-    min: nairaToKobo(600_000),
-    max: nairaToKobo(1_100_000),
-    rate: 0.15,
-    description: "Next ₦500,000 at 15%",
-  },
-  {
-    min: nairaToKobo(1_100_000),
-    max: nairaToKobo(1_600_000),
-    rate: 0.19,
-    description: "Next ₦500,000 at 19%",
-  },
-  {
-    min: nairaToKobo(1_600_000),
-    max: nairaToKobo(3_200_000),
-    rate: 0.21,
-    description: "Next ₦1,600,000 at 21%",
-  },
-  {
-    min: nairaToKobo(3_200_000),
-    max: null,
-    rate: 0.24,
-    description: "Above ₦3,200,000 at 24%",
-  },
-] as const;
-
-/**
- * PIT Relief and Deduction Constants
- */
-export const PIT_RELIEFS = {
-  /**
-   * Consolidated Relief Allowance (CRA)
-   * Higher of ₦200,000 OR 1% of gross income, PLUS 20% of gross income
-   */
-  CRA: {
-    /** Fixed component */
-    FIXED_AMOUNT: nairaToKobo(200_000),
-    /** Percentage of gross income (alternative to fixed) */
-    GROSS_INCOME_PERCENT: 0.01,
-    /** Additional percentage of gross income */
-    ADDITIONAL_PERCENT: 0.2,
-  },
-
-  /**
-   * Pension contribution relief
-   * Maximum 8% of gross income (employee's mandatory contribution)
-   */
-  PENSION: {
-    MAX_RATE: 0.08,
-    DESCRIPTION: "Pension contribution (max 8% of gross)",
-  },
-
-  /**
-   * National Housing Fund (NHF) contribution
-   * 2.5% of basic salary
-   */
-  NHF: {
-    RATE: 0.025,
-    DESCRIPTION: "NHF contribution (2.5% of basic)",
-  },
-
-  /**
-   * Life insurance premium relief
-   * Actual premium paid (subject to limits)
-   */
-  LIFE_INSURANCE: {
-    MAX_RATE: 0.1, // Max 10% of gross income
-    DESCRIPTION: "Life insurance premium",
-  },
-
-  /**
-   * Gratuity is tax-exempt
-   */
-  GRATUITY_EXEMPT: true,
-} as const;
-
-/**
- * Minimum tax threshold
- * If total income exceeds ₦30M, minimum tax of 1% applies
- */
-export const PIT_MINIMUM_TAX = {
-  THRESHOLD: nairaToKobo(30_000_000),
-  RATE: 0.01,
-} as const;
-
-// ============================================================
-// COMPANY INCOME TAX (CIT) CONSTANTS
-// ============================================================
-
-/**
- * Nigeria Company Income Tax (CIT) rates for 2024/2025
- * Based on the Companies Income Tax Act (CITA)
- */
-export const CIT_RATES = {
-  /**
-   * Small companies: Turnover ≤ ₦25 million
-   * 0% CIT (tax holiday)
-   */
-  SMALL: {
-    MAX_TURNOVER: nairaToKobo(25_000_000),
-    RATE: 0.0,
-    DESCRIPTION: "Small company (turnover ≤ ₦25M)",
-  },
-
-  /**
-   * Medium companies: Turnover > ₦25M and ≤ ₦100M
-   * 20% CIT
-   */
-  MEDIUM: {
-    MIN_TURNOVER: nairaToKobo(25_000_000),
-    MAX_TURNOVER: nairaToKobo(100_000_000),
-    RATE: 0.2,
-    DESCRIPTION: "Medium company (₦25M < turnover ≤ ₦100M)",
-  },
-
-  /**
-   * Large companies: Turnover > ₦100 million
-   * 30% CIT
-   */
-  LARGE: {
-    MIN_TURNOVER: nairaToKobo(100_000_000),
-    RATE: 0.3,
-    DESCRIPTION: "Large company (turnover > ₦100M)",
-  },
-} as const;
-
-/**
- * CIT Additional Taxes and Levies
- */
-export const CIT_ADDITIONAL = {
-  /**
-   * Tertiary Education Tax (TET)
-   * 2.5% of assessable profit (for companies only)
-   */
-  TET: {
-    RATE: 0.025,
-    DESCRIPTION: "Tertiary Education Tax",
-  },
-
-  /**
-   * Nigeria Police Trust Fund Levy
-   * 0.005% of net profit
-   */
-  POLICE_LEVY: {
-    RATE: 0.00005,
-    DESCRIPTION: "Police Trust Fund Levy",
-  },
-
-  /**
-   * NASENI Levy (for certain companies)
-   * 0.25% of profit before tax
-   */
-  NASENI: {
-    RATE: 0.0025,
-    DESCRIPTION: "NASENI Levy",
-  },
-
-  /**
-   * Development levy
-   * Fixed ₦5,000 for all companies
-   */
-  DEVELOPMENT_LEVY: {
-    AMOUNT: nairaToKobo(5_000),
-    DESCRIPTION: "Annual development levy",
-  },
-} as const;
-
-/**
- * CIT Minimum Tax
- * 0.5% of gross turnover (if no taxable profit)
- */
-export const CIT_MINIMUM_TAX = {
-  RATE: 0.005,
-  DESCRIPTION: "Minimum tax (0.5% of turnover)",
-} as const;
-
-/**
- * Capital Allowances for CIT
- */
-export const CAPITAL_ALLOWANCES = {
-  /** Initial allowance (year of purchase) */
-  INITIAL: {
-    BUILDING: 0.15,
-    PLANT_MACHINERY: 0.5,
-    FURNITURE: 0.25,
-    MOTOR_VEHICLE: 0.5,
-  },
-  /** Annual allowance (subsequent years) */
-  ANNUAL: {
-    BUILDING: 0.1,
-    PLANT_MACHINERY: 0.25,
-    FURNITURE: 0.2,
-    MOTOR_VEHICLE: 0.25,
-  },
-} as const;
-
-// ============================================================
-// VALUE ADDED TAX (VAT) CONSTANTS
-// ============================================================
-
-/**
- * Nigeria VAT rate
- * Increased from 5% to 7.5% effective February 1, 2020
- */
-export const VAT_RATE = 0.075;
-
-/**
- * VAT Registration Threshold
- * Businesses with turnover ≤ ₦25M in a calendar year are exempt
- */
-export const VAT_REGISTRATION_THRESHOLD = nairaToKobo(25_000_000);
-
-/**
- * VAT-Exempt Categories
- * Based on the VAT Act Schedule I
- */
-export const VAT_EXEMPT_CATEGORIES = [
-  "medical_pharmaceutical",
-  "basic_food",
-  "books_educational",
-  "baby_products",
-  "agricultural_produce",
-  "fertilizer_seeds",
-  "veterinary_medicine",
-  "locally_produced_textiles",
-  "exports",
-] as const;
-
-/**
- * Zero-Rated Categories (0% VAT but can claim input VAT)
- */
-export const VAT_ZERO_RATED = [
-  "exports",
-  "goods_services_diplomats",
-  "humanitarian_goods",
-] as const;
-
-// ============================================================
-// WITHHOLDING TAX (WHT) CONSTANTS
-// ============================================================
-
-/**
- * Withholding Tax rates for various payment categories
- * Rates differ for resident vs non-resident recipients
- */
-export const WHT_RATES: readonly WHTRate[] = [
-  {
-    category: "dividends",
-    residentRate: 0.1,
-    nonResidentRate: 0.1,
-    threshold: nairaToKobo(50_000),
-  },
-  {
-    category: "interest",
-    residentRate: 0.1,
-    nonResidentRate: 0.1,
-    threshold: nairaToKobo(50_000),
-  },
-  {
-    category: "royalties",
-    residentRate: 0.1,
-    nonResidentRate: 0.1,
-    threshold: nairaToKobo(50_000),
-  },
-  {
-    category: "rent",
-    residentRate: 0.1,
-    nonResidentRate: 0.1,
-    threshold: nairaToKobo(50_000),
-  },
-  {
-    category: "commission",
-    residentRate: 0.1,
-    nonResidentRate: 0.1,
-    threshold: nairaToKobo(50_000),
-  },
-  {
-    category: "consultancy",
-    residentRate: 0.1,
-    nonResidentRate: 0.1,
-    threshold: nairaToKobo(50_000),
-  },
-  {
-    category: "technical_services",
-    residentRate: 0.1,
-    nonResidentRate: 0.1,
-    threshold: nairaToKobo(50_000),
-  },
-  {
-    category: "management_services",
-    residentRate: 0.1,
-    nonResidentRate: 0.1,
-    threshold: nairaToKobo(50_000),
-  },
-  {
-    category: "directors_fees",
-    residentRate: 0.1,
-    nonResidentRate: 0.1,
-    threshold: nairaToKobo(50_000),
-  },
-  {
-    category: "contracts",
-    residentRate: 0.05,
-    nonResidentRate: 0.1,
-    threshold: nairaToKobo(50_000),
-  },
-] as const;
-
-/**
- * Default WHT threshold (applies to most categories)
- */
-export const WHT_DEFAULT_THRESHOLD = nairaToKobo(50_000);
 
 // ============================================================
 // SUBSCRIPTION TIERS
@@ -591,19 +237,6 @@ export const DATE_FORMATS = [
 ] as const;
 
 /**
- * Tax year configuration
- * Nigeria uses calendar year (January 1 - December 31)
- */
-export const TAX_YEAR = {
-  START_MONTH: 1, // January
-  START_DAY: 1,
-  END_MONTH: 12, // December
-  END_DAY: 31,
-  FILING_DEADLINE_INDIVIDUAL: { month: 3, day: 31 }, // March 31
-  FILING_DEADLINE_COMPANY: { month: 6, day: 30 }, // June 30
-} as const;
-
-/**
  * AI Categorization confidence thresholds
  */
 export const AI_CONFIDENCE_THRESHOLDS = {
@@ -635,34 +268,6 @@ export const PAGINATION = {
 // ============================================================
 // EXPORT GROUPED CONSTANTS
 // ============================================================
-
-/**
- * All tax-related constants grouped together
- */
-export const TAX_CONSTANTS = {
-  PIT: {
-    BRACKETS: PIT_BRACKETS,
-    RELIEFS: PIT_RELIEFS,
-    MINIMUM_TAX: PIT_MINIMUM_TAX,
-  },
-  CIT: {
-    RATES: CIT_RATES,
-    ADDITIONAL: CIT_ADDITIONAL,
-    MINIMUM_TAX: CIT_MINIMUM_TAX,
-    CAPITAL_ALLOWANCES,
-  },
-  VAT: {
-    RATE: VAT_RATE,
-    REGISTRATION_THRESHOLD: VAT_REGISTRATION_THRESHOLD,
-    EXEMPT_CATEGORIES: VAT_EXEMPT_CATEGORIES,
-    ZERO_RATED: VAT_ZERO_RATED,
-  },
-  WHT: {
-    RATES: WHT_RATES,
-    DEFAULT_THRESHOLD: WHT_DEFAULT_THRESHOLD,
-  },
-  YEAR: TAX_YEAR,
-} as const;
 
 /**
  * All application limits grouped together

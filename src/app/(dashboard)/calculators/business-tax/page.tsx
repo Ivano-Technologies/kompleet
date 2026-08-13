@@ -40,13 +40,31 @@ export default function BusinessTaxCalculatorPage() {
     error: rulesError,
   } = useTaxRules("business_tax");
 
+  const REQUIRED_RULE_KEYS = [
+    "small_company_turnover_threshold",
+    "small_company_assets_threshold",
+    "corporate_tax_rate_small",
+    "corporate_tax_rate_other",
+    "development_levy_rate",
+  ] as const;
+
+  const missingRuleKeys = rules
+    ? REQUIRED_RULE_KEYS.filter((key) => !rules[key]?.value)
+    : [];
+  const rulesUnavailable =
+    !rulesLoading && (!!rulesError || !rules || missingRuleKeys.length > 0);
+
   const calculateBusinessTax = () => {
     setError("");
     setResult(null);
 
     // Check if rules are loaded
-    if (!rules) {
-      setError("Tax rules are not loaded yet. Please wait...");
+    if (!rules || missingRuleKeys.length > 0) {
+      setError(
+        `Tax rules unavailable — cannot calculate business tax. Missing rule(s): ${
+          missingRuleKeys.length > 0 ? missingRuleKeys.join(", ") : "business_tax.*"
+        }. Please try again later or contact support.`,
+      );
       return;
     }
 
@@ -72,9 +90,9 @@ export default function BusinessTaxCalculatorPage() {
 
     // Get thresholds from database rules
     const SMALL_COMPANY_TURNOVER_THRESHOLD =
-      rules.small_company_turnover_threshold?.value?.value || 50_000_000;
+      rules.small_company_turnover_threshold.value.value;
     const SMALL_COMPANY_ASSETS_THRESHOLD =
-      rules.small_company_assets_threshold?.value?.value || 250_000_000;
+      rules.small_company_assets_threshold.value.value;
 
     const isSmallCompany =
       turnoverNum <= SMALL_COMPANY_TURNOVER_THRESHOLD &&
@@ -88,17 +106,14 @@ export default function BusinessTaxCalculatorPage() {
 
     if (isSmallCompany) {
       // Small companies: 0% tax, exempt from development levy
-      corporateTaxRate =
-        (rules.corporate_tax_rate_small?.value?.rate || 0) / 100;
+      corporateTaxRate = rules.corporate_tax_rate_small.value.rate / 100;
       developmentLevyRate = 0;
       corporateTax = 0;
       developmentLevy = 0;
     } else {
       // Other companies: Get rates from database
-      corporateTaxRate =
-        (rules.corporate_tax_rate_other?.value?.rate || 30) / 100;
-      developmentLevyRate =
-        (rules.development_levy_rate?.value?.rate || 4) / 100;
+      corporateTaxRate = rules.corporate_tax_rate_other.value.rate / 100;
+      developmentLevyRate = rules.development_levy_rate.value.rate / 100;
       corporateTax = profitNum * corporateTaxRate;
       developmentLevy = profitNum * developmentLevyRate;
     }
@@ -169,7 +184,8 @@ export default function BusinessTaxCalculatorPage() {
       },
       ruleVersion: "v1.0.0-2025-tax-act",
       sources: ["Nigerian Revenue Service (NRS)"],
-      confidenceLevel: "High",
+      confidenceLevel:
+        rules?.corporate_tax_rate_other?.confidence || "unavailable",
     });
   };
 
@@ -189,14 +205,17 @@ export default function BusinessTaxCalculatorPage() {
           </div>
         </div>
 
-        {rulesError && (
+        {rulesUnavailable && (
           <Alert
             variant="destructive"
             className="mb-6 bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-900/30 text-red-800 dark:text-red-200"
           >
             <InfoIcon className="h-4 w-4" />
             <AlertDescription>
-              Failed to load tax rules: {rulesError}. Using fallback rates.
+              {rulesError
+                ? `Failed to load tax rules: ${rulesError}.`
+                : `Required business tax rules are unavailable (${missingRuleKeys.join(", ") || "business_tax.*"}).`}{" "}
+              Calculation is disabled until this is resolved.
             </AlertDescription>
           </Alert>
         )}
@@ -223,7 +242,7 @@ export default function BusinessTaxCalculatorPage() {
                   placeholder="e.g., 100000000"
                   value={turnover}
                   onChange={(e) => setTurnover(e.target.value)}
-                  disabled={rulesLoading}
+                  disabled={rulesLoading || rulesUnavailable}
                   className="rounded-lg bg-light-background dark:bg-dark-background border-light-border dark:border-dark-border"
                 />
               </div>
@@ -241,7 +260,7 @@ export default function BusinessTaxCalculatorPage() {
                   placeholder="e.g., 500000000"
                   value={totalAssets}
                   onChange={(e) => setTotalAssets(e.target.value)}
-                  disabled={rulesLoading}
+                  disabled={rulesLoading || rulesUnavailable}
                   className="rounded-lg bg-light-background dark:bg-dark-background border-light-border dark:border-dark-border"
                 />
               </div>
@@ -259,7 +278,7 @@ export default function BusinessTaxCalculatorPage() {
                   placeholder="e.g., 30000000"
                   value={assessableProfit}
                   onChange={(e) => setAssessableProfit(e.target.value)}
-                  disabled={rulesLoading}
+                  disabled={rulesLoading || rulesUnavailable}
                   className="rounded-lg bg-light-background dark:bg-dark-background border-light-border dark:border-dark-border"
                 />
               </div>
@@ -271,7 +290,7 @@ export default function BusinessTaxCalculatorPage() {
                   checked={isProfessionalService}
                   onChange={(e) => setIsProfessionalService(e.target.checked)}
                   className="h-4 w-4 rounded border-light-border dark:border-dark-border"
-                  disabled={rulesLoading}
+                  disabled={rulesLoading || rulesUnavailable}
                 />
                 <Label
                   htmlFor="professional"
@@ -284,12 +303,17 @@ export default function BusinessTaxCalculatorPage() {
               <Button
                 onClick={calculateBusinessTax}
                 className="w-full btn-primary rounded-lg"
-                disabled={rulesLoading}
+                disabled={rulesLoading || rulesUnavailable}
               >
                 {rulesLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Loading Rules...
+                  </>
+                ) : rulesUnavailable ? (
+                  <>
+                    <InfoIcon className="mr-2 h-4 w-4" />
+                    Rules Unavailable
                   </>
                 ) : (
                   <>
@@ -320,20 +344,24 @@ export default function BusinessTaxCalculatorPage() {
                   <InfoIcon className="h-4 w-4 mr-2 mt-0.5 text-blue-500 dark:text-blue-400" />
                   <span>
                     Turnover ≤{" "}
-                    {formatCurrency(
-                      rules?.small_company_turnover_threshold?.value?.value ||
-                        50_000_000,
-                    )}
+                    {rules?.small_company_turnover_threshold?.value?.value !=
+                    null
+                      ? formatCurrency(
+                          rules.small_company_turnover_threshold.value.value,
+                        )
+                      : "Unavailable"}
                   </span>
                 </p>
                 <p className="flex items-start">
                   <InfoIcon className="h-4 w-4 mr-2 mt-0.5 text-blue-500 dark:text-blue-400" />
                   <span>
                     Total Assets ≤{" "}
-                    {formatCurrency(
-                      rules?.small_company_assets_threshold?.value?.value ||
-                        250_000_000,
-                    )}
+                    {rules?.small_company_assets_threshold?.value?.value !=
+                    null
+                      ? formatCurrency(
+                          rules.small_company_assets_threshold.value.value,
+                        )
+                      : "Unavailable"}
                   </span>
                 </p>
                 <p className="flex items-start">
@@ -453,7 +481,7 @@ export default function BusinessTaxCalculatorPage() {
             <p>
               <strong>Data Source:</strong> Nigerian Revenue Service (NRS),
               Confidence level:{" "}
-              {rules?.corporate_tax_rate_other?.confidence || "high"}.
+              {rules?.corporate_tax_rate_other?.confidence || "unavailable"}.
             </p>
             <p>
               <strong>Disclaimer:</strong> This is an estimate. Consult a

@@ -1,12 +1,14 @@
 /**
- * Tax Rules API (Database Version)
- * GET /api/tax-rules - Get tax rules from database
+ * Tax Rules API
+ * GET /api/tax-rules?type=vat — active rules with gaps filled from the
+ * latest inactive (unverified) rule_version. See loadRuleBundle.
  * Protected: Requires 'calculators:read' permission
  */
 
 import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@/lib/auth/with-auth";
+import { loadRuleBundle } from "@/lib/tax/rule-loader";
 
 async function handleGET(request: NextRequest) {
   try {
@@ -21,63 +23,40 @@ async function handleGET(request: NextRequest) {
     }
 
     const supabase = await getSupabaseForRequest(request);
+    const bundle = await loadRuleBundle({
+      ruleTypes: [ruleType],
+      client: supabase,
+    });
 
-    // Get active rule version (optional: allow no active version and return empty rules)
-    const { data: activeVersion, error: versionError } = await supabase
-      .from("rule_versions")
-      .select("id")
-      .eq("is_active", true)
-      .single();
+    const rulesMap: Record<
+      string,
+      {
+        value: unknown;
+        confidence: string;
+        notes: string | null;
+        lastReviewed: string | null;
+        ruleVersionId: string;
+      }
+    > = {};
 
-    if (versionError || !activeVersion) {
-      return NextResponse.json({
-        success: true,
-        ruleType,
-        versionId: null,
-        rules: {},
-        count: 0,
-      });
+    for (const rule of bundle.rules.values()) {
+      if (rule.ruleType !== ruleType) continue;
+      rulesMap[rule.ruleKey] = {
+        value: rule.value,
+        confidence: rule.confidenceLevel,
+        notes: rule.notes,
+        lastReviewed: rule.lastReviewedAt,
+        ruleVersionId: rule.ruleVersionId,
+      };
     }
-
-    // Fetch tax rules for the specified type
-    const { data: rules, error: rulesError } = await supabase
-      .from("tax_rules")
-      .select("*")
-      .eq("rule_version_id", activeVersion.id)
-      .eq("rule_type", ruleType)
-      .order("rule_key");
-
-    if (rulesError) {
-      console.error("Error fetching tax rules:", rulesError);
-      return NextResponse.json({
-        success: true,
-        ruleType,
-        versionId: activeVersion.id,
-        rules: {},
-        count: 0,
-      });
-    }
-
-    // Transform rules into a more usable format
-    const rulesMap = (rules ?? []).reduce(
-      (acc, rule) => {
-        acc[rule.rule_key] = {
-          value: rule.rule_value,
-          confidence: rule.confidence_level,
-          notes: rule.notes,
-          lastReviewed: rule.last_reviewed_at,
-        };
-        return acc;
-      },
-      {} as Record<string, any>,
-    );
 
     return NextResponse.json({
       success: true,
       ruleType,
-      versionId: activeVersion.id,
+      versionId: bundle.activeVersionId,
+      unverifiedVersionId: bundle.unverifiedVersionId,
       rules: rulesMap,
-      count: (rules ?? []).length,
+      count: Object.keys(rulesMap).length,
     });
   } catch (error) {
     console.error("Unexpected error:", error);
@@ -88,7 +67,6 @@ async function handleGET(request: NextRequest) {
   }
 }
 
-// Apply authentication and authorization (requires calculators:read permission)
 export const GET = withAuth(handleGET, {
   requiredPermission: "calculators:read",
 });

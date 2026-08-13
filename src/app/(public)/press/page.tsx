@@ -72,14 +72,13 @@ export default function PressPage() {
           </h2>
           <p className="text-light-text-secondary dark:text-dark-text-secondary leading-relaxed mb-4">
             KOMPLEET is a financial management and tax compliance platform built
-            specifically for Nigerian SMEs. Developed by Ivano Technologies Ltd,
-            the platform automates VAT, WHT, and PAYE calculations, generates
-            professional invoices, and provides real-time cashflow analytics.
+            for Nigerian SMEs. Developed by Ivano Technologies Ltd, it supports
+            Nigerian bank statement import, VAT calculation under the Nigeria
+            Tax Act 2025, filing-ready NRS and LIRS form generation, invoicing
+            with NRS-compliant QR codes, and P&amp;L and balance sheet reports.
           </p>
           <p className="text-light-text-secondary dark:text-dark-text-secondary leading-relaxed">
-            Currently in beta, KOMPLEET serves over 5,000 businesses across
-            Nigeria, processing more than &#x20A6;2.5 billion in monthly
-            transactions.
+            Currently in beta. Product claims reflect shipped capabilities only.
           </p>
         </div>
 
