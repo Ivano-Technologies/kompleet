@@ -1,8 +1,16 @@
 /**
  * Tax Computation Service
- * Implements Nigeria Tax Act 2025 tax calculations
+ * Implements Nigeria Tax Act 2025 tax calculations.
  * Effective Date: January 1, 2026
+ *
+ * Every rate, threshold, and band used here is loaded from a `RuleBundle`
+ * via `requireRule` — nothing is hardcoded. If a required rule is missing
+ * from the bundle, `requireRule` throws `MissingTaxRuleError` rather than
+ * falling back to a default. See docs/TAX_RULE_PROVENANCE.md.
  */
+import { MissingTaxRuleError } from "@/lib/tax/errors";
+import { getRulesByType, requireRule } from "@/lib/tax/rule-loader";
+import type { RuleBundle } from "@/lib/tax/types";
 
 export interface TaxComputationInput {
   // Business Information
@@ -76,61 +84,60 @@ interface ExemptionItem {
 
 export class TaxComputationService {
   /**
-   * Compute tax liability based on Nigeria Tax Act 2025
+   * Compute tax liability based on Nigeria Tax Act 2025.
+   *
+   * `rules` must already be loaded (see src/lib/tax/rule-loader.ts). This
+   * method is synchronous — all async rule loading happens before calling it.
    */
-  static computeTax(input: TaxComputationInput): TaxComputationResult {
-    // Determine business classification
-    const classification = this.classifyBusiness(input);
+  static computeTax(
+    input: TaxComputationInput,
+    rules: RuleBundle,
+  ): TaxComputationResult {
+    const classification = this.classifyBusiness(input, rules);
     const qualifiesAsSmall = classification === "Small Company";
 
-    // Calculate assessable profit
-    const assessableProfit = this.calculateAssessableProfit(input);
-
-    // Calculate taxable income
+    const assessableProfit = this.calculateAssessableProfit(input, rules);
     const taxableIncome = this.calculateTaxableIncome(input, assessableProfit);
 
-    // Calculate income tax
     const incomeTax = this.calculateIncomeTax(
       input,
       taxableIncome,
       qualifiesAsSmall,
+      rules,
     );
 
-    // Calculate development levy
     const developmentLevy = this.calculateDevelopmentLevy(
       input,
       assessableProfit,
       qualifiesAsSmall,
+      rules,
     );
 
-    // Total tax liability
     const totalTaxLiability = incomeTax + developmentLevy;
 
-    // Effective tax rate
     const effectiveTaxRate =
       input.totalRevenue > 0
         ? (totalTaxLiability / input.totalRevenue) * 100
         : 0;
 
-    // Tax breakdown
     const taxBreakdown = this.generateTaxBreakdown(
       input,
       assessableProfit,
       taxableIncome,
       incomeTax,
       developmentLevy,
+      rules,
     );
 
-    // Reliefs and exemptions
-    const reliefs = this.identifyReliefs(input);
-    const exemptions = this.identifyExemptions(input, qualifiesAsSmall);
+    const reliefs = this.identifyReliefs(input, rules);
+    const exemptions = this.identifyExemptions(input, qualifiesAsSmall, rules);
 
-    // Filing requirements
     const filingRequirements = this.getFilingRequirements(
       input,
       qualifiesAsSmall,
+      rules,
     );
-    const nextSteps = this.getNextSteps(input, qualifiesAsSmall);
+    const nextSteps = this.getNextSteps(input, qualifiesAsSmall, rules);
 
     return {
       businessClassification: classification,
@@ -152,38 +159,104 @@ export class TaxComputationService {
   }
 
   /**
-   * Classify business based on Nigeria Tax Act 2025
+   * Classify a company's tax category from turnover/assets alone, without
+   * requiring an `Individual Taxpayer` vs `company` distinction. Exposed as
+   * a public helper so callers building a `TaxComputationInput` (e.g. the
+   * financial-statements/NRS-filing shared helper) can pre-set
+   * `businessType` consistently with what `computeTax` will independently
+   * derive, instead of guessing.
+   *
+   * The "very large company" threshold and minimum ETR rate are sourced
+   * from `business_tax.very_large_turnover_threshold` /
+   * `business_tax.minimum_etr` — as of PR 3a these are only seeded as
+   * unverified candidates (see supabase/migrations/20260805140000_...sql),
+   * so the rule loader fills them in from the unverified rule_version when
+   * the active version has no verified figure.
    */
-  private static classifyBusiness(input: TaxComputationInput): string {
+  static classifyBusinessType(
+    turnover: number,
+    totalAssets: number,
+    isProfessionalService: boolean,
+    rules: RuleBundle,
+  ): "small_company" | "other_company" | "very_large_company" {
+    const turnoverThreshold = requireRule(
+      rules,
+      "business_tax",
+      "small_company_turnover_threshold",
+    ).value.value as number;
+    const assetsThreshold = requireRule(
+      rules,
+      "business_tax",
+      "small_company_assets_threshold",
+    ).value.value as number;
+
+    if (
+      turnover <= turnoverThreshold &&
+      totalAssets <= assetsThreshold &&
+      !isProfessionalService
+    ) {
+      return "small_company";
+    }
+
+    const veryLargeThreshold = requireRule(
+      rules,
+      "business_tax",
+      "very_large_turnover_threshold",
+    ).value.threshold as number;
+
+    if (turnover >= veryLargeThreshold) {
+      return "very_large_company";
+    }
+
+    return "other_company";
+  }
+
+  /**
+   * Classify business based on Nigeria Tax Act 2025 (display string).
+   */
+  private static classifyBusiness(
+    input: TaxComputationInput,
+    rules: RuleBundle,
+  ): string {
     if (input.businessType === "individual") {
       return "Individual Taxpayer";
     }
 
-    // Small Company criteria (both must be met)
-    if (
-      input.turnover <= 50_000_000 &&
-      input.totalAssets <= 250_000_000 &&
-      !input.isProfessionalService
-    ) {
+    const category = this.classifyBusinessType(
+      input.turnover,
+      input.totalAssets,
+      input.isProfessionalService,
+      rules,
+    );
+
+    if (category === "small_company") {
       return "Small Company";
     }
 
-    // Very Large Company
-    if (input.turnover >= 20_000_000_000) {
-      return "Very Large Company (Minimum ETR 15%)";
+    if (category === "very_large_company") {
+      const minEtr = requireRule(rules, "business_tax", "minimum_etr").value
+        .rate as number;
+      return `Very Large Company (Minimum ETR ${minEtr}%)`;
     }
 
     return "Other Company";
   }
 
   /**
-   * Calculate assessable profit
+   * Calculate assessable profit. Nigeria Tax Act 2025 integrates capital
+   * gains into income tax (no separate CGT) — this is confirmed by the
+   * business_tax.capital_gains_integration rule, which is required here so
+   * that assumption is never silently applied without a backing rule.
    */
-  private static calculateAssessableProfit(input: TaxComputationInput): number {
+  private static calculateAssessableProfit(
+    input: TaxComputationInput,
+    rules: RuleBundle,
+  ): number {
+    requireRule(rules, "business_tax", "capital_gains_integration");
+
     const netProfit = input.totalRevenue - input.totalExpenses;
     const capitalGainsNet = input.capitalGains - input.capitalLosses;
 
-    // Capital gains integrated into income tax
     return netProfit + capitalGainsNet;
   }
 
@@ -194,7 +267,6 @@ export class TaxComputationService {
     input: TaxComputationInput,
     assessableProfit: number,
   ): number {
-    // Add back non-deductible expenses
     return assessableProfit + input.nonDeductibleExpenses;
   }
 
@@ -205,120 +277,133 @@ export class TaxComputationService {
     input: TaxComputationInput,
     taxableIncome: number,
     qualifiesAsSmall: boolean,
+    rules: RuleBundle,
   ): number {
-    // Individual tax calculation
     if (input.businessType === "individual" && input.annualIncome) {
-      return this.calculateIndividualTax(input.annualIncome, input);
+      return this.calculateIndividualTax(input.annualIncome, input, rules);
     }
 
-    // Small company: 0% tax
     if (qualifiesAsSmall) {
-      return 0;
+      const rate =
+        (requireRule(rules, "business_tax", "corporate_tax_rate_small").value
+          .rate as number) / 100;
+      return taxableIncome * rate;
     }
 
-    // Other companies: 30% tax
-    if (input.businessType === "other_company") {
-      return taxableIncome * 0.3;
-    }
-
-    // Very large companies: 30% with 15% minimum ETR
     if (input.businessType === "very_large_company") {
-      const standardTax = taxableIncome * 0.3;
-      const minimumTax = input.totalRevenue * 0.15;
+      const standardRate =
+        (requireRule(rules, "business_tax", "corporate_tax_rate_other").value
+          .rate as number) / 100;
+      const minimumEtrRate =
+        (requireRule(rules, "business_tax", "minimum_etr").value
+          .rate as number) / 100;
+      const standardTax = taxableIncome * standardRate;
+      const minimumTax = input.totalRevenue * minimumEtrRate;
       return Math.max(standardTax, minimumTax);
     }
 
-    return taxableIncome * 0.3;
+    const rate =
+      (requireRule(rules, "business_tax", "corporate_tax_rate_other").value
+        .rate as number) / 100;
+    return taxableIncome * rate;
   }
 
   /**
-   * Calculate individual income tax (Nigeria Tax Act 2025)
+   * Calculate individual income tax (Nigeria Tax Act 2025).
+   *
+   * Progressive tax bands are loaded dynamically from every
+   * `individual_income_tax.tax_bracket_*` rule rather than hardcoded, so
+   * a future band change only requires a rule_versions update.
    */
   private static calculateIndividualTax(
     annualIncome: number,
     input: TaxComputationInput,
+    rules: RuleBundle,
   ): number {
-    // Apply reliefs
     let taxableIncome = annualIncome;
 
-    // Rent relief: N500,000 OR 20% of rent (whichever is lower)
     if (input.rentPaid) {
-      const rentRelief = Math.min(500_000, input.rentPaid * 0.2);
+      const rentReliefRule = requireRule(
+        rules,
+        "individual_income_tax",
+        "rent_relief",
+      );
+      const cap = rentReliefRule.value.cap as number;
+      const percentage = rentReliefRule.value.percentage as number;
+      const rentRelief = Math.min(cap, input.rentPaid * (percentage / 100));
       taxableIncome -= rentRelief;
     }
 
-    // Owner-occupier interest deduction
     if (input.ownerOccupierInterest) {
+      // Confirms the deduction is a verified rule before applying it.
+      requireRule(rules, "individual_income_tax", "owner_occupier_interest");
       taxableIncome -= input.ownerOccupierInterest;
     }
 
-    // Progressive tax bands
+    taxableIncome = Math.max(0, taxableIncome);
+
+    const brackets = getRulesByType(rules, "individual_income_tax")
+      .filter((rule) => rule.ruleKey.startsWith("tax_bracket_"))
+      .sort(
+        (a, b) => (a.value.from as number) - (b.value.from as number),
+      );
+
+    if (brackets.length === 0) {
+      throw new MissingTaxRuleError(
+        "individual_income_tax",
+        "tax_bracket_1",
+        "no individual income tax bracket schedule is loaded",
+      );
+    }
+
     let tax = 0;
-    let remaining = taxableIncome;
+    let lowerBound = 0;
 
-    // Band 1: First N800,000 @ 0%
-    if (remaining > 800_000) {
-      remaining -= 800_000;
-    } else {
-      return 0;
+    for (const bracket of brackets) {
+      const upperBound = (bracket.value.to as number | null) ?? Infinity;
+      const amountInBand = Math.max(
+        0,
+        Math.min(taxableIncome, upperBound) - lowerBound,
+      );
+      tax += amountInBand * ((bracket.value.rate as number) / 100);
+      lowerBound = upperBound;
+
+      if (taxableIncome <= upperBound) {
+        break;
+      }
     }
-
-    // Band 2: Next N2,200,000 @ 15%
-    if (remaining > 2_200_000) {
-      tax += 2_200_000 * 0.15;
-      remaining -= 2_200_000;
-    } else {
-      tax += remaining * 0.15;
-      return tax;
-    }
-
-    // Band 3: Next N9,000,000 @ 18%
-    if (remaining > 9_000_000) {
-      tax += 9_000_000 * 0.18;
-      remaining -= 9_000_000;
-    } else {
-      tax += remaining * 0.18;
-      return tax;
-    }
-
-    // Band 4: Next N13,000,000 @ 21%
-    if (remaining > 13_000_000) {
-      tax += 13_000_000 * 0.21;
-      remaining -= 13_000_000;
-    } else {
-      tax += remaining * 0.21;
-      return tax;
-    }
-
-    // Band 5: Next N25,000,000 @ 23%
-    if (remaining > 25_000_000) {
-      tax += 25_000_000 * 0.23;
-      remaining -= 25_000_000;
-    } else {
-      tax += remaining * 0.23;
-      return tax;
-    }
-
-    // Band 6: Above N50,000,000 @ 25%
-    tax += remaining * 0.25;
 
     return tax;
   }
 
   /**
-   * Calculate development levy (4% of assessable profits)
+   * Calculate development levy. Exemption list is loaded from
+   * business_tax.development_levy_exemptions rather than assumed.
    */
   private static calculateDevelopmentLevy(
     input: TaxComputationInput,
     assessableProfit: number,
     qualifiesAsSmall: boolean,
+    rules: RuleBundle,
   ): number {
-    // Exemptions: Small companies, individuals, non-residents
-    if (qualifiesAsSmall || input.businessType === "individual") {
+    const exemptCategories = requireRule(
+      rules,
+      "business_tax",
+      "development_levy_exemptions",
+    ).value.exempt as string[];
+
+    const isSmallCompanyExempt =
+      qualifiesAsSmall && exemptCategories.includes("small_company");
+
+    if (isSmallCompanyExempt || input.businessType === "individual") {
       return 0;
     }
 
-    return assessableProfit * 0.04;
+    const rate =
+      (requireRule(rules, "business_tax", "development_levy_rate").value
+        .rate as number) / 100;
+
+    return assessableProfit * rate;
   }
 
   /**
@@ -330,6 +415,7 @@ export class TaxComputationService {
     taxableIncome: number,
     incomeTax: number,
     developmentLevy: number,
+    rules: RuleBundle,
   ): TaxBreakdownItem[] {
     const breakdown: TaxBreakdownItem[] = [];
 
@@ -374,17 +460,28 @@ export class TaxComputationService {
       amount: taxableIncome,
     });
 
+    let incomeTaxRate: number | undefined;
+    if (input.businessType === "other_company") {
+      incomeTaxRate = requireRule(rules, "business_tax", "corporate_tax_rate_other")
+        .value.rate as number;
+    } else if (input.businessType === "very_large_company") {
+      incomeTaxRate = requireRule(rules, "business_tax", "minimum_etr").value
+        .rate as number;
+    }
+
     breakdown.push({
       description: "Income Tax",
       amount: incomeTax,
-      rate: input.businessType === "other_company" ? 30 : undefined,
+      rate: incomeTaxRate,
     });
 
     if (developmentLevy > 0) {
+      const levyRate = requireRule(rules, "business_tax", "development_levy_rate")
+        .value.rate as number;
       breakdown.push({
         description: "Development Levy",
         amount: developmentLevy,
-        rate: 4,
+        rate: levyRate,
       });
     }
 
@@ -394,21 +491,31 @@ export class TaxComputationService {
   /**
    * Identify applicable reliefs
    */
-  private static identifyReliefs(input: TaxComputationInput): ReliefItem[] {
+  private static identifyReliefs(
+    input: TaxComputationInput,
+    rules: RuleBundle,
+  ): ReliefItem[] {
     const reliefs: ReliefItem[] = [];
 
     if (input.businessType === "individual") {
       if (input.rentPaid) {
-        const rentRelief = Math.min(500_000, input.rentPaid * 0.2);
+        const rentReliefRule = requireRule(
+          rules,
+          "individual_income_tax",
+          "rent_relief",
+        );
+        const cap = rentReliefRule.value.cap as number;
+        const percentage = rentReliefRule.value.percentage as number;
+        const rentRelief = Math.min(cap, input.rentPaid * (percentage / 100));
         reliefs.push({
           name: "Rent Relief",
           amount: rentRelief,
-          description:
-            "N500,000 or 20% of annual rent paid (whichever is lower)",
+          description: `₦${cap.toLocaleString()} or ${percentage}% of annual rent paid (whichever is lower)`,
         });
       }
 
       if (input.ownerOccupierInterest) {
+        requireRule(rules, "individual_income_tax", "owner_occupier_interest");
         reliefs.push({
           name: "Owner-Occupier Interest",
           amount: input.ownerOccupierInterest,
@@ -421,47 +528,70 @@ export class TaxComputationService {
   }
 
   /**
-   * Identify applicable exemptions
+   * Identify applicable exemptions.
+   *
+   * Deliberately does NOT assert VAT exemption/registration status here —
+   * the VAT registration/small-business-exemption turnover threshold has
+   * three mutually exclusive unverified candidate readings (see
+   * src/lib/tax/rule-loader.ts#resolveVatObligationStatus). Use the VAT
+   * calculator / VATService.getRegistrationObligation for that question.
    */
   private static identifyExemptions(
     input: TaxComputationInput,
     qualifiesAsSmall: boolean,
+    rules: RuleBundle,
   ): ExemptionItem[] {
     const exemptions: ExemptionItem[] = [];
 
     if (qualifiesAsSmall) {
+      const smallRate = requireRule(rules, "business_tax", "corporate_tax_rate_small")
+        .value.rate as number;
+      const turnoverThreshold = requireRule(
+        rules,
+        "business_tax",
+        "small_company_turnover_threshold",
+      ).value.value as number;
+      const assetsThreshold = requireRule(
+        rules,
+        "business_tax",
+        "small_company_assets_threshold",
+      ).value.value as number;
+
       exemptions.push({
         name: "Small Company Income Tax Exemption",
-        description: "0% income tax rate (turnover ≤ N50m, assets ≤ N250m)",
+        description: `${smallRate}% income tax rate (turnover ≤ ₦${(turnoverThreshold / 1_000_000).toLocaleString()}m, assets ≤ ₦${(assetsThreshold / 1_000_000).toLocaleString()}m)`,
       });
 
       exemptions.push({
         name: "Development Levy Exemption",
-        description: "Small companies are exempt from 4% development levy",
+        description: "Small companies are exempt from development levy",
       });
 
-      exemptions.push({
-        name: "Capital Gains Tax Exemption",
-        description: "0% capital gains tax (integrated into income tax)",
-      });
-
-      if (input.turnover < 100_000_000 && input.totalAssets < 250_000_000) {
+      const cgtRule = requireRule(rules, "business_tax", "capital_gains_integration");
+      if (cgtRule.value.integrated) {
         exemptions.push({
-          name: "VAT Exemption",
-          description: "Turnover < N100m AND assets < N250m",
+          name: "Capital Gains Tax Exemption",
+          description: `${smallRate}% capital gains tax (integrated into income tax)`,
         });
       }
     }
 
     if (
       input.businessType === "individual" &&
-      input.annualIncome &&
-      input.annualIncome <= 800_000
+      input.annualIncome !== undefined
     ) {
-      exemptions.push({
-        name: "Individual Tax-Free Threshold",
-        description: "First N800,000 of annual income is tax-free",
-      });
+      const firstBracket = requireRule(
+        rules,
+        "individual_income_tax",
+        "tax_bracket_1",
+      );
+      const taxFreeThreshold = firstBracket.value.to as number;
+      if (input.annualIncome <= taxFreeThreshold) {
+        exemptions.push({
+          name: "Individual Tax-Free Threshold",
+          description: `First ₦${taxFreeThreshold.toLocaleString()} of annual income is tax-free`,
+        });
+      }
     }
 
     return exemptions;
@@ -473,6 +603,7 @@ export class TaxComputationService {
   private static getFilingRequirements(
     input: TaxComputationInput,
     qualifiesAsSmall: boolean,
+    rules: RuleBundle,
   ): string[] {
     const requirements: string[] = [];
 
@@ -487,11 +618,17 @@ export class TaxComputationService {
       requirements.push("File VAT returns (monthly)");
 
       if (!qualifiesAsSmall) {
-        requirements.push("Pay development levy (4% of assessable profits)");
+        const levyRate = requireRule(rules, "business_tax", "development_levy_rate")
+          .value.rate as number;
+        requirements.push(
+          `Pay development levy (${levyRate}% of assessable profits)`,
+        );
       }
 
       if (input.businessType === "very_large_company") {
-        requirements.push("Maintain 15% minimum effective tax rate");
+        const minEtr = requireRule(rules, "business_tax", "minimum_etr").value
+          .rate as number;
+        requirements.push(`Maintain ${minEtr}% minimum effective tax rate`);
         requirements.push("Submit transfer pricing documentation");
       }
     }
@@ -508,16 +645,27 @@ export class TaxComputationService {
   private static getNextSteps(
     input: TaxComputationInput,
     qualifiesAsSmall: boolean,
+    rules: RuleBundle,
   ): string[] {
     const steps: string[] = [];
 
     if (qualifiesAsSmall) {
+      const smallRate = requireRule(rules, "business_tax", "corporate_tax_rate_small")
+        .value.rate as number;
       steps.push("Confirm eligibility for small company status with NRS");
-      steps.push("Enjoy 0% income tax rate and development levy exemption");
-      steps.push("Consider VAT exemption if turnover < N100m");
+      steps.push(
+        `Enjoy ${smallRate}% income tax rate and development levy exemption`,
+      );
+      steps.push(
+        "VAT registration/exemption threshold is unresolved for your turnover — verify manually via the VAT calculator before assuming exemption (see review_queue)",
+      );
     } else {
-      steps.push("Prepare for 30% corporate income tax payment");
-      steps.push("Budget for 4% development levy");
+      const otherRate = requireRule(rules, "business_tax", "corporate_tax_rate_other")
+        .value.rate as number;
+      const levyRate = requireRule(rules, "business_tax", "development_levy_rate")
+        .value.rate as number;
+      steps.push(`Prepare for ${otherRate}% corporate income tax payment`);
+      steps.push(`Budget for ${levyRate}% development levy`);
       steps.push(
         "Ensure all VAT and customs duties are paid for expense deductibility",
       );

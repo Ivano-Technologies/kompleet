@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { TaxComputationService } from "@/lib/services/tax-computation-service";
+import { loadRuleBundle } from "@/lib/tax/rule-loader";
+import { MissingTaxRuleError } from "@/lib/tax/errors";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { z } from "zod";
 
@@ -72,8 +74,20 @@ async function handlePOST(request: NextRequest) {
     } = parsed.data;
 
     // Prepare computation input
+    const validBusinessTypes = [
+      "individual",
+      "small_company",
+      "other_company",
+      "very_large_company",
+    ] as const;
+    const resolvedBusinessType = validBusinessTypes.includes(
+      businessType as (typeof validBusinessTypes)[number],
+    )
+      ? (businessType as (typeof validBusinessTypes)[number])
+      : "other_company";
+
     const computationInput = {
-      businessType: businessType || "other_company",
+      businessType: resolvedBusinessType,
       turnover: turnover || 0,
       totalAssets: totalAssets || 0,
       isProfessionalService: isProfessionalService || false,
@@ -87,9 +101,12 @@ async function handlePOST(request: NextRequest) {
       ownerOccupierInterest,
     };
 
-    // Compute tax
+    // Load tax rules (active version, gaps filled from the latest
+    // unverified candidate version) and compute tax.
+    const rules = await loadRuleBundle({ client: supabase });
     const computation = TaxComputationService.computeTax(
-      computationInput as any,
+      computationInput,
+      rules,
     );
 
     // Save tax report to database
@@ -125,6 +142,9 @@ async function handlePOST(request: NextRequest) {
     return NextResponse.json({ report: taxReport, computation });
   } catch (error: any) {
     console.error("Error in POST /api/tax-reports/generate:", error);
+    if (error instanceof MissingTaxRuleError) {
+      return NextResponse.json({ error: error.message }, { status: 422 });
+    }
     return NextResponse.json(
       { error: error.message || "Internal server error" },
       { status: 500 },

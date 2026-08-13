@@ -13,13 +13,22 @@ export type RuleType =
   | "development_levy"
   | "property_tax";
 
-export type ConfidenceLevel = "high" | "medium" | "low";
+export type ConfidenceLevel =
+  | "high"
+  | "medium"
+  | "low"
+  | "unverified"
+  | "verified";
 
 export type ReviewStatus = "pending" | "in_review" | "approved" | "rejected";
 
 export type ReviewPriority = "low" | "medium" | "high" | "critical";
 
-export type ChangeType = "new_rule" | "rule_update" | "rule_deprecation";
+export type ChangeType =
+  | "new_rule"
+  | "rule_update"
+  | "rule_deprecation"
+  | "rate_verification";
 
 export type ReviewActionType =
   | "assigned"
