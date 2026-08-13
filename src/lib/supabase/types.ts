@@ -76,6 +76,9 @@ export type WhtCategoryType =
 
 export type MemberRoleType = "owner" | "accountant" | "staff";
 
+/** Wave A firm membership. Viewer is deferred. */
+export type FirmRoleType = "owner" | "staff";
+
 // ============================================================
 // JSON TYPES
 // ============================================================
@@ -728,6 +731,107 @@ export interface Database {
           },
         ];
       };
+
+      firms: {
+        Row: {
+          id: string;
+          name: string;
+          owner_user_id: string;
+          subscription_tier: SubscriptionTierType;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          owner_user_id: string;
+          subscription_tier?: SubscriptionTierType;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          owner_user_id?: string;
+          subscription_tier?: SubscriptionTierType;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+
+      firm_members: {
+        Row: {
+          firm_id: string;
+          user_id: string;
+          role: FirmRoleType;
+        };
+        Insert: {
+          firm_id: string;
+          user_id: string;
+          role: FirmRoleType;
+        };
+        Update: {
+          firm_id?: string;
+          user_id?: string;
+          role?: FirmRoleType;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "firm_members_firm_id_fkey";
+            columns: ["firm_id"];
+            referencedRelation: "firms";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+
+      clients: {
+        Row: {
+          id: string;
+          firm_id: string;
+          legal_name: string;
+          tin: string | null;
+          rc_number: string | null;
+          entity_type: EntityType | null;
+          fiscal_year_start: string | null;
+          address: string | null;
+          status: string;
+          archived_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          firm_id: string;
+          legal_name: string;
+          tin?: string | null;
+          rc_number?: string | null;
+          entity_type?: EntityType | null;
+          fiscal_year_start?: string | null;
+          address?: string | null;
+          status?: string;
+          archived_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          firm_id?: string;
+          legal_name?: string;
+          tin?: string | null;
+          rc_number?: string | null;
+          entity_type?: EntityType | null;
+          fiscal_year_start?: string | null;
+          address?: string | null;
+          status?: string;
+          archived_at?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "clients_firm_id_fkey";
+            columns: ["firm_id"];
+            referencedRelation: "firms";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
 
     Views: {
@@ -779,6 +883,14 @@ export interface Database {
       reset_monthly_transaction_counts: {
         Args: Record<string, never>;
         Returns: number;
+      };
+      my_firm_ids: {
+        Args: Record<string, never>;
+        Returns: string[];
+      };
+      accessible_client_ids: {
+        Args: Record<string, never>;
+        Returns: string[];
       };
     };
 
@@ -861,3 +973,15 @@ export type AICategoryOverrideUpdate = TableUpdate<"ai_category_overrides">;
 
 export type AIAuditLog = TableRow<"ai_audit_logs">;
 export type AIAuditLogInsert = TableInsert<"ai_audit_logs">;
+
+export type Firm = TableRow<"firms">;
+export type FirmInsert = TableInsert<"firms">;
+export type FirmUpdate = TableUpdate<"firms">;
+
+export type FirmMember = TableRow<"firm_members">;
+export type FirmMemberInsert = TableInsert<"firm_members">;
+export type FirmMemberUpdate = TableUpdate<"firm_members">;
+
+export type Client = TableRow<"clients">;
+export type ClientInsert = TableInsert<"clients">;
+export type ClientUpdate = TableUpdate<"clients">;
