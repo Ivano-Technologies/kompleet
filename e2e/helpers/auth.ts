@@ -51,7 +51,19 @@ export async function login(page: Page): Promise<void> {
   await page
     .getByPlaceholder("Enter your password", { exact: true })
     .fill(E2E_USER_PASSWORD);
+  await expect(page.getByRole("button", { name: /Sign In/ })).toBeEnabled();
+
+  const loginResponse = page.waitForResponse(
+    (res) =>
+      new URL(res.url()).pathname === "/api/auth/login" &&
+      res.request().method() === "POST",
+    { timeout: 60_000 },
+  );
   await page.getByRole("button", { name: /Sign In/ }).click();
+  const response = await loginResponse;
+  if (response.status() !== 200) {
+    throw new Error(`login POST /api/auth/login returned HTTP ${response.status()}`);
+  }
 
   // requireAuth() in src/app/(dashboard)/layout.tsx bounces unverified users to
   // /verify-email, so landing anywhere else means the seeded user is not
