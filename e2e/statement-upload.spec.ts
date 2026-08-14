@@ -64,6 +64,7 @@ test.describe("Bank statement upload", () => {
     // All 11 Nigerian bank adapters are rendered from SUPPORTED_BANKS.
     await expect(page.locator(UPLOAD_SELECTORS.bankSelect)).toBeVisible();
     await page.locator(UPLOAD_SELECTORS.bankSelect).selectOption("GTB");
+    await expect(page.locator(UPLOAD_SELECTORS.bankSelect)).toHaveValue("GTB");
 
     await page.locator(UPLOAD_SELECTORS.fileInput).setInputFiles({
       name: `gtbank-statement-${marker}.csv`,
@@ -143,6 +144,7 @@ test.describe("Bank statement upload", () => {
     await expect(uploadButton).toBeDisabled();
 
     await page.locator(UPLOAD_SELECTORS.bankSelect).selectOption("GTB");
+    await expect(page.locator(UPLOAD_SELECTORS.bankSelect)).toHaveValue("GTB");
     await expect(uploadButton).toBeEnabled();
   });
 

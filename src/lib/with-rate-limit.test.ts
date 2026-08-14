@@ -90,7 +90,7 @@ describe("withRateLimit", () => {
     const wrappedHandler = withRateLimit(handler, { limit: 5, window: 30000 });
     await wrappedHandler(createMockRequest());
 
-    expect(mockedRateLimit).toHaveBeenCalledWith("127.0.0.1", {
+    expect(mockedRateLimit).toHaveBeenCalledWith("127.0.0.1:GET:/api/test", {
       limit: 5,
       window: 30000,
     });
