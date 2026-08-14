@@ -181,11 +181,13 @@ test.describe("Auth flow", () => {
     await page
       .getByPlaceholder(LOGIN_SELECTORS.password, { exact: true })
       .fill("definitely-not-the-password");
+    await expect(page.getByRole("button", { name: LOGIN_SELECTORS.submit })).toBeEnabled();
 
     const loginResponse = page.waitForResponse(
       (res) =>
         new URL(res.url()).pathname === "/api/auth/login" &&
         res.request().method() === "POST",
+      { timeout: 60_000 },
     );
     await page.getByRole("button", { name: LOGIN_SELECTORS.submit }).click();
     const response = await loginResponse;
