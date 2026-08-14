@@ -172,6 +172,60 @@ jobs:
           OPENAI_API_KEY: "sk-test_placeholder"
           DATABASE_URL: "postgresql://test@localhost:5432/test"
 
+  # Wave B (PHASE_3_BRIEF §5). Local Supabase — real JWTs, no hosted secrets.
+  # Default `pnpm test` skips these files (src/test/setup.ts clobbers NEXT_PUBLIC_*).
+  rls-negative:
+    name: rls-negative
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Cache pnpm store
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: ~/.pnpm-store
+          key: pnpm-store-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Start local Supabase
+        run: pnpm supabase start
+
+      - name: Run cross-tenant negative suite
+        env:
+          CI: "true"
+          KOMPLEET_RLS_REQUIRE: "1"
+        run: |
+          set -euo pipefail
+          unquote() {
+            local v="$1"
+            v="${v#\"}"
+            v="${v%\"}"
+            printf '%s' "$v"
+          }
+          while IFS= read -r line; do
+            case "$line" in
+              API_URL=*) KOMPLEET_RLS_URL="$(unquote "${line#API_URL=}")" ;;
+              ANON_KEY=*) KOMPLEET_RLS_ANON_KEY="$(unquote "${line#ANON_KEY=}")" ;;
+              SERVICE_ROLE_KEY=*) KOMPLEET_RLS_SERVICE_ROLE_KEY="$(unquote "${line#SERVICE_ROLE_KEY=}")" ;;
+              DB_URL=*) KOMPLEET_RLS_DATABASE_URL="$(unquote "${line#DB_URL=}")" ;;
+            esac
+          done < <(pnpm supabase status -o env)
+          if [ -z "${KOMPLEET_RLS_URL:-}" ] || [ -z "${KOMPLEET_RLS_ANON_KEY:-}" ] || [ -z "${KOMPLEET_RLS_SERVICE_ROLE_KEY:-}" ] || [ -z "${KOMPLEET_RLS_DATABASE_URL:-}" ]; then
+            echo "::error::Failed to parse local Supabase credentials from supabase status"
+            exit 1
+          fi
+          export KOMPLEET_RLS_URL KOMPLEET_RLS_ANON_KEY KOMPLEET_RLS_SERVICE_ROLE_KEY KOMPLEET_RLS_DATABASE_URL
+          pnpm test:rls
+
   lint:
     name: lint
     runs-on: ubuntu-latest
@@ -199,10 +253,6 @@ jobs:
     name: e2e
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    # TODO(Phase 9): remove continue-on-error once a test user and E2E_BASE_URL exist.
-    # Until then auth-flow specs fail without a seeded email-confirmed user; do not
-    # block merge on that sequencing debt. Tracked in docs/CURSOR_EXECUTION_PROMPT.md §Phase 9.
-    continue-on-error: true
     env:
       CI: "true"
       NODE_OPTIONS: --max-old-space-size=4096

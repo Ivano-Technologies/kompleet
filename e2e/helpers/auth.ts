@@ -47,15 +47,17 @@ export function requireTestCredentials(): void {
 export async function login(page: Page): Promise<void> {
   await page.goto("/login");
 
-  await page.getByPlaceholder("you@company.ng").fill(E2E_USER_EMAIL);
-  await page.getByPlaceholder("Enter your password").fill(E2E_USER_PASSWORD);
+  await page.getByPlaceholder("you@company.ng", { exact: true }).fill(E2E_USER_EMAIL);
+  await page
+    .getByPlaceholder("Enter your password", { exact: true })
+    .fill(E2E_USER_PASSWORD);
   await page.getByRole("button", { name: /Sign In/ }).click();
 
   // requireAuth() in src/app/(dashboard)/layout.tsx bounces unverified users to
   // /verify-email, so landing anywhere else means the seeded user is not
   // email-confirmed. Assert the happy path explicitly for a clear failure.
   await page.waitForURL(/\/dashboard(\?|$|\/)/, { timeout: 45_000 });
-  await expect(page.getByPlaceholder("you@company.ng")).toHaveCount(0);
+  await expect(page.getByPlaceholder("you@company.ng", { exact: true })).toHaveCount(0);
 }
 
 /** Short, per-run identifier used to keep created records distinguishable. */

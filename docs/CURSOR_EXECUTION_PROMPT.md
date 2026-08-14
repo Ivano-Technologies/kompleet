@@ -240,11 +240,11 @@ Per `docs/DEPENDENCY_TRIAGE.md`:
 `secret-scan`, `typecheck`, `e2e` jobs and five E2E specs are already in the working tree. Verify, then:
 
 - ~~Fix or delete `e2e/auth-layout.spec.ts`.~~ Done (deleted on #58).
-- **Remove `continue-on-error` from the `e2e` job** in `.github/workflows/ci.yml` once the items below exist. A `continue-on-error` that nobody removes is worse than no job.
-- Seed an email-confirmed test user (`requireAuth()` bounces unverified users). `tax_rules` is already seeded.
-- Set CI variables/secrets: `E2E_BASE_URL`, `E2E_USER_EMAIL`, `E2E_USER_PASSWORD`, `NEXT_PUBLIC_SITE_URL`, `KEEPALIVE_TOKEN`.
+- ~~Remove `continue-on-error` from the `e2e` job~~ Done — seeded email-confirmed CI user + exact placeholders + login `waitForResponse`.
+- ~~Seed an email-confirmed test user (`requireAuth()` bounces unverified users).~~ Done. `tax_rules` is already seeded.
+- Set CI variables/secrets: `E2E_USER_EMAIL`, `E2E_USER_PASSWORD` (seeded). `E2E_BASE_URL` optional (CI boots `pnpm dev` when unset). `NEXT_PUBLIC_SITE_URL`, `KEEPALIVE_TOKEN` / `SUPABASE_PUBLISHABLE_KEY` as applicable.
 - Add `vitest --coverage` with a floor at measured coverage; ratchet up only.
-- Ask the owner to set `secret-scan`, `typecheck`, `test`, `build`, `check-schema-drift` as **required status checks** on `main` and `staging`.
+- Ask the owner to set `secret-scan`, `typecheck`, `test`, `build`, `check-schema-drift`, **`e2e`** as **required status checks** on `main` and `staging`.
 - Once the dependency backlog clears, promote the OSV scan from `continue-on-error` to blocking.
 
 ---
