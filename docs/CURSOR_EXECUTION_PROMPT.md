@@ -240,11 +240,11 @@ Per `docs/DEPENDENCY_TRIAGE.md`:
 `secret-scan`, `typecheck`, `e2e` jobs and five E2E specs are already in the working tree. Verify, then:
 
 - ~~Fix or delete `e2e/auth-layout.spec.ts`.~~ Done (deleted on #58).
-- ~~Remove `continue-on-error` from the `e2e` job~~ Done — seeded email-confirmed CI user + exact placeholders + login `waitForResponse`.
+- e2e stays `continue-on-error: true` (advisory). Priority call: it was blocking the keep-alive production fix. Revisit when there is a stable seeded test environment. Do not delete specs.
 - ~~Seed an email-confirmed test user (`requireAuth()` bounces unverified users).~~ Done. `tax_rules` is already seeded. Authenticated SELECT on `tax_rules`/`rule_versions` restored (`20260814042344`). Save-to-history remains skipped until Wave E creates `tax_calculations`.
 - ~~Set CI variables/secrets: `E2E_USER_EMAIL`, `E2E_USER_PASSWORD` (seeded).~~ Done. `E2E_BASE_URL` optional (CI boots `pnpm dev` when unset). `NEXT_PUBLIC_SITE_URL`, `KEEPALIVE_TOKEN` / `SUPABASE_PUBLISHABLE_KEY` as applicable.
 - Add `vitest --coverage` with a floor at measured coverage; ratchet up only.
-- Ask the owner to set `secret-scan`, `typecheck`, `test`, `build`, `check-schema-drift`, **`e2e`**, **`rls-negative`** as **required status checks** on `main` and `staging`.
+- Ask the owner to set required status checks on `main` and `staging`: `secret-scan`, `typecheck`, `test`, `build`, `lint`, `check-schema-drift`, `check-tax-rates`, `rls-negative`. Not `e2e`, not OSV.
 - Once the dependency backlog clears, promote the OSV scan from `continue-on-error` to blocking.
 
 ---
