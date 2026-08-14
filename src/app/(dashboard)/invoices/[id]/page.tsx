@@ -64,7 +64,6 @@ export default function InvoiceDetailPage() {
         .from("invoices")
         .select("*")
         .eq("id", invoiceId)
-        .eq("user_id", user.id)
         .single();
 
       if (fetchError) throw fetchError;
