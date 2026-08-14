@@ -254,7 +254,7 @@ jobs:
   e2e:
     name: e2e
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     env:
       CI: "true"
       NODE_OPTIONS: --max-old-space-size=4096

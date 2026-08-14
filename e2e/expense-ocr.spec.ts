@@ -160,6 +160,12 @@ test.describe("Receipt OCR", () => {
     });
 
     await page.goto("/transactions/add-from-receipt");
+    await expect(
+      page.getByRole("heading", {
+        name: "Add transaction from receipt",
+        level: 1,
+      }),
+    ).toBeVisible();
     await page.locator('input[type="file"][accept="image/*"]').setInputFiles({
       name: "statement.csv",
       mimeType: "text/csv",
@@ -184,6 +190,12 @@ test.describe("Receipt OCR", () => {
     });
 
     await page.goto("/transactions/add-from-receipt");
+    await expect(
+      page.getByRole("heading", {
+        name: "Add transaction from receipt",
+        level: 1,
+      }),
+    ).toBeVisible();
     await page
       .locator('input[type="file"][accept="image/*"]')
       .setInputFiles(RECEIPT_FIXTURE);
