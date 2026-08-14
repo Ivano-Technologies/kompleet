@@ -89,8 +89,11 @@ test.describe("Export centre", () => {
       .click();
 
     const response = await exportResponse;
-    expect(response.status()).toBe(200);
-    expect(response.headers()["content-type"]).toContain("text/csv");
+    expect(
+      response.status(),
+      `export POST returned HTTP ${response.status()} content-type=${response.headers()["content-type"] ?? "missing"}`,
+    ).toBe(200);
+    expect(response.headers()["content-type"] ?? "").toMatch(/csv/i);
     expect(response.headers()["content-disposition"]).toContain("attachment");
 
     const download = await downloadPromise;

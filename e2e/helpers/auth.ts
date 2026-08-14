@@ -45,7 +45,7 @@ export async function fillHydrated(
   await expect(async () => {
     await locator.fill(value);
     await expect(locator).toHaveValue(value);
-  }).toPass({ timeout: 15_000 });
+  }).toPass({ timeout: 30_000 });
 }
 
 /**

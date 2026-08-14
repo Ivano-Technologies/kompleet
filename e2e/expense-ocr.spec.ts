@@ -94,9 +94,16 @@ test.describe("Receipt OCR", () => {
       page.getByRole("button", { name: RECEIPT_SELECTORS.uploadButton }),
     ).toBeVisible();
 
+    const ocrResponse = page.waitForResponse(
+      (response) =>
+        new URL(response.url()).pathname === "/api/expenses/ocr" &&
+        response.request().method() === "POST",
+      { timeout: 30_000 },
+    );
     await page
       .locator('input[type="file"][accept="image/*"]')
       .setInputFiles(RECEIPT_FIXTURE);
+    await ocrResponse;
 
     // OCR results are pushed straight into the review form.
     await expect(
