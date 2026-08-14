@@ -50,7 +50,6 @@ export default function InvoicesPage() {
       let query = supabase
         .from("invoices")
         .select("*")
-        .eq("user_id", user.id)
         .eq("tax_year", yearFilter)
         .order("created_at", { ascending: false });
 

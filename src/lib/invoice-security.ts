@@ -237,58 +237,58 @@ export async function verifyInvoiceSignature(
 // ============================================
 
 /**
- * Store user's cryptographic keys securely
- * Private keys are encrypted before storage
+ * Store a client's cryptographic keys via SECURITY DEFINER RPC.
+ * Private keys are encrypted before storage. Direct table access is revoked.
  */
-export async function storeUserKeys(
-  userId: string,
+export async function storeClientKeys(
+  clientId: string,
   publicKey: string,
   privateKey: string,
 ): Promise<void> {
   const supabase = await createClient();
 
-  // Encrypt private key before storage (using a master key)
   const encryptedPrivateKey = await encryptPrivateKey(privateKey);
 
-  // Store in database (create user_keys table if needed)
-  const { error } = await supabase.from("user_keys").upsert({
-    user_id: userId,
-    public_key: publicKey,
-    private_key_encrypted: encryptedPrivateKey,
-    key_type: "RSA-2048",
-    created_at: new Date().toISOString(),
+  const { error } = await supabase.rpc("upsert_client_signing_keys", {
+    p_client_id: clientId,
+    p_public_key: publicKey,
+    p_private_key_encrypted: encryptedPrivateKey,
+    p_key_type: "RSA-2048",
   });
 
   if (error) {
-    console.error("Error storing user keys:", error);
+    console.error("Error storing client keys:", error);
     throw new Error("Failed to store cryptographic keys");
   }
 }
 
 /**
- * Retrieve user's keys from storage
+ * Retrieve a client's keys via SECURITY DEFINER RPC.
  */
-export async function getUserKeys(userId: string): Promise<{
+export async function getClientKeys(clientId: string): Promise<{
   publicKey: string;
   privateKey: string;
 } | null> {
   const supabase = await createClient();
 
-  const { data, error } = await supabase
-    .from("user_keys")
-    .select("public_key, private_key_encrypted")
-    .eq("user_id", userId)
-    .single();
+  const { data, error } = await supabase.rpc("get_client_signing_keys", {
+    p_client_id: clientId,
+  });
 
-  if (error || !data) {
+  if (error) {
+    console.error("Error fetching client signing keys:", error);
     return null;
   }
 
-  // Decrypt private key
-  const privateKey = await decryptPrivateKey(data.private_key_encrypted);
+  const row = Array.isArray(data) ? data[0] : data;
+  if (!row?.private_key_encrypted) {
+    return null;
+  }
+
+  const privateKey = await decryptPrivateKey(row.private_key_encrypted);
 
   return {
-    publicKey: data.public_key,
+    publicKey: row.public_key,
     privateKey,
   };
 }
@@ -411,35 +411,29 @@ export async function signAndIssueInvoice(
 ): Promise<void> {
   const supabase = await createClient();
 
-  // 1. Get or create user keys
-  let keys = await getUserKeys(userId);
-  if (!keys) {
-    keys = await generateKeyPair();
-    await storeUserKeys(userId, keys.publicKey, keys.privateKey);
-  }
-
-  // 2. Fetch invoice data
   const { data: invoice, error: fetchError } = await supabase
     .from("invoices")
     .select("*")
     .eq("id", invoiceId)
-    .eq("user_id", userId)
     .single();
 
   if (fetchError || !invoice) {
     throw new Error("Invoice not found");
   }
 
-  // 3. Sign invoice
+  let keys = await getClientKeys(invoice.client_id);
+  if (!keys) {
+    keys = await generateKeyPair();
+    await storeClientKeys(invoice.client_id, keys.publicKey, keys.privateKey);
+  }
+
   const signatureHash = await signInvoice(invoice, keys.privateKey);
 
-  // 4. Generate QR code payload
   const qrPayload = generateQRPayload({
     ...invoice,
     signature_hash: signatureHash,
   });
 
-  // 5. Update invoice with signature and QR code
   const { error: updateError } = await supabase
     .from("invoices")
     .update({
@@ -449,16 +443,15 @@ export async function signAndIssueInvoice(
       issued_at: new Date().toISOString(),
       is_immutable: true,
     })
-    .eq("id", invoiceId)
-    .eq("user_id", userId);
+    .eq("id", invoiceId);
 
   if (updateError) {
     throw new Error("Failed to update invoice with signature");
   }
 
-  // 6. Log audit trail
   await supabase.from("invoice_audit_logs").insert({
     invoice_id: invoiceId,
+    client_id: invoice.client_id,
     user_id: userId,
     action: "signed_and_issued",
     metadata: {
@@ -492,22 +485,20 @@ export async function verifyInvoice(invoiceId: string): Promise<{
     return { isValid: false, invoice };
   }
 
-  // Get user's public key
-  const keys = await getUserKeys(invoice.user_id);
+  const keys = await getClientKeys(invoice.client_id);
   if (!keys) {
     return { isValid: false, invoice };
   }
 
-  // Verify signature
   const isValid = await verifyInvoiceSignature(
     invoice,
     invoice.signature_hash,
     keys.publicKey,
   );
 
-  // Log verification attempt
   await supabase.from("invoice_audit_logs").insert({
     invoice_id: invoiceId,
+    client_id: invoice.client_id,
     user_id: invoice.user_id,
     action: "signature_verified",
     metadata: { result: isValid ? "valid" : "invalid" },
