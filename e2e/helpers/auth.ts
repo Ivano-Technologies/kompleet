@@ -12,7 +12,7 @@
  * fails) on machines and forks where the account is not configured.
  */
 
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 
 export const E2E_USER_EMAIL = process.env.E2E_USER_EMAIL ?? "";
 export const E2E_USER_PASSWORD = process.env.E2E_USER_PASSWORD ?? "";
@@ -34,6 +34,21 @@ export function requireTestCredentials(): void {
 }
 
 /**
+ * Fill a controlled React input after hydration. SSR HTML can accept a DOM
+ * fill that React then resets to useState("") — native submit then never POSTs.
+ */
+export async function fillHydrated(
+  locator: Locator,
+  value: string,
+): Promise<void> {
+  await expect(locator).toBeVisible();
+  await expect(async () => {
+    await locator.fill(value);
+    await expect(locator).toHaveValue(value);
+  }).toPass({ timeout: 30_000 });
+}
+
+/**
  * Signs in through the real login form (src/app/login/page.tsx), which POSTs to
  * /api/auth/login and then hands the returned session to the Supabase browser
  * client. Cookies are written by @supabase/ssr, so the server components under
@@ -46,16 +61,31 @@ export function requireTestCredentials(): void {
  */
 export async function login(page: Page): Promise<void> {
   await page.goto("/login");
+  const email = page.getByPlaceholder("you@company.ng", { exact: true });
+  const password = page.getByPlaceholder("Enter your password", { exact: true });
+  const submit = page.getByRole("button", { name: "Sign In →" });
 
-  await page.getByPlaceholder("you@company.ng").fill(E2E_USER_EMAIL);
-  await page.getByPlaceholder("Enter your password").fill(E2E_USER_PASSWORD);
-  await page.getByRole("button", { name: /Sign In/ }).click();
+  await fillHydrated(email, E2E_USER_EMAIL);
+  await fillHydrated(password, E2E_USER_PASSWORD);
+  await expect(submit).toBeEnabled();
+
+  const loginResponse = page.waitForResponse(
+    (res) =>
+      new URL(res.url()).pathname === "/api/auth/login" &&
+      res.request().method() === "POST",
+    { timeout: 60_000 },
+  );
+  await submit.click();
+  const response = await loginResponse;
+  if (response.status() !== 200) {
+    throw new Error(`login POST /api/auth/login returned HTTP ${response.status()}`);
+  }
 
   // requireAuth() in src/app/(dashboard)/layout.tsx bounces unverified users to
   // /verify-email, so landing anywhere else means the seeded user is not
   // email-confirmed. Assert the happy path explicitly for a clear failure.
   await page.waitForURL(/\/dashboard(\?|$|\/)/, { timeout: 45_000 });
-  await expect(page.getByPlaceholder("you@company.ng")).toHaveCount(0);
+  await expect(page.getByPlaceholder("you@company.ng", { exact: true })).toHaveCount(0);
 }
 
 /** Short, per-run identifier used to keep created records distinguishable. */

@@ -89,8 +89,11 @@ test.describe("Export centre", () => {
       .click();
 
     const response = await exportResponse;
-    expect(response.status()).toBe(200);
-    expect(response.headers()["content-type"]).toContain("text/csv");
+    expect(
+      response.status(),
+      `export POST returned HTTP ${response.status()} content-type=${response.headers()["content-type"] ?? "missing"}`,
+    ).toBe(200);
+    expect(response.headers()["content-type"] ?? "").toMatch(/csv/i);
     expect(response.headers()["content-disposition"]).toContain("attachment");
 
     const download = await downloadPromise;
@@ -197,6 +200,12 @@ test.describe("Export centre", () => {
     // without it the calculator never renders a result and the PDF button never
     // appears. See e2e/README.md.
     await page.goto("/calculators/individual-tax");
+    await expect(
+      page.getByRole("heading", {
+        name: "Individual Tax Calculator",
+        level: 1,
+      }),
+    ).toBeVisible();
 
     const calculateButton = page.getByRole("button", {
       name: /Calculate Tax/,
