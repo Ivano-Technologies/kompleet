@@ -119,6 +119,10 @@ test.describe("Receipt OCR", () => {
       page.getByText(`Suggested category: ${SUGGESTED_CATEGORY}`),
     ).toBeVisible();
 
+    // Leave category unset so the row stays in the review queue. The page
+    // auto-matches "Office Supplies" / "Uncategorized" when those exist.
+    await page.locator("form select").selectOption("");
+
     const createResponse = page.waitForResponse(
       (response) =>
         new URL(response.url()).pathname === "/api/transactions" &&
@@ -145,18 +149,31 @@ test.describe("Receipt OCR", () => {
       .fill(vendor);
     await expect(page.getByText(vendor).first()).toBeVisible();
 
-    // ...and, because no category was chosen, in the review queue.
+    // Review UI shows one card at a time from the first 100 uncategorized
+    // rows. This shared CI account already has a backlog, so assert via the
+    // list payload rather than whichever card is on screen.
+    const reviewList = page.waitForResponse(
+      (response) =>
+        new URL(response.url()).pathname === "/api/transactions" &&
+        new URL(response.url()).searchParams.get("uncategorized") === "true" &&
+        response.request().method() === "GET",
+      { timeout: 30_000 },
+    );
     await page.goto("/transactions/review");
     await expect(
       page.getByRole("heading", { name: "Review Transactions", level: 1 }),
     ).toBeVisible();
-
-    // TODO(verify): the review queue renders only the *current* item, taken from
-    // the first page of GET /api/transactions ordered by transaction_date desc,
-    // then created_at desc. The receipt above is dated today so it should be at
-    // the head of the queue, but on an account with >100 transactions dated in
-    // the future this assertion would need a sessionId or a filter to be stable.
-    await expect(page.getByText(vendor).first()).toBeVisible();
+    const reviewResponse = await reviewList;
+    expect(reviewResponse.ok()).toBe(true);
+    const reviewBody = (await reviewResponse.json()) as {
+      transactions?: Array<{ description?: string }>;
+    };
+    expect(
+      (reviewBody.transactions ?? []).some((row) =>
+        (row.description ?? "").includes(vendor),
+      ),
+      "receipt was recorded but missing from uncategorized list",
+    ).toBe(true);
   });
 
   test("rejects a non-image file before calling OCR", async ({ page }) => {
