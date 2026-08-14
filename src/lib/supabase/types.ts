@@ -656,6 +656,7 @@ export interface Database {
         Row: {
           id: string;
           user_id: string;
+          client_id: string;
           invoice_number: string;
           invoice_date: string;
           due_date: string | null;
@@ -679,6 +680,7 @@ export interface Database {
         Insert: {
           id?: string;
           user_id: string;
+          client_id: string;
           invoice_number: string;
           invoice_date: string;
           due_date?: string | null;
@@ -702,6 +704,7 @@ export interface Database {
         Update: {
           id?: string;
           user_id?: string;
+          client_id?: string;
           invoice_number?: string;
           invoice_date?: string;
           due_date?: string | null;
@@ -727,6 +730,12 @@ export interface Database {
             foreignKeyName: "invoices_user_id_fkey";
             columns: ["user_id"];
             referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoices_client_id_fkey";
+            columns: ["client_id"];
+            referencedRelation: "clients";
             referencedColumns: ["id"];
           },
         ];
@@ -832,6 +841,170 @@ export interface Database {
           },
         ];
       };
+
+      invoice_sequences: {
+        Row: {
+          id: string;
+          client_id: string;
+          tax_year: number;
+          last_sequence: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          client_id: string;
+          tax_year: number;
+          last_sequence?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          client_id?: string;
+          tax_year?: number;
+          last_sequence?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "invoice_sequences_client_id_fkey";
+            columns: ["client_id"];
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+
+      invoice_archives: {
+        Row: {
+          id: string;
+          invoice_id: string;
+          client_id: string;
+          archived_by: string;
+          archived_at: string;
+          retention_expiry: string;
+          reason: string | null;
+          original_data: Json;
+          checksum: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          invoice_id: string;
+          client_id: string;
+          archived_by: string;
+          archived_at?: string;
+          retention_expiry: string;
+          reason?: string | null;
+          original_data: Json;
+          checksum: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          invoice_id?: string;
+          client_id?: string;
+          archived_by?: string;
+          archived_at?: string;
+          retention_expiry?: string;
+          reason?: string | null;
+          original_data?: Json;
+          checksum?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "invoice_archives_invoice_id_fkey";
+            columns: ["invoice_id"];
+            referencedRelation: "invoices";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoice_archives_client_id_fkey";
+            columns: ["client_id"];
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+
+      invoice_audit_logs: {
+        Row: {
+          id: string;
+          invoice_id: string;
+          client_id: string;
+          user_id: string;
+          action: string;
+          metadata: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          invoice_id: string;
+          client_id: string;
+          user_id: string;
+          action: string;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          invoice_id?: string;
+          client_id?: string;
+          user_id?: string;
+          action?: string;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "invoice_audit_logs_invoice_id_fkey";
+            columns: ["invoice_id"];
+            referencedRelation: "invoices";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoice_audit_logs_client_id_fkey";
+            columns: ["client_id"];
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+
+      client_keys: {
+        Row: {
+          client_id: string;
+          public_key: string;
+          private_key_encrypted: string;
+          key_type: string;
+          created_at: string;
+        };
+        Insert: {
+          client_id: string;
+          public_key: string;
+          private_key_encrypted: string;
+          key_type?: string;
+          created_at?: string;
+        };
+        Update: {
+          client_id?: string;
+          public_key?: string;
+          private_key_encrypted?: string;
+          key_type?: string;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "client_keys_client_id_fkey";
+            columns: ["client_id"];
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
 
     Views: {
@@ -891,6 +1064,32 @@ export interface Database {
       accessible_client_ids: {
         Args: Record<string, never>;
         Returns: string[];
+      };
+      get_next_invoice_number: {
+        Args: {
+          p_client_id: string;
+          p_tax_year: number;
+        };
+        Returns: string;
+      };
+      get_client_signing_keys: {
+        Args: {
+          p_client_id: string;
+        };
+        Returns: {
+          public_key: string;
+          private_key_encrypted: string;
+          key_type: string;
+        }[];
+      };
+      upsert_client_signing_keys: {
+        Args: {
+          p_client_id: string;
+          p_public_key: string;
+          p_private_key_encrypted: string;
+          p_key_type?: string;
+        };
+        Returns: undefined;
       };
     };
 
@@ -985,3 +1184,12 @@ export type FirmMemberUpdate = TableUpdate<"firm_members">;
 export type Client = TableRow<"clients">;
 export type ClientInsert = TableInsert<"clients">;
 export type ClientUpdate = TableUpdate<"clients">;
+
+export type Invoice = TableRow<"invoices">;
+export type InvoiceInsert = TableInsert<"invoices">;
+export type InvoiceUpdate = TableUpdate<"invoices">;
+
+export type InvoiceSequence = TableRow<"invoice_sequences">;
+export type InvoiceArchive = TableRow<"invoice_archives">;
+export type InvoiceAuditLog = TableRow<"invoice_audit_logs">;
+export type ClientKey = TableRow<"client_keys">;

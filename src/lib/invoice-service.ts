@@ -27,6 +27,7 @@ export interface CustomerInfo {
 
 export interface InvoiceData {
   user_id: string;
+  client_id: string;
   tax_year: number;
   customer_info: CustomerInfo;
   line_items: InvoiceLineItem[];
@@ -93,15 +94,14 @@ export function calculateInvoiceTotals(
 // ============================================
 
 export async function getNextInvoiceNumber(
-  userId: string,
+  clientId: string,
   taxYear: number,
   supabase?: SupabaseClient,
 ): Promise<string> {
   const client = supabase ?? (await createClient());
 
-  // Call database function to get next number
   const { data, error } = await client.rpc("get_next_invoice_number", {
-    p_user_id: userId,
+    p_client_id: clientId,
     p_tax_year: taxYear,
   });
 
@@ -128,7 +128,7 @@ export async function createInvoice(
 
   // Get next invoice number
   const invoiceNumber = await getNextInvoiceNumber(
-    invoiceData.user_id,
+    invoiceData.client_id,
     invoiceData.tax_year,
     supabase,
   );
@@ -142,6 +142,7 @@ export async function createInvoice(
     .from("invoices")
     .insert({
       user_id: invoiceData.user_id,
+      client_id: invoiceData.client_id,
       tax_year: invoiceData.tax_year,
       invoice_number: invoiceNumber,
       invoice_date: invoiceDate,
@@ -168,6 +169,7 @@ export async function createInvoice(
   // Log audit trail (non-blocking; invoice creation succeeds even if audit fails)
   const { error: auditError } = await supabase.from("invoice_audit_logs").insert({
     invoice_id: data.id,
+    client_id: invoiceData.client_id,
     user_id: invoiceData.user_id,
     action: "created",
     metadata: { invoice_number: invoiceNumber },
@@ -187,7 +189,18 @@ export async function issueInvoice(
 ): Promise<void> {
   const supabase = await createClient();
 
-  // Update invoice status to issued and make immutable
+  const { data: invoice, error: fetchError } = await supabase
+    .from("invoices")
+    .select("id, client_id")
+    .eq("id", invoiceId)
+    .eq("status", "draft")
+    .single();
+
+  if (fetchError || !invoice) {
+    console.error("Error issuing invoice:", fetchError);
+    throw new Error("Failed to issue invoice");
+  }
+
   const { error } = await supabase
     .from("invoices")
     .update({
@@ -196,7 +209,6 @@ export async function issueInvoice(
       is_immutable: true,
     })
     .eq("id", invoiceId)
-    .eq("user_id", userId)
     .eq("status", "draft");
 
   if (error) {
@@ -204,9 +216,9 @@ export async function issueInvoice(
     throw new Error("Failed to issue invoice");
   }
 
-  // Log audit trail (non-blocking)
   const { error: auditError } = await supabase.from("invoice_audit_logs").insert({
     invoice_id: invoiceId,
+    client_id: invoice.client_id,
     user_id: userId,
     action: "issued",
   });
@@ -519,6 +531,10 @@ export function formatCurrency(amount: number): string {
 
 export function validateInvoiceData(data: InvoiceData): string[] {
   const errors: string[] = [];
+
+  if (!data.client_id) {
+    errors.push("Client is required");
+  }
 
   if (!data.customer_info.name) {
     errors.push("Customer name is required");
