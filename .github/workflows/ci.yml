@@ -185,7 +185,9 @@ jobs:
 
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
-          node-version: 20
+          # supabase-js 2.112 needs native WebSocket (Node 22+). Node 20 throws
+          # "native WebSocket not found" at createClient in this job.
+          node-version: 22
           cache: pnpm
 
       - name: Cache pnpm store
