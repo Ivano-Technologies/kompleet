@@ -7,6 +7,8 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
+import type { Session } from "@supabase/supabase-js";
+import { createBrowserClient } from "@/lib/supabase/client";
 
 interface YearContextType {
   selectedYear: number;
@@ -19,6 +21,10 @@ const YearContext = createContext<YearContextType | undefined>(undefined);
 
 interface YearProviderProps {
   children: ReactNode;
+}
+
+function defaultYears(currentYear: number): number[] {
+  return [currentYear - 2, currentYear - 1, currentYear];
 }
 
 export function YearProvider({ children }: YearProviderProps) {
@@ -38,28 +44,57 @@ export function YearProvider({ children }: YearProviderProps) {
     }
   }, []);
 
-  // Fetch available years from API
+  // Fetch available years only after auth has resolved with a session.
+  // YearProvider wraps the root layout, including public pages; calling
+  // GET /api/year/available before that produced four 401s per navigation.
   useEffect(() => {
-    async function fetchAvailableYears() {
+    let cancelled = false;
+    const supabase = createBrowserClient();
+
+    async function loadYears(session: Session | null) {
+      if (cancelled) return;
+      if (!session) {
+        setAvailableYears(defaultYears(currentYear));
+        setIsLoading(false);
+        return;
+      }
+
       try {
         const response = await fetch("/api/year/available");
+        if (cancelled) return;
         if (response.ok) {
           const data = await response.json();
-          setAvailableYears(data.years || [currentYear]);
+          setAvailableYears(data.years || defaultYears(currentYear));
         } else {
-          // Fallback to default years
-          setAvailableYears([currentYear - 2, currentYear - 1, currentYear]);
+          setAvailableYears(defaultYears(currentYear));
         }
       } catch (error) {
         console.error("Failed to fetch available years:", error);
-        // Fallback to default years
-        setAvailableYears([currentYear - 2, currentYear - 1, currentYear]);
+        if (!cancelled) {
+          setAvailableYears(defaultYears(currentYear));
+        }
       } finally {
-        setIsLoading(false);
+        if (!cancelled) setIsLoading(false);
       }
     }
 
-    fetchAvailableYears();
+    void supabase.auth.getSession().then(({ data: { session } }) => {
+      void loadYears(session);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      // getSession already handled the first paint; skip the duplicate
+      // INITIAL_SESSION event so public pages do not double-resolve.
+      if (event === "INITIAL_SESSION") return;
+      void loadYears(session);
+    });
+
+    return () => {
+      cancelled = true;
+      subscription.unsubscribe();
+    };
   }, [currentYear]);
 
   // Persist selected year to localStorage and log audit trail

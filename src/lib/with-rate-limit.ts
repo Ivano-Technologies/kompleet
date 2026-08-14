@@ -26,7 +26,9 @@ export function withRateLimit<T extends Request | NextRequest = Request>(
   options: RateLimitOptions = {},
 ): (request: T, context?: any) => Promise<Response> {
   return async (request: T, context?: any) => {
-    const identifier = getIdentifier(request);
+    // Bucket per IP + method + path. A shared IP counter lets chatty routes
+    // (e.g. GET /api/year/available on every layout) 429 unrelated POSTs.
+    const identifier = `${getIdentifier(request)}:${request.method}:${new URL(request.url).pathname}`;
     const result = rateLimit(identifier, options);
 
     // Add rate limit headers
