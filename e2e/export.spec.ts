@@ -197,6 +197,12 @@ test.describe("Export centre", () => {
     // without it the calculator never renders a result and the PDF button never
     // appears. See e2e/README.md.
     await page.goto("/calculators/individual-tax");
+    await expect(
+      page.getByRole("heading", {
+        name: "Individual Tax Calculator",
+        level: 1,
+      }),
+    ).toBeVisible();
 
     const calculateButton = page.getByRole("button", {
       name: /Calculate Tax/,

@@ -8,7 +8,12 @@
  */
 
 import { test, expect } from "@playwright/test";
-import { login, requireTestCredentials, runId } from "./helpers/auth";
+import {
+  fillHydrated,
+  login,
+  requireTestCredentials,
+  runId,
+} from "./helpers/auth";
 
 const SIGNUP_SELECTORS = {
   // "e.g. Tunde" is a substring of businessName. Locators must use { exact: true }.
@@ -23,7 +28,7 @@ const SIGNUP_SELECTORS = {
 const LOGIN_SELECTORS = {
   email: "you@company.ng",
   password: "Enter your password",
-  submit: /Sign In/,
+  submit: "Sign In →",
 };
 
 /** Routes rendered under src/app/(dashboard)/layout.tsx, which calls requireAuth(). */
@@ -41,21 +46,26 @@ test.describe("Auth flow", () => {
   }) => {
     await page.goto("/signup");
 
-    await page
-      .getByPlaceholder(SIGNUP_SELECTORS.firstName, { exact: true })
-      .fill("Tunde");
-    await page
-      .getByPlaceholder(SIGNUP_SELECTORS.lastName, { exact: true })
-      .fill("Balogun");
-    await page
-      .getByPlaceholder(SIGNUP_SELECTORS.businessName, { exact: true })
-      .fill("Kompleet E2E Ventures");
-    await page
-      .getByPlaceholder(SIGNUP_SELECTORS.businessEmail, { exact: true })
-      .fill(`e2e-${runId()}@example.test`);
-    await page
-      .getByPlaceholder(SIGNUP_SELECTORS.password, { exact: true })
-      .fill("abcdefgh");
+    await fillHydrated(
+      page.getByPlaceholder(SIGNUP_SELECTORS.firstName, { exact: true }),
+      "Tunde",
+    );
+    await fillHydrated(
+      page.getByPlaceholder(SIGNUP_SELECTORS.lastName, { exact: true }),
+      "Balogun",
+    );
+    await fillHydrated(
+      page.getByPlaceholder(SIGNUP_SELECTORS.businessName, { exact: true }),
+      "Kompleet E2E Ventures",
+    );
+    await fillHydrated(
+      page.getByPlaceholder(SIGNUP_SELECTORS.businessEmail, { exact: true }),
+      `e2e-${runId()}@example.test`,
+    );
+    await fillHydrated(
+      page.getByPlaceholder(SIGNUP_SELECTORS.password, { exact: true }),
+      "abcdefgh",
+    );
 
     await page.getByRole("button", { name: SIGNUP_SELECTORS.submit }).click();
 
@@ -98,21 +108,26 @@ test.describe("Auth flow", () => {
 
     await page.goto("/signup");
 
-    await page
-      .getByPlaceholder(SIGNUP_SELECTORS.firstName, { exact: true })
-      .fill("Tunde");
-    await page
-      .getByPlaceholder(SIGNUP_SELECTORS.lastName, { exact: true })
-      .fill("Balogun");
-    await page
-      .getByPlaceholder(SIGNUP_SELECTORS.businessName, { exact: true })
-      .fill("Kompleet E2E Ventures");
-    await page
-      .getByPlaceholder(SIGNUP_SELECTORS.businessEmail, { exact: true })
-      .fill(email);
-    await page
-      .getByPlaceholder(SIGNUP_SELECTORS.password, { exact: true })
-      .fill("kompleet-e2e-1");
+    await fillHydrated(
+      page.getByPlaceholder(SIGNUP_SELECTORS.firstName, { exact: true }),
+      "Tunde",
+    );
+    await fillHydrated(
+      page.getByPlaceholder(SIGNUP_SELECTORS.lastName, { exact: true }),
+      "Balogun",
+    );
+    await fillHydrated(
+      page.getByPlaceholder(SIGNUP_SELECTORS.businessName, { exact: true }),
+      "Kompleet E2E Ventures",
+    );
+    await fillHydrated(
+      page.getByPlaceholder(SIGNUP_SELECTORS.businessEmail, { exact: true }),
+      email,
+    );
+    await fillHydrated(
+      page.getByPlaceholder(SIGNUP_SELECTORS.password, { exact: true }),
+      "kompleet-e2e-1",
+    );
 
     await page.getByRole("button", { name: SIGNUP_SELECTORS.submit }).click();
 
@@ -163,7 +178,7 @@ test.describe("Auth flow", () => {
         page.getByPlaceholder(LOGIN_SELECTORS.email, { exact: true }),
       ).toBeVisible();
       await expect(
-        page.getByRole("button", { name: LOGIN_SELECTORS.submit }),
+        page.getByRole("button", { name: LOGIN_SELECTORS.submit, exact: true }),
       ).toBeVisible();
     });
   }
@@ -175,13 +190,17 @@ test.describe("Auth flow", () => {
     // bad passwords to avoid account enumeration. Uses a throwaway address so the
     // seeded account's rate-limit bucket (IP+email) is never poisoned.
     await page.goto("/login");
-    await page
-      .getByPlaceholder(LOGIN_SELECTORS.email, { exact: true })
-      .fill(`e2e-${runId()}@example.test`);
-    await page
-      .getByPlaceholder(LOGIN_SELECTORS.password, { exact: true })
-      .fill("definitely-not-the-password");
-    await expect(page.getByRole("button", { name: LOGIN_SELECTORS.submit })).toBeEnabled();
+    await fillHydrated(
+      page.getByPlaceholder(LOGIN_SELECTORS.email, { exact: true }),
+      `e2e-${runId()}@example.test`,
+    );
+    await fillHydrated(
+      page.getByPlaceholder(LOGIN_SELECTORS.password, { exact: true }),
+      "definitely-not-the-password",
+    );
+    await expect(
+      page.getByRole("button", { name: LOGIN_SELECTORS.submit, exact: true }),
+    ).toBeEnabled();
 
     const loginResponse = page.waitForResponse(
       (res) =>
@@ -189,7 +208,9 @@ test.describe("Auth flow", () => {
         res.request().method() === "POST",
       { timeout: 60_000 },
     );
-    await page.getByRole("button", { name: LOGIN_SELECTORS.submit }).click();
+    await page
+      .getByRole("button", { name: LOGIN_SELECTORS.submit, exact: true })
+      .click();
     const response = await loginResponse;
     expect(response.status()).toBe(401);
 
