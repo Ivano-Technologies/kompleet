@@ -100,9 +100,11 @@ test.describe("Receipt OCR", () => {
 
     // OCR results are pushed straight into the review form.
     await expect(
-      page.getByPlaceholder(RECEIPT_SELECTORS.description),
+      page.getByPlaceholder(RECEIPT_SELECTORS.description, { exact: true }),
     ).toHaveValue(vendor);
-    await expect(page.getByPlaceholder(RECEIPT_SELECTORS.amount)).toHaveValue(
+    await expect(
+      page.getByPlaceholder(RECEIPT_SELECTORS.amount, { exact: true }),
+    ).toHaveValue(
       String(OCR_AMOUNT),
     );
     await expect(page.locator('input[type="date"]')).toHaveValue(today());
@@ -131,7 +133,9 @@ test.describe("Receipt OCR", () => {
 
     // The expense is now in the ledger.
     await page.goto("/transactions");
-    await page.getByPlaceholder(RECEIPT_SELECTORS.searchInput).fill(vendor);
+    await page
+      .getByPlaceholder(RECEIPT_SELECTORS.searchInput, { exact: true })
+      .fill(vendor);
     await expect(page.getByText(vendor).first()).toBeVisible();
 
     // ...and, because no category was chosen, in the review queue.
@@ -186,7 +190,7 @@ test.describe("Receipt OCR", () => {
 
     await expect(page.getByText("OCR failed")).toBeVisible();
     await expect(
-      page.getByPlaceholder(RECEIPT_SELECTORS.description),
+      page.getByPlaceholder(RECEIPT_SELECTORS.description, { exact: true }),
     ).toHaveCount(0);
   });
 });

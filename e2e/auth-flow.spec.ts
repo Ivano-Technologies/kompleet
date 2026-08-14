@@ -11,6 +11,7 @@ import { test, expect } from "@playwright/test";
 import { login, requireTestCredentials, runId } from "./helpers/auth";
 
 const SIGNUP_SELECTORS = {
+  // "e.g. Tunde" is a substring of businessName. Locators must use { exact: true }.
   firstName: "e.g. Tunde",
   lastName: "e.g. Balogun",
   businessName: "e.g. Tunde Ventures Ltd",
@@ -40,15 +41,21 @@ test.describe("Auth flow", () => {
   }) => {
     await page.goto("/signup");
 
-    await page.getByPlaceholder(SIGNUP_SELECTORS.firstName).fill("Tunde");
-    await page.getByPlaceholder(SIGNUP_SELECTORS.lastName).fill("Balogun");
     await page
-      .getByPlaceholder(SIGNUP_SELECTORS.businessName)
+      .getByPlaceholder(SIGNUP_SELECTORS.firstName, { exact: true })
+      .fill("Tunde");
+    await page
+      .getByPlaceholder(SIGNUP_SELECTORS.lastName, { exact: true })
+      .fill("Balogun");
+    await page
+      .getByPlaceholder(SIGNUP_SELECTORS.businessName, { exact: true })
       .fill("Kompleet E2E Ventures");
     await page
-      .getByPlaceholder(SIGNUP_SELECTORS.businessEmail)
+      .getByPlaceholder(SIGNUP_SELECTORS.businessEmail, { exact: true })
       .fill(`e2e-${runId()}@example.test`);
-    await page.getByPlaceholder(SIGNUP_SELECTORS.password).fill("abcdefgh");
+    await page
+      .getByPlaceholder(SIGNUP_SELECTORS.password, { exact: true })
+      .fill("abcdefgh");
 
     await page.getByRole("button", { name: SIGNUP_SELECTORS.submit }).click();
 
@@ -91,14 +98,20 @@ test.describe("Auth flow", () => {
 
     await page.goto("/signup");
 
-    await page.getByPlaceholder(SIGNUP_SELECTORS.firstName).fill("Tunde");
-    await page.getByPlaceholder(SIGNUP_SELECTORS.lastName).fill("Balogun");
     await page
-      .getByPlaceholder(SIGNUP_SELECTORS.businessName)
+      .getByPlaceholder(SIGNUP_SELECTORS.firstName, { exact: true })
+      .fill("Tunde");
+    await page
+      .getByPlaceholder(SIGNUP_SELECTORS.lastName, { exact: true })
+      .fill("Balogun");
+    await page
+      .getByPlaceholder(SIGNUP_SELECTORS.businessName, { exact: true })
       .fill("Kompleet E2E Ventures");
-    await page.getByPlaceholder(SIGNUP_SELECTORS.businessEmail).fill(email);
     await page
-      .getByPlaceholder(SIGNUP_SELECTORS.password)
+      .getByPlaceholder(SIGNUP_SELECTORS.businessEmail, { exact: true })
+      .fill(email);
+    await page
+      .getByPlaceholder(SIGNUP_SELECTORS.password, { exact: true })
       .fill("kompleet-e2e-1");
 
     await page.getByRole("button", { name: SIGNUP_SELECTORS.submit }).click();
@@ -123,7 +136,9 @@ test.describe("Auth flow", () => {
     await page.goto("/auth/callback");
 
     await expect(page).toHaveURL(/\/login\?error=missing_code/);
-    await expect(page.getByPlaceholder(LOGIN_SELECTORS.email)).toBeVisible();
+    await expect(
+      page.getByPlaceholder(LOGIN_SELECTORS.email, { exact: true }),
+    ).toBeVisible();
   });
 
   test("an expired verification link surfaces an error on the login page", async ({
@@ -144,7 +159,9 @@ test.describe("Auth flow", () => {
       await page.goto(route);
 
       await expect(page).toHaveURL(/\/login/);
-      await expect(page.getByPlaceholder(LOGIN_SELECTORS.email)).toBeVisible();
+      await expect(
+        page.getByPlaceholder(LOGIN_SELECTORS.email, { exact: true }),
+      ).toBeVisible();
       await expect(
         page.getByRole("button", { name: LOGIN_SELECTORS.submit }),
       ).toBeVisible();
@@ -159,12 +176,20 @@ test.describe("Auth flow", () => {
     // seeded account's rate-limit bucket (IP+email) is never poisoned.
     await page.goto("/login");
     await page
-      .getByPlaceholder(LOGIN_SELECTORS.email)
+      .getByPlaceholder(LOGIN_SELECTORS.email, { exact: true })
       .fill(`e2e-${runId()}@example.test`);
     await page
-      .getByPlaceholder(LOGIN_SELECTORS.password)
+      .getByPlaceholder(LOGIN_SELECTORS.password, { exact: true })
       .fill("definitely-not-the-password");
+
+    const loginResponse = page.waitForResponse(
+      (res) =>
+        new URL(res.url()).pathname === "/api/auth/login" &&
+        res.request().method() === "POST",
+    );
     await page.getByRole("button", { name: LOGIN_SELECTORS.submit }).click();
+    const response = await loginResponse;
+    expect(response.status()).toBe(401);
 
     await expect(page.getByText(/Invalid email or password\./)).toBeVisible();
     await expect(page).toHaveURL(/\/login/);

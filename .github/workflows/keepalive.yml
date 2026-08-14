@@ -1,9 +1,16 @@
 # Database keep-alive for the free-tier Supabase project.
 #
 # Free-tier projects pause after 7 days of database inactivity. This job hits
-# GET /api/health/db (one real query) every 3 days so a single missed run still
-# leaves a recovery window. Fail the workflow on non-200 — a silent keep-alive
-# failure is worse than none.
+# PostgREST directly (one `tax_rules` select) every 3 days so a single missed
+# run still leaves a recovery window. Fail the workflow on non-200 — a silent
+# keep-alive failure is worse than none.
+#
+# Do not route this ping through Vercel. GitHub Actions IPs are challenged by
+# Cloudflare Bot Fight on the custom domain (HTTP 403 HTML), and the Vercel
+# path is an extra hop for a database liveness check.
+#
+# GET /api/health/db remains the uptime-monitor probe (token via Vercel
+# KEEPALIVE_TOKEN / x-keepalive-token). This workflow does not call it.
 #
 # Caveats (accepted, time-limited; see docs/STATUS.md):
 # 1. GitHub disables scheduled workflows in public repos after 60 days without
@@ -13,12 +20,10 @@
 #    (~$25/mo) does not pause. Revisit before real users exist.
 #
 # Required GitHub config (owner):
-#   secrets.KEEPALIVE_TOKEN  — same value as Vercel production env KEEPALIVE_TOKEN
-#   vars.PRODUCTION_URL      — https://www.ivanotechnologies.com
-#     Apex ivanotechnologies.com 307s to www. GitHub Actions IPs are challenged
-#     by Cloudflare Bot Fight on the custom domain (HTTP 403 HTML). Owner: add a
-#     WAF skip for GET /api/health/db. Until then this job failing is the alarm.
-#     Do not point PRODUCTION_URL at *.vercel.app — SSO is on for non-custom hosts.
+#   secrets.SUPABASE_PUBLISHABLE_KEY — project publishable key (anon role).
+#     Legacy anon JWTs may be disabled; use the sb_publishable_ key.
+# Anon SELECT on tax_rules is granted by 20260813210027 (keep-alive only;
+# RLS still hides all rows from anon). Do not revoke that grant.
 
 name: Database keep-alive
 
@@ -33,24 +38,21 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Query production /api/health/db
+      - name: Query PostgREST tax_rules
         env:
-          PRODUCTION_URL: ${{ vars.PRODUCTION_URL }}
-          KEEPALIVE_TOKEN: ${{ secrets.KEEPALIVE_TOKEN }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
         run: |
           set -euo pipefail
-          if [ -z "${PRODUCTION_URL:-}" ]; then
-            echo "::error::GitHub Actions variable PRODUCTION_URL is not set"
+          if [ -z "${SUPABASE_PUBLISHABLE_KEY:-}" ]; then
+            echo "::error::GitHub Actions secret SUPABASE_PUBLISHABLE_KEY is not set"
             exit 1
           fi
-          if [ -z "${KEEPALIVE_TOKEN:-}" ]; then
-            echo "::error::GitHub Actions secret KEEPALIVE_TOKEN is not set"
-            exit 1
-          fi
-          url="${PRODUCTION_URL%/}/api/health/db"
+          url="https://frlcvkmjuhnjcicwywrh.supabase.co/rest/v1/tax_rules?select=id&limit=1"
           echo "GET ${url}"
-          code=$(curl -sS -L --max-redirs 5 -o /tmp/keepalive-body -w "%{http_code}" \
-            -H "x-keepalive-token: ${KEEPALIVE_TOKEN}" \
+          code=$(curl -sS -o /tmp/keepalive-body -w "%{http_code}" \
+            -H "apikey: ${SUPABASE_PUBLISHABLE_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_PUBLISHABLE_KEY}" \
+            -H "Accept: application/json" \
             -A "KompleetKeepalive/1.0" \
             --max-time 30 \
             "$url")

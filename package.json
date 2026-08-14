@@ -16,6 +16,7 @@
     "check:types": "./scripts/check-type-drift.sh",
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest",
+    "test:rls": "vitest run --testTimeout=60000 --hookTimeout=120000 src/__tests__/rls/cross-tenant.negative.test.ts src/__tests__/rls/pg-policies.snapshot.test.ts",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "format": "prettier --write .",
