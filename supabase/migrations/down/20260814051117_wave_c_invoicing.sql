@@ -1,4 +1,4 @@
--- Down for 20260814070000_wave_c_invoicing.sql
+-- Down for 20260814051117_wave_c_invoicing.sql
 -- Restores user_id-scoped invoice policies and the (uuid, integer)
 -- get_next_invoice_number identity-guarded against p_user_id.
 

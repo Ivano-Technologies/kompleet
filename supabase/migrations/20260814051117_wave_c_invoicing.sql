@@ -1,7 +1,7 @@
 -- Wave C — invoicing tenancy. New: invoice_archives, invoice_audit_logs,
 -- client_keys. Modified: invoices + invoice_sequences (+ client_id, policy
 -- replacement, sequence re-key). Matching down:
--- supabase/migrations/down/20260814070000_wave_c_invoicing.sql
+-- supabase/migrations/down/20260814051117_wave_c_invoicing.sql
 --
 -- §3: existing invoice policies are PERMISSIVE. Adding a client-scoped
 -- policy alongside user_id = auth.uid() would OR-widen access. Drop and
