@@ -19,6 +19,7 @@ const customerInfoSchema = z.object({
 });
 
 export const createInvoiceSchema = z.object({
+  client_id: z.string().uuid("client_id is required"),
   tax_year: z.number().int().min(2000).max(2100).optional(),
   customer_info: customerInfoSchema,
   line_items: z

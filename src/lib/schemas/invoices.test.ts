@@ -5,6 +5,7 @@ import { createInvoiceSchema } from "./invoices";
 
 function validInvoice(overrides: Record<string, unknown> = {}) {
   return {
+    client_id: "11111111-1111-4111-8111-111111111111",
     customer_info: {
       name: "Acme Ltd",
       email: "billing@acme.ng",
@@ -39,10 +40,21 @@ describe("createInvoiceSchema", () => {
 
   it("accepts a minimal valid invoice (only required fields)", () => {
     const result = createInvoiceSchema.safeParse({
+      client_id: "11111111-1111-4111-8111-111111111111",
       customer_info: { name: "Jane Doe" },
       line_items: [{ description: "Item", quantity: 1, unit_price: 100 }],
     });
     expect(result.success).toBe(true);
+  });
+
+  it("rejects an invoice without client_id", () => {
+    const { client_id: _clientId, ...rest } = validInvoice();
+    const result = createInvoiceSchema.safeParse(rest);
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      const paths = result.error.issues.map((i) => i.path.join("."));
+      expect(paths).toContain("client_id");
+    }
   });
 
   // 2. Missing customer_info fails

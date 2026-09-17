@@ -30,6 +30,14 @@ type SeedCtx = {
   clientsA: string[];
   clientsB: string[];
   archivedA: string;
+  invoiceA: string;
+  invoiceB: string;
+  sequenceA: string;
+  sequenceB: string;
+  archiveA: string;
+  archiveB: string;
+  auditA: string;
+  auditB: string;
 };
 
 type Member = {
@@ -134,6 +142,53 @@ async function insertIntoForeign(
           legal_name: `cross-tenant-client ${ctx.runId}`,
         })
         .select();
+    case "invoices":
+      return client
+        .from("invoices")
+        .insert({
+          client_id: ctx.clientsB[0],
+          user_id: actorId,
+          invoice_number: `INV-HIJACK-${ctx.runId}`,
+          invoice_date: "2026-01-01",
+          tax_year: 2026,
+          customer_info: {},
+          line_items: [],
+          subtotal: 0,
+          vat_amount: 0,
+          total_amount: 0,
+        })
+        .select();
+    case "invoice_sequences":
+      return client
+        .from("invoice_sequences")
+        .insert({
+          client_id: ctx.clientsB[0],
+          tax_year: 2099,
+          last_sequence: 1,
+        })
+        .select();
+    case "invoice_archives":
+      return client
+        .from("invoice_archives")
+        .insert({
+          invoice_id: ctx.invoiceB,
+          client_id: ctx.clientsB[0],
+          archived_by: actorId,
+          retention_expiry: "2033-01-01T00:00:00Z",
+          original_data: {},
+          checksum: "hijack",
+        })
+        .select();
+    case "invoice_audit_logs":
+      return client
+        .from("invoice_audit_logs")
+        .insert({
+          invoice_id: ctx.invoiceB,
+          client_id: ctx.clientsB[0],
+          user_id: actorId,
+          action: "hijack",
+        })
+        .select();
     default: {
       const exhaustive: never = spec.table;
       throw new Error(`add insertIntoForeign for ${String(exhaustive)}`);
@@ -149,6 +204,14 @@ function foreignMatch(spec: TenancyTableSpec, ctx: SeedCtx): Record<string, stri
       return { firm_id: ctx.firmB, user_id: ctx.ownerB };
     case "clients":
       return { id: ctx.clientsB[0]! };
+    case "invoices":
+      return { id: ctx.invoiceB };
+    case "invoice_sequences":
+      return { id: ctx.sequenceB };
+    case "invoice_archives":
+      return { id: ctx.archiveB };
+    case "invoice_audit_logs":
+      return { id: ctx.auditB };
     default: {
       const exhaustive: never = spec.table;
       throw new Error(`add foreignMatch for ${String(exhaustive)}`);
@@ -156,7 +219,9 @@ function foreignMatch(spec: TenancyTableSpec, ctx: SeedCtx): Record<string, stri
   }
 }
 
-function foreignPatch(spec: TenancyTableSpec): Record<string, string> {
+function foreignPatch(
+  spec: TenancyTableSpec,
+): Record<string, string | number> {
   switch (spec.table) {
     case "firms":
       return { name: "hijacked-by-a" };
@@ -164,6 +229,14 @@ function foreignPatch(spec: TenancyTableSpec): Record<string, string> {
       return { role: "staff" };
     case "clients":
       return { legal_name: "hijacked-by-a" };
+    case "invoices":
+      return { notes: "hijacked-by-a" };
+    case "invoice_sequences":
+      return { last_sequence: 9999 };
+    case "invoice_archives":
+      return { reason: "hijacked-by-a" };
+    case "invoice_audit_logs":
+      return { action: "hijacked-by-a" };
     default: {
       const exhaustive: never = spec.table;
       throw new Error(`add foreignPatch for ${String(exhaustive)}`);
@@ -185,6 +258,14 @@ function visibleIds(
         : new Set([`${ctx.firmB}:${ctx.ownerB}`, `${ctx.firmB}:${ctx.staffB}`]);
     case "clients":
       return new Set(side === "a" ? ctx.clientsA : ctx.clientsB);
+    case "invoices":
+      return new Set([side === "a" ? ctx.invoiceA : ctx.invoiceB]);
+    case "invoice_sequences":
+      return new Set([side === "a" ? ctx.sequenceA : ctx.sequenceB]);
+    case "invoice_archives":
+      return new Set([side === "a" ? ctx.archiveA : ctx.archiveB]);
+    case "invoice_audit_logs":
+      return new Set([side === "a" ? ctx.auditA : ctx.auditB]);
     default: {
       const exhaustive: never = spec.table;
       throw new Error(`add visibleIds for ${String(exhaustive)}`);
@@ -199,6 +280,10 @@ function rowKey(
   switch (spec.table) {
     case "firms":
     case "clients":
+    case "invoices":
+    case "invoice_sequences":
+    case "invoice_archives":
+    case "invoice_audit_logs":
       return String(row.id);
     case "firm_members":
       return `${row.firm_id}:${row.user_id}`;
@@ -346,6 +431,125 @@ describe.skipIf(!env.configured)(
         throw new Error(`insert clients B failed: ${clientsBError?.message}`);
       }
 
+      async function seedInvoice(clientId: string, userId: string, tag: string) {
+        const { data, error } = await service
+          .from("invoices")
+          .insert({
+            client_id: clientId,
+            user_id: userId,
+            invoice_number: `INV-${tag}-${runId}`,
+            invoice_date: "2026-01-15",
+            tax_year: 2026,
+            customer_info: { name: tag },
+            line_items: [],
+            subtotal: 0,
+            vat_amount: 0,
+            total_amount: 0,
+            status: "draft",
+          })
+          .select("id")
+          .single();
+        if (error || !data) {
+          throw new Error(`insert invoice ${tag} failed: ${error?.message}`);
+        }
+        return data.id as string;
+      }
+
+      const invoiceA = await seedInvoice(clientsA[0]!.id, ownerA.id, "A");
+      const invoiceB = await seedInvoice(clientsB[0]!.id, ownerB.id, "B");
+
+      const { data: seqA, error: seqAError } = await service
+        .from("invoice_sequences")
+        .insert({ client_id: clientsA[0]!.id, tax_year: 2026, last_sequence: 1 })
+        .select("id")
+        .single();
+      if (seqAError || !seqA) {
+        throw new Error(`insert sequence A failed: ${seqAError?.message}`);
+      }
+      const { data: seqB, error: seqBError } = await service
+        .from("invoice_sequences")
+        .insert({ client_id: clientsB[0]!.id, tax_year: 2026, last_sequence: 1 })
+        .select("id")
+        .single();
+      if (seqBError || !seqB) {
+        throw new Error(`insert sequence B failed: ${seqBError?.message}`);
+      }
+
+      const { data: archiveA, error: archiveAError } = await service
+        .from("invoice_archives")
+        .insert({
+          invoice_id: invoiceA,
+          client_id: clientsA[0]!.id,
+          archived_by: ownerA.id,
+          retention_expiry: "2033-01-01T00:00:00Z",
+          original_data: { tag: "A" },
+          checksum: `a-${runId}`,
+        })
+        .select("id")
+        .single();
+      if (archiveAError || !archiveA) {
+        throw new Error(`insert archive A failed: ${archiveAError?.message}`);
+      }
+      const { data: archiveB, error: archiveBError } = await service
+        .from("invoice_archives")
+        .insert({
+          invoice_id: invoiceB,
+          client_id: clientsB[0]!.id,
+          archived_by: ownerB.id,
+          retention_expiry: "2033-01-01T00:00:00Z",
+          original_data: { tag: "B" },
+          checksum: `b-${runId}`,
+        })
+        .select("id")
+        .single();
+      if (archiveBError || !archiveB) {
+        throw new Error(`insert archive B failed: ${archiveBError?.message}`);
+      }
+
+      const { data: auditA, error: auditAError } = await service
+        .from("invoice_audit_logs")
+        .insert({
+          invoice_id: invoiceA,
+          client_id: clientsA[0]!.id,
+          user_id: ownerA.id,
+          action: "created",
+        })
+        .select("id")
+        .single();
+      if (auditAError || !auditA) {
+        throw new Error(`insert audit A failed: ${auditAError?.message}`);
+      }
+      const { data: auditB, error: auditBError } = await service
+        .from("invoice_audit_logs")
+        .insert({
+          invoice_id: invoiceB,
+          client_id: clientsB[0]!.id,
+          user_id: ownerB.id,
+          action: "created",
+        })
+        .select("id")
+        .single();
+      if (auditBError || !auditB) {
+        throw new Error(`insert audit B failed: ${auditBError?.message}`);
+      }
+
+      const { error: keysAError } = await service.from("client_keys").insert({
+        client_id: clientsA[0]!.id,
+        public_key: "pub-a",
+        private_key_encrypted: "enc-a",
+      });
+      if (keysAError) {
+        throw new Error(`insert client_keys A failed: ${keysAError.message}`);
+      }
+      const { error: keysBError } = await service.from("client_keys").insert({
+        client_id: clientsB[0]!.id,
+        public_key: "pub-b",
+        private_key_encrypted: "enc-b",
+      });
+      if (keysBError) {
+        throw new Error(`insert client_keys B failed: ${keysBError.message}`);
+      }
+
       ctx = {
         runId,
         firmA: firmARow.id,
@@ -357,6 +561,14 @@ describe.skipIf(!env.configured)(
         clientsA: clientsA.map((row) => row.id),
         clientsB: clientsB.map((row) => row.id),
         archivedA: archived.id,
+        invoiceA,
+        invoiceB,
+        sequenceA: seqA.id,
+        sequenceB: seqB.id,
+        archiveA: archiveA.id,
+        archiveB: archiveB.id,
+        auditA: auditA.id,
+        auditB: auditB.id,
       };
 
       membersA = [
@@ -377,12 +589,22 @@ describe.skipIf(!env.configured)(
 
     afterAll(async () => {
       if (!service) return;
+      const invoiceIds = [ctx?.invoiceA, ctx?.invoiceB].filter(
+        (id): id is string => Boolean(id),
+      );
+      if (invoiceIds.length > 0) {
+        await service.from("invoice_audit_logs").delete().in("invoice_id", invoiceIds);
+        await service.from("invoice_archives").delete().in("invoice_id", invoiceIds);
+        await service.from("invoices").delete().in("id", invoiceIds);
+      }
       const clientIds = [
         ...(ctx?.clientsA ?? []),
         ...(ctx?.clientsB ?? []),
         ctx?.archivedA,
       ].filter((id): id is string => Boolean(id));
       if (clientIds.length > 0) {
+        await service.from("client_keys").delete().in("client_id", clientIds);
+        await service.from("invoice_sequences").delete().in("client_id", clientIds);
         await service.from("clients").delete().in("id", clientIds);
       }
       const firmIds = [ctx?.firmA, ctx?.firmB].filter(
@@ -516,6 +738,28 @@ describe.skipIf(!env.configured)(
           expect(ids.has(id)).toBe(true);
         }
       }
+    });
+
+    it("client_keys RPC is client-scoped", async () => {
+      const actor = membersA[0];
+      if (!actor) throw new Error("missing owner");
+      const client = await readyUser(actor.accessToken, actor.refreshToken);
+
+      const own = await client.rpc("get_client_signing_keys", {
+        p_client_id: ctx.clientsA[0],
+      });
+      expect(own.error).toBeNull();
+      expect(own.data?.[0]?.public_key).toBe("pub-a");
+
+      const foreign = await client.rpc("get_client_signing_keys", {
+        p_client_id: ctx.clientsB[0],
+      });
+      expect(foreign.error).toBeTruthy();
+
+      const tableRead = await client.from("client_keys").select("*");
+      expect(
+        tableRead.error != null || (tableRead.data?.length ?? 0) === 0,
+      ).toBe(true);
     });
   },
 );

@@ -1,15 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createBrowserClient as createClient } from "@/lib/supabase/client";
 import { InvoiceLineItem, CustomerInfo } from "@/lib/invoice-service";
 import { FilePlus2, Loader2, Plus, Trash2 } from "lucide-react";
 
+type ClientOption = { id: string; legal_name: string };
+
 export default function NewInvoicePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [clients, setClients] = useState<ClientOption[]>([]);
+  const [clientId, setClientId] = useState("");
 
   // Form state
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
@@ -37,6 +41,35 @@ export default function NewInvoicePage() {
   const [dueDate, setDueDate] = useState("");
   const [paymentTerms, setPaymentTerms] = useState("");
   const [notes, setNotes] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const supabase = createClient();
+        const { data, error: clientsError } = await supabase
+          .from("clients")
+          .select("id, legal_name")
+          .order("legal_name", { ascending: true });
+        if (cancelled) return;
+        if (clientsError) {
+          setError(clientsError.message);
+          return;
+        }
+        setClients(data ?? []);
+        if (data?.length === 1 && data[0]) {
+          setClientId(data[0].id);
+        }
+      } catch (err: unknown) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Failed to load clients");
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Calculate line item amount
   const calculateLineItemAmount = (item: InvoiceLineItem): number => {
@@ -112,6 +145,10 @@ export default function NewInvoicePage() {
   const validateForm = (): string[] => {
     const errors: string[] = [];
 
+    if (!clientId) {
+      errors.push("Client is required");
+    }
+
     if (!customerInfo.name.trim()) {
       errors.push("Customer name is required");
     }
@@ -162,7 +199,7 @@ export default function NewInvoicePage() {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          user_id: user.id,
+          client_id: clientId,
           tax_year: new Date(invoiceDate).getFullYear(),
           customer_info: customerInfo,
           line_items: lineItems,
@@ -214,7 +251,7 @@ export default function NewInvoicePage() {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          user_id: user.id,
+          client_id: clientId,
           tax_year: new Date(invoiceDate).getFullYear(),
           customer_info: customerInfo,
           line_items: lineItems,
@@ -235,6 +272,7 @@ export default function NewInvoicePage() {
       // Issue invoice (sign and make immutable)
       const issueResponse = await fetch(`/api/invoices/${invoice_id}/issue`, {
         method: "POST",
+        credentials: "include",
       });
 
       if (!issueResponse.ok) {
@@ -268,6 +306,32 @@ export default function NewInvoicePage() {
           {error}
         </div>
       )}
+
+      <div className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface mb-6">
+        <h2 className="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">
+          Issuing client
+        </h2>
+        <label className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2">
+          Client <span className="text-red-500">*</span>
+        </label>
+        <select
+          value={clientId}
+          onChange={(e) => setClientId(e.target.value)}
+          className="w-full px-4 py-2 border border-light-border dark:border-dark-border rounded-lg bg-light-background dark:bg-dark-background focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+        >
+          <option value="">Select a client</option>
+          {clients.map((client) => (
+            <option key={client.id} value={client.id}>
+              {client.legal_name}
+            </option>
+          ))}
+        </select>
+        {clients.length === 0 && (
+          <p className="mt-2 text-sm text-light-text-secondary dark:text-dark-text-secondary">
+            No clients found. Add a client before issuing an invoice.
+          </p>
+        )}
+      </div>
 
       {/* Customer Information */}
       <div className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface mb-6">

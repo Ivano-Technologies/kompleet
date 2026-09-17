@@ -27,6 +27,7 @@ async function handlePOST(request: NextRequest) {
     }
 
     const {
+      client_id,
       tax_year,
       customer_info,
       line_items,
@@ -36,10 +37,10 @@ async function handlePOST(request: NextRequest) {
       notes,
     } = parsed.data;
 
-    // Create invoice (pass supabase so we use the same authenticated session)
     const invoice = await createInvoice(
       {
         user_id: user.id,
+        client_id,
         tax_year: tax_year ?? new Date().getFullYear(),
         customer_info,
         line_items,

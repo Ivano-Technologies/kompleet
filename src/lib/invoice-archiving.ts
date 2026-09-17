@@ -33,12 +33,10 @@ export async function archiveInvoice(
   try {
     const supabase = await createClient();
 
-    // Get invoice
     const { data: invoice, error: fetchError } = await supabase
       .from("invoices")
       .select("*")
       .eq("id", invoice_id)
-      .eq("user_id", user_id)
       .single();
 
     if (fetchError || !invoice) {
@@ -59,12 +57,13 @@ export async function archiveInvoice(
       .from("invoice_archives")
       .insert({
         invoice_id,
-        user_id,
+        client_id: invoice.client_id,
+        archived_by: user_id,
         archived_at: new Date().toISOString(),
         retention_expiry: retentionExpiry.toISOString(),
         reason,
-        original_data: invoice, // Store complete invoice snapshot
-        checksum: await calculateChecksum(invoice), // Tamper-evident
+        original_data: invoice,
+        checksum: await calculateChecksum(invoice),
       })
       .select()
       .single();
@@ -78,11 +77,9 @@ export async function archiveInvoice(
       .from("invoices")
       .update({
         status: "archived",
-        archived_at: new Date().toISOString(),
         is_immutable: true,
       })
-      .eq("id", invoice_id)
-      .eq("user_id", user_id);
+      .eq("id", invoice_id);
 
     if (updateError) {
       throw new Error(
@@ -93,10 +90,10 @@ export async function archiveInvoice(
     // Log audit event
     await supabase.from("invoice_audit_logs").insert({
       invoice_id,
+      client_id: invoice.client_id,
       user_id,
       action: "archived",
-      details: { reason, retention_expiry: retentionExpiry.toISOString() },
-      timestamp: new Date().toISOString(),
+      metadata: { reason, retention_expiry: retentionExpiry.toISOString() },
     });
 
     return {
@@ -128,7 +125,6 @@ export async function retrieveArchivedInvoice(
       .from("invoice_archives")
       .select("*")
       .eq("invoice_id", invoice_id)
-      .eq("user_id", user_id)
       .single();
 
     if (error || !archive) {
@@ -146,10 +142,10 @@ export async function retrieveArchivedInvoice(
     // Log access
     await supabase.from("invoice_audit_logs").insert({
       invoice_id,
+      client_id: archive.client_id,
       user_id,
       action: "archive_accessed",
-      details: { archive_id: archive.id },
-      timestamp: new Date().toISOString(),
+      metadata: { archive_id: archive.id },
     });
 
     return archive.original_data;
@@ -176,7 +172,7 @@ export async function archiveOldInvoices(): Promise<{
 
     const { data: invoices, error } = await supabase
       .from("invoices")
-      .select("id, user_id")
+      .select("id, user_id, client_id")
       .in("status", ["issued", "paid"])
       .lt("issued_at", thirtyDaysAgo.toISOString());
 
@@ -213,7 +209,7 @@ export async function archiveOldInvoices(): Promise<{
  * Check retention policy compliance
  * Returns invoices that can be safely deleted (> 7 years)
  */
-export async function checkRetentionCompliance(user_id: string): Promise<{
+export async function checkRetentionCompliance(_user_id: string): Promise<{
   compliant: boolean;
   expired_archives: string[];
   total_archives: number;
@@ -224,8 +220,7 @@ export async function checkRetentionCompliance(user_id: string): Promise<{
     // Get all archives for user
     const { data: archives, error } = await supabase
       .from("invoice_archives")
-      .select("id, retention_expiry")
-      .eq("user_id", user_id);
+      .select("id, retention_expiry");
 
     if (error) {
       throw new Error(`Failed to fetch archives: ${error.message}`);
@@ -285,22 +280,17 @@ export async function generateComplianceReport(user_id: string): Promise<{
     // Count total invoices
     const { count: total_invoices } = await supabase
       .from("invoices")
-      .select("*", { count: "exact", head: true })
-      .eq("user_id", user_id);
+      .select("*", { count: "exact", head: true });
 
-    // Count archived invoices
     const { count: archived_invoices, data: archives } = await supabase
       .from("invoice_archives")
       .select("archived_at", { count: "exact" })
-      .eq("user_id", user_id)
       .order("archived_at", { ascending: true })
       .limit(1);
 
-    // Count audit logs
     const { count: audit_log_count } = await supabase
       .from("invoice_audit_logs")
-      .select("*", { count: "exact", head: true })
-      .eq("user_id", user_id);
+      .select("*", { count: "exact", head: true });
 
     // Check retention compliance
     const compliance = await checkRetentionCompliance(user_id);

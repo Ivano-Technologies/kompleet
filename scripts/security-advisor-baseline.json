@@ -1,11 +1,12 @@
 {
   "projectRef": "frlcvkmjuhnjcicwywrh",
-  "capturedAt": "2026-08-13",
-  "securityLintCount": 6,
+  "capturedAt": "2026-08-14",
+  "securityLintCount": 9,
   "notes": [
-    "Baseline 4 → 6 after Wave A. Verified live via get_advisors(security) on 2026-08-13.",
-    "5× lint 0029 (authenticated can execute SECURITY DEFINER): get_clerk_user_id, get_current_user_id, get_next_invoice_number, my_firm_ids, accessible_client_ids.",
-    "lint 0029 is accepted for my_firm_ids and accessible_client_ids: both are SECURITY DEFINER helpers invoked from RLS policies as the authenticated role. GRANT EXECUTE to authenticated is required for those policies to evaluate; EXECUTE is already revoked from anon/public. Same accepted pattern as get_current_user_id. Do not 'fix' 0029 by revoking authenticated — that breaks tenancy.",
+    "Baseline 6 → 9 after Wave C. Verified live via get_advisors(security) on 2026-08-14.",
+    "7× lint 0029 (authenticated can execute SECURITY DEFINER): get_clerk_user_id, get_current_user_id, get_next_invoice_number, my_firm_ids, accessible_client_ids, get_client_signing_keys, upsert_client_signing_keys.",
+    "lint 0029 is accepted for my_firm_ids and accessible_client_ids (RLS helpers) and for get_next_invoice_number / get_client_signing_keys / upsert_client_signing_keys (client-scoped RPCs with accessible_client_ids() guards; EXECUTE revoked from anon/public). Do not 'fix' 0029 by revoking authenticated — that breaks tenancy and signing.",
+    "1× lint 0008 INFO: client_keys has RLS enabled and no table policies. Intentional — authenticated has no table GRANT; access is RPC-only.",
     "1× auth_leaked_password_protection disabled.",
     "Performance advisors are tracked separately and are not a failing gate.",
     "Every new table migration must include `revoke all on <table> from anon` — Supabase defaults GRANT ALL TO anon."
