@@ -311,7 +311,7 @@ do $$
 declare
   t text;
 begin
-  foreach t in array [
+  foreach t in array ARRAY[
     'tax_calculations',
     'import_batches',
     'documents',
@@ -436,7 +436,7 @@ do $$
 declare
   t text;
 begin
-  foreach t in array [
+  foreach t in array ARRAY[
     'tax_calculations',
     'documents',
     'nrs_forms',
@@ -465,7 +465,7 @@ do $$
 declare
   t text;
 begin
-  foreach t in array [
+  foreach t in array ARRAY[
     'tax_calculations',
     'import_batches',
     'documents',

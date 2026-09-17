@@ -5,7 +5,7 @@ do $$
 declare
   t text;
 begin
-  foreach t in array [
+  foreach t in array ARRAY[
     'tax_calculations',
     'import_batches',
     'documents',
