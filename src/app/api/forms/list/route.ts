@@ -27,7 +27,7 @@ async function handleGET(request: NextRequest) {
       .select(
         `
         *,
-        filing_status (
+        filing_status:form_filing_statuses (
           status,
           filed_date,
           confirmation_number

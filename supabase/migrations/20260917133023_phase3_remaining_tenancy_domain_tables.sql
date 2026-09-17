@@ -142,7 +142,7 @@ create table if not exists public.nrs_forms (
   updated_at timestamptz not null default now()
 );
 
-create table if not exists public.filing_status (
+create table if not exists public.form_filing_statuses (
   id uuid primary key default gen_random_uuid(),
   client_id uuid not null references public.clients (id) on delete restrict,
   user_id uuid not null references auth.users (id) on delete restrict,
@@ -316,7 +316,7 @@ begin
     'import_batches',
     'documents',
     'nrs_forms',
-    'filing_status',
+    'form_filing_statuses',
     'filing_audit_logs',
     'deadline_reminders',
     'categorization_predictions',
@@ -368,10 +368,10 @@ create index if not exists idx_nrs_forms_client_created
 create index if not exists idx_nrs_forms_user_year
   on public.nrs_forms (user_id, tax_year, created_at desc);
 
-create index if not exists idx_filing_status_client_form_created
-  on public.filing_status (client_id, form_id, created_at desc);
-create index if not exists idx_filing_status_user_form_created
-  on public.filing_status (user_id, form_id, created_at desc);
+create index if not exists idx_form_filing_statuses_client_form_created
+  on public.form_filing_statuses (client_id, form_id, created_at desc);
+create index if not exists idx_form_filing_statuses_user_form_created
+  on public.form_filing_statuses (user_id, form_id, created_at desc);
 
 create index if not exists idx_filing_audit_logs_client_created
   on public.filing_audit_logs (client_id, created_at desc);
@@ -470,7 +470,7 @@ begin
     'import_batches',
     'documents',
     'nrs_forms',
-    'filing_status',
+    'form_filing_statuses',
     'filing_audit_logs',
     'filing_deadlines',
     'deadline_reminders',

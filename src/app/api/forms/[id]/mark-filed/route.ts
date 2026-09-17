@@ -55,7 +55,7 @@ async function handlePOST(
 
     // Check if form is already filed
     const { data: existingStatus } = await supabase
-      .from("filing_status")
+      .from("form_filing_statuses")
       .select("*")
       .eq("form_id", formId)
       .eq("status", "filed")
@@ -84,7 +84,7 @@ async function handlePOST(
 
     // Create filing status record
     const { data: filingStatus, error: statusError } = await supabase
-      .from("filing_status")
+      .from("form_filing_statuses")
       .insert({
         user_id: user.id,
         form_id: formId,
@@ -158,7 +158,7 @@ async function handleGET(
 
     // Fetch filing status
     const { data: filingStatus, error: dbError } = await supabase
-      .from("filing_status")
+      .from("form_filing_statuses")
       .select("*")
       .eq("form_id", formId)
       .eq("user_id", user.id)

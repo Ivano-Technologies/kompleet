@@ -10,7 +10,7 @@ begin
     'import_batches',
     'documents',
     'nrs_forms',
-    'filing_status',
+    'form_filing_statuses',
     'filing_audit_logs',
     'filing_deadlines',
     'deadline_reminders',
@@ -31,7 +31,7 @@ end $$;
 
 drop table if exists public.deadline_reminders cascade;
 drop table if exists public.filing_audit_logs cascade;
-drop table if exists public.filing_status cascade;
+drop table if exists public.form_filing_statuses cascade;
 drop table if exists public.filing_deadlines cascade;
 drop table if exists public.nrs_forms cascade;
 drop table if exists public.tax_calculations cascade;

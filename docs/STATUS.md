@@ -81,14 +81,14 @@ Clearances from the 27 = 8 deletions (`bank_accounts`, `email_connections`, `wor
 
 | Cleared from detector | Still missing (Phase 3) |
 | --- | --- |
-| bank_accounts, email_connections, ml_corrections, ml_drift_alerts, ml_models, ml_retraining_jobs, workspaces, workspace_members, users | categorization_feedback, categorization_predictions, data_migration_logs, deadline_reminders, documents, filing_audit_logs, filing_deadlines, filing_status, import_batches, invoice_archives, invoice_audit_logs, ml_inference_logs, nrs_forms, recurring_patterns, tax_calculations, user_keys, user_learning_profiles, user_tax_years |
+| bank_accounts, email_connections, ml_corrections, ml_drift_alerts, ml_models, ml_retraining_jobs, workspaces, workspace_members, users | categorization_feedback, categorization_predictions, data_migration_logs, deadline_reminders, documents, filing_audit_logs, filing_deadlines, form_filing_statuses, import_batches, invoice_archives, invoice_audit_logs, ml_inference_logs, nrs_forms, recurring_patterns, tax_calculations, user_keys, user_learning_profiles, user_tax_years |
 
 ### Update — IVA-8 (2026-09-17)
 
 Inventory reconciliation against the detector/docs for Phase 3 `18 + merchant_categorizations`:
 
 - Added in migration `20260917133023_phase3_remaining_tenancy_domain_tables.sql` (16 tables):
-  - `categorization_feedback`, `categorization_predictions`, `data_migration_logs`, `deadline_reminders`, `documents`, `filing_audit_logs`, `filing_deadlines`, `filing_status`, `import_batches`, `ml_inference_logs`, `nrs_forms`, `recurring_patterns`, `tax_calculations`, `user_learning_profiles`, `user_tax_years`, `merchant_categorizations`.
+  - `categorization_feedback`, `categorization_predictions`, `data_migration_logs`, `deadline_reminders`, `documents`, `filing_audit_logs`, `filing_deadlines`, `form_filing_statuses`, `import_batches`, `ml_inference_logs`, `nrs_forms`, `recurring_patterns`, `tax_calculations`, `user_learning_profiles`, `user_tax_years`, `merchant_categorizations`.
 - All 16 are client-scoped behind `client_id in (select public.accessible_client_ids())` with anon revoked.
 - Transitional trigger support is included so legacy `user_id`-only inserts can still derive a `client_id` from firm membership while API cutover completes.
 - Drift baseline set to **15** for CI (`.schema-drift-baseline`) because `check-schema-drift` runs against the remote `DATABASE_URL` schema state and does not apply branch migrations.
