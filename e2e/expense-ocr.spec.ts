@@ -38,6 +38,12 @@ function today(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
+async function waitForReceiptUploaderReady(page: Page): Promise<void> {
+  await expect(
+    page.locator('input[type="file"][accept="image/*"]'),
+  ).toBeEnabled();
+}
+
 /** Stubs the OCR and AI-categorisation boundaries with a deterministic receipt. */
 async function stubReceiptPipeline(page: Page, vendor: string): Promise<void> {
   await page.route("**/api/expenses/ocr", async (route) => {
@@ -93,6 +99,7 @@ test.describe("Receipt OCR", () => {
     await expect(
       page.getByRole("button", { name: RECEIPT_SELECTORS.uploadButton }),
     ).toBeVisible();
+    await waitForReceiptUploaderReady(page);
 
     const ocrResponse = page.waitForResponse(
       (response) =>
@@ -190,6 +197,7 @@ test.describe("Receipt OCR", () => {
         level: 1,
       }),
     ).toBeVisible();
+    await waitForReceiptUploaderReady(page);
     await page.locator('input[type="file"][accept="image/*"]').setInputFiles({
       name: "statement.csv",
       mimeType: "text/csv",
@@ -220,6 +228,7 @@ test.describe("Receipt OCR", () => {
         level: 1,
       }),
     ).toBeVisible();
+    await waitForReceiptUploaderReady(page);
     await page
       .locator('input[type="file"][accept="image/*"]')
       .setInputFiles(RECEIPT_FIXTURE);
