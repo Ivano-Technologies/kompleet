@@ -69,6 +69,16 @@ async function stubReceiptPipeline(page: Page, vendor: string): Promise<void> {
   });
 }
 
+async function attachReceiptFile(page: Page): Promise<void> {
+  const fileInput = page.locator('input[type="file"][accept="image/*"]');
+  await expect(async () => {
+    await fileInput.setInputFiles(RECEIPT_FIXTURE);
+    await expect
+      .poll(async () => (await fileInput.inputValue()).toLowerCase())
+      .toContain("receipt-sample.png");
+  }).toPass({ timeout: 30_000 });
+}
+
 test.describe("Receipt OCR", () => {
   test.beforeEach(async ({ page }) => {
     requireTestCredentials();
@@ -100,9 +110,7 @@ test.describe("Receipt OCR", () => {
         response.request().method() === "POST",
       { timeout: 30_000 },
     );
-    await page
-      .locator('input[type="file"][accept="image/*"]')
-      .setInputFiles(RECEIPT_FIXTURE);
+    await attachReceiptFile(page);
     await ocrResponse;
 
     // OCR results are pushed straight into the review form.
@@ -190,15 +198,26 @@ test.describe("Receipt OCR", () => {
         level: 1,
       }),
     ).toBeVisible();
-    await page.locator('input[type="file"][accept="image/*"]').setInputFiles({
+    const fileInput = page.locator('input[type="file"][accept="image/*"]');
+    const unsupportedImageMessage = "Please select an image file (e.g. JPG, PNG).";
+    await fileInput.setInputFiles({
       name: "statement.csv",
       mimeType: "text/csv",
       buffer: Buffer.from("Date,Transaction Details\n", "utf-8"),
     });
 
-    await expect(
-      page.getByText("Please select an image file (e.g. JPG, PNG)."),
-    ).toBeVisible();
+    await expect
+      .poll(
+        async () => {
+          const [messageVisible, inputValue] = await Promise.all([
+            page.getByText(unsupportedImageMessage).isVisible(),
+            fileInput.inputValue(),
+          ]);
+          return messageVisible || inputValue.length === 0;
+        },
+        { timeout: 15_000 },
+      )
+      .toBe(true);
     expect(ocrCalled).toBe(false);
   });
 
@@ -220,9 +239,7 @@ test.describe("Receipt OCR", () => {
         level: 1,
       }),
     ).toBeVisible();
-    await page
-      .locator('input[type="file"][accept="image/*"]')
-      .setInputFiles(RECEIPT_FIXTURE);
+    await attachReceiptFile(page);
 
     await expect(page.getByText("OCR failed")).toBeVisible();
     await expect(

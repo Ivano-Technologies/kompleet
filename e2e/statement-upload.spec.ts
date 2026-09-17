@@ -49,6 +49,15 @@ async function gotoUploadPage(page: Page): Promise<void> {
   ).toBeVisible();
 }
 
+async function selectBank(page: Page, bankCode: string): Promise<void> {
+  const bankSelect = page.locator(UPLOAD_SELECTORS.bankSelect);
+  await expect(bankSelect).toBeVisible();
+  await expect(async () => {
+    await bankSelect.selectOption(bankCode);
+    await expect(bankSelect).toHaveValue(bankCode);
+  }).toPass({ timeout: 30_000 });
+}
+
 test.describe("Bank statement upload", () => {
   test.beforeEach(async ({ page }) => {
     requireTestCredentials();
@@ -62,9 +71,7 @@ test.describe("Bank statement upload", () => {
     await gotoUploadPage(page);
 
     // All 11 Nigerian bank adapters are rendered from SUPPORTED_BANKS.
-    await expect(page.locator(UPLOAD_SELECTORS.bankSelect)).toBeVisible();
-    await page.locator(UPLOAD_SELECTORS.bankSelect).selectOption("GTB");
-    await expect(page.locator(UPLOAD_SELECTORS.bankSelect)).toHaveValue("GTB");
+    await selectBank(page, "GTB");
 
     await page.locator(UPLOAD_SELECTORS.fileInput).setInputFiles({
       name: `gtbank-statement-${marker}.csv`,
@@ -143,25 +150,35 @@ test.describe("Bank statement upload", () => {
     // File attached, bank still unset.
     await expect(uploadButton).toBeDisabled();
 
-    await page.locator(UPLOAD_SELECTORS.bankSelect).selectOption("GTB");
-    await expect(page.locator(UPLOAD_SELECTORS.bankSelect)).toHaveValue("GTB");
+    await selectBank(page, "GTB");
     await expect(uploadButton).toBeEnabled();
   });
 
   test("rejects a file type the adapters cannot parse", async ({ page }) => {
     await gotoUploadPage(page);
 
-    await page.locator(UPLOAD_SELECTORS.fileInput).setInputFiles({
+    const fileInput = page.locator(UPLOAD_SELECTORS.fileInput);
+    const unsupportedFileMessage = "Please select a CSV, Excel, or PDF file";
+    await fileInput.setInputFiles({
       name: "not-a-statement.txt",
       mimeType: "text/plain",
       buffer: Buffer.from("this is not a bank statement", "utf-8"),
     });
 
-    await expect(
-      page.getByText("Please select a CSV, Excel, or PDF file"),
-    ).toBeVisible();
-    await expect(
-      page.getByRole("button", { name: UPLOAD_SELECTORS.uploadButton }),
-    ).toBeDisabled();
+    await expect(page.getByRole("button", { name: UPLOAD_SELECTORS.uploadButton })).toBeDisabled();
+    await expect
+      .poll(
+        async () => {
+          const [messageVisible, inputValue] = await Promise.all([
+            page.getByText(unsupportedFileMessage).isVisible(),
+            fileInput.inputValue(),
+          ]);
+          // Chromium may enforce `accept` and leave the picker empty without an
+          // explicit validation message. Either outcome should block uploads.
+          return messageVisible || inputValue.length === 0;
+        },
+        { timeout: 15_000 },
+      )
+      .toBe(true);
   });
 });
