@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -20,6 +20,7 @@ interface Category {
 export default function AddFromReceiptPage() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isHydrated, setIsHydrated] = useState(false);
   const [step, setStep] = useState<"upload" | "form" | "success">("upload");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -32,6 +33,10 @@ export default function AddFromReceiptPage() {
   });
   const [suggestedCategory, setSuggestedCategory] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
 
   const loadCategories = async () => {
     try {
@@ -237,11 +242,12 @@ export default function AddFromReceiptPage() {
             accept="image/*"
             className="hidden"
             onChange={handleFileSelect}
+            disabled={!isHydrated || loading}
           />
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            disabled={loading}
+            disabled={!isHydrated || loading}
             className="w-full flex flex-col items-center justify-center gap-4 py-12 border-2 border-dashed border-border rounded-xl hover:border-primary hover:bg-primary/5 transition-colors disabled:opacity-50"
           >
             {loading ? (
