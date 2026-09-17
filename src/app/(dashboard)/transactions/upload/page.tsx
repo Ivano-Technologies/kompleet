@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -40,23 +40,34 @@ export default function TransactionUploadPage() {
   const [uploading, setUploading] = useState(false);
   const [result, setResult] = useState<UploadResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
+  const isSupportedStatementFile = (candidate: File): boolean => {
+    const fileName = candidate.name.toLowerCase();
+    return (
+      fileName.endsWith(".csv") ||
+      fileName.endsWith(".xlsx") ||
+      fileName.endsWith(".xls") ||
+      fileName.endsWith(".pdf")
+    );
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
-      const fileName = selectedFile.name.toLowerCase();
-      if (
-        !fileName.endsWith(".csv") &&
-        !fileName.endsWith(".xlsx") &&
-        !fileName.endsWith(".xls") &&
-        !fileName.endsWith(".pdf")
-      ) {
+      if (!isSupportedStatementFile(selectedFile)) {
         setError("Please select a CSV, Excel, or PDF file");
+        setFile(null);
         return;
       }
 
       if (selectedFile.size > 10 * 1024 * 1024) {
         setError("File size must be less than 10MB");
+        setFile(null);
         return;
       }
 
@@ -132,19 +143,15 @@ export default function TransactionUploadPage() {
 
     const droppedFile = e.dataTransfer.files[0];
     if (droppedFile) {
-      const fileName = droppedFile.name.toLowerCase();
-      if (
-        !fileName.endsWith(".csv") &&
-        !fileName.endsWith(".xlsx") &&
-        !fileName.endsWith(".xls") &&
-        !fileName.endsWith(".pdf")
-      ) {
+      if (!isSupportedStatementFile(droppedFile)) {
         setError("Please select a CSV, Excel, or PDF file");
+        setFile(null);
         return;
       }
 
       if (droppedFile.size > 10 * 1024 * 1024) {
         setError("File size must be less than 10MB");
+        setFile(null);
         return;
       }
 
@@ -209,6 +216,7 @@ export default function TransactionUploadPage() {
             value={bankCode}
             onChange={(e) => setBankCode(e.target.value)}
             className="w-full px-4 py-2 border border-light-border dark:border-dark-border rounded-lg bg-light-background dark:bg-dark-background focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            disabled={!isHydrated || uploading}
           >
             <option value="">Select your bank...</option>
             {SUPPORTED_BANKS.map((bank) => (
@@ -230,9 +238,9 @@ export default function TransactionUploadPage() {
           <input
             id="file-input"
             type="file"
-            accept=".csv,.xlsx,.xls,.pdf"
             onChange={handleFileChange}
             className="hidden"
+            disabled={!isHydrated || uploading}
           />
 
           {file ? (
@@ -270,6 +278,7 @@ export default function TransactionUploadPage() {
               <div>
                 <button
                   onClick={() => document.getElementById("file-input")?.click()}
+                  disabled={!isHydrated || uploading}
                   className="text-primary-600 hover:text-primary-700 font-medium"
                 >
                   Click to upload
@@ -300,7 +309,7 @@ export default function TransactionUploadPage() {
         <div className="mt-6">
           <button
             onClick={() => handleUpload()}
-            disabled={!file || !bankCode || uploading}
+            disabled={!isHydrated || !file || !bankCode || uploading}
             className="w-full btn-primary"
           >
             {uploading ? (

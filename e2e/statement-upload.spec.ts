@@ -47,6 +47,9 @@ async function gotoUploadPage(page: Page): Promise<void> {
   await expect(
     page.getByRole("heading", { name: "Upload Transactions", level: 1 }),
   ).toBeVisible();
+  // The page is client-rendered; wait until controls are hydrated/interactable.
+  await expect(page.locator(UPLOAD_SELECTORS.bankSelect)).toBeEnabled();
+  await expect(page.locator(UPLOAD_SELECTORS.fileInput)).toBeEnabled();
 }
 
 test.describe("Bank statement upload", () => {
