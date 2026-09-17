@@ -91,7 +91,8 @@ Inventory reconciliation against the detector/docs for Phase 3 `18 + merchant_ca
   - `categorization_feedback`, `categorization_predictions`, `data_migration_logs`, `deadline_reminders`, `documents`, `filing_audit_logs`, `filing_deadlines`, `filing_status`, `import_batches`, `ml_inference_logs`, `nrs_forms`, `recurring_patterns`, `tax_calculations`, `user_learning_profiles`, `user_tax_years`, `merchant_categorizations`.
 - All 16 are client-scoped behind `client_id in (select public.accessible_client_ids())` with anon revoked.
 - Transitional trigger support is included so legacy `user_id`-only inserts can still derive a `client_id` from firm membership while API cutover completes.
-- Drift baseline ratcheted from **18 → 3** (`.schema-drift-baseline`), leaving only the Wave C invoicing set below.
+- Drift baseline set to **15** for CI (`.schema-drift-baseline`) because `check-schema-drift` runs against the remote `DATABASE_URL` schema state and does not apply branch migrations.
+- After applying migration `20260917133023` to the target DB, expected drift is **3** (the intentionally deferred Wave C invoicing set below).
 
 Intentionally deferred (separate Wave C invoicing PR #88):
 
