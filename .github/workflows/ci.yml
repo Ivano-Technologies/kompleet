@@ -198,6 +198,15 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - name: Cleanup stale local Supabase state
+        run: |
+          # Hosted runners are normally clean, but if a stale local stack from
+          # an earlier step/run holds 54322 this job flakes at `supabase start`.
+          pnpm supabase stop --project-id compleet --no-backup || true
+          pnpm supabase stop --all --no-backup || true
+          docker ps -a --filter "name=supabase_db_kompleet" --format "{{.ID}}" | xargs -r docker rm -f
+          docker ps -a --filter "publish=54322" --format "{{.ID}}" | xargs -r docker rm -f
+
       - name: Start local Supabase
         run: pnpm supabase start
 
@@ -373,6 +382,12 @@ jobs:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+
+      - name: Fetch PR base branch for migration comparison
+        if: env.DATABASE_URL != '' && github.event_name == 'pull_request'
+        run: |
+          git fetch --no-tags --depth=1 origin \
+            "+refs/heads/${GITHUB_BASE_REF}:refs/remotes/origin/${GITHUB_BASE_REF}"
 
       - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320
         if: env.DATABASE_URL != ''
