@@ -383,6 +383,12 @@ jobs:
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
 
+      - name: Fetch PR base branch for migration comparison
+        if: env.DATABASE_URL != '' && github.event_name == 'pull_request'
+        run: |
+          git fetch --no-tags --depth=1 origin \
+            "+refs/heads/${GITHUB_BASE_REF}:refs/remotes/origin/${GITHUB_BASE_REF}"
+
       - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320
         if: env.DATABASE_URL != ''
 
