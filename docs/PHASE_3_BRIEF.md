@@ -91,7 +91,7 @@ Each wave: migration → `supabase gen types` → `pnpm typecheck` → negative 
 | **C** | **Invoicing.** New: `invoice_archives`, `invoice_audit_logs`, `client_keys`. Modified: `invoices`, `invoice_sequences` (+`client_id`, policy replacement, re-key). | **Shortest path to the first real user.** `invoices` and `invoice_sequences` already exist — only three tables are genuinely missing. Baseline 18 → 15. |
 | **D** | **Receipts / documents.** New: `documents`. Modified: `expenses`, `file_uploads` (+`client_id`). Storage policies. | Mobile receipt capture. Baseline 15 → 14. |
 | **E** | `tax_calculations`, `client_tax_years`, `merchant_categorizations` | Dashboard landing page queries `tax_calculations` client-side. Baseline 14 → 11. |
-| **F** | `nrs_forms`, `filing_status`, `filing_audit_logs`, `filing_deadlines`, `deadline_reminders` | Filing output. Baseline 11 → 6. |
+| **F** | `nrs_forms`, `form_filing_statuses`, `filing_audit_logs`, `filing_deadlines`, `deadline_reminders` | Filing output. Baseline 11 → 6. |
 | **G** | `import_batches`, `data_migration_logs`, `recurring_patterns`, `categorization_predictions`, `ml_inference_logs`, `categorization_feedback`, `firm_learning_profiles` | Remainder. Baseline 6 → 0 (with `merchant_categorizations` net-new). |
 
 **Renames, done at creation:** `user_tax_years` → `client_tax_years`, `user_keys` → `client_keys`, `user_learning_profiles` → `firm_learning_profiles`. Update call sites in the same commit.

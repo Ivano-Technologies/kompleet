@@ -9,6 +9,8 @@
  * Env:
  *   DATABASE_URL or SUPABASE_DB_URL — Postgres connection string (required)
  *   SKIP_MIGRATION_CHECK=1          — exit 0 (escape hatch for forks)
+ *   GITHUB_EVENT_NAME=pull_request  — enables PR-aware local-only handling
+ *   GITHUB_BASE_REF                 — base branch name for PR-aware handling
  *
  * Exit codes:
  *   0 — local and remote migration sets match
@@ -36,6 +38,31 @@ function localMigrationVersions() {
     })
     .filter((m) => /^\d+$/.test(m.version))
     .sort((a, b) => a.version.localeCompare(b.version));
+}
+
+function migrationVersionFromFilename(file) {
+  const version = path.basename(file).split("_")[0];
+  return /^\d+$/.test(version) ? version : "";
+}
+
+function baseMigrationVersionsFromRef(refName) {
+  const output = execFileSync(
+    "git",
+    ["ls-tree", "-r", "--name-only", refName, "supabase/migrations"],
+    {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    },
+  );
+
+  const versions = new Set();
+  for (const line of output.split(/\r?\n/)) {
+    const file = line.trim();
+    if (!file.endsWith(".sql")) continue;
+    const version = migrationVersionFromFilename(file);
+    if (version) versions.add(version);
+  }
+  return versions;
 }
 
 /** Strip markdown backticks / whitespace from a table cell. */
@@ -190,6 +217,70 @@ function main() {
   if (localOnly.length === 0 && remoteOnly.length === 0) {
     console.log("✅ Local and remote migrations are in sync.");
     process.exit(0);
+  }
+
+  const isPullRequest = process.env.GITHUB_EVENT_NAME === "pull_request";
+  const baseRefName = (process.env.GITHUB_BASE_REF || "").trim();
+  if (isPullRequest && baseRefName) {
+    const baseRef = `origin/${baseRefName}`;
+    let baseVersions;
+    try {
+      baseVersions = baseMigrationVersionsFromRef(baseRef);
+    } catch (err) {
+      console.error(
+        `❌ Unable to read migrations from ${baseRef} for PR comparison.`,
+      );
+      console.error(
+        "   Ensure CI fetched the base branch before running this check.",
+      );
+      console.error(err.stderr || err.message);
+      process.exit(2);
+    }
+
+    const staleLocalOnly = localOnly.filter((r) => baseVersions.has(r.version));
+    const prIntroducedLocalOnly = localOnly.filter(
+      (r) => !baseVersions.has(r.version),
+    );
+
+    if (remoteOnly.length === 0 && staleLocalOnly.length === 0) {
+      console.log("");
+      console.log(
+        `✅ PR mode: allowing ${prIntroducedLocalOnly.length} PR-introduced local-only migration(s).`,
+      );
+      for (const r of prIntroducedLocalOnly) {
+        console.log(`   - ${r.version}`);
+      }
+      console.log(
+        `   Pushes remain strict; apply these migrations to ${baseRefName} around merge.`,
+      );
+      process.exit(0);
+    }
+
+    console.error("");
+    console.error("❌ Migration application drift detected (PR mode):");
+    if (staleLocalOnly.length) {
+      console.error(
+        `  Local-only already on base branch (forgotten apply) — ${staleLocalOnly.length}:`,
+      );
+      for (const r of staleLocalOnly) console.error(`    - ${r.version}`);
+    }
+    if (prIntroducedLocalOnly.length) {
+      console.error(
+        `  Local-only introduced by this PR (allowed only if no other drift) — ${prIntroducedLocalOnly.length}:`,
+      );
+      for (const r of prIntroducedLocalOnly) console.error(`    - ${r.version}`);
+    }
+    if (remoteOnly.length) {
+      console.error(
+        `  Remote-only (missing from repo) — ${remoteOnly.length}:`,
+      );
+      for (const r of remoteOnly) console.error(`    - ${r.version}`);
+    }
+    console.error("");
+    console.error(
+      "Fix: apply stale base-branch migrations remotely, and commit any remote-only SQL files.",
+    );
+    process.exit(1);
   }
 
   console.error("");
