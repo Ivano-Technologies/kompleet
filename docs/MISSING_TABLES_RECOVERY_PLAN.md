@@ -88,7 +88,7 @@ Verdicts from the live reference map. "Refs" counts files containing `.from("<ta
 | `tax_calculations` | 7 | `calculations/{route,save,[id],[id]/finalize}`, `lib/supabase/queries.ts`, **`(dashboard)/dashboard/page.tsx`** | Highest priority. Zod schema exists. The dashboard queries it directly client-side, so the landing page of the app is hitting a missing table. |
 | `user_tax_years` | 2 | `year/available`, `year/switch` | Multi-year support is a headline feature |
 | `nrs_forms` | 6 | `forms/{generate,list,[id]/download,[id]/mark-filed}`, `lib/data-migration-service.ts` | The compliance output — the product's whole point |
-| `filing_status` | 1 | `forms/[id]/mark-filed` | Paired with `nrs_forms` |
+| `form_filing_statuses` | 1 | `forms/[id]/mark-filed` | Paired with `nrs_forms` |
 | `filing_audit_logs` | 3 | `forms/{generate,[id]/download,[id]/mark-filed}` | Regulatory audit trail — build with `nrs_forms`, not after |
 | `deadline_reminders` | 2 | `lib/deadline-service.ts`, `reminders/history` | |
 | `categorization_predictions` | 1 | `categorize` | Feeds the ML correction loop |
@@ -245,7 +245,7 @@ The tables went missing because nothing connected "code references table X" to "
 | 2 | **Delete before building.** Mono removal (§2a), Gmail/Outlook removal (§2b), `records` + `customers`, `src/db/` entirely | `pnpm typecheck` + `pnpm build` green; drift script now lists **8**, not 14 |
 | 3 | Create a Supabase branch | — |
 | 4 | Migration A: `tax_calculations` + RLS + `revoke anon` + indexes | typegen → typecheck → E2E calculation spec |
-| 5 | Migration B: `nrs_forms`, `filing_status`, `filing_audit_logs` | typecheck + forms E2E |
+| 5 | Migration B: `nrs_forms`, `form_filing_statuses`, `filing_audit_logs` | typecheck + forms E2E |
 | 6 | Migration C: `user_tax_years`, `deadline_reminders`, `categorization_predictions`, `ml_inference_logs` | typecheck |
 | 7 | Build `firms`/`firm_members` instead of workspaces; delete the orphaned migration and the two workspace routes | typecheck |
 | 8 | Guardrail 1 passes clean; add guardrails 2 and 3 | Full CI green |

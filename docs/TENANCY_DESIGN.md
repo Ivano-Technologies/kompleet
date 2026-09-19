@@ -61,7 +61,7 @@ Cross-referencing every `.from("…")` in `src/app/api/**/route.ts` against all 
 | `user_tax_years` | `year/available`, `year/switch` |
 | `nrs_forms` | `forms/*` (4 routes) |
 | `filing_audit_logs` | `forms/generate`, `forms/[id]/download`, `forms/[id]/mark-filed` |
-| `filing_status` | `forms/[id]/mark-filed` |
+| `form_filing_statuses` | `forms/[id]/mark-filed` |
 | `email_connections` | `email/callback/gmail` |
 | `deadline_reminders` | `reminders/history` |
 | `ml_inference_logs` | `ai/categorize` |

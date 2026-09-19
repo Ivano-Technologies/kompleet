@@ -143,7 +143,7 @@ Where the code does not determine something — numeric precision, `on delete` b
 2. `pnpm typecheck` — **if a route reads a column the table lacks, `tsc` fails.** This converts "is the schema right?" from judgement into a build error. Wire into the existing `scripts/check-type-drift.sh`.
 3. Run the relevant E2E spec from `e2e/` against the branch.
 
-Sequence: `tax_calculations` first (the dashboard landing page queries it client-side, so it is the most visible breakage), then the `nrs_forms` + `filing_status` + `filing_audit_logs` set together, then the remainder.
+Sequence: `tax_calculations` first (the dashboard landing page queries it client-side, so it is the most visible breakage), then the `nrs_forms` + `form_filing_statuses` + `filing_audit_logs` set together, then the remainder.
 
 **Gate:** `check-schema-drift` exits 0. Advisors unchanged from the Phase 1 baseline. Branch merged.
 
