@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { Plus, FileText, Info } from "lucide-react";
+import { useConvexAuth } from "convex/react";
 
 interface TaxReport {
   id: string;
@@ -18,6 +19,7 @@ interface TaxReport {
 }
 
 export default function TaxReportsPage() {
+  const { isLoading: authLoading, isAuthenticated } = useConvexAuth();
   const [reports, setReports] = useState<TaxReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<{
@@ -33,9 +35,13 @@ export default function TaxReportsPage() {
       if (filter.taxYear) params.append("taxYear", filter.taxYear.toString());
       if (filter.status) params.append("status", filter.status);
       if (filter.reportType) params.append("reportType", filter.reportType);
+      const qs = params.toString();
 
-      const response = await fetch(`/api/tax-reports?${params.toString()}`);
-      const data = await response.json();
+      const response = await fetch(
+        qs ? `/api/tax-reports?${qs}` : "/api/tax-reports",
+        { credentials: "same-origin" },
+      );
+      const data = (await response.json()) as { reports?: TaxReport[] };
       setReports(data.reports || []);
     } catch (error) {
       console.error("Error fetching reports:", error);
@@ -44,9 +50,17 @@ export default function TaxReportsPage() {
     }
   }, [filter]);
 
+  // Same gate as YearProvider: do not hit the API until Convex auth resolves.
+  // Cold first paint with a cookie but an unread Convex token raced #99.
   useEffect(() => {
-    fetchReports();
-  }, [fetchReports]);
+    if (authLoading) return;
+    if (!isAuthenticated) {
+      setReports([]);
+      setLoading(false);
+      return;
+    }
+    void fetchReports();
+  }, [authLoading, isAuthenticated, fetchReports]);
 
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat("en-NG", {

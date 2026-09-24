@@ -1,6 +1,6 @@
 import { v } from "convex/values";
 import { internalMutation, mutation, query } from "./_generated/server";
-import { getCurrentUser } from "./lib/auth";
+import { getCurrentUser, getCurrentUserOrNull } from "./lib/auth";
 import { newExternalId, toMs } from "./lib/ids";
 
 export const listRuleVersions = query({
@@ -389,17 +389,30 @@ function toIso(ms: number | undefined): string {
   return new Date(0).toISOString();
 }
 
-function withoutUndefined(
-  value: Record<string, unknown>,
-): Record<string, unknown> {
-  const out: Record<string, unknown> = {};
-  for (const [key, entry] of Object.entries(value)) {
-    if (entry !== undefined) {
-      out[key] = entry;
-    }
+function withoutUndefinedDeep(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(withoutUndefinedDeep);
   }
-  return out;
+  if (value && typeof value === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [key, entry] of Object.entries(
+      value as Record<string, unknown>,
+    )) {
+      if (entry !== undefined) {
+        out[key] = withoutUndefinedDeep(entry);
+      }
+    }
+    return out;
+  }
+  return value;
 }
+
+type TaxReportApi = {
+  tax_year?: number | null;
+  report_type?: string | null;
+  computation_data?: unknown;
+  [key: string]: unknown;
+};
 
 function reportToApi(row: {
   externalId: string;
@@ -409,14 +422,14 @@ function reportToApi(row: {
   computationData: unknown;
   createdAt: number;
   updatedAt: number;
-}) {
+}): TaxReportApi {
   const extra =
     row.computationData && typeof row.computationData === "object"
       ? (row.computationData as Record<string, unknown>)
       : {};
   // Spread extras first so canonical ids/timestamps always win. Strip
-  // `undefined` — Convex return values cannot contain it.
-  return withoutUndefined({
+  // `undefined` at every depth — Convex return values cannot contain it.
+  return withoutUndefinedDeep({
     ...extra,
     id: row.externalId,
     user_id: row.userExternalId,
@@ -425,7 +438,7 @@ function reportToApi(row: {
     computation_data: row.computationData ?? {},
     created_at: toIso(row.createdAt),
     updated_at: toIso(row.updatedAt),
-  });
+  }) as TaxReportApi;
 }
 
 export const listReports = query({
@@ -436,7 +449,8 @@ export const listReports = query({
   },
   returns: v.array(v.any()),
   handler: async (ctx, args) => {
-    const user = await getCurrentUser(ctx);
+    const user = await getCurrentUserOrNull(ctx);
+    if (!user) return [];
     const rows = await ctx.db
       .query("taxReports")
       .withIndex("by_user", (q) => q.eq("userId", user._id))

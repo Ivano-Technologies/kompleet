@@ -3,6 +3,7 @@ import {
   profileToCompatUser,
   type CompatUser,
 } from "@/lib/auth/compat-user";
+import { rethrowIfNextControlFlow } from "@/lib/next-control-flow";
 
 export async function getConvexAccessToken(
   request?: Request,
@@ -21,7 +22,9 @@ export async function getConvexAccessToken(
     );
     const token = await convexAuthNextjsToken();
     return token ?? null;
-  } catch {
+  } catch (error) {
+    // cookies() / postpone must escape — swallowing it 500s cold isolates.
+    rethrowIfNextControlFlow(error);
     return null;
   }
 }
@@ -36,7 +39,8 @@ export async function getCompatUser(
     const profile = await convex.query(api.users.getMine, {});
     if (!profile) return null;
     return profileToCompatUser(profile);
-  } catch {
+  } catch (error) {
+    rethrowIfNextControlFlow(error);
     return null;
   }
 }
