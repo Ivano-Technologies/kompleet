@@ -1,44 +1,20 @@
-// TODO(IVA-67 Phase 3 OUT): deadline_reminders is not in Convex schema. Do not invent tables.
+// TODO(IVA-64 Phase 5): deadline_reminders is not in Convex schema. Do not invent tables.
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
+import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 
 async function handleGET(request: NextRequest) {
   try {
-    const supabase = await getSupabaseForRequest(request);
-
-    // Check authentication
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Fetch user's reminder history
-    const { data: reminders, error: dbError } = await supabase
-      .from("deadline_reminders")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("reminder_date", { ascending: false })
-      .limit(50);
-
-    if (dbError) {
-      console.error("Database error:", dbError);
-      return NextResponse.json(
-        { error: "Failed to fetch reminder history" },
-        { status: 500 },
-      );
-    }
-
+    await requireAuthedConvex(request);
     return NextResponse.json({
       success: true,
-      reminders: reminders || [],
-      count: reminders?.length || 0,
+      reminders: [],
+      count: 0,
     });
   } catch (error) {
-    console.error("Get reminder history error:", error);
+    if (isUnauthorized(error)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },

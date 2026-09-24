@@ -8,7 +8,6 @@ vi.mock("@/lib/convex/server", () => ({
   getAuthedConvex: vi.fn(async () => ({
     convex: { mutation: mockMutation },
     user: { id: "user-123" },
-    supabase: {},
     accessToken: "token",
   })),
 }));

@@ -11,7 +11,7 @@
  *      figures and always take priority.
  *   2. Separately load ALL tax_rules rows for the most-recently-created
  *      INACTIVE rule_version (i.e. the "unverified candidates" version
- *      seeded by supabase/migrations/20260805140000_tax_rule_provenance_unverified.sql).
+ *      seeded historically as unverified candidates).
  *   3. Merge step 2 into the bundle ONLY for keys that are missing from
  *      step 1. An active, reviewed rule is never overridden by an
  *      unverified one — unverified rules only fill gaps.
@@ -20,8 +20,6 @@
  * inspect `LoadedRule.confidenceLevel` on the returned rule.
  */
 import type { ConvexHttpClient } from "convex/browser";
-import type { SupabaseClient } from "@supabase/supabase-js";
-import { supabase as defaultAnonClient } from "@/lib/supabase";
 import { loadConvexRuleBundle } from "@/lib/convex/rule-bundle";
 import { MissingTaxRuleError } from "./errors";
 import type { LoadedRule, RuleBundle } from "./types";
@@ -30,121 +28,24 @@ function ruleMapKey(ruleType: string, ruleKey: string): string {
   return `${ruleType}.${ruleKey}`;
 }
 
-function toLoadedRule(row: Record<string, any>): LoadedRule {
-  return {
-    ruleType: row.rule_type,
-    ruleKey: row.rule_key,
-    value: row.rule_value,
-    confidenceLevel: row.confidence_level,
-    sourceId: row.source_id,
-    ruleVersionId: row.rule_version_id,
-    notes: row.notes ?? null,
-    lastReviewedAt: row.last_reviewed_at,
-  };
-}
-
 export interface LoadRuleBundleOptions {
   /** Restrict loaded rules to these rule_type values. Omit to load all types. */
   ruleTypes?: string[];
-  /**
-   * Convex HTTP client (Phase 3). Preferred over the leftover Supabase client.
-   */
-  convex?: ConvexHttpClient;
-  /**
-   * Leftover Supabase client. Only used when `convex` is omitted.
-   * @deprecated Phase 3 routes pass `convex`.
-   */
-  client?: SupabaseClient;
+  /** Convex HTTP client. Required after the Phase 5 Supabase strip. */
+  convex: ConvexHttpClient;
 }
 
 /**
- * Load a RuleBundle: active rules for the given types, with gaps filled by
- * the latest unverified (inactive) rule_version.
+ * Load a RuleBundle from Convex: active rules for the given types, with gaps
+ * filled by the latest unverified (inactive) rule_version.
  */
 export async function loadRuleBundle(
-  options: LoadRuleBundleOptions = {},
+  options: LoadRuleBundleOptions,
 ): Promise<RuleBundle> {
-  if (options.convex) {
-    return loadConvexRuleBundle(options.convex, options.ruleTypes);
+  if (!options.convex) {
+    throw new Error("loadRuleBundle requires a Convex client");
   }
-  const client = options.client ?? defaultAnonClient;
-  const ruleTypes = options.ruleTypes;
-  const rules = new Map<string, LoadedRule>();
-
-  const { data: activeVersion, error: activeVersionError } = await client
-    .from("rule_versions")
-    .select("id")
-    .eq("is_active", true)
-    .maybeSingle();
-
-  if (activeVersionError) {
-    throw new Error(
-      `Failed to load active tax rule version: ${activeVersionError.message}`,
-    );
-  }
-
-  const activeVersionId: string | null = activeVersion?.id ?? null;
-
-  if (activeVersionId) {
-    let query = client
-      .from("tax_rules")
-      .select("*")
-      .eq("rule_version_id", activeVersionId);
-    if (ruleTypes && ruleTypes.length > 0) {
-      query = query.in("rule_type", ruleTypes);
-    }
-    const { data: activeRules, error: activeRulesError } = await query;
-    if (activeRulesError) {
-      throw new Error(
-        `Failed to load active tax rules: ${activeRulesError.message}`,
-      );
-    }
-    for (const row of activeRules ?? []) {
-      rules.set(ruleMapKey(row.rule_type, row.rule_key), toLoadedRule(row));
-    }
-  }
-
-  const { data: unverifiedVersion, error: unverifiedVersionError } =
-    await client
-      .from("rule_versions")
-      .select("id")
-      .eq("is_active", false)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-  if (unverifiedVersionError) {
-    throw new Error(
-      `Failed to load unverified tax rule version: ${unverifiedVersionError.message}`,
-    );
-  }
-
-  const unverifiedVersionId: string | null = unverifiedVersion?.id ?? null;
-
-  if (unverifiedVersionId) {
-    let query = client
-      .from("tax_rules")
-      .select("*")
-      .eq("rule_version_id", unverifiedVersionId);
-    if (ruleTypes && ruleTypes.length > 0) {
-      query = query.in("rule_type", ruleTypes);
-    }
-    const { data: unverifiedRules, error: unverifiedRulesError } =
-      await query;
-    if (unverifiedRulesError) {
-      throw new Error(
-        `Failed to load unverified tax rules: ${unverifiedRulesError.message}`,
-      );
-    }
-    for (const row of unverifiedRules ?? []) {
-      const key = ruleMapKey(row.rule_type, row.rule_key);
-      if (!rules.has(key)) {
-        rules.set(key, toLoadedRule(row));
-      }
-    }
-  }
-
-  return { activeVersionId, unverifiedVersionId, rules };
+  return loadConvexRuleBundle(options.convex, options.ruleTypes);
 }
 
 /** Look up a rule; returns undefined if not loaded. */

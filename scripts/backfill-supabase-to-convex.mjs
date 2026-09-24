@@ -12,7 +12,6 @@
  *   node scripts/backfill-supabase-to-convex.mjs
  */
 import { spawnSync } from "node:child_process";
-import { createClient } from "@supabase/supabase-js";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -23,10 +22,6 @@ if (!url || !key) {
   );
   process.exit(1);
 }
-
-const supabase = createClient(url, key, {
-  auth: { persistSession: false, autoRefreshToken: false },
-});
 
 function runConvex(fn, args) {
   const result = spawnSync(
@@ -43,9 +38,19 @@ function runConvex(fn, args) {
 }
 
 async function fetchAll(table) {
-  const { data, error } = await supabase.from(table).select("*");
-  if (error) throw new Error(`${table}: ${error.message}`);
-  return data ?? [];
+  const response = await fetch(
+    `${url.replace(/\/$/, "")}/rest/v1/${table}?select=*`,
+    {
+      headers: {
+        apikey: key,
+        Authorization: `Bearer ${key}`,
+      },
+    },
+  );
+  if (!response.ok) {
+    throw new Error(`${table}: ${await response.text()}`);
+  }
+  return (await response.json()) ?? [];
 }
 
 const checksum = { users: 0, transactions: 0, amount: 0 };

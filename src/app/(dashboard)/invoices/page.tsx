@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import type { Database } from "@/lib/supabase/types";
+import type { InvoiceView } from "@/lib/invoices/view-types";
 import {
   Plus,
   Search,
@@ -13,15 +13,7 @@ import {
 } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 
-type DbInvoice = Database["public"]["Tables"]["invoices"]["Row"];
-
-interface Invoice extends Omit<DbInvoice, "customer_info"> {
-  customer_info: {
-    name: string;
-    email?: string;
-    address?: string;
-  };
-}
+type Invoice = InvoiceView;
 
 export default function InvoicesPage() {
   const router = useRouter();

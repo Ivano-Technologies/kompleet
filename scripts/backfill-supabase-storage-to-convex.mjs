@@ -10,7 +10,6 @@
  *   NEXT_PUBLIC_CONVEX_URL=https://shiny-cricket-316.convex.cloud \
  *   node scripts/backfill-supabase-storage-to-convex.mjs
  */
-import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -22,26 +21,35 @@ if (!supabaseUrl || !serviceKey) {
   process.exit(0);
 }
 
-const supabase = createClient(supabaseUrl, serviceKey, {
-  auth: { persistSession: false, autoRefreshToken: false },
-});
+const base = supabaseUrl.replace(/\/$/, "");
+const headers = {
+  apikey: serviceKey,
+  Authorization: `Bearer ${serviceKey}`,
+};
 
-const { data: buckets, error: bucketError } = await supabase.storage.listBuckets();
-if (bucketError) {
-  console.error("backfill-storage: listBuckets failed", bucketError.message);
+const bucketRes = await fetch(`${base}/storage/v1/bucket`, { headers });
+if (!bucketRes.ok) {
+  console.error("backfill-storage: listBuckets failed", await bucketRes.text());
   process.exit(1);
 }
+const buckets = (await bucketRes.json()) ?? [];
 
 let objectCount = 0;
-for (const bucket of buckets ?? []) {
-  const { data: objects, error } = await supabase.storage
-    .from(bucket.name)
-    .list("", { limit: 1000 });
-  if (error) {
-    console.warn(`backfill-storage: list ${bucket.name} failed`, error.message);
+for (const bucket of buckets) {
+  const listRes = await fetch(`${base}/storage/v1/object/list/${bucket.name}`, {
+    method: "POST",
+    headers: { ...headers, "Content-Type": "application/json" },
+    body: JSON.stringify({ prefix: "", limit: 1000 }),
+  });
+  if (!listRes.ok) {
+    console.warn(
+      `backfill-storage: list ${bucket.name} failed`,
+      await listRes.text(),
+    );
     continue;
   }
-  const files = (objects ?? []).filter((item) => item.id);
+  const objects = (await listRes.json()) ?? [];
+  const files = objects.filter((item) => item.id);
   objectCount += files.length;
   console.log(
     `backfill-storage: bucket ${bucket.name} objects=${files.length}`,

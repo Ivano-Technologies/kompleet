@@ -10,4 +10,3 @@ onlyBuiltDependencies:
   - "@sentry/cli"
   - esbuild
   - sharp
-  - supabase

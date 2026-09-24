@@ -17,7 +17,7 @@ Live: [ivanotechnologies.com](https://ivanotechnologies.com)
 | Layer | What is live |
 | --- | --- |
 | Web | Next.js App Router (`src/app`), TypeScript, Tailwind |
-| Auth | Convex Auth (`@convex-dev/auth` cookies). Mobile may still send Supabase JWTs. |
+| Auth | Convex Auth (`@convex-dev/auth` cookies). Mobile signs in via `/api/auth` and stores a Bearer token. |
 | App data | Convex (`convex/`) |
 | Storage | Convex file storage |
 | Deploy | Vercel |
@@ -84,7 +84,7 @@ kompleet-platform/
 ├── convex/                     # Schema + queries/mutations (app data)
 │   ├── schema.ts
 │   ├── auth.ts                 # Convex Auth (Password)
-│   ├── auth.config.ts          # Convex Auth + leftover Supabase JWT (mobile)
+│   ├── auth.config.ts          # Convex Auth (Password) + leftover SB JWT issuer during soak
 │   ├── users.ts                # profiles (email remap)
 │   ├── transactions.ts
 │   └── ...
@@ -94,8 +94,7 @@ kompleet-platform/
 │   │   ├── (dashboard)/
 │   │   └── api/                # Route handlers → Convex for app data
 │   ├── lib/
-│   │   ├── convex/             # Http client + request auth bridge
-│   │   └── supabase/           # Leftover Postgres data client (not web auth)
+│   │   └── convex/             # Http client + request auth bridge
 ├── scripts/backfill-supabase-to-convex.mjs
 └── docs/convex-migration-plan.md
 ```
@@ -107,12 +106,12 @@ kompleet-platform/
 3. API routes: Convex Auth cookie **or** `Authorization: Bearer`, then `ConvexHttpClient.setAuth`
 4. `createOrUpdateUser` + `getCurrentUser` map identity to the existing `users` row by email
 
-## What stays on Supabase (do not delete)
+## What stays on Supabase (do not delete the project)
 
-- Leftover Postgres tables still used by some API routes (service-role + `user.id` filter)
-- Keep-alive (`GET /api/health/db` → `tax_rules`) so the Free project does not pause
-- CI jobs that still target Postgres (schema-drift, migrations-applied, rls-negative, security-advisors)
-- Mobile app Auth/Storage until a follow-up cutover
+- Keep-alive (`GET /api/health/db` → PostgREST `tax_rules`, no supabase-js)
+- Optional `NEXT_PUBLIC_SUPABASE_*` / service-role for Phase 6 backfill + teardown
+- CI `security-advisors` (baseline not bumped here)
+- Hosted project `frlcvkmjuhnjcicwywrh` until CoS + Kezie go (IVA-65)
 
 ## Development vs production Convex
 
@@ -127,7 +126,7 @@ pnpm typecheck
 pnpm test
 ```
 
-RLS-negative tests still run against **local** Supabase (tenancy spine). They do not replace Convex ownership wrappers.
+RLS-negative tests and the `supabase/` tree were retired in Phase 5 (IVA-64). Convex ownership wrappers are the access-control layer.
 
 ## Related docs
 

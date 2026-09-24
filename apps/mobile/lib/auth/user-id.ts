@@ -1,6 +1,6 @@
 /**
  * Current user id for expense ownership.
- * Placeholder: env or SecureStore. Replace with Supabase Auth when wired.
+ * Local device id. Cloud identity comes from Convex Auth (Settings sign-in).
  */
 import * as SecureStore from "expo-secure-store";
 

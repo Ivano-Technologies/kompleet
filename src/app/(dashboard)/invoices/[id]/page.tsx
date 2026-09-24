@@ -13,27 +13,9 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
-import type { Database } from "@/lib/supabase/types";
+import type { InvoiceView } from "@/lib/invoices/view-types";
 
-type DbInvoice = Database["public"]["Tables"]["invoices"]["Row"];
-
-interface Invoice extends Omit<DbInvoice, "customer_info" | "line_items"> {
-  customer_info: {
-    name: string;
-    email?: string;
-    phone?: string;
-    address?: string;
-    tin?: string;
-  };
-  line_items: Array<{
-    description: string;
-    quantity: number;
-    unit_price: number;
-    vat_rate: number;
-    discount?: number;
-    amount: number;
-  }>;
-}
+type Invoice = InvoiceView;
 
 export default function InvoiceDetailPage() {
   const router = useRouter();

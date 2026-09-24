@@ -1,5 +1,4 @@
 import type { ConvexHttpClient } from "convex/browser";
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { GetDocumentStatusUseCase } from "./application/get-document-status.usecase";
 import { ProcessDocumentUseCase } from "./application/process-document.usecase";
 import type { AuditLogPort } from "./application/ports/audit-log.port";
@@ -7,10 +6,8 @@ import type { DocumentRepositoryPort } from "./application/ports/document-reposi
 import type { QueuePort } from "./application/ports/queue.port";
 import { ConvexAuditLogAdapter } from "./infrastructure/audit/convex-audit-log.adapter";
 import { InMemoryAuditLogAdapter } from "./infrastructure/audit/in-memory-audit-log.adapter";
-import { SupabaseAuditLogAdapter } from "./infrastructure/audit/supabase-audit-log.adapter";
 import { ConvexDocumentRepository } from "./infrastructure/persistence/convex-document.repository";
 import { InMemoryDocumentRepository } from "./infrastructure/persistence/in-memory-document.repository";
-import { SupabaseDocumentRepository } from "./infrastructure/persistence/supabase-document.repository";
 import { InMemoryDocumentQueue } from "./infrastructure/queue/in-memory-document.queue";
 import { createDocumentQueue } from "./infrastructure/queue/queue-driver";
 import { DocumentController } from "./interfaces/document.controller";
@@ -56,17 +53,6 @@ export function getDocumentControllerWithConvex(
   );
   const queue = createDocumentQueue();
   const auditLog = new ConvexAuditLogAdapter(convex);
-  return buildController(repository, queue, auditLog);
-}
-
-/** @deprecated Phase 4 cut over to Convex. Kept for rollback until Phase 5 strip. */
-export function getDocumentControllerWithSupabase(
-  supabase: SupabaseClient,
-): DocumentController {
-  const repository: DocumentRepositoryPort =
-    new SupabaseDocumentRepository(supabase);
-  const queue = createDocumentQueue();
-  const auditLog = new SupabaseAuditLogAdapter(supabase);
   return buildController(repository, queue, auditLog);
 }
 

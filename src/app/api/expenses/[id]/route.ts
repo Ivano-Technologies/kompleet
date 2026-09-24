@@ -18,10 +18,11 @@ const patchBodySchema = z.object({
     .optional(),
   amount: z.number().finite().nonnegative().optional(),
   currency: z.string().max(10).optional(),
-  category_id: z.string().uuid().nullable().optional(),
+  category_id: z.string().max(80).nullable().optional(),
   vendor: z.string().max(500).nullable().optional(),
   vat_amount: z.number().finite().nonnegative().optional(),
-  receipt_url: z.string().url().nullable().optional(),
+  receipt_url: z.string().max(2000).nullable().optional(),
+  receiptStorageId: z.string().optional(),
   notes: z.string().max(2000).nullable().optional(),
 });
 
@@ -75,6 +76,9 @@ export async function PATCH(
       vendor: parsed.data.vendor ?? undefined,
       vatAmount: parsed.data.vat_amount,
       receiptUrl: parsed.data.receipt_url ?? undefined,
+      receiptStorageId: parsed.data.receiptStorageId as
+        | undefined
+        | import("../../../../../convex/_generated/dataModel").Id<"_storage">,
       notes: parsed.data.notes ?? undefined,
     });
     return NextResponse.json(data);

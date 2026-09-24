@@ -6,7 +6,6 @@ vi.mock("@/lib/convex/server", () => ({
   requireAuthedConvex: vi.fn(async () => ({
     convex: { query: mockQuery },
     user: { id: "user-123" },
-    supabase: {},
     accessToken: "token",
   })),
 }));

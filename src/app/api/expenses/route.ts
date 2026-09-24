@@ -19,19 +19,21 @@ const querySchema = z.object({
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/)
     .optional(),
-  categoryId: z.string().uuid().optional(),
+  categoryId: z.string().max(80).optional(),
+  updatedSince: z.string().optional(),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(50),
 });
 
 const postBodySchema = z.object({
+  id: z.string().max(80).optional(),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   amount: z.number().finite().nonnegative(),
   currency: z.string().max(10).default("NGN"),
-  category_id: z.string().uuid().nullable().optional(),
+  category_id: z.string().max(80).nullable().optional(),
   vendor: z.string().max(500).nullable().optional(),
   vat_amount: z.number().finite().nonnegative().optional(),
-  receipt_url: z.string().url().nullable().optional(),
+  receipt_url: z.string().max(2000).nullable().optional(),
   notes: z.string().max(2000).nullable().optional(),
 });
 
@@ -44,6 +46,7 @@ export async function GET(request: NextRequest) {
       startDate: sp.get("startDate") ?? undefined,
       endDate: sp.get("endDate") ?? undefined,
       categoryId: sp.get("categoryId") ?? undefined,
+      updatedSince: sp.get("updatedSince") ?? undefined,
       page: sp.get("page") ?? undefined,
       limit: sp.get("limit") ?? undefined,
     });
@@ -53,12 +56,14 @@ export async function GET(request: NextRequest) {
         { status: 400 },
       );
     }
-    const { startDate, endDate, categoryId, page, limit } = parsed.data;
+    const { startDate, endDate, categoryId, updatedSince, page, limit } =
+      parsed.data;
 
     const result = await convex.query(api.expenses.listMine, {
       startDate,
       endDate,
       categoryId,
+      updatedSince,
       page,
       limit,
     });
@@ -94,6 +99,7 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await convex.mutation(api.expenses.createMine, {
+      externalId: parsed.data.id,
       date: parsed.data.date,
       amount: parsed.data.amount,
       currency: parsed.data.currency,

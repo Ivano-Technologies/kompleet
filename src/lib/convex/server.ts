@@ -1,6 +1,6 @@
 /**
  * Server Convex client. Auth is Convex Auth (cookies) or a Bearer JWT
- * (mobile / API clients, including leftover Supabase GoTrue tokens).
+ * (mobile / API clients).
  */
 import type { ConvexHttpClient } from "convex/browser";
 import { isConvexAuthError } from "./errors";
