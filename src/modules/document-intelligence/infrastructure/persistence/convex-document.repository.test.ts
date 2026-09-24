@@ -46,7 +46,8 @@ describe("ConvexDocumentRepository", () => {
       fileUrl: "https://files/invoice.pdf",
       idempotencyKey: "idem-1",
     });
-    await repo().create(document);
+    const created = await repo().create(document);
+    expect(created.id).toBe("doc-1");
     expect(mutation).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({
@@ -56,6 +57,62 @@ describe("ConvexDocumentRepository", () => {
         fileUrl: "https://files/invoice.pdf",
       }),
     );
+  });
+
+  it("retries createMine with the deployed arg subset after extra-field rejection", async () => {
+    mutation
+      .mockRejectedValueOnce(
+        new Error(
+          "ArgumentValidationError: Object contains extra field `documentType` that is not in the validator.",
+        ),
+      )
+      .mockResolvedValueOnce({ ...record, id: "convex-assigned-id" });
+    const document = createQueuedDocument({
+      id: "doc-1",
+      userId: "user-1",
+      documentType: "invoice",
+      fileUrl: "https://files/invoice.pdf",
+      idempotencyKey: "idem-1",
+    });
+    const created = await repo().create(document);
+    expect(created.id).toBe("convex-assigned-id");
+    expect(mutation).toHaveBeenCalledTimes(2);
+    expect(mutation.mock.calls[1]?.[1]).toEqual({
+      idempotencyKey: "idem-1",
+      status: "queued",
+      payload: {
+        documentType: "invoice",
+        fileUrl: "https://files/invoice.pdf",
+        confidenceScore: null,
+        structuredData: null,
+        errorMessage: null,
+      },
+    });
+    expect(mutation.mock.calls[1]?.[1]).not.toHaveProperty("externalId");
+    expect(mutation.mock.calls[1]?.[1]).not.toHaveProperty("documentType");
+    expect(mutation.mock.calls[1]?.[1]).not.toHaveProperty("fileUrl");
+  });
+
+  it("treats a missing getMineByIdempotencyKey function as no existing row", async () => {
+    query.mockRejectedValue(
+      new Error(
+        "Could not find public function for 'documents:getMineByIdempotencyKey'.",
+      ),
+    );
+    await expect(
+      repo().findByIdempotencyKey("idem-1", "user-1"),
+    ).resolves.toBeNull();
+  });
+
+  it("does not swallow missing worker idempotency functions", async () => {
+    query.mockRejectedValue(
+      new Error(
+        "Could not find public function for 'documents:workerGetByIdempotencyKey'.",
+      ),
+    );
+    await expect(
+      repo(true).findByIdempotencyKey("idem-1", "user-1"),
+    ).rejects.toThrow(/Could not find public function/);
   });
 
   it("maps getMine rows onto the document entity", async () => {

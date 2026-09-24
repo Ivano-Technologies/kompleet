@@ -34,7 +34,7 @@ export class SupabaseDocumentRepository implements DocumentRepositoryPort {
     );
   }
 
-  async create(document: DocumentEntity): Promise<void> {
+  async create(document: DocumentEntity): Promise<DocumentEntity> {
     const { error } = await this.supabase.from("documents").insert({
       id: document.id,
       user_id: document.userId,
@@ -54,6 +54,7 @@ export class SupabaseDocumentRepository implements DocumentRepositoryPort {
     if (error) {
       throw new Error(`Failed to create document record: ${error.message}`);
     }
+    return document;
   }
 
   async findById(id: string, userId: string): Promise<DocumentEntity | null> {

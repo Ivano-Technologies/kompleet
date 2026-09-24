@@ -1,5 +1,10 @@
 import type { ConvexHttpClient } from "convex/browser";
+import {
+  isConvexArgumentExtraField,
+  isConvexFunctionMissing,
+} from "@/lib/convex/errors";
 import { api } from "@/lib/convex/http";
+import { logger } from "@/lib/logger";
 import type {
   DocumentEntity,
   DocumentStatus,
@@ -66,26 +71,44 @@ export class ConvexDocumentRepository implements DocumentRepositoryPort {
     return token;
   }
 
-  async create(document: DocumentEntity): Promise<void> {
+  async create(document: DocumentEntity): Promise<DocumentEntity> {
     if (this.options.admin) {
       throw new Error(
         "Document create is user-scoped; workers must not insert uploads.",
       );
     }
-    await this.convex.mutation(api.documents.createMine, {
+    const compatibleArgs = createMineCompatibleArgs(document);
+    const phase4Args = {
+      ...compatibleArgs,
       externalId: document.id,
-      idempotencyKey: document.idempotencyKey,
-      status: document.status,
       documentType: document.documentType,
       fileUrl: document.fileUrl,
-      payload: {
-        documentType: document.documentType,
-        fileUrl: document.fileUrl,
-        confidenceScore: document.confidenceScore,
-        structuredData: document.structuredData,
-        errorMessage: document.errorMessage,
-      },
-    });
+    };
+
+    let row: DocumentRecord;
+    try {
+      row = await this.convex.mutation(api.documents.createMine, phase4Args);
+    } catch (error) {
+      if (!isConvexArgumentExtraField(error)) {
+        throw error;
+      }
+      logger.warn(
+        "documents.createMine rejected Phase 4 fields; retrying deployed subset",
+        {
+          operation: "document.persist",
+          error: error instanceof Error ? error.message : "unknown",
+        },
+      );
+      row = await this.convex.mutation(
+        api.documents.createMine,
+        compatibleArgs,
+      );
+    }
+
+    if (!row || typeof row.id !== "string") {
+      throw new Error("Document persist returned no row");
+    }
+    return toEntity(row);
   }
 
   async findById(id: string, userId: string): Promise<DocumentEntity | null> {
@@ -103,16 +126,27 @@ export class ConvexDocumentRepository implements DocumentRepositoryPort {
     idempotencyKey: string,
     userId: string,
   ): Promise<DocumentEntity | null> {
-    const row = this.options.admin
-      ? await this.convex.query(api.documents.workerGetByIdempotencyKey, {
-          workerToken: this.workerToken(),
-          idempotencyKey,
-          userExternalId: userId,
-        })
-      : await this.convex.query(api.documents.getMineByIdempotencyKey, {
-          idempotencyKey,
-        });
-    return row ? toEntity(row) : null;
+    try {
+      const row = this.options.admin
+        ? await this.convex.query(api.documents.workerGetByIdempotencyKey, {
+            workerToken: this.workerToken(),
+            idempotencyKey,
+            userExternalId: userId,
+          })
+        : await this.convex.query(api.documents.getMineByIdempotencyKey, {
+            idempotencyKey,
+          });
+      return row ? toEntity(row) : null;
+    } catch (error) {
+      if (!this.options.admin && isConvexFunctionMissing(error)) {
+        logger.warn(
+          "documents.getMineByIdempotencyKey missing; relying on createMine idempotency",
+          { operation: "document.persist" },
+        );
+        return null;
+      }
+      throw error;
+    }
   }
 
   async updateStatus(params: {
@@ -248,6 +282,20 @@ export class ConvexDocumentRepository implements DocumentRepositoryPort {
       userExternalId: params.userId,
     });
   }
+}
+
+function createMineCompatibleArgs(document: DocumentEntity) {
+  return {
+    idempotencyKey: document.idempotencyKey,
+    status: document.status,
+    payload: {
+      documentType: document.documentType,
+      fileUrl: document.fileUrl,
+      confidenceScore: document.confidenceScore,
+      structuredData: document.structuredData,
+      errorMessage: document.errorMessage,
+    },
+  };
 }
 
 function parsePositiveInt(value: string | undefined, fallback: number): number {

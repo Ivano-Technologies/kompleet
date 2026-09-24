@@ -14,10 +14,11 @@ export class InMemoryDocumentRepository implements DocumentRepositoryPort {
     3,
   );
 
-  async create(document: DocumentEntity): Promise<void> {
+  async create(document: DocumentEntity): Promise<DocumentEntity> {
     this.documents.set(document.id, document);
     this.processingStartedAt.set(document.id, null);
     this.processingAttemptCount.set(document.id, 0);
+    return document;
   }
 
   async findById(id: string, userId: string): Promise<DocumentEntity | null> {

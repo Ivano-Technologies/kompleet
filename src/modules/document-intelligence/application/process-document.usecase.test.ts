@@ -43,7 +43,7 @@ describe("ProcessDocumentUseCase", () => {
     error.mockReset();
     warn.mockReset();
     repository.findByIdempotencyKey.mockResolvedValue(null);
-    repository.create.mockResolvedValue(undefined);
+    repository.create.mockImplementation(async (document: { id: string }) => document);
     queue.enqueueDocumentProcessing.mockResolvedValue(undefined);
     auditLog.record.mockResolvedValue(undefined);
   });
@@ -89,5 +89,31 @@ describe("ProcessDocumentUseCase", () => {
       "document audit append failed after persist",
       expect.objectContaining({ operation: "document.audit" }),
     );
+  });
+
+  it("uses the persisted Convex documentId, not the locally generated UUID", async () => {
+    repository.create.mockResolvedValue({
+      id: "convex-row-id",
+      userId: "user-1",
+      documentType: "invoice",
+      fileUrl: "https://files.example/f",
+      idempotencyKey: "idem-1",
+    });
+    const result = await useCase().execute(input);
+    expect(result).toEqual({
+      documentId: "convex-row-id",
+      status: "queued",
+    });
+    expect(queue.enqueueDocumentProcessing).toHaveBeenCalledWith(
+      expect.objectContaining({ documentId: "convex-row-id" }),
+    );
+  });
+
+  it("rethrows Convex auth errors instead of mapping them to persist 502", async () => {
+    repository.findByIdempotencyKey.mockRejectedValue(
+      new Error("Not authenticated"),
+    );
+    await expect(useCase().execute(input)).rejects.toThrow("Not authenticated");
+    expect(repository.create).not.toHaveBeenCalled();
   });
 });
