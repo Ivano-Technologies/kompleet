@@ -33,9 +33,8 @@ function isValidationError(error: unknown): error is Error {
 }
 
 async function handlePOST(request: NextRequest) {
-  // Fail closed before Redis/queue. Do not throw — a shared catch that
-  // matches `message.includes("required")` would map REDIS_URL (or
-  // "Authentication required") to 400 instead of 401.
+  // Fail closed before queue/driver selection. Missing REDIS_URL uses the
+  // in-memory queue after auth; it must never 401-skip or 400-as-validation.
   const authed = await getAuthedConvex(request);
   if (!authed) {
     return unauthorized();

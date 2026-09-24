@@ -92,7 +92,25 @@ describe("POST /api/v1/documents/upload", () => {
     expect(getDocumentControllerWithConvex).not.toHaveBeenCalled();
   });
 
-  it("returns 503 when authenticated but REDIS_URL is missing", async () => {
+  it("returns 202 when authenticated even if Redis is unset (memory queue)", async () => {
+    getAuthedConvex.mockResolvedValue({
+      user: { id: "user-1" },
+      convex: {},
+    });
+    uploadDocument.mockResolvedValue({ documentId: "doc-1", status: "queued" });
+    const res = await POST(request());
+    expect(res.status).toBe(202);
+    await expect(res.json()).resolves.toEqual({
+      documentId: "doc-1",
+      status: "queued",
+    });
+    expect(getDocumentControllerWithConvex).toHaveBeenCalled();
+    expect(uploadDocument).toHaveBeenCalledWith(
+      expect.objectContaining({ userId: "user-1" }),
+    );
+  });
+
+  it("returns 503 only when redis is explicitly selected without REDIS_URL", async () => {
     getAuthedConvex.mockResolvedValue({
       user: { id: "user-1" },
       convex: {},
@@ -104,7 +122,6 @@ describe("POST /api/v1/documents/upload", () => {
     expect(res.status).toBe(503);
     await expect(res.json()).resolves.toMatchObject({
       error: "Service unavailable",
-      message: "REDIS_URL is required for document queueing.",
     });
     expect(uploadDocument).not.toHaveBeenCalled();
   });

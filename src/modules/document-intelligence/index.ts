@@ -11,17 +11,14 @@ import { SupabaseAuditLogAdapter } from "./infrastructure/audit/supabase-audit-l
 import { ConvexDocumentRepository } from "./infrastructure/persistence/convex-document.repository";
 import { InMemoryDocumentRepository } from "./infrastructure/persistence/in-memory-document.repository";
 import { SupabaseDocumentRepository } from "./infrastructure/persistence/supabase-document.repository";
-import { BullMQAdapter } from "./infrastructure/queue/bullmq.adapter";
 import { InMemoryDocumentQueue } from "./infrastructure/queue/in-memory-document.queue";
+import { createDocumentQueue } from "./infrastructure/queue/queue-driver";
 import { DocumentController } from "./interfaces/document.controller";
 export { NotFoundError } from "./interfaces/document.controller";
-
-export class QueueConfigurationError extends Error {
-  constructor(message = "REDIS_URL is required for document queueing.") {
-    super(message);
-    this.name = "QueueConfigurationError";
-  }
-}
+export {
+  QueueConfigurationError,
+  resolveDocumentQueueDriver,
+} from "./infrastructure/queue/queue-driver";
 
 let cachedController: DocumentController | null = null;
 
@@ -54,12 +51,7 @@ export function getDocumentControllerWithConvex(
   const repository: DocumentRepositoryPort = new ConvexDocumentRepository(
     convex,
   );
-  const redisUrl = process.env.REDIS_URL;
-  if (!redisUrl) {
-    throw new QueueConfigurationError();
-  }
-
-  const queue = new BullMQAdapter(redisUrl);
+  const queue = createDocumentQueue();
   const auditLog = new ConvexAuditLogAdapter(convex);
   return buildController(repository, queue, auditLog);
 }
@@ -70,12 +62,7 @@ export function getDocumentControllerWithSupabase(
 ): DocumentController {
   const repository: DocumentRepositoryPort =
     new SupabaseDocumentRepository(supabase);
-  const redisUrl = process.env.REDIS_URL;
-  if (!redisUrl) {
-    throw new QueueConfigurationError();
-  }
-
-  const queue = new BullMQAdapter(redisUrl);
+  const queue = createDocumentQueue();
   const auditLog = new SupabaseAuditLogAdapter(supabase);
   return buildController(repository, queue, auditLog);
 }
