@@ -10,11 +10,18 @@ const {
   getDocumentControllerWithConvex,
   withRateLimitImpl,
   QueueConfigurationError,
+  DocumentPersistError,
 } = vi.hoisted(() => {
   class QueueConfigurationError extends Error {
     constructor(message = "REDIS_URL is required for document queueing.") {
       super(message);
       this.name = "QueueConfigurationError";
+    }
+  }
+  class DocumentPersistError extends Error {
+    constructor(message = "Failed to persist document") {
+      super(message);
+      this.name = "DocumentPersistError";
     }
   }
   return {
@@ -24,6 +31,7 @@ const {
     getDocumentControllerWithConvex: vi.fn(),
     withRateLimitImpl: vi.fn(<T,>(handler: T) => handler),
     QueueConfigurationError,
+    DocumentPersistError,
   };
 });
 
@@ -40,8 +48,15 @@ vi.mock("@/lib/convex/server", () => ({
 
 vi.mock("@/modules/document-intelligence", () => ({
   QueueConfigurationError,
+  DocumentPersistError,
   getDocumentControllerWithConvex: (...args: unknown[]) =>
     getDocumentControllerWithConvex(...args),
+}));
+
+vi.mock("@/lib/logger", () => ({
+  logger: { error: vi.fn(), warn: vi.fn() },
+  formatError: (error: unknown) =>
+    error instanceof Error ? { message: error.message } : { message: "unknown" },
 }));
 
 vi.mock("@/lib/with-rate-limit", () => ({
@@ -108,6 +123,34 @@ describe("POST /api/v1/documents/upload", () => {
     expect(uploadDocument).toHaveBeenCalledWith(
       expect.objectContaining({ userId: "user-1" }),
     );
+  });
+
+  it("returns 502 with a safe message when Convex persist fails after auth", async () => {
+    getAuthedConvex.mockResolvedValue({
+      user: { id: "user-1" },
+      convex: {},
+    });
+    uploadDocument.mockRejectedValue(new DocumentPersistError());
+    const res = await POST(request());
+    expect(res.status).toBe(502);
+    await expect(res.json()).resolves.toEqual({
+      error: "Document persist failed",
+      message: "Failed to persist document",
+    });
+  });
+
+  it("logs unexpected auth-ok failures instead of returning an opaque 500 only", async () => {
+    getAuthedConvex.mockResolvedValue({
+      user: { id: "user-1" },
+      convex: {},
+    });
+    uploadDocument.mockRejectedValue(new Error("boom"));
+    const res = await POST(request());
+    expect(res.status).toBe(500);
+    await expect(res.json()).resolves.toMatchObject({
+      error: "Internal server error",
+      message: "Upload failed after authentication",
+    });
   });
 
   it("returns 503 only when redis is explicitly selected without REDIS_URL", async () => {

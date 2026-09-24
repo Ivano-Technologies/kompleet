@@ -15,9 +15,12 @@ import { InMemoryDocumentQueue } from "./infrastructure/queue/in-memory-document
 import { createDocumentQueue } from "./infrastructure/queue/queue-driver";
 import { DocumentController } from "./interfaces/document.controller";
 export { NotFoundError } from "./interfaces/document.controller";
+export { DocumentPersistError } from "./application/process-document.usecase";
 export {
   QueueConfigurationError,
   resolveDocumentQueueDriver,
+  setDocumentQueueDepsForTests,
+  resetDocumentQueueDriverLogForTests,
 } from "./infrastructure/queue/queue-driver";
 
 let cachedController: DocumentController | null = null;
