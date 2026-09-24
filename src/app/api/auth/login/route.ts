@@ -7,6 +7,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
+import { ensureConvexUserFromToken } from "@/lib/convex/server";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -107,6 +108,23 @@ export async function POST(request: NextRequest) {
 
     // On success, reset the rate limit counter for this key
     loginAttempts.delete(rateLimitKey);
+
+    // Path B: seed Convex users before the first dashboard API call.
+    // Auth stays on Supabase; this is not a login failure if Convex is down.
+    if (data.session?.access_token) {
+      try {
+        const fullName =
+          typeof data.user?.user_metadata?.full_name === "string"
+            ? data.user.user_metadata.full_name
+            : undefined;
+        await ensureConvexUserFromToken(data.session.access_token, {
+          email: data.user?.email ?? undefined,
+          fullName,
+        });
+      } catch (err) {
+        console.error("[Login] Convex ensureCurrent failed", err);
+      }
+    }
 
     return NextResponse.json({
       success: true,

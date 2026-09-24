@@ -55,6 +55,10 @@ The account must be **email-confirmed** — `requireAuth()` in
 `src/app/(dashboard)/layout.tsx` bounces unverified users to `/verify-email`, so
 an unconfirmed user makes every authenticated spec fail on the login step.
 
+`login()` also waits for `POST /api/auth/ensure-profile` so Convex has a
+`users` row (`externalId` = Supabase auth id) before money-path specs hit
+transactions / expenses / export. Path B keeps Auth on Supabase.
+
 Point this at a dedicated *test* Supabase project, never production. The suite
 writes real rows (transactions, saved calculations, export history).
 

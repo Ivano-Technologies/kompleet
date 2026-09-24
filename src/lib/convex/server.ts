@@ -69,6 +69,18 @@ export async function requireAuthedConvex(
   return authed;
 }
 
+/** Idempotent Convex users upsert using a GoTrue access token. */
+export async function ensureConvexUserFromToken(
+  accessToken: string,
+  opts?: { email?: string; fullName?: string },
+): Promise<void> {
+  const convex = createConvexHttpClient(accessToken);
+  await convex.mutation(api.users.ensureCurrent, {
+    email: opts?.email,
+    fullName: opts?.fullName,
+  });
+}
+
 export function isUnauthorized(error: unknown): boolean {
   return (
     error instanceof ConvexUnauthorizedError ||
