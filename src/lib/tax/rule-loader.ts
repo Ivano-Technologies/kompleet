@@ -19,8 +19,10 @@
  * Callers that need to distinguish verified vs. unverified figures should
  * inspect `LoadedRule.confidenceLevel` on the returned rule.
  */
+import type { ConvexHttpClient } from "convex/browser";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabase as defaultAnonClient } from "@/lib/supabase";
+import { loadConvexRuleBundle } from "@/lib/convex/rule-bundle";
 import { MissingTaxRuleError } from "./errors";
 import type { LoadedRule, RuleBundle } from "./types";
 
@@ -45,10 +47,12 @@ export interface LoadRuleBundleOptions {
   /** Restrict loaded rules to these rule_type values. Omit to load all types. */
   ruleTypes?: string[];
   /**
-   * Supabase client to query with. Defaults to the shared anon client.
-   * API routes should pass the authenticated client from
-   * `getSupabaseForRequest(request)` so RLS resolves against the caller's
-   * session rather than the (more restricted) anon role.
+   * Convex HTTP client (Phase 3). Preferred over the leftover Supabase client.
+   */
+  convex?: ConvexHttpClient;
+  /**
+   * Leftover Supabase client. Only used when `convex` is omitted.
+   * @deprecated Phase 3 routes pass `convex`.
    */
   client?: SupabaseClient;
 }
@@ -60,6 +64,9 @@ export interface LoadRuleBundleOptions {
 export async function loadRuleBundle(
   options: LoadRuleBundleOptions = {},
 ): Promise<RuleBundle> {
+  if (options.convex) {
+    return loadConvexRuleBundle(options.convex, options.ruleTypes);
+  }
   const client = options.client ?? defaultAnonClient;
   const ruleTypes = options.ruleTypes;
   const rules = new Map<string, LoadedRule>();

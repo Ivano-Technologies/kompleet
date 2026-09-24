@@ -332,6 +332,111 @@ export const getSigningKeys = query({
   },
 });
 
+export const archiveMine = mutation({
+  args: {
+    externalId: v.string(),
+    reason: v.optional(v.string()),
+  },
+  returns: v.object({
+    success: v.boolean(),
+    archive_id: v.union(v.string(), v.null()),
+  }),
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
+    const row = await ctx.db
+      .query("invoices")
+      .withIndex("by_externalId", (q) => q.eq("externalId", args.externalId))
+      .unique();
+    if (!row || row.userId !== user._id) throw new Error("Invoice not found");
+    const existing = await ctx.db
+      .query("invoiceArchives")
+      .withIndex("by_invoice", (q) => q.eq("invoiceId", row._id))
+      .first();
+    if (existing) {
+      return { success: true, archive_id: existing.externalId };
+    }
+    const now = Date.now();
+    const externalId = newExternalId();
+    await ctx.db.insert("invoiceArchives", {
+      externalId,
+      invoiceId: row._id,
+      clientId: row.clientId,
+      snapshot: {
+        invoice: toApi(row),
+        reason: args.reason ?? "Manual archive",
+        archivedAt: now,
+      },
+      createdAt: now,
+    });
+    await ctx.db.patch(row._id, {
+      status: "archived",
+      isImmutable: true,
+      updatedAt: now,
+    });
+    await ctx.db.insert("invoiceAuditLogs", {
+      invoiceId: row._id,
+      clientId: row.clientId,
+      userId: user._id,
+      action: "archived",
+      details: { reason: args.reason ?? "Manual archive" },
+      createdAt: now,
+    });
+    return { success: true, archive_id: externalId };
+  },
+});
+
+export const getArchiveMine = query({
+  args: { invoiceExternalId: v.string() },
+  returns: v.union(v.any(), v.null()),
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
+    const invoice = await ctx.db
+      .query("invoices")
+      .withIndex("by_externalId", (q) =>
+        q.eq("externalId", args.invoiceExternalId),
+      )
+      .unique();
+    if (!invoice || invoice.userId !== user._id) return null;
+    const archive = await ctx.db
+      .query("invoiceArchives")
+      .withIndex("by_invoice", (q) => q.eq("invoiceId", invoice._id))
+      .first();
+    return archive?.snapshot ?? null;
+  },
+});
+
+export const listArchivesMine = query({
+  args: {},
+  returns: v.array(
+    v.object({
+      id: v.string(),
+      created_at: v.string(),
+      snapshot: v.any(),
+    }),
+  ),
+  handler: async (ctx) => {
+    const user = await getCurrentUser(ctx);
+    const invoices = await ctx.db
+      .query("invoices")
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .collect();
+    const out = [];
+    for (const invoice of invoices) {
+      const archive = await ctx.db
+        .query("invoiceArchives")
+        .withIndex("by_invoice", (q) => q.eq("invoiceId", invoice._id))
+        .first();
+      if (!archive) continue;
+      out.push({
+        id: archive.externalId,
+        created_at: new Date(archive.createdAt).toISOString(),
+        snapshot: archive.snapshot,
+      });
+    }
+    return out;
+  },
+});
+
 export const upsertSigningKeys = mutation({
   args: {
     clientExternalId: v.string(),

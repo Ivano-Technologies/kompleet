@@ -1,3 +1,4 @@
+// TODO(IVA-67 Phase 3 OUT): reminder_preferences is not on Convex users. Do not invent columns.
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { withRateLimit } from "@/lib/with-rate-limit";

@@ -1,48 +1,26 @@
 /**
  * Finalize Tax Calculation API
- * POST /api/calculations/[id]/finalize - Mark a calculation as final (locked)
- * Protected: Requires authentication + ownership (via RLS)
- *
- * Once finalized, calculations cannot be modified or deleted.
- * This is intended for calculations that have been filed with NRS.
+ * POST /api/calculations/[id]/finalize
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
+import { api } from "@/lib/convex/http";
+import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 
 interface RouteContext {
-  params: Promise<{
-    id: string;
-  }>;
+  params: Promise<{ id: string }>;
 }
 
 async function handlePOST(request: NextRequest, context: RouteContext) {
   try {
     const { id } = await context.params;
-    const supabase = await getSupabaseForRequest(request);
+    const { convex } = await requireAuthedConvex(request);
 
-    // Get authenticated user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: "Unauthorized", message: "Authentication required" },
-        { status: 401 },
-      );
-    }
-
-    // Check if calculation exists and is not already finalized
-    const { data: existing, error: checkError } = await supabase
-      .from("tax_calculations")
-      .select("is_final, tax_type, tax_year")
-      .eq("id", id)
-      .single();
-
-    if (checkError || !existing) {
+    const existing = await convex.query(api.tax.getCalculation, {
+      externalId: id,
+    });
+    if (!existing) {
       return NextResponse.json(
         {
           error: "Not found",
@@ -51,7 +29,6 @@ async function handlePOST(request: NextRequest, context: RouteContext) {
         { status: 404 },
       );
     }
-
     if (existing.is_final) {
       return NextResponse.json(
         {
@@ -62,35 +39,21 @@ async function handlePOST(request: NextRequest, context: RouteContext) {
       );
     }
 
-    // Mark as final
-    const { data: calculation, error: updateError } = await supabase
-      .from("tax_calculations")
-      .update({ is_final: true })
-      .eq("id", id)
-      .select()
-      .single();
+    const calculation = await convex.mutation(api.tax.finalizeCalculation, {
+      externalId: id,
+    });
 
-    if (updateError) {
-      console.error("[Finalize Calculation Error]", updateError);
-      return NextResponse.json(
-        { error: "Database error", message: "Failed to finalize calculation" },
-        { status: 500 },
-      );
-    }
-
-    // Log finalization
-    await supabase.from("audit_logs").insert({
-      user_id: user.id,
+    await convex.mutation(api.audit.append, {
       action: "update",
-      resource_type: "tax_calculation",
-      resource_id: id,
+      resourceType: "tax_calculation",
+      entityId: id,
       metadata: {
         action: "finalized",
         tax_type: existing.tax_type,
         tax_year: existing.tax_year,
       },
-      ip_address: request.headers.get("x-forwarded-for") || "unknown",
-      user_agent: request.headers.get("user-agent") || "unknown",
+      ipAddress: request.headers.get("x-forwarded-for") || "unknown",
+      userAgent: request.headers.get("user-agent") || "unknown",
     });
 
     return NextResponse.json({
@@ -100,6 +63,12 @@ async function handlePOST(request: NextRequest, context: RouteContext) {
         "Calculation finalized successfully. This calculation is now locked and cannot be modified.",
     });
   } catch (error) {
+    if (isUnauthorized(error)) {
+      return NextResponse.json(
+        { error: "Unauthorized", message: "Authentication required" },
+        { status: 401 },
+      );
+    }
     console.error("[Finalize Calculation Error]", error);
     return NextResponse.json(
       { error: "Internal server error" },

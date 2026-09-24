@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
 import { getCurrentUser } from "./lib/auth";
 
 export const append = mutation({
@@ -12,7 +13,7 @@ export const append = mutation({
     userAgent: v.optional(v.string()),
     metadata: v.optional(v.any()),
   },
-  returns: v.null(),
+  returns: v.union(v.string(), v.null()),
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) return null;
@@ -22,7 +23,7 @@ export const append = mutation({
     } catch {
       user = null;
     }
-    await ctx.db.insert("auditLogs", {
+    const id = await ctx.db.insert("auditLogs", {
       userId: user?._id,
       userExternalId: user?.externalId,
       action: args.action,
@@ -34,7 +35,7 @@ export const append = mutation({
       metadata: args.metadata,
       createdAt: Date.now(),
     });
-    return null;
+    return String(id);
   },
 });
 
@@ -57,7 +58,23 @@ export const listMine = query({
       resource_type: r.resourceType ?? null,
       entity_type: r.entityType ?? null,
       entity_id: r.entityId ?? null,
+      metadata: r.metadata ?? null,
       created_at: new Date(r.createdAt).toISOString(),
     }));
+  },
+});
+
+export const removeMine = mutation({
+  args: { id: v.id("auditLogs") },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
+    const row = await ctx.db.get(args.id as Id<"auditLogs">);
+    if (!row) throw new Error("Audit log not found");
+    if (row.userExternalId !== user.externalId) {
+      throw new Error("Unauthorized");
+    }
+    await ctx.db.delete(args.id);
+    return null;
   },
 });
