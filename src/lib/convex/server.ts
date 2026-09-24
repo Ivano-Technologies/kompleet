@@ -64,6 +64,8 @@ export function isUnauthorized(error: unknown): boolean {
   return (
     error instanceof ConvexUnauthorizedError ||
     (error instanceof Error &&
-      /not authenticated|unauthorized/i.test(error.message))
+      /not authenticated|unauthorized|authentication required/i.test(
+        error.message,
+      ))
   );
 }

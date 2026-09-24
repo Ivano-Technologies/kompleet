@@ -11,10 +11,14 @@ import { SupabaseAuditLogAdapter } from "./infrastructure/audit/supabase-audit-l
 import { ConvexDocumentRepository } from "./infrastructure/persistence/convex-document.repository";
 import { InMemoryDocumentRepository } from "./infrastructure/persistence/in-memory-document.repository";
 import { SupabaseDocumentRepository } from "./infrastructure/persistence/supabase-document.repository";
-import { BullMQAdapter } from "./infrastructure/queue/bullmq.adapter";
 import { InMemoryDocumentQueue } from "./infrastructure/queue/in-memory-document.queue";
+import { createDocumentQueue } from "./infrastructure/queue/queue-driver";
 import { DocumentController } from "./interfaces/document.controller";
 export { NotFoundError } from "./interfaces/document.controller";
+export {
+  QueueConfigurationError,
+  resolveDocumentQueueDriver,
+} from "./infrastructure/queue/queue-driver";
 
 let cachedController: DocumentController | null = null;
 
@@ -29,18 +33,25 @@ export function getDocumentController(): DocumentController {
   return cachedController;
 }
 
+/** Status reads only need Convex. Do not require Redis/queue here. */
+export function getDocumentStatusControllerWithConvex(
+  convex: ConvexHttpClient,
+): DocumentController {
+  const repository: DocumentRepositoryPort = new ConvexDocumentRepository(
+    convex,
+  );
+  const auditLog = new ConvexAuditLogAdapter(convex);
+  return buildController(repository, new InMemoryDocumentQueue(), auditLog);
+}
+
+/** Upload/queue path. Call only after auth has already failed closed. */
 export function getDocumentControllerWithConvex(
   convex: ConvexHttpClient,
 ): DocumentController {
   const repository: DocumentRepositoryPort = new ConvexDocumentRepository(
     convex,
   );
-  const redisUrl = process.env.REDIS_URL;
-  if (!redisUrl) {
-    throw new Error("REDIS_URL is required for document queueing.");
-  }
-
-  const queue = new BullMQAdapter(redisUrl);
+  const queue = createDocumentQueue();
   const auditLog = new ConvexAuditLogAdapter(convex);
   return buildController(repository, queue, auditLog);
 }
@@ -51,12 +62,7 @@ export function getDocumentControllerWithSupabase(
 ): DocumentController {
   const repository: DocumentRepositoryPort =
     new SupabaseDocumentRepository(supabase);
-  const redisUrl = process.env.REDIS_URL;
-  if (!redisUrl) {
-    throw new Error("REDIS_URL is required for document queueing.");
-  }
-
-  const queue = new BullMQAdapter(redisUrl);
+  const queue = createDocumentQueue();
   const auditLog = new SupabaseAuditLogAdapter(supabase);
   return buildController(repository, queue, auditLog);
 }

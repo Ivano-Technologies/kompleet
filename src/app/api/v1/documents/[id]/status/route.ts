@@ -1,10 +1,10 @@
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
-import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
+import { getAuthedConvex, isUnauthorized } from "@/lib/convex/server";
 import { rethrowIfNextControlFlow } from "@/lib/next-control-flow";
 import {
-  getDocumentControllerWithConvex,
+  getDocumentStatusControllerWithConvex,
   NotFoundError,
 } from "@/modules/document-intelligence";
 
@@ -17,10 +17,22 @@ interface RouteContext {
   }>;
 }
 
+function unauthorized() {
+  return NextResponse.json(
+    { error: "Unauthorized", message: "Authentication required" },
+    { status: 401 },
+  );
+}
+
 async function handleGET(request: NextRequest, context?: RouteContext) {
+  // Fail closed before any document/queue work. Status reads do not need Redis.
+  const authed = await getAuthedConvex(request);
+  if (!authed) {
+    return unauthorized();
+  }
+
   try {
-    const { user, convex } = await requireAuthedConvex(request);
-    const controller = getDocumentControllerWithConvex(convex);
+    const controller = getDocumentStatusControllerWithConvex(authed.convex);
     const { id } = await (context?.params ?? Promise.resolve({ id: "" }));
     if (!id) {
       return NextResponse.json(
@@ -29,7 +41,7 @@ async function handleGET(request: NextRequest, context?: RouteContext) {
       );
     }
     const result = await controller.getDocumentStatus({
-      userId: user.id,
+      userId: authed.user.id,
       documentId: id,
     });
 
@@ -37,10 +49,7 @@ async function handleGET(request: NextRequest, context?: RouteContext) {
   } catch (error) {
     rethrowIfNextControlFlow(error);
     if (isUnauthorized(error)) {
-      return NextResponse.json(
-        { error: "Unauthorized", message: "Authentication required" },
-        { status: 401 },
-      );
+      return unauthorized();
     }
     if (error instanceof NotFoundError) {
       return NextResponse.json(
@@ -63,10 +72,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
   } catch (error) {
     rethrowIfNextControlFlow(error);
     if (isUnauthorized(error)) {
-      return NextResponse.json(
-        { error: "Unauthorized", message: "Authentication required" },
-        { status: 401 },
-      );
+      return unauthorized();
     }
     return NextResponse.json(
       { error: "Internal server error" },
