@@ -1,36 +1,37 @@
+// TODO(IVA-64 Phase 5): recurring_patterns is not in Convex schema. Detect in-memory from Convex transactions.
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseForRequest } from "@/lib/supabase/server";
-import {
-  detectRecurringPatterns,
-  saveRecurringPatterns,
-  getRecurringPatterns,
-} from "@/lib/services/recurring-detection";
 import { withRateLimit } from "@/lib/with-rate-limit";
+import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
+import { listAllTransactionsMine } from "@/lib/convex/money-lists";
+import { detectRecurringPatternsFromTransactions } from "@/lib/services/recurring-detection";
+
+async function detectFromConvex(request: NextRequest) {
+  const { convex } = await requireAuthedConvex(request);
+  const twelveMonthsAgo = new Date();
+  twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
+  const startDate = twelveMonthsAgo.toISOString().slice(0, 10);
+  const { transactions } = await listAllTransactionsMine(convex, { startDate });
+  return detectRecurringPatternsFromTransactions(
+    transactions.map((t) => ({
+      merchant: t.description,
+      amount: t.amount,
+      date: t.transaction_date,
+    })),
+  );
+}
 
 async function handlePOST(request: NextRequest) {
   try {
-    // Get current user
-    const supabase = await getSupabaseForRequest(request);
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Detect recurring patterns
-    const patterns = await detectRecurringPatterns(user.id);
-
-    // Save patterns
-    const count = await saveRecurringPatterns(user.id, patterns);
-
+    const patterns = await detectFromConvex(request);
     return NextResponse.json({
       success: true,
-      patterns_detected: count,
+      patterns_detected: patterns.length,
       patterns,
     });
   } catch (error) {
+    if (isUnauthorized(error)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     console.error("[Recurring Detection API Error]", error);
     return NextResponse.json(
       { error: "Failed to detect recurring patterns" },
@@ -41,24 +42,15 @@ async function handlePOST(request: NextRequest) {
 
 async function handleGET(request: NextRequest) {
   try {
-    // Get current user
-    const supabase = await getSupabaseForRequest(request);
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Get saved patterns
-    const patterns = await getRecurringPatterns(user.id);
-
+    const patterns = await detectFromConvex(request);
     return NextResponse.json({
       patterns,
       count: patterns.length,
     });
   } catch (error) {
+    if (isUnauthorized(error)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     console.error("[Get Recurring Patterns API Error]", error);
     return NextResponse.json(
       { error: "Failed to get recurring patterns" },

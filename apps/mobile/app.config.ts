@@ -2,8 +2,8 @@ import { ExpoConfig, ConfigContext } from "expo/config";
 
 export default ({ config }: ConfigContext): ExpoConfig => {
   const env = process.env.APP_ENV ?? "development";
-  const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL ?? "";
-  const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? "";
+  const convexUrl = process.env.EXPO_PUBLIC_CONVEX_URL ?? "";
+  const apiUrl = process.env.EXPO_PUBLIC_API_URL ?? "";
 
   const IS_DEV = env === "development";
   const IS_PREVIEW = env === "preview";
@@ -59,8 +59,8 @@ export default ({ config }: ConfigContext): ExpoConfig => {
 
     extra: {
       appEnv: env,
-      supabaseUrl,
-      supabaseAnonKey,
+      convexUrl,
+      apiUrl,
       eas: {
         projectId: "9f1ff663-b1b6-4bfb-9a9f-f6d55ad05107"
       }

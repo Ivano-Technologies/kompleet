@@ -4,10 +4,13 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseForRequest } from "@/lib/supabase/server";
-import { signAndIssueInvoice } from "@/lib/invoice-security";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { withAudit } from "@/lib/with-audit";
+import { api } from "@/lib/convex/http";
+import {
+  isUnauthorized,
+  requireAuthedConvex,
+} from "@/lib/convex/server";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -16,20 +19,14 @@ interface RouteContext {
 async function handlePOST(request: NextRequest, context: RouteContext) {
   try {
     const { id } = await context.params;
-    const supabase = await getSupabaseForRequest(request);
-
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    await signAndIssueInvoice(id, user.id);
+    const { convex } = await requireAuthedConvex(request);
+    await convex.mutation(api.invoices.issueMine, { externalId: id });
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    if (isUnauthorized(error)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     console.error("[Issue Invoice Error]", error);
     const message =
       error instanceof Error ? error.message : "Failed to issue invoice";

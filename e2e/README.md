@@ -39,6 +39,7 @@ Fixtures live in `e2e/fixtures/`:
 | `E2E_USER_PASSWORD` | All authenticated specs | _(unset)_ | That user's password. |
 | `NEXT_PUBLIC_SUPABASE_URL` | Local dev server only | from `.env.local` | Needed by `pnpm dev`; not needed when `E2E_BASE_URL` points at a deployment. |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Local dev server only | from `.env.local` | Same. |
+| `NEXT_PUBLIC_CONVEX_URL` | Local dev server only (path B) | from `.env.local` | Application DB. Authenticated specs that write transactions / expenses / export history fail with `Missing NEXT_PUBLIC_CONVEX_URL` if this is unset. Auth remains on Supabase. |
 
 If `E2E_USER_EMAIL` / `E2E_USER_PASSWORD` are missing, every authenticated spec
 **skips** rather than fails. The unauthenticated coverage (signup validation,
@@ -53,6 +54,10 @@ shell. Never add them to a file that is tracked by git.
 The account must be **email-confirmed** — `requireAuth()` in
 `src/app/(dashboard)/layout.tsx` bounces unverified users to `/verify-email`, so
 an unconfirmed user makes every authenticated spec fail on the login step.
+
+`login()` also waits for `POST /api/auth/ensure-profile` so Convex has a
+`users` row (`externalId` = Supabase auth id) before money-path specs hit
+transactions / expenses / export. Path B keeps Auth on Supabase.
 
 Point this at a dedicated *test* Supabase project, never production. The suite
 writes real rows (transactions, saved calculations, export history).
@@ -133,6 +138,11 @@ Configure it in **Settings → Secrets and variables → Actions**:
   `middleware.ts` constructs a Supabase client on **every** request, so without
   these the dev server 500s on every route and even the unauthenticated specs
   fail. Set `E2E_BASE_URL` or set both secrets — not neither.
+- Variable `NEXT_PUBLIC_CONVEX_URL` — optional. When unset and CI boots
+  `pnpm dev`, the `e2e` job provisions an isolated Convex deployment with
+  `CONVEX_AGENT_MODE=anonymous` (`scripts/ci-provision-convex.sh`). When set,
+  that URL is used instead. Preview/staging targets (`E2E_BASE_URL`) must have
+  the var on Vercel; the job does not provision Convex in that case.
 
 The HTML report and traces are uploaded as the `playwright-report-<run id>`
 artifact on every run, pass or fail.

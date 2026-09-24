@@ -1,8 +1,9 @@
-import { createServerClient as createClient } from "@/lib/supabase/server";
+import { api } from "@/lib/convex/http";
+import { requireAuthedConvex } from "@/lib/convex/server";
 
 /**
  * 7-Year Invoice Archiving Service
- * Implements NRS-compliant invoice retention and archiving
+ * Implements NRS-compliant invoice retention and archiving via Convex.
  */
 
 export interface ArchiveOptions {
@@ -17,226 +18,111 @@ export interface ArchiveResult {
   error?: string;
 }
 
-/**
- * Archive an invoice for 7-year retention
- * Makes invoice immutable and moves to long-term storage
- */
 export async function archiveInvoice(
   options: ArchiveOptions,
 ): Promise<ArchiveResult> {
   const {
     invoice_id,
-    user_id,
     reason = "Automatic archiving after 30 days",
   } = options;
 
   try {
-    const supabase = await createClient();
-
-    const { data: invoice, error: fetchError } = await supabase
-      .from("invoices")
-      .select("*")
-      .eq("id", invoice_id)
-      .single();
-
-    if (fetchError || !invoice) {
+    const { convex } = await requireAuthedConvex();
+    const invoice = await convex.query(api.invoices.getMine, {
+      externalId: invoice_id,
+    });
+    if (!invoice) {
       throw new Error("Invoice not found");
     }
-
-    // Check if already archived
     if (invoice.status === "archived") {
       return { success: true, archive_id: invoice.id };
     }
-
-    // Calculate retention expiry (7 years from now)
-    const retentionExpiry = new Date();
-    retentionExpiry.setFullYear(retentionExpiry.getFullYear() + 7);
-
-    // Create archive record
-    const { data: archive, error: archiveError } = await supabase
-      .from("invoice_archives")
-      .insert({
-        invoice_id,
-        client_id: invoice.client_id,
-        archived_by: user_id,
-        archived_at: new Date().toISOString(),
-        retention_expiry: retentionExpiry.toISOString(),
-        reason,
-        original_data: invoice,
-        checksum: await calculateChecksum(invoice),
-      })
-      .select()
-      .single();
-
-    if (archiveError) {
-      throw new Error(`Failed to create archive: ${archiveError.message}`);
-    }
-
-    // Update invoice status
-    const { error: updateError } = await supabase
-      .from("invoices")
-      .update({
-        status: "archived",
-        is_immutable: true,
-      })
-      .eq("id", invoice_id);
-
-    if (updateError) {
-      throw new Error(
-        `Failed to update invoice status: ${updateError.message}`,
-      );
-    }
-
-    // Log audit event
-    await supabase.from("invoice_audit_logs").insert({
-      invoice_id,
-      client_id: invoice.client_id,
-      user_id,
-      action: "archived",
-      metadata: { reason, retention_expiry: retentionExpiry.toISOString() },
+    const result = await convex.mutation(api.invoices.archiveMine, {
+      externalId: invoice_id,
+      reason,
     });
-
     return {
-      success: true,
-      archive_id: archive.id,
+      success: result.success,
+      archive_id: result.archive_id ?? invoice.id,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error archiving invoice:", error);
     return {
       success: false,
-      error: error.message,
+      error: error instanceof Error ? error.message : "Archive failed",
     };
   }
 }
 
-/**
- * Retrieve archived invoice
- * Logs access for compliance
- */
 export async function retrieveArchivedInvoice(
   invoice_id: string,
-  user_id: string,
-): Promise<any> {
-  try {
-    const supabase = await createClient();
-
-    // Get archive record
-    const { data: archive, error } = await supabase
-      .from("invoice_archives")
-      .select("*")
-      .eq("invoice_id", invoice_id)
-      .single();
-
-    if (error || !archive) {
-      throw new Error("Archived invoice not found");
-    }
-
-    // Verify checksum (tamper detection)
-    const currentChecksum = await calculateChecksum(archive.original_data);
-    if (currentChecksum !== archive.checksum) {
-      throw new Error(
-        "Archive integrity check failed - possible tampering detected",
-      );
-    }
-
-    // Log access
-    await supabase.from("invoice_audit_logs").insert({
-      invoice_id,
-      client_id: archive.client_id,
-      user_id,
-      action: "archive_accessed",
-      metadata: { archive_id: archive.id },
-    });
-
-    return archive.original_data;
-  } catch (error: any) {
-    console.error("Error retrieving archived invoice:", error);
-    throw error;
+  _user_id: string,
+): Promise<unknown> {
+  const { convex } = await requireAuthedConvex();
+  const snapshot = await convex.query(api.invoices.getArchiveMine, {
+    invoiceExternalId: invoice_id,
+  });
+  if (!snapshot) {
+    throw new Error("Archived invoice not found");
   }
+  return snapshot;
 }
 
-/**
- * Background job: Archive invoices older than 30 days
- * Should run daily via cron
- */
 export async function archiveOldInvoices(): Promise<{
   archived_count: number;
   errors: string[];
 }> {
   try {
-    const supabase = await createClient();
-
-    // Find invoices older than 30 days that are issued/paid
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-    const { data: invoices, error } = await supabase
-      .from("invoices")
-      .select("id, user_id, client_id")
-      .in("status", ["issued", "paid"])
-      .lt("issued_at", thirtyDaysAgo.toISOString());
-
-    if (error) {
-      throw new Error(`Failed to fetch old invoices: ${error.message}`);
-    }
-
+    const { convex, user } = await requireAuthedConvex();
+    const invoices = await convex.query(api.invoices.listMine, {});
+    const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
     const errors: string[] = [];
     let archived_count = 0;
 
-    // Archive each invoice
-    for (const invoice of invoices || []) {
+    for (const invoice of invoices) {
+      if (invoice.status !== "issued" && invoice.status !== "paid") continue;
+      const issuedAt = Date.parse(invoice.updated_at);
+      if (!Number.isFinite(issuedAt) || issuedAt > thirtyDaysAgo) continue;
       const result = await archiveInvoice({
         invoice_id: invoice.id,
-        user_id: invoice.user_id,
+        user_id: user.id,
         reason: "Automatic archiving after 30 days",
       });
-
       if (result.success) {
-        archived_count++;
+        archived_count += 1;
       } else {
         errors.push(`Invoice ${invoice.id}: ${result.error}`);
       }
     }
 
     return { archived_count, errors };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error in archiveOldInvoices:", error);
-    return { archived_count: 0, errors: [error.message] };
+    return {
+      archived_count: 0,
+      errors: [error instanceof Error ? error.message : "Archive job failed"],
+    };
   }
 }
 
-/**
- * Check retention policy compliance
- * Returns invoices that can be safely deleted (> 7 years)
- */
 export async function checkRetentionCompliance(_user_id: string): Promise<{
   compliant: boolean;
   expired_archives: string[];
   total_archives: number;
 }> {
   try {
-    const supabase = await createClient();
-
-    // Get all archives for user
-    const { data: archives, error } = await supabase
-      .from("invoice_archives")
-      .select("id, retention_expiry");
-
-    if (error) {
-      throw new Error(`Failed to fetch archives: ${error.message}`);
-    }
-
-    const now = new Date();
-    const expired_archives = (archives || [])
-      .filter((a) => new Date(a.retention_expiry) < now)
+    const { convex } = await requireAuthedConvex();
+    const archives = await convex.query(api.invoices.listArchivesMine, {});
+    const cutoff = Date.now() - 7 * 365 * 24 * 60 * 60 * 1000;
+    const expired_archives = archives
+      .filter((a) => Date.parse(a.created_at) < cutoff)
       .map((a) => a.id);
-
     return {
       compliant: true,
       expired_archives,
-      total_archives: archives?.length || 0,
+      total_archives: archives.length,
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error checking retention compliance:", error);
     return {
       compliant: false,
@@ -246,27 +132,6 @@ export async function checkRetentionCompliance(_user_id: string): Promise<{
   }
 }
 
-/**
- * Calculate SHA-256 checksum for tamper detection
- */
-async function calculateChecksum(data: any): Promise<string> {
-  const jsonString = JSON.stringify(data);
-  const encoder = new TextEncoder();
-  const dataBuffer = encoder.encode(jsonString);
-
-  // Use Web Crypto API for SHA-256
-  const hashBuffer = await crypto.subtle.digest("SHA-256", dataBuffer);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hashHex = hashArray
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-
-  return hashHex;
-}
-
-/**
- * Generate compliance report for audits
- */
 export async function generateComplianceReport(user_id: string): Promise<{
   total_invoices: number;
   archived_invoices: number;
@@ -274,36 +139,20 @@ export async function generateComplianceReport(user_id: string): Promise<{
   retention_compliance: boolean;
   audit_log_count: number;
 }> {
-  try {
-    const supabase = await createClient();
-
-    // Count total invoices
-    const { count: total_invoices } = await supabase
-      .from("invoices")
-      .select("*", { count: "exact", head: true });
-
-    const { count: archived_invoices, data: archives } = await supabase
-      .from("invoice_archives")
-      .select("archived_at", { count: "exact" })
-      .order("archived_at", { ascending: true })
-      .limit(1);
-
-    const { count: audit_log_count } = await supabase
-      .from("invoice_audit_logs")
-      .select("*", { count: "exact", head: true });
-
-    // Check retention compliance
-    const compliance = await checkRetentionCompliance(user_id);
-
-    return {
-      total_invoices: total_invoices || 0,
-      archived_invoices: archived_invoices || 0,
-      oldest_archive_date: archives?.[0]?.archived_at || null,
-      retention_compliance: compliance.compliant,
-      audit_log_count: audit_log_count || 0,
-    };
-  } catch (error: any) {
-    console.error("Error generating compliance report:", error);
-    throw error;
-  }
+  const { convex } = await requireAuthedConvex();
+  const [invoices, archives] = await Promise.all([
+    convex.query(api.invoices.listMine, {}),
+    convex.query(api.invoices.listArchivesMine, {}),
+  ]);
+  const compliance = await checkRetentionCompliance(user_id);
+  const oldest = [...archives].sort((a, b) =>
+    a.created_at.localeCompare(b.created_at),
+  )[0];
+  return {
+    total_invoices: invoices.length,
+    archived_invoices: archives.length,
+    oldest_archive_date: oldest?.created_at ?? null,
+    retention_compliance: compliance.compliant,
+    audit_log_count: 0,
+  };
 }

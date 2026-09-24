@@ -1,38 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
+import { api } from "@/lib/convex/http";
+import {
+  isUnauthorized,
+  requireAuthedConvex,
+} from "@/lib/convex/server";
 
 async function handleGET(request: NextRequest) {
   try {
-    const supabase = await getSupabaseForRequest(request);
-
-    // Get authenticated user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-    if (authError || !user) {
+    const { convex } = await requireAuthedConvex(request);
+    const history = await convex.query(api.exports.listMine, {});
+    return NextResponse.json({ history });
+  } catch (error) {
+    if (isUnauthorized(error)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    // Fetch export history
-    const { data: history, error } = await supabase
-      .from("export_history")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(50);
-
-    if (error) {
-      console.error("Error fetching export history:", error);
-      return NextResponse.json(
-        { error: "Failed to fetch history" },
-        { status: 500 },
-      );
-    }
-
-    return NextResponse.json({ history: history || [] });
-  } catch (error) {
     console.error("Error in /api/export/history:", error);
     return NextResponse.json(
       { error: "Internal server error" },

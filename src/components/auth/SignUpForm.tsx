@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { createSupabaseClient } from "@/lib/supabase/client";
+import { useAuthActions } from "@convex-dev/auth/react";
+import { useRouter } from "next/navigation";
 
 export default function SignUpForm() {
   const [email, setEmail] = useState("");
@@ -9,6 +10,8 @@ export default function SignUpForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const { signIn } = useAuthActions();
+  const router = useRouter();
 
   async function handleSignUp(e: React.FormEvent) {
     e.preventDefault();
@@ -16,16 +19,13 @@ export default function SignUpForm() {
     setError(null);
     setSuccess(false);
 
-    const supabase = createSupabaseClient();
-    const { error } = await supabase.auth.signUp({
-      email,
-      password
-    });
-
-    if (error) {
-      setError(error.message);
-    } else {
+    try {
+      await signIn("password", { email, password, flow: "signUp" });
       setSuccess(true);
+      router.push("/dashboard");
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Sign up failed");
     }
 
     setLoading(false);
@@ -53,9 +53,7 @@ export default function SignUpForm() {
 
       {error && <p className="text-sm text-red-500">{error}</p>}
       {success && (
-        <p className="text-sm text-green-600">
-          Check your email to confirm your account.
-        </p>
+        <p className="text-sm text-green-600">Account created.</p>
       )}
 
       <button

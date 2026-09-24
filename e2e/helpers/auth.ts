@@ -49,15 +49,9 @@ export async function fillHydrated(
 }
 
 /**
- * Signs in through the real login form (src/app/login/page.tsx), which POSTs to
- * /api/auth/login and then hands the returned session to the Supabase browser
- * client. Cookies are written by @supabase/ssr, so the server components under
- * src/app/(dashboard) see the same session afterwards.
- *
- * NOTE: /api/auth/login rate-limits to 5 attempts per 15 minutes per IP+email,
- * but the counter is reset on every successful login, so repeated successful
- * sign-ins across specs are safe. A run with a *wrong* password will lock the
- * account out of the API for the rest of the window.
+ * Signs in through the real login form (src/app/login/page.tsx) using
+ * Convex Auth (`useAuthActions` → `/api/auth`). Cookies are written by
+ * `@convex-dev/auth/nextjs` middleware.
  */
 export async function login(page: Page): Promise<void> {
   await page.goto("/login");
@@ -69,23 +63,22 @@ export async function login(page: Page): Promise<void> {
   await fillHydrated(password, E2E_USER_PASSWORD);
   await expect(submit).toBeEnabled();
 
-  const loginResponse = page.waitForResponse(
-    (res) =>
-      new URL(res.url()).pathname === "/api/auth/login" &&
-      res.request().method() === "POST",
-    { timeout: 60_000 },
-  );
   await submit.click();
-  const response = await loginResponse;
-  if (response.status() !== 200) {
-    throw new Error(`login POST /api/auth/login returned HTTP ${response.status()}`);
-  }
 
   // requireAuth() in src/app/(dashboard)/layout.tsx bounces unverified users to
   // /verify-email, so landing anywhere else means the seeded user is not
   // email-confirmed. Assert the happy path explicitly for a clear failure.
   await page.waitForURL(/\/dashboard(\?|$|\/)/, { timeout: 45_000 });
   await expect(page.getByPlaceholder("you@company.ng", { exact: true })).toHaveCount(0);
+
+  // Isolated CI Convex starts empty. Money-path specs call Convex
+  // getCurrentUser; wait until the users row exists for this session.
+  const ensure = await page.request.post("/api/auth/ensure-profile");
+  if (!ensure.ok()) {
+    throw new Error(
+      `ensure-profile returned HTTP ${ensure.status()} ${await ensure.text()}`,
+    );
+  }
 }
 
 /** Short, per-run identifier used to keep created records distinguishable. */

@@ -33,14 +33,8 @@ export function useNDPRConsent(): ConsentContextValue | null {
 
 export function NDPRConsentGate({
   children,
-  supabase,
 }: {
   children: React.ReactNode;
-  supabase?: ConsentContextValue extends {
-    accept: (s?: infer S) => Promise<void>;
-  }
-    ? S
-    : unknown;
 }) {
   const [consentGiven, setConsentGiven] = useState<boolean | null>(null);
 
@@ -57,9 +51,9 @@ export function NDPRConsentGate({
   }, [check]);
 
   const accept = useCallback(async () => {
-    await acceptConsent(supabase as Parameters<typeof acceptConsent>[0]);
+    await acceptConsent();
     setConsentGiven(true);
-  }, [supabase]);
+  }, []);
 
   if (consentGiven === null) {
     return null; // loading

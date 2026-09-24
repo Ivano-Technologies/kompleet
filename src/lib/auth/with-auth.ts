@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getSupabaseForRequest } from "@/lib/supabase/server";
+import { getCompatUser } from "@/lib/auth/session";
 import { hasPermission, type Permission, type Role } from "./rbac";
 
 interface AuthOptions {
@@ -42,22 +42,15 @@ export function withAuth<T extends Request | NextRequest = Request>(
 ): (request: T, context?: any) => Promise<Response> {
   return async (request: T, context?: any) => {
     try {
-      const supabase = await getSupabaseForRequest(request);
+      const user = await getCompatUser(request);
 
-      // Check authentication
-      const {
-        data: { user },
-        error: authError,
-      } = await supabase.auth.getUser();
-
-      if (authError || !user) {
+      if (!user) {
         return NextResponse.json(
           { error: "Unauthorized", message: "Authentication required" },
           { status: 401 },
         );
       }
 
-      // Read role from app_metadata (set by admin only, not user-writable)
       const userRole = (user.app_metadata?.role || "user") as Role;
 
       const authenticatedUser: AuthenticatedUser = {

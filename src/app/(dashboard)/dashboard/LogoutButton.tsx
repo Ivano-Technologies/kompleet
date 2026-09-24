@@ -2,26 +2,18 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { createSupabaseClient } from "@/lib/supabase/client";
+import { useAuthActions } from "@convex-dev/auth/react";
 
 export default function LogoutButton() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { signOut } = useAuthActions();
 
   const handleLogout = async () => {
     setLoading(true);
 
     try {
-      const supabase = createSupabaseClient();
-      const { error } = await supabase.auth.signOut();
-
-      if (error) {
-        console.error("Logout error:", error.message);
-        setLoading(false);
-        return;
-      }
-
-      // Redirect to home page after logout
+      await signOut();
       router.push("/");
       router.refresh();
     } catch (err) {

@@ -4,18 +4,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, waitFor } from "@testing-library/react";
 import { YearProvider, useYear } from "./year-context";
 
-const getSession = vi.fn();
-const onAuthStateChange = vi.fn(() => ({
-  data: { subscription: { unsubscribe: vi.fn() } },
-}));
+const authState = { isLoading: false, isAuthenticated: false };
 
-vi.mock("@/lib/supabase/client", () => ({
-  createBrowserClient: () => ({
-    auth: {
-      getSession,
-      onAuthStateChange,
-    },
-  }),
+vi.mock("convex/react", () => ({
+  useConvexAuth: () => authState,
 }));
 
 function Probe() {
@@ -33,8 +25,8 @@ describe("YearProvider", () => {
   const fallback = `${currentYear - 2},${currentYear - 1},${currentYear}`;
 
   beforeEach(() => {
-    getSession.mockReset();
-    onAuthStateChange.mockClear();
+    authState.isLoading = false;
+    authState.isAuthenticated = false;
     vi.stubGlobal("fetch", vi.fn());
   });
 
@@ -42,9 +34,21 @@ describe("YearProvider", () => {
     vi.unstubAllGlobals();
   });
 
-  it("does not fetch /api/year/available when the session is unresolved-empty", async () => {
-    getSession.mockResolvedValue({ data: { session: null } });
+  it("does not fetch /api/year/available until Convex auth resolves", async () => {
+    authState.isLoading = true;
+    authState.isAuthenticated = false;
 
+    const { getByTestId } = render(
+      <YearProvider>
+        <Probe />
+      </YearProvider>,
+    );
+
+    expect(getByTestId("loading").textContent).toBe("true");
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("uses fallback years and skips the API when unauthenticated", async () => {
     const { getByTestId } = render(
       <YearProvider>
         <Probe />
@@ -58,10 +62,8 @@ describe("YearProvider", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
-  it("fetches available years only after a session exists", async () => {
-    getSession.mockResolvedValue({
-      data: { session: { access_token: "tok" } },
-    });
+  it("uses years from the API when authenticated", async () => {
+    authState.isAuthenticated = true;
     vi.mocked(fetch).mockResolvedValue({
       ok: true,
       json: async () => ({ years: [2024, 2025] }),
@@ -78,5 +80,25 @@ describe("YearProvider", () => {
     });
     expect(fetch).toHaveBeenCalledTimes(1);
     expect(vi.mocked(fetch).mock.calls[0]?.[0]).toBe("/api/year/available");
+  });
+
+  it("uses fallback years when the authenticated fetch is not ok", async () => {
+    authState.isAuthenticated = true;
+    vi.mocked(fetch).mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: async () => ({ error: "boom" }),
+    } as Response);
+
+    const { getByTestId } = render(
+      <YearProvider>
+        <Probe />
+      </YearProvider>,
+    );
+
+    await waitFor(() => {
+      expect(getByTestId("loading").textContent).toBe("false");
+    });
+    expect(getByTestId("years").textContent).toBe(fallback);
   });
 });

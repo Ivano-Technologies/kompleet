@@ -4,15 +4,22 @@ import { withAudit } from "@/lib/with-audit";
  * Transaction Upload API v2 (Sprint 5)
  * POST /api/transactions/upload-v2
  * Enhanced with 10-bank support, duplicate detection, balance validation
+ * Path B: import sessions + transactions persist in Convex.
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseForRequest } from "@/lib/supabase/server";
+import { api } from "@/lib/convex/http";
+import {
+  isUnauthorized,
+  requireAuthedConvex,
+} from "@/lib/convex/server";
+import { uploadToConvexStorage } from "@/lib/convex/store-file";
 import {
   parseBankStatement,
   detectFileType,
   isValidBankCode,
 } from "@/lib/transaction-import/bank-adapter";
+import { resolveBankCode } from "@/lib/transaction-import/bank-configs";
 import { normalizeTransactions } from "@/lib/transaction-import/normalizer";
 import { validateBalances } from "@/lib/transaction-import/balance-validator";
 import { findDuplicates } from "@/lib/transaction-import/duplicate-detector";
@@ -24,28 +31,13 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 async function handlePOST(request: NextRequest) {
   try {
-    const supabase = await getSupabaseForRequest(request);
+    const { convex } = await requireAuthedConvex(request);
 
-    // Check authentication
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json(
-        {
-          error: "Please sign in to upload bank statements",
-          message: authError?.message || "Unauthorized",
-        },
-        { status: 401 },
-      );
-    }
-
-    // Parse form data
     const formData = await request.formData();
     const file = formData.get("file") as File;
-    const bankCode = (formData.get("bankCode") as string)?.toUpperCase();
+    const bankCode = resolveBankCode(
+      (formData.get("bankCode") as string | null) ?? undefined,
+    );
     const password = (formData.get("password") as string)?.trim() || undefined;
 
     if (!file) {
@@ -56,7 +48,6 @@ async function handlePOST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid bank code" }, { status: 400 });
     }
 
-    // Validate file size
     if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json(
         {
@@ -66,11 +57,10 @@ async function handlePOST(request: NextRequest) {
       );
     }
 
-    // Detect file type
     let fileType: "csv" | "excel" | "pdf";
     try {
       fileType = detectFileType(file.name, file.type);
-    } catch (error) {
+    } catch {
       return NextResponse.json(
         {
           error:
@@ -80,38 +70,30 @@ async function handlePOST(request: NextRequest) {
       );
     }
 
-    // Create import session
-    const { data: session, error: sessionError } = await supabase
-      .from("import_sessions")
-      .insert({
-        user_id: user.id,
-        file_name: file.name,
-        file_size: file.size,
-        bank_code: bankCode,
-        status: "processing",
-      })
-      .select()
-      .single();
-
-    if (sessionError || !session) {
-      return NextResponse.json(
-        {
-          error: "Failed to create import session",
-          message: sessionError?.message || "Database error",
-        },
-        { status: 500 },
-      );
-    }
+    const session = await convex.mutation(api.imports.createSession, {
+      fileName: file.name,
+      fileSize: file.size,
+      bankCode,
+      status: "processing",
+    });
 
     try {
-      // Read file content
       const buffer = Buffer.from(await file.arrayBuffer());
+      try {
+        const storageId = await uploadToConvexStorage(
+          convex,
+          new Blob([buffer]),
+          file.type,
+        );
+        await convex.mutation(api.imports.attachStorage, {
+          externalId: session.id,
+          storageId,
+        });
+      } catch (storageError) {
+        console.error("Convex storage upload failed", storageError);
+      }
       const content = fileType === "csv" ? buffer.toString("utf-8") : buffer;
 
-      // PDF files work with any bank code (LLM handles format detection)
-      // For CSV/Excel, bank config is required
-
-      // Parse bank statement (password for encrypted PDF/Excel)
       let parseResult: Awaited<ReturnType<typeof parseBankStatement>>;
       try {
         parseResult = await parseBankStatement(
@@ -124,13 +106,14 @@ async function handlePOST(request: NextRequest) {
         const errMsg =
           parseError instanceof Error ? parseError.message : String(parseError);
         if (errMsg === "PASSWORD_REQUIRED") {
-          await supabase
-            .from("import_sessions")
-            .update({ status: "failed" })
-            .eq("id", session.id);
+          await convex.mutation(api.imports.updateSession, {
+            externalId: session.id,
+            status: "failed",
+          });
           return NextResponse.json(
             {
-              error: "This file is password-protected. Please provide the password.",
+              error:
+                "This file is password-protected. Please provide the password.",
               requiresPassword: true,
             },
             { status: 400 },
@@ -140,23 +123,23 @@ async function handlePOST(request: NextRequest) {
       }
 
       if (parseResult.errors.length > 0) {
-        // Log errors
-        await supabase.from("import_errors").insert(
-          parseResult.errors.map((error) => ({
-            session_id: session.id,
-            row_number: error.rowNumber,
-            error_type: error.errorType,
-            error_message: error.errorMessage,
-            raw_data: error.rawData,
+        await convex.mutation(api.imports.addErrors, {
+          sessionExternalId: session.id,
+          errors: parseResult.errors.map((error) => ({
+            rowNumber: error.rowNumber,
+            errorType: error.errorType,
+            errorMessage: error.errorMessage,
+            rawData: error.rawData,
           })),
-        );
+        });
       }
 
       if (parseResult.transactions.length === 0) {
-        await supabase
-          .from("import_sessions")
-          .update({ status: "failed", errors_count: parseResult.errors.length })
-          .eq("id", session.id);
+        await convex.mutation(api.imports.updateSession, {
+          externalId: session.id,
+          status: "failed",
+          errorsCount: parseResult.errors.length,
+        });
 
         return NextResponse.json(
           {
@@ -167,46 +150,50 @@ async function handlePOST(request: NextRequest) {
         );
       }
 
-      // Normalize transactions
       const normalizedTransactions = normalizeTransactions(
         parseResult.transactions,
         bankCode,
       );
 
-      // Validate balances
       const balanceValidation = validateBalances(normalizedTransactions);
 
       if (!balanceValidation.valid) {
         console.warn("Balance validation failed:", balanceValidation.errors);
       }
 
-      // Fetch existing transactions for duplicate detection
-      const { data: existingTransactions } = await supabase
-        .from("transactions")
-        .select("*")
-        .eq("user_id", user.id);
+      const existingPage = await convex.query(api.transactions.listMine, {
+        page: 1,
+        limit: 500,
+      });
+      const existingTransactions = existingPage.transactions.map((t) => ({
+        id: t.id,
+        date: t.transaction_date,
+        merchant: t.description,
+        amount: t.amount,
+        type: t.transaction_type as "debit" | "credit",
+        balance: t.balance ?? 0,
+        reference: t.reference ?? undefined,
+        metadata: {},
+      }));
 
-      // Find duplicates
       const duplicates = findDuplicates(
-        existingTransactions || [],
+        existingTransactions,
         normalizedTransactions,
       );
 
-      // Store duplicate candidates
       if (duplicates.length > 0) {
-        await supabase.from("duplicate_candidates").insert(
-          duplicates.map((dup) => ({
-            session_id: session.id,
-            existing_transaction_id: dup.existingTransaction.id!,
+        await convex.mutation(api.imports.addDuplicates, {
+          sessionExternalId: session.id,
+          candidates: duplicates.map((dup) => ({
+            existing_transaction_id: dup.existingTransaction.id,
             new_transaction_data: dup.newTransaction,
             similarity_score: dup.similarityScore,
             match_factors: dup.matchFactors,
             status: "pending",
           })),
-        );
+        });
       }
 
-      // Filter out high-confidence duplicates (>95%)
       const highConfidenceDuplicates = duplicates.filter(
         (d) => d.similarityScore >= 0.95,
       );
@@ -220,46 +207,34 @@ async function handlePOST(request: NextRequest) {
           ),
       );
 
-      // Import transactions
-      const { data: importedTransactions, error: importError } = await supabase
-        .from("transactions")
-        .insert(
-          transactionsToImport.map((t) => ({
-            user_id: user.id,
-            transaction_date: t.date,
+      const importedTransactions = await convex.mutation(
+        api.transactions.createManyMine,
+        {
+          items: transactionsToImport.map((t) => ({
+            transactionDate: t.date,
             description: t.merchant,
             amount: t.amount,
-            transaction_type: t.type,
+            transactionType: t.type,
             balance: t.balance,
             reference: t.reference,
             source: `${bankCode}_import`,
           })),
-        )
-        .select();
+        },
+      );
 
-      if (importError) {
-        throw importError;
-      }
-
-      // Update session
-      await supabase
-        .from("import_sessions")
-        .update({
-          status: "completed",
-          transactions_imported: importedTransactions?.length || 0,
-          total_amount: transactionsToImport.reduce(
-            (sum, t) => sum + t.amount,
-            0,
-          ),
-          errors_count: parseResult.errors.length,
-          completed_at: new Date().toISOString(),
-        })
-        .eq("id", session.id);
+      await convex.mutation(api.imports.updateSession, {
+        externalId: session.id,
+        status: "completed",
+        transactionsImported: importedTransactions.length,
+        totalAmount: transactionsToImport.reduce((sum, t) => sum + t.amount, 0),
+        errorsCount: parseResult.errors.length,
+        completed: true,
+      });
 
       return NextResponse.json({
         success: true,
         sessionId: session.id,
-        imported: importedTransactions?.length || 0,
+        imported: importedTransactions.length,
         duplicates: highConfidenceDuplicates.length,
         pendingReview: duplicates.length - highConfidenceDuplicates.length,
         errors: parseResult.errors.length,
@@ -272,36 +247,35 @@ async function handlePOST(request: NextRequest) {
       });
     } catch (error) {
       console.error("Import error:", error);
-
-      // Update session status
-      await supabase
-        .from("import_sessions")
-        .update({ status: "failed" })
-        .eq("id", session.id);
-
-      const errMsg =
-        error instanceof Error ? error.message : "Unknown error";
+      await convex.mutation(api.imports.updateSession, {
+        externalId: session.id,
+        status: "failed",
+      });
+      const errMsg = error instanceof Error ? error.message : "Unknown error";
       return NextResponse.json(
         {
           error: errMsg,
           message: errMsg,
-          ...(error instanceof Error && error.cause ? { cause: String(error.cause) } : {}),
         },
         { status: 500 },
       );
     }
-    } catch (error) {
+  } catch (error) {
+    if (isUnauthorized(error)) {
+      return NextResponse.json(
+        {
+          error: "Please sign in to upload bank statements",
+          message: "Unauthorized",
+        },
+        { status: 401 },
+      );
+    }
     console.error("Upload error:", error);
-    const message =
-      error instanceof Error ? error.message : "Upload failed";
-    return NextResponse.json(
-      { error: message, message },
-      { status: 500 },
-    );
+    const message = error instanceof Error ? error.message : "Upload failed";
+    return NextResponse.json({ error: message, message }, { status: 500 });
   }
 }
 
-// Apply rate limiting + audit logging
 export const POST = withRateLimit(
   withAudit(handlePOST, { action: "import", resourceType: "transactions" }),
   { limit: 20 },

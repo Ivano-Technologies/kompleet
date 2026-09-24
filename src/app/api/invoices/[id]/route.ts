@@ -2,13 +2,16 @@
  * Individual Invoice API
  * GET /api/invoices/[id] - Get a specific invoice
  * DELETE /api/invoices/[id] - Delete a draft invoice
- * Protected: Requires authentication + ownership (via RLS)
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { withAudit } from "@/lib/with-audit";
+import { api } from "@/lib/convex/http";
+import {
+  isUnauthorized,
+  requireAuthedConvex,
+} from "@/lib/convex/server";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -17,28 +20,21 @@ interface RouteContext {
 async function handleGET(request: NextRequest, context: RouteContext) {
   try {
     const { id } = await context.params;
-    const supabase = await getSupabaseForRequest(request);
+    const { convex } = await requireAuthedConvex(request);
 
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const invoice = await convex.query(api.invoices.getMine, {
+      externalId: id,
+    });
 
-    const { data: invoice, error: queryError } = await supabase
-      .from("invoices")
-      .select("*")
-      .eq("id", id)
-      .single();
-
-    if (queryError || !invoice) {
+    if (!invoice) {
       return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
     }
 
     return NextResponse.json({ success: true, invoice });
   } catch (error) {
+    if (isUnauthorized(error)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     console.error("[Get Invoice Error]", error);
     return NextResponse.json(
       { error: "Internal server error" },
@@ -50,24 +46,13 @@ async function handleGET(request: NextRequest, context: RouteContext) {
 async function handleDELETE(request: NextRequest, context: RouteContext) {
   try {
     const { id } = await context.params;
-    const supabase = await getSupabaseForRequest(request);
+    const { convex } = await requireAuthedConvex(request);
 
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const invoice = await convex.query(api.invoices.getMine, {
+      externalId: id,
+    });
 
-    // Check invoice exists and is draft (only draft invoices can be deleted)
-    const { data: invoice, error: fetchError } = await supabase
-      .from("invoices")
-      .select("id, status")
-      .eq("id", id)
-      .single();
-
-    if (fetchError || !invoice) {
+    if (!invoice) {
       return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
     }
 
@@ -80,25 +65,16 @@ async function handleDELETE(request: NextRequest, context: RouteContext) {
       );
     }
 
-    // Delete the invoice (RLS ensures user_id match)
-    const { error: deleteError } = await supabase
-      .from("invoices")
-      .delete()
-      .eq("id", id);
-
-    if (deleteError) {
-      console.error("[Delete Invoice Error]", deleteError);
-      return NextResponse.json(
-        { error: "Failed to delete invoice" },
-        { status: 500 },
-      );
-    }
+    await convex.mutation(api.invoices.removeMine, { externalId: id });
 
     return NextResponse.json({
       success: true,
       message: "Invoice deleted successfully",
     });
   } catch (error) {
+    if (isUnauthorized(error)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     console.error("[Delete Invoice Error]", error);
     return NextResponse.json(
       { error: "Internal server error" },

@@ -1,53 +1,23 @@
 /**
  * Check regulatory sources for updates
- * POST /api/tax/sources/check - Update last_checked_at for one or all sources
- * Enables the "check online sources for updates on tax regulations" feature.
- * Protected: Requires 'admin:manage_rules' permission
+ * POST /api/tax/sources/check — bumps Convex sources.updatedAt
+ * (last_checked_at is not in the Convex schema).
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@/lib/auth/with-auth";
-import { getSupabaseForRequest } from "@/lib/supabase/server";
+import { api } from "@/lib/convex/http";
+import { requireAuthedConvex } from "@/lib/convex/server";
 
 async function handlePOST(request: NextRequest) {
   try {
+    const { convex } = await requireAuthedConvex(request);
     const body = await request.json().catch(() => ({}));
-    const sourceId = body.sourceId as string | undefined;
-
-    const supabase = await getSupabaseForRequest(request);
-    const now = new Date().toISOString();
-
-    if (sourceId) {
-      const { error } = await supabase
-        .from("sources")
-        .update({ last_checked_at: now, updated_at: now })
-        .eq("id", sourceId);
-
-      if (error) {
-        console.error("Error updating source last_checked_at:", error);
-        return NextResponse.json(
-          { error: "Failed to update source check time" },
-          { status: 500 },
-        );
-      }
-      return NextResponse.json({ ok: true, checked: 1, sourceId });
-    }
-
-    // Check all sources
-    const { error } = await supabase
-      .from("sources")
-      .update({ last_checked_at: now, updated_at: now })
-      .not("id", "is", null);
-
-    if (error) {
-      console.error("Error updating sources last_checked_at:", error);
-      return NextResponse.json(
-        { error: "Failed to update sources check time" },
-        { status: 500 },
-      );
-    }
-
-    return NextResponse.json({ ok: true, checked: "all" });
+    const sourceId = (body as { sourceId?: string }).sourceId;
+    const result = await convex.mutation(api.tax.touchSources, {
+      sourceExternalId: sourceId,
+    });
+    return NextResponse.json(result);
   } catch (error) {
     console.error("Error in POST /api/tax/sources/check:", error);
     return NextResponse.json(

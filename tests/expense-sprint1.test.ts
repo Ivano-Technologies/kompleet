@@ -46,35 +46,15 @@ describe("Expense Sprint 1 – Core Data Model & Offline Engine", () => {
     });
   });
 
-  describe("Supabase migration", () => {
-    it("migration file exists and defines expense tables and RLS", () => {
-      const migrationPath = path.join(
-        __dirname,
-        "../supabase/migrations/20260221000000_expense_tracking.sql",
-      );
-      expect(fs.existsSync(migrationPath)).toBe(true);
-      const sql = fs.readFileSync(migrationPath, "utf-8");
-      expect(sql).toMatch(/public\.expenses\s*\(/);
-      expect(sql).toMatch(/public\.expense_categories\s*\(/);
-      expect(sql).toMatch(/public\.ndpr_consents\s*\(/);
-      expect(sql).toMatch(/expense_reports/);
-      expect(sql).toMatch(/enable row level security/);
-      expect(sql).toMatch(
-        /expenses_select|expenses_insert|expenses_update|expenses_delete/,
-      );
-      expect(sql).toMatch(/ndpr_consents_all/);
-      expect(sql).toMatch(/bucket_id = 'receipts'/);
-    });
-
-    it("migration seeds Nigerian default categories", () => {
-      const migrationPath = path.join(
-        __dirname,
-        "../supabase/migrations/20260221000000_expense_tracking.sql",
-      );
-      const sql = fs.readFileSync(migrationPath, "utf-8");
-      expect(sql).toMatch(
-        /Transport \(Okada\/Fuel\)|Airtime\/Data|Market\/Inventory|VAT|Utilities|Logistics|Office Supplies/,
-      );
+  describe("Convex expense schema", () => {
+    it("convex/expenses.ts defines list/create/update/remove", () => {
+      const modulePath = path.join(__dirname, "../convex/expenses.ts");
+      expect(fs.existsSync(modulePath)).toBe(true);
+      const src = fs.readFileSync(modulePath, "utf-8");
+      expect(src).toMatch(/export const listMine/);
+      expect(src).toMatch(/export const createMine/);
+      expect(src).toMatch(/export const updateMine/);
+      expect(src).toMatch(/export const removeMine/);
     });
   });
 

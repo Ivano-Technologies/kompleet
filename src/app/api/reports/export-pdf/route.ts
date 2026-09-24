@@ -1,22 +1,14 @@
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { FinancialStatementsService } from "@/lib/services/financial-statements-service";
+import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
+import { listStatementTransactions } from "@/lib/convex/statement-txns";
 
 export const runtime = "nodejs";
 
 async function handlePOST(request: NextRequest) {
   try {
-    const supabase = await getSupabaseForRequest(request);
-
-    // Check authentication
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { convex } = await requireAuthedConvex(request);
 
     const body = await request.json();
     const { statementType, startDate, endDate, asOfDate } = body;
@@ -28,24 +20,11 @@ async function handlePOST(request: NextRequest) {
       );
     }
 
-    // Fetch transactions
-    const { data: transactions, error } = await supabase
-      .from("transactions")
-      .select(
-        `
-        *,
-        category:categories(id, name, category_type, tax_treatment)
-      `,
-      )
-      .eq("user_id", user.id)
-      .order("transaction_date", { ascending: true });
+    const transactions = await listStatementTransactions(convex);
 
-    if (error) {
-      console.error("Error fetching transactions:", error);
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-
-    let statement: any;
+    let statement: ReturnType<
+      typeof FinancialStatementsService.generateProfitLoss
+    > | ReturnType<typeof FinancialStatementsService.generateBalanceSheet>;
     let htmlContent: string;
 
     if (statementType === "profit_loss") {
@@ -82,10 +61,15 @@ async function handlePOST(request: NextRequest) {
 
     // Return HTML for client-side PDF generation
     return NextResponse.json({ html: htmlContent });
-  } catch (error: any) {
+  } catch (error) {
+    if (isUnauthorized(error)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     console.error("Error in POST /api/reports/export-pdf:", error);
     return NextResponse.json(
-      { error: error.message || "Internal server error" },
+      {
+        error: error instanceof Error ? error.message : "Internal server error",
+      },
       { status: 500 },
     );
   }

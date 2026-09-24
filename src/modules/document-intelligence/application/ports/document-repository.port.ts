@@ -4,7 +4,8 @@ import type {
 } from "../../domain/document.entity";
 
 export interface DocumentRepositoryPort {
-  create(document: DocumentEntity): Promise<void>;
+  /** Persist the document and return the stored row (Convex may assign id). */
+  create(document: DocumentEntity): Promise<DocumentEntity>;
   findById(id: string, userId: string): Promise<DocumentEntity | null>;
   findByIdempotencyKey(
     idempotencyKey: string,
