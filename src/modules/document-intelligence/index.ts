@@ -16,6 +16,13 @@ import { InMemoryDocumentQueue } from "./infrastructure/queue/in-memory-document
 import { DocumentController } from "./interfaces/document.controller";
 export { NotFoundError } from "./interfaces/document.controller";
 
+export class QueueConfigurationError extends Error {
+  constructor(message = "REDIS_URL is required for document queueing.") {
+    super(message);
+    this.name = "QueueConfigurationError";
+  }
+}
+
 let cachedController: DocumentController | null = null;
 
 export function getDocumentController(): DocumentController {
@@ -29,6 +36,18 @@ export function getDocumentController(): DocumentController {
   return cachedController;
 }
 
+/** Status reads only need Convex. Do not require Redis/queue here. */
+export function getDocumentStatusControllerWithConvex(
+  convex: ConvexHttpClient,
+): DocumentController {
+  const repository: DocumentRepositoryPort = new ConvexDocumentRepository(
+    convex,
+  );
+  const auditLog = new ConvexAuditLogAdapter(convex);
+  return buildController(repository, new InMemoryDocumentQueue(), auditLog);
+}
+
+/** Upload/queue path. Call only after auth has already failed closed. */
 export function getDocumentControllerWithConvex(
   convex: ConvexHttpClient,
 ): DocumentController {
@@ -37,7 +56,7 @@ export function getDocumentControllerWithConvex(
   );
   const redisUrl = process.env.REDIS_URL;
   if (!redisUrl) {
-    throw new Error("REDIS_URL is required for document queueing.");
+    throw new QueueConfigurationError();
   }
 
   const queue = new BullMQAdapter(redisUrl);
@@ -53,7 +72,7 @@ export function getDocumentControllerWithSupabase(
     new SupabaseDocumentRepository(supabase);
   const redisUrl = process.env.REDIS_URL;
   if (!redisUrl) {
-    throw new Error("REDIS_URL is required for document queueing.");
+    throw new QueueConfigurationError();
   }
 
   const queue = new BullMQAdapter(redisUrl);
