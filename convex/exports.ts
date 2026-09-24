@@ -65,6 +65,7 @@ export const createMine = mutation({
     taxYear: v.optional(v.number()),
     status: v.optional(v.string()),
     fileSize: v.optional(v.number()),
+    storageId: v.optional(v.id("_storage")),
   },
   returns: exportApi,
   handler: async (ctx, args) => {
@@ -80,6 +81,7 @@ export const createMine = mutation({
       taxYear: args.taxYear,
       status: args.status ?? "completed",
       fileSize: args.fileSize,
+      storageId: args.storageId,
       completedAt: now,
       createdAt: now,
     });

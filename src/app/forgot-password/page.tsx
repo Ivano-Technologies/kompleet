@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { useAuthActions } from '@convex-dev/auth/react';
 import Link from 'next/link';
 import { AuthLayout } from '@/components/layout/AuthLayout';
 import { ArrowLeft, KeyRound, Mail } from 'lucide-react';
@@ -11,6 +11,7 @@ export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const { signIn } = useAuthActions();
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,11 +19,7 @@ export default function ForgotPasswordPage() {
     setError(null);
 
     try {
-      const supabase = createClient();
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/callback?redirect=/reset-password`,
-      });
-      if (error) throw error;
+      await signIn('password', { email, flow: 'reset' });
       setSuccess(true);
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to send reset email';
@@ -41,12 +38,15 @@ export default function ForgotPasswordPage() {
           </div>
           <h1 className="font-display text-2xl font-bold text-text-1 dark:text-dark-text-1">Check Your Email</h1>
           <p className="text-sm text-text-3 dark:text-dark-text-3">
-            We&apos;ve sent a password reset link to <strong className="text-text-1 dark:text-dark-text-1">{email}</strong>
+            If an account exists for <strong className="text-text-1 dark:text-dark-text-1">{email}</strong>, we sent an 8-digit reset code.
           </p>
           <Link
-            href="/login"
+            href={`/reset-password?email=${encodeURIComponent(email)}`}
             className="block w-full rounded-md bg-accent py-3.5 text-center text-sm font-bold text-charcoal shadow-accent transition-all hover:bg-accent-hover"
           >
+            Enter reset code
+          </Link>
+          <Link href="/login" className="text-sm text-text-3 hover:text-primary">
             Back to Login
           </Link>
         </div>

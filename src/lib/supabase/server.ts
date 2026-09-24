@@ -8,8 +8,10 @@
  */
 import { createServerClient as createSupabaseServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient, User } from "@supabase/supabase-js";
 import { createClient } from "@supabase/supabase-js";
+import { getCompatUser } from "@/lib/auth/session";
+import type { CompatUser } from "@/lib/auth/compat-user";
 
 const getEnv = () => {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -28,29 +30,61 @@ const getEnv = () => {
  * session (web) or Authorization: Bearer <access_token> (e.g. mobile). Use this
  * in API route handlers so mobile app requests with Bearer token are authenticated.
  */
+function withCompatAuth(
+  client: SupabaseClient,
+  user: CompatUser | null,
+): SupabaseClient {
+  const shaped = user as unknown as User | null;
+  const auth = new Proxy(client.auth, {
+    get(target, prop, receiver) {
+      if (prop === "getUser") {
+        return async () => ({
+          data: { user: shaped },
+          error: shaped ? null : { message: "Unauthorized", name: "AuthError" },
+        });
+      }
+      if (prop === "getSession") {
+        return async () => ({
+          data: {
+            session: shaped
+              ? {
+                  access_token: "convex",
+                  refresh_token: "",
+                  expires_in: 3600,
+                  expires_at: Math.floor(Date.now() / 1000) + 3600,
+                  token_type: "bearer",
+                  user: shaped,
+                }
+              : null,
+          },
+          error: null,
+        });
+      }
+      return Reflect.get(target, prop, receiver);
+    },
+  });
+  return new Proxy(client, {
+    get(target, prop, receiver) {
+      if (prop === "auth") return auth;
+      return Reflect.get(target, prop, receiver);
+    },
+  });
+}
+
+/**
+ * Returns a Supabase data client for leftover Postgres tables.
+ * Auth identity comes from Convex Auth (or a Bearer JWT). RLS is bypassed
+ * via the service role; callers must filter by `user.id` (externalId).
+ */
 export async function getSupabaseForRequest(
   request: Request,
 ): Promise<SupabaseClient> {
-  const authHeader = request.headers.get("Authorization");
-  const token =
-    authHeader?.startsWith("Bearer ") ? authHeader.slice(7).trim() : null;
-
-  if (token) {
-    const { supabaseUrl, supabaseAnonKey } = getEnv();
-    const client = createClient(supabaseUrl, supabaseAnonKey, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    });
-    const { error } = await client.auth.setSession({
-      access_token: token,
-      refresh_token: "",
-    });
-    if (error) {
-      throw new Error(`Invalid auth token: ${error.message}`);
-    }
-    return client;
+  const user = await getCompatUser(request);
+  try {
+    return withCompatAuth(createAdminClient(), user);
+  } catch {
+    return withCompatAuth(await createCookieClient(), user);
   }
-
-  return createServerClient();
 }
 
 /**
@@ -75,7 +109,7 @@ export async function getSupabaseForRequest(
  * }
  * ```
  */
-export async function createServerClient(): Promise<SupabaseClient> {
+async function createCookieClient(): Promise<SupabaseClient> {
   const { supabaseUrl, supabaseAnonKey } = getEnv();
   const cookieStore = await cookies();
 
@@ -90,12 +124,24 @@ export async function createServerClient(): Promise<SupabaseClient> {
             cookieStore.set(name, value, options);
           });
         } catch (error) {
-          // Handle cookie setting errors (e.g., in middleware)
           console.error("Error setting cookies:", error);
         }
       },
     },
   });
+}
+
+/**
+ * Leftover Postgres client for Server Components. Auth is Convex Auth;
+ * data access uses the service role and must filter by user id.
+ */
+export async function createServerClient(): Promise<SupabaseClient> {
+  const user = await getCompatUser();
+  try {
+    return withCompatAuth(createAdminClient(), user);
+  } catch {
+    return withCompatAuth(await createCookieClient(), user);
+  }
 }
 
 /**

@@ -3,7 +3,7 @@
 import { useState, useEffect, FormEvent, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { createSupabaseClient } from "@/lib/supabase/client";
+import { useAuthActions } from "@convex-dev/auth/react";
 import { AuthLayout } from "@/components/layout/AuthLayout";
 import { Eye, EyeOff } from "lucide-react";
 
@@ -16,6 +16,7 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirectTo") || "/dashboard";
+  const { signIn } = useAuthActions();
 
   useEffect(() => {
     const err = searchParams.get("error");
@@ -29,33 +30,14 @@ function LoginForm() {
     setError(null);
     setLoading(true);
     try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.error || "Invalid email or password.");
-        setLoading(false);
-        return;
-      }
-
-      if (data.session) {
-        const supabase = createSupabaseClient();
-        await supabase.auth.setSession({
-          access_token: data.session.access_token,
-          refresh_token: data.session.refresh_token,
-        });
-        router.push(redirectTo);
-        router.refresh();
-      } else {
-        setLoading(false);
-      }
+      await signIn("password", { email, password, flow: "signIn" });
+      await fetch("/api/auth/ensure-profile", { method: "POST" }).catch(() => {});
+      router.push(redirectTo);
+      router.refresh();
     } catch {
-      setError("An unexpected error occurred.");
-    } finally {
+      setError(
+        "Invalid email or password. Existing Kompleet users: create an account on Sign up with this same email to reclaim your data.",
+      );
       setLoading(false);
     }
   };

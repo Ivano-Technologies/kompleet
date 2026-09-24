@@ -8,7 +8,6 @@ import {
   DialogContent,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { createBrowserClient as createClient } from "@/lib/supabase/client";
 import { useTheme } from "@/contexts/ThemeContext";
 import {
   X,
@@ -115,19 +114,20 @@ export function SettingsModal({
 
   const fetchProfile = async () => {
     try {
-      const supabase = await createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (user) {
-        setProfile({
-          firstName: user.user_metadata?.first_name || "",
-          lastName: user.user_metadata?.last_name || "",
-          email: user.email || "",
-          bio: user.user_metadata?.bio || "",
-          avatar: user.user_metadata?.avatar_url || "",
-        });
-      }
+      const res = await fetch("/api/auth/ensure-profile", { method: "POST" });
+      if (!res.ok) return;
+      const body = (await res.json()) as {
+        profile?: { email?: string; full_name?: string | null };
+      };
+      const fullName = body.profile?.full_name ?? "";
+      const [firstName, ...rest] = fullName.split(" ").filter(Boolean);
+      setProfile({
+        firstName: firstName ?? "",
+        lastName: rest.join(" "),
+        email: body.profile?.email || "",
+        bio: "",
+        avatar: "",
+      });
     } catch (err) {
       console.error("Error fetching profile:", err);
     }
@@ -138,15 +138,17 @@ export function SettingsModal({
     setError("");
     setSuccess("");
     try {
-      const supabase = await createClient();
-      const { error: updateError } = await supabase.auth.updateUser({
-        data: {
-          first_name: profile.firstName,
-          last_name: profile.lastName,
-          bio: profile.bio,
-        },
+      const res = await fetch("/api/auth/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fullName: `${profile.firstName} ${profile.lastName}`.trim(),
+        }),
       });
-      if (updateError) throw updateError;
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to update");
+      }
       setSuccess("Profile updated successfully!");
       setTimeout(() => setSuccess(""), 3000);
     } catch (err: unknown) {

@@ -1,22 +1,31 @@
+import { authTables } from "@convex-dev/auth/server";
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
 /**
- * Kompleet application data (path B).
+ * Kompleet application data + Convex Auth tables.
  * Public API still uses Postgres-style UUID `externalId` as `id`.
- * Auth identities stay in Supabase Auth — `users.externalId` = auth.users.id.
- * See docs/convex-migration-plan.md.
+ * Auth identities are Convex Auth users, remapped to this `users` row by email.
  */
 
 const json = v.any();
 
 export default defineSchema({
+  ...authTables,
   users: defineTable({
+    // Convex Auth fields (authTables.users)
+    name: v.optional(v.string()),
+    image: v.optional(v.string()),
+    email: v.string(),
+    emailVerificationTime: v.optional(v.number()),
+    phone: v.string(),
+    phoneVerificationTime: v.optional(v.number()),
+    isAnonymous: v.optional(v.boolean()),
+    // App profile
     externalId: v.string(),
     tokenIdentifier: v.optional(v.string()),
-    email: v.string(),
+    supabaseUserId: v.optional(v.string()),
     fullName: v.optional(v.string()),
-    phone: v.string(),
     entityType: v.union(v.literal("individual"), v.literal("company")),
     tin: v.optional(v.string()),
     companyName: v.optional(v.string()),
@@ -27,14 +36,17 @@ export default defineSchema({
     defaultCurrency: v.string(),
     fiscalYearStart: v.number(),
     onboardingCompleted: v.boolean(),
+    avatarStorageId: v.optional(v.id("_storage")),
     deletedAt: v.optional(v.number()),
     lastLoginAt: v.optional(v.number()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
+    .index("email", ["email"])
+    .index("phone", ["phone"])
     .index("by_externalId", ["externalId"])
     .index("by_tokenIdentifier", ["tokenIdentifier"])
-    .index("by_email", ["email"]),
+    .index("by_supabaseUserId", ["supabaseUserId"]),
 
   firms: defineTable({
     externalId: v.string(),
@@ -124,6 +136,7 @@ export default defineSchema({
     transactionsImported: v.number(),
     errorsCount: v.number(),
     totalAmount: v.optional(v.number()),
+    storageId: v.optional(v.id("_storage")),
     completedAt: v.optional(v.number()),
     createdAt: v.number(),
   })
@@ -165,6 +178,7 @@ export default defineSchema({
     taxYear: v.optional(v.number()),
     status: v.string(),
     fileSize: v.optional(v.number()),
+    storageId: v.optional(v.id("_storage")),
     expiresAt: v.optional(v.number()),
     completedAt: v.optional(v.number()),
     createdAt: v.number(),
@@ -196,6 +210,7 @@ export default defineSchema({
     vendor: v.optional(v.string()),
     vatAmount: v.optional(v.number()),
     receiptUrl: v.optional(v.string()),
+    receiptStorageId: v.optional(v.id("_storage")),
     notes: v.optional(v.string()),
     syncedAt: v.optional(v.number()),
     createdAt: v.number(),
@@ -338,6 +353,7 @@ export default defineSchema({
     status: v.string(),
     fileName: v.optional(v.string()),
     contentType: v.optional(v.string()),
+    storageId: v.optional(v.id("_storage")),
     processingStartedAt: v.optional(v.number()),
     processingAttemptCount: v.number(),
     payload: v.optional(json),

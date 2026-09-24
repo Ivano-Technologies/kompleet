@@ -13,6 +13,7 @@ import {
   isUnauthorized,
   requireAuthedConvex,
 } from "@/lib/convex/server";
+import { uploadToConvexStorage } from "@/lib/convex/store-file";
 import {
   parseBankStatement,
   detectFileType,
@@ -75,6 +76,19 @@ async function handlePOST(request: NextRequest) {
 
     try {
       const buffer = Buffer.from(await file.arrayBuffer());
+      try {
+        const storageId = await uploadToConvexStorage(
+          convex,
+          new Blob([buffer]),
+          file.type,
+        );
+        await convex.mutation(api.imports.attachStorage, {
+          externalId: session.id,
+          storageId,
+        });
+      } catch (storageError) {
+        console.error("Convex storage upload failed", storageError);
+      }
       const content = fileType === "csv" ? buffer.toString("utf-8") : buffer;
 
       let parseResult: Awaited<ReturnType<typeof parseBankStatement>>;
