@@ -12,31 +12,25 @@
  * - transactionCount: number
  * - errors: array of parse errors
  * - message: string
+ *
+ * Auth is Convex. This route parses only and does not persist transactions.
+ * Live persist is POST /api/transactions/upload-v2.
  */
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
+import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseForRequest } from "@/lib/supabase/server";
+import { withRateLimit } from "@/lib/with-rate-limit";
+import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
+import { rethrowIfNextControlFlow } from "@/lib/next-control-flow";
 import { IngestionRequest } from "@/lib/ingestion/types";
 
-export async function POST(request: NextRequest) {
+async function handlePOST(request: NextRequest) {
   try {
-    // 1. Authenticate user
-    const supabase = await getSupabaseForRequest(request);
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
+    const { user } = await requireAuthedConvex(request);
 
-    if (authError || !user) {
-      return NextResponse.json(
-        { success: false, message: "Unauthorized" },
-        { status: 401 },
-      );
-    }
-
-    // 2. Parse FormData
     const formData = await request.formData();
     const file = formData.get("file") as File;
     const password = formData.get("password") as string | null;
@@ -49,8 +43,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 3. Validate file size (100 MB max)
-    const maxFileSize = 100 * 1024 * 1024; // 100 MB
+    const maxFileSize = 100 * 1024 * 1024;
     if (file.size > maxFileSize) {
       return NextResponse.json(
         {
@@ -61,10 +54,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 4. Create source file record
     const sourceFileId = crypto.randomUUID();
 
-    // 5. Run ingestion (dynamic import to prevent build-time evaluation)
     const { ingestStatement } = await import(
       "@/lib/ingestion/ingestionWorker"
     );
@@ -81,7 +72,6 @@ export async function POST(request: NextRequest) {
       sourceFileId,
     );
 
-    // 6. Handle password requirement
     if (response.message === "PASSWORD_REQUIRED") {
       return NextResponse.json(
         {
@@ -94,9 +84,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 7. Return response
     return NextResponse.json(response);
   } catch (error) {
+    rethrowIfNextControlFlow(error);
+    if (isUnauthorized(error)) {
+      return NextResponse.json(
+        { success: false, message: "Unauthorized" },
+        { status: 401 },
+      );
+    }
     console.error("Ingestion error:", error);
 
     return NextResponse.json(
@@ -113,6 +109,30 @@ export async function POST(request: NextRequest) {
               error instanceof Error ? error.message : "Unknown error",
           },
         ],
+      },
+      { status: 500 },
+    );
+  }
+}
+
+export async function POST(request: NextRequest, context?: unknown) {
+  try {
+    await cookies();
+    return await withRateLimit(handlePOST)(request, context);
+  } catch (error) {
+    rethrowIfNextControlFlow(error);
+    if (isUnauthorized(error)) {
+      return NextResponse.json(
+        { success: false, message: "Unauthorized" },
+        { status: 401 },
+      );
+    }
+    return NextResponse.json(
+      {
+        success: false,
+        message: `Ingestion failed: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
       },
       { status: 500 },
     );

@@ -90,6 +90,8 @@ Data: read-only SQL from `frlcvkmjuhnjcicwywrh` → `internal.backfill.fromSnaps
 | taxRules | 35 | yes |
 | firms / clients / invoices / expenses / documents | 0 | yes (empty on both) |
 
+Phase 4 (IVA-66) added `internal.documents.upsertFromBackfill` plus a `documents` section in `fromSupabase` / `fromSnapshot` / `pnpm backfill:convex`. If the Supabase `documents` table is missing or empty, the script skips and checksums stay 0. Re-run before Phase 6 teardown.
+
 ## Prerequisites
 
 1. Logged into Convex CLI as a `techivano` member.

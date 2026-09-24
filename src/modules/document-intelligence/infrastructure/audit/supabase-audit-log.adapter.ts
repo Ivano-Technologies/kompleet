@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { AuditLogPort } from "../../application/ports/audit-log.port";
 
+/** @deprecated Phase 4 cut over to ConvexAuditLogAdapter. Remove in Phase 5. */
 export class SupabaseAuditLogAdapter implements AuditLogPort {
   constructor(private readonly supabase: SupabaseClient) {}
 

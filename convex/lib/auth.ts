@@ -67,6 +67,20 @@ export async function getCurrentUser(
   throw new Error("User not found");
 }
 
+export async function getUserByExternalId(
+  ctx: QueryCtx | MutationCtx,
+  externalId: string,
+): Promise<Doc<"users"> | null> {
+  const user = await ctx.db
+    .query("users")
+    .withIndex("by_externalId", (q) => q.eq("externalId", externalId))
+    .unique();
+  if (!user || user.deletedAt) {
+    return null;
+  }
+  return user;
+}
+
 export async function getCurrentUserOrNull(
   ctx: QueryCtx | MutationCtx,
 ): Promise<Doc<"users"> | null> {
