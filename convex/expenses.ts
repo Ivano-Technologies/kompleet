@@ -53,6 +53,7 @@ export const listMine = query({
     startDate: v.optional(v.string()),
     endDate: v.optional(v.string()),
     categoryId: v.optional(v.string()),
+    updatedSince: v.optional(v.string()),
     page: v.number(),
     limit: v.number(),
   },
@@ -71,6 +72,12 @@ export const listMine = query({
     }
     if (args.categoryId) {
       rows = rows.filter((r) => r.categoryExternalId === args.categoryId);
+    }
+    if (args.updatedSince) {
+      const since = Date.parse(args.updatedSince);
+      if (!Number.isNaN(since)) {
+        rows = rows.filter((r) => r.updatedAt >= since);
+      }
     }
     rows.sort((a, b) =>
       a.date === b.date ? b.createdAt - a.createdAt : a.date < b.date ? 1 : -1,
@@ -100,6 +107,7 @@ export const getMine = query({
 
 export const createMine = mutation({
   args: {
+    externalId: v.optional(v.string()),
     date: v.string(),
     amount: v.number(),
     currency: v.optional(v.string()),
@@ -113,6 +121,18 @@ export const createMine = mutation({
   returns: expenseApi,
   handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx);
+    if (args.externalId) {
+      const existing = await ctx.db
+        .query("expenses")
+        .withIndex("by_externalId", (q) => q.eq("externalId", args.externalId!))
+        .unique();
+      if (existing) {
+        if (existing.userId !== user._id) {
+          throw new Error("Expense already exists");
+        }
+        return toApi(existing);
+      }
+    }
     let categoryId;
     if (args.categoryExternalId) {
       const cat = await ctx.db
@@ -124,7 +144,7 @@ export const createMine = mutation({
       categoryId = cat?._id;
     }
     const now = Date.now();
-    const externalId = newExternalId();
+    const externalId = args.externalId ?? newExternalId();
     await ctx.db.insert("expenses", {
       externalId,
       userId: user._id,

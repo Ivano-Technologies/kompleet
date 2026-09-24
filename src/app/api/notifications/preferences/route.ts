@@ -1,8 +1,14 @@
-// TODO(IVA-67 Phase 3 OUT): reminder_preferences is not on Convex users. Do not invent columns.
+// TODO(IVA-64 Phase 5): reminder_preferences is not on Convex users. Do not invent columns.
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
+import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 import { z } from "zod";
+
+const DEFAULT_PREFERENCES = {
+  enabled: true,
+  email: true,
+  inApp: true,
+};
 
 const preferencesSchema = z.object({
   enabled: z.boolean(),
@@ -12,47 +18,15 @@ const preferencesSchema = z.object({
 
 async function handleGET(request: NextRequest) {
   try {
-    const supabase = await getSupabaseForRequest(request);
-
-    // Check authentication
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Fetch user's notification preferences
-    const { data: profile, error: dbError } = await supabase
-      .from("profiles")
-      .select("reminder_preferences")
-      .eq("id", user.id)
-      .single();
-
-    if (dbError) {
-      console.error("Database error:", dbError);
-      // Return default preferences if profile not found
-      return NextResponse.json({
-        success: true,
-        preferences: {
-          enabled: true,
-          email: true,
-          inApp: true,
-        },
-      });
-    }
-
+    await requireAuthedConvex(request);
     return NextResponse.json({
       success: true,
-      preferences: profile.reminder_preferences || {
-        enabled: true,
-        email: true,
-        inApp: true,
-      },
+      preferences: DEFAULT_PREFERENCES,
     });
   } catch (error) {
-    console.error("Get notification preferences error:", error);
+    if (isUnauthorized(error)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },
@@ -62,60 +36,24 @@ async function handleGET(request: NextRequest) {
 
 async function handlePOST(request: NextRequest) {
   try {
-    const supabase = await getSupabaseForRequest(request);
-
-    // Check authentication
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
+    await requireAuthedConvex(request);
     const body = await request.json();
     const parsed = preferencesSchema.safeParse(body);
-
     if (!parsed.success) {
       return NextResponse.json(
         { error: "Invalid input", details: parsed.error.flatten() },
         { status: 400 },
       );
     }
-
-    const { enabled, email, inApp } = parsed.data;
-
-    // Update user's notification preferences
-    const { error: updateError } = await supabase
-      .from("profiles")
-      .update({
-        reminder_preferences: {
-          enabled,
-          email,
-          inApp,
-        },
-      })
-      .eq("id", user.id);
-
-    if (updateError) {
-      console.error("Update error:", updateError);
-      return NextResponse.json(
-        { error: "Failed to update preferences" },
-        { status: 500 },
-      );
-    }
-
     return NextResponse.json({
       success: true,
-      message: "Notification preferences updated successfully",
-      preferences: {
-        enabled,
-        email,
-        inApp,
-      },
+      message: "Notification preferences accepted (not persisted on Convex yet)",
+      preferences: parsed.data,
     });
   } catch (error) {
-    console.error("Update notification preferences error:", error);
+    if (isUnauthorized(error)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },

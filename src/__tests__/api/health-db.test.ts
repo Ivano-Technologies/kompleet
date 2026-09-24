@@ -2,16 +2,7 @@
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const selectMock = vi.fn();
-const fromMock = vi.fn(() => ({ select: selectMock }));
-const createClientMock = vi.fn(
-  (_url: string, _key: string, _options?: unknown) => ({ from: fromMock }),
-);
-
-vi.mock("@supabase/supabase-js", () => ({
-  createClient: (url: string, key: string, options?: unknown) =>
-    createClientMock(url, key, options),
-}));
+const fetchMock = vi.fn();
 
 import { GET } from "@/app/api/health/db/route";
 
@@ -23,27 +14,22 @@ function requestWith(headers: Record<string, string> = {}): Request {
 
 describe("GET /api/health/db", () => {
   const previousToken = process.env.KEEPALIVE_TOKEN;
-  const previousServiceRole = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const previousFetch = globalThis.fetch;
 
   beforeEach(() => {
-    selectMock.mockReset();
-    fromMock.mockClear();
-    createClientMock.mockClear();
+    fetchMock.mockReset();
+    globalThis.fetch = fetchMock as unknown as typeof fetch;
     process.env.KEEPALIVE_TOKEN = TOKEN;
     process.env.NEXT_PUBLIC_SUPABASE_URL = "http://localhost:54321";
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "eyJ_test_anon";
   });
 
   afterEach(() => {
+    globalThis.fetch = previousFetch;
     if (previousToken === undefined) {
       delete process.env.KEEPALIVE_TOKEN;
     } else {
       process.env.KEEPALIVE_TOKEN = previousToken;
-    }
-    if (previousServiceRole === undefined) {
-      delete process.env.SUPABASE_SERVICE_ROLE_KEY;
-    } else {
-      process.env.SUPABASE_SERVICE_ROLE_KEY = previousServiceRole;
     }
   });
 
@@ -52,50 +38,52 @@ describe("GET /api/health/db", () => {
     const res = await GET(requestWith({ "x-keepalive-token": TOKEN }));
     expect(res.status).toBe(503);
     await expect(res.json()).resolves.toMatchObject({ status: "misconfigured" });
-    expect(createClientMock).not.toHaveBeenCalled();
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("returns 401 when the token header is missing", async () => {
     const res = await GET(requestWith());
     expect(res.status).toBe(401);
     await expect(res.json()).resolves.toMatchObject({ status: "unauthorized" });
-    expect(createClientMock).not.toHaveBeenCalled();
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("returns 401 when the token is wrong", async () => {
     const res = await GET(requestWith({ "x-keepalive-token": "nope" }));
     expect(res.status).toBe(401);
     await expect(res.json()).resolves.toMatchObject({ status: "unauthorized" });
-    expect(createClientMock).not.toHaveBeenCalled();
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("returns 200 on a successful DB round-trip and uses the anon key", async () => {
-    selectMock.mockResolvedValue({ error: null, count: 0 });
+  it("returns 200 on a successful PostgREST round-trip and uses the anon key", async () => {
+    fetchMock.mockResolvedValue(new Response(null, { status: 200 }));
     const res = await GET(requestWith({ "x-keepalive-token": TOKEN }));
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.status).toBe("ok");
     expect(typeof body.dbLatencyMs).toBe("number");
     expect(typeof body.timestamp).toBe("string");
-    expect(createClientMock).toHaveBeenCalledWith(
-      "http://localhost:54321",
-      "eyJ_test_anon",
+    expect(fetchMock).toHaveBeenCalledWith(
+      "http://localhost:54321/rest/v1/tax_rules?select=id",
       expect.objectContaining({
-        auth: { persistSession: false, autoRefreshToken: false },
+        method: "GET",
+        headers: expect.objectContaining({
+          apikey: "eyJ_test_anon",
+          Authorization: "Bearer eyJ_test_anon",
+        }),
       }),
     );
-    expect(fromMock).toHaveBeenCalledWith("tax_rules");
   });
 
   it("returns 503 when the database query errors", async () => {
-    selectMock.mockResolvedValue({ error: { message: "paused" }, count: null });
+    fetchMock.mockResolvedValue(new Response("paused", { status: 503 }));
     const res = await GET(requestWith({ "x-keepalive-token": TOKEN }));
     expect(res.status).toBe(503);
     await expect(res.json()).resolves.toMatchObject({ status: "error" });
   });
 
   it("returns 503 when the client throws", async () => {
-    selectMock.mockRejectedValue(new Error("ENOTFOUND"));
+    fetchMock.mockRejectedValue(new Error("ENOTFOUND"));
     const res = await GET(requestWith({ "x-keepalive-token": TOKEN }));
     expect(res.status).toBe(503);
     await expect(res.json()).resolves.toMatchObject({ status: "error" });

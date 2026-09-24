@@ -58,16 +58,13 @@ export function validateRequired<T extends Record<string, unknown>>(
 }
 
 /**
- * Get user ID from Supabase Auth session
+ * Get user ID from Convex Auth (cookies or Bearer).
  */
 export async function getUserId(request: Request): Promise<string | null> {
   try {
-    const { createServerClient } = await import("@/lib/supabase/server");
-    const supabase = await createServerClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    return user?.id || null;
+    const { getCompatUser } = await import("@/lib/auth/session");
+    const user = await getCompatUser(request);
+    return user?.id ?? null;
   } catch (error) {
     console.error("Failed to get user ID:", error);
     return null;
