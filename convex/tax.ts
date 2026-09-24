@@ -234,6 +234,335 @@ export const saveCalculation = mutation({
   },
 });
 
+export const getCalculation = query({
+  args: { externalId: v.string() },
+  returns: v.union(v.any(), v.null()),
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
+    const row = await ctx.db
+      .query("taxCalculations")
+      .withIndex("by_externalId", (q) => q.eq("externalId", args.externalId))
+      .unique();
+    if (!row || row.userId !== user._id) return null;
+    return {
+      id: row.externalId,
+      user_id: row.userExternalId,
+      tax_type: row.taxType,
+      tax_year: row.taxYear,
+      calculation_date: row.calculationDate,
+      input_data: row.inputData,
+      gross_amount: row.grossAmount,
+      deductions: row.deductions,
+      taxable_amount: row.taxableAmount,
+      tax_due: row.taxDue,
+      effective_rate: row.effectiveRate ?? null,
+      breakdown: row.breakdown,
+      is_final: row.isFinal,
+      created_at: new Date(row.createdAt).toISOString(),
+      updated_at: new Date(row.updatedAt).toISOString(),
+    };
+  },
+});
+
+export const updateCalculation = mutation({
+  args: {
+    externalId: v.string(),
+    inputData: v.optional(v.any()),
+    grossAmount: v.optional(v.number()),
+    deductions: v.optional(v.number()),
+    taxableAmount: v.optional(v.number()),
+    taxDue: v.optional(v.number()),
+    effectiveRate: v.optional(v.number()),
+    breakdown: v.optional(v.any()),
+  },
+  returns: v.any(),
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
+    const row = await ctx.db
+      .query("taxCalculations")
+      .withIndex("by_externalId", (q) => q.eq("externalId", args.externalId))
+      .unique();
+    if (!row || row.userId !== user._id) {
+      throw new Error("Calculation not found");
+    }
+    if (row.isFinal) {
+      throw new Error("Cannot update finalized calculations");
+    }
+    await ctx.db.patch(row._id, {
+      inputData: args.inputData ?? row.inputData,
+      grossAmount: args.grossAmount ?? row.grossAmount,
+      deductions: args.deductions ?? row.deductions,
+      taxableAmount: args.taxableAmount ?? row.taxableAmount,
+      taxDue: args.taxDue ?? row.taxDue,
+      effectiveRate: args.effectiveRate ?? row.effectiveRate,
+      breakdown: args.breakdown ?? row.breakdown,
+      updatedAt: Date.now(),
+    });
+    const updated = await ctx.db.get(row._id);
+    if (!updated) throw new Error("Calculation not found");
+    return {
+      id: updated.externalId,
+      user_id: updated.userExternalId,
+      tax_type: updated.taxType,
+      tax_year: updated.taxYear,
+      calculation_date: updated.calculationDate,
+      input_data: updated.inputData,
+      gross_amount: updated.grossAmount,
+      deductions: updated.deductions,
+      taxable_amount: updated.taxableAmount,
+      tax_due: updated.taxDue,
+      effective_rate: updated.effectiveRate ?? null,
+      breakdown: updated.breakdown,
+      is_final: updated.isFinal,
+      created_at: new Date(updated.createdAt).toISOString(),
+      updated_at: new Date(updated.updatedAt).toISOString(),
+    };
+  },
+});
+
+export const deleteCalculation = mutation({
+  args: { externalId: v.string() },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
+    const row = await ctx.db
+      .query("taxCalculations")
+      .withIndex("by_externalId", (q) => q.eq("externalId", args.externalId))
+      .unique();
+    if (!row || row.userId !== user._id) {
+      throw new Error("Calculation not found");
+    }
+    if (row.isFinal) {
+      throw new Error("Cannot delete finalized calculations");
+    }
+    await ctx.db.delete(row._id);
+    return null;
+  },
+});
+
+export const finalizeCalculation = mutation({
+  args: { externalId: v.string() },
+  returns: v.any(),
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
+    const row = await ctx.db
+      .query("taxCalculations")
+      .withIndex("by_externalId", (q) => q.eq("externalId", args.externalId))
+      .unique();
+    if (!row || row.userId !== user._id) {
+      throw new Error("Calculation not found");
+    }
+    if (row.isFinal) {
+      throw new Error("This calculation is already marked as final");
+    }
+    const now = Date.now();
+    await ctx.db.patch(row._id, { isFinal: true, updatedAt: now });
+    const updated = await ctx.db.get(row._id);
+    if (!updated) throw new Error("Calculation not found");
+    return {
+      id: updated.externalId,
+      user_id: updated.userExternalId,
+      tax_type: updated.taxType,
+      tax_year: updated.taxYear,
+      calculation_date: updated.calculationDate,
+      input_data: updated.inputData,
+      gross_amount: updated.grossAmount,
+      deductions: updated.deductions,
+      taxable_amount: updated.taxableAmount,
+      tax_due: updated.taxDue,
+      effective_rate: updated.effectiveRate ?? null,
+      breakdown: updated.breakdown,
+      is_final: updated.isFinal,
+      created_at: new Date(updated.createdAt).toISOString(),
+      updated_at: new Date(updated.updatedAt).toISOString(),
+    };
+  },
+});
+
+function reportToApi(row: {
+  externalId: string;
+  userExternalId: string;
+  reportType?: string;
+  taxYear?: number;
+  computationData: unknown;
+  createdAt: number;
+  updatedAt: number;
+}) {
+  const extra =
+    row.computationData && typeof row.computationData === "object"
+      ? (row.computationData as Record<string, unknown>)
+      : {};
+  return {
+    id: row.externalId,
+    user_id: row.userExternalId,
+    report_type: row.reportType ?? null,
+    tax_year: row.taxYear ?? null,
+    computation_data: row.computationData,
+    created_at: new Date(row.createdAt).toISOString(),
+    updated_at: new Date(row.updatedAt).toISOString(),
+    ...extra,
+  };
+}
+
+export const listReports = query({
+  args: {
+    taxYear: v.optional(v.number()),
+    reportType: v.optional(v.string()),
+    status: v.optional(v.string()),
+  },
+  returns: v.array(v.any()),
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
+    const rows = await ctx.db
+      .query("taxReports")
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .collect();
+    rows.sort((a, b) => b.createdAt - a.createdAt);
+    return rows
+      .map(reportToApi)
+      .filter((r) => {
+        if (args.taxYear !== undefined && r.tax_year !== args.taxYear) {
+          return false;
+        }
+        if (args.reportType && r.report_type !== args.reportType) {
+          return false;
+        }
+        if (args.status) {
+          const status =
+            r.computation_data &&
+            typeof r.computation_data === "object" &&
+            "status" in r.computation_data
+              ? String(
+                  (r.computation_data as { status?: unknown }).status ?? "",
+                )
+              : "";
+          if (status !== args.status) return false;
+        }
+        return true;
+      });
+  },
+});
+
+export const getReport = query({
+  args: { externalId: v.string() },
+  returns: v.union(v.any(), v.null()),
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
+    const row = await ctx.db
+      .query("taxReports")
+      .withIndex("by_externalId", (q) => q.eq("externalId", args.externalId))
+      .unique();
+    if (!row || row.userId !== user._id) return null;
+    return reportToApi(row);
+  },
+});
+
+export const saveReport = mutation({
+  args: {
+    reportType: v.string(),
+    taxYear: v.number(),
+    computationData: v.any(),
+  },
+  returns: v.any(),
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
+    const now = Date.now();
+    const externalId = newExternalId();
+    await ctx.db.insert("taxReports", {
+      externalId,
+      userId: user._id,
+      userExternalId: user.externalId,
+      reportType: args.reportType,
+      taxYear: args.taxYear,
+      computationData: args.computationData,
+      createdAt: now,
+      updatedAt: now,
+    });
+    const row = await ctx.db
+      .query("taxReports")
+      .withIndex("by_externalId", (q) => q.eq("externalId", externalId))
+      .unique();
+    if (!row) throw new Error("Tax report not found");
+    return reportToApi(row);
+  },
+});
+
+export const updateReport = mutation({
+  args: {
+    externalId: v.string(),
+    patch: v.any(),
+  },
+  returns: v.any(),
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
+    const row = await ctx.db
+      .query("taxReports")
+      .withIndex("by_externalId", (q) => q.eq("externalId", args.externalId))
+      .unique();
+    if (!row || row.userId !== user._id) throw new Error("Report not found");
+    const prev =
+      row.computationData && typeof row.computationData === "object"
+        ? (row.computationData as Record<string, unknown>)
+        : {};
+    const patch =
+      args.patch && typeof args.patch === "object"
+        ? (args.patch as Record<string, unknown>)
+        : {};
+    const next = { ...prev, ...patch };
+    await ctx.db.patch(row._id, {
+      computationData: next,
+      updatedAt: Date.now(),
+    });
+    const updated = await ctx.db.get(row._id);
+    if (!updated) throw new Error("Report not found");
+    return reportToApi(updated);
+  },
+});
+
+export const deleteReport = mutation({
+  args: { externalId: v.string() },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
+    const row = await ctx.db
+      .query("taxReports")
+      .withIndex("by_externalId", (q) => q.eq("externalId", args.externalId))
+      .unique();
+    if (!row || row.userId !== user._id) throw new Error("Report not found");
+    await ctx.db.delete(row._id);
+    return null;
+  },
+});
+
+export const touchSources = mutation({
+  args: { sourceExternalId: v.optional(v.string()) },
+  returns: v.object({
+    ok: v.boolean(),
+    checked: v.union(v.number(), v.literal("all")),
+    sourceId: v.optional(v.string()),
+  }),
+  handler: async (ctx, args) => {
+    await getCurrentUser(ctx);
+    const now = Date.now();
+    if (args.sourceExternalId) {
+      const row = await ctx.db
+        .query("sources")
+        .withIndex("by_externalId", (q) =>
+          q.eq("externalId", args.sourceExternalId!),
+        )
+        .unique();
+      if (!row) throw new Error("Source not found");
+      await ctx.db.patch(row._id, { updatedAt: now });
+      return { ok: true, checked: 1, sourceId: row.externalId };
+    }
+    const rows = await ctx.db.query("sources").collect();
+    for (const row of rows) {
+      await ctx.db.patch(row._id, { updatedAt: now });
+    }
+    return { ok: true, checked: "all" as const };
+  },
+});
+
 export const upsertSourceFromBackfill = internalMutation({
   args: {
     externalId: v.string(),

@@ -1,8 +1,8 @@
-import { createServerClient as createClient } from "@/lib/supabase/server";
-import type { SupabaseClient } from "@supabase/supabase-js";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import QRCode from "qrcode";
+import { api } from "@/lib/convex/http";
+import { requireAuthedConvex } from "@/lib/convex/server";
 
 // ============================================
 // Types & Interfaces
@@ -96,21 +96,12 @@ export function calculateInvoiceTotals(
 export async function getNextInvoiceNumber(
   clientId: string,
   taxYear: number,
-  supabase?: SupabaseClient,
 ): Promise<string> {
-  const client = supabase ?? (await createClient());
-
-  const { data, error } = await client.rpc("get_next_invoice_number", {
-    p_client_id: clientId,
-    p_tax_year: taxYear,
+  const { convex } = await requireAuthedConvex();
+  return convex.mutation(api.invoices.nextNumber, {
+    clientExternalId: clientId,
+    taxYear,
   });
-
-  if (error) {
-    console.error("Error getting next invoice number:", error);
-    throw new Error("Failed to generate invoice number");
-  }
-
-  return data as string;
 }
 
 // ============================================
@@ -119,129 +110,110 @@ export async function getNextInvoiceNumber(
 
 export async function createInvoice(
   invoiceData: InvoiceData,
-  supabaseClient?: SupabaseClient,
 ): Promise<{ id: string; invoice_number: string }> {
-  const supabase = supabaseClient ?? (await createClient());
-
-  // Calculate totals
+  const { convex } = await requireAuthedConvex();
   const totals = calculateInvoiceTotals(invoiceData.line_items);
-
-  // Get next invoice number
-  const invoiceNumber = await getNextInvoiceNumber(
-    invoiceData.client_id,
-    invoiceData.tax_year,
-    supabase,
-  );
-
-  // Fallback invoice_date if not provided
   const invoiceDate =
     invoiceData.invoice_date || new Date().toISOString().split("T")[0];
-
-  // Insert invoice
-  const { data, error } = await supabase
-    .from("invoices")
-    .insert({
-      user_id: invoiceData.user_id,
-      client_id: invoiceData.client_id,
-      tax_year: invoiceData.tax_year,
-      invoice_number: invoiceNumber,
-      invoice_date: invoiceDate,
-      due_date: invoiceData.due_date,
-      customer_info: invoiceData.customer_info,
-      line_items: invoiceData.line_items,
-      subtotal: totals.subtotal,
-      vat_amount: totals.vat_amount,
-      discount_amount: totals.discount_amount,
-      total_amount: totals.total_amount,
-      payment_terms: invoiceData.payment_terms,
-      notes: invoiceData.notes,
-      template_id: invoiceData.template_id,
-      status: "draft",
-    })
-    .select("id, invoice_number")
-    .single();
-
-  if (error) {
-    console.error("Error creating invoice:", error);
-    throw new Error(error.message || "Failed to create invoice");
-  }
-
-  // Log audit trail (non-blocking; invoice creation succeeds even if audit fails)
-  const { error: auditError } = await supabase.from("invoice_audit_logs").insert({
-    invoice_id: data.id,
-    client_id: invoiceData.client_id,
-    user_id: invoiceData.user_id,
-    action: "created",
-    metadata: { invoice_number: invoiceNumber },
+  const created = await convex.mutation(api.invoices.createMine, {
+    invoiceDate,
+    dueDate: invoiceData.due_date,
+    taxYear: invoiceData.tax_year,
+    clientExternalId: invoiceData.client_id,
+    customerInfo: invoiceData.customer_info,
+    lineItems: invoiceData.line_items,
+    subtotal: totals.subtotal,
+    vatAmount: totals.vat_amount,
+    totalAmount: totals.total_amount,
+    status: "draft",
+    notes: invoiceData.notes,
   });
-  if (auditError) console.warn("Audit log insert failed (invoice created):", auditError);
-
-  return { id: data.id, invoice_number: data.invoice_number };
+  return { id: created.id, invoice_number: created.invoice_number };
 }
 
 // ============================================
 // Invoice Issuance (Make Immutable)
 // ============================================
 
-export async function issueInvoice(
-  invoiceId: string,
-  userId: string,
-): Promise<void> {
-  const supabase = await createClient();
-
-  const { data: invoice, error: fetchError } = await supabase
-    .from("invoices")
-    .select("id, client_id")
-    .eq("id", invoiceId)
-    .eq("status", "draft")
-    .single();
-
-  if (fetchError || !invoice) {
-    console.error("Error issuing invoice:", fetchError);
-    throw new Error("Failed to issue invoice");
-  }
-
-  const { error } = await supabase
-    .from("invoices")
-    .update({
-      status: "issued",
-      issued_at: new Date().toISOString(),
-      is_immutable: true,
-    })
-    .eq("id", invoiceId)
-    .eq("status", "draft");
-
-  if (error) {
-    console.error("Error issuing invoice:", error);
-    throw new Error("Failed to issue invoice");
-  }
-
-  const { error: auditError } = await supabase.from("invoice_audit_logs").insert({
-    invoice_id: invoiceId,
-    client_id: invoice.client_id,
-    user_id: userId,
-    action: "issued",
-  });
-  if (auditError) console.warn("Audit log insert failed (invoice issued):", auditError);
+export async function issueInvoice(invoiceId: string): Promise<void> {
+  const { convex } = await requireAuthedConvex();
+  await convex.mutation(api.invoices.issueMine, { externalId: invoiceId });
 }
 
 // ============================================
 // PDF Generation Service
 // ============================================
 
+function asCustomerInfo(value: unknown): CustomerInfo {
+  if (!value || typeof value !== "object") {
+    return { name: "" };
+  }
+  const row = value as Record<string, unknown>;
+  return {
+    name: typeof row.name === "string" ? row.name : "",
+    email: typeof row.email === "string" ? row.email : undefined,
+    phone: typeof row.phone === "string" ? row.phone : undefined,
+    address: typeof row.address === "string" ? row.address : undefined,
+    tin: typeof row.tin === "string" ? row.tin : undefined,
+  };
+}
+
+function asLineItems(value: unknown): InvoiceLineItem[] {
+  if (!Array.isArray(value)) return [];
+  return value.map((item) => {
+    const row =
+      item && typeof item === "object"
+        ? (item as Record<string, unknown>)
+        : {};
+    return {
+      description: typeof row.description === "string" ? row.description : "",
+      quantity: typeof row.quantity === "number" ? row.quantity : 0,
+      unit_price: typeof row.unit_price === "number" ? row.unit_price : 0,
+      vat_rate: typeof row.vat_rate === "number" ? row.vat_rate : 0,
+      discount: typeof row.discount === "number" ? row.discount : undefined,
+      amount: typeof row.amount === "number" ? row.amount : 0,
+    };
+  });
+}
+
+function extraString(invoice: Record<string, unknown>, key: string): string | undefined {
+  const value = invoice[key];
+  return typeof value === "string" ? value : undefined;
+}
+
+function extraNumber(invoice: Record<string, unknown>, key: string): number {
+  const value = invoice[key];
+  return typeof value === "number" ? value : 0;
+}
+
+function formatInvoiceDate(value: string | null): string {
+  if (!value) return "";
+  const parsed = new Date(value);
+  return Number.isNaN(parsed.getTime())
+    ? value
+    : parsed.toLocaleDateString("en-NG");
+}
+
 export async function generateInvoicePDF(invoiceId: string): Promise<Buffer> {
-  const supabase = await createClient();
+  const { convex } = await requireAuthedConvex();
+  const invoice = await convex.query(api.invoices.getMine, {
+    externalId: invoiceId,
+  });
 
-  // Fetch invoice data
-  const { data: invoice, error } = await supabase
-    .from("invoices")
-    .select("*")
-    .eq("id", invoiceId)
-    .single();
-
-  if (error || !invoice) {
+  if (!invoice) {
     throw new Error("Invoice not found");
   }
+
+  const invoiceExtras = invoice as Record<string, unknown>;
+  const customer = asCustomerInfo(invoice.customer_info);
+  const lineItems = asLineItems(invoice.line_items);
+  const subtotal = invoice.subtotal ?? 0;
+  const vatAmount = invoice.vat_amount ?? 0;
+  const totalAmount = invoice.total_amount ?? 0;
+  const discountAmount = extraNumber(invoiceExtras, "discount_amount");
+  const paymentTerms = extraString(invoiceExtras, "payment_terms");
+  const qrPayload = extraString(invoiceExtras, "qr_payload");
+  const signatureHash = extraString(invoiceExtras, "signature_hash");
 
   // Create PDF document
   const doc = new jsPDF();
@@ -288,11 +260,7 @@ export async function generateInvoicePDF(invoiceId: string): Promise<Buffer> {
   doc.setFont("helvetica", "bold");
   doc.text("Invoice Date:", 15, yPos);
   doc.setFont("helvetica", "normal");
-  doc.text(
-    new Date(invoice.invoice_date).toLocaleDateString("en-NG"),
-    60,
-    yPos,
-  );
+  doc.text(formatInvoiceDate(invoice.invoice_date), 60, yPos);
 
   if (invoice.due_date) {
     yPos += 7;
@@ -306,7 +274,7 @@ export async function generateInvoicePDF(invoiceId: string): Promise<Buffer> {
   doc.setFont("helvetica", "bold");
   doc.text("Tax Year:", 15, yPos);
   doc.setFont("helvetica", "normal");
-  doc.text(invoice.tax_year.toString(), 60, yPos);
+  doc.text(String(invoice.tax_year ?? ""), 60, yPos);
 
   // ============================================
   // Customer Details
@@ -319,28 +287,28 @@ export async function generateInvoicePDF(invoiceId: string): Promise<Buffer> {
   yPos += 7;
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
-  doc.text(invoice.customer_info.name, 15, yPos);
+  doc.text(customer.name, 15, yPos);
 
-  if (invoice.customer_info.email) {
+  if (customer.email) {
     yPos += 5;
-    doc.text(invoice.customer_info.email, 15, yPos);
+    doc.text(customer.email, 15, yPos);
   }
 
-  if (invoice.customer_info.phone) {
+  if (customer.phone) {
     yPos += 5;
-    doc.text(invoice.customer_info.phone, 15, yPos);
+    doc.text(customer.phone, 15, yPos);
   }
 
-  if (invoice.customer_info.address) {
+  if (customer.address) {
     yPos += 5;
-    const addressLines = doc.splitTextToSize(invoice.customer_info.address, 80);
+    const addressLines = doc.splitTextToSize(customer.address, 80);
     doc.text(addressLines, 15, yPos);
     yPos += addressLines.length * 5;
   }
 
-  if (invoice.customer_info.tin) {
+  if (customer.tin) {
     yPos += 5;
-    doc.text(`TIN: ${invoice.customer_info.tin}`, 15, yPos);
+    doc.text(`TIN: ${customer.tin}`, 15, yPos);
   }
 
   // ============================================
@@ -348,7 +316,7 @@ export async function generateInvoicePDF(invoiceId: string): Promise<Buffer> {
   // ============================================
   yPos += 15;
 
-  const tableData = invoice.line_items.map((item: InvoiceLineItem) => [
+  const tableData = lineItems.map((item: InvoiceLineItem) => [
     item.description,
     item.quantity.toString(),
     `₦${item.unit_price.toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
@@ -394,7 +362,7 @@ export async function generateInvoicePDF(invoiceId: string): Promise<Buffer> {
   doc.setFont("helvetica", "normal");
   doc.text("Subtotal:", totalsX, yPos, { align: "right" });
   doc.text(
-    `₦${invoice.subtotal.toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+    `₦${subtotal.toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
     pageWidth - 15,
     yPos,
     { align: "right" },
@@ -403,17 +371,17 @@ export async function generateInvoicePDF(invoiceId: string): Promise<Buffer> {
   yPos += 7;
   doc.text("VAT (7.5%):", totalsX, yPos, { align: "right" });
   doc.text(
-    `₦${invoice.vat_amount.toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+    `₦${vatAmount.toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
     pageWidth - 15,
     yPos,
     { align: "right" },
   );
 
-  if (invoice.discount_amount > 0) {
+  if (discountAmount > 0) {
     yPos += 7;
     doc.text("Discount:", totalsX, yPos, { align: "right" });
     doc.text(
-      `-₦${invoice.discount_amount.toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      `-₦${discountAmount.toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       pageWidth - 15,
       yPos,
       { align: "right" },
@@ -425,7 +393,7 @@ export async function generateInvoicePDF(invoiceId: string): Promise<Buffer> {
   doc.setFontSize(12);
   doc.text("Total:", totalsX, yPos, { align: "right" });
   doc.text(
-    `₦${invoice.total_amount.toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+    `₦${totalAmount.toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
     pageWidth - 15,
     yPos,
     { align: "right" },
@@ -438,15 +406,12 @@ export async function generateInvoicePDF(invoiceId: string): Promise<Buffer> {
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
 
-  if (invoice.payment_terms) {
+  if (paymentTerms) {
     doc.setFont("helvetica", "bold");
     doc.text("Payment Terms:", 15, yPos);
     yPos += 5;
     doc.setFont("helvetica", "normal");
-    const termsLines = doc.splitTextToSize(
-      invoice.payment_terms,
-      pageWidth - 30,
-    );
+    const termsLines = doc.splitTextToSize(paymentTerms, pageWidth - 30);
     doc.text(termsLines, 15, yPos);
     yPos += termsLines.length * 5 + 5;
   }
@@ -464,9 +429,9 @@ export async function generateInvoicePDF(invoiceId: string): Promise<Buffer> {
   // ============================================
   // Footer with QR Code (if available)
   // ============================================
-  if (invoice.qr_payload) {
+  if (qrPayload) {
     try {
-      const qrDataUrl = await QRCode.toDataURL(invoice.qr_payload, {
+      const qrDataUrl = await QRCode.toDataURL(qrPayload, {
         width: 80,
         margin: 1,
       });
@@ -481,14 +446,14 @@ export async function generateInvoicePDF(invoiceId: string): Promise<Buffer> {
   }
 
   // Digital signature indicator
-  if (invoice.signature_hash) {
+  if (signatureHash) {
     doc.setFontSize(8);
     doc.setTextColor(...grayColor);
     doc.text("Digitally Signed", pageWidth - 15, pageHeight - 20, {
       align: "right",
     });
     doc.text(
-      `Signature: ${invoice.signature_hash.substring(0, 16)}...`,
+      `Signature: ${signatureHash.substring(0, 16)}...`,
       pageWidth - 15,
       pageHeight - 15,
       { align: "right" },

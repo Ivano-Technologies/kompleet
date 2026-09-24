@@ -1,29 +1,16 @@
-import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
+import { api } from "@/lib/convex/http";
+import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
+import type { Id } from "../../../../../convex/_generated/dataModel";
 
 async function handleDELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const supabase = await getSupabaseForRequest(request);
-
-    // Check authentication
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: "Unauthorized", message: "Authentication required" },
-        { status: 401 },
-      );
-    }
-
+    const { convex } = await requireAuthedConvex(request);
     const { id } = await params;
-
     if (!id) {
       return NextResponse.json(
         { error: "Calculation ID is required" },
@@ -31,42 +18,28 @@ async function handleDELETE(
       );
     }
 
-    // Verify ownership before deleting
-    const { data: auditLog, error: fetchError } = await supabase
-      .from("audit_logs")
-      .select("user_id")
-      .eq("id", id)
-      .single();
-
-    if (fetchError || !auditLog) {
-      return NextResponse.json(
-        { error: "Calculation not found" },
-        { status: 404 },
-      );
-    }
-
-    if (auditLog.user_id !== user.id) {
-      return NextResponse.json(
-        {
-          error: "Forbidden",
-          message: "You do not have permission to delete this calculation",
-        },
-        { status: 403 },
-      );
-    }
-
-    const { error } = await supabase
-      .from("audit_logs")
-      .delete()
-      .eq("id", id)
-      .eq("user_id", user.id);
-
-    if (error) {
-      console.error("[history/[id]] Error deleting calculation:", error);
-      return NextResponse.json(
-        { error: "Failed to delete calculation", message: error.message },
-        { status: 500 },
-      );
+    try {
+      await convex.mutation(api.audit.removeMine, {
+        id: id as Id<"auditLogs">,
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "";
+      if (message.includes("not found")) {
+        return NextResponse.json(
+          { error: "Calculation not found" },
+          { status: 404 },
+        );
+      }
+      if (message.includes("Unauthorized")) {
+        return NextResponse.json(
+          {
+            error: "Forbidden",
+            message: "You do not have permission to delete this calculation",
+          },
+          { status: 403 },
+        );
+      }
+      throw err;
     }
 
     return NextResponse.json({
@@ -74,6 +47,12 @@ async function handleDELETE(
       message: "Calculation deleted successfully",
     });
   } catch (error) {
+    if (isUnauthorized(error)) {
+      return NextResponse.json(
+        { error: "Unauthorized", message: "Authentication required" },
+        { status: 401 },
+      );
+    }
     console.error("[history/[id]] Unexpected error:", error);
     return NextResponse.json(
       {

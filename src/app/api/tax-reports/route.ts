@@ -1,58 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
+import { api } from "@/lib/convex/http";
+import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 
 export const runtime = "nodejs";
 
 async function handleGET(request: NextRequest) {
   try {
-    const supabase = await getSupabaseForRequest(request);
-
-    // Check authentication
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Get query parameters
+    const { convex } = await requireAuthedConvex(request);
     const searchParams = request.nextUrl.searchParams;
     const taxYear = searchParams.get("taxYear");
     const status = searchParams.get("status");
     const reportType = searchParams.get("reportType");
 
-    // Build query
-    let query = supabase
-      .from("tax_reports")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false });
-
-    // Apply filters
-    if (taxYear) {
-      query = query.eq("tax_year", parseInt(taxYear));
-    }
-    if (status) {
-      query = query.eq("status", status);
-    }
-    if (reportType) {
-      query = query.eq("report_type", reportType);
-    }
-
-    const { data: reports, error } = await query;
-
-    if (error) {
-      console.error("Error fetching tax reports:", error);
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
+    const reports = await convex.query(api.tax.listReports, {
+      taxYear: taxYear ? parseInt(taxYear, 10) : undefined,
+      status: status ?? undefined,
+      reportType: reportType ?? undefined,
+    });
 
     return NextResponse.json({ reports });
-  } catch (error: any) {
+  } catch (error) {
+    if (isUnauthorized(error)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     console.error("Error in GET /api/tax-reports:", error);
     return NextResponse.json(
-      { error: error.message || "Internal server error" },
+      { error: error instanceof Error ? error.message : "Internal server error" },
       { status: 500 },
     );
   }

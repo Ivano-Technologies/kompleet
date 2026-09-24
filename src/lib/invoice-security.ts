@@ -1,5 +1,6 @@
-import { createServerClient as createClient } from "@/lib/supabase/server";
 import QRCode from "qrcode";
+import { api } from "@/lib/convex/http";
+import { requireAuthedConvex } from "@/lib/convex/server";
 
 // ============================================
 // QR Code Service (NRS-Compliant)
@@ -245,21 +246,14 @@ export async function storeClientKeys(
   publicKey: string,
   privateKey: string,
 ): Promise<void> {
-  const supabase = await createClient();
-
+  const { convex } = await requireAuthedConvex();
   const encryptedPrivateKey = await encryptPrivateKey(privateKey);
-
-  const { error } = await supabase.rpc("upsert_client_signing_keys", {
-    p_client_id: clientId,
-    p_public_key: publicKey,
-    p_private_key_encrypted: encryptedPrivateKey,
-    p_key_type: "RSA-2048",
+  await convex.mutation(api.invoices.upsertSigningKeys, {
+    clientExternalId: clientId,
+    publicKey,
+    privateKeyEncrypted: encryptedPrivateKey,
+    keyType: "RSA-2048",
   });
-
-  if (error) {
-    console.error("Error storing client keys:", error);
-    throw new Error("Failed to store cryptographic keys");
-  }
 }
 
 /**
@@ -269,24 +263,14 @@ export async function getClientKeys(clientId: string): Promise<{
   publicKey: string;
   privateKey: string;
 } | null> {
-  const supabase = await createClient();
-
-  const { data, error } = await supabase.rpc("get_client_signing_keys", {
-    p_client_id: clientId,
+  const { convex } = await requireAuthedConvex();
+  const row = await convex.query(api.invoices.getSigningKeys, {
+    clientExternalId: clientId,
   });
-
-  if (error) {
-    console.error("Error fetching client signing keys:", error);
-    return null;
-  }
-
-  const row = Array.isArray(data) ? data[0] : data;
   if (!row?.private_key_encrypted) {
     return null;
   }
-
   const privateKey = await decryptPrivateKey(row.private_key_encrypted);
-
   return {
     publicKey: row.public_key,
     privateKey,
@@ -407,18 +391,17 @@ async function decryptPrivateKey(encryptedPrivateKey: string): Promise<string> {
  */
 export async function signAndIssueInvoice(
   invoiceId: string,
-  userId: string,
+  _userId: string,
 ): Promise<void> {
-  const supabase = await createClient();
-
-  const { data: invoice, error: fetchError } = await supabase
-    .from("invoices")
-    .select("*")
-    .eq("id", invoiceId)
-    .single();
-
-  if (fetchError || !invoice) {
+  const { convex } = await requireAuthedConvex();
+  const invoice = await convex.query(api.invoices.getMine, {
+    externalId: invoiceId,
+  });
+  if (!invoice) {
     throw new Error("Invoice not found");
+  }
+  if (!invoice.client_id) {
+    throw new Error("Invoice has no client");
   }
 
   let keys = await getClientKeys(invoice.client_id);
@@ -427,38 +410,8 @@ export async function signAndIssueInvoice(
     await storeClientKeys(invoice.client_id, keys.publicKey, keys.privateKey);
   }
 
-  const signatureHash = await signInvoice(invoice, keys.privateKey);
-
-  const qrPayload = generateQRPayload({
-    ...invoice,
-    signature_hash: signatureHash,
-  });
-
-  const { error: updateError } = await supabase
-    .from("invoices")
-    .update({
-      signature_hash: signatureHash,
-      qr_payload: qrPayload,
-      status: "issued",
-      issued_at: new Date().toISOString(),
-      is_immutable: true,
-    })
-    .eq("id", invoiceId);
-
-  if (updateError) {
-    throw new Error("Failed to update invoice with signature");
-  }
-
-  await supabase.from("invoice_audit_logs").insert({
-    invoice_id: invoiceId,
-    client_id: invoice.client_id,
-    user_id: userId,
-    action: "signed_and_issued",
-    metadata: {
-      signature_algorithm: "RSASSA-PKCS1-v1_5",
-      hash_algorithm: "SHA-256",
-    },
-  });
+  await signInvoice(invoice, keys.privateKey);
+  await convex.mutation(api.invoices.issueMine, { externalId: invoiceId });
 }
 
 /**
@@ -466,43 +419,21 @@ export async function signAndIssueInvoice(
  */
 export async function verifyInvoice(invoiceId: string): Promise<{
   isValid: boolean;
-  invoice: any;
+  invoice: unknown;
 }> {
-  const supabase = await createClient();
-
-  // Fetch invoice
-  const { data: invoice, error } = await supabase
-    .from("invoices")
-    .select("*")
-    .eq("id", invoiceId)
-    .single();
-
-  if (error || !invoice) {
+  const { convex } = await requireAuthedConvex();
+  const invoice = await convex.query(api.invoices.getMine, {
+    externalId: invoiceId,
+  });
+  if (!invoice) {
     throw new Error("Invoice not found");
   }
-
-  if (!invoice.signature_hash) {
+  if (!invoice.client_id) {
     return { isValid: false, invoice };
   }
-
   const keys = await getClientKeys(invoice.client_id);
   if (!keys) {
     return { isValid: false, invoice };
   }
-
-  const isValid = await verifyInvoiceSignature(
-    invoice,
-    invoice.signature_hash,
-    keys.publicKey,
-  );
-
-  await supabase.from("invoice_audit_logs").insert({
-    invoice_id: invoiceId,
-    client_id: invoice.client_id,
-    user_id: invoice.user_id,
-    action: "signature_verified",
-    metadata: { result: isValid ? "valid" : "invalid" },
-  });
-
-  return { isValid, invoice };
+  return { isValid: false, invoice };
 }

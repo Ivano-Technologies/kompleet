@@ -1,3 +1,4 @@
+// TODO(IVA-67 Phase 3 OUT): categorization_predictions / ML tables are not in Convex schema. Do not invent tables.
 import { NextRequest, NextResponse } from "next/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { llmCategorize } from "@/lib/services/llm-categorization-service";

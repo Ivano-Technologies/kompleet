@@ -1,3 +1,4 @@
+// TODO(IVA-67 Phase 3 OUT): categorization_predictions / user_learning_profiles are not in Convex schema.
 /**
  * API endpoint for transaction categorization
  * POST /api/categorize

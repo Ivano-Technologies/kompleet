@@ -2,13 +2,12 @@
  * Tax Rules API
  * GET /api/tax-rules?type=vat — active rules with gaps filled from the
  * latest inactive (unverified) rule_version. See loadRuleBundle.
- * Protected: Requires 'calculators:read' permission
  */
 
-import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@/lib/auth/with-auth";
 import { loadRuleBundle } from "@/lib/tax/rule-loader";
+import { requireAuthedConvex } from "@/lib/convex/server";
 
 async function handleGET(request: NextRequest) {
   try {
@@ -22,10 +21,10 @@ async function handleGET(request: NextRequest) {
       );
     }
 
-    const supabase = await getSupabaseForRequest(request);
+    const { convex } = await requireAuthedConvex(request);
     const bundle = await loadRuleBundle({
       ruleTypes: [ruleType],
-      client: supabase,
+      convex,
     });
 
     const rulesMap: Record<

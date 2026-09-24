@@ -11,36 +11,31 @@ import {
   WidthType,
 } from "docx";
 import { ZipArchive } from "archiver";
-import { createServerClient as createClient } from "@/lib/supabase/server";
+import type { ConvexHttpClient } from "convex/browser";
+import { listAllTransactionsMine } from "@/lib/convex/money-lists";
 
 // =====================================================
 // CSV Export
 // =====================================================
 
-// Shared data fetcher — used by individual exports and bulk ZIP
-async function fetchTransactions(userId: string, taxYear?: number) {
-  const supabase = await createClient();
-
-  let query = supabase
-    .from("transactions")
-    .select("*, categories(name)")
-    .eq("user_id", userId)
-    .order("transaction_date", { ascending: false });
-
-  if (taxYear) {
-    // Filter by transaction_date year range — avoids dependency on generated column
-    query = query
-      .gte("transaction_date", `${taxYear}-01-01`)
-      .lte("transaction_date", `${taxYear}-12-31`);
-  }
-
-  const { data: transactions, error } = await query;
-
-  if (error) {
-    throw new Error(`Failed to fetch transactions: ${error.message}`);
-  }
-
-  return transactions || [];
+async function fetchTransactions(convex: ConvexHttpClient, taxYear?: number) {
+  const yearFilters =
+    typeof taxYear === "number"
+      ? {
+          startDate: `${taxYear}-01-01`,
+          endDate: `${taxYear}-12-31`,
+        }
+      : {};
+  const { transactions } = await listAllTransactionsMine(convex, yearFilters);
+  return transactions.map((t) => ({
+    transaction_date: t.transaction_date,
+    transaction_type: t.transaction_type,
+    type: t.transaction_type === "credit" ? "income" : "expense",
+    categories: t.category ? { name: t.category.name } : null,
+    description: t.description,
+    amount: t.amount,
+    tax_year: taxYear ?? Number(t.transaction_date.slice(0, 4)),
+  }));
 }
 
 type TransactionExportRow = {
@@ -63,10 +58,7 @@ export async function exportTransactionsCSV(
   taxYear?: number,
   preloadedData?: TransactionExportRow[],
 ) {
-  const transactions = asExportRows(
-    preloadedData ??
-      (userId ? ((await fetchTransactions(userId, taxYear)) as TransactionExportRow[]) : []),
-  );
+  const transactions = asExportRows(preloadedData);
 
   // Generate CSV
   const headers = [
@@ -104,10 +96,7 @@ export async function exportTransactionsExcel(
   taxYear?: number,
   preloadedData?: TransactionExportRow[],
 ) {
-  const transactions = asExportRows(
-    preloadedData ??
-      (userId ? ((await fetchTransactions(userId, taxYear)) as TransactionExportRow[]) : []),
-  );
+  const transactions = asExportRows(preloadedData);
 
   // Create workbook
   const workbook = new ExcelJS.Workbook();
@@ -166,23 +155,30 @@ export async function exportTransactionsExcel(
 // =====================================================
 
 export async function exportFinancialStatementWord(
-  userId: string,
+  convex: ConvexHttpClient,
   taxYear: number,
   statementType: "balance_sheet" | "pnl" | "tax_summary",
-  preloadedData?: any[],
+  preloadedData?: TransactionExportRow[],
 ) {
   const transactions =
-    preloadedData ?? (await fetchTransactions(userId, taxYear));
+    preloadedData ?? (await fetchTransactions(convex, taxYear));
+
+  const isIncome = (t: TransactionExportRow) =>
+    t.transaction_type === "credit" ||
+    (t as { type?: string }).type === "income";
+  const isExpense = (t: TransactionExportRow) =>
+    t.transaction_type === "debit" ||
+    (t as { type?: string }).type === "expense";
 
   // Calculate totals
   const income =
     transactions
-      ?.filter((t) => t.type === "income")
-      .reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
+      ?.filter(isIncome)
+      .reduce((sum, t) => sum + Number(t.amount || 0), 0) || 0;
   const expenses =
     transactions
-      ?.filter((t) => t.type === "expense")
-      .reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
+      ?.filter(isExpense)
+      .reduce((sum, t) => sum + Number(t.amount || 0), 0) || 0;
   const netIncome = income - expenses;
   const taxLiability = Math.max(0, netIncome * 0.2); // Simplified 20% tax
 
@@ -689,11 +685,10 @@ export async function exportFinancialStatementWord(
 // =====================================================
 
 export async function createBulkExportZIP(
-  userId: string,
+  convex: ConvexHttpClient,
   taxYear?: number,
 ): Promise<Buffer> {
-  // Fetch transactions ONCE — eliminates N+1 query (was 3-5 separate DB calls)
-  const transactions = await fetchTransactions(userId, taxYear);
+  const transactions = await fetchTransactions(convex, taxYear);
 
   return new Promise(async (resolve, reject) => {
     try {
@@ -706,7 +701,7 @@ export async function createBulkExportZIP(
 
       // Add transactions CSV (using preloaded data)
       const csvBuffer = await exportTransactionsCSV(
-        userId,
+        undefined,
         taxYear,
         transactions,
       );
@@ -714,7 +709,7 @@ export async function createBulkExportZIP(
 
       // Add transactions Excel (using preloaded data)
       const excelBuffer = await exportTransactionsExcel(
-        userId,
+        undefined,
         taxYear,
         transactions,
       );
@@ -723,7 +718,7 @@ export async function createBulkExportZIP(
       // Add financial statements (Word) — using preloaded data
       if (taxYear) {
         const balanceSheetBuffer = await exportFinancialStatementWord(
-          userId,
+          convex,
           taxYear,
           "balance_sheet",
           transactions,
@@ -733,7 +728,7 @@ export async function createBulkExportZIP(
         });
 
         const pnlBuffer = await exportFinancialStatementWord(
-          userId,
+          convex,
           taxYear,
           "pnl",
           transactions,
@@ -741,7 +736,7 @@ export async function createBulkExportZIP(
         archive.append(pnlBuffer, { name: `profit_loss_${taxYear}.docx` });
 
         const taxSummaryBuffer = await exportFinancialStatementWord(
-          userId,
+          convex,
           taxYear,
           "tax_summary",
           transactions,

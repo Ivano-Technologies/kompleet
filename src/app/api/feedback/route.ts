@@ -1,3 +1,4 @@
+// TODO(IVA-67 Phase 3 OUT): categorization_feedback is not in Convex schema. Do not invent tables.
 /**
  * API endpoint for categorization feedback
  * POST /api/feedback - Record user correction

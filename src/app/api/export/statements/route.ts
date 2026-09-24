@@ -1,24 +1,17 @@
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { exportFinancialStatementWord } from "@/lib/export-service";
+import { api } from "@/lib/convex/http";
+import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 
 async function handlePOST(request: NextRequest) {
   try {
-    const supabase = await getSupabaseForRequest(request);
-
-    // Get authenticated user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Parse request body
+    const { convex } = await requireAuthedConvex(request);
     const body = await request.json();
-    const { statement_type, tax_year } = body;
+    const { statement_type, tax_year } = body as {
+      statement_type?: string;
+      tax_year?: number;
+    };
 
     if (
       !statement_type ||
@@ -40,22 +33,18 @@ async function handlePOST(request: NextRequest) {
       );
     }
 
-    // Log export action (fire-and-forget)
-    supabase.from("audit_logs").insert({
-      user_id: user.id,
+    await convex.mutation(api.audit.append, {
       action: "export",
-      resource_type: "financial_statement",
-      tax_year,
-      metadata: { statement_type },
-      ip_address: request.headers.get("x-forwarded-for") || "unknown",
-      user_agent: request.headers.get("user-agent") || "unknown",
-    }).then(undefined, () => {});
+      resourceType: "financial_statement",
+      ipAddress: request.headers.get("x-forwarded-for") || "unknown",
+      userAgent: request.headers.get("user-agent") || "unknown",
+      metadata: { statement_type, tax_year },
+    });
 
-    // Generate Word document
     const buffer = await exportFinancialStatementWord(
-      user.id,
+      convex,
       tax_year,
-      statement_type,
+      statement_type as "balance_sheet" | "pnl" | "tax_summary",
     );
 
     const statementNames: Record<string, string> = {
@@ -64,24 +53,16 @@ async function handlePOST(request: NextRequest) {
       tax_summary: "Tax_Summary",
     };
 
-    const filename = `${statementNames[statement_type as string]}_${tax_year}.docx`;
+    const filename = `${statementNames[statement_type]}_${tax_year}.docx`;
 
-    // Create export history record (fire-and-forget — don't block the download)
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7); // 7 days TTL
-
-    supabase.from("export_history").insert({
-      user_id: user.id,
-      export_type: "financial_statement",
+    await convex.mutation(api.exports.createMine, {
+      exportType: "financial_statement",
       format: "word",
-      tax_year,
+      taxYear: tax_year,
       status: "complete",
-      file_size: buffer.length,
-      expires_at: expiresAt.toISOString(),
-      completed_at: new Date().toISOString(),
-    }).then(undefined, () => {});
+      fileSize: buffer.length,
+    });
 
-    // Convert Buffer to ReadableStream for Next.js 15 + TypeScript 5.9.3 compatibility
     const stream = new ReadableStream({
       start(controller) {
         controller.enqueue(buffer);
@@ -89,7 +70,6 @@ async function handlePOST(request: NextRequest) {
       },
     });
 
-    // Return file
     return new NextResponse(stream, {
       headers: {
         "Content-Type":
@@ -99,10 +79,12 @@ async function handlePOST(request: NextRequest) {
       },
     });
   } catch (error) {
+    if (isUnauthorized(error)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     console.error("Error in /api/export/statements:", error);
     return NextResponse.json({ error: "Export failed" }, { status: 500 });
   }
 }
 
-// Apply rate limiting
 export const POST = withRateLimit(handlePOST, { limit: 20 });

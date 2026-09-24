@@ -1,23 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
+import { api } from "@/lib/convex/http";
+import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 
 async function handlePOST(request: NextRequest) {
   try {
-    const supabase = await getSupabaseForRequest(request);
-
-    // Get authenticated user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Parse request body
+    const { convex } = await requireAuthedConvex(request);
     const body = await request.json();
-    const { action, resource_type, resource_id, tax_year, metadata } = body;
+    const { action, resource_type, resource_id, tax_year, metadata } = body as {
+      action?: string;
+      resource_type?: string;
+      resource_id?: string;
+      tax_year?: number;
+      metadata?: unknown;
+    };
 
     if (!action || !resource_type) {
       return NextResponse.json(
@@ -26,38 +22,27 @@ async function handlePOST(request: NextRequest) {
       );
     }
 
-    // Get client IP and user agent
-    const ip_address =
-      request.headers.get("x-forwarded-for") ||
-      request.headers.get("x-real-ip") ||
-      "unknown";
-    const user_agent = request.headers.get("user-agent") || "unknown";
-
-    // Insert audit log
-    const { error: insertError } = await supabase.from("audit_logs").insert({
-      user_id: user.id,
+    await convex.mutation(api.audit.append, {
       action,
-      resource_type,
-      resource_id: resource_id || null,
-      tax_year: tax_year || null,
-      metadata: metadata || {},
-      ip_address,
-      user_agent,
+      resourceType: resource_type,
+      entityId: resource_id,
+      ipAddress:
+        request.headers.get("x-forwarded-for") ||
+        request.headers.get("x-real-ip") ||
+        "unknown",
+      userAgent: request.headers.get("user-agent") || "unknown",
+      metadata: {
+        ...(metadata && typeof metadata === "object" ? metadata : {}),
+        tax_year: tax_year ?? null,
+      },
     });
-
-    if (insertError) {
-      console.error("Error inserting audit log:", insertError);
-      // Don't fail the request if audit logging fails
-      return NextResponse.json({
-        success: true,
-        warning: "Audit log failed but action completed",
-      });
-    }
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    if (isUnauthorized(error)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     console.error("Error in /api/audit/log:", error);
-    // Don't fail the request if audit logging fails
     return NextResponse.json({
       success: true,
       warning: "Audit log failed but action completed",

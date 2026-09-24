@@ -1,3 +1,4 @@
+// TODO(IVA-67 Phase 3 OUT): data_migration_logs is not in Convex schema. Do not invent tables.
 /**
  * Data Migration API
  * POST /api/migration/migrate - Migrate data between tax years

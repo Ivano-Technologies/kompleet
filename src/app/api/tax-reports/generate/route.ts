@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { TaxComputationService } from "@/lib/services/tax-computation-service";
 import { loadRuleBundle } from "@/lib/tax/rule-loader";
 import { MissingTaxRuleError } from "@/lib/tax/errors";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { z } from "zod";
+import { api } from "@/lib/convex/http";
+import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 
 const taxReportSchema = z.object({
   reportType: z.string().min(1),
@@ -33,17 +34,7 @@ export const runtime = "nodejs";
 
 async function handlePOST(request: NextRequest) {
   try {
-    const supabase = await getSupabaseForRequest(request);
-
-    // Check authentication
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
+    const { convex } = await requireAuthedConvex(request);
     const body = await request.json();
     const parsed = taxReportSchema.safeParse(body);
 
@@ -73,7 +64,6 @@ async function handlePOST(request: NextRequest) {
       ownerOccupierInterest,
     } = parsed.data;
 
-    // Prepare computation input
     const validBusinessTypes = [
       "individual",
       "small_company",
@@ -101,21 +91,17 @@ async function handlePOST(request: NextRequest) {
       ownerOccupierInterest,
     };
 
-    // Load tax rules (active version, gaps filled from the latest
-    // unverified candidate version) and compute tax.
-    const rules = await loadRuleBundle({ client: supabase });
+    const rules = await loadRuleBundle({ convex });
     const computation = TaxComputationService.computeTax(
       computationInput,
       rules,
     );
 
-    // Save tax report to database
-    const { data: taxReport, error: saveError } = await supabase
-      .from("tax_reports")
-      .insert({
-        user_id: user.id,
-        report_type: reportType,
-        tax_year: taxYear,
+    const taxReport = await convex.mutation(api.tax.saveReport, {
+      reportType,
+      taxYear,
+      computationData: {
+        ...computation,
         period_start: periodStart,
         period_end: periodEnd,
         business_classification: computation.businessClassification,
@@ -128,25 +114,21 @@ async function handlePOST(request: NextRequest) {
         development_levy: computation.developmentLevy,
         total_tax_liability: computation.totalTaxLiability,
         effective_tax_rate: computation.effectiveTaxRate,
-        computation_data: computation,
         status: "draft",
-      })
-      .select()
-      .single();
-
-    if (saveError) {
-      console.error("Error saving tax report:", saveError);
-      return NextResponse.json({ error: saveError.message }, { status: 400 });
-    }
+      },
+    });
 
     return NextResponse.json({ report: taxReport, computation });
-  } catch (error: any) {
+  } catch (error) {
+    if (isUnauthorized(error)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     console.error("Error in POST /api/tax-reports/generate:", error);
     if (error instanceof MissingTaxRuleError) {
       return NextResponse.json({ error: error.message }, { status: 422 });
     }
     return NextResponse.json(
-      { error: error.message || "Internal server error" },
+      { error: error instanceof Error ? error.message : "Internal server error" },
       { status: 500 },
     );
   }

@@ -1,32 +1,23 @@
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseForRequest } from "@/lib/supabase/server";
 import {
   generatePITForm,
   generateCITForm,
   generateVATForm,
 } from "@/lib/nrs-forms";
 import { z } from "zod";
+import { api } from "@/lib/convex/http";
+import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 
 const formGenerateSchema = z.object({
   formType: z.enum(["PIT", "CIT", "VAT"]),
   taxYear: z.number().int().min(2000).max(2100),
-  formData: z.record(z.string(), z.any()),
+  formData: z.record(z.string(), z.unknown()),
 });
 
 async function handlePOST(request: NextRequest) {
   try {
-    const supabase = await getSupabaseForRequest(request);
-
-    // Check authentication
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
+    const { convex } = await requireAuthedConvex(request);
     const body = await request.json();
     const parsed = formGenerateSchema.safeParse(body);
 
@@ -39,18 +30,17 @@ async function handlePOST(request: NextRequest) {
 
     const { formType, taxYear, formData } = parsed.data;
 
-    // Generate PDF based on form type
     let pdf;
     try {
       switch (formType) {
         case "PIT":
-          pdf = generatePITForm(formData as any);
+          pdf = generatePITForm(formData as never);
           break;
         case "CIT":
-          pdf = generateCITForm(formData as any);
+          pdf = generateCITForm(formData as never);
           break;
         case "VAT":
-          pdf = generateVATForm(formData as any);
+          pdf = generateVATForm(formData as never);
           break;
         default:
           throw new Error("Invalid form type");
@@ -63,41 +53,13 @@ async function handlePOST(request: NextRequest) {
       );
     }
 
-    // Convert PDF to base64
     const pdfOutput = pdf.output("datauristring");
-
-    // Save form record to database
-    const { data: formRecord, error: dbError } = await supabase
-      .from("nrs_forms")
-      .insert({
-        user_id: user.id,
-        form_type: formType,
-        tax_year: taxYear,
-        form_data: formData,
-        pdf_url: pdfOutput,
-        status: "generated",
-      })
-      .select()
-      .single();
-
-    if (dbError) {
-      console.error("Database error:", dbError);
-      return NextResponse.json(
-        { error: "Failed to save form record" },
-        { status: 500 },
-      );
-    }
-
-    // Log audit trail
-    await supabase.from("filing_audit_logs").insert({
-      user_id: user.id,
-      action: "FORM_GENERATED",
-      form_id: formRecord.id,
-      details: {
-        form_type: formType,
-        tax_year: taxYear,
-        timestamp: new Date().toISOString(),
-      },
+    const formRecord = await convex.mutation(api.forms.createMine, {
+      formType,
+      taxYear,
+      formData,
+      pdfUrl: pdfOutput,
+      status: "generated",
     });
 
     return NextResponse.json({
@@ -107,6 +69,9 @@ async function handlePOST(request: NextRequest) {
       message: `${formType} form generated successfully`,
     });
   } catch (error) {
+    if (isUnauthorized(error)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     console.error("Form generation error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
@@ -115,5 +80,4 @@ async function handlePOST(request: NextRequest) {
   }
 }
 
-// Apply rate limiting
 export const POST = withRateLimit(handlePOST, { limit: 20 });

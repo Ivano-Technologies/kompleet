@@ -1,55 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseForRequest } from "@/lib/supabase/server";
-import { withRateLimit } from "@/lib/with-rate-limit";
+import { api } from "@/lib/convex/http";
+import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 
 async function handleGET(request: NextRequest) {
   try {
-    const supabase = await getSupabaseForRequest(request);
-
-    // Get authenticated user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-    if (authError || !user) {
+    const { convex } = await requireAuthedConvex(request);
+    const years = await convex.query(api.year.listMine, {});
+    const currentYear = new Date().getFullYear();
+    const fallback = [currentYear - 2, currentYear - 1, currentYear];
+    return NextResponse.json({
+      years: years.length > 0 ? years : fallback,
+    });
+  } catch (error) {
+    if (isUnauthorized(error)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    // Fetch available tax years for the user
-    const { data: taxYears, error } = await supabase
-      .from("user_tax_years")
-      .select("tax_year")
-      .eq("user_id", user.id)
-      .order("tax_year", { ascending: false });
-
-    if (error) {
-      console.error("Error fetching tax years:", error);
-      // Return default years if query fails
-      const currentYear = new Date().getFullYear();
-      return NextResponse.json({
-        years: [currentYear - 2, currentYear - 1, currentYear],
-      });
-    }
-
-    // Extract years from results
-    const years = taxYears?.map((ty) => ty.tax_year) || [];
-
-    // If no years found, return default years
-    if (years.length === 0) {
-      const currentYear = new Date().getFullYear();
-      return NextResponse.json({
-        years: [currentYear - 2, currentYear - 1, currentYear],
-      });
-    }
-
-    return NextResponse.json({ years });
-  } catch (error) {
-    console.error("Error in /api/year/available:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    const currentYear = new Date().getFullYear();
+    return NextResponse.json({
+      years: [currentYear - 2, currentYear - 1, currentYear],
+    });
   }
 }
 
-export const GET = withRateLimit(handleGET, { limit: 120 });
+export const GET = handleGET;
