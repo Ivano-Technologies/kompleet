@@ -21,11 +21,32 @@ Related: [convex-migration-plan.md](./convex-migration-plan.md) (IVA-60 inventor
 | Supabase project | `frlcvkmjuhnjcicwywrh`. **No pause / delete** until the strip is live on staging **and** CoS + Kezie go. Keep-alive is `GET /api/health/db` → Supabase `tax_rules`. |
 | Convex deployment | `shiny-cricket-316` (`techivano` / `kompleet` / `dev/main`). Develop with `npx convex dev`. Never `npx convex deploy` from this work. |
 
+### CoS staging smoke (money path)
+
+| Check | Result |
+| --- | --- |
+| Session | **PASS** |
+| Tx / Invoices nav | **PASS** |
+| CSV upload | **FAIL** — `POST /api/transactions/upload-v2` → **400** `"No valid transactions found"` |
+
+**Flag `src/app/api/transactions/upload-v2` as a Phase 2 / money-path verification + fix target** even though the route is already on Convex. It is **not** a leftover Supabase route.
+
+Code check on this tip (`b3633c732`):
+
+- Route uses `requireAuthedConvex`, `api.imports.*`, `api.transactions.createManyMine` / `listMine`, `uploadToConvexStorage`. **No** `getSupabaseForRequest` / `@/lib/supabase` / `@supabase/*` import.
+- Parser stack (`src/lib/transaction-import/*`) has **no** Supabase imports. No silent SB fallback in the handler.
+- Browser UI (`src/components/transaction-upload.tsx`) only `fetch("/api/transactions/upload-v2")`. **No `convex.*` in the browser is expected** — Convex mutations run server-side via `ConvexHttpClient`. Absence of browser Convex calls does not mean a Supabase path.
+- The 400 body is returned when `parseBankStatement` yields `transactions.length === 0` (then `imports.updateSession` status `failed`). That is parser/validation, not an auth or store cutover miss.
+- Legacy `POST /api/transactions/upload` **is** still on Supabase; the live upload page does **not** call it.
+
+Phase 2 must: (1) confirm Convex-only persist on a passing CSV, (2) fix or explain parser/bank-code/`bankCode` validation so a known-good statement imports, (3) prove the handler never falls back to Supabase.
+
 ### Already Convex (do not list as still on Supabase)
 
 - Invoice **CRUD APIs** (`src/app/api/invoices/**`)
 - Expense **CRUD + categories** (`expenses/route`, `expenses/[id]`, `expenses/categories`)
-- Transaction **list / [id] / upload-v2 / import-history**
+- Transaction **list / [id] / import-history**
+- Transaction **`upload-v2`** — Convex-only persist, but **Phase 2 money-path verify/fix** (CoS smoke FAIL above). Do not recut to Supabase.
 - Login / signup / `/api/auth` (Convex Auth)
 - `change-password` → `api.accounts.changePassword`
 - `delete-account` → `api.users.softDeleteMine` (Convex-only; comment says it does not pause/delete the SB project)
@@ -46,7 +67,8 @@ Kill-order is the suggested sequence **inside Phase 2+** (see §6). Dual-write t
 
 | Domain | Still on Supabase (paths) | Target Convex module | Strategy | Risk | Kill-order |
 | --- | --- | --- | --- | --- | --- |
-| **transactions leftovers (4)** | `transactions/upload`, `transactions/export`, `transactions/duplicates`, `export/transactions` | Existing `convex/transactions.ts` + `convex/imports.ts` + `convex/exports.ts` | Dual-write then cut | **High** — list/create is Convex; these four still hit SB | **1** |
+| **transactions leftovers (4)** | `transactions/upload` (legacy, unused by live UI), `transactions/export`, `transactions/duplicates`, `export/transactions` | Existing `convex/transactions.ts` + `convex/imports.ts` + `convex/exports.ts` | Dual-write then cut | **High** — list/create is Convex; these four still hit SB | **1** |
+| **upload-v2 (already Convex)** | Not on SB. `src/app/api/transactions/upload-v2` — CoS smoke **400** `"No valid transactions found"`. Server-side Convex only; no SB fallback in code. | Existing `convex/imports.ts` + `convex/transactions.ts` + `convex/files.ts`. Parser: `src/lib/transaction-import/*` | **Verify/fix** (not a recut). Confirm Convex persist + parser/validation; prove no SB fallback | **High** — money-path upload is the live import | **1** (Phase 2 money path) |
 | **expenses leftovers (2)** | `expenses/export`, `expenses/ocr` | Existing `convex/expenses.ts`. OCR auth → `requireAuthedConvex` | Dual-write then cut | **High** (export split-brain). OCR is SB auth only | **2** |
 | **mobile** | `apps/mobile/lib/supabase/client.ts`; `receipt-upload.ts` (Storage bucket `receipts`); `sync/sync-engine.ts` (`expenses` table); `app/(tabs)/index.tsx` sync; `app.config.ts` `EXPO_PUBLIC_SUPABASE_*`; `apps/mobile/package.json` `@supabase/supabase-js` | Propose `apps/mobile/lib/convex/client.ts`. Reuse `convex/expenses.ts` + `convex/files.ts` | Dual-write then cut (sync/storage with expense leftovers) | **High** (field devices) | **2** (sync/storage) then **10** (dep drop) |
 | **reports / exports (7 APIs + 2 SSR)** | APIs: `reports/export-pdf`, `reports/balance-sheet`, `reports/profit-loss`, `financial-statements/generate`, `analytics/yoy/summary`, `export/bulk`, `export/statements`. SSR: `(dashboard)/reports/page.tsx`, `yoy-comparison/page.tsx` still `createServerClient` + `requireServerUser` | Propose `convex/reports.ts`. Reuse `convex/transactions.ts` (`totalsForYear` / `monthlyTotals`) + `convex/exports.ts` + schema `financialStatements` | Cutover after money-path soak | Medium | **3** |
@@ -60,7 +82,7 @@ Kill-order is the suggested sequence **inside Phase 2+** (see §6). Dual-write t
 
 ### Already Convex (explicit non-list)
 
-Do **not** recut: invoice CRUD APIs; expense CRUD + categories; transaction list / `[id]` / `upload-v2` / `import-history`; login / signup / `/api/auth`.
+Do **not** recut: invoice CRUD APIs; expense CRUD + categories; transaction list / `[id]` / `import-history`; login / signup / `/api/auth`. **`upload-v2` stays Convex** — Phase 2 verifies/fixes parser + persist, does not move it back to SB.
 
 ---
 
@@ -103,6 +125,7 @@ Inferred from `supabase/migrations` and live `.from()` usage. Convex names are *
 | Class | Kill-order | Recommendation |
 | --- | --- | --- |
 | Transaction leftovers (4) | 1 | **Dual-write then cut** onto existing Convex modules. Do not dual-write *back* onto empty SB tables if no client still reads Postgres. |
+| **`upload-v2` (already Convex)** | 1 | **Verify/fix, do not recut.** CoS smoke: session PASS, Tx/Invoices nav PASS, CSV upload FAIL (400 no valid txns). Confirm Convex-only path + parser/`bankCode` behavior. |
 | Expense leftovers + mobile sync/storage | 2 | **Dual-write then cut.** Flip `expenses/export` + `ocr` with mobile `sync-engine` / `receipts` bucket so devices do not diverge. |
 | Reports / exports + SSR | 3 | **Cutover** after money-path soak. |
 | Tax / compliance (15) | 4 | **Cutover** after soak; checksum vs last SB row counts. Prefer existing `convex/tax.ts`. |
@@ -141,7 +164,7 @@ Inferred from `supabase/migrations` and live `.from()` usage. Convex names are *
 
 ### Kill-order inside Phase 2+
 
-1. Transaction leftovers (`upload`, `export`, `duplicates`, `export/transactions`)
+1. Transaction leftovers (`upload`, `export`, `duplicates`, `export/transactions`) **+ verify/fix `upload-v2`** (already Convex; CoS CSV upload FAIL)
 2. Expense export/ocr **+** mobile sync/storage
 3. Reports / exports + SSR pages
 4. Tax / compliance (15 routes)
