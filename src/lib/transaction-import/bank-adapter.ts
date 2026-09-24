@@ -1,19 +1,15 @@
 /**
  * Bank Adapter Factory
- * Routes parsing to bank-specific adapters for 10 Nigerian banks
+ * Routes parsing to bank-specific adapters for Nigerian banks
  */
 
-import { getBankConfig, BANK_CONFIGS } from "./bank-configs";
+import { getBankConfig, BANK_CONFIGS, resolveBankCode } from "./bank-configs";
 import { parseCSV, ParseResult } from "./csv-parser";
 import { parseExcel } from "./excel-parser";
 
 export type FileType = "csv" | "excel" | "pdf";
 
-/**
- * Parse bank statement file using appropriate adapter
- * @param password - Optional password for encrypted PDF or Excel files
- */
-export async function parseBankStatement(
+async function parseOnce(
   fileContent: Buffer | string,
   bankCode: string,
   fileType: FileType,
@@ -29,7 +25,6 @@ export async function parseBankStatement(
   }
 
   const bankConfig = getBankConfig(bankCode);
-
   if (!bankConfig) {
     throw new Error(`Unsupported bank: ${bankCode}`);
   }
@@ -40,14 +35,69 @@ export async function parseBankStatement(
         ? fileContent
         : fileContent.toString("utf-8");
     return parseCSV(content, bankConfig);
-  } else if (fileType === "excel") {
+  }
+
+  if (fileType === "excel") {
     const buffer = Buffer.isBuffer(fileContent)
       ? fileContent
       : Buffer.from(fileContent);
     return parseExcel(buffer, bankConfig, password);
-  } else {
-    throw new Error(`Unsupported file type: ${fileType}`);
   }
+
+  throw new Error(`Unsupported file type: ${fileType}`);
+}
+
+async function parseWithGenericFallback(
+  fileContent: Buffer | string,
+  bankCode: string,
+  fileType: FileType,
+  password?: string,
+): Promise<ParseResult> {
+  const primary = await parseOnce(fileContent, bankCode, fileType, password);
+  if (primary.transactions.length > 0 || fileType !== "csv") {
+    return primary;
+  }
+  if (bankCode === "GENERIC") {
+    return primary;
+  }
+  const generic = await parseOnce(fileContent, "GENERIC", fileType, password);
+  if (generic.transactions.length > 0) {
+    return generic;
+  }
+  return primary;
+}
+
+/**
+ * Parse bank statement file using appropriate adapter
+ * @param password - Optional password for encrypted PDF or Excel files
+ */
+export async function parseBankStatement(
+  fileContent: Buffer | string,
+  bankCode: string,
+  fileType: FileType,
+  password?: string,
+): Promise<ParseResult> {
+  const resolved = resolveBankCode(bankCode);
+  if (!resolved) {
+    throw new Error(`Unsupported bank: ${bankCode}`);
+  }
+
+  if (resolved === "AUTO") {
+    const buffer = Buffer.isBuffer(fileContent)
+      ? fileContent
+      : Buffer.from(fileContent);
+    const { detectBank } = await import("./bank-detector");
+    const detected = await detectBank(buffer);
+    const detectedCode = detected.bankCode ?? "GENERIC";
+    return parseWithGenericFallback(
+      fileContent,
+      detectedCode,
+      fileType,
+      password,
+    );
+  }
+
+  return parseWithGenericFallback(fileContent, resolved, fileType, password);
 }
 
 /**
@@ -68,7 +118,6 @@ export function detectFileType(fileName: string, mimeType?: string): FileType {
     return "pdf";
   }
 
-  // Fallback to MIME type
   if (mimeType) {
     if (mimeType.includes("csv") || mimeType.includes("text/plain")) {
       return "csv";
@@ -101,8 +150,8 @@ export function getSupportedBanks() {
 }
 
 /**
- * Validate bank code
+ * Validate bank code (canonical or common alias / AUTO / GENERIC)
  */
 export function isValidBankCode(bankCode: string): boolean {
-  return bankCode.toUpperCase() in BANK_CONFIGS;
+  return resolveBankCode(bankCode) !== null;
 }
