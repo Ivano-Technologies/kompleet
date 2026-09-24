@@ -1,34 +1,14 @@
 /**
  * Transaction Upload API Tests (TDD Priority 0)
  * POST /api/transactions/upload and upload-v2: auth required, file type validated.
- * Calls route handlers directly with mocked Supabase (no live server).
+ * Calls route handlers directly (no live server). Unauthenticated requests
+ * fail closed via requireAuthedConvex.
  */
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect } from "vitest";
 import { NextRequest } from "next/server";
 
-const mockGetUser = vi
-  .fn()
-  .mockResolvedValue({ data: { user: null }, error: null });
-const mockSupabase = {
-  auth: { getUser: mockGetUser },
-  from: vi.fn(() => ({
-    insert: vi.fn(),
-    select: vi.fn(),
-    eq: vi.fn(),
-    update: vi.fn(),
-  })),
-};
-vi.mock("@/lib/supabase/server", () => ({
-  createServerClient: vi.fn(() => Promise.resolve(mockSupabase)),
-  getSupabaseForRequest: vi.fn(() => Promise.resolve(mockSupabase)),
-}));
-
 describe("POST /api/transactions/upload-v2", () => {
-  beforeEach(() => {
-    mockGetUser.mockResolvedValue({ data: { user: null }, error: null });
-  });
-
   it("returns 401 when not authenticated", async () => {
     const form = new FormData();
     form.set(

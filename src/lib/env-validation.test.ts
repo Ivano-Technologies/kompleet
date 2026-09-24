@@ -36,39 +36,33 @@ describe("validateEnv", () => {
 
     expect(result.valid).toBe(true);
     if (result.valid) {
-      expect(result.env.NEXT_PUBLIC_SUPABASE_URL).toBe(
-        "https://example.supabase.co",
-      );
+      expect(result.env.OPENAI_API_KEY).toBe("test-openai-key");
+      expect(result.env.STRIPE_SECRET_KEY).toBe("test-stripe-key");
     }
   });
 
   it("should fail validation with missing required vars", () => {
-    // Explicitly clear required vars that may be set by test setup
-    delete process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     delete process.env.OPENAI_API_KEY;
-    delete process.env.SUPABASE_SERVICE_ROLE_KEY;
     delete process.env.STRIPE_SECRET_KEY;
     delete process.env.STRIPE_WEBHOOK_SECRET;
     delete process.env.STRIPE_PRICE_PRO;
     delete process.env.STRIPE_PRICE_ENTERPRISE;
-    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co";
 
     const result = validateEnv();
 
     expect(result.valid).toBe(false);
     if (!result.valid) {
       expect(result.errors.length).toBeGreaterThan(0);
-      expect(
-        result.errors.some((err) =>
-          err.includes("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
-        ),
-      ).toBe(true);
+      expect(result.errors.some((err) => err.includes("OPENAI_API_KEY"))).toBe(
+        true,
+      );
     }
   });
 
-  it("should fail validation with invalid Supabase URL", () => {
-    process.env.NEXT_PUBLIC_SUPABASE_URL = "http://example.com"; // Not https
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "test-anon-key";
+  it("does not require Supabase env after Phase 5", () => {
+    delete process.env.NEXT_PUBLIC_SUPABASE_URL;
+    delete process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    delete process.env.SUPABASE_SERVICE_ROLE_KEY;
     process.env.OPENAI_API_KEY = "test-openai-key";
     process.env.STRIPE_SECRET_KEY = "test-stripe-key";
     process.env.STRIPE_WEBHOOK_SECRET = "test-webhook-secret";
@@ -77,10 +71,7 @@ describe("validateEnv", () => {
 
     const result = validateEnv();
 
-    expect(result.valid).toBe(false);
-    if (!result.valid) {
-      expect(result.errors.some((err) => err.includes("https://"))).toBe(true);
-    }
+    expect(result.valid).toBe(true);
   });
 
   it("should detect potentially exposed secrets", () => {

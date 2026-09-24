@@ -75,7 +75,7 @@ describe("Expense Sprint 4 – Reports, Export & Sync", () => {
         "../apps/mobile/app/(tabs)/index.tsx",
       );
       const content = fs.readFileSync(indexPath, "utf-8");
-      expect(content).toMatch(/useFocusEffect|runSync|getSupabaseClient/);
+      expect(content).toMatch(/useFocusEffect|runSync/);
     });
 
     it("Sync engine documents optional conflict resolution", () => {

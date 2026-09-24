@@ -174,71 +174,6 @@ jobs:
           OPENAI_API_KEY: "sk-test_placeholder"
           DATABASE_URL: "postgresql://test@localhost:5432/test"
 
-  # Wave B (PHASE_3_BRIEF §5). Local Supabase — real JWTs, no hosted secrets.
-  # Default `pnpm test` skips these files (src/test/setup.ts clobbers NEXT_PUBLIC_*).
-  rls-negative:
-    name: rls-negative
-    runs-on: ubuntu-latest
-    timeout-minutes: 25
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-
-      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320
-
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
-        with:
-          # supabase-js 2.112 needs native WebSocket (Node 22+). Node 20 throws
-          # "native WebSocket not found" at createClient in this job.
-          node-version: 22
-          cache: pnpm
-
-      - name: Cache pnpm store
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
-        with:
-          path: ~/.pnpm-store
-          key: pnpm-store-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
-
-      - run: pnpm install --frozen-lockfile
-
-      - name: Cleanup stale local Supabase state
-        run: |
-          # Hosted runners are normally clean, but if a stale local stack from
-          # an earlier step/run holds 54322 this job flakes at `supabase start`.
-          pnpm supabase stop --project-id compleet --no-backup || true
-          pnpm supabase stop --all --no-backup || true
-          docker ps -a --filter "name=supabase_db_kompleet" --format "{{.ID}}" | xargs -r docker rm -f
-          docker ps -a --filter "publish=54322" --format "{{.ID}}" | xargs -r docker rm -f
-
-      - name: Start local Supabase
-        run: pnpm supabase start
-
-      - name: Run cross-tenant negative suite
-        env:
-          CI: "true"
-          KOMPLEET_RLS_REQUIRE: "1"
-        run: |
-          set -euo pipefail
-          unquote() {
-            local v="$1"
-            v="${v#\"}"
-            v="${v%\"}"
-            printf '%s' "$v"
-          }
-          while IFS= read -r line; do
-            case "$line" in
-              API_URL=*) KOMPLEET_RLS_URL="$(unquote "${line#API_URL=}")" ;;
-              ANON_KEY=*) KOMPLEET_RLS_ANON_KEY="$(unquote "${line#ANON_KEY=}")" ;;
-              SERVICE_ROLE_KEY=*) KOMPLEET_RLS_SERVICE_ROLE_KEY="$(unquote "${line#SERVICE_ROLE_KEY=}")" ;;
-              DB_URL=*) KOMPLEET_RLS_DATABASE_URL="$(unquote "${line#DB_URL=}")" ;;
-            esac
-          done < <(pnpm supabase status -o env)
-          if [ -z "${KOMPLEET_RLS_URL:-}" ] || [ -z "${KOMPLEET_RLS_ANON_KEY:-}" ] || [ -z "${KOMPLEET_RLS_SERVICE_ROLE_KEY:-}" ] || [ -z "${KOMPLEET_RLS_DATABASE_URL:-}" ]; then
-            echo "::error::Failed to parse local Supabase credentials from supabase status"
-            exit 1
-          fi
-          export KOMPLEET_RLS_URL KOMPLEET_RLS_ANON_KEY KOMPLEET_RLS_SERVICE_ROLE_KEY KOMPLEET_RLS_DATABASE_URL
-          pnpm test:rls
-
   lint:
     name: lint
     runs-on: ubuntu-latest
@@ -265,10 +200,10 @@ jobs:
   e2e:
     name: e2e
     # Advisory only. A red Playwright job was blocking the keep-alive
-    # production fix (two free-tier pauses). rls-negative and the unit
-    # suite are the gates. Revisit when there is a stable seeded test
-    # environment. Do not delete specs — the passing tests still cover
-    # route protection on five paths, which matters more as tenancy lands.
+    # production fix (two free-tier pauses). The unit suite is the gate
+    # (RLS-negative retired with the supabase/ tree in IVA-64 Phase 5).
+    # Revisit when there is a stable seeded test environment. Do not
+    # delete specs — the passing tests still cover route protection.
     continue-on-error: true
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -391,37 +326,6 @@ jobs:
       - name: Check schema drift
         if: env.DATABASE_URL != ''
         run: pnpm check:schema-drift
-
-  migrations:
-    name: check-migrations-applied
-    runs-on: ubuntu-latest
-    env:
-      # Script uses Session-pooler DATABASE_URL via --db-url (not the access token).
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
-
-      - name: Fetch PR base branch for migration comparison
-        if: env.DATABASE_URL != '' && github.event_name == 'pull_request'
-        run: |
-          git fetch --no-tags --depth=1 origin \
-            "+refs/heads/${GITHUB_BASE_REF}:refs/remotes/origin/${GITHUB_BASE_REF}"
-
-      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320
-        if: env.DATABASE_URL != ''
-
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
-        if: env.DATABASE_URL != ''
-        with:
-          node-version: 20
-          cache: pnpm
-
-      - if: env.DATABASE_URL != ''
-        run: pnpm install --frozen-lockfile
-
-      - name: Check migrations applied
-        if: env.DATABASE_URL != ''
-        run: pnpm check:migrations
 
   security-advisors:
     name: check-security-advisors

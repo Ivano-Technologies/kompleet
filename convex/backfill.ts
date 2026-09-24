@@ -4,6 +4,120 @@ import { v } from "convex/values";
 import { internalAction } from "./_generated/server";
 import { internal } from "./_generated/api";
 
+/** PostgREST row shape used by the one-time backfill. */
+interface SbRow {
+  id?: string | number;
+  name?: string;
+  category_type?: string;
+  category_group?: string;
+  tax_treatment?: string;
+  keywords?: string[];
+  description?: string;
+  is_system?: boolean;
+  created_at?: string;
+  updated_at?: string;
+  entity_type?: string;
+  email?: string;
+  full_name?: string;
+  phone?: string;
+  tin?: string;
+  company_name?: string;
+  rc_number?: string;
+  company_address?: string;
+  subscription_tier?: string;
+  subscription_expires_at?: string;
+  default_currency?: string;
+  fiscal_year_start?: number;
+  onboarding_completed?: boolean;
+  deleted_at?: string;
+  last_login_at?: string;
+  user_id?: string | number;
+  file_name?: string;
+  file_size?: number;
+  bank_code?: string;
+  status?: string;
+  transactions_imported?: number;
+  errors_count?: number;
+  total_amount?: number;
+  completed_at?: string;
+  session_id?: string | number;
+  row_number?: number;
+  error_type?: string;
+  error_message?: string;
+  raw_data?: unknown;
+  transaction_type?: string;
+  transaction_date?: string;
+  amount?: number;
+  balance?: number | string | null;
+  category_id?: string | number;
+  confidence_score?: number;
+  source?: string;
+  reference?: string;
+  notes?: string;
+  is_reconciled?: boolean;
+  export_type?: string;
+  format?: string;
+  tax_year?: number;
+  expires_at?: string;
+  is_custom?: boolean;
+  url?: string;
+  version_number?: string;
+  version?: string;
+  is_active?: boolean;
+  rule_version_id?: string | number;
+  source_id?: string | number;
+  rule_type?: string;
+  rule_key?: string;
+  rule_value?: unknown;
+  confidence_level?: string;
+  idempotency_key?: string;
+  content_type?: string;
+  document_type?: string;
+  file_url?: string;
+  structured_data?: unknown;
+  processing_started_at?: string;
+  processing_attempt_count?: number;
+}
+
+function createPostgrestClient(url: string, key: string) {
+  return {
+    from(table: string) {
+      return {
+        async select(_cols: string) {
+          try {
+            const response = await fetch(
+              `${url.replace(/\/$/, "")}/rest/v1/${table}?select=*`,
+              {
+                headers: {
+                  apikey: key,
+                  Authorization: `Bearer ${key}`,
+                },
+              },
+            );
+            if (!response.ok) {
+              return {
+                data: null,
+                error: { message: await response.text() },
+              };
+            }
+            return {
+              data: (await response.json()) as SbRow[],
+              error: null,
+            };
+          } catch (error) {
+            return {
+              data: null,
+              error: {
+                message: error instanceof Error ? error.message : String(error),
+              },
+            };
+          }
+        },
+      };
+    },
+  };
+}
+
 /**
  * One-time path-B backfill from KOMPLEET Supabase (read-only).
  * Run: `npx convex run backfill/fromSupabase` after setting
@@ -42,10 +156,7 @@ export const fromSupabase = internalAction({
       );
     }
 
-    const { createClient } = await import("@supabase/supabase-js");
-    const supabase = createClient(url, key, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    });
+    const supabase = createPostgrestClient(url, key);
 
     const counts = {
       categories: 0,

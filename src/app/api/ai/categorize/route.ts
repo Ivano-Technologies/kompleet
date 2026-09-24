@@ -1,4 +1,4 @@
-// TODO(IVA-67 Phase 3 OUT): categorization_predictions / ML tables are not in Convex schema. Do not invent tables.
+// TODO(IVA-64 Phase 5): ml_inference_logs is not in Convex schema. Categorize via Convex categories only.
 import { NextRequest, NextResponse } from "next/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { llmCategorize } from "@/lib/services/llm-categorization-service";
@@ -6,8 +6,8 @@ import {
   categorizeTransaction,
   type Category,
 } from "@/lib/services/categorization-service";
-import { getSupabaseForRequest } from "@/lib/supabase/server";
-import { createClient } from "@supabase/supabase-js";
+import { api } from "@/lib/convex/http";
+import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 import { z } from "zod";
 
 const categorizeSchema = z.object({
@@ -18,29 +18,11 @@ const categorizeSchema = z.object({
   timestamp: z.string().optional(),
 });
 
-// Admin client only for ml_inference_logs insert (user may not have insert permission)
-const getAdminClient = () =>
-  createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY ||
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  );
-
 async function handlePOST(request: NextRequest) {
   try {
-    // Auth check
-    const supabase = await getSupabaseForRequest(request);
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
+    const { convex } = await requireAuthedConvex(request);
     const body = await request.json();
     const parsed = categorizeSchema.safeParse(body);
-
     if (!parsed.success) {
       return NextResponse.json(
         { error: "Invalid input", details: parsed.error.flatten() },
@@ -48,20 +30,14 @@ async function handlePOST(request: NextRequest) {
       );
     }
 
-    // Fetch user's categories for context (using per-request client with RLS)
-    const { data: categories } = await supabase
-      .from("categories")
-      .select("id, name, category_type, tax_treatment, keywords");
-
-    const categoryOptions = (categories || []).map((c) => ({
+    const categories = await convex.query(api.categories.list, {});
+    const categoryOptions = categories.map((c) => ({
       name: c.name,
       type: c.category_type,
       tax_treatment: c.tax_treatment,
       keywords: Array.isArray(c.keywords) ? c.keywords : [],
     }));
-
-    // Step 1: Try rules-based categorization first (free, fast)
-    const rulesCategories = (categories || []).map((c) => ({
+    const rulesCategories = categories.map((c) => ({
       id: c.id,
       name: c.name,
       category_type: c.category_type,
@@ -74,14 +50,7 @@ async function handlePOST(request: NextRequest) {
       rulesCategories,
     );
 
-    // If rules-based is confident enough, use it
     if (rulesResult.confidenceScore >= 70) {
-      console.log("[Categorization] Rules-based hit", {
-        merchant: parsed.data.merchant,
-        category: rulesResult.categoryName,
-        confidence: rulesResult.confidenceScore,
-      });
-
       return NextResponse.json({
         category: rulesResult.categoryName,
         confidence: rulesResult.confidenceScore,
@@ -90,13 +59,11 @@ async function handlePOST(request: NextRequest) {
       });
     }
 
-    // Step 2: Fall back to LLM for low-confidence items
     const apiKey =
       process.env.OPENAI_API_KEY ||
       process.env.OPEN_AI_API_KEY ||
       process.env.NEXT_PUBLIC_OPEN_AI_API_KEY;
     if (!apiKey) {
-      // No API key — return rules result even if low confidence
       return NextResponse.json({
         category: rulesResult.categoryName || "Uncategorized",
         confidence: rulesResult.confidenceScore,
@@ -116,30 +83,6 @@ async function handlePOST(request: NextRequest) {
       categoryOptions,
     );
 
-    console.log("[Categorization] LLM result", {
-      merchant: parsed.data.merchant,
-      category: llmResult.category,
-      confidence: llmResult.confidence,
-      inference_id: llmResult.inference_id,
-    });
-
-    // Log inference (non-blocking) — use admin client for cross-table insert
-    getAdminClient()
-      .from("ml_inference_logs")
-      .insert({
-        user_id: user.id,
-        model_version: "gpt-4o-mini",
-        provider: "openai",
-        input: { merchant: parsed.data.merchant, amount: parsed.data.amount },
-        output: {
-          category: llmResult.category,
-          confidence: llmResult.confidence,
-        },
-        confidence: llmResult.confidence,
-        latency_ms: 0,
-        success: true,
-      });
-
     return NextResponse.json({
       category: llmResult.category,
       confidence: llmResult.confidence,
@@ -148,6 +91,9 @@ async function handlePOST(request: NextRequest) {
       provider: "openai",
     });
   } catch (error) {
+    if (isUnauthorized(error)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     console.error("[Categorization Error]", error);
     return NextResponse.json(
       { error: "Internal server error" },

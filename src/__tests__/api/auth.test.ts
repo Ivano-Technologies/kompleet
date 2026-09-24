@@ -12,12 +12,6 @@
 
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest";
 
-// Mock the Supabase client
-vi.mock("@/lib/supabase/server", () => ({
-  createServerClient: vi.fn(),
-  createAdminClient: vi.fn(),
-}));
-
 const BASE_URL = process.env.API_BASE_URL || "http://localhost:3000";
 
 /** Mock 401 response for unauthenticated requests */
