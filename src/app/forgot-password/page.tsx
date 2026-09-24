@@ -72,7 +72,7 @@ export default function ForgotPasswordPage() {
         </div>
         <h1 className="mb-2 font-display text-2xl font-bold text-text-1 dark:text-dark-text-1">Reset your password</h1>
         <p className="text-sm text-text-3 dark:text-dark-text-3">
-          Enter your email and we&apos;ll send you a link to reset your password.
+          Enter your email and we&apos;ll send an 8-digit code to reset your password.
         </p>
       </div>
 
@@ -102,12 +102,12 @@ export default function ForgotPasswordPage() {
           disabled={loading}
           className="mt-6 h-[52px] w-full rounded-xl bg-accent text-sm font-bold text-charcoal shadow-accent transition-all hover:-translate-y-0.5 hover:bg-accent-hover disabled:opacity-50 disabled:transform-none"
         >
-          {loading ? 'Sending...' : 'Send Reset Link'}
+          {loading ? 'Sending...' : 'Send Reset Code'}
         </button>
       </form>
 
       <p className="mt-6 text-center text-xs text-text-4 dark:text-dark-text-4">
-        Secure link expires in 60 minutes for your protection.
+        The code expires in 15 minutes. Existing users can also reclaim by signing up with the same email.
       </p>
     </AuthLayout>
   );
