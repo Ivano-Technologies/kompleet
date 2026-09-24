@@ -1,3 +1,5 @@
+import { BANK_CODE_ALIASES } from "./column-aliases";
+
 /**
  * Bank Configuration Data
  * Defines parsing rules for 10 major Nigerian banks
@@ -364,11 +366,87 @@ export const BANK_CONFIGS: Record<string, BankConfig> = {
       dateFormat: "DD/MM/YYYY",
     },
   },
+
+  // Fallback for statements that don't match a specific bank export
+  GENERIC: {
+    code: "GENERIC",
+    name: "Generic CSV",
+    csvConfig: {
+      delimiter: ",",
+      encoding: "utf-8",
+      dateColumn: "Date",
+      merchantColumn: "Description",
+      amountColumn: "Amount",
+      debitColumn: "Debit",
+      creditColumn: "Credit",
+      balanceColumn: "Balance",
+      referenceColumn: "Reference",
+      dateFormat: "YYYY-MM-DD",
+      skipRows: 0,
+      hasHeader: true,
+    },
+    excelConfig: {
+      sheetName: 0,
+      headerRow: 1,
+      dateColumn: "A",
+      merchantColumn: "B",
+      amountColumn: "C",
+      debitColumn: "D",
+      creditColumn: "E",
+      balanceColumn: "F",
+      referenceColumn: "G",
+      dateFormat: "YYYY-MM-DD",
+    },
+  },
+
+  // Virtual: detect bank from headers, then fall back to GENERIC aliases
+  AUTO: {
+    code: "AUTO",
+    name: "Auto-detect bank",
+    csvConfig: {
+      delimiter: ",",
+      encoding: "utf-8",
+      dateColumn: "Date",
+      merchantColumn: "Description",
+      amountColumn: "Amount",
+      debitColumn: "Debit",
+      creditColumn: "Credit",
+      balanceColumn: "Balance",
+      referenceColumn: "Reference",
+      dateFormat: "DD/MM/YYYY",
+      skipRows: 0,
+      hasHeader: true,
+    },
+    excelConfig: {
+      sheetName: 0,
+      headerRow: 1,
+      dateColumn: "A",
+      merchantColumn: "B",
+      amountColumn: "C",
+      debitColumn: "D",
+      creditColumn: "E",
+      balanceColumn: "F",
+      referenceColumn: "G",
+      dateFormat: "DD/MM/YYYY",
+    },
+  },
 };
 
 // Helper function to get bank config
 export function getBankConfig(bankCode: string): BankConfig | undefined {
   return BANK_CONFIGS[bankCode.toUpperCase()];
+}
+
+/**
+ * Map UI / legacy / alias bank codes (gtbank, auto, zenith, …) to BANK_CONFIGS keys.
+ */
+export function resolveBankCode(
+  raw: string | undefined | null,
+): string | null {
+  if (!raw) return null;
+  const upper = raw.trim().toUpperCase();
+  if (upper in BANK_CONFIGS) return upper;
+  return BANK_CODE_ALIASES[upper] ?? null;
 }
 
 // List of all supported banks

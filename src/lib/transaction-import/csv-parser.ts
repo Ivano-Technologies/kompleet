@@ -1,12 +1,26 @@
 /**
  * CSV Parser Core
- * Handles CSV file parsing with error handling and encoding detection
+ * Handles CSV file parsing with error handling, encoding detection,
+ * preamble skip, and fuzzy column matching for real bank exports.
  */
 
 import Papa from "papaparse";
 import * as chardet from "chardet";
 import * as iconv from "iconv-lite";
 import { BankConfig } from "./bank-configs";
+import {
+  AMOUNT_ALIASES,
+  BALANCE_ALIASES,
+  CREDIT_ALIASES,
+  DATE_ALIASES,
+  DEBIT_ALIASES,
+  MERCHANT_ALIASES,
+  REFERENCE_ALIASES,
+  detectDelimiter,
+  findMatchingHeader,
+  rowLooksLikeHeader,
+  stripBom,
+} from "./column-aliases";
 
 export interface ParsedTransaction {
   date: string;
@@ -15,7 +29,7 @@ export interface ParsedTransaction {
   type: "debit" | "credit";
   balance: number;
   reference?: string;
-  rawData: Record<string, any>;
+  rawData: Record<string, unknown>;
 }
 
 export interface ParseResult {
@@ -29,36 +43,54 @@ export interface ParseError {
   rowNumber: number;
   errorType: string;
   errorMessage: string;
-  rawData: Record<string, any>;
+  rawData: Record<string, unknown>;
 }
+
+interface ColumnMap {
+  date?: string;
+  merchant?: string;
+  amount?: string;
+  debit?: string;
+  credit?: string;
+  balance?: string;
+  reference?: string;
+}
+
+const MONTHS: Record<string, number> = {
+  JAN: 1,
+  FEB: 2,
+  MAR: 3,
+  APR: 4,
+  MAY: 5,
+  JUN: 6,
+  JUL: 7,
+  AUG: 8,
+  SEP: 9,
+  OCT: 10,
+  NOV: 11,
+  DEC: 12,
+};
 
 /**
  * Detect encoding and decode buffer to string
  * Handles UTF-8 BOM, Latin-1, Windows-1252, and other encodings
  */
 function detectAndDecode(buffer: Buffer): string {
-  // Check for UTF-8 BOM (Byte Order Mark)
   if (
     buffer.length >= 3 &&
     buffer[0] === 0xef &&
     buffer[1] === 0xbb &&
     buffer[2] === 0xbf
   ) {
-    console.log("Detected UTF-8 BOM, stripping...");
     return buffer.slice(3).toString("utf-8");
   }
 
-  // Detect encoding using chardet
   const detected = chardet.detect(buffer);
   const encoding = detected || "utf-8";
 
-  console.log(`Detected encoding: ${encoding}`);
-
-  // Decode using detected encoding
   try {
     return iconv.decode(buffer, encoding);
-  } catch (error) {
-    console.warn(`Failed to decode with ${encoding}, falling back to UTF-8`);
+  } catch {
     return buffer.toString("utf-8");
   }
 }
@@ -74,8 +106,90 @@ export async function parseCSVFromBuffer(
   return parseCSV(fileContent, bankConfig);
 }
 
+function parseRows(
+  fileContent: string,
+  delimiter: string,
+): string[][] {
+  const parsed = Papa.parse<string[]>(fileContent, {
+    header: false,
+    skipEmptyLines: "greedy",
+    delimiter,
+  });
+  return (parsed.data ?? []).map((row) =>
+    row.map((cell) => (cell ?? "").toString()),
+  );
+}
+
+function buildColumnMap(
+  headers: string[],
+  bankConfig: BankConfig,
+): ColumnMap {
+  const { csvConfig } = bankConfig;
+  return {
+    date: findMatchingHeader(headers, [csvConfig.dateColumn, ...DATE_ALIASES]),
+    merchant: findMatchingHeader(headers, [
+      csvConfig.merchantColumn,
+      ...MERCHANT_ALIASES,
+    ]),
+    amount: findMatchingHeader(headers, [
+      csvConfig.amountColumn,
+      ...AMOUNT_ALIASES,
+    ]),
+    debit: findMatchingHeader(headers, [csvConfig.debitColumn, ...DEBIT_ALIASES]),
+    credit: findMatchingHeader(headers, [
+      csvConfig.creditColumn,
+      ...CREDIT_ALIASES,
+    ]),
+    balance: findMatchingHeader(headers, [
+      csvConfig.balanceColumn,
+      ...BALANCE_ALIASES,
+    ]),
+    reference: findMatchingHeader(headers, [
+      csvConfig.referenceColumn,
+      ...REFERENCE_ALIASES,
+    ]),
+  };
+}
+
+function columnMapIsUsable(map: ColumnMap): boolean {
+  if (!map.date || !map.merchant) return false;
+  return Boolean(map.amount || map.debit || map.credit);
+}
+
+function findHeaderRowIndex(
+  rows: string[][],
+  bankConfig: BankConfig,
+): number {
+  const configuredSkip = bankConfig.csvConfig.skipRows;
+  if (
+    configuredSkip >= 0 &&
+    configuredSkip < rows.length &&
+    rowLooksLikeHeader(rows[configuredSkip] ?? [])
+  ) {
+    return configuredSkip;
+  }
+
+  for (let i = 0; i < Math.min(rows.length, 30); i++) {
+    const row = rows[i] ?? [];
+    if (rowLooksLikeHeader(row)) return i;
+    const map = buildColumnMap(row, bankConfig);
+    if (columnMapIsUsable(map)) return i;
+  }
+
+  return configuredSkip < rows.length ? configuredSkip : 0;
+}
+
+function rowToRecord(headers: string[], cells: string[]): Record<string, unknown> {
+  const record: Record<string, unknown> = {};
+  headers.forEach((header, index) => {
+    const key = header.replace(/^\uFEFF/, "").trim() || `col_${index}`;
+    record[key] = cells[index] ?? "";
+  });
+  return record;
+}
+
 /**
- * Parse CSV file using bank-specific configuration
+ * Parse CSV file using bank-specific configuration plus fuzzy headers.
  */
 export async function parseCSV(
   fileContent: string,
@@ -83,112 +197,138 @@ export async function parseCSV(
 ): Promise<ParseResult> {
   const transactions: ParsedTransaction[] = [];
   const errors: ParseError[] = [];
-  let totalRows = 0;
 
-  return new Promise((resolve) => {
-    Papa.parse(fileContent, {
-      header: bankConfig.csvConfig.hasHeader,
-      skipEmptyLines: true,
-      delimiter: bankConfig.csvConfig.delimiter,
-      encoding: bankConfig.csvConfig.encoding,
-      complete: (results) => {
-        const rows = results.data as Record<string, any>[];
-        totalRows = rows.length;
+  const stripped = stripBom(fileContent);
+  const detectedDelimiter = detectDelimiter(stripped);
+  const delimiter = detectedDelimiter || bankConfig.csvConfig.delimiter || ",";
 
-        // Skip header rows if configured
-        const dataRows = rows.slice(bankConfig.csvConfig.skipRows);
-
-        dataRows.forEach((row, index) => {
-          const rowNumber = index + bankConfig.csvConfig.skipRows + 1;
-
-          try {
-            const transaction = extractTransaction(row, bankConfig, rowNumber);
-            if (transaction) {
-              transactions.push(transaction);
-            }
-          } catch (error) {
-            errors.push({
-              rowNumber,
-              errorType: "PARSING_ERROR",
-              errorMessage:
-                error instanceof Error ? error.message : "Unknown error",
-              rawData: row,
-            });
-          }
-        });
-
-        resolve({
-          transactions,
-          errors,
-          totalRows,
-          successfulRows: transactions.length,
-        });
-      },
-      error: (error: Error) => {
-        errors.push({
+  const rows = parseRows(stripped, delimiter);
+  if (rows.length === 0) {
+    return {
+      transactions: [],
+      errors: [
+        {
           rowNumber: 0,
           errorType: "FILE_PARSING_ERROR",
-          errorMessage: error.message,
+          errorMessage: "CSV contained no rows",
           rawData: {},
-        });
-
-        resolve({
-          transactions: [],
-          errors,
-          totalRows: 0,
-          successfulRows: 0,
-        });
-      },
-    });
-  });
-}
-
-/**
- * Extract transaction from CSV row
- */
-function extractTransaction(
-  row: Record<string, any>,
-  bankConfig: BankConfig,
-  rowNumber: number,
-): ParsedTransaction | null {
-  const { csvConfig } = bankConfig;
-
-  // Extract date
-  const dateStr = row[csvConfig.dateColumn];
-  if (!dateStr) {
-    throw new Error(`Missing date in column "${csvConfig.dateColumn}"`);
+        },
+      ],
+      totalRows: 0,
+      successfulRows: 0,
+    };
   }
 
-  const date = parseDate(dateStr, csvConfig.dateFormat);
+  const headerIndex = findHeaderRowIndex(rows, bankConfig);
+  const rawHeaders = (rows[headerIndex] ?? []).map((cell) =>
+    cell.replace(/^\uFEFF/, "").trim(),
+  );
+  const columns = buildColumnMap(rawHeaders, bankConfig);
+
+  if (!columnMapIsUsable(columns)) {
+    return {
+      transactions: [],
+      errors: [
+        {
+          rowNumber: headerIndex + 1,
+          errorType: "HEADER_MISMATCH",
+          errorMessage: `Could not find date/merchant/amount columns. Headers: ${rawHeaders.join(", ") || "(empty)"}`,
+          rawData: { headers: rawHeaders },
+        },
+      ],
+      totalRows: rows.length,
+      successfulRows: 0,
+    };
+  }
+
+  const dataRows = rows.slice(headerIndex + 1);
+  dataRows.forEach((cells, index) => {
+    const rowNumber = headerIndex + index + 2;
+    const record = rowToRecord(rawHeaders, cells);
+    const isEmpty = cells.every((cell) => !cell || cell.trim() === "");
+    if (isEmpty) return;
+
+    try {
+      const transaction = extractTransaction(record, columns, bankConfig);
+      if (transaction) {
+        transactions.push(transaction);
+      }
+    } catch (error) {
+      errors.push({
+        rowNumber,
+        errorType: "PARSING_ERROR",
+        errorMessage:
+          error instanceof Error ? error.message : "Unknown error",
+        rawData: record,
+      });
+    }
+  });
+
+  return {
+    transactions,
+    errors,
+    totalRows: dataRows.length,
+    successfulRows: transactions.length,
+  };
+}
+
+function cellString(
+  row: Record<string, unknown>,
+  column: string | undefined,
+): string {
+  if (!column) return "";
+  const value = row[column];
+  if (value === undefined || value === null) return "";
+  return value.toString().trim();
+}
+
+function extractTransaction(
+  row: Record<string, unknown>,
+  columns: ColumnMap,
+  bankConfig: BankConfig,
+): ParsedTransaction | null {
+  const dateStr = cellString(row, columns.date);
+  if (!dateStr) {
+    throw new Error(`Missing date in column "${columns.date ?? "Date"}"`);
+  }
+
+  const date = parseDateFlexible(dateStr, bankConfig.csvConfig.dateFormat);
   if (!date) {
     throw new Error(
-      `Invalid date format: "${dateStr}" (expected ${csvConfig.dateFormat})`,
+      `Invalid date format: "${dateStr}" (expected ${bankConfig.csvConfig.dateFormat} or a common variant)`,
     );
   }
 
-  // Extract merchant
-  const merchant = row[csvConfig.merchantColumn]?.toString().trim();
+  const merchant = cellString(row, columns.merchant);
   if (!merchant) {
-    throw new Error(`Missing merchant in column "${csvConfig.merchantColumn}"`);
+    throw new Error(
+      `Missing merchant in column "${columns.merchant ?? "Description"}"`,
+    );
   }
 
-  // Extract amount (debit/credit)
   let amount: number;
   let type: "debit" | "credit";
 
-  if (csvConfig.amountColumn) {
-    // Single amount column
-    const amountStr = row[csvConfig.amountColumn];
-    amount = parseAmount(amountStr);
-    type = amount < 0 ? "debit" : "credit";
-    amount = Math.abs(amount);
-  } else if (csvConfig.debitColumn && csvConfig.creditColumn) {
-    // Separate debit/credit columns
-    const debitStr = row[csvConfig.debitColumn];
-    const creditStr = row[csvConfig.creditColumn];
-
-    const debit = parseAmount(debitStr);
-    const credit = parseAmount(creditStr);
+  if (columns.amount && cellString(row, columns.amount) !== "") {
+    const parsedAmount = parseAmount(cellString(row, columns.amount));
+    type = parsedAmount < 0 ? "debit" : "credit";
+    amount = Math.abs(parsedAmount);
+    if (amount === 0 && (columns.debit || columns.credit)) {
+      const debit = parseAmount(cellString(row, columns.debit));
+      const credit = parseAmount(cellString(row, columns.credit));
+      if (debit > 0) {
+        amount = debit;
+        type = "debit";
+      } else if (credit > 0) {
+        amount = credit;
+        type = "credit";
+      } else {
+        throw new Error("Amount is zero or empty");
+      }
+    }
+  } else if (columns.debit || columns.credit) {
+    const debit = parseAmount(cellString(row, columns.debit));
+    const credit = parseAmount(cellString(row, columns.credit));
 
     if (debit > 0) {
       amount = debit;
@@ -203,14 +343,8 @@ function extractTransaction(
     throw new Error("Invalid bank configuration: missing amount columns");
   }
 
-  // Extract balance
-  const balanceStr = row[csvConfig.balanceColumn];
-  const balance = parseAmount(balanceStr);
-
-  // Extract reference (optional)
-  const reference = csvConfig.referenceColumn
-    ? row[csvConfig.referenceColumn]?.toString().trim()
-    : undefined;
+  const balance = parseAmount(cellString(row, columns.balance));
+  const reference = cellString(row, columns.reference) || undefined;
 
   return {
     date,
@@ -223,118 +357,105 @@ function extractTransaction(
   };
 }
 
+function toIsoDate(year: number, month: number, day: number): string | null {
+  if (Number.isNaN(day) || Number.isNaN(month) || Number.isNaN(year)) {
+    return null;
+  }
+  if (day < 1 || day > 31 || month < 1 || month > 12) {
+    return null;
+  }
+  if (year < 100) {
+    year += year >= 70 ? 1900 : 2000;
+  }
+  const parsed = new Date(Date.UTC(year, month - 1, day));
+  if (
+    parsed.getUTCDate() !== day ||
+    parsed.getUTCMonth() !== month - 1 ||
+    parsed.getUTCFullYear() !== year
+  ) {
+    return null;
+  }
+  return `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
+function parseWithFormat(dateStr: string, format: string): string | null {
+  const cleaned = dateStr.trim();
+  let day: number;
+  let month: number;
+  let year: number;
+
+  if (format === "DD/MM/YYYY" || format === "DD-MM-YYYY") {
+    const parts = cleaned.split(/[/\-.]/);
+    if (parts.length < 3) return null;
+    day = parseInt(parts[0] ?? "", 10);
+    month = parseInt(parts[1] ?? "", 10);
+    year = parseInt(parts[2] ?? "", 10);
+  } else if (format === "MM/DD/YYYY" || format === "MM-DD-YYYY") {
+    const parts = cleaned.split(/[/\-.]/);
+    if (parts.length < 3) return null;
+    month = parseInt(parts[0] ?? "", 10);
+    day = parseInt(parts[1] ?? "", 10);
+    year = parseInt(parts[2] ?? "", 10);
+  } else if (format === "YYYY-MM-DD" || format === "YYYY/MM/DD") {
+    const parts = cleaned.split(/[/\-.]/);
+    if (parts.length < 3) return null;
+    year = parseInt(parts[0] ?? "", 10);
+    month = parseInt(parts[1] ?? "", 10);
+    day = parseInt(parts[2] ?? "", 10);
+  } else if (format === "DD-MMM-YYYY" || format === "DD MMM YYYY") {
+    const parts = cleaned.split(/[/\-\s]+/);
+    if (parts.length < 3) return null;
+    day = parseInt(parts[0] ?? "", 10);
+    month = MONTHS[(parts[1] ?? "").toUpperCase().slice(0, 3)] ?? NaN;
+    year = parseInt(parts[2] ?? "", 10);
+  } else {
+    return null;
+  }
+
+  return toIsoDate(year, month, day);
+}
+
 /**
- * Parse date string to ISO format with validation (CRIT-002)
- * Validates dates to prevent invalid dates like Feb 29, 2023
+ * Parse date string to ISO YYYY-MM-DD. Tries the bank's configured format
+ * first, then common Nigerian / ISO variants (including datetimes).
  */
-function parseDate(dateStr: string, format: string): string | null {
+export function parseDateFlexible(
+  dateStr: string,
+  preferredFormat: string,
+): string | null {
   if (!dateStr || dateStr.trim() === "") return null;
 
   const cleaned = dateStr.trim();
-  let day: number, month: number, year: number;
-
-  try {
-    if (format === "DD/MM/YYYY" || format === "DD-MM-YYYY") {
-      const parts = cleaned.split(/[\/\-]/);
-      day = parseInt(parts[0], 10);
-      month = parseInt(parts[1], 10);
-      year = parseInt(parts[2], 10);
-    } else if (format === "MM/DD/YYYY" || format === "MM-DD-YYYY") {
-      const parts = cleaned.split(/[\/\-]/);
-      month = parseInt(parts[0], 10);
-      day = parseInt(parts[1], 10);
-      year = parseInt(parts[2], 10);
-    } else if (format === "YYYY-MM-DD") {
-      const parts = cleaned.split("-");
-      year = parseInt(parts[0], 10);
-      month = parseInt(parts[1], 10);
-      day = parseInt(parts[2], 10);
-    } else if (format === "DD-MMM-YYYY") {
-      const parts = cleaned.split("-");
-      day = parseInt(parts[0], 10);
-      const monthStr = parts[1];
-      year = parseInt(parts[2], 10);
-
-      const months: Record<string, number> = {
-        JAN: 1,
-        FEB: 2,
-        MAR: 3,
-        APR: 4,
-        MAY: 5,
-        JUN: 6,
-        JUL: 7,
-        AUG: 8,
-        SEP: 9,
-        OCT: 10,
-        NOV: 11,
-        DEC: 12,
-      };
-
-      month = months[monthStr?.toUpperCase()];
-      if (!month) {
-        console.error(`Invalid month: ${monthStr}`);
-        return null;
-      }
-    } else {
-      return null;
-    }
-
-    // Validate date components
-    if (isNaN(day) || isNaN(month) || isNaN(year)) {
-      return null;
-    }
-
-    if (day < 1 || day > 31 || month < 1 || month > 12) {
-      return null;
-    }
-
-    // Create date and validate it's actually valid
-    // This catches cases like Feb 31, Feb 29 on non-leap years, etc.
-    const parsedDate = new Date(year, month - 1, day);
-
-    // Check if the date components match what we parsed
-    if (
-      parsedDate.getDate() !== day ||
-      parsedDate.getMonth() !== month - 1 ||
-      parsedDate.getFullYear() !== year
-    ) {
-      console.error(
-        `Invalid date: ${dateStr} - Date doesn't exist in calendar`,
-      );
-      return null;
-    }
-
-    // Additional sanity checks
-    const now = new Date();
-    const minDate = new Date("1990-01-01");
-
-    if (parsedDate > now) {
-      console.warn(
-        `Suspicious date in future: ${dateStr}, parsed as ${parsedDate.toISOString()}`,
-      );
-    }
-
-    if (parsedDate < minDate) {
-      console.warn(
-        `Suspicious date too far in past: ${dateStr}, parsed as ${parsedDate.toISOString()}`,
-      );
-    }
-
-    // Convert to ISO format
-    const isoDate = parsedDate.toISOString().split("T")[0];
-    return isoDate;
-  } catch (error) {
-    console.error(`Error parsing date "${dateStr}":`, error);
-    return null;
+  const isoPrefix = cleaned.match(/^(\d{4}-\d{2}-\d{2})/);
+  if (isoPrefix?.[1]) {
+    const [year, month, day] = isoPrefix[1].split("-").map(Number);
+    const iso = toIsoDate(year ?? NaN, month ?? NaN, day ?? NaN);
+    if (iso) return iso;
   }
+
+  const withoutTime = cleaned.split(/\s+/)[0] ?? cleaned;
+  const formats = [
+    preferredFormat,
+    "DD/MM/YYYY",
+    "DD-MM-YYYY",
+    "YYYY-MM-DD",
+    "MM/DD/YYYY",
+    "DD-MMM-YYYY",
+    "DD MMM YYYY",
+  ];
+
+  for (const format of formats) {
+    const parsed = parseWithFormat(withoutTime, format);
+    if (parsed) return parsed;
+  }
+
+  return null;
 }
 
 /**
  * Parse amount string to number with support for European formats (CRIT-003)
- * Handles formats like 1.234,56 (European) and 1,234.56 (US)
- * Also handles CR/DR suffixes and parentheses for negative amounts
  */
-function parseAmount(amountStr: string | number | undefined): number {
+export function parseAmount(amountStr: string | number | undefined): number {
   if (amountStr === undefined || amountStr === null || amountStr === "") {
     return 0;
   }
@@ -345,53 +466,44 @@ function parseAmount(amountStr: string | number | undefined): number {
 
   let cleaned = amountStr.toString().trim();
 
-  // Check for negative indicators
   const isNegative =
     cleaned.includes("(") || cleaned.toUpperCase().endsWith("CR");
 
-  // Remove parentheses and CR/DR suffixes
   cleaned = cleaned
     .replace(/[()]/g, "")
     .replace(/\s*CR\s*$/i, "")
     .replace(/\s*DR\s*$/i, "");
 
-  // Remove currency symbols
-  cleaned = cleaned.replace(/[₦\$€£¥NGN]/gi, "").trim();
+  cleaned = cleaned.replace(/[₦$€£¥NGN]/gi, "").trim();
 
   if (!cleaned) {
     return 0;
   }
 
-  // Handle scientific notation (e.g., 1.23E+09)
   if (/\d+\.?\d*[Ee][+-]?\d+/.test(cleaned)) {
     const amount = parseFloat(cleaned);
-    if (!isNaN(amount)) {
+    if (!Number.isNaN(amount)) {
       return isNegative ? -Math.abs(amount) : amount;
     }
   }
 
-  // Determine decimal separator
   const lastComma = cleaned.lastIndexOf(",");
   const lastDot = cleaned.lastIndexOf(".");
 
-  // European format: 1.234,56 (comma is decimal separator)
   if (lastComma > lastDot && lastComma > 0) {
     const afterComma = cleaned.substring(lastComma + 1);
-    // If there are 1-2 digits after comma, it's likely decimal separator
     if (afterComma.length <= 2 && /^\d+$/.test(afterComma)) {
       cleaned = cleaned.replace(/\./g, "").replace(",", ".");
     } else {
-      // Otherwise, remove commas
       cleaned = cleaned.replace(/,/g, "");
     }
   } else {
-    // US format: 1,234.56 (comma is thousands separator)
     cleaned = cleaned.replace(/,/g, "");
   }
 
   const amount = parseFloat(cleaned);
 
-  if (isNaN(amount)) {
+  if (Number.isNaN(amount)) {
     throw new Error(`Invalid amount: "${amountStr}"`);
   }
 
