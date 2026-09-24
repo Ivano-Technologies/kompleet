@@ -7,6 +7,8 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
+import { useConvexAuth } from "convex/react";
+import { defaultTaxYears } from "@/lib/tax-years";
 
 interface YearContextType {
   selectedYear: number;
@@ -21,12 +23,9 @@ interface YearProviderProps {
   children: ReactNode;
 }
 
-function defaultYears(currentYear: number): number[] {
-  return [currentYear - 2, currentYear - 1, currentYear];
-}
-
 export function YearProvider({ children }: YearProviderProps) {
   const currentYear = new Date().getFullYear();
+  const { isLoading: authLoading, isAuthenticated } = useConvexAuth();
   const [selectedYear, setSelectedYearState] = useState<number>(currentYear);
   const [availableYears, setAvailableYears] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -41,23 +40,37 @@ export function YearProvider({ children }: YearProviderProps) {
     }
   }, []);
 
+  // YearProvider wraps the root layout, including public pages. Fetch only
+  // after Convex auth resolves so login/marketing do not spam 401s, and so
+  // Export Center refetches once the same session that can hit /dashboard
+  // is actually ready.
   useEffect(() => {
+    if (authLoading) return;
+
     let cancelled = false;
 
     async function loadYears() {
+      if (!isAuthenticated) {
+        setAvailableYears(defaultTaxYears());
+        setIsLoading(false);
+        return;
+      }
+
       try {
-        const response = await fetch("/api/year/available");
+        const response = await fetch("/api/year/available", {
+          credentials: "same-origin",
+        });
         if (cancelled) return;
         if (response.ok) {
-          const data = await response.json();
-          setAvailableYears(data.years || defaultYears(currentYear));
+          const data = (await response.json()) as { years?: number[] };
+          setAvailableYears(data.years || defaultTaxYears());
         } else {
-          setAvailableYears(defaultYears(currentYear));
+          setAvailableYears(defaultTaxYears());
         }
       } catch (error) {
         console.error("Failed to fetch available years:", error);
         if (!cancelled) {
-          setAvailableYears(defaultYears(currentYear));
+          setAvailableYears(defaultTaxYears());
         }
       } finally {
         if (!cancelled) setIsLoading(false);
@@ -68,7 +81,7 @@ export function YearProvider({ children }: YearProviderProps) {
     return () => {
       cancelled = true;
     };
-  }, [currentYear]);
+  }, [currentYear, authLoading, isAuthenticated]);
 
   const setSelectedYear = (year: number) => {
     setSelectedYearState(year);
