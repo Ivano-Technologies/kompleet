@@ -1,11 +1,11 @@
 /**
  * Offline-first sync engine: drain sync_queue when online, last-write-wins.
- * Push local changes to Supabase; pull remote changes since last_synced_at.
- * Optional future: conflict UI ("Keep mine" / "Keep server") when same id has different updated_at.
+ * Push local changes to Path B `/api/expenses`; pull remote changes since last_synced_at.
  */
 
 import { getDb } from "@/lib/db/init";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { apiFetch } from "@/lib/api/client";
+import { getAccessToken } from "@/lib/auth/convex-auth";
 
 const LAST_SYNCED_KEY = "last_synced_at";
 
@@ -32,15 +32,33 @@ export interface SyncResult {
   errors: string[];
 }
 
-/**
- * Run sync: push queued operations to Supabase, then pull remote expenses.
- * Uses last-write-wins via updated_at.
- */
-export async function runSync(supabase: SupabaseClient): Promise<SyncResult> {
-  const result: SyncResult = { pushed: 0, pulled: 0, errors: [] };
-  const db = getDb();
+interface ExpenseApi {
+  id: string;
+  user_id: string;
+  date: string;
+  amount: number;
+  currency: string;
+  category_id: string | null;
+  vendor: string | null;
+  vat_amount: number | null;
+  receipt_url: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
 
-  // 1. Push: drain sync_queue
+/**
+ * Run sync: push queued operations to Convex via web APIs, then pull remote expenses.
+ */
+export async function runSync(): Promise<SyncResult> {
+  const result: SyncResult = { pushed: 0, pulled: 0, errors: [] };
+  const token = await getAccessToken();
+  if (!token) {
+    result.errors.push("Not signed in");
+    return result;
+  }
+
+  const db = getDb();
   const queueRows = db.getAllSync<{
     id: number;
     entity_type: string;
@@ -58,24 +76,54 @@ export async function runSync(supabase: SupabaseClient): Promise<SyncResult> {
         ? (JSON.parse(row.payload) as Record<string, unknown>)
         : null;
       if (row.operation === "insert" && payload) {
-        const { error } = await supabase.from("expenses").insert(payload);
-        if (error) result.errors.push(String(error.message));
-        else result.pushed++;
+        const response = await apiFetch("/api/expenses", token, {
+          method: "POST",
+          body: JSON.stringify({
+            id: payload.id,
+            date: payload.date,
+            amount: payload.amount,
+            currency: payload.currency ?? "NGN",
+            category_id: payload.category_id ?? null,
+            vendor: payload.vendor ?? null,
+            vat_amount: payload.vat_amount ?? 0,
+            receipt_url: payload.receipt_url ?? null,
+            notes: payload.notes ?? null,
+          }),
+        });
+        if (!response.ok) {
+          result.errors.push(await response.text());
+        } else {
+          result.pushed++;
+        }
       } else if (row.operation === "update" && payload) {
-        const { id, ...rest } = payload as { id: string; [k: string]: unknown };
-        const { error } = await supabase
-          .from("expenses")
-          .update(rest)
-          .eq("id", id);
-        if (error) result.errors.push(String(error.message));
-        else result.pushed++;
+        const id = String(payload.id ?? row.entity_id);
+        const response = await apiFetch(`/api/expenses/${id}`, token, {
+          method: "PATCH",
+          body: JSON.stringify({
+            date: payload.date,
+            amount: payload.amount,
+            currency: payload.currency,
+            category_id: payload.category_id ?? null,
+            vendor: payload.vendor ?? null,
+            vat_amount: payload.vat_amount,
+            receipt_url: payload.receipt_url ?? null,
+            notes: payload.notes ?? null,
+          }),
+        });
+        if (!response.ok) {
+          result.errors.push(await response.text());
+        } else {
+          result.pushed++;
+        }
       } else if (row.operation === "delete") {
-        const { error } = await supabase
-          .from("expenses")
-          .delete()
-          .eq("id", row.entity_id);
-        if (error) result.errors.push(String(error.message));
-        else result.pushed++;
+        const response = await apiFetch(`/api/expenses/${row.entity_id}`, token, {
+          method: "DELETE",
+        });
+        if (!response.ok && response.status !== 404) {
+          result.errors.push(await response.text());
+        } else {
+          result.pushed++;
+        }
       }
       db.runSync("delete from sync_queue where id = ?", [row.id]);
     } catch (e) {
@@ -83,46 +131,53 @@ export async function runSync(supabase: SupabaseClient): Promise<SyncResult> {
     }
   }
 
-  // 2. Pull: fetch expenses updated after last_synced_at
   const lastSynced = getLastSyncedAt() ?? "1970-01-01T00:00:00Z";
-  const { data: remote, error: pullError } = await supabase
-    .from("expenses")
-    .select("*")
-    .gte("updated_at", lastSynced)
-    .order("updated_at", { ascending: true });
-
-  if (pullError) {
-    result.errors.push(pullError.message);
-    return result;
-  }
-
-  for (const row of remote ?? []) {
-    const id = (row as { id: string }).id;
-    const updatedAt = (row as { updated_at: string }).updated_at;
-    db.runSync(
-      `insert or replace into expenses (
-        id, user_id, date, amount, currency, category_id, vendor, vat_amount,
-        receipt_url, notes, created_at, updated_at, synced_at, sync_status, deleted
-      ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'synced', 0)`,
-      [
-        id,
-        (row as { user_id: string }).user_id,
-        (row as { date: string }).date,
-        (row as { amount: number }).amount,
-        (row as { currency: string }).currency ?? "NGN",
-        (row as { category_id: string | null }).category_id ?? null,
-        (row as { vendor: string | null }).vendor ?? null,
-        (row as { vat_amount: number }).vat_amount ?? 0,
-        (row as { receipt_url: string | null }).receipt_url ?? null,
-        (row as { notes: string | null }).notes ?? null,
-        (row as { created_at: string }).created_at,
-        updatedAt,
-        updatedAt,
-      ],
+  let page = 1;
+  const limit = 100;
+  let pulled = 0;
+  for (;;) {
+    const response = await apiFetch(
+      `/api/expenses?updatedSince=${encodeURIComponent(lastSynced)}&page=${page}&limit=${limit}`,
+      token,
     );
-    result.pulled++;
+    if (!response.ok) {
+      result.errors.push(await response.text());
+      return result;
+    }
+    const body = (await response.json()) as {
+      expenses?: ExpenseApi[];
+      total?: number;
+    };
+    const remote = body.expenses ?? [];
+    for (const row of remote) {
+      db.runSync(
+        `insert or replace into expenses (
+          id, user_id, date, amount, currency, category_id, vendor, vat_amount,
+          receipt_url, notes, created_at, updated_at, synced_at, sync_status, deleted
+        ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'synced', 0)`,
+        [
+          row.id,
+          row.user_id,
+          row.date,
+          row.amount,
+          row.currency ?? "NGN",
+          row.category_id ?? null,
+          row.vendor ?? null,
+          row.vat_amount ?? 0,
+          row.receipt_url ?? null,
+          row.notes ?? null,
+          row.created_at,
+          row.updated_at,
+          row.updated_at,
+        ],
+      );
+      pulled++;
+    }
+    if (remote.length < limit) break;
+    page += 1;
   }
 
+  result.pulled = pulled;
   setLastSyncedAt(new Date().toISOString());
   return result;
 }

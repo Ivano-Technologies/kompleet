@@ -17,7 +17,9 @@ describe("Expense Sprint 3 – Expense Management UX", () => {
       const content = fs.readFileSync(routePath, "utf-8");
       expect(content).toMatch(/export async function GET/);
       expect(content).toMatch(/export async function POST/);
-      expect(content).toMatch(/from\s*\(\s*['"]expenses['"]\s*\)/);
+      expect(content).toMatch(
+        /from\s*\(\s*['"]expenses['"]\s*\)|api\.expenses\.(listMine|createMine)/,
+      );
     });
 
     it("GET/PATCH/DELETE /api/expenses/[id] route exists", () => {
@@ -38,7 +40,9 @@ describe("Expense Sprint 3 – Expense Management UX", () => {
         "../src/app/api/expenses/categories/route.ts",
       );
       expect(fs.existsSync(routePath)).toBe(true);
-      expect(fs.readFileSync(routePath, "utf-8")).toMatch(/expense_categories/);
+      expect(fs.readFileSync(routePath, "utf-8")).toMatch(
+        /expense_categories|api\.expenses\.listCategories/,
+      );
     });
   });
 

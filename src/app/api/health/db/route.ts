@@ -7,13 +7,12 @@
  *
  * Protects with `x-keepalive-token` vs `KEEPALIVE_TOKEN`. The repo is public
  * and the URL is discoverable; fail closed if the env token is unset.
- * Uses the anon/RLS client, never service role.
+ * Uses PostgREST + anon/publishable key, never service role, never supabase-js.
  *
  * `tax_rules` SELECT is authenticated-only, so anon may see 0 rows. A 0-row
  * round-trip is still a successful query. Connection/PostgREST errors are not.
  */
 
-import { createClient } from "@supabase/supabase-js";
 import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 
@@ -54,15 +53,19 @@ export async function GET(request: Request) {
 
   const started = performance.now();
   try {
-    const supabase = createClient(url, anonKey, {
-      auth: { persistSession: false, autoRefreshToken: false },
+    const restUrl = `${url.replace(/\/$/, "")}/rest/v1/tax_rules?select=id`;
+    const response = await fetch(restUrl, {
+      method: "GET",
+      headers: {
+        apikey: anonKey,
+        Authorization: `Bearer ${anonKey}`,
+        Prefer: "count=exact",
+        Range: "0-0",
+      },
     });
-    const { error } = await supabase
-      .from("tax_rules")
-      .select("id", { count: "exact", head: true });
     const dbLatencyMs = Math.round(performance.now() - started);
 
-    if (error) {
+    if (!response.ok) {
       return NextResponse.json(
         { status: "error", dbLatencyMs, timestamp },
         { status: 503 },

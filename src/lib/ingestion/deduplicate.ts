@@ -37,48 +37,21 @@ export function deduplicateTransactions(
 }
 
 /**
- * Check for duplicates against existing transactions in database
- * Returns { new, duplicates }
+ * Split a batch against already-known dedup hashes (from Convex listMine).
  */
-export async function checkForDuplicatesInDb(
+export function checkForDuplicatesAgainstHashes(
   transactions: Transaction[],
-  userId: string,
-  supabase: any,
-): Promise<{ new: Transaction[]; duplicates: Transaction[] }> {
-  try {
-    // Create hashes for all transactions
-    const hashes = transactions.map((tx) => createDeduplicationHash(tx));
-
-    // Query existing transactions with same hashes
-    const { data: existing, error } = await supabase
-      .from("transactions")
-      .select("id, dedup_hash")
-      .eq("user_id", userId)
-      .in("dedup_hash", hashes);
-
-    if (error) {
-      console.error("Error checking duplicates:", error);
-      // If query fails, return all as new (fail open)
-      return { new: transactions, duplicates: [] };
-    }
-
-    const existingHashes = new Set(
-      (existing || []).map((tx: any) => tx.dedup_hash),
-    );
-
-    return {
-      new: transactions.filter(
-        (tx) => !existingHashes.has(createDeduplicationHash(tx)),
-      ),
-      duplicates: transactions.filter((tx) =>
-        existingHashes.has(createDeduplicationHash(tx)),
-      ),
-    };
-  } catch (error) {
-    console.error("Error in checkForDuplicatesInDb:", error);
-    // Fail open: return all as new
-    return { new: transactions, duplicates: [] };
-  }
+  existingHashes: Iterable<string>,
+): { new: Transaction[]; duplicates: Transaction[] } {
+  const known = new Set(existingHashes);
+  return {
+    new: transactions.filter(
+      (tx) => !known.has(createDeduplicationHash(tx)),
+    ),
+    duplicates: transactions.filter((tx) =>
+      known.has(createDeduplicationHash(tx)),
+    ),
+  };
 }
 
 /**

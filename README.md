@@ -1,296 +1,142 @@
 # KOMPLEET Platform (Web)
 
-**KOMPLEET** is a comprehensive financial management platform for Nigerian businesses and individuals, built to comply with the Nigerian Tax Act 2026.
+**KOMPLEET** is a financial management platform for Nigerian businesses and individuals, built around the Nigeria Tax Act 2025/2026.
+
+Live: [ivanotechnologies.com](https://ivanotechnologies.com)
 
 ## Overview
 
-The KOMPLEET Web Platform provides:
-
-- **User Authentication** - Supabase authentication with Google OAuth, email/password, and magic links
-- **Transaction Management** - Income and expense tracking with categorization
-- **Tax Calculators** - Business Tax (CIT), Individual Tax (PIT), VAT, Capital Allowances, Stamp Duty, Property Tax
-- **Financial Reports** - Tax summaries, balance sheets, profit & loss statements with PDF export
-- **Compliance Dashboard** - Real-time compliance health monitoring
-- **Tax Deadline Reminders** - Push notifications for important tax deadlines
+- **Authentication** — Convex Auth (`@convex-dev/auth`) email + password for the web app.
+- **Application database** — Convex. Public API IDs stay UUID `externalId` values.
+- **File storage** — Convex file storage (`ctx.storage`). Supabase buckets were empty; no file backfill.
+- **Transactions, expenses, invoices, profiles** — Convex queries/mutations.
+- **Tax calculators, NRS forms, reports** — existing feature set; keep-alive still pings Supabase `tax_rules`.
 
 ## Tech Stack
 
-### Frontend
+| Layer | What is live |
+| --- | --- |
+| Web | Next.js App Router (`src/app`), TypeScript, Tailwind |
+| Auth | Convex Auth (`@convex-dev/auth` cookies). Mobile signs in via `/api/auth` and stores a Bearer token. |
+| App data | Convex (`convex/`) |
+| Storage | Convex file storage |
+| Deploy | Vercel |
+| Package manager | pnpm |
 
-- **Framework:** Next.js 15 (App Router)
-- **Language:** TypeScript 5.9
-- **Styling:** Tailwind CSS
-- **UI Components:** shadcn/ui
-- **Charts:** Recharts
+## IVA-60 (leave Path B — Auth + Storage on Convex)
 
-### Backend & Services
+Kezie (via CoS, 2026-09-24): keep Convex as the app DB, and move **Auth and Storage** onto Convex. Production `NEXT_PUBLIC_CONVEX_URL` stays **OFF** until Kezie says so.
 
-- **Authentication:** Supabase Auth
-- **Database:** Supabase PostgreSQL with Row Level Security (RLS)
-- **Deployment:** Vercel
-- **Package Manager:** pnpm
-
-### Key Integrations
-
-- **Supabase:** User authentication and management
-- **Supabase:** Database, RLS policies, and data storage
-- **Vercel:** Hosting and serverless functions
-- **Webhooks:** Clerk user sync to Supabase
-
-## Project Structure
-
-```
-kompleet-platform/
-├── src/
-│   ├── app/                    # Next.js App Router
-│   │   ├── (auth)/            # Authentication pages
-│   │   │   ├── login/         # Login page with Clerk SignIn
-│   │   │   └── signup/        # Signup page with Clerk SignUp
-│   │   ├── (dashboard)/       # Protected dashboard pages
-│   │   │   ├── dashboard/     # Main dashboard
-│   │   │   ├── transactions/  # Transaction management
-│   │   │   ├── calculators/   # Tax calculators
-│   │   │   ├── reports/       # Financial reports
-│   │   │   └── profile/       # User profile & settings
-│   │   ├── api/               # API routes
-│   │   │   └── webhooks/
-│   │   │       └── clerk/     # Clerk webhook handler
-│   │   └── middleware.ts      # Clerk auth middleware
-│   ├── components/            # React components
-│   │   ├── ui/               # shadcn/ui components
-│   │   └── ...               # Custom components
-│   ├── lib/                  # Utilities and helpers
-│   │   └── supabase/
-│   │       ├── server.ts     # Supabase server client (Clerk JWT)
-│   │       └── client.ts     # Supabase browser client
-│   └── supabase/
-│       └── migrations/       # Database migrations
-│           └── CLERK_SYNC_MIGRATION.sql
-├── public/                   # Static assets
-├── .env.local               # Environment variables (not committed)
-├── package.json
-├── tailwind.config.ts
-└── tsconfig.json
-```
+- Web auth: `@convex-dev/auth` Password provider. See [docs/convex-auth-storage.md](docs/convex-auth-storage.md).
+- Identity remap: existing Convex `users` rows are linked **by email**. `supabaseUserId` / old `externalId` stay as migration aids.
+- Existing passwords **cannot** be ported. The ~5 live users sign up again with the **same email** (new password) to reclaim transactions.
+- File uploads write to Convex storage. Supabase buckets had 0 objects — backfill skipped (`scripts/backfill-supabase-storage-to-convex.mjs`).
+- Do **not** tear down the Supabase project. Do **not** set Production `NEXT_PUBLIC_CONVEX_URL`. Do **not** run `npx convex deploy` except for production.
 
 ## Setup
 
 ### Prerequisites
 
-- Node.js 18+ and pnpm
-- Clerk account (https://clerk.com)
-- Supabase project (https://supabase.com)
-- Vercel account for deployment (https://vercel.com)
+- Node.js 20+ and pnpm
+- Supabase project (Auth + existing KOMPLEET project `frlcvkmjuhnjcicwywrh`)
+- Convex project (dev deployment). Cloud agents: `CONVEX_AGENT_MODE=anonymous npx convex dev`
 
-### Environment Variables
+### Environment variables
 
-Create a `.env.local` file in the project root:
+Copy `.env.example` to `.env.local`:
 
 ```bash
-# Supabase (prefer new API keys — legacy JWT anon/service_role deprecated end of 2026)
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_your_publishable_key
-SUPABASE_SERVICE_ROLE_KEY=sb_secret_your_secret_key
+# Convex (app DB + Auth + Storage)
+NEXT_PUBLIC_CONVEX_URL=https://shiny-cricket-316.convex.cloud
 
-# App Configuration
+# Leftover Postgres / keep-alive (do not delete the project)
+NEXT_PUBLIC_SUPABASE_URL=https://frlcvkmjuhnjcicwywrh.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_...
+SUPABASE_SERVICE_ROLE_KEY=sb_secret_...
+
+# App
 NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
-### Installation
+Convex deployment env (dashboard / `npx convex env set`), not Next.js:
 
-1. **Clone the repository:**
+- `JWT_PRIVATE_KEY` + `JWKS` — generate with `node scripts/generate-convex-auth-keys.mjs`
+- `SITE_URL` — staging origin, e.g. `https://kompleet-git-staging-techivano.vercel.app`
+- `AUTH_RESEND_KEY` (optional) — enables `/forgot-password` emails
 
-   ```bash
-   git clone https://github.com/Ivano-Technologies/KOMPLEET-PLATFORM.git
-   cd KOMPLEET-PLATFORM
-   ```
+See [docs/ENVIRONMENT_VARIABLES.md](docs/ENVIRONMENT_VARIABLES.md).
 
-2. **Install dependencies:**
+### Install and run
 
-   ```bash
-   pnpm install
-   ```
+```bash
+pnpm install
+CONVEX_AGENT_MODE=anonymous npx convex dev   # generates convex/_generated; use your own login locally
+pnpm dev
+```
 
-3. **Configure Clerk:**
-   - Create a Clerk application at https://dashboard.clerk.com
-   - Enable Email/Password and Google OAuth providers
-   - Create JWT template named `kompleet-supabase` with custom claims:
-     ```json
-     {
-       "sub": "{{user.id}}"
-     }
-     ```
-   - Copy publishable key and secret key to `.env.local`
+Open http://localhost:3000
 
-4. **Configure Supabase:**
-   - Create a Supabase project at https://supabase.com/dashboard
-   - Go to Settings → API → JWT Settings
-   - Add Clerk as JWT provider:
-     - JWKS URL: `https://your-clerk-domain/.well-known/jwks.json`
-     - JWT Secret: (from Clerk JWT template)
-   - Run database migration:
-     ```bash
-     psql -h your-project.supabase.co -U postgres -d postgres -f src/supabase/migrations/CLERK_SYNC_MIGRATION.sql
-     ```
+## Project structure
 
-5. **Configure Clerk Webhook:**
-   - In Clerk Dashboard, go to Webhooks
-   - Create endpoint: `https://your-domain.com/api/webhooks/clerk`
-   - Subscribe to events: `user.created`, `user.updated`, `user.deleted`
-   - Copy webhook secret to `.env.local`
+```
+kompleet-platform/
+├── convex/                     # Schema + queries/mutations (app data)
+│   ├── schema.ts
+│   ├── auth.ts                 # Convex Auth (Password)
+│   ├── auth.config.ts          # Convex Auth (Password) + leftover SB JWT issuer during soak
+│   ├── users.ts                # profiles (email remap)
+│   ├── transactions.ts
+│   └── ...
+├── src/
+│   ├── app/                    # Next.js App Router
+│   │   ├── login / signup      # Convex Auth email+password
+│   │   ├── (dashboard)/
+│   │   └── api/                # Route handlers → Convex for app data
+│   ├── lib/
+│   │   └── convex/             # Http client + request auth bridge
+├── scripts/backfill-supabase-to-convex.mjs
+└── docs/convex-migration-plan.md
+```
 
-6. **Run development server:**
+## Authentication flow (live)
 
-   ```bash
-   pnpm dev
-   ```
+1. Browser: `useAuthActions()` (Password) → Convex Auth cookies via `/api/auth`
+2. Server/RSC: `convexAuthNextjsToken()` / `requireAuth()`
+3. API routes: Convex Auth cookie **or** `Authorization: Bearer`, then `ConvexHttpClient.setAuth`
+4. `createOrUpdateUser` + `getCurrentUser` map identity to the existing `users` row by email
 
-7. **Open browser:**
-   ```
-   http://localhost:3000
-   ```
+## What stays on Supabase (do not delete the project)
 
-## Database Schema
+- Keep-alive (`GET /api/health/db` → PostgREST `tax_rules`, no supabase-js)
+- Optional `NEXT_PUBLIC_SUPABASE_*` / service-role for Phase 6 backfill + teardown
+- CI `security-advisors` (baseline not bumped here)
+- Hosted project `frlcvkmjuhnjcicwywrh` until CoS + Kezie go (IVA-65)
 
-The platform uses Supabase PostgreSQL with the following key tables:
+## Development vs production Convex
 
-### `clerk_users`
-
-Synced from Clerk via webhook, stores user profile data:
-
-- `clerk_user_id` (primary key) - Clerk user ID
-- `email` - User email address
-- `first_name`, `last_name` - User name
-- `avatar_url` - Profile picture URL
-- `created_at`, `updated_at` - Timestamps
-
-### `transactions`
-
-Financial transactions (income/expenses):
-
-- `id` (UUID primary key)
-- `user_id` (references `clerk_users.clerk_user_id`)
-- `type` - 'income' or 'expense'
-- `category` - Transaction category
-- `amount` - Transaction amount
-- `description` - Transaction description
-- `date` - Transaction date
-- RLS policies ensure users can only access their own transactions
-
-### Row Level Security (RLS)
-
-All tables have RLS policies that:
-
-1. Extract Clerk user ID from JWT using `get_clerk_user_id()` helper function
-2. Restrict access to user's own data only
-3. Support both Clerk JWT and Supabase Auth during migration
-
-## Authentication Flow
-
-### User Sign-Up/Sign-In
-
-1. User signs up/in via Clerk UI components (`<SignIn />`, `<SignUp />`)
-2. Clerk creates user account and issues JWT
-3. Clerk webhook fires `user.created` event
-4. Webhook handler (`/api/webhooks/clerk`) syncs user to `clerk_users` table
-5. User is redirected to dashboard
-
-### API Authentication
-
-1. Clerk middleware (`middleware.ts`) protects routes
-2. Supabase client (`lib/supabase/server.ts`) extracts Clerk JWT
-3. Supabase validates JWT using Clerk JWKS
-4. RLS policies use `get_clerk_user_id()` to enforce access control
-
-## API Routes
-
-### `/api/webhooks/clerk` (POST)
-
-Webhook endpoint for Clerk user sync:
-
-- **Events:** `user.created`, `user.updated`, `user.deleted`
-- **Authentication:** Clerk webhook signature verification
-- **Actions:** Upsert/delete user in `clerk_users` table
-
-## Deployment
-
-### Vercel Deployment
-
-1. **Connect repository to Vercel:**
-
-   ```bash
-   vercel
-   ```
-
-2. **Configure environment variables in Vercel:**
-   - Go to Project Settings → Environment Variables
-   - Add all variables from `.env.local`
-   - Ensure variables are set for Production, Preview, and Development
-
-3. **Deploy:**
-
-   ```bash
-   vercel --prod
-   ```
-
-4. **Configure Clerk webhook URL:**
-   - Update webhook endpoint to production URL: `https://your-domain.com/api/webhooks/clerk`
-
-### Important Notes
-
-- Clerk environment variables (`NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`) MUST be set in Vercel for production
-- Webhook secret must match between Clerk Dashboard and Vercel environment variables
-- Supabase JWT configuration must include Clerk JWKS URL
+- Development: `npx convex dev` (or `CONVEX_AGENT_MODE=anonymous` for cloud agents)
+- Production only: `npx convex deploy` — never use this to “try it out”
 
 ## Testing
 
-### Test User Creation
-
-1. Sign up at `/signup`
-2. Check Supabase `clerk_users` table for synced user
-3. Verify RLS policies by querying transactions
-
-### Test Webhook
-
 ```bash
-curl -X POST https://your-domain.com/api/webhooks/clerk \
-  -H "Content-Type: application/json" \
-  -H "svix-id: test" \
-  -H "svix-timestamp: $(date +%s)" \
-  -H "svix-signature: test" \
-  -d '{"type":"user.created","data":{"id":"user_test","email_addresses":[{"email_address":"test@example.com"}]}}'
+pnpm lint
+pnpm typecheck
+pnpm test
 ```
 
-## Migration from Supabase Auth
+RLS-negative tests and the `supabase/` tree were retired in Phase 5 (IVA-64). Convex ownership wrappers are the access-control layer.
 
-The platform has been migrated from Supabase Auth to Clerk. Key changes:
+## Related docs
 
-- ✅ Clerk authentication UI components replace Supabase Auth UI
-- ✅ Clerk JWT replaces Supabase JWT
-- ✅ `clerk_users` table replaces `auth.users` references
-- ✅ RLS policies updated to use `get_clerk_user_id()` helper
-- ✅ Webhook integration for user sync
-- ✅ Dual-auth support during migration (both Clerk and Supabase Auth work)
-
-## Related Repositories
-
-- **Mobile App:** [KOMPLEET-MOBILE](https://github.com/Ivano-Technologies/KOMPLEET-MOBILE)
-- **Program Management:** [kompleet-program-management](https://github.com/Ivano-Technologies/kompleet-program-management)
-
-## Documentation
-
-- **Clerk Documentation:** https://clerk.com/docs
-- **Supabase Documentation:** https://supabase.com/docs
-- **Next.js Documentation:** https://nextjs.org/docs
-- **Nigeria Tax Act 2025 / Nigerian Revenue Service (NRS):** consult official NRS guidance for current rates and filing rules
-
-## Support
-
-For issues or questions:
-
-- **GitHub Issues:** https://github.com/Ivano-Technologies/KOMPLEET-PLATFORM/issues
-- **Email:** support@techivano.com
+- [docs/convex-migration-plan.md](docs/convex-migration-plan.md)
+- [docs/convex-backfill.md](docs/convex-backfill.md)
+- [docs/convex-auth-storage.md](docs/convex-auth-storage.md) — Auth + Storage cutover, reset flow, rollback
+- [docs/SUPABASE_CUTOVER_KILL_LIST.md](docs/SUPABASE_CUTOVER_KILL_LIST.md) — leftover Supabase surfaces by domain (strip plan)
+- [docs/AUTH_MIGRATION_PLAN.md](docs/AUTH_MIGRATION_PLAN.md) — historical; Clerk is deferred/stale
+- [docs/ENVIRONMENT_VARIABLES.md](docs/ENVIRONMENT_VARIABLES.md)
 
 ## License
 
-Proprietary - Ivano Technologies Ltd © 2026
+Proprietary — Ivano Technologies Ltd © 2026

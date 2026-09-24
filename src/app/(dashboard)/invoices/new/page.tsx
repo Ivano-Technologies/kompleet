@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { createBrowserClient as createClient } from "@/lib/supabase/client";
 import { InvoiceLineItem, CustomerInfo } from "@/lib/invoice-service";
 import { FilePlus2, Loader2, Plus, Trash2 } from "lucide-react";
 
@@ -46,18 +45,19 @@ export default function NewInvoicePage() {
     let cancelled = false;
     (async () => {
       try {
-        const supabase = createClient();
-        const { data, error: clientsError } = await supabase
-          .from("clients")
-          .select("id, legal_name")
-          .order("legal_name", { ascending: true });
+        const response = await fetch("/api/clients", { credentials: "include" });
         if (cancelled) return;
-        if (clientsError) {
-          setError(clientsError.message);
+        if (!response.ok) {
+          const body = await response.json().catch(() => ({}));
+          setError(body?.error || "Failed to load clients");
           return;
         }
-        setClients(data ?? []);
-        if (data?.length === 1 && data[0]) {
+        const body = (await response.json()) as {
+          clients?: Array<{ id: string; legal_name: string }>;
+        };
+        const data = body.clients ?? [];
+        setClients(data);
+        if (data.length === 1 && data[0]) {
           setClientId(data[0].id);
         }
       } catch (err: unknown) {
@@ -185,15 +185,6 @@ export default function NewInvoicePage() {
     setError("");
 
     try {
-      const supabase = await createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        throw new Error("Not authenticated");
-      }
-
       const response = await fetch("/api/invoices/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -236,15 +227,6 @@ export default function NewInvoicePage() {
     setError("");
 
     try {
-      const supabase = await createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        throw new Error("Not authenticated");
-      }
-
       // Create invoice
       const createResponse = await fetch("/api/invoices/create", {
         method: "POST",

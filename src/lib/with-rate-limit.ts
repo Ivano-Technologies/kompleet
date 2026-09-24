@@ -56,15 +56,16 @@ export function withRateLimit<T extends Request | NextRequest = Request>(
       );
     }
 
-    // Execute the handler
+    // Execute the handler. Do not rebuild Response — Next.js 16 + cookies()
+    // 500s when a Route Handler that read cookies returns a cloned body.
     const response = await handler(request, context);
-
-    // Add rate limit headers to successful responses
-    const newResponse = new Response(response.body, response);
-    headers.forEach((value, key) => {
-      newResponse.headers.set(key, value);
-    });
-
-    return newResponse;
+    try {
+      headers.forEach((value, key) => {
+        response.headers.set(key, value);
+      });
+    } catch (error) {
+      console.error("Failed to attach rate-limit headers:", error);
+    }
+    return response;
   };
 }

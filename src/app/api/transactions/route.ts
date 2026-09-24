@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { withAudit } from "@/lib/with-audit";
+import { api } from "@/lib/convex/http";
+import {
+  isUnauthorized,
+  requireAuthedConvex,
+} from "@/lib/convex/server";
 import { z } from "zod";
 
 export const runtime = "nodejs";
@@ -26,8 +30,6 @@ const deleteBodySchema = z.object({
   ids: z.array(z.string().uuid("Invalid transaction ID")).min(1).max(500),
 });
 
-// Web shape: transaction_type, transaction_date, category_id
-// Mobile shape: type ("income"|"expense"), date, category (name string)
 const createBodySchema = z.object({
   description: z.string().min(1, "Description is required").max(500),
   amount: z.number().positive("Amount must be positive"),
@@ -45,8 +47,7 @@ const createBodySchema = z.object({
   category: z.string().optional(),
 }).refine(
   (data) =>
-    data.transaction_type !== undefined ||
-    data.type !== undefined,
+    data.transaction_type !== undefined || data.type !== undefined,
   { message: "Provide transaction_type or type" },
 ).refine(
   (data) =>
@@ -56,19 +57,8 @@ const createBodySchema = z.object({
 
 async function handleGET(request: NextRequest): Promise<NextResponse> {
   try {
-    const supabase = await getSupabaseForRequest(request);
+    const { convex } = await requireAuthedConvex(request);
 
-    // Check authentication
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Parse and validate query parameters
     const searchParams = request.nextUrl.searchParams;
     const raw = Object.fromEntries(searchParams.entries());
     const parsed = getQuerySchema.safeParse(raw);
@@ -81,69 +71,29 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
     }
 
     const filters = parsed.data;
-
-    // Build query
-    let query = supabase
-      .from("transactions")
-      .select(
-        `
-        *,
-        category:categories(id, name, category_type, tax_treatment)
-      `,
-        { count: "exact" },
-      )
-      .eq("user_id", user.id);
-
-    // Apply filters
-    if (filters.startDate) {
-      query = query.gte("transaction_date", filters.startDate);
-    }
-
-    if (filters.endDate) {
-      query = query.lte("transaction_date", filters.endDate);
-    }
-
-    if (filters.categoryId) {
-      query = query.eq("category_id", filters.categoryId);
-    }
-
-    if (filters.type) {
-      query = query.eq("transaction_type", filters.type);
-    }
-
-    if (filters.search) {
-      query = query.ilike("description", `%${filters.search}%`);
-    }
-
-    // Apply pagination
-    const from = (filters.page - 1) * filters.limit;
-    const to = from + filters.limit - 1;
-
-    query = query
-      .order("transaction_date", { ascending: false })
-      .order("created_at", { ascending: false })
-      .range(from, to);
-
-    const { data: transactions, error, count } = await query;
-
-    if (error) {
-      console.error("Error fetching transactions:", error);
-      return NextResponse.json(
-        { error: "Failed to fetch transactions" },
-        { status: 500 },
-      );
-    }
+    const result = await convex.query(api.transactions.listMine, {
+      startDate: filters.startDate,
+      endDate: filters.endDate,
+      categoryId: filters.categoryId,
+      type: filters.type,
+      search: filters.search,
+      page: filters.page,
+      limit: filters.limit,
+    });
 
     return NextResponse.json({
-      transactions,
+      transactions: result.transactions,
       pagination: {
         page: filters.page,
         limit: filters.limit,
-        total: count || 0,
-        totalPages: Math.ceil((count || 0) / filters.limit),
+        total: result.total,
+        totalPages: Math.ceil(result.total / filters.limit),
       },
     });
   } catch (error) {
+    if (isUnauthorized(error)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     console.error("API error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
@@ -154,17 +104,7 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
 
 async function handleDELETE(request: NextRequest): Promise<NextResponse> {
   try {
-    const supabase = await getSupabaseForRequest(request);
-
-    // Check authentication
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { convex } = await requireAuthedConvex(request);
 
     const body = await request.json();
     const parsed = deleteBodySchema.safeParse(body);
@@ -176,28 +116,18 @@ async function handleDELETE(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    const { ids } = parsed.data;
-
-    // Delete transactions (RLS ensures user can only delete their own)
-    const { error } = await supabase
-      .from("transactions")
-      .delete()
-      .in("id", ids)
-      .eq("user_id", user.id);
-
-    if (error) {
-      console.error("Error deleting transactions:", error);
-      return NextResponse.json(
-        { error: "Failed to delete transactions" },
-        { status: 500 },
-      );
-    }
+    const removed = await convex.mutation(api.transactions.removeMine, {
+      externalIds: parsed.data.ids,
+    });
 
     return NextResponse.json({
       success: true,
-      message: `Deleted ${ids.length} transaction(s)`,
+      message: `Deleted ${removed} transaction(s)`,
     });
   } catch (error) {
+    if (isUnauthorized(error)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     console.error("Delete error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
@@ -208,16 +138,7 @@ async function handleDELETE(request: NextRequest): Promise<NextResponse> {
 
 async function handlePOST(request: NextRequest): Promise<NextResponse> {
   try {
-    const supabase = await getSupabaseForRequest(request);
-
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { convex } = await requireAuthedConvex(request);
 
     const body = await request.json();
     const parsed = createBodySchema.safeParse(body);
@@ -232,52 +153,34 @@ async function handlePOST(request: NextRequest): Promise<NextResponse> {
     const p = parsed.data;
     const transactionType =
       p.transaction_type ??
-      (p.type === "income" ? "credit" : p.type === "expense" ? "debit" : "debit");
+      (p.type === "income" ? "credit" : "debit");
     const transactionDate = p.transaction_date ?? p.date ?? "";
 
-    let categoryId = p.category_id ?? null;
-    if (categoryId === null && p.category && typeof p.category === "string") {
-      const { data: categories } = await supabase
-        .from("categories")
-        .select("id, name")
-        .eq("user_id", user.id);
-      const match = (categories ?? []).find(
+    let categoryId = p.category_id ?? undefined;
+    if (!categoryId && p.category) {
+      const categories = await convex.query(api.categories.list, {});
+      const match = categories.find(
         (c) =>
           c.name.toLowerCase() === p.category!.toLowerCase() ||
           c.name.toLowerCase().includes(p.category!.toLowerCase()),
       );
-      categoryId = match?.id ?? null;
+      categoryId = match?.id;
     }
 
-    const { data: transaction, error } = await supabase
-      .from("transactions")
-      .insert({
-        user_id: user.id,
-        description: p.description,
-        amount: p.amount,
-        transaction_type: transactionType,
-        transaction_date: transactionDate,
-        category_id: categoryId,
-        confidence_score: categoryId ? 100 : null,
-      })
-      .select(
-        `
-        *,
-        category:categories(id, name, category_type, tax_treatment)
-      `,
-      )
-      .single();
-
-    if (error) {
-      console.error("Error creating transaction:", error);
-      return NextResponse.json(
-        { error: error.message || "Failed to create transaction" },
-        { status: 500 },
-      );
-    }
+    const transaction = await convex.mutation(api.transactions.createMine, {
+      description: p.description,
+      amount: p.amount,
+      transactionType,
+      transactionDate,
+      categoryExternalId: categoryId,
+      confidenceScore: categoryId ? 100 : undefined,
+    });
 
     return NextResponse.json({ transaction }, { status: 201 });
   } catch (error) {
+    if (isUnauthorized(error)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     console.error("API error:", error);
     return NextResponse.json(
       { error: "Internal server error" },

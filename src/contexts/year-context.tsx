@@ -7,8 +7,8 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
-import type { Session } from "@supabase/supabase-js";
-import { createBrowserClient } from "@/lib/supabase/client";
+import { useConvexAuth } from "convex/react";
+import { defaultTaxYears } from "@/lib/tax-years";
 
 interface YearContextType {
   selectedYear: number;
@@ -23,100 +23,69 @@ interface YearProviderProps {
   children: ReactNode;
 }
 
-function defaultYears(currentYear: number): number[] {
-  return [currentYear - 2, currentYear - 1, currentYear];
-}
-
 export function YearProvider({ children }: YearProviderProps) {
   const currentYear = new Date().getFullYear();
+  const { isLoading: authLoading, isAuthenticated } = useConvexAuth();
   const [selectedYear, setSelectedYearState] = useState<number>(currentYear);
   const [availableYears, setAvailableYears] = useState<number[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load selected year from localStorage on mount
   useEffect(() => {
     const stored = localStorage.getItem("kompleet_selected_year");
     if (stored) {
       const year = parseInt(stored, 10);
-      if (!isNaN(year)) {
+      if (!Number.isNaN(year)) {
         setSelectedYearState(year);
       }
     }
   }, []);
 
-  // Fetch available years only after auth has resolved with a session.
-  // YearProvider wraps the root layout, including public pages; calling
-  // GET /api/year/available before that produced four 401s per navigation.
+  // YearProvider wraps the root layout, including public pages. Fetch only
+  // after Convex auth resolves so login/marketing do not spam 401s, and so
+  // Export Center refetches once the same session that can hit /dashboard
+  // is actually ready.
   useEffect(() => {
-    let cancelled = false;
-    const supabase = createBrowserClient();
+    if (authLoading) return;
 
-    async function loadYears(session: Session | null) {
-      if (cancelled) return;
-      if (!session) {
-        setAvailableYears(defaultYears(currentYear));
+    let cancelled = false;
+
+    async function loadYears() {
+      if (!isAuthenticated) {
+        setAvailableYears(defaultTaxYears());
         setIsLoading(false);
         return;
       }
 
       try {
-        const response = await fetch("/api/year/available");
+        const response = await fetch("/api/year/available", {
+          credentials: "same-origin",
+        });
         if (cancelled) return;
         if (response.ok) {
-          const data = await response.json();
-          setAvailableYears(data.years || defaultYears(currentYear));
+          const data = (await response.json()) as { years?: number[] };
+          setAvailableYears(data.years || defaultTaxYears());
         } else {
-          setAvailableYears(defaultYears(currentYear));
+          setAvailableYears(defaultTaxYears());
         }
       } catch (error) {
         console.error("Failed to fetch available years:", error);
         if (!cancelled) {
-          setAvailableYears(defaultYears(currentYear));
+          setAvailableYears(defaultTaxYears());
         }
       } finally {
         if (!cancelled) setIsLoading(false);
       }
     }
 
-    void supabase.auth.getSession().then(({ data: { session } }) => {
-      void loadYears(session);
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      // getSession already handled the first paint; skip the duplicate
-      // INITIAL_SESSION event so public pages do not double-resolve.
-      if (event === "INITIAL_SESSION") return;
-      void loadYears(session);
-    });
-
+    void loadYears();
     return () => {
       cancelled = true;
-      subscription.unsubscribe();
     };
-  }, [currentYear]);
+  }, [currentYear, authLoading, isAuthenticated]);
 
-  // Persist selected year to localStorage and log audit trail
-  const setSelectedYear = async (year: number) => {
+  const setSelectedYear = (year: number) => {
     setSelectedYearState(year);
-    localStorage.setItem("kompleet_selected_year", year.toString());
-
-    // Log year switch for audit
-    try {
-      await fetch("/api/audit/log", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "year_switch",
-          resource_type: "tax_year",
-          tax_year: year,
-          metadata: { previous_year: selectedYear },
-        }),
-      });
-    } catch (error) {
-      console.error("Failed to log year switch:", error);
-    }
+    localStorage.setItem("kompleet_selected_year", String(year));
   };
 
   return (
@@ -128,7 +97,7 @@ export function YearProvider({ children }: YearProviderProps) {
   );
 }
 
-export function useYear() {
+export function useYear(): YearContextType {
   const context = useContext(YearContext);
   if (context === undefined) {
     throw new Error("useYear must be used within a YearProvider");

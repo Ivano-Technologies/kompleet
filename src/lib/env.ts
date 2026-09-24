@@ -16,14 +16,17 @@ const serverSchema = z.object({
     .enum(["development", "production", "test"])
     .default("development"),
 
-  // Supabase (server-side secret / legacy service_role)
+  // Optional until Phase 6 teardown (keep-alive / backfill only)
   SUPABASE_SERVICE_ROLE_KEY: z
     .string()
-    .min(1, "SUPABASE_SERVICE_ROLE_KEY is required")
     .refine(
-      (v) => v.startsWith("eyJ") || v.startsWith("sb_secret_"),
+      (v) =>
+        v.length === 0 ||
+        v.startsWith("eyJ") ||
+        v.startsWith("sb_secret_"),
       "must be a legacy service_role JWT or an sb_secret_ key",
-    ),
+    )
+    .optional(),
 
   // OpenAI
   OPENAI_API_KEY: z
@@ -109,17 +112,24 @@ const serverSchema = z.object({
 // ============================================================
 
 const clientSchema = z.object({
-  NEXT_PUBLIC_SUPABASE_URL: z
-    .string()
-    .url("NEXT_PUBLIC_SUPABASE_URL must be a valid URL"),
+  // Optional until Phase 6 teardown (keep-alive / PostgREST ping only)
+  NEXT_PUBLIC_SUPABASE_URL: z.string().url().optional(),
 
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z
     .string()
-    .min(1, "NEXT_PUBLIC_SUPABASE_ANON_KEY is required")
     .refine(
-      (v) => v.startsWith("eyJ") || v.startsWith("sb_publishable_"),
+      (v) =>
+        v.length === 0 ||
+        v.startsWith("eyJ") ||
+        v.startsWith("sb_publishable_"),
       "must be a legacy anon JWT or an sb_publishable_ key",
-    ),
+    )
+    .optional(),
+
+  NEXT_PUBLIC_CONVEX_URL: z
+    .string()
+    .url("NEXT_PUBLIC_CONVEX_URL must be a valid URL")
+    .optional(),
 
   NEXT_PUBLIC_APP_URL: z.string().url().default("http://localhost:3000"),
 
@@ -194,13 +204,9 @@ function validateEnv(): Env {
 
         return serverSchema.merge(clientSchema).parse({
           ...rawEnv,
-          SUPABASE_SERVICE_ROLE_KEY:
-            rawEnv.SUPABASE_SERVICE_ROLE_KEY ?? "eyJ_dev_placeholder",
           OPENAI_API_KEY: rawEnv.OPENAI_API_KEY ?? "sk-dev_placeholder",
-          NEXT_PUBLIC_SUPABASE_URL:
-            rawEnv.NEXT_PUBLIC_SUPABASE_URL ?? "http://localhost:54321",
-          NEXT_PUBLIC_SUPABASE_ANON_KEY:
-            rawEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "eyJ_dev_placeholder",
+          NEXT_PUBLIC_CONVEX_URL:
+            rawEnv.NEXT_PUBLIC_CONVEX_URL ?? "https://placeholder.convex.cloud",
         });
       }
 

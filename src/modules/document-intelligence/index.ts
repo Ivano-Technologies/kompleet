@@ -1,17 +1,24 @@
+import type { ConvexHttpClient } from "convex/browser";
 import { GetDocumentStatusUseCase } from "./application/get-document-status.usecase";
 import { ProcessDocumentUseCase } from "./application/process-document.usecase";
 import type { AuditLogPort } from "./application/ports/audit-log.port";
 import type { DocumentRepositoryPort } from "./application/ports/document-repository.port";
 import type { QueuePort } from "./application/ports/queue.port";
+import { ConvexAuditLogAdapter } from "./infrastructure/audit/convex-audit-log.adapter";
 import { InMemoryAuditLogAdapter } from "./infrastructure/audit/in-memory-audit-log.adapter";
-import { SupabaseAuditLogAdapter } from "./infrastructure/audit/supabase-audit-log.adapter";
+import { ConvexDocumentRepository } from "./infrastructure/persistence/convex-document.repository";
 import { InMemoryDocumentRepository } from "./infrastructure/persistence/in-memory-document.repository";
-import { SupabaseDocumentRepository } from "./infrastructure/persistence/supabase-document.repository";
-import { BullMQAdapter } from "./infrastructure/queue/bullmq.adapter";
 import { InMemoryDocumentQueue } from "./infrastructure/queue/in-memory-document.queue";
+import { createDocumentQueue } from "./infrastructure/queue/queue-driver";
 import { DocumentController } from "./interfaces/document.controller";
 export { NotFoundError } from "./interfaces/document.controller";
-import type { SupabaseClient } from "@supabase/supabase-js";
+export { DocumentPersistError } from "./application/process-document.usecase";
+export {
+  QueueConfigurationError,
+  resolveDocumentQueueDriver,
+  setDocumentQueueDepsForTests,
+  resetDocumentQueueDriverLogForTests,
+} from "./infrastructure/queue/queue-driver";
 
 let cachedController: DocumentController | null = null;
 
@@ -26,18 +33,26 @@ export function getDocumentController(): DocumentController {
   return cachedController;
 }
 
-export function getDocumentControllerWithSupabase(
-  supabase: SupabaseClient,
+/** Status reads only need Convex. Do not require Redis/queue here. */
+export function getDocumentStatusControllerWithConvex(
+  convex: ConvexHttpClient,
 ): DocumentController {
-  const repository: DocumentRepositoryPort =
-    new SupabaseDocumentRepository(supabase);
-  const redisUrl = process.env.REDIS_URL;
-  if (!redisUrl) {
-    throw new Error("REDIS_URL is required for document queueing.");
-  }
+  const repository: DocumentRepositoryPort = new ConvexDocumentRepository(
+    convex,
+  );
+  const auditLog = new ConvexAuditLogAdapter(convex);
+  return buildController(repository, new InMemoryDocumentQueue(), auditLog);
+}
 
-  const queue = new BullMQAdapter(redisUrl);
-  const auditLog = new SupabaseAuditLogAdapter(supabase);
+/** Upload/queue path. Call only after auth has already failed closed. */
+export function getDocumentControllerWithConvex(
+  convex: ConvexHttpClient,
+): DocumentController {
+  const repository: DocumentRepositoryPort = new ConvexDocumentRepository(
+    convex,
+  );
+  const queue = createDocumentQueue();
+  const auditLog = new ConvexAuditLogAdapter(convex);
   return buildController(repository, queue, auditLog);
 }
 

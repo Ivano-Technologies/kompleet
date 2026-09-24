@@ -21,7 +21,6 @@ import {
 } from "@/lib/db/expense-repository";
 import { getCategoryNameById } from "@/lib/db/categories";
 import { runSync, getLastSyncedAt } from "@/lib/sync/sync-engine";
-import { getSupabaseClient } from "@/lib/supabase/client";
 
 const API_BASE = process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:3000";
 
@@ -55,8 +54,7 @@ export default function HomeScreen() {
           const ok = r.ok;
           setIsOnline(ok);
           if (ok) {
-            const supabase = getSupabaseClient();
-            runSync(supabase).then(() => loadExpenses()).catch(() => {});
+            runSync().then(() => loadExpenses()).catch(() => {});
           }
         })
         .catch(() => setIsOnline(false));
@@ -72,10 +70,9 @@ export default function HomeScreen() {
       setIsOnline(ok);
       if (ok) {
         try {
-          const supabase = getSupabaseClient();
-          await runSync(supabase);
+          await runSync();
         } catch {
-          // no session or Supabase not configured
+          // no session or API not reachable
         }
       }
       loadExpenses();

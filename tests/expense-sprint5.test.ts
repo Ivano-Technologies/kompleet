@@ -1,7 +1,6 @@
 /**
  * Sprint 5 – Mileage + Premium (workspaces superseded by firms/firm_members).
- * Workspace API/UI deleted in Phase 2. Migration files remain as historical
- * no-op stubs so remote supabase_migrations history stays in sync.
+ * Workspace API/UI deleted in Phase 2. The supabase/ tree is gone in Phase 5.
  */
 import { describe, it, expect } from "vitest";
 import * as fs from "fs";
@@ -9,16 +8,12 @@ import * as path from "path";
 
 describe("Expense Sprint 5 – Mileage + Premium", () => {
   describe("Workspaces superseded", () => {
-    it("workspaces migration is a historical no-op stub (do not recreate tables)", () => {
+    it("supabase workspaces migration is gone with the supabase/ tree", () => {
       const migrationPath = path.join(
         __dirname,
         "../supabase/migrations/20260221100000_sprint5_workspaces_premium.sql",
       );
-      expect(fs.existsSync(migrationPath)).toBe(true);
-      const content = fs.readFileSync(migrationPath, "utf-8");
-      expect(content).toMatch(/Historical no-op stub/i);
-      expect(content).not.toMatch(/create\s+table\s+workspaces/i);
-      expect(content).not.toMatch(/create\s+table\s+workspace_members/i);
+      expect(fs.existsSync(migrationPath)).toBe(false);
     });
 
     it("workspaces API routes are removed", () => {
@@ -44,11 +39,9 @@ describe("Expense Sprint 5 – Mileage + Premium", () => {
   });
 
   describe("Premium gating", () => {
-    it("expense-premium helper exists with getSubscriptionTier and requirePremium", () => {
+    it("expense-premium helper was removed with the Supabase strip", () => {
       const premiumPath = path.join(__dirname, "../src/lib/expense-premium.ts");
-      expect(fs.existsSync(premiumPath)).toBe(true);
-      const content = fs.readFileSync(premiumPath, "utf-8");
-      expect(content).toMatch(/getSubscriptionTier|requirePremium|402/);
+      expect(fs.existsSync(premiumPath)).toBe(false);
     });
   });
 

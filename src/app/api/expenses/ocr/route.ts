@@ -1,19 +1,21 @@
 /**
  * POST /api/expenses/ocr
  * Receipt OCR: accept base64 image, return extracted text and parsed fields (vendor, date, amount, vat).
- * Used by web (Add from receipt) and mobile app for server-side OCR.
+ * Auth is Convex; Tesseract stays external. No receipt persistence on this path.
  */
 import { NextRequest, NextResponse } from "next/server";
 import { createWorker } from "tesseract.js";
 import { logger } from "@/lib/logger";
 import { parseReceiptText } from "@/lib/expense-ocr/parse-receipt-text";
-import { getSupabaseForRequest } from "@/lib/supabase/server";
+import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
 
 async function handlePOST(request: NextRequest) {
   try {
-    const body = await request.json().catch(() => ({}));
-    const imageBase64 = body?.imageBase64 as string | undefined;
+    const body = (await request.json().catch(() => ({}))) as {
+      imageBase64?: unknown;
+    };
+    const imageBase64 = body?.imageBase64;
     if (!imageBase64 || typeof imageBase64 !== "string") {
       return NextResponse.json(
         { error: "Missing or invalid imageBase64" },
@@ -21,14 +23,7 @@ async function handlePOST(request: NextRequest) {
       );
     }
 
-    const supabase = await getSupabaseForRequest(request);
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    await requireAuthedConvex(request);
 
     const buffer = Buffer.from(imageBase64, "base64");
     if (buffer.length === 0) {
@@ -55,6 +50,9 @@ async function handlePOST(request: NextRequest) {
       vat: parsed.vat ?? null,
     });
   } catch (err) {
+    if (isUnauthorized(err)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     logger.error("OCR error", {
       error: err instanceof Error ? err.message : String(err),
       operation: "expenses/ocr",

@@ -1,107 +1,46 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
+import { api } from "@/lib/convex/http";
+import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 
 async function handleGET(request: NextRequest) {
   try {
-    const supabase = await getSupabaseForRequest(request);
-
-    // Get authenticated user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Get year from query params
-    const searchParams = request.nextUrl.searchParams;
+    const { convex } = await requireAuthedConvex(request);
     const currentYear = parseInt(
-      searchParams.get("year") || new Date().getFullYear().toString(),
+      request.nextUrl.searchParams.get("year") ||
+        new Date().getFullYear().toString(),
       10,
     );
     const previousYear = currentYear - 1;
 
-    // Fetch current year transactions
-    const { data: currentTransactions, error: currentError } = await supabase
-      .from("transactions")
-      .select("type, amount")
-      .eq("user_id", user.id)
-      .eq("tax_year", currentYear);
+    const [current, previous] = await Promise.all([
+      convex.query(api.transactions.totalsForYear, { taxYear: currentYear }),
+      convex.query(api.transactions.totalsForYear, { taxYear: previousYear }),
+    ]);
 
-    if (currentError) {
-      console.error("Error fetching current year transactions:", currentError);
-      return NextResponse.json(
-        { error: "Failed to fetch data" },
-        { status: 500 },
-      );
-    }
+    const currentIncome = current.income;
+    const currentExpenses = current.expenses;
+    const previousIncome = previous.income;
+    const previousExpenses = previous.expenses;
 
-    // Fetch previous year transactions
-    const { data: previousTransactions, error: previousError } = await supabase
-      .from("transactions")
-      .select("type, amount")
-      .eq("user_id", user.id)
-      .eq("tax_year", previousYear);
-
-    if (previousError) {
-      console.error(
-        "Error fetching previous year transactions:",
-        previousError,
-      );
-      return NextResponse.json(
-        { error: "Failed to fetch data" },
-        { status: 500 },
-      );
-    }
-
-    // Calculate totals for current year
-    const currentIncome =
-      currentTransactions
-        ?.filter((t) => t.type === "income")
-        .reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
-
-    const currentExpenses =
-      currentTransactions
-        ?.filter((t) => t.type === "expense")
-        .reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
-
-    // Calculate totals for previous year
-    const previousIncome =
-      previousTransactions
-        ?.filter((t) => t.type === "income")
-        .reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
-
-    const previousExpenses =
-      previousTransactions
-        ?.filter((t) => t.type === "expense")
-        .reduce((sum, t) => sum + (t.amount || 0), 0) || 0;
-
-    // Calculate tax (simplified - 20% of net income)
     const currentNetIncome = currentIncome - currentExpenses;
     const previousNetIncome = previousIncome - previousExpenses;
     const currentTax = Math.max(0, currentNetIncome * 0.2);
     const previousTax = Math.max(0, previousNetIncome * 0.2);
 
-    // Calculate changes
     const incomeChange = currentIncome - previousIncome;
     const incomeChangePercent =
       previousIncome > 0 ? (incomeChange / previousIncome) * 100 : 0;
-
     const expensesChange = currentExpenses - previousExpenses;
     const expensesChangePercent =
       previousExpenses > 0 ? (expensesChange / previousExpenses) * 100 : 0;
-
     const taxChange = currentTax - previousTax;
     const taxChangePercent =
       previousTax > 0 ? (taxChange / previousTax) * 100 : 0;
-
     const netIncomeChange = currentNetIncome - previousNetIncome;
     const netIncomeChangePercent =
       previousNetIncome > 0 ? (netIncomeChange / previousNetIncome) * 100 : 0;
 
-    // Return YoY comparison data
     return NextResponse.json({
       income: {
         current: currentIncome,
@@ -129,6 +68,9 @@ async function handleGET(request: NextRequest) {
       },
     });
   } catch (error) {
+    if (isUnauthorized(error)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     console.error("Error in /api/analytics/yoy/summary:", error);
     return NextResponse.json(
       { error: "Internal server error" },

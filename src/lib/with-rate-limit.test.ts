@@ -8,7 +8,7 @@ vi.mock("./rate-limit", () => ({
 
 import { withRateLimit } from "./with-rate-limit";
 import { rateLimit, getIdentifier } from "./rate-limit";
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 const mockedRateLimit = vi.mocked(rateLimit);
 const mockedGetIdentifier = vi.mocked(getIdentifier);
@@ -111,6 +111,24 @@ describe("withRateLimit", () => {
     const retryAfter = response.headers.get("Retry-After");
     expect(retryAfter).toBeTruthy();
     expect(Number(retryAfter)).toBeGreaterThan(0);
+  });
+
+  it("does not clone NextResponse.json (body stays readable)", async () => {
+    mockedRateLimit.mockReturnValue({
+      success: true,
+      remaining: 59,
+      reset: new Date(Date.now() + 60000),
+    });
+
+    const handler = vi
+      .fn()
+      .mockResolvedValue(NextResponse.json({ reports: [] }));
+    const wrappedHandler = withRateLimit(handler);
+    const response = await wrappedHandler(createMockRequest());
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({ reports: [] });
+    expect(response.headers.get("X-RateLimit-Limit")).toBe("60");
   });
 
   it("passes context to handler", async () => {

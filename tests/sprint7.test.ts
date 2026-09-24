@@ -40,12 +40,6 @@ vi.mock("jspdf", () => {
 
 vi.mock("jspdf-autotable", () => ({}));
 
-// Mock Supabase server client (form-prefill and deadline-service import it,
-// and it depends on next/headers which is unavailable in test environment)
-vi.mock("@/lib/supabase/server", () => ({
-  createServerClient: vi.fn(async () => ({})),
-}));
-
 import {
   generatePITForm,
   generateCITForm,

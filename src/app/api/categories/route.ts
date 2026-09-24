@@ -1,40 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
+import { api } from "@/lib/convex/http";
+import {
+  isUnauthorized,
+  requireAuthedConvex,
+} from "@/lib/convex/server";
 
 export const runtime = "nodejs";
 
 async function handleGET(request: NextRequest): Promise<NextResponse> {
   try {
-    const supabase = await getSupabaseForRequest(request);
-
-    // Check authentication
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Fetch all categories
-    const { data: categories, error } = await supabase
-      .from("categories")
-      .select("*")
-      .order("category_type")
-      .order("name");
-
-    if (error) {
-      console.error("Error fetching categories:", error);
-      return NextResponse.json(
-        { error: "Failed to fetch categories" },
-        { status: 500 },
-      );
-    }
-
+    const { convex } = await requireAuthedConvex(request);
+    const categories = await convex.query(api.categories.list, {});
     return NextResponse.json({ categories });
   } catch (error) {
+    if (isUnauthorized(error)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     console.error("API error:", error);
     return NextResponse.json(
       { error: "Internal server error" },

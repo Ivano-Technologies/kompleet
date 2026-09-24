@@ -1,26 +1,18 @@
-import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
+import { api } from "@/lib/convex/http";
+import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 
 async function handlePOST(request: NextRequest) {
   try {
-    const supabase = await getSupabaseForRequest(request);
-
-    // Check authentication
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: "Unauthorized", message: "Authentication required" },
-        { status: 401 },
-      );
-    }
-
+    const { convex, user } = await requireAuthedConvex(request);
     const body = await request.json();
-    const { calculationType, inputData, outputData, ruleVersionId } = body;
+    const { calculationType, inputData, outputData, ruleVersionId } = body as {
+      calculationType?: string;
+      inputData?: unknown;
+      outputData?: unknown;
+      ruleVersionId?: string;
+    };
 
     if (!calculationType || !inputData || !outputData) {
       return NextResponse.json(
@@ -29,46 +21,36 @@ async function handlePOST(request: NextRequest) {
       );
     }
 
-    // If no ruleVersionId provided, get the active one
     let versionId = ruleVersionId;
     if (!versionId) {
-      const { data: activeVersion } = await supabase
-        .from("rule_versions")
-        .select("id")
-        .eq("is_active", true)
-        .single();
-
-      versionId = activeVersion?.id;
+      const versions = await convex.query(api.tax.listRuleVersions, {});
+      versionId = versions.find((v) => v.is_active)?.id;
     }
 
-    // Insert audit log with authenticated user
-    const { data, error } = await supabase
-      .from("audit_logs")
-      .insert({
+    const auditLogId = await convex.mutation(api.audit.append, {
+      action: "calculation",
+      resourceType: "calculation",
+      metadata: {
         calculation_type: calculationType,
         input_data: inputData,
         output_data: outputData,
-        rule_version_id: versionId,
-        user_id: user.id,
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error("Error creating audit log:", error);
-      return NextResponse.json(
-        { error: "Failed to create audit log" },
-        { status: 500 },
-      );
-    }
+        rule_version_id: versionId ?? null,
+      },
+    });
 
     return NextResponse.json({
       success: true,
-      auditLogId: data.id,
+      auditLogId,
       message: "Calculation logged successfully",
       userId: user.id,
     });
   } catch (error) {
+    if (isUnauthorized(error)) {
+      return NextResponse.json(
+        { error: "Unauthorized", message: "Authentication required" },
+        { status: 401 },
+      );
+    }
     console.error("[audit-log] Unexpected error:", error);
     return NextResponse.json(
       { error: "Internal server error", message: "Failed to create audit log" },

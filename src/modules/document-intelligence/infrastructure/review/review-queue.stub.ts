@@ -1,5 +1,5 @@
 import { logger } from "@/lib/logger";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { AuditLogPort } from "../../application/ports/audit-log.port";
 
 export interface ReviewQueuePort {
   enqueueForReview(params: {
@@ -10,7 +10,7 @@ export interface ReviewQueuePort {
 }
 
 export class ReviewQueueStub implements ReviewQueuePort {
-  constructor(private readonly supabase?: SupabaseClient) {}
+  constructor(private readonly auditLog?: AuditLogPort) {}
 
   async enqueueForReview(params: {
     documentId: string;
@@ -24,23 +24,17 @@ export class ReviewQueueStub implements ReviewQueuePort {
       reason: params.reason,
     });
 
-    if (!this.supabase) {
+    if (!this.auditLog) {
       return;
     }
 
-    // Persist review intent as an auditable record in existing audit_logs table.
-    const { error } = await this.supabase.from("audit_logs").insert({
-      user_id: params.userId,
+    await this.auditLog.record({
+      userId: params.userId,
+      documentId: params.documentId,
       action: "document_manual_review_queued",
-      resource_type: "document",
-      resource_id: params.documentId,
       metadata: {
         reason: params.reason,
       },
     });
-
-    if (error) {
-      throw new Error(`Failed to persist manual review record: ${error.message}`);
-    }
   }
 }

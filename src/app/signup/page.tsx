@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, FormEvent } from 'react';
-import { createSupabaseClient } from '@/lib/supabase/client';
+import { useAuthActions } from '@convex-dev/auth/react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { AuthLayout } from '@/components/layout/AuthLayout';
 import { ArrowRight, CheckCircle2, Eye, EyeOff, Shield, Lock } from 'lucide-react';
@@ -27,6 +28,8 @@ export default function SignUpPage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const strength = getPasswordStrength(password);
+  const { signIn } = useAuthActions();
+  const router = useRouter();
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -45,32 +48,28 @@ export default function SignUpPage() {
     }
 
     try {
-      const supabase = createSupabaseClient();
-      const { data, error: authError } = await supabase.auth.signUp({
+      const fullName = `${firstName} ${lastName}`.trim();
+      await signIn('password', {
         email: businessEmail,
         password,
-        options: {
-          data: {
-            first_name: firstName,
-            last_name: lastName,
-            full_name: `${firstName} ${lastName}`,
-            business_name: businessName,
-          },
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
+        flow: 'signUp',
+        name: fullName,
+        companyName: businessName,
       });
-
-      if (authError) {
-        setError(authError.message);
-        setLoading(false);
-        return;
+      await fetch('/api/auth/ensure-profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: businessEmail, fullName }),
+      }).catch(() => {});
+      setSuccess(true);
+      router.refresh();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '';
+      if (/already|exist/i.test(message)) {
+        setError('An account with this email already exists. Sign in, or use Forgot password.');
+      } else {
+        setError(message || 'An unexpected error occurred. Please try again.');
       }
-
-      if (data.user) {
-        setSuccess(true);
-      }
-    } catch {
-      setError('An unexpected error occurred. Please try again.');
       setLoading(false);
     }
   };
@@ -84,10 +83,10 @@ export default function SignUpPage() {
           </div>
           <h1 className="font-display text-2xl font-bold text-text-1 dark:text-dark-text-1">Account Created!</h1>
           <p className="text-text-3 dark:text-dark-text-3">
-            Check your email to verify your account before signing in.
+            Your account is ready. Existing Kompleet data for this email stays attached.
           </p>
-          <Link href="/login" className="bg-primary text-white font-bold text-sm py-3 px-6 rounded-md block w-full text-center hover:bg-primary-deep transition-colors">
-            Go to Login
+          <Link href="/dashboard" className="bg-primary text-white font-bold text-sm py-3 px-6 rounded-md block w-full text-center hover:bg-primary-deep transition-colors">
+            Go to Dashboard
           </Link>
         </div>
       </AuthLayout>

@@ -1,31 +1,20 @@
+// TODO(IVA-64 Phase 5): filing_deadlines is not in Convex schema. Do not invent tables.
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseForRequest } from "@/lib/supabase/server";
-import { getUpcomingDeadlines } from "@/lib/deadline-service";
 import { withRateLimit } from "@/lib/with-rate-limit";
+import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 
 async function handleGET(request: NextRequest) {
   try {
-    const supabase = await getSupabaseForRequest(request);
-
-    // Check authentication
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Get upcoming deadlines
-    const deadlines = await getUpcomingDeadlines(user.id);
-
+    await requireAuthedConvex(request);
     return NextResponse.json({
       success: true,
-      deadlines,
-      count: deadlines.length,
+      deadlines: [],
+      count: 0,
     });
   } catch (error) {
-    console.error("Get upcoming deadlines error:", error);
+    if (isUnauthorized(error)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },
@@ -33,4 +22,4 @@ async function handleGET(request: NextRequest) {
   }
 }
 
-export const GET = withRateLimit(handleGET, { limit: 120 });
+export const GET = withRateLimit(handleGET);

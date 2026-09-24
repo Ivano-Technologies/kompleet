@@ -1,55 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseForRequest } from "@/lib/supabase/server";
-import { withRateLimit } from "@/lib/with-rate-limit";
+import { api } from "@/lib/convex/http";
+import { getAuthedConvex } from "@/lib/convex/server";
+import { defaultTaxYears } from "@/lib/tax-years";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+function yearsPayload(years: number[]) {
+  const fallback = defaultTaxYears();
+  return { years: years.length > 0 ? years : fallback };
+}
 
 async function handleGET(request: NextRequest) {
   try {
-    const supabase = await getSupabaseForRequest(request);
-
-    // Get authenticated user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const authed = await getAuthedConvex(request);
+    if (!authed) {
+      // Year switcher is a convenience UI with a calendar fallback. Returning
+      // 401 here made root-layout fetches look like a session failure even
+      // when /dashboard is fine. Empty/unauthenticated → 200 + fallback.
+      return NextResponse.json(yearsPayload([]));
     }
-
-    // Fetch available tax years for the user
-    const { data: taxYears, error } = await supabase
-      .from("user_tax_years")
-      .select("tax_year")
-      .eq("user_id", user.id)
-      .order("tax_year", { ascending: false });
-
-    if (error) {
-      console.error("Error fetching tax years:", error);
-      // Return default years if query fails
-      const currentYear = new Date().getFullYear();
-      return NextResponse.json({
-        years: [currentYear - 2, currentYear - 1, currentYear],
-      });
-    }
-
-    // Extract years from results
-    const years = taxYears?.map((ty) => ty.tax_year) || [];
-
-    // If no years found, return default years
-    if (years.length === 0) {
-      const currentYear = new Date().getFullYear();
-      return NextResponse.json({
-        years: [currentYear - 2, currentYear - 1, currentYear],
-      });
-    }
-
-    return NextResponse.json({ years });
+    const years = await authed.convex.query(api.year.listMine, {});
+    return NextResponse.json(yearsPayload(Array.isArray(years) ? years : []));
   } catch (error) {
-    console.error("Error in /api/year/available:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    console.error("Error in GET /api/year/available:", error);
+    return NextResponse.json(yearsPayload([]));
   }
 }
 
-export const GET = withRateLimit(handleGET, { limit: 120 });
+export const GET = handleGET;

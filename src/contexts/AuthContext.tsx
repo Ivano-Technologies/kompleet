@@ -1,12 +1,13 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-import { User, Session } from "@supabase/supabase-js";
-import { createClient } from "@/lib/supabase/client";
+import { useAuthActions } from "@convex-dev/auth/react";
+import { useConvexAuth } from "convex/react";
+import type { CompatUser } from "@/lib/auth/compat-user";
 
 interface AuthContextType {
-  user: User | null;
-  session: Session | null;
+  user: CompatUser | null;
+  session: { access_token: string } | null;
   loading: boolean;
   signOut: () => Promise<void>;
 }
@@ -19,37 +20,46 @@ const AuthContext = createContext<AuthContextType>({
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
-  const supabase = createClient();
+  const { isLoading, isAuthenticated } = useConvexAuth();
+  const { signOut: convexSignOut } = useAuthActions();
+  const [user, setUser] = useState<CompatUser | null>(null);
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
-  }, [supabase]);
+    if (isLoading) return;
+    if (!isAuthenticated) {
+      setUser(null);
+      return;
+    }
+    void fetch("/api/auth/ensure-profile", { method: "POST" })
+      .then(async (res) => {
+        if (!res.ok) return;
+        const body = (await res.json()) as {
+          profile?: { id: string; email: string; full_name: string | null; company_name: string | null };
+        };
+        if (body.profile) {
+          const { profileToCompatUser } = await import("@/lib/auth/compat-user");
+          setUser(profileToCompatUser(body.profile));
+        }
+      })
+      .catch((err: unknown) => {
+        console.error("Convex ensure-profile failed", err);
+      });
+  }, [isLoading, isAuthenticated]);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    await convexSignOut();
+    setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signOut }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        session: isAuthenticated ? { access_token: "convex" } : null,
+        loading: isLoading,
+        signOut,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

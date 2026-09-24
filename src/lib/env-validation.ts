@@ -15,10 +15,6 @@
  * Required environment variables for the application
  */
 const REQUIRED_ENV_VARS = {
-  // Supabase (public - safe for client)
-  NEXT_PUBLIC_SUPABASE_URL: "Supabase project URL",
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: "Supabase anonymous key",
-
   // Server-only variables
   OPENAI_API_KEY: "OpenAI API key for AI features",
   STRIPE_SECRET_KEY: "Stripe secret key for payments",
@@ -32,17 +28,13 @@ const REQUIRED_ENV_VARS = {
  */
 const OPTIONAL_ENV_VARS = {
   NODE_ENV: "development",
-  DATABASE_URL: "", // Optional: Supabase handles this via SDK
+  DATABASE_URL: "", // Optional leftover; app data is Convex
 } as const;
 
 /**
  * Validated and typed environment variables
  */
 export interface ValidatedEnv {
-  // Supabase
-  NEXT_PUBLIC_SUPABASE_URL: string;
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: string;
-
   // Server-only
   OPENAI_API_KEY: string;
   STRIPE_SECRET_KEY: string;
@@ -87,14 +79,6 @@ export function validateEnv(): ValidationResult {
   // Add optional variables with defaults
   for (const [key, defaultValue] of Object.entries(OPTIONAL_ENV_VARS)) {
     env[key as keyof ValidatedEnv] = process.env[key] || defaultValue;
-  }
-
-  // Validate NEXT_PUBLIC_ prefix usage
-  if (
-    env.NEXT_PUBLIC_SUPABASE_URL &&
-    !env.NEXT_PUBLIC_SUPABASE_URL.startsWith("https://")
-  ) {
-    errors.push("NEXT_PUBLIC_SUPABASE_URL must start with https://");
   }
 
   // Check for accidentally exposed secrets (common mistake)

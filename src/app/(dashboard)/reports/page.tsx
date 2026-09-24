@@ -1,20 +1,18 @@
-import { createServerClient } from "@/lib/supabase/server";
-import { requireServerUser } from "@/lib/supabase/session";
-import { getTransactionTotals } from "@/lib/supabase/queries";
+import { api } from "@/lib/convex/http";
+import { requireAuthedConvex } from "@/lib/convex/server";
 import ReportsClient from "./ReportsClient";
 
 export default async function ReportsPage() {
-  const supabase = await createServerClient();
-  await requireServerUser(supabase);
-
+  const { convex } = await requireAuthedConvex();
   const currentYear = new Date().getFullYear();
-  const totalsResult = await getTransactionTotals(supabase as any, currentYear);
+  const totals = await convex.query(api.transactions.totalsForYear, {
+    taxYear: currentYear,
+  });
 
   const stats = {
-    totalRevenue: totalsResult.data?.income ?? 0,
-    totalExpenses: totalsResult.data?.expenses ?? 0,
-    netIncome:
-      (totalsResult.data?.income ?? 0) - (totalsResult.data?.expenses ?? 0),
+    totalRevenue: totals.income,
+    totalExpenses: totals.expenses,
+    netIncome: totals.income - totals.expenses,
   };
 
   return <ReportsClient stats={stats} />;
