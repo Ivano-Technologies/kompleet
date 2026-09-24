@@ -19,6 +19,7 @@ import {
   detectFileType,
   isValidBankCode,
 } from "@/lib/transaction-import/bank-adapter";
+import { resolveBankCode } from "@/lib/transaction-import/bank-configs";
 import { normalizeTransactions } from "@/lib/transaction-import/normalizer";
 import { validateBalances } from "@/lib/transaction-import/balance-validator";
 import { findDuplicates } from "@/lib/transaction-import/duplicate-detector";
@@ -34,7 +35,9 @@ async function handlePOST(request: NextRequest) {
 
     const formData = await request.formData();
     const file = formData.get("file") as File;
-    const bankCode = (formData.get("bankCode") as string)?.toUpperCase();
+    const bankCode = resolveBankCode(
+      (formData.get("bankCode") as string | null) ?? undefined,
+    );
     const password = (formData.get("password") as string)?.trim() || undefined;
 
     if (!file) {

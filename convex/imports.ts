@@ -250,7 +250,10 @@ export const addDuplicates = mutation({
 });
 
 export const listDuplicates = query({
-  args: { sessionExternalId: v.optional(v.string()) },
+  args: {
+    sessionExternalId: v.optional(v.string()),
+    status: v.optional(v.string()),
+  },
   returns: v.array(v.any()),
   handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx);
@@ -258,17 +261,123 @@ export const listDuplicates = query({
       .query("duplicateCandidates")
       .withIndex("by_user", (q) => q.eq("userId", user._id))
       .collect();
-    const filtered = args.sessionExternalId
+    let filtered = args.sessionExternalId
       ? rows.filter((r) => r.sessionExternalId === args.sessionExternalId)
       : rows;
-    return filtered.map((r) => ({
-      id: r.externalId,
-      session_id: r.sessionExternalId,
-      status: r.status ?? "pending",
-      ...((typeof r.payload === "object" && r.payload !== null
-        ? r.payload
-        : {}) as Record<string, unknown>),
-    }));
+    if (args.status) {
+      filtered = filtered.filter(
+        (r) => (r.status ?? "pending") === args.status,
+      );
+    }
+    filtered.sort((a, b) => b.createdAt - a.createdAt);
+    return filtered.map((r) => {
+      const payload =
+        typeof r.payload === "object" && r.payload !== null
+          ? (r.payload as Record<string, unknown>)
+          : {};
+      return {
+        id: r.externalId,
+        session_id: r.sessionExternalId,
+        ...payload,
+        // Row status must win over payload.status from addDuplicates.
+        status: r.status ?? "pending",
+      };
+    });
+  },
+});
+
+function readKeptBothTransaction(payload: unknown): {
+  date: string;
+  merchant: string;
+  amount: number;
+  type: "debit" | "credit";
+  balance?: number;
+  reference?: string;
+  bankCode?: string;
+} {
+  if (typeof payload !== "object" || payload === null) {
+    throw new Error("Invalid duplicate payload");
+  }
+  const record = payload as Record<string, unknown>;
+  const data = record.new_transaction_data;
+  if (typeof data !== "object" || data === null) {
+    throw new Error("Duplicate is missing new transaction data");
+  }
+  const txn = data as Record<string, unknown>;
+  const date = typeof txn.date === "string" ? txn.date : "";
+  const merchant = typeof txn.merchant === "string" ? txn.merchant : "";
+  const amount = typeof txn.amount === "number" ? txn.amount : NaN;
+  const type = txn.type === "credit" ? "credit" : "debit";
+  if (!date || !merchant || Number.isNaN(amount)) {
+    throw new Error("Duplicate transaction data is incomplete");
+  }
+  const metadata =
+    typeof txn.metadata === "object" && txn.metadata !== null
+      ? (txn.metadata as Record<string, unknown>)
+      : {};
+  return {
+    date,
+    merchant,
+    amount,
+    type,
+    balance: typeof txn.balance === "number" ? txn.balance : undefined,
+    reference: typeof txn.reference === "string" ? txn.reference : undefined,
+    bankCode:
+      typeof metadata.bankCode === "string" ? metadata.bankCode : undefined,
+  };
+}
+
+export const resolveDuplicate = mutation({
+  args: {
+    externalId: v.string(),
+    action: v.union(
+      v.literal("merged"),
+      v.literal("kept_both"),
+      v.literal("rejected"),
+    ),
+  },
+  returns: v.object({
+    success: v.boolean(),
+    message: v.string(),
+  }),
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
+    const row = await ctx.db
+      .query("duplicateCandidates")
+      .withIndex("by_externalId", (q) => q.eq("externalId", args.externalId))
+      .unique();
+    if (!row || row.userId !== user._id) {
+      throw new Error("Duplicate not found");
+    }
+
+    if (args.action === "kept_both") {
+      const txn = readKeptBothTransaction(row.payload);
+      const now = Date.now();
+      await ctx.db.insert("transactions", {
+        externalId: newExternalId(),
+        userId: user._id,
+        userExternalId: user.externalId,
+        transactionDate: txn.date,
+        description: txn.merchant,
+        amount: txn.amount,
+        transactionType: txn.type,
+        balance: txn.balance,
+        reference: txn.reference,
+        source: txn.bankCode ? `${txn.bankCode}_import` : "import",
+        isReconciled: false,
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
+
+    await ctx.db.patch(row._id, { status: args.action });
+
+    const messages: Record<typeof args.action, string> = {
+      merged: "Duplicate merged with existing transaction",
+      kept_both: "Both transactions kept",
+      rejected: "New transaction rejected",
+    };
+    return { success: true, message: messages[args.action] };
   },
 });
 

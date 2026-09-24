@@ -1,12 +1,13 @@
 /**
  * GET /api/expenses/export?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD&format=csv|pdf|excel
- * Returns expense report file (Supabase auth, RLS).
+ * Returns expense report file from Convex.
  */
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import ExcelJS from "exceljs";
+import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
+import { listAllExpensesMine } from "@/lib/convex/money-lists";
 
 const FORMATS = ["csv", "pdf", "excel"] as const;
 type ExportFormat = (typeof FORMATS)[number];
@@ -21,37 +22,9 @@ interface ExpenseExportRow {
   notes: string;
 }
 
-interface SupabaseExpenseRow {
-  date: string;
-  amount: number;
-  currency: string | null;
-  category_id: string | null;
-  vendor: string | null;
-  vat_amount: number | null;
-  notes: string | null;
-}
-
-function toExportRow(e: SupabaseExpenseRow): ExpenseExportRow {
-  return {
-    date: e.date,
-    amount: Number(e.amount),
-    currency: e.currency ?? "NGN",
-    category_id: e.category_id ?? "",
-    vendor: e.vendor ?? "",
-    vat_amount: Number(e.vat_amount ?? 0),
-    notes: e.notes ?? "",
-  };
-}
-
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await getSupabaseForRequest(request);
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { convex } = await requireAuthedConvex(request);
 
     const sp = request.nextUrl.searchParams;
     const startDate = sp.get("startDate") ?? "";
@@ -74,22 +47,22 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const query = supabase
-      .from("expenses")
-      .select("date, amount, currency, category_id, vendor, vat_amount, notes")
-      .eq("user_id", user.id)
-      .gte("date", startDate)
-      .lte("date", endDate)
-      .order("date", { ascending: true });
+    const { expenses } = await listAllExpensesMine(convex, {
+      startDate,
+      endDate,
+    });
 
-    const { data: expenses, error } = await query;
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    const rows: ExpenseExportRow[] = (expenses ?? []).map((e) =>
-      toExportRow(e as SupabaseExpenseRow),
-    );
+    const rows: ExpenseExportRow[] = [...expenses]
+      .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0))
+      .map((e) => ({
+        date: e.date,
+        amount: Number(e.amount),
+        currency: e.currency ?? "NGN",
+        category_id: e.category_id ?? "",
+        vendor: e.vendor ?? "",
+        vat_amount: Number(e.vat_amount ?? 0),
+        notes: e.notes ?? "",
+      }));
 
     const filenameBase = `expenses_${startDate}_${endDate}`;
 
@@ -140,7 +113,6 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // excel
     const wb = new ExcelJS.Workbook();
     const ws = wb.addWorksheet("Expenses");
     ws.columns = [
@@ -163,6 +135,9 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (err) {
+    if (isUnauthorized(err)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Export failed" },
       { status: 500 },

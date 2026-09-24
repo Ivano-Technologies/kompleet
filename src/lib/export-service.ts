@@ -43,13 +43,30 @@ async function fetchTransactions(userId: string, taxYear?: number) {
   return transactions || [];
 }
 
+type TransactionExportRow = {
+  transaction_date?: string | null;
+  transaction_type?: string | null;
+  categories?: { name?: string } | null;
+  description?: string | null;
+  amount?: number | string | null;
+  tax_year?: number | string | null;
+};
+
+function asExportRows(
+  rows: Array<TransactionExportRow> | undefined,
+): TransactionExportRow[] {
+  return rows ?? [];
+}
+
 export async function exportTransactionsCSV(
-  userId: string,
+  userId?: string,
   taxYear?: number,
-  preloadedData?: any[],
+  preloadedData?: TransactionExportRow[],
 ) {
-  const transactions =
-    preloadedData ?? (await fetchTransactions(userId, taxYear));
+  const transactions = asExportRows(
+    preloadedData ??
+      (userId ? ((await fetchTransactions(userId, taxYear)) as TransactionExportRow[]) : []),
+  );
 
   // Generate CSV
   const headers = [
@@ -61,10 +78,10 @@ export async function exportTransactionsCSV(
     "Tax Year",
   ];
   const rows =
-    transactions?.map((t) => [
+    transactions.map((t) => [
       t.transaction_date || "",
       t.transaction_type || "",
-      (t.categories as any)?.name || "",
+      t.categories?.name || "",
       t.description || "",
       t.amount?.toString() || "0",
       t.tax_year?.toString() || "",
@@ -83,12 +100,14 @@ export async function exportTransactionsCSV(
 // =====================================================
 
 export async function exportTransactionsExcel(
-  userId: string,
+  userId?: string,
   taxYear?: number,
-  preloadedData?: any[],
+  preloadedData?: TransactionExportRow[],
 ) {
-  const transactions =
-    preloadedData ?? (await fetchTransactions(userId, taxYear));
+  const transactions = asExportRows(
+    preloadedData ??
+      (userId ? ((await fetchTransactions(userId, taxYear)) as TransactionExportRow[]) : []),
+  );
 
   // Create workbook
   const workbook = new ExcelJS.Workbook();
@@ -117,11 +136,11 @@ export async function exportTransactionsExcel(
   worksheet.getRow(1).alignment = { vertical: "middle", horizontal: "center" };
 
   // Add data rows
-  transactions?.forEach((t) => {
+  transactions.forEach((t) => {
     worksheet.addRow({
       date: t.transaction_date || "",
       type: t.transaction_type || "",
-      category: (t.categories as any)?.name || "",
+      category: t.categories?.name || "",
       description: t.description || "",
       amount: t.amount || 0,
       tax_year: t.tax_year || "",

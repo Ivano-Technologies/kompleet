@@ -1,59 +1,66 @@
 import { withRateLimit } from "@/lib/with-rate-limit";
+import { withAudit } from "@/lib/with-audit";
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseForRequest } from "@/lib/supabase/server";
+import { api } from "@/lib/convex/http";
+import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
+import { listAllTransactionsMine } from "@/lib/convex/money-lists";
 import {
   exportTransactionsCSV,
   exportTransactionsExcel,
 } from "@/lib/export-service";
 
+interface ExportBody {
+  format?: string;
+  tax_year?: number;
+}
+
 async function handlePOST(request: NextRequest) {
   try {
-    const supabase = await getSupabaseForRequest(request);
+    const { convex } = await requireAuthedConvex(request);
 
-    // Get authenticated user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Parse request body
-    const body = await request.json();
+    const body = (await request.json()) as ExportBody;
     const { format, tax_year } = body;
 
-    if (!format || !["csv", "excel"].includes(format)) {
+    if (!format || (format !== "csv" && format !== "excel")) {
       return NextResponse.json(
         { error: "Invalid format. Must be csv or excel" },
         { status: 400 },
       );
     }
 
-    // Log export action (fire-and-forget — don't block the download)
-    supabase.from("audit_logs").insert({
-      user_id: user.id,
-      action: "export",
-      resource_type: "transactions",
-      tax_year: tax_year || null,
-      metadata: { format },
-      ip_address: request.headers.get("x-forwarded-for") || "unknown",
-      user_agent: request.headers.get("user-agent") || "unknown",
-    }).then(undefined, () => {});
+    const yearFilters =
+      typeof tax_year === "number"
+        ? {
+            startDate: `${tax_year}-01-01`,
+            endDate: `${tax_year}-12-31`,
+          }
+        : {};
 
-    // Generate export
+    const { transactions } = await listAllTransactionsMine(convex, yearFilters);
+    const preloaded = transactions.map((t) => ({
+      transaction_date: t.transaction_date,
+      transaction_type: t.transaction_type,
+      categories: t.category ? { name: t.category.name } : null,
+      description: t.description,
+      amount: t.amount,
+      tax_year:
+        typeof tax_year === "number"
+          ? tax_year
+          : Number(t.transaction_date.slice(0, 4)),
+    }));
+
     let buffer: Buffer;
     let filename: string;
     let contentType: string;
 
     if (format === "csv") {
-      buffer = await exportTransactionsCSV(user.id, tax_year);
+      buffer = await exportTransactionsCSV(undefined, tax_year, preloaded);
       filename = tax_year
         ? `transactions_${tax_year}.csv`
         : "transactions_all.csv";
       contentType = "text/csv";
     } else {
-      buffer = await exportTransactionsExcel(user.id, tax_year);
+      buffer = await exportTransactionsExcel(undefined, tax_year, preloaded);
       filename = tax_year
         ? `transactions_${tax_year}.xlsx`
         : "transactions_all.xlsx";
@@ -61,22 +68,14 @@ async function handlePOST(request: NextRequest) {
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
     }
 
-    // Create export history record (fire-and-forget — don't block the download)
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7); // 7 days TTL
-
-    supabase.from("export_history").insert({
-      user_id: user.id,
-      export_type: "transactions",
+    await convex.mutation(api.exports.createMine, {
+      exportType: "transactions",
       format,
-      tax_year: tax_year || null,
+      taxYear: typeof tax_year === "number" ? tax_year : undefined,
       status: "complete",
-      file_size: buffer.length,
-      expires_at: expiresAt.toISOString(),
-      completed_at: new Date().toISOString(),
-    }).then(undefined, () => {});
+      fileSize: buffer.length,
+    });
 
-    // Convert Buffer to ReadableStream for Next.js 15 + TypeScript 5.9.3 compatibility
     const stream = new ReadableStream({
       start(controller) {
         controller.enqueue(buffer);
@@ -84,7 +83,6 @@ async function handlePOST(request: NextRequest) {
       },
     });
 
-    // Return file
     return new NextResponse(stream, {
       headers: {
         "Content-Type": contentType,
@@ -93,10 +91,15 @@ async function handlePOST(request: NextRequest) {
       },
     });
   } catch (error) {
+    if (isUnauthorized(error)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     console.error("Error in /api/export/transactions:", error);
     return NextResponse.json({ error: "Export failed" }, { status: 500 });
   }
 }
 
-// Apply rate limiting
-export const POST = withRateLimit(handlePOST, { limit: 20 });
+export const POST = withRateLimit(
+  withAudit(handlePOST, { action: "export", resourceType: "transactions" }),
+  { limit: 20 },
+);
