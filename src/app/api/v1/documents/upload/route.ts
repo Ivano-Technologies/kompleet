@@ -2,8 +2,10 @@ import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { getAuthedConvex, isUnauthorized } from "@/lib/convex/server";
+import { formatError, logger } from "@/lib/logger";
 import { rethrowIfNextControlFlow } from "@/lib/next-control-flow";
 import {
+  DocumentPersistError,
   getDocumentControllerWithConvex,
   QueueConfigurationError,
 } from "@/modules/document-intelligence";
@@ -33,8 +35,9 @@ function isValidationError(error: unknown): error is Error {
 }
 
 async function handlePOST(request: NextRequest) {
-  // Fail closed before queue/driver selection. Missing REDIS_URL uses the
-  // in-memory queue after auth; it must never 401-skip or 400-as-validation.
+  // Fail closed before queue/driver selection. Unset DOCUMENT_QUEUE_DRIVER
+  // uses in-memory even if REDIS_URL is leftover. Explicit redis with a
+  // dead connection falls back to memory after the Convex row is written.
   const authed = await getAuthedConvex(request);
   if (!authed) {
     return unauthorized();
@@ -56,6 +59,10 @@ async function handlePOST(request: NextRequest) {
       return unauthorized();
     }
     if (isQueueMisconfig(error)) {
+      logger.error("document upload queue misconfig after auth", {
+        operation: "document.upload",
+        error: formatError(error),
+      });
       return NextResponse.json(
         {
           error: "Service unavailable",
@@ -73,9 +80,26 @@ async function handlePOST(request: NextRequest) {
         { status: 400 },
       );
     }
+    if (error instanceof DocumentPersistError) {
+      logger.error("document upload persist failed after auth", {
+        operation: "document.upload",
+        error: formatError(error),
+      });
+      return NextResponse.json(
+        { error: "Document persist failed", message: error.message },
+        { status: 502 },
+      );
+    }
 
+    logger.error("document upload failed after authentication", {
+      operation: "document.upload",
+      error: formatError(error),
+    });
     return NextResponse.json(
-      { error: "Internal server error" },
+      {
+        error: "Internal server error",
+        message: "Upload failed after authentication",
+      },
       { status: 500 },
     );
   }
@@ -90,6 +114,10 @@ export async function POST(request: NextRequest, context?: unknown) {
     if (isUnauthorized(error)) {
       return unauthorized();
     }
+    logger.error("document upload outer handler failed", {
+      operation: "document.upload",
+      error: formatError(error),
+    });
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },
