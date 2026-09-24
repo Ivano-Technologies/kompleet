@@ -1,10 +1,8 @@
-import { createServerClient } from "@/lib/supabase/server";
 import { requireServerUser } from "@/lib/supabase/session";
-import {
-  getDashboardSummary,
-  getTransactionTotals,
-} from "@/lib/supabase/queries";
+import { createServerClient } from "@/lib/supabase/server";
 import { getMonthlyIncomeExpenses } from "@/lib/dashboard/data-aggregation";
+import { api } from "@/lib/convex/http";
+import { requireAuthedConvex } from "@/lib/convex/server";
 import DashboardClient from "./DashboardClient";
 
 const TAX_COLORS: Record<string, string> = {
@@ -22,28 +20,31 @@ const TAX_LABELS: Record<string, string> = {
 
 /**
  * KOMPLEET Dashboard - Financial Health Overview
- * Server component: handles auth + data fetching
+ * Server component: auth via Supabase; app data via Convex.
  */
 export default async function DashboardPage() {
   const supabase = await createServerClient();
   const user = await requireServerUser(supabase);
+  const { convex } = await requireAuthedConvex();
 
   const currentYear = new Date().getFullYear();
 
-  // Fetch real data in parallel (including previous year for YoY comparison)
-  const [summaryResult, monthlyData, prevYearResult] = await Promise.all([
-    getDashboardSummary(supabase as any, currentYear),
-    getMonthlyIncomeExpenses(user.id, 8),
-    getTransactionTotals(supabase as any, currentYear - 1),
-  ]);
+  const [thisYear, lastYear, monthlyData, invoices, taxCalcs] =
+    await Promise.all([
+      convex.query(api.transactions.totalsForYear, { taxYear: currentYear }),
+      convex.query(api.transactions.totalsForYear, {
+        taxYear: currentYear - 1,
+      }),
+      getMonthlyIncomeExpenses(user.id, 8),
+      convex.query(api.invoices.listMine, { status: "sent" }),
+      convex.query(api.tax.listCalculations, {}),
+    ]);
 
-  const summary = summaryResult.data;
-  const totalIncome = summary?.totalIncome ?? 0;
-  const totalExpenses = summary?.totalExpenses ?? 0;
+  const totalIncome = thisYear.income;
+  const totalExpenses = thisYear.expenses;
 
-  // Calculate YoY percentage changes
-  const prevIncome = prevYearResult.data?.income ?? 0;
-  const prevExpenses = prevYearResult.data?.expenses ?? 0;
+  const prevIncome = lastYear.income;
+  const prevExpenses = lastYear.expenses;
   const prevProfit = prevIncome - prevExpenses;
   const currentProfit = totalIncome - totalExpenses;
 
@@ -56,7 +57,6 @@ export default async function DashboardPage() {
       ? Math.round(((currentProfit - prevProfit) / prevProfit) * 100)
       : 0;
 
-  // Calculate next tax due date (Nigerian tax calendar: VAT due 21st of following month)
   const now = new Date();
   const nextVATDue = new Date(now.getFullYear(), now.getMonth() + 1, 21);
   if (nextVATDue <= now) {
@@ -67,32 +67,18 @@ export default async function DashboardPage() {
     day: "numeric",
   });
 
-  // Query outstanding invoices (safe — returns null if table missing)
-  const { data: invoiceData } = await supabase
-    .from("invoices")
-    .select("amount_due")
-    .eq("user_id", user.id)
-    .eq("status", "sent");
-
   const outstandingInvoices =
-    invoiceData?.reduce(
-      (sum: number, inv: any) => sum + Number(inv.amount_due),
-      0,
-    ) ?? 0;
-  const pendingCount = invoiceData?.length ?? 0;
-
-  // Tax breakdown from tax_calculations
-  const { data: taxData } = await supabase
-    .from("tax_calculations")
-    .select("tax_type, tax_due")
-    .eq("user_id", user.id)
-    .eq("tax_year", currentYear)
-    .eq("is_final", true);
+    invoices.reduce((sum, inv) => sum + Number(inv.amount_due ?? 0), 0) ?? 0;
+  const pendingCount = invoices.length;
 
   const taxMap = new Map<string, number>();
-  (taxData ?? []).forEach((t: any) => {
-    taxMap.set(t.tax_type, (taxMap.get(t.tax_type) ?? 0) + Number(t.tax_due));
-  });
+  for (const t of taxCalcs) {
+    if (t.tax_year !== currentYear || !t.is_final) continue;
+    taxMap.set(
+      t.tax_type,
+      (taxMap.get(t.tax_type) ?? 0) + Number(t.tax_due),
+    );
+  }
 
   const taxBreakdown = Array.from(taxMap.entries()).map(([type, value]) => ({
     name: TAX_LABELS[type] || type.toUpperCase(),
@@ -121,21 +107,24 @@ export default async function DashboardPage() {
     expenses: item.expenses,
   }));
 
-  const recentTransactions = (summary?.recentTransactions ?? []).map(
-    (t: any) => ({
-      id: t.id,
-      desc: t.description,
-      amount:
-        t.transaction_type === "credit" ? Number(t.amount) : -Number(t.amount),
-      type: t.transaction_type,
-      date: new Date(t.transaction_date).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      }),
-      status: t.is_verified ? "completed" : "pending",
+  const recent = await convex.query(api.transactions.listMine, {
+    page: 1,
+    limit: 5,
+  });
+
+  const recentTransactions = recent.transactions.map((t) => ({
+    id: t.id,
+    desc: t.description,
+    amount:
+      t.transaction_type === "credit" ? Number(t.amount) : -Number(t.amount),
+    type: t.transaction_type,
+    date: new Date(t.transaction_date).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
     }),
-  );
+    status: t.is_reconciled ? "completed" : "pending",
+  }));
 
   return (
     <DashboardClient

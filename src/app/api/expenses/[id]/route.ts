@@ -4,8 +4,12 @@
  * DELETE /api/expenses/[id] - Delete expense.
  */
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { z } from "zod";
+import { api } from "@/lib/convex/http";
+import {
+  isUnauthorized,
+  requireAuthedConvex,
+} from "@/lib/convex/server";
 
 const patchBodySchema = z.object({
   date: z
@@ -27,26 +31,17 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const supabase = await getSupabaseForRequest(request);
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { convex } = await requireAuthedConvex(request);
 
-    const { data, error } = await supabase
-      .from("expenses")
-      .select("*")
-      .eq("id", id)
-      .eq("user_id", user.id)
-      .single();
-
-    if (error || !data) {
+    const data = await convex.query(api.expenses.getMine, { externalId: id });
+    if (!data) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
     return NextResponse.json(data);
   } catch (err) {
+    if (isUnauthorized(err)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Server error" },
       { status: 500 },
@@ -60,13 +55,7 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params;
-    const supabase = await getSupabaseForRequest(request);
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { convex } = await requireAuthedConvex(request);
 
     const body = await request.json();
     const parsed = patchBodySchema.safeParse(body);
@@ -77,31 +66,25 @@ export async function PATCH(
       );
     }
 
-    const { data, error } = await supabase
-      .from("expenses")
-      .update({
-        ...parsed.data,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", id)
-      .eq("user_id", user.id)
-      .select(
-        "id, date, amount, currency, category_id, vendor, vat_amount, receipt_url, notes, updated_at",
-      )
-      .single();
-
-    if (error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: error.code === "PGRST116" ? 404 : 500 },
-      );
-    }
+    const data = await convex.mutation(api.expenses.updateMine, {
+      externalId: id,
+      date: parsed.data.date,
+      amount: parsed.data.amount,
+      currency: parsed.data.currency,
+      categoryExternalId: parsed.data.category_id,
+      vendor: parsed.data.vendor ?? undefined,
+      vatAmount: parsed.data.vat_amount,
+      receiptUrl: parsed.data.receipt_url ?? undefined,
+      notes: parsed.data.notes ?? undefined,
+    });
     return NextResponse.json(data);
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Server error" },
-      { status: 500 },
-    );
+    if (isUnauthorized(err)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const message = err instanceof Error ? err.message : "Server error";
+    const status = /not found/i.test(message) ? 404 : 500;
+    return NextResponse.json({ error: message }, { status });
   }
 }
 
@@ -111,25 +94,13 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const supabase = await getSupabaseForRequest(request);
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const { error } = await supabase
-      .from("expenses")
-      .delete()
-      .eq("id", id)
-      .eq("user_id", user.id);
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    const { convex } = await requireAuthedConvex(request);
+    await convex.mutation(api.expenses.removeMine, { externalId: id });
     return new NextResponse(null, { status: 204 });
   } catch (err) {
+    if (isUnauthorized(err)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Server error" },
       { status: 500 },

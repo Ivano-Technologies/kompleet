@@ -1,31 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-// Mock supabase server client
-const mockSelect = vi.fn();
-const mockEq = vi.fn();
-const mockGte = vi.fn();
-const mockLte = vi.fn();
-const mockFrom = vi.fn();
+const mockQuery = vi.fn();
 
-vi.mock("@/lib/supabase/server", () => ({
-  createServerClient: vi.fn(() => {
-    const chainable = {
-      select: mockSelect,
-      eq: mockEq,
-      gte: mockGte,
-      lte: mockLte,
-    };
+vi.mock("@/lib/convex/server", () => ({
+  requireAuthedConvex: vi.fn(async () => ({
+    convex: { query: mockQuery },
+    user: { id: "user-123" },
+    supabase: {},
+    accessToken: "token",
+  })),
+}));
 
-    // Make each method return the chainable object
-    mockSelect.mockReturnValue(chainable);
-    mockEq.mockReturnValue(chainable);
-    mockGte.mockReturnValue(chainable);
-    mockLte.mockReturnValue({ data: [] });
-
-    mockFrom.mockReturnValue(chainable);
-
-    return Promise.resolve({ from: mockFrom });
-  }),
+vi.mock("@/lib/convex/http", () => ({
+  api: { transactions: { monthlyTotals: "transactions.monthlyTotals" } },
 }));
 
 import {
@@ -33,13 +20,24 @@ import {
   type MonthlyIncomeExpense,
 } from "./data-aggregation";
 
+function monthKey(offset: number): string {
+  const d = new Date();
+  d.setDate(1);
+  d.setMonth(d.getMonth() - offset);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+
 describe("getMonthlyIncomeExpenses", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it("returns an array of MonthlyIncomeExpense objects", async () => {
-    mockLte.mockResolvedValue({ data: [] });
+    mockQuery.mockResolvedValue([
+      { month: monthKey(2), income: 0, expenses: 0 },
+      { month: monthKey(1), income: 0, expenses: 0 },
+      { month: monthKey(0), income: 0, expenses: 0 },
+    ]);
 
     const result = await getMonthlyIncomeExpenses("user-123", 3);
 
@@ -48,7 +46,9 @@ describe("getMonthlyIncomeExpenses", () => {
   });
 
   it("each result has month, income, and expenses fields", async () => {
-    mockLte.mockResolvedValue({ data: [] });
+    mockQuery.mockResolvedValue([
+      { month: monthKey(0), income: 0, expenses: 0 },
+    ]);
 
     const result = await getMonthlyIncomeExpenses("user-123", 1);
 
@@ -58,7 +58,10 @@ describe("getMonthlyIncomeExpenses", () => {
   });
 
   it("returns zeros when no transactions exist", async () => {
-    mockLte.mockResolvedValue({ data: [] });
+    mockQuery.mockResolvedValue([
+      { month: monthKey(1), income: 0, expenses: 0 },
+      { month: monthKey(0), income: 0, expenses: 0 },
+    ]);
 
     const result = await getMonthlyIncomeExpenses("user-123", 2);
 
@@ -69,11 +72,9 @@ describe("getMonthlyIncomeExpenses", () => {
   });
 
   it("correctly sums transaction amounts for income", async () => {
-    // First call for income data returns amounts
-    mockLte
-      .mockResolvedValueOnce({ data: [{ amount: 1000 }, { amount: 2000 }] })
-      // Second call for expense data
-      .mockResolvedValueOnce({ data: [{ amount: 500 }] });
+    mockQuery.mockResolvedValue([
+      { month: monthKey(0), income: 3000, expenses: 500 },
+    ]);
 
     const result = await getMonthlyIncomeExpenses("user-123", 1);
 
@@ -81,8 +82,10 @@ describe("getMonthlyIncomeExpenses", () => {
     expect(result[0].expenses).toBe(500);
   });
 
-  it("handles null data gracefully", async () => {
-    mockLte.mockResolvedValue({ data: null });
+  it("handles empty buckets gracefully", async () => {
+    mockQuery.mockResolvedValue([
+      { month: monthKey(0), income: 0, expenses: 0 },
+    ]);
 
     const result = await getMonthlyIncomeExpenses("user-123", 1);
 
@@ -91,22 +94,24 @@ describe("getMonthlyIncomeExpenses", () => {
   });
 
   it("rounds amounts to whole numbers", async () => {
-    mockLte
-      .mockResolvedValueOnce({
-        data: [{ amount: 1000.55 }, { amount: 2000.45 }],
-      })
-      .mockResolvedValueOnce({ data: [] });
+    mockQuery.mockResolvedValue([
+      { month: monthKey(0), income: 3000.7, expenses: 0 },
+    ]);
 
     const result = await getMonthlyIncomeExpenses("user-123", 1);
 
     expect(result[0].income).toBe(3001);
   });
 
-  it("queries with correct user_id", async () => {
-    mockLte.mockResolvedValue({ data: [] });
+  it("requests the Convex monthly totals query", async () => {
+    mockQuery.mockResolvedValue([
+      { month: monthKey(0), income: 0, expenses: 0 },
+    ]);
 
     await getMonthlyIncomeExpenses("specific-user-id", 1);
 
-    expect(mockEq).toHaveBeenCalledWith("user_id", "specific-user-id");
+    expect(mockQuery).toHaveBeenCalledWith("transactions.monthlyTotals", {
+      months: 1,
+    });
   });
 });

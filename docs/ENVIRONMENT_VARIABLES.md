@@ -22,6 +22,12 @@ These variables are prefixed with `NEXT_PUBLIC_` and are exposed to the browser.
   - Env var name unchanged; `src/lib/env.ts` accepts `eyJ…` or `sb_publishable_…`
   - See: [docs/KEY_MIGRATION_CHECKLIST.md](./KEY_MIGRATION_CHECKLIST.md)
 
+- **`NEXT_PUBLIC_CONVEX_URL`** - Convex deployment URL (path B application database)
+  - Example: `https://happy-animal-123.convex.cloud`
+  - Required: Yes for app data (transactions, profiles, invoices, expenses)
+  - Get from: `npx convex dev` output or the Convex dashboard
+  - Auth remains on Supabase; this is **not** a replacement for `NEXT_PUBLIC_SUPABASE_URL`
+
 - **`NEXT_PUBLIC_SITE_URL`** - Application URL
   - Example: `https://kompleet.ng`
   - Required: No (defaults to `http://localhost:3000` in development)

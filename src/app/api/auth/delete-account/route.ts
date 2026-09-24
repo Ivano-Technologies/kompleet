@@ -84,6 +84,15 @@ async function handlePOST(request: NextRequest) {
       );
     }
 
+    try {
+      const { requireAuthedConvex } = await import("@/lib/convex/server");
+      const { api } = await import("@/lib/convex/http");
+      const { convex } = await requireAuthedConvex(request);
+      await convex.mutation(api.users.softDeleteMine, {});
+    } catch (convexError) {
+      console.error("[Delete Account] Convex soft-delete failed", convexError);
+    }
+
     const adminClient = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!,

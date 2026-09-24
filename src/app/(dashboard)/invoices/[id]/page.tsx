@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { createBrowserClient as createClient } from "@/lib/supabase/client";
 import Image from "next/image";
 import {
   Loader2,
@@ -51,34 +50,27 @@ export default function InvoiceDetailPage() {
     setError("");
 
     try {
-      const supabase = await createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        throw new Error("Not authenticated");
+      const response = await fetch(`/api/invoices/${invoiceId}`, {
+        credentials: "include",
+      });
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        throw new Error(body?.error || "Invoice not found");
       }
+      const payload = (await response.json()) as { invoice: Invoice };
+      const data = payload.invoice;
+      setInvoice(data);
 
-      const { data, error: fetchError } = await supabase
-        .from("invoices")
-        .select("*")
-        .eq("id", invoiceId)
-        .single();
-
-      if (fetchError) throw fetchError;
-
-      setInvoice(data as Invoice);
-
-      if (data.qr_payload) {
-        const response = await fetch("/api/invoices/qr-code", {
+      const qrPayload = (data as Invoice & { qr_payload?: string }).qr_payload;
+      if (qrPayload) {
+        const qrResponse = await fetch("/api/invoices/qr-code", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ payload: data.qr_payload }),
+          body: JSON.stringify({ payload: qrPayload }),
         });
 
-        if (response.ok) {
-          const { qrCodeDataUrl } = await response.json();
+        if (qrResponse.ok) {
+          const { qrCodeDataUrl } = await qrResponse.json();
           setQrCodeImage(qrCodeDataUrl);
         }
       }

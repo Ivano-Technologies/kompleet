@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { createBrowserClient as createClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/supabase/types";
 import {
   Plus,
@@ -40,27 +39,17 @@ export default function InvoicesPage() {
     setError("");
 
     try {
-      const supabase = await createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) throw new Error("Not authenticated");
-
-      let query = supabase
-        .from("invoices")
-        .select("*")
-        .eq("tax_year", yearFilter)
-        .order("created_at", { ascending: false });
-
-      if (statusFilter !== "all") {
-        query = query.eq("status", statusFilter);
+      const params = new URLSearchParams({ taxYear: String(yearFilter) });
+      if (statusFilter !== "all") params.set("status", statusFilter);
+      const response = await fetch(`/api/invoices?${params.toString()}`, {
+        credentials: "include",
+      });
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        throw new Error(body?.error || "Failed to load invoices");
       }
-
-      const { data, error: fetchError } = await query;
-      if (fetchError) throw fetchError;
-
-      setInvoices((data || []) as Invoice[]);
+      const body = (await response.json()) as { invoices?: Invoice[] };
+      setInvoices((body.invoices || []) as Invoice[]);
     } catch (err: any) {
       setError(err.message);
     } finally {

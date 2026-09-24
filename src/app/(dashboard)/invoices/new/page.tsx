@@ -46,18 +46,19 @@ export default function NewInvoicePage() {
     let cancelled = false;
     (async () => {
       try {
-        const supabase = createClient();
-        const { data, error: clientsError } = await supabase
-          .from("clients")
-          .select("id, legal_name")
-          .order("legal_name", { ascending: true });
+        const response = await fetch("/api/clients", { credentials: "include" });
         if (cancelled) return;
-        if (clientsError) {
-          setError(clientsError.message);
+        if (!response.ok) {
+          const body = await response.json().catch(() => ({}));
+          setError(body?.error || "Failed to load clients");
           return;
         }
-        setClients(data ?? []);
-        if (data?.length === 1 && data[0]) {
+        const body = (await response.json()) as {
+          clients?: Array<{ id: string; legal_name: string }>;
+        };
+        const data = body.clients ?? [];
+        setClients(data);
+        if (data.length === 1 && data[0]) {
           setClientId(data[0].id);
         }
       } catch (err: unknown) {

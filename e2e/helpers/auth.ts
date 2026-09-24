@@ -86,6 +86,15 @@ export async function login(page: Page): Promise<void> {
   // email-confirmed. Assert the happy path explicitly for a clear failure.
   await page.waitForURL(/\/dashboard(\?|$|\/)/, { timeout: 45_000 });
   await expect(page.getByPlaceholder("you@company.ng", { exact: true })).toHaveCount(0);
+
+  // Isolated CI Convex starts empty. Money-path specs call Convex
+  // getCurrentUser; wait until the users row exists for this session.
+  const ensure = await page.request.post("/api/auth/ensure-profile");
+  if (!ensure.ok()) {
+    throw new Error(
+      `ensure-profile returned HTTP ${ensure.status()} ${await ensure.text()}`,
+    );
+  }
 }
 
 /** Short, per-run identifier used to keep created records distinguishable. */
