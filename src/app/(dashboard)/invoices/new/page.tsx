@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { createBrowserClient as createClient } from "@/lib/supabase/client";
 import { InvoiceLineItem, CustomerInfo } from "@/lib/invoice-service";
 import { FilePlus2, Loader2, Plus, Trash2 } from "lucide-react";
 
@@ -186,15 +185,6 @@ export default function NewInvoicePage() {
     setError("");
 
     try {
-      const supabase = await createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        throw new Error("Not authenticated");
-      }
-
       const response = await fetch("/api/invoices/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -237,15 +227,6 @@ export default function NewInvoicePage() {
     setError("");
 
     try {
-      const supabase = await createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        throw new Error("Not authenticated");
-      }
-
       // Create invoice
       const createResponse = await fetch("/api/invoices/create", {
         method: "POST",

@@ -1,14 +1,14 @@
 /**
- * Server Convex client for path B.
- * Auth stays on Supabase — we pass the GoTrue access token into ConvexHttpClient.
+ * Server Convex client. Auth is Convex Auth (cookies) or a Bearer JWT
+ * (mobile / API clients, including leftover Supabase GoTrue tokens).
  */
-import type { SupabaseClient, User } from "@supabase/supabase-js";
 import type { ConvexHttpClient } from "convex/browser";
-import {
-  createServerClient,
-  getSupabaseForRequest,
-} from "@/lib/supabase/server";
 import { api, createConvexHttpClient } from "./http";
+import {
+  getCompatUser,
+  getConvexAccessToken,
+} from "@/lib/auth/session";
+import type { CompatUser } from "@/lib/auth/compat-user";
 
 export { api };
 
@@ -20,43 +20,23 @@ export class ConvexUnauthorizedError extends Error {
 }
 
 export interface AuthedConvex {
-  supabase: SupabaseClient;
-  user: User;
+  user: CompatUser;
   convex: ConvexHttpClient;
   accessToken: string;
-}
-
-async function accessTokenFrom(
-  request: Request | undefined,
-  supabase: SupabaseClient,
-): Promise<string | null> {
-  if (request) {
-    const header = request.headers.get("Authorization");
-    if (header?.startsWith("Bearer ")) {
-      return header.slice(7).trim();
-    }
-  }
-  const { data } = await supabase.auth.getSession();
-  return data.session?.access_token ?? null;
 }
 
 export async function getAuthedConvex(
   request?: Request,
 ): Promise<AuthedConvex | null> {
-  const supabase = request
-    ? await getSupabaseForRequest(request)
-    : await createServerClient();
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
-  if (error || !user) return null;
-
-  const accessToken = await accessTokenFrom(request, supabase);
+  const accessToken = await getConvexAccessToken(request);
   if (!accessToken) return null;
-
-  const convex = createConvexHttpClient(accessToken);
-  return { supabase, user, convex, accessToken };
+  const user = await getCompatUser(request);
+  if (!user) return null;
+  return {
+    user,
+    convex: createConvexHttpClient(accessToken),
+    accessToken,
+  };
 }
 
 export async function requireAuthedConvex(
@@ -69,7 +49,6 @@ export async function requireAuthedConvex(
   return authed;
 }
 
-/** Idempotent Convex users upsert using a GoTrue access token. */
 export async function ensureConvexUserFromToken(
   accessToken: string,
   opts?: { email?: string; fullName?: string },
@@ -84,6 +63,7 @@ export async function ensureConvexUserFromToken(
 export function isUnauthorized(error: unknown): boolean {
   return (
     error instanceof ConvexUnauthorizedError ||
-    (error instanceof Error && /not authenticated|unauthorized/i.test(error.message))
+    (error instanceof Error &&
+      /not authenticated|unauthorized/i.test(error.message))
   );
 }

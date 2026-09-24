@@ -6,19 +6,25 @@ import {
 } from "@/lib/convex/server";
 
 /**
- * Bootstrap the Convex users row after Supabase Auth login/signup.
- * Idempotent. Does not write to Supabase profiles.
+ * Bootstrap / refresh the Convex users row after Convex Auth login/signup.
+ * Idempotent. Remaps existing profiles by email.
  */
 export async function POST(request: NextRequest) {
   try {
     const { convex, user } = await requireAuthedConvex(request);
-    const fullName =
-      typeof user.user_metadata?.full_name === "string"
-        ? user.user_metadata.full_name
-        : undefined;
+    let body: { email?: string; fullName?: string } = {};
+    try {
+      body = (await request.json()) as { email?: string; fullName?: string };
+    } catch {
+      body = {};
+    }
     const profile = await convex.mutation(api.users.ensureCurrent, {
-      email: user.email ?? undefined,
-      fullName,
+      email: body.email ?? user.email ?? undefined,
+      fullName:
+        body.fullName ??
+        (typeof user.user_metadata?.full_name === "string"
+          ? user.user_metadata.full_name
+          : undefined),
     });
     return NextResponse.json({ profile });
   } catch (error) {

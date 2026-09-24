@@ -1,6 +1,12 @@
 import { v } from "convex/values";
-import { internalMutation, mutation, query } from "./_generated/server";
-import { getCurrentUser, supabaseSubject } from "./lib/auth";
+import {
+  internalMutation,
+  internalQuery,
+  mutation,
+  query,
+} from "./_generated/server";
+import { getCurrentUser, getCurrentUserOrNull, supabaseSubject } from "./lib/auth";
+import type { Id } from "./_generated/dataModel";
 import { toMs } from "./lib/ids";
 
 const userApi = v.object({
@@ -83,16 +89,13 @@ export const ensureCurrent = mutation({
     if (!identity) {
       throw new Error("Not authenticated");
     }
-    const externalId = supabaseSubject(identity);
-    const existing = await ctx.db
-      .query("users")
-      .withIndex("by_externalId", (q) => q.eq("externalId", externalId))
-      .unique();
     const now = Date.now();
+    const existing = await getCurrentUserOrNull(ctx);
     if (existing) {
       await ctx.db.patch(existing._id, {
         tokenIdentifier: identity.tokenIdentifier,
         email: args.email ?? existing.email,
+        fullName: args.fullName ?? existing.fullName,
         lastLoginAt: now,
         updatedAt: now,
       });
@@ -104,6 +107,26 @@ export const ensureCurrent = mutation({
       args.email ??
       (typeof identity.email === "string" ? identity.email : "") ??
       "";
+    const byEmail = email
+      ? await ctx.db
+          .query("users")
+          .withIndex("email", (q) => q.eq("email", email.toLowerCase()))
+          .unique()
+      : null;
+    if (byEmail && !byEmail.deletedAt) {
+      await ctx.db.patch(byEmail._id, {
+        tokenIdentifier: identity.tokenIdentifier,
+        email,
+        fullName: args.fullName ?? byEmail.fullName,
+        supabaseUserId: byEmail.supabaseUserId ?? byEmail.externalId,
+        lastLoginAt: now,
+        updatedAt: now,
+      });
+      const updated = await ctx.db.get(byEmail._id);
+      if (!updated) throw new Error("User not found");
+      return toApi(updated);
+    }
+    const externalId = supabaseSubject(identity);
     await ctx.db.insert("users", {
       externalId,
       tokenIdentifier: identity.tokenIdentifier,
@@ -131,14 +154,8 @@ export const getMine = query({
   args: {},
   returns: v.union(userApi, v.null()),
   handler: async (ctx) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) return null;
-    const externalId = supabaseSubject(identity);
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_externalId", (q) => q.eq("externalId", externalId))
-      .unique();
-    if (!user || user.deletedAt) return null;
+    const user = await getCurrentUserOrNull(ctx);
+    if (!user) return null;
     return toApi(user);
   },
 });
@@ -157,12 +174,14 @@ export const updateMine = mutation({
     defaultCurrency: v.optional(v.string()),
     fiscalYearStart: v.optional(v.number()),
     onboardingCompleted: v.optional(v.boolean()),
+    avatarStorageId: v.optional(v.id("_storage")),
   },
   returns: userApi,
   handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx);
     await ctx.db.patch(user._id, {
       fullName: args.fullName ?? user.fullName,
+      name: args.fullName ?? user.name,
       phone: args.phone ?? user.phone,
       entityType: args.entityType ?? user.entityType,
       tin: args.tin ?? user.tin,
@@ -172,6 +191,7 @@ export const updateMine = mutation({
       defaultCurrency: args.defaultCurrency ?? user.defaultCurrency,
       fiscalYearStart: args.fiscalYearStart ?? user.fiscalYearStart,
       onboardingCompleted: args.onboardingCompleted ?? user.onboardingCompleted,
+      avatarStorageId: args.avatarStorageId ?? user.avatarStorageId,
       updatedAt: Date.now(),
     });
     const updated = await ctx.db.get(user._id);
@@ -188,6 +208,32 @@ export const softDeleteMine = mutation({
     const now = Date.now();
     await ctx.db.patch(user._id, { deletedAt: now, updatedAt: now });
     return null;
+  },
+});
+
+export const getEmailInternal = internalQuery({
+  args: { userId: v.id("users") },
+  returns: v.union(v.string(), v.null()),
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.userId as Id<"users">);
+    if (!user || user.deletedAt) return null;
+    return user.email;
+  },
+});
+
+export const listEmailsInternal = internalQuery({
+  args: {},
+  returns: v.array(
+    v.object({
+      email: v.string(),
+      externalId: v.string(),
+    }),
+  ),
+  handler: async (ctx) => {
+    const rows = await ctx.db.query("users").take(50);
+    return rows
+      .filter((user) => !user.deletedAt)
+      .map((user) => ({ email: user.email, externalId: user.externalId }));
   },
 });
 

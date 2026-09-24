@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { useAuthActions } from '@convex-dev/auth/react';
 import Link from 'next/link';
 import { AuthLayout } from '@/components/layout/AuthLayout';
 import { ArrowLeft, KeyRound, Mail } from 'lucide-react';
@@ -11,6 +11,7 @@ export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const { signIn } = useAuthActions();
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,11 +19,7 @@ export default function ForgotPasswordPage() {
     setError(null);
 
     try {
-      const supabase = createClient();
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/callback?redirect=/reset-password`,
-      });
-      if (error) throw error;
+      await signIn('password', { email, flow: 'reset' });
       setSuccess(true);
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to send reset email';
@@ -41,12 +38,15 @@ export default function ForgotPasswordPage() {
           </div>
           <h1 className="font-display text-2xl font-bold text-text-1 dark:text-dark-text-1">Check Your Email</h1>
           <p className="text-sm text-text-3 dark:text-dark-text-3">
-            We&apos;ve sent a password reset link to <strong className="text-text-1 dark:text-dark-text-1">{email}</strong>
+            If an account exists for <strong className="text-text-1 dark:text-dark-text-1">{email}</strong>, we sent an 8-digit reset code.
           </p>
           <Link
-            href="/login"
+            href={`/reset-password?email=${encodeURIComponent(email)}`}
             className="block w-full rounded-md bg-accent py-3.5 text-center text-sm font-bold text-charcoal shadow-accent transition-all hover:bg-accent-hover"
           >
+            Enter reset code
+          </Link>
+          <Link href="/login" className="text-sm text-text-3 hover:text-primary">
             Back to Login
           </Link>
         </div>
@@ -72,7 +72,7 @@ export default function ForgotPasswordPage() {
         </div>
         <h1 className="mb-2 font-display text-2xl font-bold text-text-1 dark:text-dark-text-1">Reset your password</h1>
         <p className="text-sm text-text-3 dark:text-dark-text-3">
-          Enter your email and we&apos;ll send you a link to reset your password.
+          Enter your email and we&apos;ll send an 8-digit code to reset your password.
         </p>
       </div>
 
@@ -102,12 +102,12 @@ export default function ForgotPasswordPage() {
           disabled={loading}
           className="mt-6 h-[52px] w-full rounded-xl bg-accent text-sm font-bold text-charcoal shadow-accent transition-all hover:-translate-y-0.5 hover:bg-accent-hover disabled:opacity-50 disabled:transform-none"
         >
-          {loading ? 'Sending...' : 'Send Reset Link'}
+          {loading ? 'Sending...' : 'Send Reset Code'}
         </button>
       </form>
 
       <p className="mt-6 text-center text-xs text-text-4 dark:text-dark-text-4">
-        Secure link expires in 60 minutes for your protection.
+        The code expires in 15 minutes. Existing users can also reclaim by signing up with the same email.
       </p>
     </AuthLayout>
   );

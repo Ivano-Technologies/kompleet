@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import localFont from "next/font/local";
+import { ConvexAuthNextjsServerProvider } from "@convex-dev/auth/nextjs/server";
 import "./globals.css";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { YearProvider } from "@/contexts/year-context";
+import { ConvexAuthClientProvider } from "@/components/providers/ConvexAuthClientProvider";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -60,12 +62,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${ceoruse.variable}`}>
-      <body className="font-sans">
-        <ThemeProvider>
-          <YearProvider>{children}</YearProvider>
-        </ThemeProvider>
-      </body>
-    </html>
+    <ConvexAuthNextjsServerProvider>
+      <html lang="en" className={`${inter.variable} ${ceoruse.variable}`}>
+        <body className="font-sans">
+          <ConvexAuthClientProvider>
+            <ThemeProvider>
+              <YearProvider>{children}</YearProvider>
+            </ThemeProvider>
+          </ConvexAuthClientProvider>
+        </body>
+      </html>
+    </ConvexAuthNextjsServerProvider>
   );
 }

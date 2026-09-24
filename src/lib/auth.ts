@@ -6,25 +6,18 @@
  */
 
 import { redirect } from "next/navigation";
-import { createServerClient } from "@/lib/supabase/server";
+import { getCompatUser } from "@/lib/auth/session";
+import type { CompatUser } from "@/lib/auth/compat-user";
 
 /**
  * Require an authenticated user. Redirects to /login if not authenticated.
  * Use in server components and layouts to protect routes.
  */
-export async function requireAuth() {
-  const supabase = await createServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+export async function requireAuth(): Promise<CompatUser> {
+  const user = await getCompatUser();
 
   if (!user) {
     redirect("/login");
-  }
-
-  // Redirect unverified users to email verification page
-  if (!user.email_confirmed_at) {
-    redirect("/verify-email");
   }
 
   return user;

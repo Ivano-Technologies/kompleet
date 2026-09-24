@@ -60,6 +60,7 @@ export const createMine = mutation({
     idempotencyKey: v.optional(v.string()),
     status: v.optional(v.string()),
     payload: v.optional(v.any()),
+    storageId: v.optional(v.id("_storage")),
   },
   returns: documentApi,
   handler: async (ctx, args) => {
@@ -83,6 +84,7 @@ export const createMine = mutation({
       status: args.status ?? "queued",
       fileName: args.fileName,
       contentType: args.contentType,
+      storageId: args.storageId,
       processingAttemptCount: 0,
       payload: args.payload,
       createdAt: now,

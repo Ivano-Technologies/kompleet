@@ -80,6 +80,28 @@ export const createSession = mutation({
   },
 });
 
+export const attachStorage = mutation({
+  args: {
+    externalId: v.string(),
+    storageId: v.id("_storage"),
+  },
+  returns: sessionApi,
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
+    const row = await ctx.db
+      .query("importSessions")
+      .withIndex("by_externalId", (q) => q.eq("externalId", args.externalId))
+      .unique();
+    if (!row || row.userId !== user._id) {
+      throw new Error("Import session not found");
+    }
+    await ctx.db.patch(row._id, { storageId: args.storageId });
+    const updated = await ctx.db.get(row._id);
+    if (!updated) throw new Error("Import session not found");
+    return toSessionApi(updated);
+  },
+});
+
 export const updateSession = mutation({
   args: {
     externalId: v.string(),

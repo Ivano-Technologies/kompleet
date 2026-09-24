@@ -1,24 +1,26 @@
-import type { AuthConfig } from "convex/server";
-
 /**
- * Path B: Convex verifies Supabase Auth JWTs from KOMPLEET
- * (`frlcvkmjuhnjcicwywrh`). Issuer must match the GoTrue `iss` claim.
- * Algorithm is ES256 (asymmetric keys / JWKS). HS256 legacy JWTs will not verify.
+ * Convex Auth (web) + leftover Supabase JWT (mobile soak).
  *
- * The issuer is a literal on purpose. Referencing `process.env.NEXT_PUBLIC_SUPABASE_URL`
- * here makes Convex refuse the first push until a dashboard env var is set, which
- * breaks `CONVEX_AGENT_MODE=anonymous` (CI e2e / cloud agents).
+ * Web sign-in uses @convex-dev/auth. CONVEX_SITE_URL is a Convex-provided env
+ * and is safe to reference here. The Supabase JWKS provider stays so the
+ * Expo app can keep calling Convex with GoTrue tokens until a mobile cutover.
+ *
+ * Do not reference NEXT_PUBLIC_SUPABASE_URL — Convex refuses the first push
+ * until that dashboard var exists, which breaks CONVEX_AGENT_MODE=anonymous.
  */
-const issuer = "https://frlcvkmjuhnjcicwywrh.supabase.co/auth/v1";
-
 export default {
   providers: [
     {
+      domain: process.env.CONVEX_SITE_URL,
+      applicationID: "convex",
+    },
+    {
       type: "customJwt",
       applicationID: "authenticated",
-      issuer,
-      jwks: `${issuer}/.well-known/jwks.json`,
+      issuer: "https://frlcvkmjuhnjcicwywrh.supabase.co/auth/v1",
+      jwks:
+        "https://frlcvkmjuhnjcicwywrh.supabase.co/auth/v1/.well-known/jwks.json",
       algorithm: "ES256",
     },
   ],
-} satisfies AuthConfig;
+};
