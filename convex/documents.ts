@@ -148,6 +148,9 @@ export const getMineByIdempotencyKey = query({
 });
 
 export const createMine = mutation({
+  // Phase 4 fields (externalId / documentType / fileUrl) are optional so
+  // this stays compatible with shiny-cricket-316's pre-Phase-4 validator
+  // until Shipping runs `npx convex dev --once` (never `convex deploy`).
   args: {
     externalId: v.optional(v.string()),
     fileName: v.optional(v.string()),

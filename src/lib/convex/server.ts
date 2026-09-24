@@ -3,6 +3,7 @@
  * (mobile / API clients, including leftover Supabase GoTrue tokens).
  */
 import type { ConvexHttpClient } from "convex/browser";
+import { isConvexAuthError } from "./errors";
 import { api, createConvexHttpClient } from "./http";
 import {
   getCompatUser,
@@ -61,11 +62,11 @@ export async function ensureConvexUserFromToken(
 }
 
 export function isUnauthorized(error: unknown): boolean {
-  return (
-    error instanceof ConvexUnauthorizedError ||
-    (error instanceof Error &&
-      /not authenticated|unauthorized|authentication required/i.test(
-        error.message,
-      ))
-  );
+  return error instanceof ConvexUnauthorizedError || isConvexAuthError(error);
 }
+
+export {
+  isConvexArgumentExtraField,
+  isConvexAuthError,
+  isConvexFunctionMissing,
+} from "./errors";
