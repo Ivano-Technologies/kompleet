@@ -134,6 +134,7 @@ RLS-negative tests still run against **local** Supabase (tenancy spine). They do
 - [docs/convex-migration-plan.md](docs/convex-migration-plan.md)
 - [docs/convex-backfill.md](docs/convex-backfill.md)
 - [docs/convex-auth-storage.md](docs/convex-auth-storage.md) — Auth + Storage cutover, reset flow, rollback
+- [docs/SUPABASE_CUTOVER_KILL_LIST.md](docs/SUPABASE_CUTOVER_KILL_LIST.md) — leftover Supabase surfaces by domain (strip plan)
 - [docs/AUTH_MIGRATION_PLAN.md](docs/AUTH_MIGRATION_PLAN.md) — historical; Clerk is deferred/stale
 - [docs/ENVIRONMENT_VARIABLES.md](docs/ENVIRONMENT_VARIABLES.md)
 
