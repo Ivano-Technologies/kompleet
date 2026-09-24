@@ -1,3 +1,4 @@
+import { getAuthUserId } from "@convex-dev/auth/server";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
 
@@ -11,12 +12,26 @@ export function supabaseSubject(identity: {
   return slash ?? identity.subject;
 }
 
+function identityEmail(identity: { email?: string | null }): string | null {
+  return typeof identity.email === "string" && identity.email.length > 0
+    ? identity.email.trim().toLowerCase()
+    : null;
+}
+
 export async function getCurrentUser(
   ctx: QueryCtx | MutationCtx,
 ): Promise<Doc<"users">> {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) {
     throw new Error("Not authenticated");
+  }
+
+  const authUserId = await getAuthUserId(ctx);
+  if (authUserId) {
+    const byAuthId = await ctx.db.get(authUserId);
+    if (byAuthId && !byAuthId.deletedAt) {
+      return byAuthId;
+    }
   }
 
   const byToken = await ctx.db
@@ -27,6 +42,17 @@ export async function getCurrentUser(
     .unique();
   if (byToken && !byToken.deletedAt) {
     return byToken;
+  }
+
+  const email = identityEmail(identity);
+  if (email) {
+    const byEmail = await ctx.db
+      .query("users")
+      .withIndex("email", (q) => q.eq("email", email))
+      .unique();
+    if (byEmail && !byEmail.deletedAt) {
+      return byEmail;
+    }
   }
 
   const externalId = supabaseSubject(identity);

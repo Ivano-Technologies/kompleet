@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { createSupabaseClient } from "@/lib/supabase/client";
+import { useAuthActions } from "@convex-dev/auth/react";
 import {
   LayoutDashboard,
   ArrowLeftRight,
@@ -117,6 +117,7 @@ export function Sidebar({
 }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { signOut } = useAuthActions();
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(),
   );
@@ -145,9 +146,9 @@ export function Sidebar({
 
   const handleSignOut = async () => {
     setSigningOut(true);
-    const supabase = createSupabaseClient();
-    await supabase.auth.signOut();
+    await signOut();
     router.push("/login");
+    router.refresh();
   };
 
   const userInitial = userEmail?.charAt(0).toUpperCase() || "U";

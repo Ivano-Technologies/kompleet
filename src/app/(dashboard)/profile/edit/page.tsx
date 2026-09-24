@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { UserCog, ChevronLeft, Loader2 } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
 
 export default function EditProfilePage() {
   const [loading, setLoading] = useState(false);
@@ -16,10 +15,13 @@ export default function EditProfilePage() {
   // Show the signed-in user's own email. Never hard-code an address here —
   // this repository is public.
   useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => {
-      setEmail(data.user?.email ?? "");
-    });
+    void fetch("/api/auth/ensure-profile", { method: "POST" })
+      .then(async (res) => {
+        if (!res.ok) return;
+        const body = (await res.json()) as { profile?: { email?: string } };
+        setEmail(body.profile?.email ?? "");
+      })
+      .catch(() => {});
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {

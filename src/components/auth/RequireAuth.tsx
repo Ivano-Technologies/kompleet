@@ -1,29 +1,24 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { createSupabaseClient } from "@/lib/supabase/client";
+import { useConvexAuth } from "convex/react";
 
 type RequireAuthProps = {
   children: ReactNode;
 };
 
 export function RequireAuth({ children }: RequireAuthProps) {
-  const [loading, setLoading] = useState(true);
+  const { isLoading, isAuthenticated } = useConvexAuth();
   const router = useRouter();
 
   useEffect(() => {
-    const supabase = createSupabaseClient();
-    supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) {
-        router.replace("/login");
-      } else {
-        setLoading(false);
-      }
-    });
-  }, [router]);
+    if (!isLoading && !isAuthenticated) {
+      router.replace("/login");
+    }
+  }, [isLoading, isAuthenticated, router]);
 
-  if (loading) {
+  if (isLoading || !isAuthenticated) {
     return null;
   }
 

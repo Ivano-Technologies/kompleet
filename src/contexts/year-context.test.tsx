@@ -4,20 +4,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, waitFor } from "@testing-library/react";
 import { YearProvider, useYear } from "./year-context";
 
-const getSession = vi.fn();
-const onAuthStateChange = vi.fn(() => ({
-  data: { subscription: { unsubscribe: vi.fn() } },
-}));
-
-vi.mock("@/lib/supabase/client", () => ({
-  createBrowserClient: () => ({
-    auth: {
-      getSession,
-      onAuthStateChange,
-    },
-  }),
-}));
-
 function Probe() {
   const { availableYears, isLoading } = useYear();
   return (
@@ -33,8 +19,6 @@ describe("YearProvider", () => {
   const fallback = `${currentYear - 2},${currentYear - 1},${currentYear}`;
 
   beforeEach(() => {
-    getSession.mockReset();
-    onAuthStateChange.mockClear();
     vi.stubGlobal("fetch", vi.fn());
   });
 
@@ -42,8 +26,12 @@ describe("YearProvider", () => {
     vi.unstubAllGlobals();
   });
 
-  it("does not fetch /api/year/available when the session is unresolved-empty", async () => {
-    getSession.mockResolvedValue({ data: { session: null } });
+  it("uses fallback years when /api/year/available is unauthorized", async () => {
+    vi.mocked(fetch).mockResolvedValue({
+      ok: false,
+      status: 401,
+      json: async () => ({ error: "Unauthorized" }),
+    } as Response);
 
     const { getByTestId } = render(
       <YearProvider>
@@ -55,13 +43,10 @@ describe("YearProvider", () => {
       expect(getByTestId("loading").textContent).toBe("false");
     });
     expect(getByTestId("years").textContent).toBe(fallback);
-    expect(fetch).not.toHaveBeenCalled();
+    expect(fetch).toHaveBeenCalledWith("/api/year/available");
   });
 
-  it("fetches available years only after a session exists", async () => {
-    getSession.mockResolvedValue({
-      data: { session: { access_token: "tok" } },
-    });
+  it("uses years from the API when authenticated", async () => {
     vi.mocked(fetch).mockResolvedValue({
       ok: true,
       json: async () => ({ years: [2024, 2025] }),

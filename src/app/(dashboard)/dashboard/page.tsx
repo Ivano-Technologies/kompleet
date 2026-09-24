@@ -1,5 +1,4 @@
-import { requireServerUser } from "@/lib/supabase/session";
-import { createServerClient } from "@/lib/supabase/server";
+import { requireAuth } from "@/lib/auth";
 import { getMonthlyIncomeExpenses } from "@/lib/dashboard/data-aggregation";
 import { api } from "@/lib/convex/http";
 import { requireAuthedConvex } from "@/lib/convex/server";
@@ -20,11 +19,10 @@ const TAX_LABELS: Record<string, string> = {
 
 /**
  * KOMPLEET Dashboard - Financial Health Overview
- * Server component: auth via Supabase; app data via Convex.
+ * Server component: auth via Convex Auth; app data via Convex.
  */
 export default async function DashboardPage() {
-  const supabase = await createServerClient();
-  const user = await requireServerUser(supabase);
+  const user = await requireAuth();
   const { convex } = await requireAuthedConvex();
 
   const currentYear = new Date().getFullYear();
