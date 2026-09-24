@@ -23,6 +23,7 @@ interface DocumentRow {
   updated_at: string;
 }
 
+/** @deprecated Phase 4 cut over to ConvexDocumentRepository. Remove in Phase 5. */
 export class SupabaseDocumentRepository implements DocumentRepositoryPort {
   private readonly maxProcessingAttempts: number;
 

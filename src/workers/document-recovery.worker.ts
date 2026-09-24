@@ -1,14 +1,15 @@
-import { createClient } from "@supabase/supabase-js";
 import { logger } from "@/lib/logger";
-import { SupabaseDocumentRepository } from "@/modules/document-intelligence/infrastructure/persistence/supabase-document.repository";
+import {
+  createConvexWorkerClient,
+  getDocumentWorkerToken,
+} from "@/lib/convex/admin";
+import { ConvexDocumentRepository } from "@/modules/document-intelligence/infrastructure/persistence/convex-document.repository";
 import { BullMQAdapter } from "@/modules/document-intelligence/infrastructure/queue/bullmq.adapter";
-import { SupabaseAuditLogAdapter } from "@/modules/document-intelligence/infrastructure/audit/supabase-audit-log.adapter";
+import { ConvexAuditLogAdapter } from "@/modules/document-intelligence/infrastructure/audit/convex-audit-log.adapter";
 import { ProcessingMetricsAdapter } from "@/modules/document-intelligence/infrastructure/metrics/processing-metrics";
 import { DocumentRecoverySweeper } from "@/modules/document-intelligence/infrastructure/recovery/document-recovery-sweeper";
 
 const redisUrl = requireEnv("REDIS_URL");
-const supabaseUrl = process.env.SUPABASE_POOLER_URL ?? requireEnv("SUPABASE_URL");
-const supabaseServiceKey = requireEnv("SUPABASE_SERVICE_ROLE_KEY");
 
 const timeoutMinutes = parseInt(
   process.env.PROCESSING_TIMEOUT_MINUTES ?? "15",
@@ -20,16 +21,17 @@ const sweepIntervalMs = parseInt(
 );
 const batchLimit = parseInt(process.env.RECOVERY_SWEEP_BATCH_LIMIT ?? "100", 10);
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false,
-  },
+const convex = createConvexWorkerClient();
+const workerToken = getDocumentWorkerToken();
+const repository = new ConvexDocumentRepository(convex, {
+  admin: true,
+  workerToken,
 });
-
-const repository = new SupabaseDocumentRepository(supabase);
 const queue = new BullMQAdapter(redisUrl);
-const auditLog = new SupabaseAuditLogAdapter(supabase);
+const auditLog = new ConvexAuditLogAdapter(convex, {
+  admin: true,
+  workerToken,
+});
 const metrics = new ProcessingMetricsAdapter();
 
 const sweeper = new DocumentRecoverySweeper(
@@ -46,7 +48,7 @@ logger.info("Document recovery worker started", {
   timeoutMinutes,
   sweepIntervalMs,
   batchLimit,
-  usingSupabasePooler: Boolean(process.env.SUPABASE_POOLER_URL),
+  store: "convex",
 });
 
 await runSweep();

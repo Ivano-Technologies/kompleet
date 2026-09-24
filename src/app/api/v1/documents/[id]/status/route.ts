@@ -1,11 +1,15 @@
+import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseForRequest } from "@/lib/supabase/server";
+import { withRateLimit } from "@/lib/with-rate-limit";
+import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
+import { rethrowIfNextControlFlow } from "@/lib/next-control-flow";
 import {
-  getDocumentControllerWithSupabase,
+  getDocumentControllerWithConvex,
   NotFoundError,
 } from "@/modules/document-intelligence";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 interface RouteContext {
   params: Promise<{
@@ -13,23 +17,17 @@ interface RouteContext {
   }>;
 }
 
-export async function GET(request: NextRequest, context: RouteContext) {
+async function handleGET(request: NextRequest, context?: RouteContext) {
   try {
-    const supabase = await getSupabaseForRequest(request);
-    const controller = getDocumentControllerWithSupabase(supabase);
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    const { user, convex } = await requireAuthedConvex(request);
+    const controller = getDocumentControllerWithConvex(convex);
+    const { id } = await (context?.params ?? Promise.resolve({ id: "" }));
+    if (!id) {
       return NextResponse.json(
-        { error: "Unauthorized", message: "Authentication required" },
-        { status: 401 },
+        { error: "Not found", message: "Document not found." },
+        { status: 404 },
       );
     }
-
-    const { id } = await context.params;
     const result = await controller.getDocumentStatus({
       userId: user.id,
       documentId: id,
@@ -37,6 +35,13 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
     return NextResponse.json(result, { status: 200 });
   } catch (error) {
+    rethrowIfNextControlFlow(error);
+    if (isUnauthorized(error)) {
+      return NextResponse.json(
+        { error: "Unauthorized", message: "Authentication required" },
+        { status: 401 },
+      );
+    }
     if (error instanceof NotFoundError) {
       return NextResponse.json(
         { error: "Not found", message: error.message },
@@ -44,6 +49,25 @@ export async function GET(request: NextRequest, context: RouteContext) {
       );
     }
 
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
+  }
+}
+
+export async function GET(request: NextRequest, context: RouteContext) {
+  try {
+    await cookies();
+    return await withRateLimit(handleGET)(request, context);
+  } catch (error) {
+    rethrowIfNextControlFlow(error);
+    if (isUnauthorized(error)) {
+      return NextResponse.json(
+        { error: "Unauthorized", message: "Authentication required" },
+        { status: 401 },
+      );
+    }
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },

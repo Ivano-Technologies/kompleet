@@ -363,7 +363,11 @@ export default defineSchema({
     .index("by_externalId", ["externalId"])
     .index("by_user", ["userId"])
     .index("by_user_and_idempotencyKey", ["userId", "idempotencyKey"])
-    .index("by_status", ["status"]),
+    .index("by_status", ["status"])
+    .index("by_status_and_processingStartedAt", [
+      "status",
+      "processingStartedAt",
+    ]),
 
   auditLogs: defineTable({
     userId: v.optional(v.id("users")),
