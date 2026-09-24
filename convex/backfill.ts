@@ -263,3 +263,216 @@ export const fromSupabase = internalAction({
     return counts;
   },
 });
+
+const snapshotRow = v.any();
+
+const backfillCounts = v.object({
+  categories: v.number(),
+  users: v.number(),
+  transactions: v.number(),
+  importSessions: v.number(),
+  importErrors: v.number(),
+  exportHistory: v.number(),
+  expenseCategories: v.number(),
+  sources: v.number(),
+  ruleVersions: v.number(),
+  taxRules: v.number(),
+});
+
+/**
+ * Same upserts as fromSupabase, but rows are supplied by the caller
+ * (read-only SQL / MCP). Used when this VM has no service-role key.
+ */
+export const fromSnapshot = internalAction({
+  args: {
+    categories: v.optional(v.array(snapshotRow)),
+    profiles: v.optional(v.array(snapshotRow)),
+    importSessions: v.optional(v.array(snapshotRow)),
+    importErrors: v.optional(v.array(snapshotRow)),
+    transactions: v.optional(v.array(snapshotRow)),
+    exportHistory: v.optional(v.array(snapshotRow)),
+    expenseCategories: v.optional(v.array(snapshotRow)),
+    sources: v.optional(v.array(snapshotRow)),
+    ruleVersions: v.optional(v.array(snapshotRow)),
+    taxRules: v.optional(v.array(snapshotRow)),
+  },
+  returns: backfillCounts,
+  handler: async (ctx, args) => {
+    const counts = {
+      categories: 0,
+      users: 0,
+      transactions: 0,
+      importSessions: 0,
+      importErrors: 0,
+      exportHistory: 0,
+      expenseCategories: 0,
+      sources: 0,
+      ruleVersions: 0,
+      taxRules: 0,
+    };
+
+    for (const row of args.categories ?? []) {
+      await ctx.runMutation(internal.categories.upsertFromBackfill, {
+        externalId: String(row.id),
+        name: String(row.name ?? "Unnamed"),
+        categoryType: String(row.category_type ?? "expense"),
+        taxTreatment: String(row.tax_treatment ?? "none"),
+        keywords: Array.isArray(row.keywords) ? row.keywords : [],
+        description: row.description ?? undefined,
+        isSystem: Boolean(row.is_system ?? true),
+        createdAt: row.created_at ?? undefined,
+        updatedAt: row.updated_at ?? undefined,
+      });
+      counts.categories += 1;
+    }
+
+    for (const row of args.profiles ?? []) {
+      await ctx.runMutation(internal.users.upsertFromBackfill, {
+        externalId: String(row.id),
+        email: String(row.email ?? ""),
+        fullName: row.full_name ?? undefined,
+        phone: row.phone ?? undefined,
+        entityType: row.entity_type === "company" ? "company" : "individual",
+        tin: row.tin ?? undefined,
+        companyName: row.company_name ?? undefined,
+        rcNumber: row.rc_number ?? undefined,
+        companyAddress: row.company_address ?? undefined,
+        subscriptionExpiresAt: row.subscription_expires_at ?? undefined,
+        defaultCurrency: row.default_currency ?? "NGN",
+        fiscalYearStart:
+          typeof row.fiscal_year_start === "number" ? row.fiscal_year_start : 1,
+        onboardingCompleted: Boolean(row.onboarding_completed),
+        deletedAt: row.deleted_at ?? undefined,
+        lastLoginAt: row.last_login_at ?? undefined,
+        createdAt: row.created_at ?? undefined,
+        updatedAt: row.updated_at ?? undefined,
+      });
+      counts.users += 1;
+    }
+
+    for (const row of args.importSessions ?? []) {
+      await ctx.runMutation(internal.imports.upsertSessionFromBackfill, {
+        externalId: String(row.id),
+        userExternalId: String(row.user_id),
+        fileName: String(row.file_name ?? "unknown"),
+        fileSize: typeof row.file_size === "number" ? row.file_size : undefined,
+        bankCode: row.bank_code ?? undefined,
+        status: String(row.status ?? "completed"),
+        transactionsImported: row.transactions_imported ?? 0,
+        errorsCount: row.errors_count ?? 0,
+        totalAmount:
+          typeof row.total_amount === "number"
+            ? row.total_amount
+            : Number(row.total_amount ?? 0) || undefined,
+        completedAt: row.completed_at ?? undefined,
+        createdAt: row.created_at ?? undefined,
+      });
+      counts.importSessions += 1;
+    }
+
+    for (const row of args.importErrors ?? []) {
+      await ctx.runMutation(internal.imports.upsertErrorFromBackfill, {
+        externalId: String(row.id),
+        sessionExternalId: String(row.session_id),
+        rowNumber: row.row_number ?? undefined,
+        errorType: row.error_type ?? undefined,
+        errorMessage: row.error_message ?? undefined,
+        rawData: row.raw_data ?? undefined,
+        createdAt: row.created_at ?? undefined,
+      });
+      counts.importErrors += 1;
+    }
+
+    for (const row of args.transactions ?? []) {
+      await ctx.runMutation(internal.transactions.upsertFromBackfill, {
+        externalId: String(row.id),
+        userExternalId: String(row.user_id),
+        transactionDate: String(row.transaction_date),
+        description: String(row.description ?? ""),
+        amount: Number(row.amount ?? 0),
+        transactionType: row.transaction_type === "credit" ? "credit" : "debit",
+        balance:
+          typeof row.balance === "number"
+            ? row.balance
+            : row.balance == null || row.balance === ""
+              ? undefined
+              : Number(row.balance),
+        categoryExternalId: row.category_id ? String(row.category_id) : undefined,
+        confidenceScore:
+          typeof row.confidence_score === "number"
+            ? row.confidence_score
+            : undefined,
+        source: row.source ?? undefined,
+        reference: row.reference ?? undefined,
+        notes: row.notes ?? undefined,
+        isReconciled: Boolean(row.is_reconciled),
+        createdAt: row.created_at ?? undefined,
+        updatedAt: row.updated_at ?? undefined,
+      });
+      counts.transactions += 1;
+    }
+
+    for (const row of args.exportHistory ?? []) {
+      await ctx.runMutation(internal.exports.upsertFromBackfill, {
+        externalId: String(row.id),
+        userExternalId: String(row.user_id),
+        exportType: String(row.export_type ?? "unknown"),
+        format: row.format ?? undefined,
+        taxYear: typeof row.tax_year === "number" ? row.tax_year : undefined,
+        status: String(row.status ?? "completed"),
+        fileSize: typeof row.file_size === "number" ? row.file_size : undefined,
+        expiresAt: row.expires_at ?? undefined,
+        completedAt: row.completed_at ?? undefined,
+        createdAt: row.created_at ?? undefined,
+      });
+      counts.exportHistory += 1;
+    }
+
+    for (const row of args.expenseCategories ?? []) {
+      await ctx.runMutation(internal.expenses.upsertExpenseCategoryFromBackfill, {
+        externalId: String(row.id),
+        userExternalId: row.user_id ? String(row.user_id) : undefined,
+        name: String(row.name ?? "Unnamed"),
+        isCustom: Boolean(row.is_custom),
+        createdAt: row.created_at ?? undefined,
+      });
+      counts.expenseCategories += 1;
+    }
+
+    for (const row of args.sources ?? []) {
+      await ctx.runMutation(internal.tax.upsertSourceFromBackfill, {
+        externalId: String(row.id),
+        name: String(row.name ?? "Unnamed"),
+        url: row.url ?? undefined,
+        createdAt: row.created_at ?? undefined,
+      });
+      counts.sources += 1;
+    }
+
+    for (const row of args.ruleVersions ?? []) {
+      await ctx.runMutation(internal.tax.upsertRuleVersionFromBackfill, {
+        externalId: String(row.id),
+        version: row.version_number ?? row.version ?? undefined,
+        isActive: Boolean(row.is_active),
+        createdAt: row.created_at ?? undefined,
+      });
+      counts.ruleVersions += 1;
+    }
+
+    for (const row of args.taxRules ?? []) {
+      await ctx.runMutation(internal.tax.upsertTaxRuleFromBackfill, {
+        externalId: String(row.id),
+        ruleVersionExternalId: String(row.rule_version_id),
+        sourceExternalId: row.source_id ? String(row.source_id) : undefined,
+        ruleType: String(row.rule_type ?? "unknown"),
+        ruleKey: String(row.rule_key ?? "unknown"),
+        ruleValue: row.rule_value ?? {},
+        confidenceLevel: String(row.confidence_level ?? "unverified"),
+        notes: row.notes ?? undefined,
+      });
+      counts.taxRules += 1;
+    }
+
+    return counts;
+  },
+});
