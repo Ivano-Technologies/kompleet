@@ -2,7 +2,31 @@
 
 **Linear:** [IVA-60](https://linear.app/ivano-technologies/issue/IVA-60/kompleet-migrate-db-from-supabase-to-convex)
 **Audience:** Kezie (product), CoS (cutover decisions), Shipping (eng)
-**This PR:** inventory + written plan only. No cutover, no live env change, no production data move, no Supabase teardown.
+**Decision (2026-09-24):** Kezie locked **path B**. This PR implements B on Kompleet: Convex app DB, Supabase Auth + Storage unchanged, no teardown.
+
+## Decision addendum (path B locked — implementing)
+
+| Item | Status |
+| --- | --- |
+| First cut | **B** — Convex for application tables; Supabase Auth + Storage through soak |
+| Tenancy | User-scoped live tables (`transactions`); `firms`/`clients` schema present, empty |
+| Clerk | Closed for this cut. README Clerk text is stale and rewritten |
+| Freeze | No new Supabase schema waves required for B; do not delete the project |
+| Convex | Dev/staging deployment + `npx convex dev`. Never `npx convex deploy` from this work |
+| Backfill | Scripted, idempotent, read-only vs `frlcvkmjuhnjcicwywrh`. See [convex-backfill.md](./convex-backfill.md) |
+| Production go | Still CoS after staging soak. This PR does not flip production Vercel env |
+
+Implemented in this PR (milestones 2–6 of §7):
+
+- `convex/` schema + auth.config (Supabase JWT ES256) + domain functions
+- Next.js `ConvexHttpClient` wiring; Auth session/login/signup unchanged
+- Live data paths: profiles, transactions, import_*, export_history, expenses, invoices, documents schema, audit
+- Keep-alive still hits Supabase `tax_rules`
+- One-time backfill script; no destructive Supabase deletes
+
+---
+
+**Original plan text below** was written as inventory-only. Treat §0 non-goals as superseded by this addendum.
 
 ---
 

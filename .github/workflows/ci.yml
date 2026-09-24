@@ -127,6 +127,7 @@ jobs:
           CI: "true"
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_CONVEX_URL: ${{ vars.NEXT_PUBLIC_CONVEX_URL || 'https://placeholder.convex.cloud' }}
           # Canonical host is NOT baked into the image. Set the repository (or
           # environment) variable NEXT_PUBLIC_SITE_URL in GitHub → Settings →
           # Secrets and variables → Actions → Variables. The literal below is a
@@ -168,6 +169,7 @@ jobs:
           CI: "true"
           NEXT_PUBLIC_SUPABASE_URL: "http://localhost:54321"
           NEXT_PUBLIC_SUPABASE_ANON_KEY: "eyJ_test_placeholder"
+          NEXT_PUBLIC_CONVEX_URL: "https://placeholder.convex.cloud"
           SUPABASE_SERVICE_ROLE_KEY: "eyJ_test_placeholder"
           OPENAI_API_KEY: "sk-test_placeholder"
           DATABASE_URL: "postgresql://test@localhost:5432/test"

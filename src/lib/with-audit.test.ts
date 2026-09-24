@@ -2,38 +2,28 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
 import { withAudit } from "./with-audit";
 
-// ── Mocks ────────────────────────────────────────────────────────────────────
+const mockMutation = vi.fn().mockResolvedValue(null);
 
-const mockInsert = vi.fn().mockReturnValue({
-  then: (cb: any) => {
-    cb?.();
-    return { catch: vi.fn() };
-  },
-});
-
-const mockFrom = vi.fn().mockReturnValue({ insert: mockInsert });
-
-const mockGetUser = vi.fn().mockResolvedValue({
-  data: { user: { id: "user-123" } },
-});
-
-vi.mock("@/lib/supabase/server", () => ({
-  createServerClient: vi.fn().mockResolvedValue({
-    auth: { getUser: () => mockGetUser() },
-    from: (...args: any[]) => mockFrom(...args),
-  }),
+vi.mock("@/lib/convex/server", () => ({
+  getAuthedConvex: vi.fn(async () => ({
+    convex: { mutation: mockMutation },
+    user: { id: "user-123" },
+    supabase: {},
+    accessToken: "token",
+  })),
 }));
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+vi.mock("@/lib/convex/http", () => ({
+  api: { audit: { append: "audit.append" } },
+}));
 
-function makeRequest(overrides: any = {}): NextRequest {
+function makeRequest(): NextRequest {
   return new NextRequest("http://localhost:3000/api/test", {
     method: "POST",
     headers: {
       "x-forwarded-for": "127.0.0.1",
       "user-agent": "vitest",
     },
-    ...overrides,
   });
 }
 
@@ -48,20 +38,14 @@ function errorResponse(
   return Response.json(body, { status });
 }
 
-// ── Tests ────────────────────────────────────────────────────────────────────
-
 describe("withAudit", () => {
   const auditOptions = { action: "create", resourceType: "invoices" };
 
   beforeEach(() => {
     vi.clearAllMocks();
-    // Reset to successful user lookup by default
-    mockGetUser.mockResolvedValue({
-      data: { user: { id: "user-123" } },
-    });
+    mockMutation.mockResolvedValue(null);
   });
 
-  // 1. Calls the handler and returns its response
   it("calls the handler and returns its response unchanged", async () => {
     const body = { id: "inv-1", total: 5000 };
     const handler = vi.fn().mockResolvedValue(okResponse(body));
@@ -75,7 +59,6 @@ describe("withAudit", () => {
     expect(json).toEqual(body);
   });
 
-  // 2. Passes request and context through to handler
   it("passes request and context through to the handler", async () => {
     const handler = vi.fn().mockResolvedValue(okResponse());
     const request = makeRequest();
@@ -88,29 +71,22 @@ describe("withAudit", () => {
     expect(handler).toHaveBeenCalledWith(request, context);
   });
 
-  // 3. Audit insert happens for successful (2xx) responses
-  it("inserts an audit log entry for successful responses", async () => {
+  it("appends an audit log entry for successful responses", async () => {
     const handler = vi.fn().mockResolvedValue(okResponse());
 
     const wrapped = withAudit(handler, auditOptions);
     await wrapped(makeRequest());
 
-    // Allow microtask queue to flush (fire-and-forget promise)
     await new Promise((r) => setTimeout(r, 0));
 
-    expect(mockFrom).toHaveBeenCalledWith("audit_logs");
-    expect(mockInsert).toHaveBeenCalledWith(
-      expect.objectContaining({
-        user_id: "user-123",
-        action: "create",
-        resource_type: "invoices",
-        ip_address: "127.0.0.1",
-        user_agent: "vitest",
-      }),
-    );
+    expect(mockMutation).toHaveBeenCalledWith("audit.append", {
+      action: "create",
+      resourceType: "invoices",
+      ipAddress: "127.0.0.1",
+      userAgent: "vitest",
+    });
   });
 
-  // 4. No audit insert for failed (4xx/5xx) responses
   it("does NOT insert an audit log for 4xx responses", async () => {
     const handler = vi.fn().mockResolvedValue(errorResponse(400));
 
@@ -119,8 +95,7 @@ describe("withAudit", () => {
 
     await new Promise((r) => setTimeout(r, 0));
 
-    expect(mockFrom).not.toHaveBeenCalled();
-    expect(mockInsert).not.toHaveBeenCalled();
+    expect(mockMutation).not.toHaveBeenCalled();
   });
 
   it("does NOT insert an audit log for 5xx responses", async () => {
@@ -131,11 +106,9 @@ describe("withAudit", () => {
 
     await new Promise((r) => setTimeout(r, 0));
 
-    expect(mockFrom).not.toHaveBeenCalled();
-    expect(mockInsert).not.toHaveBeenCalled();
+    expect(mockMutation).not.toHaveBeenCalled();
   });
 
-  // 5. Handler errors propagate
   it("propagates errors thrown by the handler", async () => {
     const boom = new Error("handler exploded");
     const handler = vi.fn().mockRejectedValue(boom);

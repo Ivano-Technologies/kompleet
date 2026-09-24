@@ -121,6 +121,11 @@ const clientSchema = z.object({
       "must be a legacy anon JWT or an sb_publishable_ key",
     ),
 
+  NEXT_PUBLIC_CONVEX_URL: z
+    .string()
+    .url("NEXT_PUBLIC_CONVEX_URL must be a valid URL")
+    .optional(),
+
   NEXT_PUBLIC_APP_URL: z.string().url().default("http://localhost:3000"),
 
   NEXT_PUBLIC_API_URL: z.string().url().optional(),
@@ -201,6 +206,8 @@ function validateEnv(): Env {
             rawEnv.NEXT_PUBLIC_SUPABASE_URL ?? "http://localhost:54321",
           NEXT_PUBLIC_SUPABASE_ANON_KEY:
             rawEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "eyJ_dev_placeholder",
+          NEXT_PUBLIC_CONVEX_URL:
+            rawEnv.NEXT_PUBLIC_CONVEX_URL ?? "https://placeholder.convex.cloud",
         });
       }
 
