@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { isConvexAuthError } from "@/lib/convex/errors";
 import { logger } from "@/lib/logger";
 import type { AuditLogPort } from "./ports/audit-log.port";
 import type { DocumentRepositoryPort } from "./ports/document-repository.port";
@@ -43,6 +44,9 @@ export class ProcessDocumentUseCase {
         input.userId,
       );
     } catch (error) {
+      if (isConvexAuthError(error)) {
+        throw error;
+      }
       logger.error("document idempotency lookup failed", {
         operation: "document.persist",
         error: error instanceof Error ? error.message : "unknown",
@@ -65,9 +69,13 @@ export class ProcessDocumentUseCase {
       idempotencyKey: input.idempotencyKey,
     });
 
+    let persisted: DocumentEntity;
     try {
-      await this.repository.create(document);
+      persisted = await this.repository.create(document);
     } catch (error) {
+      if (isConvexAuthError(error)) {
+        throw error;
+      }
       logger.error("document createMine failed", {
         operation: "document.persist",
         error: error instanceof Error ? error.message : "unknown",
@@ -76,30 +84,30 @@ export class ProcessDocumentUseCase {
     }
 
     await this.queue.enqueueDocumentProcessing({
-      documentId: document.id,
-      userId: document.userId,
-      idempotencyKey: document.idempotencyKey,
+      documentId: persisted.id,
+      userId: persisted.userId,
+      idempotencyKey: persisted.idempotencyKey,
     });
 
     try {
       await this.auditLog.record({
-        userId: document.userId,
-        documentId: document.id,
+        userId: persisted.userId,
+        documentId: persisted.id,
         action: "document_queued",
         metadata: {
-          documentType: document.documentType,
+          documentType: persisted.documentType,
         },
       });
     } catch (error) {
       logger.warn("document audit append failed after persist", {
         operation: "document.audit",
-        documentId: document.id,
+        documentId: persisted.id,
         error: error instanceof Error ? error.message : "unknown",
       });
     }
 
     return {
-      documentId: document.id,
+      documentId: persisted.id,
       status: "queued",
     };
   }
