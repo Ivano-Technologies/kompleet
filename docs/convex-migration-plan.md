@@ -24,6 +24,14 @@ Implemented in this PR (milestones 2–6 of §7):
 - Keep-alive still hits Supabase `tax_rules`
 - One-time backfill script; no destructive Supabase deletes
 
+### CI after B (required vs advisory)
+
+| Job | Status on this PR | Notes |
+| --- | --- | --- |
+| build / lint / typecheck / test / rls-negative / schema-drift / migrations / tax-rates / secret-scan / Vercel | Required; expected green | `NEXT_PUBLIC_CONVEX_URL` placeholder is enough for build/test |
+| `e2e` | Advisory (`continue-on-error`) | Local `pnpm dev` needs a live Convex URL. CI now provisions isolated Convex via `CONVEX_AGENT_MODE=anonymous` when `E2E_BASE_URL` is empty. Auth e2e still uses Supabase. |
+| `check-security-advisors` | Required; **pre-existing red on staging** since 2026-09-19 (merge of #92 / IVA-8 tenancy) | Live `frlcvkmjuhnjcicwywrh` lint count 11 > committed baseline 9. This PR adds **no** Postgres migrations. Do **not** bump `scripts/security-advisor-baseline.json` from this PR — CoS / a dedicated advisors follow-up. Extra lints include DEFINER RPCs (`assign_client_id_from_user`, `resolve_default_client_for_user`) plus the previously accepted set. |
+
 ---
 
 **Original plan text below** was written as inventory-only. Treat §0 non-goals as superseded by this addendum.
