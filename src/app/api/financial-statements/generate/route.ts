@@ -5,7 +5,6 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseForRequest } from "@/lib/supabase/server";
 import {
   generateIncomeStatement,
   generateIncomeStatementHTML,
@@ -15,25 +14,15 @@ import { computeTaxForPeriod } from "@/lib/financial-statements/compute-tax-for-
 import { loadRuleBundle } from "@/lib/tax/rule-loader";
 import { MissingTaxRuleError } from "@/lib/tax/errors";
 import { withRateLimit } from "@/lib/with-rate-limit";
+import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
+import { listStatementTransactions } from "@/lib/convex/statement-txns";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 async function handlePOST(request: NextRequest) {
   try {
-    const supabase = await getSupabaseForRequest(request);
-
-    // Check authentication
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    // Parse request body
+    const { convex } = await requireAuthedConvex(request);
     const body = await request.json();
     const { startDate, endDate, entityType, annualTurnover, format } = body;
 
@@ -44,42 +33,25 @@ async function handlePOST(request: NextRequest) {
       );
     }
 
-    // Fetch transactions for the period
-    const { data: transactions, error: transactionsError } = await supabase
-      .from("transactions")
-      .select(
-        `
-        *,
-        category:categories(name, type)
-      `,
-      )
-      .eq("user_id", user.id)
-      .gte("transaction_date", startDate)
-      .lte("transaction_date", endDate)
-      .order("transaction_date", { ascending: true });
+    const transactions = await listStatementTransactions(convex, {
+      startDate,
+      endDate,
+    });
 
-    if (transactionsError) {
-      throw transactionsError;
-    }
-
-    if (!transactions || transactions.length === 0) {
+    if (transactions.length === 0) {
       return NextResponse.json(
         { error: "No transactions found for the specified period" },
         { status: 404 },
       );
     }
 
-    // Generate Income Statement
     const incomeStatement = generateIncomeStatement(
       transactions,
       startDate,
       endDate,
     );
 
-    // Load tax rules and compute tax via the shared FS/NRS helper (see
-    // src/lib/financial-statements/compute-tax-for-period.ts) so figures
-    // stay identical to /api/nrs-filing/generate for the same inputs.
-    const rules = await loadRuleBundle({ client: supabase });
+    const rules = await loadRuleBundle({ convex });
     const { data: taxComputation } = computeTaxForPeriod({
       incomeStatement,
       entityType: entityType === "company" ? "company" : "individual",
@@ -87,7 +59,6 @@ async function handlePOST(request: NextRequest) {
       rules,
     });
 
-    // Return data based on format
     if (format === "html") {
       const incomeStatementHTML = generateIncomeStatementHTML(incomeStatement);
       const taxComputationHTML = generateTaxComputationHTML(taxComputation);
@@ -105,6 +76,9 @@ async function handlePOST(request: NextRequest) {
       taxComputation,
     });
   } catch (error) {
+    if (isUnauthorized(error)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     console.error("Generate financial statements error:", error);
     if (error instanceof MissingTaxRuleError) {
       return NextResponse.json({ error: error.message }, { status: 422 });
@@ -116,5 +90,4 @@ async function handlePOST(request: NextRequest) {
   }
 }
 
-// Apply rate limiting (20 requests per minute for expensive financial statement generation)
 export const POST = withRateLimit(handlePOST, { limit: 20 });

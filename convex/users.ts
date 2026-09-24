@@ -211,6 +211,16 @@ export const softDeleteMine = mutation({
   },
 });
 
+export const listAll = query({
+  args: {},
+  returns: v.array(userApi),
+  handler: async (ctx) => {
+    await getCurrentUser(ctx);
+    const rows = await ctx.db.query("users").take(200);
+    return rows.filter((user) => !user.deletedAt).map(toApi);
+  },
+});
+
 export const getEmailInternal = internalQuery({
   args: { userId: v.id("users") },
   returns: v.union(v.string(), v.null()),

@@ -18,6 +18,7 @@ import type * as documents from "../documents.js";
 import type * as expenses from "../expenses.js";
 import type * as exports from "../exports.js";
 import type * as files from "../files.js";
+import type * as forms from "../forms.js";
 import type * as health from "../health.js";
 import type * as http from "../http.js";
 import type * as imports from "../imports.js";
@@ -25,10 +26,12 @@ import type * as invoices from "../invoices.js";
 import type * as lib_auth from "../lib/auth.js";
 import type * as lib_ids from "../lib/ids.js";
 import type * as passwordReset from "../passwordReset.js";
+import type * as reports from "../reports.js";
 import type * as tax from "../tax.js";
 import type * as tenancy from "../tenancy.js";
 import type * as transactions from "../transactions.js";
 import type * as users from "../users.js";
+import type * as year from "../year.js";
 
 import type {
   ApiFromModules,
@@ -47,6 +50,7 @@ declare const fullApi: ApiFromModules<{
   expenses: typeof expenses;
   exports: typeof exports;
   files: typeof files;
+  forms: typeof forms;
   health: typeof health;
   http: typeof http;
   imports: typeof imports;
@@ -54,10 +58,12 @@ declare const fullApi: ApiFromModules<{
   "lib/auth": typeof lib_auth;
   "lib/ids": typeof lib_ids;
   passwordReset: typeof passwordReset;
+  reports: typeof reports;
   tax: typeof tax;
   tenancy: typeof tenancy;
   transactions: typeof transactions;
   users: typeof users;
+  year: typeof year;
 }>;
 
 /**

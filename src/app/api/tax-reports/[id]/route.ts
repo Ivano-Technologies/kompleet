@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
+import { api } from "@/lib/convex/http";
+import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 
 export const runtime = "nodejs";
 
@@ -9,35 +10,20 @@ async function handleGET(
   context: { params: Promise<{ id: string }> },
 ) {
   try {
-    const supabase = await getSupabaseForRequest(request);
-    const params = await context.params;
-
-    // Check authentication
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-    if (authError || !user) {
+    const { convex } = await requireAuthedConvex(request);
+    const { id } = await context.params;
+    const report = await convex.query(api.tax.getReport, { externalId: id });
+    if (!report) {
+      return NextResponse.json({ error: "Report not found" }, { status: 404 });
+    }
+    return NextResponse.json({ report });
+  } catch (error) {
+    if (isUnauthorized(error)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    const { data: report, error } = await supabase
-      .from("tax_reports")
-      .select("*")
-      .eq("id", (await params).id)
-      .eq("user_id", user.id)
-      .single();
-
-    if (error) {
-      console.error("Error fetching tax report:", error);
-      return NextResponse.json({ error: error.message }, { status: 404 });
-    }
-
-    return NextResponse.json({ report });
-  } catch (error: any) {
     console.error("Error in GET /api/tax-reports/[id]:", error);
     return NextResponse.json(
-      { error: error.message || "Internal server error" },
+      { error: error instanceof Error ? error.message : "Internal server error" },
       { status: 500 },
     );
   }
@@ -48,46 +34,34 @@ async function handlePATCH(
   context: { params: Promise<{ id: string }> },
 ) {
   try {
-    const supabase = await getSupabaseForRequest(request);
-    const params = await context.params;
+    const { convex } = await requireAuthedConvex(request);
+    const { id } = await context.params;
+    const body = await request.json();
+    const { status, filed_at, paid_at, payment_reference } = body as {
+      status?: string;
+      filed_at?: string;
+      paid_at?: string;
+      payment_reference?: string;
+    };
+    const patch: Record<string, unknown> = {};
+    if (status) patch.status = status;
+    if (filed_at) patch.filed_at = filed_at;
+    if (paid_at) patch.paid_at = paid_at;
+    if (payment_reference) patch.payment_reference = payment_reference;
 
-    // Check authentication
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-    if (authError || !user) {
+    const report = await convex.mutation(api.tax.updateReport, {
+      externalId: id,
+      patch,
+    });
+    return NextResponse.json({ report });
+  } catch (error) {
+    if (isUnauthorized(error)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    const body = await request.json();
-    const { status, filed_at, paid_at, payment_reference } = body;
-
-    const updateData: any = {};
-    if (status) updateData.status = status;
-    if (filed_at) updateData.filed_at = filed_at;
-    if (paid_at) updateData.paid_at = paid_at;
-    if (payment_reference) updateData.payment_reference = payment_reference;
-
-    const { data: report, error } = await supabase
-      .from("tax_reports")
-      .update(updateData)
-      .eq("id", (await params).id)
-      .eq("user_id", user.id)
-      .select()
-      .single();
-
-    if (error) {
-      console.error("Error updating tax report:", error);
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-
-    return NextResponse.json({ report });
-  } catch (error: any) {
     console.error("Error in PATCH /api/tax-reports/[id]:", error);
     return NextResponse.json(
-      { error: error.message || "Internal server error" },
-      { status: 500 },
+      { error: error instanceof Error ? error.message : "Internal server error" },
+      { status: 400 },
     );
   }
 }
@@ -97,35 +71,18 @@ async function handleDELETE(
   context: { params: Promise<{ id: string }> },
 ) {
   try {
-    const supabase = await getSupabaseForRequest(request);
-    const params = await context.params;
-
-    // Check authentication
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-    if (authError || !user) {
+    const { convex } = await requireAuthedConvex(request);
+    const { id } = await context.params;
+    await convex.mutation(api.tax.deleteReport, { externalId: id });
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    if (isUnauthorized(error)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
-    const { error } = await supabase
-      .from("tax_reports")
-      .delete()
-      .eq("id", (await params).id)
-      .eq("user_id", user.id);
-
-    if (error) {
-      console.error("Error deleting tax report:", error);
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-
-    return NextResponse.json({ success: true });
-  } catch (error: any) {
     console.error("Error in DELETE /api/tax-reports/[id]:", error);
     return NextResponse.json(
-      { error: error.message || "Internal server error" },
-      { status: 500 },
+      { error: error instanceof Error ? error.message : "Internal server error" },
+      { status: 400 },
     );
   }
 }

@@ -1,32 +1,17 @@
 /**
  * Save Tax Calculation API
- * POST /api/calculations/save - Save a new tax calculation
- * Protected: Requires authentication
+ * POST /api/calculations/save
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { saveCalculationSchema } from "@/lib/schemas/calculations";
+import { api } from "@/lib/convex/http";
+import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 
 async function handlePOST(request: NextRequest) {
   try {
-    const supabase = await getSupabaseForRequest(request);
-
-    // Get authenticated user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: "Unauthorized", message: "Authentication required" },
-        { status: 401 },
-      );
-    }
-
-    // Parse and validate request body
+    const { convex } = await requireAuthedConvex(request);
     const body = await request.json();
     const parsed = saveCalculationSchema.safeParse(body);
 
@@ -47,48 +32,33 @@ async function handlePOST(request: NextRequest) {
       breakdown,
     } = parsed.data;
 
-    // Insert calculation
-    const { data: calculation, error: insertError } = await supabase
-      .from("tax_calculations")
-      .insert({
-        user_id: user.id,
-        tax_type,
-        tax_year,
-        calculation_date:
-          parsed.data.calculation_date ||
-          new Date().toISOString().split("T")[0],
-        input_data,
-        gross_amount,
-        deductions: parsed.data.deductions ?? 0,
-        taxable_amount,
-        tax_due,
-        effective_rate: parsed.data.effective_rate ?? null,
-        breakdown,
-        is_final: parsed.data.is_final ?? false,
-      })
-      .select()
-      .single();
+    const saved = await convex.mutation(api.tax.saveCalculation, {
+      taxType: tax_type,
+      taxYear: tax_year,
+      calculationDate:
+        parsed.data.calculation_date ||
+        new Date().toISOString().split("T")[0],
+      inputData: input_data,
+      grossAmount: gross_amount,
+      deductions: parsed.data.deductions ?? 0,
+      taxableAmount: taxable_amount,
+      taxDue: tax_due,
+      effectiveRate: parsed.data.effective_rate ?? undefined,
+      breakdown,
+      isFinal: parsed.data.is_final ?? false,
+    });
 
-    if (insertError) {
-      console.error("[Save Calculation Error]", insertError);
-      return NextResponse.json(
-        { error: "Database error", message: "Failed to save calculation" },
-        { status: 500 },
-      );
-    }
+    const calculation = saved.id
+      ? await convex.query(api.tax.getCalculation, { externalId: saved.id })
+      : saved;
 
-    // Log successful save
-    await supabase.from("audit_logs").insert({
-      user_id: user.id,
+    await convex.mutation(api.audit.append, {
       action: "create",
-      resource_type: "tax_calculation",
-      resource_id: calculation.id,
-      metadata: {
-        tax_type,
-        tax_year,
-      },
-      ip_address: request.headers.get("x-forwarded-for") || "unknown",
-      user_agent: request.headers.get("user-agent") || "unknown",
+      resourceType: "tax_calculation",
+      entityId: saved.id,
+      metadata: { tax_type, tax_year },
+      ipAddress: request.headers.get("x-forwarded-for") || "unknown",
+      userAgent: request.headers.get("user-agent") || "unknown",
     });
 
     return NextResponse.json({
@@ -97,6 +67,12 @@ async function handlePOST(request: NextRequest) {
       message: "Calculation saved successfully",
     });
   } catch (error) {
+    if (isUnauthorized(error)) {
+      return NextResponse.json(
+        { error: "Unauthorized", message: "Authentication required" },
+        { status: 401 },
+      );
+    }
     console.error("[Save Calculation Error]", error);
     return NextResponse.json(
       { error: "Internal server error" },
@@ -105,5 +81,4 @@ async function handlePOST(request: NextRequest) {
   }
 }
 
-// Apply rate limiting (30 saves per minute)
 export const POST = withRateLimit(handlePOST, { limit: 30 });

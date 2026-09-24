@@ -1,48 +1,25 @@
 /**
  * Individual Tax Calculation API
- * GET /api/calculations/[id] - Get a specific calculation
- * PATCH /api/calculations/[id] - Update a calculation (if not finalized)
- * DELETE /api/calculations/[id] - Delete a calculation (if not finalized)
- * Protected: Requires authentication + ownership (via RLS)
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { updateCalculationSchema } from "@/lib/schemas/calculations";
+import { api } from "@/lib/convex/http";
+import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 
 interface RouteContext {
-  params: Promise<{
-    id: string;
-  }>;
+  params: Promise<{ id: string }>;
 }
 
 async function handleGET(request: NextRequest, context: RouteContext) {
   try {
     const { id } = await context.params;
-    const supabase = await getSupabaseForRequest(request);
-
-    // Get authenticated user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: "Unauthorized", message: "Authentication required" },
-        { status: 401 },
-      );
-    }
-
-    // Fetch calculation (RLS ensures user can only see their own)
-    const { data: calculation, error: queryError } = await supabase
-      .from("tax_calculations")
-      .select("*")
-      .eq("id", id)
-      .single();
-
-    if (queryError || !calculation) {
+    const { convex } = await requireAuthedConvex(request);
+    const calculation = await convex.query(api.tax.getCalculation, {
+      externalId: id,
+    });
+    if (!calculation) {
       return NextResponse.json(
         {
           error: "Not found",
@@ -51,12 +28,14 @@ async function handleGET(request: NextRequest, context: RouteContext) {
         { status: 404 },
       );
     }
-
-    return NextResponse.json({
-      success: true,
-      calculation,
-    });
+    return NextResponse.json({ success: true, calculation });
   } catch (error) {
+    if (isUnauthorized(error)) {
+      return NextResponse.json(
+        { error: "Unauthorized", message: "Authentication required" },
+        { status: 401 },
+      );
+    }
     console.error("[Get Calculation Error]", error);
     return NextResponse.json(
       { error: "Internal server error" },
@@ -68,22 +47,7 @@ async function handleGET(request: NextRequest, context: RouteContext) {
 async function handlePATCH(request: NextRequest, context: RouteContext) {
   try {
     const { id } = await context.params;
-    const supabase = await getSupabaseForRequest(request);
-
-    // Get authenticated user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: "Unauthorized", message: "Authentication required" },
-        { status: 401 },
-      );
-    }
-
-    // Parse and validate request body
+    const { convex } = await requireAuthedConvex(request);
     const body = await request.json();
     const parsed = updateCalculationSchema.safeParse(body);
 
@@ -95,24 +59,33 @@ async function handlePATCH(request: NextRequest, context: RouteContext) {
     }
 
     const updates = parsed.data;
-
-    // Update calculation (RLS ensures user_id match AND is_final = false)
-    const { data: calculation, error: updateError } = await supabase
-      .from("tax_calculations")
-      .update(updates)
-      .eq("id", id)
-      .select()
-      .single();
-
-    if (updateError || !calculation) {
-      // Check if calculation exists but is finalized
-      const { data: existing } = await supabase
-        .from("tax_calculations")
-        .select("is_final")
-        .eq("id", id)
-        .single();
-
-      if (existing?.is_final) {
+    try {
+      const calculation = await convex.mutation(api.tax.updateCalculation, {
+        externalId: id,
+        inputData: updates.input_data,
+        grossAmount: updates.gross_amount,
+        deductions: updates.deductions,
+        taxableAmount: updates.taxable_amount,
+        taxDue: updates.tax_due,
+        effectiveRate: updates.effective_rate ?? undefined,
+        breakdown: updates.breakdown,
+      });
+      await convex.mutation(api.audit.append, {
+        action: "update",
+        resourceType: "tax_calculation",
+        entityId: id,
+        metadata: { updated_fields: Object.keys(updates) },
+        ipAddress: request.headers.get("x-forwarded-for") || "unknown",
+        userAgent: request.headers.get("user-agent") || "unknown",
+      });
+      return NextResponse.json({
+        success: true,
+        calculation,
+        message: "Calculation updated successfully",
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "";
+      if (message.includes("finalized")) {
         return NextResponse.json(
           {
             error: "Forbidden",
@@ -121,33 +94,24 @@ async function handlePATCH(request: NextRequest, context: RouteContext) {
           { status: 403 },
         );
       }
-
+      if (message.includes("not found")) {
+        return NextResponse.json(
+          {
+            error: "Not found",
+            message: "Calculation not found or access denied",
+          },
+          { status: 404 },
+        );
+      }
+      throw err;
+    }
+  } catch (error) {
+    if (isUnauthorized(error)) {
       return NextResponse.json(
-        {
-          error: "Not found",
-          message: "Calculation not found or access denied",
-        },
-        { status: 404 },
+        { error: "Unauthorized", message: "Authentication required" },
+        { status: 401 },
       );
     }
-
-    // Log update
-    await supabase.from("audit_logs").insert({
-      user_id: user.id,
-      action: "update",
-      resource_type: "tax_calculation",
-      resource_id: id,
-      metadata: { updated_fields: Object.keys(updates) },
-      ip_address: request.headers.get("x-forwarded-for") || "unknown",
-      user_agent: request.headers.get("user-agent") || "unknown",
-    });
-
-    return NextResponse.json({
-      success: true,
-      calculation,
-      message: "Calculation updated successfully",
-    });
-  } catch (error) {
     console.error("[Update Calculation Error]", error);
     return NextResponse.json(
       { error: "Internal server error" },
@@ -159,36 +123,12 @@ async function handlePATCH(request: NextRequest, context: RouteContext) {
 async function handleDELETE(request: NextRequest, context: RouteContext) {
   try {
     const { id } = await context.params;
-    const supabase = await getSupabaseForRequest(request);
-
-    // Get authenticated user
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: "Unauthorized", message: "Authentication required" },
-        { status: 401 },
-      );
-    }
-
-    // Delete calculation (RLS ensures user_id match AND is_final = false)
-    const { error: deleteError } = await supabase
-      .from("tax_calculations")
-      .delete()
-      .eq("id", id);
-
-    if (deleteError) {
-      // Check if calculation exists but is finalized
-      const { data: existing } = await supabase
-        .from("tax_calculations")
-        .select("is_final")
-        .eq("id", id)
-        .single();
-
-      if (existing?.is_final) {
+    const { convex } = await requireAuthedConvex(request);
+    try {
+      await convex.mutation(api.tax.deleteCalculation, { externalId: id });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "";
+      if (message.includes("finalized")) {
         return NextResponse.json(
           {
             error: "Forbidden",
@@ -197,24 +137,24 @@ async function handleDELETE(request: NextRequest, context: RouteContext) {
           { status: 403 },
         );
       }
-
-      return NextResponse.json(
-        {
-          error: "Not found",
-          message: "Calculation not found or access denied",
-        },
-        { status: 404 },
-      );
+      if (message.includes("not found")) {
+        return NextResponse.json(
+          {
+            error: "Not found",
+            message: "Calculation not found or access denied",
+          },
+          { status: 404 },
+        );
+      }
+      throw err;
     }
 
-    // Log deletion
-    await supabase.from("audit_logs").insert({
-      user_id: user.id,
+    await convex.mutation(api.audit.append, {
       action: "delete",
-      resource_type: "tax_calculation",
-      resource_id: id,
-      ip_address: request.headers.get("x-forwarded-for") || "unknown",
-      user_agent: request.headers.get("user-agent") || "unknown",
+      resourceType: "tax_calculation",
+      entityId: id,
+      ipAddress: request.headers.get("x-forwarded-for") || "unknown",
+      userAgent: request.headers.get("user-agent") || "unknown",
     });
 
     return NextResponse.json({
@@ -222,6 +162,12 @@ async function handleDELETE(request: NextRequest, context: RouteContext) {
       message: "Calculation deleted successfully",
     });
   } catch (error) {
+    if (isUnauthorized(error)) {
+      return NextResponse.json(
+        { error: "Unauthorized", message: "Authentication required" },
+        { status: 401 },
+      );
+    }
     console.error("[Delete Calculation Error]", error);
     return NextResponse.json(
       { error: "Internal server error" },

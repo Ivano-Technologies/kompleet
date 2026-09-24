@@ -1,3 +1,4 @@
+// TODO(IVA-67 Phase 3 OUT): categorization_feedback / ml_inference_logs are not in Convex schema.
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseForRequest } from "@/lib/supabase/server";
 import {

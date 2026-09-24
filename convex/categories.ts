@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { internalMutation, query } from "./_generated/server";
+import { internalMutation, mutation, query } from "./_generated/server";
 import { getCurrentUser } from "./lib/auth";
 import { toMs } from "./lib/ids";
 
@@ -53,6 +53,32 @@ export const getByExternalId = query({
       .withIndex("by_externalId", (q) => q.eq("externalId", args.externalId))
       .unique();
     return row ? toApi(row) : null;
+  },
+});
+
+export const updateByExternalId = mutation({
+  args: {
+    externalId: v.string(),
+    name: v.optional(v.string()),
+    description: v.optional(v.string()),
+    keywords: v.optional(v.array(v.string())),
+  },
+  returns: v.union(categoryApi, v.null()),
+  handler: async (ctx, args) => {
+    await getCurrentUser(ctx);
+    const row = await ctx.db
+      .query("categories")
+      .withIndex("by_externalId", (q) => q.eq("externalId", args.externalId))
+      .unique();
+    if (!row) return null;
+    await ctx.db.patch(row._id, {
+      name: args.name ?? row.name,
+      description: args.description ?? row.description,
+      keywords: args.keywords ?? row.keywords,
+      updatedAt: Date.now(),
+    });
+    const updated = await ctx.db.get(row._id);
+    return updated ? toApi(updated) : null;
   },
 });
 
