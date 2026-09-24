@@ -1,24 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
 import { api } from "@/lib/convex/http";
-import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
+import { getAuthedConvex } from "@/lib/convex/server";
+import { defaultTaxYears } from "@/lib/tax-years";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+function yearsPayload(years: number[]) {
+  const fallback = defaultTaxYears();
+  return { years: years.length > 0 ? years : fallback };
+}
 
 async function handleGET(request: NextRequest) {
   try {
-    const { convex } = await requireAuthedConvex(request);
-    const years = await convex.query(api.year.listMine, {});
-    const currentYear = new Date().getFullYear();
-    const fallback = [currentYear - 2, currentYear - 1, currentYear];
-    return NextResponse.json({
-      years: years.length > 0 ? years : fallback,
-    });
-  } catch (error) {
-    if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const authed = await getAuthedConvex(request);
+    if (!authed) {
+      // Year switcher is a convenience UI with a calendar fallback. Returning
+      // 401 here made root-layout fetches look like a session failure even
+      // when /dashboard is fine. Empty/unauthenticated → 200 + fallback.
+      return NextResponse.json(yearsPayload([]));
     }
-    const currentYear = new Date().getFullYear();
-    return NextResponse.json({
-      years: [currentYear - 2, currentYear - 1, currentYear],
-    });
+    const years = await authed.convex.query(api.year.listMine, {});
+    return NextResponse.json(yearsPayload(Array.isArray(years) ? years : []));
+  } catch (error) {
+    console.error("Error in GET /api/year/available:", error);
+    return NextResponse.json(yearsPayload([]));
   }
 }
 

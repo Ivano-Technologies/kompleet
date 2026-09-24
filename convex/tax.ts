@@ -379,6 +379,28 @@ export const finalizeCalculation = mutation({
   },
 });
 
+function toIso(ms: number | undefined): string {
+  if (typeof ms === "number" && Number.isFinite(ms)) {
+    const date = new Date(ms);
+    if (!Number.isNaN(date.getTime())) {
+      return date.toISOString();
+    }
+  }
+  return new Date(0).toISOString();
+}
+
+function withoutUndefined(
+  value: Record<string, unknown>,
+): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  for (const [key, entry] of Object.entries(value)) {
+    if (entry !== undefined) {
+      out[key] = entry;
+    }
+  }
+  return out;
+}
+
 function reportToApi(row: {
   externalId: string;
   userExternalId: string;
@@ -392,16 +414,18 @@ function reportToApi(row: {
     row.computationData && typeof row.computationData === "object"
       ? (row.computationData as Record<string, unknown>)
       : {};
-  return {
+  // Spread extras first so canonical ids/timestamps always win. Strip
+  // `undefined` — Convex return values cannot contain it.
+  return withoutUndefined({
+    ...extra,
     id: row.externalId,
     user_id: row.userExternalId,
     report_type: row.reportType ?? null,
     tax_year: row.taxYear ?? null,
-    computation_data: row.computationData,
-    created_at: new Date(row.createdAt).toISOString(),
-    updated_at: new Date(row.updatedAt).toISOString(),
-    ...extra,
-  };
+    computation_data: row.computationData ?? {},
+    created_at: toIso(row.createdAt),
+    updated_at: toIso(row.updatedAt),
+  });
 }
 
 export const listReports = query({
