@@ -1,7 +1,8 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { internalMutation, mutation, query } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
-import { getCurrentUser } from "./lib/auth";
+import { getCurrentUser, getUserByExternalId } from "./lib/auth";
+import { assertDocumentWorkerToken } from "./lib/workerAuth";
 
 export const append = mutation({
   args: {
@@ -32,6 +33,60 @@ export const append = mutation({
       entityId: args.entityId,
       ipAddress: args.ipAddress,
       userAgent: args.userAgent,
+      metadata: args.metadata,
+      createdAt: Date.now(),
+    });
+    return String(id);
+  },
+});
+
+export const appendForWorker = mutation({
+  args: {
+    workerToken: v.string(),
+    userExternalId: v.string(),
+    action: v.string(),
+    resourceType: v.optional(v.string()),
+    entityType: v.optional(v.string()),
+    entityId: v.optional(v.string()),
+    metadata: v.optional(v.any()),
+  },
+  returns: v.union(v.string(), v.null()),
+  handler: async (ctx, args) => {
+    assertDocumentWorkerToken(args.workerToken);
+    const user = await getUserByExternalId(ctx, args.userExternalId);
+    const id = await ctx.db.insert("auditLogs", {
+      userId: user?._id,
+      userExternalId: args.userExternalId,
+      action: args.action,
+      resourceType: args.resourceType,
+      entityType: args.entityType,
+      entityId: args.entityId,
+      metadata: args.metadata,
+      createdAt: Date.now(),
+    });
+    return String(id);
+  },
+});
+
+export const appendInternal = internalMutation({
+  args: {
+    userExternalId: v.string(),
+    action: v.string(),
+    resourceType: v.optional(v.string()),
+    entityType: v.optional(v.string()),
+    entityId: v.optional(v.string()),
+    metadata: v.optional(v.any()),
+  },
+  returns: v.union(v.string(), v.null()),
+  handler: async (ctx, args) => {
+    const user = await getUserByExternalId(ctx, args.userExternalId);
+    const id = await ctx.db.insert("auditLogs", {
+      userId: user?._id,
+      userExternalId: args.userExternalId,
+      action: args.action,
+      resourceType: args.resourceType,
+      entityType: args.entityType,
+      entityId: args.entityId,
       metadata: args.metadata,
       createdAt: Date.now(),
     });

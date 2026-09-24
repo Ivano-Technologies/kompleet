@@ -1,25 +1,17 @@
+import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseForRequest } from "@/lib/supabase/server";
-import { getDocumentControllerWithSupabase } from "@/modules/document-intelligence";
+import { withRateLimit } from "@/lib/with-rate-limit";
+import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
+import { rethrowIfNextControlFlow } from "@/lib/next-control-flow";
+import { getDocumentControllerWithConvex } from "@/modules/document-intelligence";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
-export async function POST(request: NextRequest) {
+async function handlePOST(request: NextRequest) {
   try {
-    const supabase = await getSupabaseForRequest(request);
-    const controller = getDocumentControllerWithSupabase(supabase);
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json(
-        { error: "Unauthorized", message: "Authentication required" },
-        { status: 401 },
-      );
-    }
-
+    const { user, convex } = await requireAuthedConvex(request);
+    const controller = getDocumentControllerWithConvex(convex);
     const body = await request.json();
     const result = await controller.uploadDocument({
       userId: user.id,
@@ -29,6 +21,13 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result, { status: 202 });
   } catch (error) {
+    rethrowIfNextControlFlow(error);
+    if (isUnauthorized(error)) {
+      return NextResponse.json(
+        { error: "Unauthorized", message: "Authentication required" },
+        { status: 401 },
+      );
+    }
     if (
       error instanceof Error &&
       (error.message.includes("required") || error.message.includes("must be"))
@@ -39,6 +38,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
+  }
+}
+
+export async function POST(request: NextRequest, context?: unknown) {
+  try {
+    await cookies();
+    return await withRateLimit(handlePOST)(request, context);
+  } catch (error) {
+    rethrowIfNextControlFlow(error);
+    if (isUnauthorized(error)) {
+      return NextResponse.json(
+        { error: "Unauthorized", message: "Authentication required" },
+        { status: 401 },
+      );
+    }
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },

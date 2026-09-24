@@ -206,6 +206,40 @@ for (const row of taxRules) {
   });
 }
 
+let documents = [];
+try {
+  documents = await fetchAll("documents");
+  for (const row of documents) {
+    runConvex("internal.documents.upsertFromBackfill", {
+      externalId: String(row.id),
+      userExternalId: String(row.user_id),
+      status: row.status ?? undefined,
+      idempotencyKey: row.idempotency_key ?? undefined,
+      fileName: row.file_name ?? undefined,
+      contentType: row.content_type ?? undefined,
+      documentType: row.document_type ?? undefined,
+      fileUrl: row.file_url ?? undefined,
+      confidenceScore:
+        typeof row.confidence_score === "number"
+          ? row.confidence_score
+          : undefined,
+      structuredData: row.structured_data ?? undefined,
+      errorMessage: row.error_message ?? undefined,
+      processingStartedAt: row.processing_started_at ?? undefined,
+      processingAttemptCount:
+        typeof row.processing_attempt_count === "number"
+          ? row.processing_attempt_count
+          : undefined,
+      createdAt: row.created_at ?? undefined,
+      updatedAt: row.updated_at ?? undefined,
+    });
+  }
+} catch (error) {
+  console.warn(
+    `documents backfill skipped: ${error instanceof Error ? error.message : error}`,
+  );
+}
+
 console.log("Backfill complete (Supabase unchanged).");
 console.log(
   JSON.stringify(
@@ -221,6 +255,7 @@ console.log(
       sources: sources.length,
       ruleVersions: versions.length,
       taxRules: taxRules.length,
+      documents: documents.length,
     },
     null,
     2,

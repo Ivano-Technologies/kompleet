@@ -1,12 +1,12 @@
 # Supabase cutover kill-list (by domain)
 
 **Audience:** Kezie (go), CoS (cutover / teardown), Shipping (eng)  
-**Verified against:** `staging` @ `881b2dd` (Phase 2 #97) plus Phase 3 remaining-APIs cutover.  
-**Phase 3:** remaining web APIs + orphan invoice libs moved to Convex. Documents/workers, mobile, shim delete, and schema-missing domains stay leftover.
+**Verified against:** `staging` tip after Phase 4 (IVA-66) document-intelligence + v1 documents/workers cutover.  
+**Phase 4:** `v1/documents/*`, `/api/ingest`, document-intelligence adapters, and document workers moved to Convex. Mobile, shim delete, schema-missing domains, and `health/db` stay leftover.
 
 Related: [convex-migration-plan.md](./convex-migration-plan.md) (IVA-60 inventory), [convex-auth-storage.md](./convex-auth-storage.md) (Auth + Storage already moved), [convex-backfill.md](./convex-backfill.md).
 
-**Scale (this tip):** Phase 3 in-scope web APIs + invoice libs are on Convex. Leftover SB APIs: schema-missing Phase 3 OUT (AI/ML/feedback, deadlines/reminders, notifications, migration), documents/workers, money-path leftovers (tx `upload`/`export`/`duplicates`, expenses `export`/`ocr`), keep-alive `health/db`. Root deps: `@supabase/ssr`, `@supabase/supabase-js`. Mobile dep: `@supabase/supabase-js`.
+**Scale (this tip):** Phase 4 in-scope document APIs + workers are on Convex. Leftover SB APIs: schema-missing Phase 3 OUT (AI/ML/feedback, deadlines/reminders, notifications, migration), money-path leftovers (tx `upload`/`export`/`duplicates`, expenses `export`/`ocr`), keep-alive `health/db`. Root deps: `@supabase/ssr`, `@supabase/supabase-js`. Mobile dep: `@supabase/supabase-js`. Deprecated SB document adapters remain on disk for Phase 5 strip.
 
 ---
 
@@ -73,7 +73,7 @@ Kill-order is the suggested sequence **inside Phase 2+** (see §6). Dual-write t
 | **mobile** | `apps/mobile/lib/supabase/client.ts`; `receipt-upload.ts` (Storage bucket `receipts`); `sync/sync-engine.ts` (`expenses` table); `app/(tabs)/index.tsx` sync; `app.config.ts` `EXPO_PUBLIC_SUPABASE_*`; `apps/mobile/package.json` `@supabase/supabase-js` | Propose `apps/mobile/lib/convex/client.ts`. Reuse `convex/expenses.ts` + `convex/files.ts` | Dual-write then cut (sync/storage with expense leftovers) | **High** (field devices) | **2** (sync/storage) then **10** (dep drop) |
 | **reports / exports (7 APIs + 2 SSR)** | **Moved (Phase 3).** APIs + SSR use `requireAuthedConvex` + `convex/reports.ts` / `transactions.totalsForYear` / `exports.createMine`. | `convex/reports.ts` + existing `convex/transactions.ts` + `convex/exports.ts` | Cutover done | Medium | **3** |
 | **tax / compliance (15)** | **Moved (Phase 3).** `tax-reports/*`, `tax-rules`, `tax/rules`, `tax/sources`, `tax/sources/check`, `calculations/*`, `forms/*`, `nrs-filing/*` (deadlines = calendar only). | Existing `convex/tax.ts` + `convex/forms.ts` | Cutover done | Medium | **4** |
-| **documents / workers (3 APIs)** | `v1/documents/upload`, `v1/documents/[id]/status`, `ingest`. Infra: `supabase-document.repository.ts`, `supabase-audit-log.adapter.ts`, `review-queue.stub.ts`. Workers: `document-processor.worker.ts`, `document-recovery.worker.ts`. Also `convex/backfill.ts` + `pnpm backfill:convex` / `backfill:storage` | Existing `convex/documents.ts` + `convex/audit.ts` + `convex/files.ts` + `convex/imports.ts` | Dual-write then cut. Workers and `v1/documents` flip together | **High** | **5** |
+| **documents / workers (3 APIs)** | **Moved (Phase 4).** `v1/documents/upload`, `v1/documents/[id]/status`, `ingest` use `requireAuthedConvex`. Infra: `convex-document.repository.ts`, `convex-audit-log.adapter.ts`. Workers: Convex HTTP client + public `worker*` / `appendForWorker` gated by `DOCUMENT_WORKER_TOKEN`. SB adapters remain deprecated until Phase 5. Backfill: `internal.documents.upsertFromBackfill`. | Existing `convex/documents.ts` + `convex/audit.ts` + `convex/files.ts` | Cutover done. Workers + `v1/documents` + `ingest` flipped together | **High** | **5** |
 | **AI / ML / feedback** | **OUT of Phase 3.** `ai/*`, `categorize`, `ml/*`, `feedback` still on SB. Tables `categorization_predictions` / `feedback` / `user_learning_profiles` / `recurring_patterns` / `ml_inference_logs` are **not in Convex schema**. TODO comments on routes. | Do not invent `convex/categorization.ts` until schema exists | Deferred | Medium | **6** |
 | **secondary APIs** | **Partial Phase 3.** Moved: `admin/users` GET, `categories/[id]`, `audit-log`, `audit/log`, `history/*`, `year/available`, `year/switch`. **OUT (no schema):** `deadlines/upcoming`, `reminders/history`, `notifications/preferences`, `migration/migrate`, `admin/users` PATCH (no role field). **Leave `health/db` on SB** (Phase 6 keep-alive). | Existing `convex/users.ts`, `convex/categories.ts`, `convex/audit.ts`, `convex/year.ts` | Cutover except schema-missing + keep-alive | Admin GET = Convex list; role writes OUT | **7** (keep-alive last) |
 | **orphan invoice lib** | **Moved (Phase 3).** `invoice-service`, `invoice-archiving`, `invoice-security` writers use `convex/invoices.ts`. PDF/calc helpers kept. | Existing `convex/invoices.ts` | Cutover done | Medium | **8** |
@@ -112,8 +112,8 @@ Inferred from `supabase/migrations` and live `.from()` usage. Convex names are *
 | `nrs_forms` / `form_filing_statuses` / `filing_audit_logs` | `forms/*` | `nrsForms`, `formFilingStatuses`, `filingAuditLogs` | `convex/forms.ts` | API moved (Phase 3). |
 | `user_tax_years` | `year/*` | `userTaxYears` | `convex/year.ts` | API moved (Phase 3). No `is_active` field — switch inserts the year row. |
 | `filing_deadlines` / `deadline_reminders` | deadline-service, reminders | **unknown** | propose `convex/deadlines.ts` | **Not in Convex schema today.** |
-| `documents` | repository + workers | `documents` | `convex/documents.ts` | Functions exist; API/workers leftover. |
-| `audit_logs` | leftover APIs + workers | `auditLogs` | `convex/audit.ts` | `audit-log` / `audit/log` / `history/*` moved. Documents workers leftover. |
+| `documents` | repository + workers | `documents` | `convex/documents.ts` | API + workers moved (Phase 4). Payload holds `documentType` / `fileUrl` / OCR fields. |
+| `audit_logs` | leftover APIs + workers | `auditLogs` | `convex/audit.ts` | `audit-log` / `audit/log` / `history/*` moved. Document workers use `appendInternal`. |
 | `categorization_predictions` / `categorization_feedback` / `user_learning_profiles` / `recurring_patterns` / `ml_inference_logs` | categorize / feedback / ml / monitoring | **unknown** | propose `convex/categorization.ts` | **Not in Convex schema today.** |
 | `data_migration_logs` | data-migration-service | **unknown** | — | Ops only. |
 | `merchant_categorizations` / `bank_configs` / `clerk_users` / `file_uploads` / `review_queue` / `review_actions` | no live app writers (review stub writes `audit_logs`) | **unknown** / do not copy | — | Do not invent. |
@@ -129,7 +129,7 @@ Inferred from `supabase/migrations` and live `.from()` usage. Convex names are *
 | Expense leftovers + mobile sync/storage | 2 | **Dual-write then cut.** Flip `expenses/export` + `ocr` with mobile `sync-engine` / `receipts` bucket so devices do not diverge. |
 | Reports / exports + SSR | 3 | **Done (Phase 3).** |
 | Tax / compliance (15) | 4 | **Done (Phase 3).** |
-| Documents pipeline | 5 | **Dual-write then cut.** Workers + `v1/documents` + `ingest` together. |
+| Documents pipeline | 5 | **Done (Phase 4).** Workers + `v1/documents` + `ingest` flipped together onto existing `documents` / `auditLogs`. |
 | AI / ML / feedback | 6 | **Deferred** — no Convex tables. |
 | Secondary APIs | 7 | **Partial.** Year/audit/history/categories/[id]/admin GET done. Deadlines/reminders/notifications/migration/role PATCH OUT. Leave `health/db` on SB. |
 | Orphan invoice lib | 8 | **Done (Phase 3).** |
@@ -148,7 +148,7 @@ Inferred from `supabase/migrations` and live `.from()` usage. Convex names are *
 | --- | --- |
 | `src/lib/supabase/auth.ts` | Browser helpers (`signInWithEmail`, `signUpWithEmail`, password reset, …). |
 | `src/lib/supabase/session.ts` | `requireServerUser` / session helpers — reports SSR moved off this in Phase 3. |
-| Leftover APIs in §2 | Phase 3 in-scope routes now use `requireAuthedConvex`. Still SB auth: AI/ML/feedback, deadlines/reminders, notifications, migration, documents/workers, `health/db`. |
+| Leftover APIs in §2 | Phase 3–4 in-scope routes now use `requireAuthedConvex`. Still SB auth: AI/ML/feedback, deadlines/reminders, notifications, migration, `health/db`. |
 | Mobile | `client.ts` session; `receipt-upload.ts` auth + Storage (`receipts` bucket); `sync-engine.ts`. |
 
 `year-context.tsx` does not import `@/lib/supabase`; it `fetch`es `/api/year/available` (now Convex).
@@ -160,7 +160,7 @@ Inferred from `supabase/migrations` and live `.from()` usage. Convex names are *
 | Phase | Scope |
 | --- | --- |
 | **1** | **This docs PR.** |
-| **2+** | Execute kill-order 1–10 below. Original buckets: Phase 2 money leftovers; Phase 3 remaining APIs + libs; Phase 4 documents/workers; Phase 5 mobile + deps + `supabase/` tree; Phase 6 soak → prod Convex URL → teardown. |
+| **2+** | Execute kill-order 1–10 below. Original buckets: Phase 2 money leftovers; Phase 3 remaining APIs + libs; **Phase 4 documents/workers (done)**; Phase 5 mobile + deps + `supabase/` tree; Phase 6 soak → prod Convex URL → teardown. |
 
 ### Kill-order inside Phase 2+
 
@@ -168,7 +168,7 @@ Inferred from `supabase/migrations` and live `.from()` usage. Convex names are *
 2. Expense export/ocr **+** mobile sync/storage
 3. Reports / exports + SSR pages
 4. Tax / compliance (15 routes)
-5. Documents pipeline (v1 + ingest + adapters + workers)
+5. Documents pipeline (v1 + ingest + adapters + workers) — **done (Phase 4 / IVA-66)**
 6. AI / ML / feedback
 7. Secondary APIs (admin, history/audit, year, deadlines, notifications, migration, …)
 8. Orphan invoice lib (`invoice-service`, `invoice-archiving`, `invoice-security`)
@@ -186,4 +186,22 @@ pnpm backfill:convex    # scripts/backfill-supabase-to-convex.mjs — read-only 
 pnpm backfill:storage   # scripts/backfill-supabase-storage-to-convex.mjs — Path B recorded 0 objects
 ```
 
-Also: `convex/backfill.ts` (internal backfill actions). Checksums: [convex-backfill.md](./convex-backfill.md). Re-run before Phase 6 teardown.
+Also: `convex/backfill.ts` (internal backfill actions, including `internal.documents.upsertFromBackfill`). Checksums: [convex-backfill.md](./convex-backfill.md). Re-run before Phase 6 teardown.
+
+---
+
+## 8. Phase 4 completion notes (IVA-66)
+
+Cut over on `staging` (this tip):
+
+| Path | After |
+| --- | --- |
+| `POST /api/v1/documents/upload` | `requireAuthedConvex` + `ConvexDocumentRepository` + BullMQ |
+| `GET /api/v1/documents/[id]/status` | `requireAuthedConvex` + `api.documents.getMine` |
+| `POST /api/ingest` | Convex auth only (parse, no persist). Live persist stays `upload-v2` |
+| `document-processor.worker` / `document-recovery.worker` | `createConvexAdminClient()` + `internal.documents.*` + `internal.audit.appendInternal` |
+| Next 16 | `dynamic = "force-dynamic"`, `rethrowIfNextControlFlow`, no Response clone in `withRateLimit`, `cookies()` before catch-all |
+
+Worker env (in addition to `REDIS_URL`): `NEXT_PUBLIC_CONVEX_URL` or `CONVEX_URL`, plus `DOCUMENT_WORKER_TOKEN` (min 16 chars) on **both** the worker process and the Convex deployment (`npx convex env set DOCUMENT_WORKER_TOKEN ...` / dashboard). Convex HTTP clients in this repo cannot call `internal.*`, so workers use public `worker*` / `appendForWorker` functions gated by that token. Do not use `SUPABASE_SERVICE_ROLE_KEY` for these workers after this cut.
+
+`health/db` stays on Supabase. Prod `NEXT_PUBLIC_CONVEX_URL` stays off. Phase 5 still owns mobile + `@supabase` dep + `supabase/` tree strip.

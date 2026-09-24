@@ -27,6 +27,7 @@ export const fromSupabase = internalAction({
     sources: v.number(),
     ruleVersions: v.number(),
     taxRules: v.number(),
+    documents: v.number(),
   }),
   handler: async (ctx, args) => {
     const url =
@@ -57,6 +58,7 @@ export const fromSupabase = internalAction({
       sources: 0,
       ruleVersions: 0,
       taxRules: 0,
+      documents: 0,
     };
 
     const { data: categories, error: catErr } = await supabase
@@ -260,6 +262,40 @@ export const fromSupabase = internalAction({
       counts.taxRules += 1;
     }
 
+    const { data: documents, error: docErr } = await supabase
+      .from("documents")
+      .select("*");
+    if (docErr) {
+      console.warn("documents backfill skipped:", docErr.message);
+    } else {
+      for (const row of documents ?? []) {
+        await ctx.runMutation(internal.documents.upsertFromBackfill, {
+          externalId: String(row.id),
+          userExternalId: String(row.user_id),
+          status: row.status ?? undefined,
+          idempotencyKey: row.idempotency_key ?? undefined,
+          fileName: row.file_name ?? undefined,
+          contentType: row.content_type ?? undefined,
+          documentType: row.document_type ?? undefined,
+          fileUrl: row.file_url ?? undefined,
+          confidenceScore:
+            typeof row.confidence_score === "number"
+              ? row.confidence_score
+              : undefined,
+          structuredData: row.structured_data ?? undefined,
+          errorMessage: row.error_message ?? undefined,
+          processingStartedAt: row.processing_started_at ?? undefined,
+          processingAttemptCount:
+            typeof row.processing_attempt_count === "number"
+              ? row.processing_attempt_count
+              : undefined,
+          createdAt: row.created_at ?? undefined,
+          updatedAt: row.updated_at ?? undefined,
+        });
+        counts.documents += 1;
+      }
+    }
+
     return counts;
   },
 });
@@ -277,6 +313,7 @@ const backfillCounts = v.object({
   sources: v.number(),
   ruleVersions: v.number(),
   taxRules: v.number(),
+  documents: v.number(),
 });
 
 /**
@@ -295,6 +332,7 @@ export const fromSnapshot = internalAction({
     sources: v.optional(v.array(snapshotRow)),
     ruleVersions: v.optional(v.array(snapshotRow)),
     taxRules: v.optional(v.array(snapshotRow)),
+    documents: v.optional(v.array(snapshotRow)),
   },
   returns: backfillCounts,
   handler: async (ctx, args) => {
@@ -309,6 +347,7 @@ export const fromSnapshot = internalAction({
       sources: 0,
       ruleVersions: 0,
       taxRules: 0,
+      documents: 0,
     };
 
     for (const row of args.categories ?? []) {
@@ -471,6 +510,33 @@ export const fromSnapshot = internalAction({
         notes: row.notes ?? undefined,
       });
       counts.taxRules += 1;
+    }
+
+    for (const row of args.documents ?? []) {
+      await ctx.runMutation(internal.documents.upsertFromBackfill, {
+        externalId: String(row.id),
+        userExternalId: String(row.user_id),
+        status: row.status ?? undefined,
+        idempotencyKey: row.idempotency_key ?? undefined,
+        fileName: row.file_name ?? undefined,
+        contentType: row.content_type ?? undefined,
+        documentType: row.document_type ?? undefined,
+        fileUrl: row.file_url ?? undefined,
+        confidenceScore:
+          typeof row.confidence_score === "number"
+            ? row.confidence_score
+            : undefined,
+        structuredData: row.structured_data ?? undefined,
+        errorMessage: row.error_message ?? undefined,
+        processingStartedAt: row.processing_started_at ?? undefined,
+        processingAttemptCount:
+          typeof row.processing_attempt_count === "number"
+            ? row.processing_attempt_count
+            : undefined,
+        createdAt: row.created_at ?? undefined,
+        updatedAt: row.updated_at ?? undefined,
+      });
+      counts.documents += 1;
     }
 
     return counts;

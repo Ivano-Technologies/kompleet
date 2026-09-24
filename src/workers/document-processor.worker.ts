@@ -1,37 +1,39 @@
 import { Worker } from "bullmq";
-import { createClient } from "@supabase/supabase-js";
 import { logger } from "@/lib/logger";
+import {
+  createConvexWorkerClient,
+  getDocumentWorkerToken,
+} from "@/lib/convex/admin";
 import {
   DOCUMENT_PROCESSING_QUEUE,
   PROCESS_DOCUMENT_JOB,
   type ProcessDocumentJobData,
 } from "@/modules/document-intelligence/infrastructure/queue/bullmq.adapter";
 import { DocumentProcessor } from "@/modules/document-intelligence/infrastructure/queue/document-processor";
-import { SupabaseDocumentRepository } from "@/modules/document-intelligence/infrastructure/persistence/supabase-document.repository";
-import { SupabaseAuditLogAdapter } from "@/modules/document-intelligence/infrastructure/audit/supabase-audit-log.adapter";
+import { ConvexDocumentRepository } from "@/modules/document-intelligence/infrastructure/persistence/convex-document.repository";
+import { ConvexAuditLogAdapter } from "@/modules/document-intelligence/infrastructure/audit/convex-audit-log.adapter";
 import { TesseractAdapter } from "@/modules/document-intelligence/infrastructure/ocr/tesseract.adapter";
 import { ProcessingMetricsAdapter } from "@/modules/document-intelligence/infrastructure/metrics/processing-metrics";
 import { ReviewQueueStub } from "@/modules/document-intelligence/infrastructure/review/review-queue.stub";
 
 const redisUrl = requireEnv("REDIS_URL");
-const supabaseUrl = process.env.SUPABASE_POOLER_URL ?? requireEnv("SUPABASE_URL");
-const supabaseServiceKey = requireEnv("SUPABASE_SERVICE_ROLE_KEY");
 const workerConcurrency = parsePositiveInt(
   process.env.DOCUMENT_WORKER_CONCURRENCY,
   2,
 );
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false,
-  },
+const convex = createConvexWorkerClient();
+const workerToken = getDocumentWorkerToken();
+const repository = new ConvexDocumentRepository(convex, {
+  admin: true,
+  workerToken,
 });
-
-const repository = new SupabaseDocumentRepository(supabase);
-const auditLog = new SupabaseAuditLogAdapter(supabase);
+const auditLog = new ConvexAuditLogAdapter(convex, {
+  admin: true,
+  workerToken,
+});
 const metrics = new ProcessingMetricsAdapter();
-const reviewQueue = new ReviewQueueStub(supabase);
+const reviewQueue = new ReviewQueueStub(auditLog);
 await TesseractAdapter.ensureBinaryAvailable();
 const ocrEngine = new TesseractAdapter();
 const processor = new DocumentProcessor(
@@ -67,7 +69,7 @@ worker.on("ready", () => {
   logger.info("Document worker started", {
     operation: "worker.document.start",
     workerConcurrency,
-    usingSupabasePooler: Boolean(process.env.SUPABASE_POOLER_URL),
+    store: "convex",
   });
 });
 
