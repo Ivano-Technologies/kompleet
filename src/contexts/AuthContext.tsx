@@ -30,6 +30,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      if (session) {
+        void fetch("/api/auth/ensure-profile", { method: "POST" }).catch(
+          (err: unknown) => {
+            console.error("Convex ensure-profile failed", err);
+          },
+        );
+      }
     });
 
     // Listen for auth changes
@@ -39,6 +46,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      if (session) {
+        void fetch("/api/auth/ensure-profile", { method: "POST" }).catch(
+          (err: unknown) => {
+            console.error("Convex ensure-profile failed", err);
+          },
+        );
+      }
     });
 
     return () => subscription.unsubscribe();

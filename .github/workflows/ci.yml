@@ -127,6 +127,7 @@ jobs:
           CI: "true"
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_CONVEX_URL: ${{ vars.NEXT_PUBLIC_CONVEX_URL || 'https://placeholder.convex.cloud' }}
           # Canonical host is NOT baked into the image. Set the repository (or
           # environment) variable NEXT_PUBLIC_SITE_URL in GitHub → Settings →
           # Secrets and variables → Actions → Variables. The literal below is a
@@ -168,6 +169,7 @@ jobs:
           CI: "true"
           NEXT_PUBLIC_SUPABASE_URL: "http://localhost:54321"
           NEXT_PUBLIC_SUPABASE_ANON_KEY: "eyJ_test_placeholder"
+          NEXT_PUBLIC_CONVEX_URL: "https://placeholder.convex.cloud"
           SUPABASE_SERVICE_ROLE_KEY: "eyJ_test_placeholder"
           OPENAI_API_KEY: "sk-test_placeholder"
           DATABASE_URL: "postgresql://test@localhost:5432/test"
@@ -303,6 +305,20 @@ jobs:
       - name: Install Playwright browsers
         run: pnpm exec playwright install --with-deps chromium
 
+      # Path B: authenticated money-path specs write through Convex
+      # (transactions / expenses / export history). When Playwright boots
+      # `pnpm dev` locally, those routes need a live NEXT_PUBLIC_CONVEX_URL.
+      # Prefer a repo variable if Shipping already created a deployment;
+      # otherwise provision an isolated anonymous Convex for this job.
+      # Skip when E2E_BASE_URL points at a deployed environment.
+      - name: Provision Convex for local e2e
+        if: ${{ vars.E2E_BASE_URL == '' }}
+        env:
+          CONVEX_AGENT_MODE: anonymous
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_CONVEX_URL: ${{ vars.NEXT_PUBLIC_CONVEX_URL }}
+        run: bash scripts/ci-provision-convex.sh
+
       # Target is configurable. Set the repository variable E2E_BASE_URL
       # (Settings -> Secrets and variables -> Actions -> Variables) to run the
       # suite against staging or a preview deployment. When it is empty
@@ -323,6 +339,8 @@ jobs:
           # publishable key so GoTrue will mint a session.
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
           NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000' }}
+          # Set by the provision step (GITHUB_ENV) or the repo variable.
+          NEXT_PUBLIC_CONVEX_URL: ${{ env.NEXT_PUBLIC_CONVEX_URL || vars.NEXT_PUBLIC_CONVEX_URL }}
 
       - name: Upload Playwright report
         if: always()

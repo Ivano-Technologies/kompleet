@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSupabaseForRequest } from "@/lib/supabase/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
+import { api } from "@/lib/convex/http";
+import {
+  isUnauthorized,
+  requireAuthedConvex,
+} from "@/lib/convex/server";
 
 export const runtime = "nodejs";
 
@@ -15,32 +19,14 @@ async function handleGET(
   { params }: RouteParams,
 ): Promise<NextResponse> {
   try {
-    const supabase = await getSupabaseForRequest(request);
+    const { convex } = await requireAuthedConvex(request);
     const { id } = await params;
 
-    // Check authentication
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
+    const transaction = await convex.query(api.transactions.getMine, {
+      externalId: id,
+    });
 
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const { data: transaction, error } = await supabase
-      .from("transactions")
-      .select(
-        `
-        *,
-        category:categories(id, name, category_type, tax_treatment)
-      `,
-      )
-      .eq("id", id)
-      .eq("user_id", user.id)
-      .single();
-
-    if (error || !transaction) {
+    if (!transaction) {
       return NextResponse.json(
         { error: "Transaction not found" },
         { status: 404 },
@@ -49,6 +35,9 @@ async function handleGET(
 
     return NextResponse.json({ transaction });
   } catch (error) {
+    if (isUnauthorized(error)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     console.error("API error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
@@ -62,72 +51,55 @@ async function handlePUT(
   { params }: RouteParams,
 ): Promise<NextResponse> {
   try {
-    const supabase = await getSupabaseForRequest(request);
+    const { convex } = await requireAuthedConvex(request);
     const { id } = await params;
-
-    // Check authentication
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const updates = await request.json();
 
-    // Only allow updating specific fields
-    const allowedFields = [
-      "description",
-      "amount",
-      "transaction_type",
-      "transaction_date",
-      "category_id",
-      "notes",
-      "is_reconciled",
-    ];
-
-    const filteredUpdates: any = {};
-    for (const field of allowedFields) {
-      if (updates[field] !== undefined) {
-        filteredUpdates[field] = updates[field];
-      }
-    }
-
-    // If category was manually changed, set confidence to 100
-    if (updates.category_id !== undefined) {
-      filteredUpdates.confidence_score = 100;
-    }
-
-    const { data: transaction, error } = await supabase
-      .from("transactions")
-      .update(filteredUpdates)
-      .eq("id", id)
-      .eq("user_id", user.id)
-      .select()
-      .single();
-
-    if (error) {
-      console.error("Error updating transaction:", error);
-      return NextResponse.json(
-        { error: "Failed to update transaction" },
-        { status: 500 },
-      );
-    }
-
-    if (!transaction) {
+    const existing = await convex.query(api.transactions.getMine, {
+      externalId: id,
+    });
+    if (!existing) {
       return NextResponse.json(
         { error: "Transaction not found" },
         { status: 404 },
       );
     }
 
+    const transaction = await convex.mutation(api.transactions.updateMine, {
+      externalId: id,
+      description:
+        typeof updates.description === "string" ? updates.description : undefined,
+      amount: typeof updates.amount === "number" ? updates.amount : undefined,
+      transactionType:
+        updates.transaction_type === "debit" ||
+        updates.transaction_type === "credit"
+          ? updates.transaction_type
+          : undefined,
+      transactionDate:
+        typeof updates.transaction_date === "string"
+          ? updates.transaction_date
+          : undefined,
+      categoryExternalId:
+        updates.category_id === null
+          ? null
+          : typeof updates.category_id === "string"
+            ? updates.category_id
+            : undefined,
+      notes: typeof updates.notes === "string" ? updates.notes : undefined,
+      isReconciled:
+        typeof updates.is_reconciled === "boolean"
+          ? updates.is_reconciled
+          : undefined,
+    });
+
     return NextResponse.json({
       success: true,
       transaction,
     });
   } catch (error) {
+    if (isUnauthorized(error)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     console.error("Update error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
@@ -141,38 +113,29 @@ async function handleDELETE(
   { params }: RouteParams,
 ): Promise<NextResponse> {
   try {
-    const supabase = await getSupabaseForRequest(request);
+    const { convex } = await requireAuthedConvex(request);
     const { id } = await params;
 
-    // Check authentication
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const { error } = await supabase
-      .from("transactions")
-      .delete()
-      .eq("id", id)
-      .eq("user_id", user.id);
-
-    if (error) {
-      console.error("Error deleting transaction:", error);
+    const existing = await convex.query(api.transactions.getMine, {
+      externalId: id,
+    });
+    if (!existing) {
       return NextResponse.json(
-        { error: "Failed to delete transaction" },
-        { status: 500 },
+        { error: "Transaction not found" },
+        { status: 404 },
       );
     }
+
+    await convex.mutation(api.transactions.removeMine, { externalIds: [id] });
 
     return NextResponse.json({
       success: true,
       message: "Transaction deleted",
     });
   } catch (error) {
+    if (isUnauthorized(error)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     console.error("Delete error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
