@@ -1,24 +1,97 @@
 # Path B backfill: Supabase → Convex
 
 **Project:** KOMPLEET Supabase `frlcvkmjuhnjcicwywrh`  
-**Scope:** 5 `profiles` + 208 `transactions` (plus reference categories, import sessions/errors, export history).  
+**Convex (CoS provisioned — do not create another):** team `techivano` / project `kompleet` / `dev/main`  
 **Safety:** read-only on Supabase. No deletes, no Auth/Storage changes.
 
-Run this only against a **dev/staging Convex deployment** after a write freeze. Production cutover is a CoS go.
+## Convex cloud (dev)
+
+| Item | Value |
+| --- | --- |
+| Team | Ivano Technologies (`techivano`) |
+| Project | `kompleet` |
+| Deployment | `techivano:kompleet:dev/main` |
+| Dashboard | https://dashboard.convex.dev/t/techivano/kompleet/shiny-cricket-316 |
+
+### Vercel staging / preview (Shipping)
+
+Set on the Vercel project. **Do not remove** existing Supabase Auth vars.
+
+```bash
+NEXT_PUBLIC_CONVEX_URL=https://shiny-cricket-316.convex.cloud
+```
+
+Keep:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=https://frlcvkmjuhnjcicwywrh.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<publishable / sb_publishable_…>
+# plus existing SUPABASE_SERVICE_ROLE_KEY for Auth admin / keep-alive / workers
+```
+
+CLI after login (dev only — never `npx convex deploy` for this cut):
+
+```bash
+npx convex deployment select techivano:kompleet:dev/main
+npx convex dev --once
+```
+
+## Live checksums (Supabase before)
+
+Snapshot via read-only SQL on `frlcvkmjuhnjcicwywrh` at **2026-09-24 11:25 UTC**. Earlier plan numbers (208 txns) are stale — e2e has written more rows.
+
+| Entity | Supabase rows | Notes |
+| --- | ---: | --- |
+| `auth.users` | 5 | **Stay on Supabase Auth** |
+| `profiles` | 5 | → Convex `users` (`externalId` = auth id) |
+| `transactions` | **214** | `sum(amount) = 29231279.25`; all 214 belong to one `user_id` |
+| `categories` | 23 | system categories |
+| `import_sessions` | 46 | |
+| `import_errors` | 101 | |
+| `export_history` | 113 | |
+| `expense_categories` | 8 | |
+| `sources` | 8 | copied; keep-alive still reads Supabase `tax_rules` |
+| `rule_versions` | 2 | |
+| `tax_rules` | 35 | copied to Convex **and** left on Supabase for `/api/health/db` |
+| `firms` / `clients` / `invoices` / `expenses` / `documents` | 0 | schema only |
+| `storage.objects` | 0 | **Stay on Supabase Storage** |
+| `bank_configs` | 15 | not in Convex schema (parser reference); left on Supabase |
+| `clerk_users` | 1 | residue; not copied |
+
+Per-user transaction checksum:
+
+| user_id (auth) | n | sum(amount) |
+| --- | ---: | ---: |
+| `d0f86625-0df0-4505-a765-818bad833785` | 214 | 29231279.25 |
+
+## Convex after backfill
+
+| Entity | Convex rows | Match? |
+| --- | ---: | --- |
+| users | *blocked — CA CLI not logged in as techivano* | |
+| transactions + sum(amount) | *same* | |
+| categories / import_* / export_history / expense_categories / sources / rule_versions / tax_rules | *same* | |
+
+Re-run after login:
+
+```bash
+npx convex run internal.backfillCounts.checksums
+```
+
+Expected: users 5, transactions 214, sumAmount 29231279.25, categories 23, importSessions 46, importErrors 101, exportHistory 113, expenseCategories 8, sources 8, ruleVersions 2, taxRules 35, empty domain tables 0.
 
 ## Prerequisites
 
-1. `npx convex dev` has pushed the schema in `convex/` (do **not** use `npx convex deploy` unless this is production).
-2. Local env:
+1. Logged into Convex CLI as a `techivano` member.
+2. `npx convex dev --once` has pushed `convex/` to `shiny-cricket-316` (do **not** use `npx convex deploy`).
+3. Local env:
 
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=https://frlcvkmjuhnjcicwywrh.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=sb_secret_...   # or legacy service_role JWT
-NEXT_PUBLIC_CONVEX_URL=https://<dev>.convex.cloud
-CONVEX_DEPLOYMENT=dev:<name>              # from `npx convex dev`
+NEXT_PUBLIC_CONVEX_URL=https://shiny-cricket-316.convex.cloud
+CONVEX_DEPLOYMENT=dev:shiny-cricket-316   # written by `deployment select`
 ```
-
-3. You are logged into the Convex CLI **or** using `CONVEX_AGENT_MODE=anonymous` on a cloud agent (isolated, not the team prod deployment).
 
 ## Option A — one command (preferred)
 
@@ -31,62 +104,39 @@ npx convex run internal.backfill.fromSupabase '{
 }'
 ```
 
-Expected counts (snapshot 2026-09-24):
-
-| Entity | Rows |
-| --- | ---: |
-| categories | whatever is in `public.categories` |
-| users (from `profiles`) | 5 |
-| transactions | 208 |
-| import_sessions | 45 |
-| import_errors | 101 |
-| export_history | 100 |
-
 Re-running the action patches existing `externalId`s — it does not duplicate.
 
 ## Option B — Node script
-
-Same upserts, useful if you do not want to pass the service role through `convex run` args:
 
 ```bash
 node scripts/backfill-supabase-to-convex.mjs
 ```
 
-The script:
-
 1. SELECTs from Supabase (service role).
 2. Calls `npx convex run internal.*.upsertFromBackfill` per row.
-3. Prints checksums: per-user transaction count and `sum(amount)`.
+3. Prints checksums.
 4. Never issues DELETE/UPDATE/TRUNCATE against Supabase.
-
-## Verification
-
-After either option:
-
-```bash
-npx convex run internal.backfill.fromSupabase   # second run; counts must match
-```
-
-Manually:
-
-1. Sign in as each of the 5 users on staging.
-2. `GET /api/transactions` returns that user’s rows; IDs match the old UUIDs.
-3. Compare `sum(amount)` per `user_id` vs Supabase:
-
-```sql
-select user_id, count(*), sum(amount)
-from public.transactions
-group by user_id;
-```
 
 ## What is not copied
 
 - `auth.users` (Auth stays on Supabase)
 - Storage objects (0)
 - `clerk_users`
-- Empty domain tables (`firms`, `clients`, `invoices`, `expenses`, `documents`) — Convex schema exists; no rows to copy
-- `tax_rules` / keep-alive source (stays on Supabase)
+- Empty domain tables — Convex schema exists; no rows to copy
+- `bank_configs` (no Convex table)
+- Keep-alive continues to hit Supabase `tax_rules` even after the copy
 
 ## Rollback
 
-Leave Supabase data intact. Point `NEXT_PUBLIC_CONVEX_URL` off and revert the Vercel deployment if needed. Do not delete the Supabase project.
+Leave Supabase data intact. Unset `NEXT_PUBLIC_CONVEX_URL` on Vercel or revert the preview. Do not delete the Supabase project.
+
+## CoS / Shipping checklist (do not merge this PR from the agent)
+
+- [ ] Approve Convex device login for this cloud-agent VM (code in the PR comment / agent report)
+- [ ] CA: `npx convex deployment select techivano:kompleet:dev/main` then `npx convex dev --once`
+- [ ] CA: run backfill; paste Convex checksums into the table above
+- [ ] Shipping: set `NEXT_PUBLIC_CONVEX_URL=https://shiny-cricket-316.convex.cloud` on Vercel **staging/preview**
+- [ ] Shipping: keep all Supabase Auth env vars
+- [ ] CoS: soak on staging; production go is a separate decision
+- [ ] Do **not** tear down `frlcvkmjuhnjcicwywrh`
+- [ ] Do **not** run `npx convex deploy` (production) from this work

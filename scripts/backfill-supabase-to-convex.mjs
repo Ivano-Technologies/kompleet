@@ -161,6 +161,51 @@ for (const row of exports) {
   });
 }
 
+const expenseCats = await fetchAll("expense_categories");
+for (const row of expenseCats) {
+  runConvex("internal.expenses.upsertExpenseCategoryFromBackfill", {
+    externalId: String(row.id),
+    userExternalId: row.user_id ? String(row.user_id) : undefined,
+    name: String(row.name ?? "Unnamed"),
+    isCustom: Boolean(row.is_custom),
+    createdAt: row.created_at ?? undefined,
+  });
+}
+
+const sources = await fetchAll("sources");
+for (const row of sources) {
+  runConvex("internal.tax.upsertSourceFromBackfill", {
+    externalId: String(row.id),
+    name: String(row.name ?? "Unnamed"),
+    url: row.url ?? undefined,
+    createdAt: row.created_at ?? undefined,
+  });
+}
+
+const versions = await fetchAll("rule_versions");
+for (const row of versions) {
+  runConvex("internal.tax.upsertRuleVersionFromBackfill", {
+    externalId: String(row.id),
+    version: row.version_number ?? row.version ?? undefined,
+    isActive: Boolean(row.is_active),
+    createdAt: row.created_at ?? undefined,
+  });
+}
+
+const taxRules = await fetchAll("tax_rules");
+for (const row of taxRules) {
+  runConvex("internal.tax.upsertTaxRuleFromBackfill", {
+    externalId: String(row.id),
+    ruleVersionExternalId: String(row.rule_version_id),
+    sourceExternalId: row.source_id ? String(row.source_id) : undefined,
+    ruleType: String(row.rule_type ?? "unknown"),
+    ruleKey: String(row.rule_key ?? "unknown"),
+    ruleValue: row.rule_value ?? {},
+    confidenceLevel: String(row.confidence_level ?? "unverified"),
+    notes: row.notes ?? undefined,
+  });
+}
+
 console.log("Backfill complete (Supabase unchanged).");
 console.log(
   JSON.stringify(
@@ -172,6 +217,10 @@ console.log(
       importSessions: sessions.length,
       importErrors: errors.length,
       exportHistory: exports.length,
+      expenseCategories: expenseCats.length,
+      sources: sources.length,
+      ruleVersions: versions.length,
+      taxRules: taxRules.length,
     },
     null,
     2,

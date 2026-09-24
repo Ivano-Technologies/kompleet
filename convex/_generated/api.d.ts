@@ -10,6 +10,7 @@
 
 import type * as audit from "../audit.js";
 import type * as backfill from "../backfill.js";
+import type * as backfillCounts from "../backfillCounts.js";
 import type * as categories from "../categories.js";
 import type * as documents from "../documents.js";
 import type * as expenses from "../expenses.js";
@@ -31,6 +32,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   audit: typeof audit;
   backfill: typeof backfill;
+  backfillCounts: typeof backfillCounts;
   categories: typeof categories;
   documents: typeof documents;
   expenses: typeof expenses;

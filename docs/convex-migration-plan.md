@@ -12,7 +12,7 @@
 | Tenancy | User-scoped live tables (`transactions`); `firms`/`clients` schema present, empty |
 | Clerk | Closed for this cut. README Clerk text is stale and rewritten |
 | Freeze | No new Supabase schema waves required for B; do not delete the project |
-| Convex | Dev/staging deployment + `npx convex dev`. Never `npx convex deploy` from this work |
+| Convex | CoS provisioned `techivano/kompleet` → `https://shiny-cricket-316.convex.cloud`. Push with `npx convex dev`. Never `npx convex deploy` from this work |
 | Backfill | Scripted, idempotent, read-only vs `frlcvkmjuhnjcicwywrh`. See [convex-backfill.md](./convex-backfill.md) |
 | Production go | Still CoS after staging soak. This PR does not flip production Vercel env |
 

@@ -23,6 +23,10 @@ export const fromSupabase = internalAction({
     importSessions: v.number(),
     importErrors: v.number(),
     exportHistory: v.number(),
+    expenseCategories: v.number(),
+    sources: v.number(),
+    ruleVersions: v.number(),
+    taxRules: v.number(),
   }),
   handler: async (ctx, args) => {
     const url =
@@ -49,6 +53,10 @@ export const fromSupabase = internalAction({
       importSessions: 0,
       importErrors: 0,
       exportHistory: 0,
+      expenseCategories: 0,
+      sources: 0,
+      ruleVersions: 0,
+      taxRules: 0,
     };
 
     const { data: categories, error: catErr } = await supabase
@@ -189,6 +197,67 @@ export const fromSupabase = internalAction({
         createdAt: row.created_at ?? undefined,
       });
       counts.exportHistory += 1;
+    }
+
+    const { data: expenseCats, error: expCatErr } = await supabase
+      .from("expense_categories")
+      .select("*");
+    if (expCatErr) throw new Error(`expense_categories: ${expCatErr.message}`);
+    for (const row of expenseCats ?? []) {
+      await ctx.runMutation(internal.expenses.upsertExpenseCategoryFromBackfill, {
+        externalId: String(row.id),
+        userExternalId: row.user_id ? String(row.user_id) : undefined,
+        name: String(row.name ?? "Unnamed"),
+        isCustom: Boolean(row.is_custom),
+        createdAt: row.created_at ?? undefined,
+      });
+      counts.expenseCategories += 1;
+    }
+
+    const { data: sources, error: srcErr } = await supabase
+      .from("sources")
+      .select("*");
+    if (srcErr) throw new Error(`sources: ${srcErr.message}`);
+    for (const row of sources ?? []) {
+      await ctx.runMutation(internal.tax.upsertSourceFromBackfill, {
+        externalId: String(row.id),
+        name: String(row.name ?? "Unnamed"),
+        url: row.url ?? undefined,
+        createdAt: row.created_at ?? undefined,
+      });
+      counts.sources += 1;
+    }
+
+    const { data: versions, error: verErr } = await supabase
+      .from("rule_versions")
+      .select("*");
+    if (verErr) throw new Error(`rule_versions: ${verErr.message}`);
+    for (const row of versions ?? []) {
+      await ctx.runMutation(internal.tax.upsertRuleVersionFromBackfill, {
+        externalId: String(row.id),
+        version: row.version_number ?? row.version ?? undefined,
+        isActive: Boolean(row.is_active),
+        createdAt: row.created_at ?? undefined,
+      });
+      counts.ruleVersions += 1;
+    }
+
+    const { data: taxRules, error: taxErr } = await supabase
+      .from("tax_rules")
+      .select("*");
+    if (taxErr) throw new Error(`tax_rules: ${taxErr.message}`);
+    for (const row of taxRules ?? []) {
+      await ctx.runMutation(internal.tax.upsertTaxRuleFromBackfill, {
+        externalId: String(row.id),
+        ruleVersionExternalId: String(row.rule_version_id),
+        sourceExternalId: row.source_id ? String(row.source_id) : undefined,
+        ruleType: String(row.rule_type ?? "unknown"),
+        ruleKey: String(row.rule_key ?? "unknown"),
+        ruleValue: row.rule_value ?? {},
+        confidenceLevel: String(row.confidence_level ?? "unverified"),
+        notes: row.notes ?? undefined,
+      });
+      counts.taxRules += 1;
     }
 
     return counts;
