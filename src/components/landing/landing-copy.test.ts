@@ -108,9 +108,11 @@ describe("IVA-72 landing copy", () => {
   it("ships wordmark-only branding with the locked ceoruse face", () => {
     expect(brandWordmark).toMatch(/font-ceoruse/);
     expect(brandWordmark).toMatch(/KOMPLEET/);
-    expect(brandWordmark).not.toMatch(/next\/image|logo-primary|logo-inverted|\/logo\.png|squircle/);
+    expect(brandWordmark).not.toMatch(/font-display|font-sans|next\/image|logo-primary|logo-inverted|\/logo\.png/);
+    expect(brandWordmark).not.toMatch(/className=\{cn\(\s*"font-(display|sans)/);
     expect(tokens).toMatch(/letter-spacing:\s*0\.08em/);
     expect(tokens).toMatch(/--font-ceoruse/);
+    expect(tokens).toMatch(/\.font-ceoruse[\s\S]*var\(--font-ceoruse\)/);
 
     for (const source of [
       landingNav,

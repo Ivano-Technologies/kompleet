@@ -22,7 +22,7 @@ type BrandWordmarkProps = {
 
 /**
  * Shared KOMPLEET wordmark (Kezie lock, 26 Sep 2026 WAT).
- * Uses the existing ceoruse face + 0.08em tracking. No logo mark.
+ * Face is Ceoruse via font-ceoruse. No logo mark.
  */
 export function BrandWordmark({
   href,
