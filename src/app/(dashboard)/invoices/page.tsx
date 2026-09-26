@@ -59,8 +59,8 @@ function InvoicesPageInner() {
       }
       const body = (await response.json()) as { invoices?: Invoice[] };
       setInvoices((body.invoices || []) as Invoice[]);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load invoices");
     } finally {
       setLoading(false);
     }

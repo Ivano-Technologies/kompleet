@@ -50,6 +50,7 @@ describe("IVA-77 Import AUTO on Books", () => {
     expect(upload).toMatch(/DROP_COPY\.advancedTitle/);
     expect(upload).toMatch(/DROP_COPY\.advancedBack/);
     expect(upload).toMatch(/showBankSelect/);
+    expect(upload).toMatch(/advanced-statement-input/);
     expect(nav).not.toMatch("/transactions/upload");
     expect(sidebar).not.toMatch("/transactions/upload");
   });

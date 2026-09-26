@@ -39,6 +39,7 @@ export default function AdvancedImportPage() {
 
       <StatementDropZone
         variant="hero"
+        inputId="advanced-statement-input"
         showWhy={false}
         showBankSelect
         title={DROP_COPY.booksStripTitle}
