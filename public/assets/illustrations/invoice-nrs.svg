@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 670" fill="none" role="img" aria-labelledby="invoiceTitle">
+  <title id="invoiceTitle">Invoice and abstract NRS QR</title>
+  <rect width="1200" height="670" fill="#FFFDF8"/>
+  <rect x="48" y="80" width="1104" height="510" rx="16" fill="#F4F1EB" stroke="#DDD5C8" stroke-width="1.5"/>
+
+  <!-- Invoice document -->
+  <rect x="108" y="140" width="560" height="390" rx="16" fill="#FFFDF8" stroke="#0F4C75" stroke-width="1.75"/>
+  <rect x="108" y="140" width="560" height="64" rx="16" fill="#0F4C75"/>
+  <rect x="108" y="188" width="560" height="16" fill="#0F4C75"/>
+  <text x="136" y="182" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="500" fill="#F0F9FF">Invoice</text>
+  <rect x="136" y="232" width="200" height="8" rx="4" fill="#EBE6DC"/>
+  <rect x="136" y="264" width="488" height="8" rx="4" fill="#EBE6DC"/>
+  <rect x="136" y="292" width="440" height="8" rx="4" fill="#EBE6DC"/>
+  <rect x="136" y="320" width="464" height="8" rx="4" fill="#EBE6DC"/>
+  <rect x="136" y="360" width="120" height="8" rx="4" fill="#0F4C75" opacity="0.4"/>
+  <text x="280" y="368" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="500" fill="#0D1B2A">¦""""</text>
+  <rect x="136" y="396" width="88" height="28" rx="10" fill="#C8F000"/>
+  <text x="180" y="415" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="600" fill="#38464B">Paid</text>
+
+  <!-- Abstract 7x7 QR -->
+  <rect x="748" y="176" width="318" height="318" rx="16" fill="#FFFDF8" stroke="#0F4C75" stroke-width="1.75"/>
+  <g fill="#0F4C75">
+    <rect x="778" y="206" width="28" height="28" rx="3"/>
+    <rect x="814" y="206" width="28" height="28" rx="3"/>
+    <rect x="850" y="206" width="28" height="28" rx="3"/>
+    <rect x="958" y="206" width="28" height="28" rx="3"/>
+    <rect x="994" y="206" width="28" height="28" rx="3"/>
+    <rect x="1030" y="206" width="28" height="28" rx="3"/>
+    <rect x="778" y="242" width="28" height="28" rx="3"/>
+    <rect x="850" y="242" width="28" height="28" rx="3"/>
+    <rect x="886" y="242" width="28" height="28" rx="3"/>
+    <rect x="958" y="242" width="28" height="28" rx="3"/>
+    <rect x="1030" y="242" width="28" height="28" rx="3"/>
+    <rect x="778" y="278" width="28" height="28" rx="3"/>
+    <rect x="814" y="278" width="28" height="28" rx="3"/>
+    <rect x="850" y="278" width="28" height="28" rx="3"/>
+    <rect x="922" y="278" width="28" height="28" rx="3"/>
+    <rect x="994" y="278" width="28" height="28" rx="3"/>
+    <rect x="1030" y="278" width="28" height="28" rx="3"/>
+    <rect x="814" y="314" width="28" height="28" rx="3"/>
+    <rect x="886" y="314" width="28" height="28" rx="3"/>
+    <rect x="922" y="314" width="28" height="28" rx="3"/>
+    <rect x="958" y="314" width="28" height="28" rx="3"/>
+    <rect x="778" y="350" width="28" height="28" rx="3"/>
+    <rect x="850" y="350" width="28" height="28" rx="3"/>
+    <rect x="922" y="350" width="28" height="28" rx="3"/>
+    <rect x="994" y="350" width="28" height="28" rx="3"/>
+    <rect x="1030" y="350" width="28" height="28" rx="3"/>
+    <rect x="778" y="386" width="28" height="28" rx="3"/>
+    <rect x="814" y="386" width="28" height="28" rx="3"/>
+    <rect x="850" y="386" width="28" height="28" rx="3"/>
+    <rect x="958" y="386" width="28" height="28" rx="3"/>
+    <rect x="1030" y="386" width="28" height="28" rx="3"/>
+    <rect x="778" y="422" width="28" height="28" rx="3"/>
+    <rect x="814" y="422" width="28" height="28" rx="3"/>
+    <rect x="850" y="422" width="28" height="28" rx="3"/>
+    <rect x="922" y="422" width="28" height="28" rx="3"/>
+    <rect x="958" y="422" width="28" height="28" rx="3"/>
+    <rect x="994" y="422" width="28" height="28" rx="3"/>
+    <rect x="1030" y="422" width="28" height="28" rx="3"/>
+  </g>
+</svg>

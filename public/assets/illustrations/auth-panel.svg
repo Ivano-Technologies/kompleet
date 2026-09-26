@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 1200" fill="none" role="img" aria-labelledby="authTitle">
+  <title id="authTitle">Kompleet ledger stack</title>
+  <defs>
+    <linearGradient id="authWash" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#0A2F4E"/>
+      <stop offset="1" stop-color="#0F4C75"/>
+    </linearGradient>
+  </defs>
+  <rect width="960" height="1200" fill="url(#authWash)"/>
+  <rect x="80" y="140" width="800" height="1.5" fill="#1B6CA8" opacity="0.35"/>
+  <rect x="80" y="1060" width="800" height="1.5" fill="#1B6CA8" opacity="0.35"/>
+
+  <!-- Back document -->
+  <rect x="286" y="268" width="420" height="540" rx="16" fill="#0A2F4E" stroke="#1B6CA8" stroke-width="1.75"/>
+  <rect x="318" y="308" width="220" height="10" rx="5" fill="#1B6CA8" opacity="0.7"/>
+  <rect x="318" y="338" width="356" height="8" rx="4" fill="#162438"/>
+  <rect x="318" y="362" width="300" height="8" rx="4" fill="#162438"/>
+  <rect x="318" y="386" width="328" height="8" rx="4" fill="#162438"/>
+
+  <!-- Mid document -->
+  <rect x="246" y="308" width="420" height="540" rx="16" fill="#0F1E2E" stroke="#1B6CA8" stroke-width="1.75"/>
+  <rect x="278" y="348" width="180" height="10" rx="5" fill="#1B6CA8"/>
+  <rect x="278" y="388" width="356" height="8" rx="4" fill="#162438"/>
+  <rect x="278" y="412" width="280" height="8" rx="4" fill="#162438"/>
+  <rect x="278" y="436" width="320" height="8" rx="4" fill="#162438"/>
+  <rect x="278" y="476" width="356" height="8" rx="4" fill="#162438"/>
+  <rect x="278" y="500" width="240" height="8" rx="4" fill="#162438"/>
+
+  <!-- Front document -->
+  <rect x="206" y="348" width="420" height="540" rx="16" fill="#F4F1EB" stroke="#DDD5C8" stroke-width="1.75"/>
+  <rect x="238" y="388" width="148" height="12" rx="6" fill="#0F4C75"/>
+  <rect x="238" y="428" width="356" height="8" rx="4" fill="#EBE6DC"/>
+  <rect x="238" y="456" width="300" height="8" rx="4" fill="#EBE6DC"/>
+  <rect x="238" y="484" width="328" height="8" rx="4" fill="#EBE6DC"/>
+  <rect x="238" y="524" width="356" height="8" rx="4" fill="#EBE6DC"/>
+  <rect x="238" y="552" width="268" height="8" rx="4" fill="#EBE6DC"/>
+  <rect x="238" y="580" width="312" height="8" rx="4" fill="#EBE6DC"/>
+  <rect x="238" y="620" width="120" height="8" rx="4" fill="#0F4C75" opacity="0.45"/>
+  <rect x="370" y="616" width="88" height="16" rx="8" fill="#0F4C75"/>
+
+  <!-- Naira monogram -->
+  <circle cx="720" cy="420" r="54" fill="#0A2F4E"/>
+  <text x="720" y="438" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="42" font-weight="600" fill="#F4F1EB">¦</text>
+
+  <!-- Single lime verified seal -->
+  <circle cx="596" cy="836" r="22" fill="#C8F000"/>
+  <path d="M586 836.5l7 7 14-16" stroke="#38464B" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

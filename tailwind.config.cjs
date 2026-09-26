@@ -1,5 +1,5 @@
 /** @type {import('tailwindcss').Config} */
-// KOMPLEET Design System 2026 - Approved 27 Feb 2026
+// KOMPLEET Design System — Option C (locked 26 Sep 2026, IVA-72)
 module.exports = {
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
@@ -10,7 +10,6 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // APPROVED BRAND PALETTE
         primary: {
           DEFAULT: "#0F4C75",
           deep: "#0A2F4E",
@@ -25,26 +24,38 @@ module.exports = {
           dk: "#252E32",
         },
 
-        // APPROVED LIGHT THEME
-        bg: "#EEF1F5",
+        bg: "#F4F1EB",
         surface: {
-          DEFAULT: "#FFFFFF",
-          2: "#F5F7FA",
+          DEFAULT: "#FFFDF8",
+          2: "#EBE6DC",
         },
         border: {
-          DEFAULT: "#E2E8F0",
-          hover: "#CBD5E1",
+          DEFAULT: "#DDD5C8",
+          hover: "#C9BFAE",
         },
         text: {
           1: "#0D1B2A",
-          2: "#334155",
-          3: "#64748B",
-          4: "#94A3B8",
+          2: "#3D4A55",
+          3: "#6B7280",
+          4: "#9CA3AF",
         },
 
-        // APPROVED DARK THEME
+        // Aliases so leftover light-* utility classes on legal/help resolve
+        // to Option C tokens without a full copy rewrite (token pass only).
+        light: {
+          background: "#F4F1EB",
+          surface: "#FFFDF8",
+          border: "#DDD5C8",
+          text: {
+            primary: "#0D1B2A",
+            secondary: "#3D4A55",
+            tertiary: "#6B7280",
+          },
+        },
+
         dark: {
           bg: "#080F18",
+          background: "#080F18",
           surface: {
             DEFAULT: "#0F1E2E",
             2: "#162438",
@@ -55,13 +66,15 @@ module.exports = {
           },
           text: {
             1: "#F0F9FF",
+            primary: "#F0F9FF",
             2: "#BAD8F5",
+            secondary: "#BAD8F5",
             3: "#7BA8CC",
+            tertiary: "#7BA8CC",
             4: "#4A7A9B",
           },
         },
 
-        // APPROVED SEMANTIC COLORS (UNCHANGED)
         success: {
           DEFAULT: "#16A34A",
           bg: "#F0FDF4",
@@ -119,7 +132,6 @@ module.exports = {
         5: "0 24px 64px rgba(13,27,42,0.20), 0 12px 28px rgba(13,27,42,0.11)",
         primary: "0 8px 32px rgba(15,76,117,0.40)",
         accent: "0 8px 24px rgba(200,240,0,0.35)",
-        // Phase 3 skeuomorphic primitives (light source: top-left)
         "inner-subtle": "inset 0 1px 2px rgba(0,0,0,0.1)",
         "outer-soft":
           "0 4px 8px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.08)",

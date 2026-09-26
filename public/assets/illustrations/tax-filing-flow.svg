@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 480" fill="none" role="img" aria-labelledby="taxTitle">
+  <title id="taxTitle">Activity to filing package flow</title>
+  <rect width="1440" height="480" fill="#F4F1EB"/>
+
+  <!-- Node 1: stacked txn chips -->
+  <rect x="80" y="96" width="340" height="288" rx="16" fill="#FFFDF8" stroke="#0F4C75" stroke-width="1.75"/>
+  <rect x="112" y="140" width="276" height="44" rx="10" fill="#EBE6DC"/>
+  <rect x="128" y="156" width="140" height="8" rx="4" fill="#0F4C75" opacity="0.55"/>
+  <rect x="112" y="200" width="276" height="44" rx="10" fill="#EBE6DC"/>
+  <rect x="128" y="216" width="168" height="8" rx="4" fill="#0F4C75" opacity="0.55"/>
+  <rect x="112" y="260" width="276" height="44" rx="10" fill="#EBE6DC"/>
+  <rect x="128" y="276" width="120" height="8" rx="4" fill="#0F4C75" opacity="0.55"/>
+
+  <path d="M452 240h88" stroke="#0F4C75" stroke-width="2" stroke-linecap="round"/>
+  <path d="M526 224l22 16-22 16" stroke="#0F4C75" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Node 2: engine block -->
+  <rect x="580" y="120" width="280" height="240" rx="24" fill="#0F4C75"/>
+  <rect x="620" y="168" width="200" height="12" rx="6" fill="#1B6CA8"/>
+  <rect x="640" y="204" width="160" height="12" rx="6" fill="#0A2F4E"/>
+  <rect x="660" y="240" width="120" height="12" rx="6" fill="#1B6CA8"/>
+  <circle cx="720" cy="300" r="18" fill="#0A2F4E"/>
+  <circle cx="720" cy="300" r="8" fill="#F4F1EB"/>
+
+  <path d="M892 240h88" stroke="#0F4C75" stroke-width="2" stroke-linecap="round"/>
+  <path d="M966 224l22 16-22 16" stroke="#0F4C75" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Node 3: filing package with lime ready mark -->
+  <rect x="1020" y="96" width="340" height="288" rx="16" fill="#FFFDF8" stroke="#0F4C75" stroke-width="1.75"/>
+  <path d="M1060 156h120c8 0 12-8 20-8h80c8 0 12 8 20 8h60v188c0 10-8 18-18 18H1078c-10 0-18-8-18-18V156z" fill="#0A2F4E"/>
+  <rect x="1084" y="188" width="88" height="22" rx="6" fill="#1B6CA8"/>
+  <rect x="1184" y="188" width="88" height="22" rx="6" fill="#0F4C75"/>
+  <circle cx="1296" cy="336" r="18" fill="#C8F000"/>
+  <path d="M1288 336.5l5 5 11-12" stroke="#38464B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

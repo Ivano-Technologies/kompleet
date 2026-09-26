@@ -9,11 +9,11 @@ export const metadata: Metadata = {
 
 export default function CookiesPage() {
   return (
-    <div className="min-h-screen bg-light-background dark:bg-dark-background py-12 px-4 sm:px-6 lg:px-8">
+    <div data-marketing className="min-h-screen bg-bg dark:bg-dark-bg py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto bg-light-surface dark:bg-dark-surface rounded-lg p-8">
         <Link
           href="/"
-          className="text-sm text-blue-600 hover:underline mb-8 inline-block"
+          className="text-sm text-primary hover:underline mb-8 inline-block"
         >
           &larr; Back to Home
         </Link>
@@ -153,7 +153,7 @@ export default function CookiesPage() {
               If you have questions about our use of cookies, contact us at{" "}
               <a
                 href="mailto:help@ivanotechnologies.com"
-                className="text-blue-600 hover:underline"
+                className="text-primary hover:underline"
               >
                 help@ivanotechnologies.com
               </a>

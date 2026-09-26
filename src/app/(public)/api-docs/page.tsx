@@ -38,11 +38,11 @@ const endpoints = [
 
 export default function ApiDocsPage() {
   return (
-    <div className="min-h-screen bg-light-background dark:bg-dark-background py-12 px-4 sm:px-6 lg:px-8">
+    <div data-marketing className="min-h-screen bg-bg dark:bg-dark-bg py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         <Link
           href="/"
-          className="text-sm text-blue-600 hover:underline mb-8 inline-block"
+          className="text-sm text-primary hover:underline mb-8 inline-block"
         >
           &larr; Back to Home
         </Link>
@@ -64,7 +64,7 @@ export default function ApiDocsPage() {
           </h2>
           <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
             All API requests require authentication via a Bearer token. Obtain
-            your token by authenticating through the Supabase auth endpoint.
+            your token by authenticating through Convex Auth.
           </p>
           <div className="bg-dark-background rounded-lg p-4 text-sm font-mono">
             <p className="text-light-text-tertiary dark:text-dark-text-tertiary mb-1">
@@ -177,7 +177,7 @@ export default function ApiDocsPage() {
           </p>
           <Link
             href="/contact"
-            className="inline-block bg-green-700 text-white font-semibold py-2 px-6 rounded-lg hover:bg-green-800 transition-colors"
+            className="inline-block rounded-md bg-accent px-6 py-3 text-sm font-bold text-charcoal hover:bg-accent-hover transition-colors"
           >
             Contact Developer Support
           </Link>

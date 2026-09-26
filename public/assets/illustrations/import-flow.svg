@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 670" fill="none" role="img" aria-labelledby="importTitle">
+  <title id="importTitle">Statement to books import flow</title>
+  <rect width="1200" height="670" fill="#FFFDF8"/>
+  <rect x="48" y="80" width="1104" height="510" rx="16" fill="#F4F1EB" stroke="#DDD5C8" stroke-width="1.5"/>
+
+  <!-- Statement strip -->
+  <rect x="88" y="160" width="420" height="350" rx="16" fill="#FFFDF8" stroke="#0F4C75" stroke-width="1.75"/>
+  <rect x="88" y="160" width="420" height="52" rx="16" fill="#0F4C75"/>
+  <rect x="88" y="196" width="420" height="16" fill="#0F4C75"/>
+  <text x="112" y="194" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="500" fill="#F0F9FF">Statement</text>
+  <rect x="112" y="236" width="220" height="8" rx="4" fill="#EBE6DC"/>
+  <rect x="112" y="268" width="372" height="8" rx="4" fill="#EBE6DC"/>
+  <rect x="112" y="296" width="340" height="8" rx="4" fill="#EBE6DC"/>
+  <rect x="112" y="324" width="356" height="8" rx="4" fill="#EBE6DC"/>
+  <rect x="112" y="352" width="300" height="8" rx="4" fill="#EBE6DC"/>
+  <rect x="112" y="392" width="160" height="8" rx="4" fill="#0F4C75" opacity="0.45"/>
+  <rect x="300" y="392" width="120" height="8" rx="4" fill="#38464B"/>
+
+  <!-- Chevron -->
+  <path d="M546 335h72" stroke="#0F4C75" stroke-width="2" stroke-linecap="round"/>
+  <path d="M604 319l22 16-22 16" stroke="#0F4C75" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Books card -->
+  <rect x="668" y="160" width="444" height="350" rx="16" fill="#FFFDF8" stroke="#0F4C75" stroke-width="1.75"/>
+  <rect x="668" y="160" width="444" height="52" rx="16" fill="#0A2F4E"/>
+  <rect x="668" y="196" width="444" height="16" fill="#0A2F4E"/>
+  <text x="692" y="194" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="500" fill="#F0F9FF">Books</text>
+  <rect x="692" y="244" width="180" height="8" rx="4" fill="#EBE6DC"/>
+  <rect x="900" y="244" width="168" height="8" rx="4" fill="#EBE6DC"/>
+  <rect x="692" y="284" width="396" height="8" rx="4" fill="#EBE6DC"/>
+  <rect x="692" y="316" width="360" height="8" rx="4" fill="#EBE6DC"/>
+  <rect x="692" y="360" width="148" height="8" rx="4" fill="#0F4C75" opacity="0.5"/>
+  <rect x="860" y="352" width="132" height="24" rx="8" fill="#0F4C75"/>
+  <circle cx="1016" cy="364" r="11" fill="#C8F000"/>
+  <path d="M1011 364.5l3.5 3.5 7-8" stroke="#38464B" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
