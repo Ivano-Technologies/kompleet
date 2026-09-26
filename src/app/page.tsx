@@ -1,7 +1,6 @@
 import Link from "next/link";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
-import ProductChrome from "@/components/landing/ProductChrome";
 
 const trustBarItems = [
   "11 bank parsers",
@@ -22,36 +21,48 @@ const productProof = [
     title: "Invoice",
     caption: "NRS-ready invoices with an abstract QR block you can issue today.",
   },
+  {
+    src: "/assets/illustrations/tax-filing-flow.svg",
+    fallback: "/assets/illustrations/tax-filing-flow.png",
+    title: "Tax centre",
+    caption: "VAT, CIT, and filing packages you download and submit yourself.",
+  },
 ];
 
 const capabilities = [
   {
-    icon: "/assets/illustrations/spot-banks.svg",
+    src: "/assets/illustrations/spot-banks.svg",
+    fallback: "/assets/illustrations/spot-banks.png",
     title: "11 Nigerian bank parsers",
     desc: "Upload statements. Parsers extract transactions and validate running balances.",
   },
   {
-    icon: "/assets/illustrations/spot-invoice.svg",
+    src: "/assets/illustrations/spot-invoice.svg",
+    fallback: "/assets/illustrations/spot-invoice.png",
     title: "NRS invoicing",
     desc: "Create invoices with NRS-compliant QR codes. Record payment when the customer settles.",
   },
   {
-    icon: "/assets/illustrations/spot-vat.svg",
+    src: "/assets/illustrations/spot-vat.svg",
+    fallback: "/assets/illustrations/spot-vat.png",
     title: "VAT under Tax Act 2025",
     desc: "Standard, zero-rated, and exempt treatments against the current engine.",
   },
   {
-    icon: "/assets/illustrations/spot-filing.svg",
+    src: "/assets/illustrations/spot-filing.svg",
+    fallback: "/assets/illustrations/spot-filing.png",
     title: "NRS / LIRS packages",
     desc: "Generate filing-ready forms you submit on the official portals. No auto-filing.",
   },
   {
-    icon: "/assets/illustrations/spot-reports.svg",
+    src: "/assets/illustrations/spot-reports.svg",
+    fallback: "/assets/illustrations/spot-reports.png",
     title: "P&L and balance sheet",
     desc: "Reports from your books — ready to share with an accountant.",
   },
   {
-    icon: "/assets/illustrations/spot-security.svg",
+    src: "/assets/illustrations/spot-security.svg",
+    fallback: "/assets/illustrations/spot-security.png",
     title: "NDPR-minded hosting",
     desc: "Encrypted in transit and at rest. Hosted on Convex. We do not claim Nigerian data residency.",
   },
@@ -99,7 +110,16 @@ export default function HomePage() {
               Free during beta. No credit card required.
             </p>
           </div>
-          <ProductChrome variant="dashboard" />
+          <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-1">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/assets/illustrations/hero-dashboard-hero-kpis.png"
+              alt="Kompleet dashboard with revenue, expenses, profit, and outstanding invoice KPIs"
+              width={1024}
+              height={280}
+              className="h-auto w-full"
+            />
+          </div>
         </div>
       </header>
 
@@ -153,17 +173,6 @@ export default function HomePage() {
               </figcaption>
             </figure>
           ))}
-          <figure className="overflow-hidden rounded-xl border border-border bg-surface">
-            <ProductChrome variant="tax" />
-            <figcaption className="p-5">
-              <h3 className="font-display text-lg font-bold text-text-1">
-                Tax centre
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed text-text-3">
-                VAT, CIT, and filing packages you download and submit yourself.
-              </p>
-            </figcaption>
-          </figure>
         </div>
       </section>
 
@@ -183,8 +192,17 @@ export default function HomePage() {
               id={item.title === "NDPR-minded hosting" ? "security" : undefined}
               className="rounded-xl border border-border bg-surface p-6"
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={item.icon} alt="" width={44} height={44} className="mb-4" />
+              <picture>
+                <source srcSet={item.src} type="image/svg+xml" />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={item.fallback}
+                  alt=""
+                  width={44}
+                  height={44}
+                  className="mb-4 h-11 w-11"
+                />
+              </picture>
               <h3 className="font-display text-xl font-bold text-text-1">
                 {item.title}
               </h3>
