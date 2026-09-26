@@ -39,6 +39,10 @@ const about = readFileSync(
   resolve(process.cwd(), "src/app/(public)/about/page.tsx"),
   "utf8",
 );
+const rootLayout = readFileSync(
+  resolve(process.cwd(), "src/app/layout.tsx"),
+  "utf8",
+);
 
 describe("IVA-72 landing copy", () => {
   it("does not claim Supabase hosting on marketing pages", () => {
@@ -126,6 +130,21 @@ describe("IVA-72 landing copy", () => {
         /logo-primary|logo-inverted|\/logo\.png|logo\.png/,
       );
     }
+  });
+
+  it("locks Ceoruse wordmark, Clash headlines, and Montserrat body", () => {
+    expect(rootLayout).toMatch(/import \{ Montserrat \} from "next\/font\/google"/);
+    expect(rootLayout).toMatch(/--font-montserrat/);
+    expect(rootLayout).toMatch(/font-body/);
+    expect(rootLayout).not.toMatch(/\bInter\b/);
+    expect(tokens).toMatch(/Montserrat/);
+    expect(tokens).toMatch(/--font-montserrat/);
+    expect(tokens).toMatch(/Clash Display/);
+    expect(tokens).not.toMatch(/["']Inter["']/);
+    expect(tokens).not.toMatch(/--font-inter/);
+    expect(landing).toMatch(/font-display/);
+    expect(brandWordmark).toMatch(/font-ceoruse/);
+    expect(brandWordmark).not.toMatch(/font-body|Montserrat/);
   });
 
   it("locks Option C navy + teal and strips lime/amber accents", () => {
