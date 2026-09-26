@@ -11,6 +11,26 @@ const authLayout = readFileSync(
   resolve(process.cwd(), "src/components/layout/AuthLayout.tsx"),
   "utf8",
 );
+const landingNav = readFileSync(
+  resolve(process.cwd(), "src/components/landing/LandingNav.tsx"),
+  "utf8",
+);
+const landingFooter = readFileSync(
+  resolve(process.cwd(), "src/components/landing/LandingFooter.tsx"),
+  "utf8",
+);
+const brandWordmark = readFileSync(
+  resolve(process.cwd(), "src/components/brand/BrandWordmark.tsx"),
+  "utf8",
+);
+const dashboardSidebar = readFileSync(
+  resolve(process.cwd(), "src/components/layout/dashboard/Sidebar.tsx"),
+  "utf8",
+);
+const appSidebar = readFileSync(
+  resolve(process.cwd(), "src/app/app/AppSidebar.tsx"),
+  "utf8",
+);
 const help = readFileSync(
   resolve(process.cwd(), "src/app/(public)/help/page.tsx"),
   "utf8",
@@ -82,6 +102,27 @@ describe("IVA-72 landing copy", () => {
       expect(
         existsSync(resolve(process.cwd(), `public/assets/illustrations/${spot}.png`)),
       ).toBe(true);
+    }
+  });
+
+  it("ships wordmark-only branding with the locked ceoruse face", () => {
+    expect(brandWordmark).toMatch(/font-ceoruse/);
+    expect(brandWordmark).toMatch(/KOMPLEET/);
+    expect(brandWordmark).not.toMatch(/next\/image|logo-primary|logo-inverted|\/logo\.png|squircle/);
+    expect(tokens).toMatch(/letter-spacing:\s*0\.08em/);
+    expect(tokens).toMatch(/--font-ceoruse/);
+
+    for (const source of [
+      landingNav,
+      landingFooter,
+      authLayout,
+      dashboardSidebar,
+      appSidebar,
+    ]) {
+      expect(source).toMatch(/BrandWordmark/);
+      expect(source).not.toMatch(
+        /logo-primary|logo-inverted|\/logo\.png|logo\.png/,
+      );
     }
   });
 
