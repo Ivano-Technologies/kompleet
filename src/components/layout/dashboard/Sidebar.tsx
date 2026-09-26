@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
+import { BrandWordmark } from "@/components/brand/BrandWordmark";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useAuthActions } from "@convex-dev/auth/react";
@@ -167,24 +167,13 @@ export function Sidebar({
 
   const sidebarContent = (
     <div className="flex flex-col h-full bg-gradient-to-b from-primary-deep to-primary">
-      {/* Logo */}
-      <div className="flex items-center gap-3 p-5 border-b border-white/10">
-        <Link
+      <div className="flex items-center p-5 border-b border-white/10">
+        <BrandWordmark
           href="/dashboard"
-          className="flex items-center gap-3"
+          size="md"
+          tone="inverse"
           onClick={onMobileClose}
-        >
-          <Image
-            src="/logo.png"
-            alt="KOMPLEET Logo"
-            width={34}
-            height={34}
-            className="rounded-lg shadow-4"
-          />
-          <span className="font-ceoruse text-base font-bold text-white tracking-wider">
-            KOMPLEET
-          </span>
-        </Link>
+        />
       </div>
 
       {/* Navigation */}
