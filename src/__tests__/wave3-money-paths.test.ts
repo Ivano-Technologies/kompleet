@@ -87,6 +87,9 @@ describe("IVA-79 Tax generate from books + Filing PDF", () => {
     expect(taxCard).toMatch(/TAX_COPY\.entity/);
     expect(taxCard).toMatch(/TAX_COPY\.advanced/);
     expect(taxCard).toMatch(/\/api\/tax-reports\/generate/);
+    expect(read("src/app/api/transactions/summary/route.ts")).toMatch(
+      /listAllTransactionsMine/,
+    );
     expect(taxCard).not.toMatch(/name="totalRevenue"/);
     expect(override).toMatch(/Override figures/);
     expect(override).toMatch(/Back to Tax/);

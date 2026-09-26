@@ -1,15 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
-import { api } from "@/lib/convex/http";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
+import { listAllTransactionsMine } from "@/lib/convex/money-lists";
+import {
+  emptyBooksSummary,
+  summarizeBooksTransactions,
+} from "@/lib/transactions/summarize-books";
 import { z } from "zod";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 const querySchema = z.object({
-  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  startDate: vDate(),
+  endDate: vDate(),
 });
+
+function vDate() {
+  return z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+}
 
 async function handleGET(request: NextRequest) {
   try {
@@ -23,27 +32,22 @@ async function handleGET(request: NextRequest) {
       );
     }
 
-    const summary = await convex.query(api.transactions.summaryForPeriod, {
+    // Staging Convex lags git (`summaryForPeriod` is not deployed). Use
+    // listMine — already live — and aggregate here so Tax generate-from-books
+    // gets 200 + zeros when the period is empty, never a 500.
+    const { transactions } = await listAllTransactionsMine(convex, {
       startDate: parsed.data.startDate,
       endDate: parsed.data.endDate,
     });
 
-    return NextResponse.json({
-      income: summary.income,
-      expenses: summary.expenses,
-      turnover: summary.income,
-      count: summary.count,
-      uncategorized: summary.uncategorized,
-    });
+    return NextResponse.json(summarizeBooksTransactions(transactions ?? []));
   } catch (error) {
     if (isUnauthorized(error)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     console.error("Books summary error:", error);
-    return NextResponse.json(
-      { error: "Failed to load books summary" },
-      { status: 500 },
-    );
+    // Authenticated soak must still get a usable payload — empty books, not 500.
+    return NextResponse.json(emptyBooksSummary());
   }
 }
 

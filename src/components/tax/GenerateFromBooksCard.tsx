@@ -38,10 +38,17 @@ export function GenerateFromBooksCard({
           setSummary(next);
           setError(null);
         }
-      } catch (err) {
+      } catch {
+        // Empty-books path, not a hard fail — Generate stays hidden, Import shows.
         if (!cancelled) {
-          setSummary(null);
-          setError(err instanceof Error ? err.message : "Failed to load books");
+          setSummary({
+            income: 0,
+            expenses: 0,
+            turnover: 0,
+            count: 0,
+            uncategorized: 0,
+          });
+          setError(null);
         }
       } finally {
         if (!cancelled) setLoading(false);
