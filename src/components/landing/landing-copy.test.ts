@@ -3,6 +3,14 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const landing = readFileSync(resolve(process.cwd(), "src/app/page.tsx"), "utf8");
+const heroAuthCard = readFileSync(
+  resolve(process.cwd(), "src/components/landing/HeroAuthCard.tsx"),
+  "utf8",
+);
+const heroAuth = readFileSync(
+  resolve(process.cwd(), "src/components/landing/hero-auth.ts"),
+  "utf8",
+);
 const tokens = [
   readFileSync(resolve(process.cwd(), "tailwind.config.cjs"), "utf8"),
   readFileSync(resolve(process.cwd(), "src/app/globals.css"), "utf8"),
@@ -165,6 +173,31 @@ describe("IVA-72 landing copy", () => {
     expect(landing).toMatch(/font-display/);
     expect(brandWordmark).toMatch(/font-ceoruse/);
     expect(brandWordmark).not.toMatch(/font-body|Montserrat/);
+  });
+
+  it("wires a split hero: auth card left, locked ledger right", () => {
+    expect(landing).toMatch(/<LandingNav heroAuth/);
+    expect(landing).toMatch(/HeroAuthCard/);
+    expect(landing).toMatch(/lg:grid-cols-\[minmax\(0,46fr\)_minmax\(0,54fr\)\]/);
+    expect(landing).toMatch(/bg-primary-deep/);
+    expect(landing).toMatch(/hero-kompleet\.svg/);
+    expect(landing).toMatch(/hero-kompleet\.png/);
+    expect(landing).not.toMatch(/Continue with Google|google/i);
+    expect(heroAuthCard).not.toMatch(/Continue with Google|signIn\("google"/);
+    expect(heroAuthCard).toMatch(/Get started/);
+    expect(heroAuthCard).toMatch(/Sign in/);
+    expect(heroAuthCard).toMatch(/type="email"/);
+    expect(heroAuthCard).toMatch(/type=\{showPassword \? "text" : "password"\}/);
+    expect(heroAuthCard).toMatch(/flow: mode === "signup" \? "signUp" : "signIn"/);
+    expect(heroAuthCard).toMatch(/border-border bg-surface/);
+    expect(heroAuthCard).toMatch(/shadow-2/);
+    expect(heroAuthCard).toMatch(/bg-accent[\s\S]*text-white/);
+    expect(heroAuthCard).not.toMatch(/shadow-primary|teal glow|shadow-accent/);
+    expect(heroAuthCard).toMatch(/text-primary/);
+    expect(heroAuth).toMatch(/HERO_AUTH_ID/);
+    expect(landingNav).toMatch(/heroAuth/);
+    expect(landingNav).toMatch(/requestHeroAuth/);
+    expect(landingNav).toMatch(/#\$\{HERO_AUTH_ID\}/);
   });
 
   it("locks Option C navy + teal and strips lime/amber accents", () => {
