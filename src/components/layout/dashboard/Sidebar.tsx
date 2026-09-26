@@ -3,98 +3,33 @@
 import Link from "next/link";
 import { BrandWordmark } from "@/components/brand/BrandWordmark";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useAuthActions } from "@convex-dev/auth/react";
 import {
-  LayoutDashboard,
-  ArrowLeftRight,
-  Upload,
-  CheckCircle,
-  Copy,
-  FileText,
-  Receipt,
-  Calculator,
-  BarChart3,
-  FileSpreadsheet,
-  PieChart,
-  Settings,
-  LogOut,
   ChevronDown,
-  ChevronRight,
+  FileText,
+  LogOut,
+  MoreHorizontal,
+  Settings,
   Shield,
-  ClipboardList,
   Users,
-  Wallet,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import {
+  MORE_NAV,
+  PRIMARY_NAV,
+  isMoreChildActive,
+  isPrimaryActive,
+} from "./nav-config";
 
-interface NavItem {
+interface AdminItem {
   href: string;
   label: string;
   icon: LucideIcon;
-  children?: { href: string; label: string; icon: LucideIcon }[];
 }
 
-const navItems: NavItem[] = [
-  {
-    href: "/dashboard",
-    label: "Dashboard",
-    icon: LayoutDashboard,
-  },
-  {
-    href: "/transactions",
-    label: "Transactions",
-    icon: ArrowLeftRight,
-    children: [
-      { href: "/transactions/upload", label: "Upload", icon: Upload },
-      { href: "/transactions/review", label: "Review", icon: CheckCircle },
-      { href: "/transactions/duplicates", label: "Duplicates", icon: Copy },
-    ],
-  },
-  {
-    href: "/invoices",
-    label: "Invoices",
-    icon: Receipt,
-  },
-  {
-    href: "/expenses",
-    label: "Expenses",
-    icon: Wallet,
-  },
-  {
-    href: "/reports",
-    label: "Reports",
-    icon: BarChart3,
-    children: [
-      { href: "/tax-reports", label: "Tax Reports", icon: FileText },
-      { href: "/filing", label: "Filing", icon: ClipboardList },
-      { href: "/reports/profit-loss", label: "Profit & Loss", icon: PieChart },
-      {
-        href: "/reports/balance-sheet",
-        label: "Balance Sheet",
-        icon: FileSpreadsheet,
-      },
-      { href: "/reports/expense-reports", label: "Expense Reports", icon: Wallet },
-      { href: "/reports", label: "Compliance Reports", icon: FileText },
-      { href: "/export", label: "Audit Exports", icon: FileSpreadsheet },
-    ],
-  },
-  {
-    href: "/calculators",
-    label: "Calculators",
-    icon: Calculator,
-    children: [
-      { href: "/calculators/business-tax", label: "CIT Calculator", icon: Calculator },
-      { href: "/calculators/individual-tax", label: "PIT Calculator", icon: Calculator },
-      { href: "/calculators/vat", label: "VAT Calculator", icon: Calculator },
-      { href: "/calculators/stamp-duty", label: "Stamp Duty", icon: Calculator },
-      { href: "/calculators/capital-allowances", label: "Capital Allowances", icon: Calculator },
-      { href: "/calculators/property-tax", label: "Property Tax", icon: Calculator },
-    ],
-  },
-];
-
-const adminItems: NavItem[] = [
+const adminItems: AdminItem[] = [
   { href: "/admin/team", label: "Team", icon: Users },
   { href: "/admin/rules", label: "Tax Rules", icon: Shield },
   { href: "/admin/sources", label: "Sources", icon: FileText },
@@ -118,31 +53,20 @@ export function Sidebar({
   const pathname = usePathname();
   const router = useRouter();
   const { signOut } = useAuthActions();
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(
-    new Set(),
-  );
   const [signingOut, setSigningOut] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreButtonRef = useRef<HTMLButtonElement>(null);
+  const [flyoutPos, setFlyoutPos] = useState({ top: 0, left: 0 });
 
-  const toggleSection = (href: string) => {
-    setExpandedSections((prev) => {
-      const next = new Set(prev);
-      if (next.has(href)) {
-        next.delete(href);
-      } else {
-        next.add(href);
-      }
-      return next;
-    });
-  };
+  useEffect(() => {
+    if (!moreOpen || !moreButtonRef.current) return;
+    const rect = moreButtonRef.current.getBoundingClientRect();
+    setFlyoutPos({ top: rect.top, left: rect.right + 8 });
+  }, [moreOpen]);
 
-  const isActive = (href: string) => {
-    if (href === "/dashboard") return pathname === "/dashboard";
-    return pathname?.startsWith(href);
-  };
-
-  const isChildActive = (item: NavItem) => {
-    return item.children?.some((child) => pathname?.startsWith(child.href));
-  };
+  useEffect(() => {
+    setMoreOpen(false);
+  }, [pathname]);
 
   const handleSignOut = async () => {
     setSigningOut(true);
@@ -152,18 +76,42 @@ export function Sidebar({
   };
 
   const userInitial = userEmail?.charAt(0).toUpperCase() || "U";
+  const moreChildActive = isMoreChildActive(pathname);
+  const moreActive = moreOpen || moreChildActive;
 
-  // Shared class helpers using approved design tokens
   const navItemBase =
-    "flex-1 flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors";
+    "flex-1 flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary";
   const navItemActive =
     "bg-accent/15 text-accent border border-accent/25 font-semibold";
-  const navItemInactive =
-    "text-white/55 hover:bg-white/10 hover:text-white";
-  const childItemActive =
-    "bg-accent/10 text-accent font-medium";
-  const childItemInactive =
-    "text-white/50 hover:bg-white/10 hover:text-white";
+  const navItemInactive = "text-white/55 hover:bg-white/10 hover:text-white";
+
+  const morePanel = (
+    <div className="w-64 rounded-xl border border-border bg-surface shadow-1 p-2">
+      {MORE_NAV.map((item) => {
+        const Icon = item.icon;
+        const childActive =
+          pathname === item.href || Boolean(pathname?.startsWith(`${item.href}/`));
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            onClick={() => {
+              setMoreOpen(false);
+              onMobileClose();
+            }}
+            className={`flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+              childActive
+                ? "bg-accent/10 text-accent"
+                : "text-text-2 hover:bg-surface-2 hover:text-text-1"
+            }`}
+          >
+            <Icon className="w-4 h-4 shrink-0" />
+            <span>{item.label}</span>
+          </Link>
+        );
+      })}
+    </div>
+  );
 
   const sidebarContent = (
     <div className="flex flex-col h-full bg-gradient-to-b from-primary-deep to-primary">
@@ -176,90 +124,62 @@ export function Sidebar({
         />
       </div>
 
-      {/* Navigation */}
       <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
         <p className="px-3 pt-3 pb-2 text-xs font-bold uppercase tracking-widest text-white/30">
           Main Menu
         </p>
-        {navItems.map((item) => {
+        {PRIMARY_NAV.map((item) => {
           const Icon = item.icon;
-          const active = isActive(item.href);
-          const childActive = isChildActive(item);
-          const expanded = expandedSections.has(item.href) || childActive;
-          const hasChildren = item.children && item.children.length > 0;
-
+          const active = isPrimaryActive(item.key, pathname);
           return (
-            <div key={item.href}>
-              <div className="flex items-center">
-                <Link
-                  href={item.href}
-                  onClick={onMobileClose}
-                  className={`${navItemBase} ${active || childActive ? navItemActive : navItemInactive
-                    }`}
-                >
-                  <Icon className="w-[18px] h-[18px] shrink-0" />
-                  <span>{item.label}</span>
-                </Link>
-                {hasChildren && (
-                  <button
-                    onClick={() => toggleSection(item.href)}
-                    className={`p-1.5 rounded-md transition-colors ${active || childActive
-                      ? "text-accent/70 hover:text-accent"
-                      : "text-white/30 hover:text-white/70"
-                      }`}
-                    aria-label={`Toggle ${item.label} submenu`}
-                  >
-                    {expanded ? (
-                      <ChevronDown className="w-4 h-4" />
-                    ) : (
-                      <ChevronRight className="w-4 h-4" />
-                    )}
-                  </button>
-                )}
-              </div>
-
-              {/* Children */}
-              {hasChildren && expanded && (
-                <div className="ml-4 mt-0.5 space-y-0.5 border-l-2 border-white/10 pl-3">
-                  {item.children!.map((child) => {
-                    const ChildIcon = child.icon;
-                    const childIsActive = pathname?.startsWith(child.href);
-                    return (
-                      <Link
-                        key={child.href}
-                        href={child.href}
-                        onClick={onMobileClose}
-                        className={`flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors ${childIsActive ? childItemActive : childItemInactive
-                          }`}
-                      >
-                        <ChildIcon className="w-4 h-4 shrink-0" />
-                        <span>{child.label}</span>
-                      </Link>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={onMobileClose}
+              className={`${navItemBase} ${active ? navItemActive : navItemInactive}`}
+            >
+              <Icon className="w-[18px] h-[18px] shrink-0" />
+              <span>{item.label}</span>
+            </Link>
           );
         })}
 
-        {/* Settings — opens modal */}
+        <button
+          ref={moreButtonRef}
+          type="button"
+          onClick={() => setMoreOpen((open) => !open)}
+          className={`w-full ${navItemBase} ${moreActive ? navItemActive : navItemInactive}`}
+          aria-expanded={moreOpen}
+          aria-haspopup="true"
+        >
+          <MoreHorizontal className="w-[18px] h-[18px] shrink-0" />
+          <span className="flex-1 text-left">More</span>
+          <ChevronDown
+            className={`w-4 h-4 shrink-0 transition-transform ${moreOpen ? "rotate-180" : ""}`}
+          />
+        </button>
+
+        {moreOpen && (
+          <div className="lg:hidden mt-1">{morePanel}</div>
+        )}
+
         {onOpenSettings && (
           <button
             type="button"
             onClick={() => {
               onOpenSettings();
               onMobileClose();
+              setMoreOpen(false);
             }}
-            className={`w-full ${navItemBase} ${pathname?.startsWith("/settings") ? navItemActive : navItemInactive
-              }`}
+            className={`w-full ${navItemBase} ${
+              pathname?.startsWith("/settings") ? navItemActive : navItemInactive
+            }`}
           >
             <Settings className="w-[18px] h-[18px] shrink-0" />
             <span>Settings</span>
           </button>
         )}
 
-        {/* Admin Section */}
         {(userRole === "owner" || userRole === "admin") && (
           <div className="mt-4 pt-3 border-t border-white/10">
             <p className="px-3 mb-1 text-xs font-bold uppercase tracking-widest text-white/30">
@@ -267,14 +187,13 @@ export function Sidebar({
             </p>
             {adminItems.map((item) => {
               const Icon = item.icon;
-              const active = isActive(item.href);
+              const active = Boolean(pathname?.startsWith(item.href));
               return (
                 <Link
                   key={item.href}
                   href={item.href}
                   onClick={onMobileClose}
-                  className={`${navItemBase} ${active ? navItemActive : navItemInactive
-                    }`}
+                  className={`${navItemBase} ${active ? navItemActive : navItemInactive}`}
                 >
                   <Icon className="w-[18px] h-[18px] shrink-0" />
                   <span>{item.label}</span>
@@ -285,17 +204,17 @@ export function Sidebar({
         )}
       </nav>
 
-      {/* User Section */}
       <div className="p-3 border-t border-white/10 space-y-1">
         <Link
           href="/profile"
           onClick={onMobileClose}
-          className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors ${pathname?.startsWith("/profile")
-            ? "bg-accent/15 text-accent"
-            : "text-white/55 hover:bg-white/10 hover:text-white"
-            }`}
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+            pathname?.startsWith("/profile")
+              ? "bg-accent/15 text-accent"
+              : "text-white/55 hover:bg-white/10 hover:text-white"
+          }`}
         >
-          <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center font-display text-sm font-bold text-charcoal shrink-0">
+          <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-sm font-bold text-white shrink-0">
             {userInitial}
           </div>
           <div className="flex-1 min-w-0">
@@ -328,12 +247,10 @@ export function Sidebar({
 
   return (
     <>
-      {/* Desktop Sidebar */}
       <aside className="hidden lg:flex w-80 shrink-0 flex-col h-screen sticky top-0 overflow-hidden shadow-outer-deep">
         {sidebarContent}
       </aside>
 
-      {/* Mobile Overlay */}
       {isMobileOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
           <div
@@ -346,6 +263,26 @@ export function Sidebar({
           </aside>
         </div>
       )}
+
+      {moreOpen &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div className="hidden lg:block">
+            <button
+              type="button"
+              className="fixed inset-0 z-40"
+              aria-label="Close more menu"
+              onClick={() => setMoreOpen(false)}
+            />
+            <div
+              className="fixed z-50"
+              style={{ top: flyoutPos.top, left: flyoutPos.left }}
+            >
+              {morePanel}
+            </div>
+          </div>,
+          document.body,
+        )}
     </>
   );
 }

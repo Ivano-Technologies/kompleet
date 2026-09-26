@@ -7,12 +7,13 @@ import { useTheme } from "@/contexts/ThemeContext";
 
 const pageTitles: Record<string, string> = {
   "/dashboard": "Dashboard",
-  "/transactions": "Transactions",
-  "/transactions/upload": "Upload Transactions",
-  "/transactions/review": "Review Transactions",
+  "/transactions": "Books",
+  "/transactions/upload": "Upload statement",
+  "/transactions/review": "Review Books",
   "/transactions/duplicates": "Duplicate Resolution",
   "/invoices": "Invoices",
   "/invoices/new": "New Invoice",
+  "/tax": "Tax",
   "/tax-reports": "Tax Reports",
   "/tax-reports/generate": "Generate Tax Report",
   "/calculators": "Calculators",
@@ -75,7 +76,7 @@ export function TopBar({ onMenuToggle, onOpenSettings }: TopBarProps) {
         <div className="flex items-center gap-3">
           <button
             onClick={onMenuToggle}
-            className="lg:hidden p-2 rounded-lg text-text-2 dark:text-dark-text-2 hover:bg-surface-2 dark:hover:bg-dark-surface-hover transition-colors"
+            className="hidden p-2 rounded-lg text-text-2 dark:text-dark-text-2 hover:bg-surface-2 dark:hover:bg-dark-surface-hover transition-colors"
             aria-label="Toggle sidebar"
           >
             <Menu className="w-5 h-5" />

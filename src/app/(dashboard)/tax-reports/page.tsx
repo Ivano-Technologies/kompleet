@@ -18,7 +18,11 @@ interface TaxReport {
   created_at: string;
 }
 
-export default function TaxReportsPage() {
+export default function TaxReportsPage({
+  embedded = false,
+}: {
+  embedded?: boolean;
+}) {
   const { isLoading: authLoading, isAuthenticated } = useConvexAuth();
   const [reports, setReports] = useState<TaxReport[]>([]);
   const [loading, setLoading] = useState(true);
@@ -93,13 +97,14 @@ export default function TaxReportsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">
-            Tax Reports
-          </h1>
-          <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mt-1">
+          {!embedded && (
+            <h1 className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">
+              Tax Reports
+            </h1>
+          )}
+          <p className={`text-sm text-light-text-secondary dark:text-dark-text-secondary ${embedded ? "" : "mt-1"}`}>
             Generate and manage reports based on Nigeria Tax Act 2025
           </p>
         </div>
