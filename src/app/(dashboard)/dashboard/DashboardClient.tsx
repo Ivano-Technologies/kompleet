@@ -1,23 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import {
-  ArrowUpRight,
-  Download,
-  FileText,
-  Plus,
-  TrendingUp,
-  Wallet,
-} from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { X } from "lucide-react";
 import { Card } from "@/components/ui/card";
-import { EmptyState } from "@/components/ui/empty-state";
 import {
-  Area,
-  AreaChart,
+  StatementDropZone,
+  triggerStatementPicker,
+} from "@/components/import/StatementDropZone";
+import type { StatementUploadResult } from "@/components/import/StatementDropZone";
+import { DROP_COPY } from "@/components/import/statement-copy";
+import {
+  Bar,
+  BarChart,
   CartesianGrid,
-  Cell,
-  Pie,
-  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -26,6 +23,7 @@ import {
 
 interface KpiData {
   totalRevenue: number;
+  totalExpenses: number;
   revenueChange: number;
   estimatedTax: number;
   taxDueDate: string;
@@ -41,27 +39,26 @@ interface RevenuePoint {
   expenses: number;
 }
 
-interface TaxItem {
-  name: string;
-  value: number;
-  color: string;
-}
-
 interface Transaction {
   id: string;
   desc: string;
   amount: number;
   type: string;
   date: string;
+  relative: string;
   status: string;
 }
 
 interface DashboardClientProps {
   kpiData: KpiData;
   revenueData: RevenuePoint[];
-  taxBreakdown: TaxItem[];
   recentTransactions: Transaction[];
+  hasBooks: boolean;
+  uncategorizedCount: number;
+  duplicatesCount: number;
 }
+
+const DASHBOARD_INPUT_ID = "dashboard-statement-input";
 
 function formatNaira(val: number) {
   const abs = Math.abs(val);
@@ -70,329 +67,289 @@ function formatNaira(val: number) {
   return val.toLocaleString();
 }
 
+function formatFullNaira(val: number) {
+  return `₦${Math.abs(val).toLocaleString()}`;
+}
+
 export default function DashboardClient({
   kpiData,
   revenueData,
-  taxBreakdown,
   recentTransactions,
+  hasBooks,
+  uncategorizedCount: initialUncategorized,
+  duplicatesCount: initialDuplicates,
 }: DashboardClientProps) {
-  const hasRevenueData =
-    revenueData?.length > 0 &&
-    revenueData.some((p) => (p.revenue ?? 0) !== 0 || (p.expenses ?? 0) !== 0);
+  const router = useRouter();
+  const [uncategorizedCount, setUncategorizedCount] =
+    useState(initialUncategorized);
+  const [duplicatesCount, setDuplicatesCount] = useState(initialDuplicates);
+  const [toast, setToast] = useState<StatementUploadResult | null>(null);
+
+  useEffect(() => {
+    setUncategorizedCount(initialUncategorized);
+    setDuplicatesCount(initialDuplicates);
+  }, [initialUncategorized, initialDuplicates]);
+
+  const handleSuccess = useCallback(
+    (result: StatementUploadResult) => {
+      setToast(result);
+      if (result.pendingReview > 0) setUncategorizedCount(result.pendingReview);
+      if (result.duplicates > 0) setDuplicatesCount(result.duplicates);
+      router.refresh();
+    },
+    [router],
+  );
+
+  const header = (
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <h1 className="font-display text-2xl text-text-1 dark:text-dark-text-1">
+        Dashboard
+      </h1>
+      <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+        {hasBooks ? (
+          <>
+            <Link
+              href="/invoices/new"
+              className="btn-primary text-sm px-3 py-2 text-center"
+            >
+              {DROP_COPY.ctaInvoice}
+            </Link>
+            <button
+              type="button"
+              className="btn-secondary text-sm px-3 py-2"
+              onClick={() => triggerStatementPicker(DASHBOARD_INPUT_ID)}
+            >
+              {DROP_COPY.ctaImportShort}
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              type="button"
+              className="btn-primary text-sm px-3 py-2"
+              onClick={() => triggerStatementPicker(DASHBOARD_INPUT_ID)}
+            >
+              {DROP_COPY.ctaImport}
+            </button>
+            <Link
+              href="/invoices/new"
+              className="btn-secondary text-sm px-3 py-2 text-center"
+            >
+              {DROP_COPY.ctaInvoice}
+            </Link>
+          </>
+        )}
+      </div>
+    </div>
+  );
+
+  if (!hasBooks) {
+    return (
+      <div className="space-y-6">
+        {header}
+        <StatementDropZone
+          variant="hero"
+          inputId={DASHBOARD_INPUT_ID}
+          onSuccess={handleSuccess}
+        />
+        {toast && (
+          <ImportToast result={toast} onDismiss={() => setToast(null)} />
+        )}
+      </div>
+    );
+  }
 
   const kpis = [
     {
-      label: "Total Revenue",
-      value: `₦${formatNaira(kpiData.totalRevenue)}`,
-      change: `+${kpiData.revenueChange}%`,
-      up: true,
-      icon: TrendingUp,
+      label: "Revenue",
+      value: formatFullNaira(kpiData.totalRevenue),
+      positive: kpiData.totalRevenue > 0,
     },
     {
-      label: "Outstanding Invoices",
-      value: `₦${formatNaira(kpiData.outstandingInvoices)}`,
-      change: `${kpiData.pendingCount} pending`,
-      up: false,
-      icon: FileText,
+      label: "Expenses",
+      value: formatFullNaira(kpiData.totalExpenses),
+      positive: false,
     },
     {
-      label: "Tax Obligations",
-      value: `₦${formatNaira(kpiData.estimatedTax)}`,
-      change: `Due ${kpiData.taxDueDate}`,
-      up: false,
-      icon: Wallet,
-    },
-    {
-      label: "Net Profit",
-      value: `₦${formatNaira(kpiData.netProfit)}`,
-      change: `+${kpiData.profitChange}%`,
-      up: true,
-      icon: ArrowUpRight,
+      label: "Net",
+      value: `${kpiData.netProfit < 0 ? "−" : ""}${formatFullNaira(kpiData.netProfit)}`,
+      positive: kpiData.netProfit > 0,
     },
   ];
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-text-1 dark:text-dark-text-1">
-            Dashboard
-          </h1>
-          <p className="text-sm text-text-2 dark:text-dark-text-2 mt-1">
-            Financial overview for February 2026
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <button className="btn-secondary text-sm px-3 py-2 hidden sm:flex items-center gap-1.5">
-            <Download className="w-3.5 h-3.5" /> Export
-          </button>
-          <Link
-            href="/invoices"
-            className="btn-primary text-sm px-3 py-2 flex items-center gap-1.5"
-          >
-            <Plus className="w-3.5 h-3.5" /> New Invoice
-          </Link>
-        </div>
-      </div>
+      {header}
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {kpis.map((kpi) => {
-          const Icon = kpi.icon;
-          return (
-            <Card
-              key={kpi.label}
-              className="p-5 rounded-xl gradient-convex"
-            >
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm text-text-2 dark:text-dark-text-2">
-                  {kpi.label}
-                </span>
-                <div className="w-8 h-8 rounded-lg bg-surface-2 gradient-concave shadow-inner-subtle ring-1 ring-black/5 flex items-center justify-center dark:bg-dark-surface-2 dark:ring-white/10">
-                  <Icon className="w-4 h-4 text-primary" />
-                </div>
-              </div>
-              <div className="text-2xl font-bold text-text-1 dark:text-dark-text-1 mb-1">
-                {kpi.value}
-              </div>
-              <div
-                className={`text-xs font-medium flex items-center gap-1 ${kpi.up
-                    ? "text-green-600 dark:text-green-400"
-                    : "text-text-3 dark:text-dark-text-3"
-                  }`}
-              >
-                {kpi.up && <ArrowUpRight className="w-3 h-3" />}
-                {kpi.change}
-              </div>
-            </Card>
-          );
-        })}
-      </div>
-
-      {/* Charts Row */}
-      <div className="grid lg:grid-cols-3 gap-4">
-        {/* Revenue vs Expenses Chart */}
-        <Card className="lg:col-span-2 p-5 rounded-xl">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className="font-semibold text-sm text-text-1 dark:text-dark-text-1">
-                Revenue vs Expenses
-              </h3>
-              <p className="text-xs text-text-3 dark:text-dark-text-3 mt-0.5">
-                Last 8 months
-              </p>
-            </div>
-          </div>
-          <div className="h-64">
-            {hasRevenueData ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={revenueData}>
-                  <defs>
-                    <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#166534" stopOpacity={0.2} />
-                      <stop offset="100%" stopColor="#166534" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    className="stroke-light-border dark:stroke-dark-border"
-                  />
-                  <XAxis
-                    dataKey="month"
-                    tick={{ fontSize: 12 }}
-                    className="fill-light-text-tertiary dark:fill-dark-text-tertiary"
-                  />
-                  <YAxis
-                    tickFormatter={(v) => `₦${formatNaira(v)}`}
-                    tick={{ fontSize: 12 }}
-                    className="fill-light-text-tertiary dark:fill-dark-text-tertiary"
-                  />
-                  <Tooltip
-                    formatter={(v) => [`₦${Number(v).toLocaleString()}`, ""]}
-                    contentStyle={{
-                      backgroundColor: "var(--tooltip-bg, #fff)",
-                      border: "1px solid var(--tooltip-border, #e5e7eb)",
-                      borderRadius: 8,
-                      fontSize: 12,
-                    }}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="revenue"
-                    stroke="#166534"
-                    fill="url(#revGrad)"
-                    strokeWidth={2}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="expenses"
-                    stroke="#ef4444"
-                    fill="transparent"
-                    strokeWidth={1.5}
-                    strokeDasharray="4 4"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            ) : (
-              <EmptyState
-                icon={TrendingUp}
-                title="No revenue data yet"
-                description="Upload transactions to see your revenue and expenses over time."
-                action={{ label: "Upload transactions", href: "/transactions/upload" }}
-                className="h-full justify-center"
-              />
+      {(uncategorizedCount > 0 || duplicatesCount > 0) && (
+        <div className="rounded-xl border border-warning bg-warning/10 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="text-sm text-text-1 space-y-0.5">
+            {uncategorizedCount > 0 && (
+              <p>{DROP_COPY.bannerReview(uncategorizedCount)}</p>
+            )}
+            {duplicatesCount > 0 && (
+              <p>{DROP_COPY.bannerDuplicates(duplicatesCount)}</p>
             )}
           </div>
-        </Card>
+          <div className="flex gap-2">
+            {uncategorizedCount > 0 && (
+              <Link
+                href="/transactions/review"
+                className="btn-secondary text-sm px-3 py-1.5"
+              >
+                {DROP_COPY.bannerReviewCta}
+              </Link>
+            )}
+            {duplicatesCount > 0 && (
+              <Link
+                href="/transactions/duplicates"
+                className="btn-secondary text-sm px-3 py-1.5"
+              >
+                {DROP_COPY.bannerDuplicatesCta}
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
 
-        {/* Tax Breakdown */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {kpis.map((kpi) => (
+          <Card key={kpi.label} className="p-5 rounded-xl">
+            <p className="text-sm text-text-2">{kpi.label}</p>
+            <p
+              className={`mt-2 text-2xl font-semibold ${
+                kpi.positive ? "text-success" : "text-text-1"
+              }`}
+            >
+              {kpi.value}
+            </p>
+          </Card>
+        ))}
+      </div>
+
+      <div className="grid lg:grid-cols-2 gap-4">
         <Card className="p-5 rounded-xl">
-          <h3 className="font-semibold text-sm text-text-1 dark:text-dark-text-1 mb-1">
-            Tax Breakdown
-          </h3>
-          <p className="text-xs text-text-3 dark:text-dark-text-3 mb-4">
-            Current quarter obligations
-          </p>
-          <div className="h-44 flex items-center justify-center">
+          <h3 className="font-semibold text-base text-text-1">Revenue trend</h3>
+          <div className="h-56 mt-4">
             <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={taxBreakdown}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={50}
-                  outerRadius={72}
-                  paddingAngle={3}
-                  dataKey="value"
-                >
-                  {taxBreakdown.map((entry, i) => (
-                    <Cell key={i} fill={entry.color} />
-                  ))}
-                </Pie>
+              <BarChart data={revenueData}>
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  className="stroke-border"
+                  vertical={false}
+                />
+                <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+                <YAxis
+                  tickFormatter={(v) => `₦${formatNaira(Number(v))}`}
+                  tick={{ fontSize: 12 }}
+                  width={48}
+                />
                 <Tooltip
                   formatter={(v) => [`₦${Number(v).toLocaleString()}`, ""]}
                   contentStyle={{
-                    backgroundColor: "var(--tooltip-bg, #fff)",
-                    border: "1px solid var(--tooltip-border, #e5e7eb)",
+                    backgroundColor: "#FFFDF8",
+                    border: "1px solid #DDD5C8",
                     borderRadius: 8,
                     fontSize: 12,
                   }}
                 />
-              </PieChart>
+                <Bar dataKey="revenue" fill="#0B3A5C" radius={[4, 4, 0, 0]} />
+              </BarChart>
             </ResponsiveContainer>
           </div>
-          <div className="space-y-2 mt-2">
-            {taxBreakdown.map((t) => (
-              <div
-                key={t.name}
-                className="flex items-center justify-between text-xs"
-              >
-                <span className="flex items-center gap-2 text-text-2 dark:text-dark-text-2">
-                  <span
-                    className="w-2.5 h-2.5 rounded-sm"
-                    style={{ backgroundColor: t.color }}
-                  />
-                  {t.name}
-                </span>
-                <span className="font-medium text-text-1 dark:text-dark-text-1">
-                  ₦{t.value.toLocaleString()}
-                </span>
-              </div>
-            ))}
+        </Card>
+
+        <Card className="rounded-xl">
+          <div className="flex items-center justify-between p-5 border-b border-border">
+            <h3 className="font-semibold text-base text-text-1">
+              Recent transactions
+            </h3>
+            <Link href="/transactions" className="text-sm font-medium text-primary">
+              {DROP_COPY.toastViewBooks}
+            </Link>
           </div>
+          <ul className="divide-y divide-border/70">
+            {recentTransactions.map((txn) => (
+              <li
+                key={txn.id}
+                className="px-5 py-3.5 flex items-center justify-between gap-3"
+              >
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-text-1 truncate">
+                    {txn.desc}
+                  </p>
+                  <p className="text-xs text-text-3 mt-0.5">{txn.relative}</p>
+                </div>
+                <p
+                  className={`text-sm font-medium shrink-0 ${
+                    txn.amount > 0 ? "text-success" : "text-text-1"
+                  }`}
+                >
+                  {txn.amount > 0 ? "+" : "−"}
+                  {formatFullNaira(txn.amount)}
+                </p>
+              </li>
+            ))}
+          </ul>
         </Card>
       </div>
 
-      {/* Recent Transactions */}
-      <Card className="rounded-xl">
-        <div className="flex items-center justify-between p-5 border-b border-border dark:border-dark-border">
-          <div>
-            <h3 className="font-semibold text-sm text-text-1 dark:text-dark-text-1">
-              Recent Transactions
-            </h3>
-            <p className="text-xs text-text-3 dark:text-dark-text-3 mt-0.5">
-              Latest financial activity
-            </p>
+      <StatementDropZone
+        variant="strip"
+        inputId={DASHBOARD_INPUT_ID}
+        onSuccess={handleSuccess}
+      />
+
+      {toast && <ImportToast result={toast} onDismiss={() => setToast(null)} />}
+    </div>
+  );
+}
+
+function ImportToast({
+  result,
+  onDismiss,
+}: {
+  result: StatementUploadResult;
+  onDismiss: () => void;
+}) {
+  return (
+    <div className="fixed top-20 right-4 z-40 w-[min(100%-2rem,22rem)] rounded-xl border border-border bg-surface p-4 shadow-1">
+      <div className="flex items-start gap-3">
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-success">
+            {DROP_COPY.toastSuccess(result.imported)}
+          </p>
+          <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-sm">
+            <Link href="/transactions" className="text-primary font-medium">
+              {DROP_COPY.toastViewBooks}
+            </Link>
+            {result.pendingReview > 0 && (
+              <Link
+                href="/transactions/review"
+                className="text-primary font-medium"
+              >
+                {DROP_COPY.toastReview(result.pendingReview)}
+              </Link>
+            )}
+            {result.duplicates > 0 && (
+              <Link
+                href="/transactions/duplicates"
+                className="text-primary font-medium"
+              >
+                {DROP_COPY.toastDuplicates}
+              </Link>
+            )}
           </div>
-          <Link
-            href="/transactions"
-            className="btn-secondary text-xs px-3 py-1.5"
-          >
-            View All
-          </Link>
         </div>
-        {recentTransactions.length === 0 ? (
-          <div className="p-6">
-            <EmptyState
-              icon={FileText}
-              title="No transactions yet"
-              description="Once you upload a statement, your latest activity will show up here."
-              action={{ label: "Upload transactions", href: "/transactions/upload" }}
-            />
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border dark:border-dark-border">
-                  <th className="text-left font-medium text-text-3 dark:text-dark-text-3 px-5 py-3 text-xs">
-                    Transaction
-                  </th>
-                  <th className="text-left font-medium text-text-3 dark:text-dark-text-3 px-5 py-3 text-xs hidden sm:table-cell">
-                    Date
-                  </th>
-                  <th className="text-left font-medium text-text-3 dark:text-dark-text-3 px-5 py-3 text-xs hidden md:table-cell">
-                    Status
-                  </th>
-                  <th className="text-right font-medium text-text-3 dark:text-dark-text-3 px-5 py-3 text-xs">
-                    Amount
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentTransactions.map((txn) => (
-                  <tr
-                    key={txn.id}
-                    className="border-b border-border/50 dark:border-dark-border/50 last:border-0 hover:bg-surface-2 dark:hover:bg-dark-surface-hover transition-colors"
-                  >
-                    <td className="px-5 py-3.5">
-                      <div className="font-medium text-sm text-text-1 dark:text-dark-text-1">
-                        {txn.desc}
-                      </div>
-                      <div className="text-xs text-text-3 dark:text-dark-text-3 mt-0.5">
-                        {txn.id}
-                      </div>
-                    </td>
-                    <td className="px-5 py-3.5 text-text-2 dark:text-dark-text-2 text-xs hidden sm:table-cell">
-                      {txn.date}
-                    </td>
-                    <td className="px-5 py-3.5 hidden md:table-cell">
-                      <span
-                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${txn.status === "completed"
-                            ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                            : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-                          }`}
-                      >
-                        {txn.status}
-                      </span>
-                    </td>
-                    <td
-                      className={`px-5 py-3.5 text-right font-medium text-sm ${txn.amount > 0
-                          ? "text-green-600 dark:text-green-400"
-                          : "text-text-1 dark:text-dark-text-1"
-                        }`}
-                    >
-                      {txn.amount > 0 ? "+" : ""}₦
-                      {Math.abs(txn.amount).toLocaleString()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </Card>
+        <button
+          type="button"
+          onClick={onDismiss}
+          className="text-text-3 hover:text-text-1"
+          aria-label="Dismiss"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
     </div>
   );
 }

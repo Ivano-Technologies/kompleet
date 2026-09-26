@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import {
   FileText,
   Download,
@@ -24,12 +25,15 @@ interface Form {
   }[];
 }
 
-export default function FilingCenterPage() {
+export default function FilingCenterPage({
+  embedded = false,
+}: {
+  embedded?: boolean;
+}) {
   const [forms, setForms] = useState<Form[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedFormType, setSelectedFormType] = useState<string>("all");
   const [selectedYear, setSelectedYear] = useState<number>(2026);
-  const [showGenerateModal, setShowGenerateModal] = useState(false);
 
   const fetchForms = useCallback(async () => {
     setLoading(true);
@@ -98,19 +102,21 @@ export default function FilingCenterPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">
-            Filing Center
-          </h1>
-          <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mt-1">
+          {!embedded && (
+            <h1 className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">
+              Filing Center
+            </h1>
+          )}
+          <p className={`text-sm text-light-text-secondary dark:text-dark-text-secondary ${embedded ? "" : "mt-1"}`}>
             Generate and manage your NRS tax forms
           </p>
         </div>
-        <button
-          onClick={() => setShowGenerateModal(true)}
+        <Link
+          href="/tax-reports/generate"
           className="btn-primary text-sm px-4 py-2 flex items-center gap-1.5 self-start"
         >
           <FileText className="w-3.5 h-3.5" /> Generate New Form
-        </button>
+        </Link>
       </div>
 
       {/* Filters */}
@@ -187,12 +193,12 @@ export default function FilingCenterPage() {
             <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary mb-4">
               Generate your first NRS tax form to get started
             </p>
-            <button
-              onClick={() => setShowGenerateModal(true)}
-              className="btn-primary text-sm px-4 py-2"
+            <Link
+              href="/tax-reports/generate"
+              className="btn-primary text-sm px-4 py-2 inline-flex"
             >
               Generate Form
-            </button>
+            </Link>
           </div>
         ) : (
           <div className="divide-y divide-light-border/50 dark:divide-dark-border/50">

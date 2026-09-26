@@ -4,18 +4,33 @@ import { api } from "@/lib/convex/http";
 import { requireAuthedConvex } from "@/lib/convex/server";
 import DashboardClient from "./DashboardClient";
 
-const TAX_COLORS: Record<string, string> = {
-  vat: "#166534",
-  wht: "#22c55e",
-  cit: "#86efac",
-  pit: "#bbf7d0",
-};
-const TAX_LABELS: Record<string, string> = {
-  vat: "VAT",
-  wht: "WHT",
-  cit: "CIT",
-  pit: "PIT",
-};
+function relativeDay(isoDate: string): string {
+  const value = new Date(isoDate);
+  const today = new Date();
+  const startToday = Date.UTC(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate(),
+  );
+  const startValue = Date.UTC(
+    value.getFullYear(),
+    value.getMonth(),
+    value.getDate(),
+  );
+  const diff = Math.round((startToday - startValue) / 86_400_000);
+  if (diff === 0) return "Today";
+  if (diff === 1) return "Yesterday";
+  if (diff > 1 && diff < 7) return `${diff} days ago`;
+  return value.toLocaleDateString("en-NG", { month: "short", day: "numeric" });
+}
+
+function isUncategorized(txn: {
+  category: { id: string } | null;
+  confidence_score: number | null;
+}): boolean {
+  if (!txn.category) return true;
+  return typeof txn.confidence_score === "number" && txn.confidence_score < 80;
+}
 
 /**
  * KOMPLEET Dashboard - Financial Health Overview
@@ -27,7 +42,7 @@ export default async function DashboardPage() {
 
   const currentYear = new Date().getFullYear();
 
-  const [thisYear, lastYear, monthlyData, invoices, taxCalcs] =
+  const [thisYear, lastYear, monthlyData, invoices, booksPage] =
     await Promise.all([
       convex.query(api.transactions.totalsForYear, { taxYear: currentYear }),
       convex.query(api.transactions.totalsForYear, {
@@ -35,7 +50,7 @@ export default async function DashboardPage() {
       }),
       getMonthlyIncomeExpenses(user.id, 8),
       convex.query(api.invoices.listMine, { status: "sent" }),
-      convex.query(api.tax.listCalculations, {}),
+      convex.query(api.transactions.listMine, { page: 1, limit: 100 }),
     ]);
 
   const totalIncome = thisYear.income;
@@ -69,27 +84,11 @@ export default async function DashboardPage() {
     invoices.reduce((sum, inv) => sum + Number(inv.amount_due ?? 0), 0) ?? 0;
   const pendingCount = invoices.length;
 
-  const taxMap = new Map<string, number>();
-  for (const t of taxCalcs) {
-    if (t.tax_year !== currentYear || !t.is_final) continue;
-    taxMap.set(
-      t.tax_type,
-      (taxMap.get(t.tax_type) ?? 0) + Number(t.tax_due),
-    );
-  }
-
-  const taxBreakdown = Array.from(taxMap.entries()).map(([type, value]) => ({
-    name: TAX_LABELS[type] || type.toUpperCase(),
-    value: Math.round(value),
-    color: TAX_COLORS[type] || "#94a3b8",
-  }));
-
-  const estimatedTax =
-    taxBreakdown.reduce((sum, t) => sum + t.value, 0) ||
-    Math.round(totalIncome * 0.3);
+  const estimatedTax = Math.round(totalIncome * 0.3);
 
   const kpiData = {
     totalRevenue: Math.round(totalIncome),
+    totalExpenses: Math.round(totalExpenses),
     revenueChange,
     estimatedTax,
     taxDueDate,
@@ -105,12 +104,7 @@ export default async function DashboardPage() {
     expenses: item.expenses,
   }));
 
-  const recent = await convex.query(api.transactions.listMine, {
-    page: 1,
-    limit: 5,
-  });
-
-  const recentTransactions = recent.transactions.map((t) => ({
+  const recentTransactions = booksPage.transactions.slice(0, 5).map((t) => ({
     id: t.id,
     desc: t.description,
     amount:
@@ -121,19 +115,20 @@ export default async function DashboardPage() {
       day: "numeric",
       year: "numeric",
     }),
+    relative: relativeDay(t.transaction_date),
     status: t.is_reconciled ? "completed" : "pending",
   }));
+
+  const uncategorizedCount = booksPage.transactions.filter(isUncategorized).length;
 
   return (
     <DashboardClient
       kpiData={kpiData}
       revenueData={revenueData}
-      taxBreakdown={
-        taxBreakdown.length > 0
-          ? taxBreakdown
-          : [{ name: "Estimated", value: estimatedTax, color: "#166534" }]
-      }
       recentTransactions={recentTransactions}
+      hasBooks={booksPage.total > 0}
+      uncategorizedCount={uncategorizedCount}
+      duplicatesCount={0}
     />
   );
 }
