@@ -33,16 +33,16 @@
 
 
 :root {
-  /* Option C brand tokens — do not reintroduce #408EE0 */
-  --primary: 15 76 117;
-  /* #0F4C75 */
-  --primary-rgb: 15, 76, 117;
-  --primary-deep: 10 47 78;
-  /* #0A2F4E */
-  --accent: 200 240 0;
-  /* #C8F000 */
-  --charcoal: 56 70 75;
-  /* #38464B */
+  /* Option C teal lock — do not reintroduce sky-blue drift, lime, or amber */
+  --primary: 11 58 92;
+  /* #0B3A5C */
+  --primary-rgb: 11, 58, 92;
+  --primary-deep: 7 42 69;
+  /* #072A45 */
+  --accent: 13 148 136;
+  /* #0D9488 */
+  --charcoal: 255 255 255;
+  /* #FFFFFF — on-teal button text */
 
   --background: 244 241 235;
   /* #F4F1EB warm stone */
@@ -113,10 +113,10 @@ body {
   letter-spacing: -0.01em;
 }
 
-/* Brand lime green for toggles and form controls when on/checked */
+/* Brand teal for toggles and form controls when on/checked */
 input[type="radio"]:checked,
 input[type="checkbox"]:checked {
-  accent-color: #C8F000;
+  accent-color: #0D9488;
 }
 
 /* Focus Styles */
@@ -273,8 +273,8 @@ html:has([data-marketing]) #sentry-feedback {
    ======================================== */
 
 .btn-primary {
-  background-color: #c8f000;
-  color: #38464b;
+  background-color: #0d9488;
+  color: #ffffff;
   font-weight: 700;
   padding: 12px 24px;
   border-radius: 10px;
@@ -284,11 +284,11 @@ html:has([data-marketing]) #sentry-feedback {
 }
 
 .btn-primary:hover {
-  background-color: #b5d900;
+  background-color: #0f766e;
 }
 
 .btn-primary:focus-visible {
-  outline: 2px solid #0f4c75;
+  outline: 2px solid #0b3a5c;
   outline-offset: 2px;
 }
 

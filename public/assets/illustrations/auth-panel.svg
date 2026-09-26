@@ -1,11 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="960" height="1200" viewBox="0 0 960 1200" fill="none" role="img" aria-label="Kompleet auth panel — geometric ledger stack">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#0A2F4E"/>
-      <stop offset="100%" stop-color="#0F4C75"/>
+      <stop offset="0%" stop-color="#072A45"/>
+      <stop offset="100%" stop-color="#0B3A5C"/>
     </linearGradient>
     <filter id="soft" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#0A2F4E" flood-opacity="0.35"/>
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#072A45" flood-opacity="0.35"/>
     </filter>
   </defs>
   <rect width="960" height="1200" fill="url(#bg)"/>
@@ -29,8 +29,8 @@
   <!-- front document -->
   <g filter="url(#soft)">
     <rect x="280" y="340" width="440" height="580" rx="24" fill="#FFFDF8"/>
-    <rect x="280" y="340" width="440" height="64" rx="24" fill="#0F4C75"/>
-    <rect x="280" y="380" width="440" height="24" fill="#0F4C75"/>
+    <rect x="280" y="340" width="440" height="64" rx="24" fill="#0B3A5C"/>
+    <rect x="280" y="380" width="440" height="24" fill="#0B3A5C"/>
     <!-- lines -->
     <rect x="320" y="440" width="300" height="12" rx="6" fill="#EBE6DC"/>
     <rect x="320" y="480" width="260" height="12" rx="6" fill="#EBE6DC"/>
@@ -42,12 +42,12 @@
     <rect x="320" y="740" width="240" height="12" rx="6" fill="#EBE6DC"/>
     <!-- Naira glyph -->
     <g transform="translate(360 820)">
-      <rect x="0" y="0" width="72" height="72" rx="16" fill="#0F4C75"/>
+      <rect x="0" y="0" width="72" height="72" rx="16" fill="#0B3A5C"/>
       <text x="36" y="48" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="36" font-weight="700" fill="#FFFDF8">₦</text>
     </g>
-    <!-- lime verified seal -->
-    <circle cx="640" cy="856" r="28" fill="#C8F000"/>
-    <path d="M628 856 l8 8 16 -18" stroke="#38464B" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <!-- teal verified seal -->
+    <circle cx="640" cy="856" r="28" fill="#0D9488"/>
+    <path d="M628 856 l8 8 16 -18" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
   </g>
   <!-- wordmark hint (not logo redraw) -->
   <text x="480" y="1100" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="600" letter-spacing="4" fill="#BAD8F5" fill-opacity="0.7">KOMPLEET</text>

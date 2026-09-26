@@ -1,35 +1,30 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 480" fill="none" role="img" aria-labelledby="taxTitle">
-  <title id="taxTitle">Activity to filing package flow</title>
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="480" viewBox="0 0 1440 480" fill="none" role="img" aria-label="Tax filing flow diagram">
   <rect width="1440" height="480" fill="#F4F1EB"/>
-
-  <!-- Node 1: stacked txn chips -->
-  <rect x="80" y="96" width="340" height="288" rx="16" fill="#FFFDF8" stroke="#0F4C75" stroke-width="1.75"/>
-  <rect x="112" y="140" width="276" height="44" rx="10" fill="#EBE6DC"/>
-  <rect x="128" y="156" width="140" height="8" rx="4" fill="#0F4C75" opacity="0.55"/>
-  <rect x="112" y="200" width="276" height="44" rx="10" fill="#EBE6DC"/>
-  <rect x="128" y="216" width="168" height="8" rx="4" fill="#0F4C75" opacity="0.55"/>
-  <rect x="112" y="260" width="276" height="44" rx="10" fill="#EBE6DC"/>
-  <rect x="128" y="276" width="120" height="8" rx="4" fill="#0F4C75" opacity="0.55"/>
-
-  <path d="M452 240h88" stroke="#0F4C75" stroke-width="2" stroke-linecap="round"/>
-  <path d="M526 224l22 16-22 16" stroke="#0F4C75" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-
-  <!-- Node 2: engine block -->
-  <rect x="580" y="120" width="280" height="240" rx="24" fill="#0F4C75"/>
-  <rect x="620" y="168" width="200" height="12" rx="6" fill="#1B6CA8"/>
-  <rect x="640" y="204" width="160" height="12" rx="6" fill="#0A2F4E"/>
-  <rect x="660" y="240" width="120" height="12" rx="6" fill="#1B6CA8"/>
-  <circle cx="720" cy="300" r="18" fill="#0A2F4E"/>
-  <circle cx="720" cy="300" r="8" fill="#F4F1EB"/>
-
-  <path d="M892 240h88" stroke="#0F4C75" stroke-width="2" stroke-linecap="round"/>
-  <path d="M966 224l22 16-22 16" stroke="#0F4C75" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-
-  <!-- Node 3: filing package with lime ready mark -->
-  <rect x="1020" y="96" width="340" height="288" rx="16" fill="#FFFDF8" stroke="#0F4C75" stroke-width="1.75"/>
-  <path d="M1060 156h120c8 0 12-8 20-8h80c8 0 12 8 20 8h60v188c0 10-8 18-18 18H1078c-10 0-18-8-18-18V156z" fill="#0A2F4E"/>
-  <rect x="1084" y="188" width="88" height="22" rx="6" fill="#1B6CA8"/>
-  <rect x="1184" y="188" width="88" height="22" rx="6" fill="#0F4C75"/>
-  <circle cx="1296" cy="336" r="18" fill="#C8F000"/>
-  <path d="M1288 336.5l5 5 11-12" stroke="#38464B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <g>
+    <rect x="40" y="80" width="340" height="320" rx="20" fill="#FFFDF8" stroke="#DDD5C8" stroke-width="2"/>
+    <rect x="76" y="130" width="268" height="48" rx="12" fill="#EBE6DC"/>
+    <rect x="76" y="200" width="268" height="48" rx="12" fill="#EBE6DC"/>
+    <rect x="76" y="270" width="268" height="48" rx="12" fill="#3D6F99"/>
+    <text x="210" y="302" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="600" fill="#FFFDF8">Transactions</text>
+  </g>
+  <path d="M410 240 H490" stroke="#1B6CA8" stroke-width="5" stroke-linecap="round"/>
+  <path d="M475 226 L495 240 L475 254" fill="none" stroke="#1B6CA8" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <g>
+    <rect x="520" y="60" width="360" height="360" rx="28" fill="#2A5A7A"/>
+    <rect x="568" y="130" width="264" height="220" rx="20" fill="#3D6F99"/>
+    <text x="700" y="230" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="20" font-weight="700" fill="#FFFDF8">Tax Act</text>
+    <text x="700" y="262" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="20" font-weight="700" fill="#D6E8F5">2025 engine</text>
+  </g>
+  <path d="M910 240 H990" stroke="#1B6CA8" stroke-width="5" stroke-linecap="round"/>
+  <path d="M975 226 L995 240 L975 254" fill="none" stroke="#1B6CA8" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <g>
+    <rect x="1020" y="80" width="380" height="320" rx="20" fill="#FFFDF8" stroke="#DDD5C8" stroke-width="2"/>
+    <rect x="1060" y="130" width="200" height="200" rx="14" fill="#EBE6DC"/>
+    <rect x="1080" y="112" width="80" height="32" rx="8" fill="#1B6CA8"/>
+    <text x="1120" y="134" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" fill="#FFFDF8">NRS</text>
+    <rect x="1172" y="112" width="80" height="32" rx="8" fill="#3D6F99"/>
+    <text x="1212" y="134" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" fill="#FFFDF8">LIRS</text>
+    <circle cx="1320" cy="240" r="40" fill="#0D9488"/>
+    <path d="M1304 240 l12 12 24 -26" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
 </svg>

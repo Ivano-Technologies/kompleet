@@ -12,11 +12,13 @@ const trustBarItems = [
 const productProof = [
   {
     src: "/assets/illustrations/import-flow.svg",
+    fallback: "/assets/illustrations/import-flow.png",
     title: "Import",
     caption: "Statements from 11 Nigerian banks, with running-balance checks.",
   },
   {
     src: "/assets/illustrations/invoice-nrs.svg",
+    fallback: "/assets/illustrations/invoice-nrs.png",
     title: "Invoice",
     caption: "NRS-ready invoices with an abstract QR block you can issue today.",
   },
@@ -130,14 +132,17 @@ export default function HomePage() {
               key={item.title}
               className="overflow-hidden rounded-xl border border-border bg-surface"
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={item.src}
-                alt=""
-                width={1200}
-                height={670}
-                className="h-auto w-full"
-              />
+              <picture>
+                <source srcSet={item.src} type="image/svg+xml" />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={item.fallback}
+                  alt=""
+                  width={1200}
+                  height={670}
+                  className="h-auto w-full"
+                />
+              </picture>
               <figcaption className="p-5">
                 <h3 className="font-display text-lg font-bold text-text-1">
                   {item.title}
@@ -193,14 +198,20 @@ export default function HomePage() {
 
       <section className="px-6 py-16 md:px-12">
         <div className="mx-auto max-w-7xl">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/assets/illustrations/tax-filing-flow.svg"
-            alt=""
-            width={1440}
-            height={480}
-            className="h-auto w-full rounded-xl border border-border"
-          />
+          <picture>
+            <source
+              srcSet="/assets/illustrations/tax-filing-flow.svg"
+              type="image/svg+xml"
+            />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/assets/illustrations/tax-filing-flow.png"
+              alt=""
+              width={1440}
+              height={480}
+              className="h-auto w-full rounded-xl border border-border"
+            />
+          </picture>
           <p className="mt-6 text-center text-sm text-text-2">
             From books to NRS/LIRS packages you submit yourself.
           </p>

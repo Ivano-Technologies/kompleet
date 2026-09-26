@@ -3,6 +3,14 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const landing = readFileSync(resolve(process.cwd(), "src/app/page.tsx"), "utf8");
+const tokens = [
+  readFileSync(resolve(process.cwd(), "tailwind.config.cjs"), "utf8"),
+  readFileSync(resolve(process.cwd(), "src/app/globals.css"), "utf8"),
+].join("\n");
+const authLayout = readFileSync(
+  resolve(process.cwd(), "src/components/layout/AuthLayout.tsx"),
+  "utf8",
+);
 const help = readFileSync(
   resolve(process.cwd(), "src/app/(public)/help/page.tsx"),
   "utf8",
@@ -31,5 +39,23 @@ describe("IVA-72 landing copy", () => {
 
   it("does not use kill-listed stock assets", () => {
     expect(landing).not.toMatch(/hero-laptop|auth-lifestyle|expense-tracking\.png|invoicing\.png/);
+  });
+
+  it("wires locked Design illustrations, not invented lifestyle art", () => {
+    expect(landing).toMatch(/import-flow\.svg/);
+    expect(landing).toMatch(/invoice-nrs\.svg/);
+    expect(landing).toMatch(/tax-filing-flow\.svg/);
+    expect(authLayout).toMatch(/auth-panel\.svg/);
+    expect(authLayout).toMatch(/auth-panel\.png/);
+  });
+
+  it("locks Option C navy + teal and strips lime/amber accents", () => {
+    expect(tokens).toMatch(/#0B3A5C/);
+    expect(tokens).toMatch(/#0D9488/);
+    expect(tokens).toMatch(/#0F766E/);
+    expect(tokens).toMatch(/#1B7A4E/);
+    expect(tokens).not.toMatch(/#C8F000|#B5D900|#E8A317|#D4920F/);
+    expect(landing).not.toMatch(/#C8F000|#E8A317/);
+    expect(authLayout).not.toMatch(/#C8F000|#E8A317/);
   });
 });

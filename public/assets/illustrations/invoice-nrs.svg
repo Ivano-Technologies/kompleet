@@ -1,62 +1,50 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 670" fill="none" role="img" aria-labelledby="invoiceTitle">
-  <title id="invoiceTitle">Invoice and abstract NRS QR</title>
-  <rect width="1200" height="670" fill="#FFFDF8"/>
-  <rect x="48" y="80" width="1104" height="510" rx="16" fill="#F4F1EB" stroke="#DDD5C8" stroke-width="1.5"/>
-
-  <!-- Invoice document -->
-  <rect x="108" y="140" width="560" height="390" rx="16" fill="#FFFDF8" stroke="#0F4C75" stroke-width="1.75"/>
-  <rect x="108" y="140" width="560" height="64" rx="16" fill="#0F4C75"/>
-  <rect x="108" y="188" width="560" height="16" fill="#0F4C75"/>
-  <text x="136" y="182" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="500" fill="#F0F9FF">Invoice</text>
-  <rect x="136" y="232" width="200" height="8" rx="4" fill="#EBE6DC"/>
-  <rect x="136" y="264" width="488" height="8" rx="4" fill="#EBE6DC"/>
-  <rect x="136" y="292" width="440" height="8" rx="4" fill="#EBE6DC"/>
-  <rect x="136" y="320" width="464" height="8" rx="4" fill="#EBE6DC"/>
-  <rect x="136" y="360" width="120" height="8" rx="4" fill="#0F4C75" opacity="0.4"/>
-  <text x="280" y="368" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="500" fill="#0D1B2A">�""""</text>
-  <rect x="136" y="396" width="88" height="28" rx="10" fill="#C8F000"/>
-  <text x="180" y="415" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="600" fill="#38464B">Paid</text>
-
-  <!-- Abstract 7x7 QR -->
-  <rect x="748" y="176" width="318" height="318" rx="16" fill="#FFFDF8" stroke="#0F4C75" stroke-width="1.75"/>
-  <g fill="#0F4C75">
-    <rect x="778" y="206" width="28" height="28" rx="3"/>
-    <rect x="814" y="206" width="28" height="28" rx="3"/>
-    <rect x="850" y="206" width="28" height="28" rx="3"/>
-    <rect x="958" y="206" width="28" height="28" rx="3"/>
-    <rect x="994" y="206" width="28" height="28" rx="3"/>
-    <rect x="1030" y="206" width="28" height="28" rx="3"/>
-    <rect x="778" y="242" width="28" height="28" rx="3"/>
-    <rect x="850" y="242" width="28" height="28" rx="3"/>
-    <rect x="886" y="242" width="28" height="28" rx="3"/>
-    <rect x="958" y="242" width="28" height="28" rx="3"/>
-    <rect x="1030" y="242" width="28" height="28" rx="3"/>
-    <rect x="778" y="278" width="28" height="28" rx="3"/>
-    <rect x="814" y="278" width="28" height="28" rx="3"/>
-    <rect x="850" y="278" width="28" height="28" rx="3"/>
-    <rect x="922" y="278" width="28" height="28" rx="3"/>
-    <rect x="994" y="278" width="28" height="28" rx="3"/>
-    <rect x="1030" y="278" width="28" height="28" rx="3"/>
-    <rect x="814" y="314" width="28" height="28" rx="3"/>
-    <rect x="886" y="314" width="28" height="28" rx="3"/>
-    <rect x="922" y="314" width="28" height="28" rx="3"/>
-    <rect x="958" y="314" width="28" height="28" rx="3"/>
-    <rect x="778" y="350" width="28" height="28" rx="3"/>
-    <rect x="850" y="350" width="28" height="28" rx="3"/>
-    <rect x="922" y="350" width="28" height="28" rx="3"/>
-    <rect x="994" y="350" width="28" height="28" rx="3"/>
-    <rect x="1030" y="350" width="28" height="28" rx="3"/>
-    <rect x="778" y="386" width="28" height="28" rx="3"/>
-    <rect x="814" y="386" width="28" height="28" rx="3"/>
-    <rect x="850" y="386" width="28" height="28" rx="3"/>
-    <rect x="958" y="386" width="28" height="28" rx="3"/>
-    <rect x="1030" y="386" width="28" height="28" rx="3"/>
-    <rect x="778" y="422" width="28" height="28" rx="3"/>
-    <rect x="814" y="422" width="28" height="28" rx="3"/>
-    <rect x="850" y="422" width="28" height="28" rx="3"/>
-    <rect x="922" y="422" width="28" height="28" rx="3"/>
-    <rect x="958" y="422" width="28" height="28" rx="3"/>
-    <rect x="994" y="422" width="28" height="28" rx="3"/>
-    <rect x="1030" y="422" width="28" height="28" rx="3"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="670" viewBox="0 0 1200 670" fill="none" role="img" aria-label="NRS invoice and QR">
+  <rect width="1200" height="670" fill="#F4F1EB"/>
+  <g>
+    <rect x="60" y="60" width="520" height="550" rx="20" fill="#FFFDF8" stroke="#DDD5C8" stroke-width="2"/>
+    <rect x="60" y="60" width="520" height="64" rx="20" fill="#1B6CA8"/>
+    <rect x="60" y="100" width="520" height="24" fill="#1B6CA8"/>
+    <text x="96" y="108" font-family="Inter, system-ui, sans-serif" font-size="24" font-weight="700" fill="#FFFDF8">Invoice</text>
+    <rect x="96" y="180" width="260" height="12" rx="6" fill="#EBE6DC"/>
+    <rect x="96" y="216" width="200" height="12" rx="6" fill="#EBE6DC"/>
+    <rect x="96" y="270" width="448" height="2" fill="#DDD5C8"/>
+    <rect x="96" y="310" width="300" height="12" rx="6" fill="#EBE6DC"/>
+    <rect x="460" y="310" width="84" height="12" rx="6" fill="#3D6F99"/>
+    <rect x="96" y="360" width="280" height="12" rx="6" fill="#EBE6DC"/>
+    <rect x="460" y="360" width="84" height="12" rx="6" fill="#3D6F99"/>
+    <rect x="96" y="410" width="260" height="12" rx="6" fill="#EBE6DC"/>
+    <rect x="460" y="410" width="84" height="12" rx="6" fill="#3D6F99"/>
+    <rect x="96" y="490" width="140" height="44" rx="22" fill="#0D9488"/>
+    <text x="166" y="518" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="700" fill="#FFFFFF">Paid</text>
+    <text x="400" y="518" font-family="Inter, system-ui, sans-serif" font-size="22" font-weight="700" fill="#0D1B2A">₦••••</text>
+  </g>
+  <g transform="translate(640 100)">
+    <rect width="480" height="480" rx="24" fill="#FFFDF8" stroke="#DDD5C8" stroke-width="2"/>
+    <g fill="#1B6CA8">
+      <rect x="48" y="48" width="96" height="96" rx="10"/>
+      <rect x="64" y="64" width="64" height="64" rx="6" fill="#FFFDF8"/>
+      <rect x="80" y="80" width="32" height="32" rx="3"/>
+      <rect x="336" y="48" width="96" height="96" rx="10"/>
+      <rect x="352" y="64" width="64" height="64" rx="6" fill="#FFFDF8"/>
+      <rect x="368" y="80" width="32" height="32" rx="3"/>
+      <rect x="48" y="336" width="96" height="96" rx="10"/>
+      <rect x="64" y="352" width="64" height="64" rx="6" fill="#FFFDF8"/>
+      <rect x="80" y="368" width="32" height="32" rx="3"/>
+      <rect x="176" y="56" width="28" height="28" rx="3"/>
+      <rect x="220" y="56" width="28" height="28" rx="3"/>
+      <rect x="176" y="100" width="28" height="28" rx="3"/>
+      <rect x="56" y="176" width="28" height="28" rx="3"/>
+      <rect x="100" y="176" width="28" height="28" rx="3"/>
+      <rect x="176" y="176" width="128" height="128" rx="12"/>
+      <rect x="200" y="200" width="80" height="80" rx="8" fill="#FFFDF8"/>
+      <rect x="220" y="220" width="40" height="40" rx="4" fill="#0D9488"/>
+      <rect x="336" y="176" width="28" height="28" rx="3"/>
+      <rect x="380" y="176" width="28" height="28" rx="3"/>
+      <rect x="176" y="336" width="28" height="28" rx="3"/>
+      <rect x="220" y="380" width="28" height="28" rx="3"/>
+      <rect x="336" y="336" width="28" height="28" rx="3"/>
+      <rect x="380" y="380" width="28" height="28" rx="3"/>
+      <rect x="420" y="248" width="28" height="28" rx="3"/>
+    </g>
   </g>
 </svg>
