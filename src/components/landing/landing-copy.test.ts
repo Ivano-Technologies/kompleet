@@ -39,6 +39,7 @@ describe("IVA-72 landing copy", () => {
 
   it("does not use kill-listed stock assets", () => {
     expect(landing).not.toMatch(/hero-laptop|auth-lifestyle|expense-tracking\.png|invoicing\.png/);
+    expect(landing).not.toMatch(/hero-dashboard-crop\.png|hero-dashboard-full\.png/);
   });
 
   it("wires locked Design illustrations, not invented lifestyle art", () => {
@@ -49,9 +50,22 @@ describe("IVA-72 landing copy", () => {
     expect(authLayout).toMatch(/auth-panel\.png/);
   });
 
-  it("uses Design spot icons and tax-filing-flow proof, not invented tax chrome", () => {
-    expect(landing).toMatch(/ProductChrome variant="dashboard"/);
-    expect(landing).not.toMatch(/ProductChrome variant="tax"/);
+  it("uses Design spot icons, KPI hero crop, and tax-filing-flow — no Demo chrome", () => {
+    expect(landing).toMatch(/hero-dashboard-hero-kpis\.png/);
+    expect(landing).not.toMatch(/ProductChrome/);
+    expect(
+      existsSync(
+        resolve(process.cwd(), "src/components/landing/ProductChrome.tsx"),
+      ),
+    ).toBe(false);
+    expect(
+      existsSync(
+        resolve(
+          process.cwd(),
+          "public/assets/illustrations/hero-dashboard-hero-kpis.png",
+        ),
+      ),
+    ).toBe(true);
     for (const spot of [
       "spot-banks",
       "spot-invoice",

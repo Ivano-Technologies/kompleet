@@ -1,7 +1,6 @@
 import Link from "next/link";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
-import ProductChrome from "@/components/landing/ProductChrome";
 
 const trustBarItems = [
   "11 bank parsers",
@@ -111,7 +110,16 @@ export default function HomePage() {
               Free during beta. No credit card required.
             </p>
           </div>
-          <ProductChrome variant="dashboard" />
+          <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-1">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/assets/illustrations/hero-dashboard-hero-kpis.png"
+              alt="Kompleet dashboard with revenue, expenses, profit, and outstanding invoice KPIs"
+              width={1024}
+              height={280}
+              className="h-auto w-full"
+            />
+          </div>
         </div>
       </header>
 
