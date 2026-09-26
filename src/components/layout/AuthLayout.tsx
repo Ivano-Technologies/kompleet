@@ -2,12 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import AuthPanelArt from "@/components/landing/AuthPanelArt";
 
 type AuthLayoutProps = {
   children: React.ReactNode;
   variant?: "dark-split";
-  /** Kept for callers; the panel is inline SVG. */
   imagePriority?: boolean;
   headerLeftAddon?: React.ReactNode;
   headerRightAddon?: React.ReactNode;
@@ -16,6 +14,7 @@ type AuthLayoutProps = {
 export function AuthLayout({
   children,
   variant = "dark-split",
+  imagePriority = false,
   headerLeftAddon,
   headerRightAddon,
 }: AuthLayoutProps) {
@@ -25,8 +24,19 @@ export function AuthLayout({
 
   return (
     <div data-marketing className="flex min-h-screen w-full bg-bg">
-      <div className="relative hidden md:flex md:w-1/2 md:items-center md:justify-center overflow-hidden bg-gradient-to-b from-primary-deep to-primary p-10">
-        <AuthPanelArt className="h-auto w-full max-h-[85vh]" />
+      <div className="relative hidden min-h-screen overflow-hidden bg-primary-deep md:block md:w-1/2">
+        <picture>
+          <source
+            srcSet="/assets/illustrations/auth-panel.svg"
+            type="image/svg+xml"
+          />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/assets/illustrations/auth-panel.png"
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover object-center"
+          />
+        </picture>
       </div>
 
       <div className="flex w-full items-center justify-center p-6 md:w-1/2 md:p-8">
@@ -38,7 +48,7 @@ export function AuthLayout({
                 alt="Kompleet"
                 width={40}
                 height={40}
-                priority
+                priority={imagePriority}
                 className="rounded-lg"
               />
             </Link>

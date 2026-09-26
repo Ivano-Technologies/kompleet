@@ -1,48 +1,54 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 1200" fill="none" role="img" aria-labelledby="authTitle">
-  <title id="authTitle">Kompleet ledger stack</title>
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="1200" viewBox="0 0 960 1200" fill="none" role="img" aria-label="Kompleet auth panel — geometric ledger stack">
   <defs>
-    <linearGradient id="authWash" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#0A2F4E"/>
-      <stop offset="1" stop-color="#0F4C75"/>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0A2F4E"/>
+      <stop offset="100%" stop-color="#0F4C75"/>
     </linearGradient>
+    <filter id="soft" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#0A2F4E" flood-opacity="0.35"/>
+    </filter>
   </defs>
-  <rect width="960" height="1200" fill="url(#authWash)"/>
-  <rect x="80" y="140" width="800" height="1.5" fill="#1B6CA8" opacity="0.35"/>
-  <rect x="80" y="1060" width="800" height="1.5" fill="#1B6CA8" opacity="0.35"/>
-
-  <!-- Back document -->
-  <rect x="286" y="268" width="420" height="540" rx="16" fill="#0A2F4E" stroke="#1B6CA8" stroke-width="1.75"/>
-  <rect x="318" y="308" width="220" height="10" rx="5" fill="#1B6CA8" opacity="0.7"/>
-  <rect x="318" y="338" width="356" height="8" rx="4" fill="#162438"/>
-  <rect x="318" y="362" width="300" height="8" rx="4" fill="#162438"/>
-  <rect x="318" y="386" width="328" height="8" rx="4" fill="#162438"/>
-
-  <!-- Mid document -->
-  <rect x="246" y="308" width="420" height="540" rx="16" fill="#0F1E2E" stroke="#1B6CA8" stroke-width="1.75"/>
-  <rect x="278" y="348" width="180" height="10" rx="5" fill="#1B6CA8"/>
-  <rect x="278" y="388" width="356" height="8" rx="4" fill="#162438"/>
-  <rect x="278" y="412" width="280" height="8" rx="4" fill="#162438"/>
-  <rect x="278" y="436" width="320" height="8" rx="4" fill="#162438"/>
-  <rect x="278" y="476" width="356" height="8" rx="4" fill="#162438"/>
-  <rect x="278" y="500" width="240" height="8" rx="4" fill="#162438"/>
-
-  <!-- Front document -->
-  <rect x="206" y="348" width="420" height="540" rx="16" fill="#F4F1EB" stroke="#DDD5C8" stroke-width="1.75"/>
-  <rect x="238" y="388" width="148" height="12" rx="6" fill="#0F4C75"/>
-  <rect x="238" y="428" width="356" height="8" rx="4" fill="#EBE6DC"/>
-  <rect x="238" y="456" width="300" height="8" rx="4" fill="#EBE6DC"/>
-  <rect x="238" y="484" width="328" height="8" rx="4" fill="#EBE6DC"/>
-  <rect x="238" y="524" width="356" height="8" rx="4" fill="#EBE6DC"/>
-  <rect x="238" y="552" width="268" height="8" rx="4" fill="#EBE6DC"/>
-  <rect x="238" y="580" width="312" height="8" rx="4" fill="#EBE6DC"/>
-  <rect x="238" y="620" width="120" height="8" rx="4" fill="#0F4C75" opacity="0.45"/>
-  <rect x="370" y="616" width="88" height="16" rx="8" fill="#0F4C75"/>
-
-  <!-- Naira monogram -->
-  <circle cx="720" cy="420" r="54" fill="#0A2F4E"/>
-  <path d="M702 398h36M702 442h36M714 392v56M728 392v56M710 410l28 20" stroke="#F4F1EB" stroke-width="3.5" stroke-linecap="round"/>
-
-  <!-- Single lime verified seal -->
-  <circle cx="596" cy="836" r="22" fill="#C8F000"/>
-  <path d="M586 836.5l7 7 14-16" stroke="#38464B" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect width="960" height="1200" fill="url(#bg)"/>
+  <!-- subtle grid -->
+  <g stroke="#1B6CA8" stroke-opacity="0.25" stroke-width="1">
+    <path d="M0 200 H960 M0 400 H960 M0 600 H960 M0 800 H960 M0 1000 H960"/>
+    <path d="M160 0 V1200 M320 0 V1200 M480 0 V1200 M640 0 V1200 M800 0 V1200"/>
+  </g>
+  <!-- back document -->
+  <g filter="url(#soft)">
+    <rect x="220" y="280" width="420" height="560" rx="24" fill="#EBE6DC" transform="rotate(-6 430 560)"/>
+  </g>
+  <!-- mid document -->
+  <g filter="url(#soft)">
+    <rect x="260" y="300" width="420" height="560" rx="24" fill="#FFFDF8" transform="rotate(3 470 580)"/>
+    <rect x="300" y="360" width="280" height="10" rx="5" fill="#DDD5C8" transform="rotate(3 470 580)"/>
+    <rect x="300" y="390" width="240" height="10" rx="5" fill="#DDD5C8" transform="rotate(3 470 580)"/>
+    <rect x="300" y="420" width="260" height="10" rx="5" fill="#DDD5C8" transform="rotate(3 470 580)"/>
+    <rect x="300" y="450" width="200" height="10" rx="5" fill="#DDD5C8" transform="rotate(3 470 580)"/>
+  </g>
+  <!-- front document -->
+  <g filter="url(#soft)">
+    <rect x="280" y="340" width="440" height="580" rx="24" fill="#FFFDF8"/>
+    <rect x="280" y="340" width="440" height="64" rx="24" fill="#0F4C75"/>
+    <rect x="280" y="380" width="440" height="24" fill="#0F4C75"/>
+    <!-- lines -->
+    <rect x="320" y="440" width="300" height="12" rx="6" fill="#EBE6DC"/>
+    <rect x="320" y="480" width="260" height="12" rx="6" fill="#EBE6DC"/>
+    <rect x="320" y="520" width="280" height="12" rx="6" fill="#EBE6DC"/>
+    <rect x="320" y="560" width="220" height="12" rx="6" fill="#EBE6DC"/>
+    <rect x="320" y="620" width="360" height="1" fill="#DDD5C8"/>
+    <rect x="320" y="660" width="280" height="12" rx="6" fill="#EBE6DC"/>
+    <rect x="320" y="700" width="300" height="12" rx="6" fill="#EBE6DC"/>
+    <rect x="320" y="740" width="240" height="12" rx="6" fill="#EBE6DC"/>
+    <!-- Naira glyph -->
+    <g transform="translate(360 820)">
+      <rect x="0" y="0" width="72" height="72" rx="16" fill="#0F4C75"/>
+      <text x="36" y="48" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="36" font-weight="700" fill="#FFFDF8">₦</text>
+    </g>
+    <!-- lime verified seal -->
+    <circle cx="640" cy="856" r="28" fill="#C8F000"/>
+    <path d="M628 856 l8 8 16 -18" stroke="#38464B" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
+  <!-- wordmark hint (not logo redraw) -->
+  <text x="480" y="1100" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="600" letter-spacing="4" fill="#BAD8F5" fill-opacity="0.7">KOMPLEET</text>
 </svg>
