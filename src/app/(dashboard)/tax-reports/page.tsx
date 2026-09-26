@@ -2,8 +2,10 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { Plus, FileText, Info } from "lucide-react";
+import { Info } from "lucide-react";
 import { useConvexAuth } from "convex/react";
+import { GenerateFromBooksCard } from "@/components/tax/GenerateFromBooksCard";
+import { TAX_COPY } from "@/components/tax/tax-copy";
 
 interface TaxReport {
   id: string;
@@ -31,6 +33,7 @@ export default function TaxReportsPage({
     status?: string;
     reportType?: string;
   }>({});
+  const [showGenerate, setShowGenerate] = useState(false);
 
   const fetchReports = useCallback(async () => {
     try {
@@ -108,12 +111,13 @@ export default function TaxReportsPage({
             Generate and manage reports based on Nigeria Tax Act 2025
           </p>
         </div>
-        <Link
-          href="/tax-reports/generate"
-          className="btn-primary text-sm px-4 py-2 flex items-center gap-1.5 self-start"
+        <button
+          type="button"
+          onClick={() => setShowGenerate((open) => !open)}
+          className="btn-primary text-sm px-4 py-2 self-start"
         >
-          <Plus className="w-3.5 h-3.5" /> Generate Report
-        </Link>
+          {TAX_COPY.cardTitle}
+        </button>
       </div>
 
       {/* Filters */}
@@ -147,6 +151,8 @@ export default function TaxReportsPage({
           <option value="archived">Archived</option>
         </select>
       </div>
+
+      {showGenerate && reports.length > 0 && <GenerateFromBooksCard />}
 
       {/* Info Panel */}
       <div className="flex items-start gap-3 p-4 rounded-lg border border-blue-200 dark:border-blue-800/40 bg-blue-50 dark:bg-blue-900/10">
@@ -205,18 +211,13 @@ export default function TaxReportsPage({
           </p>
         </div>
       ) : reports.length === 0 ? (
-        <div className="py-12 text-center rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
-          <FileText className="w-8 h-8 mx-auto mb-2 text-light-text-tertiary dark:text-dark-text-tertiary opacity-40" />
-          <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-2">
-            No tax reports found
-          </p>
-          <Link
-            href="/tax-reports/generate"
-            className="text-primary-500 hover:text-primary-400 text-sm font-medium"
-          >
-            Generate your first tax report →
-          </Link>
-        </div>
+        isAuthenticated ? (
+          <GenerateFromBooksCard />
+        ) : (
+          <div className="py-12 text-center rounded-xl border border-border bg-surface">
+            <p className="text-sm text-text-2">No tax reports found</p>
+          </div>
+        )
       ) : (
         <div className="rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface overflow-hidden">
           <div className="overflow-x-auto">

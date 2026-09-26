@@ -10,7 +10,8 @@ import {
 } from "lucide-react";
 import TaxReportsPage from "../tax-reports/page";
 import FilingCenterPage from "../filing/page";
-import { DROP_COPY } from "@/components/import/statement-copy";
+import { GenerateFromBooksCard } from "@/components/tax/GenerateFromBooksCard";
+import { TAX_COPY } from "@/components/tax/tax-copy";
 
 const TABS = [
   { id: "overview", label: "Overview" },
@@ -84,7 +85,7 @@ function TaxHubInner() {
     <div className="space-y-6">
       <div>
         <h1 className="font-display text-2xl text-text-1 dark:text-dark-text-1">
-          Tax
+          {TAX_COPY.title}
         </h1>
         <p className="text-sm text-text-2 dark:text-dark-text-2 mt-1">
           Reports, filing packages, statements, and estimates in one place.
@@ -176,34 +177,27 @@ function TaxOverview() {
 
   return (
     <div className="space-y-4">
-      <div className="grid sm:grid-cols-2 gap-4">
+      <div className="grid sm:grid-cols-3 gap-4">
         <div className="rounded-xl border border-border bg-surface p-5">
           <p className="text-xs font-bold uppercase tracking-widest text-text-3">
-            Next deadline
+            VAT return
           </p>
-          <p className="mt-2 font-display text-xl text-text-1">VAT · {vatLabel}</p>
-          <p className="mt-1 text-sm text-text-3">
-            21st of the following month for the prior period.
-          </p>
+          <p className="mt-2 font-display text-lg text-text-1">Due {vatLabel}</p>
         </div>
         <div className="rounded-xl border border-border bg-surface p-5">
           <p className="text-xs font-bold uppercase tracking-widest text-text-3">
-            Generate from books
+            CIT estimate
           </p>
-          <p className="mt-2 text-sm text-text-2">
-            Build a Nigeria Tax Act 2025 report from imported books. Drop a
-            statement first if books are empty.
+          <p className="mt-2 text-sm text-text-2">From imported books</p>
+        </div>
+        <div className="rounded-xl border border-border bg-surface p-5">
+          <p className="text-xs font-bold uppercase tracking-widest text-text-3">
+            PIT
           </p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            <Link href="/tax-reports/generate" className="btn-primary text-sm px-3 py-2">
-              Generate report
-            </Link>
-            <Link href="/dashboard" className="btn-secondary text-sm px-3 py-2">
-              {DROP_COPY.emptyTaxNudge}
-            </Link>
-          </div>
+          <p className="mt-2 text-sm text-text-2">Individual filings</p>
         </div>
       </div>
+      <GenerateFromBooksCard />
       <div className="rounded-xl border border-border bg-surface p-5 flex items-start gap-3">
         <FileText className="w-4 h-4 text-text-2 mt-0.5 shrink-0" />
         <p className="text-sm text-text-2">

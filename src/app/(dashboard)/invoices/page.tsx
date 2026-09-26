@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState, useEffect, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { InvoiceView } from "@/lib/invoices/view-types";
 import {
   Plus,
@@ -9,14 +9,29 @@ import {
   FileText,
   Send,
   Download,
-  ChevronDown,
 } from "lucide-react";
-import { EmptyState } from "@/components/ui/empty-state";
+import { NewInvoiceSheet } from "@/components/invoices/NewInvoiceSheet";
+import { InvoiceDropZone } from "@/components/invoices/InvoiceDropZone";
+import { INV_COPY } from "@/components/invoices/invoice-copy";
+import {
+  clientNameFromFile,
+  createInvoiceDraft,
+  ensureClientFromName,
+} from "@/components/invoices/invoice-actions";
 
 type Invoice = InvoiceView;
 
 export default function InvoicesPage() {
+  return (
+    <Suspense fallback={<p className="text-sm text-text-3 p-6">Loading invoices…</p>}>
+      <InvoicesPageInner />
+    </Suspense>
+  );
+}
+
+function InvoicesPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -25,6 +40,8 @@ export default function InvoicesPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [yearFilter] = useState<number>(new Date().getFullYear());
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [dropNotice, setDropNotice] = useState<string | null>(null);
 
   const fetchInvoices = useCallback(async () => {
     setLoading(true);
@@ -52,6 +69,10 @@ export default function InvoicesPage() {
   useEffect(() => {
     fetchInvoices();
   }, [fetchInvoices]);
+
+  useEffect(() => {
+    if (searchParams.get("new") === "1") setSheetOpen(true);
+  }, [searchParams]);
 
   useEffect(() => {
     if (invoices.length > 0 && !selectedInvoice) {
@@ -98,6 +119,66 @@ export default function InvoicesPage() {
     </span>
   );
 
+  const handleEmptyDrop = async (file: File) => {
+    const client = await ensureClientFromName(clientNameFromFile(file.name));
+    const created = await createInvoiceDraft({
+      client,
+      amount: 0,
+      addVat: true,
+      description: "Services",
+      notes: `Attached: ${file.name}`,
+    });
+    setDropNotice(INV_COPY.dropToast);
+    await fetchInvoices();
+    router.push(`/invoices/${created.invoice_id}`);
+  };
+
+  const showEqualEmpty =
+    !loading &&
+    invoices.length === 0 &&
+    statusFilter === "all" &&
+    !searchQuery;
+
+  if (showEqualEmpty) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="font-display text-2xl text-text-1">{INV_COPY.title}</h1>
+        </div>
+        <p className="text-sm text-text-2">{INV_COPY.emptyTitle}</p>
+        {dropNotice && <p className="text-sm text-success">{dropNotice}</p>}
+        <div className="grid md:grid-cols-2 gap-4">
+          <div className="rounded-xl border border-border bg-surface p-5">
+            <h2 className="text-sm font-semibold text-text-1 mb-3">
+              {INV_COPY.emptyDropTitle}
+            </h2>
+            <InvoiceDropZone compact onFile={handleEmptyDrop} />
+          </div>
+          <div className="rounded-xl border border-border bg-surface p-5 flex flex-col justify-between min-h-[180px]">
+            <div>
+              <h2 className="text-sm font-semibold text-text-1">
+                {INV_COPY.emptyCreateTitle}
+              </h2>
+              <p className="text-xs text-text-3 mt-1">{INV_COPY.sheetHow}</p>
+            </div>
+            <button
+              type="button"
+              className="btn-primary text-sm px-3 py-2 self-start"
+              onClick={() => setSheetOpen(true)}
+            >
+              {INV_COPY.emptyCreateCta}
+            </button>
+          </div>
+        </div>
+        <NewInvoiceSheet
+          open={sheetOpen}
+          onClose={() => setSheetOpen(false)}
+          onCreated={() => void fetchInvoices()}
+        />
+      </div>
+    );
+  }
+
   return (
     <div
       className="flex -m-4 lg:-m-6"
@@ -108,14 +189,15 @@ export default function InvoicesPage() {
         {/* Header */}
         <div className="p-5 border-b border-light-border dark:border-dark-border">
           <div className="flex items-center justify-between mb-1">
-            <h1 className="text-xl font-bold text-light-text-primary dark:text-dark-text-primary">
-              Invoices
+            <h1 className="font-display text-xl text-text-1">
+              {INV_COPY.title}
             </h1>
             <button
-              onClick={() => router.push("/invoices/new")}
+              type="button"
+              onClick={() => setSheetOpen(true)}
               className="btn-primary text-sm px-3 py-2 flex items-center gap-1.5"
             >
-              <Plus className="w-3.5 h-3.5" /> New
+              <Plus className="w-3.5 h-3.5" /> {INV_COPY.ctaNew}
             </button>
           </div>
           <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
@@ -169,13 +251,10 @@ export default function InvoicesPage() {
               </p>
             </div>
           ) : filteredInvoices.length === 0 ? (
-            <div className="p-6">
-              <EmptyState
-                icon={FileText}
-                title="No invoices yet"
-                description="Create an invoice to track revenue and keep your records tax-ready."
-                action={{ label: "Create invoice", onClick: () => router.push("/invoices/new") }}
-              />
+            <div className="p-4 text-sm text-text-3">
+              {searchQuery || statusFilter !== "all"
+                ? "No invoices match these filters."
+                : INV_COPY.emptyTitle}
             </div>
           ) : (
             <div className="divide-y divide-light-border/50 dark:divide-dark-border/50">
@@ -449,6 +528,11 @@ export default function InvoicesPage() {
           </div>
         )}
       </div>
+      <NewInvoiceSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        onCreated={() => void fetchInvoices()}
+      />
     </div>
   );
 }

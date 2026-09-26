@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
 import {
   FileText,
   Download,
@@ -10,6 +9,11 @@ import {
   Clock,
   Info,
 } from "lucide-react";
+import {
+  FilingGenerateSheet,
+  MarkFiledSheet,
+} from "@/components/tax/FilingGenerateSheet";
+import { TAX_COPY } from "@/components/tax/tax-copy";
 
 interface Form {
   id: string;
@@ -34,6 +38,9 @@ export default function FilingCenterPage({
   const [loading, setLoading] = useState(true);
   const [selectedFormType, setSelectedFormType] = useState<string>("all");
   const [selectedYear, setSelectedYear] = useState<number>(2026);
+  const [showGenerateModal, setShowGenerateModal] = useState(false);
+  const [filedToast, setFiledToast] = useState<string | null>(null);
+  const [markFormId, setMarkFormId] = useState<string | null>(null);
 
   const fetchForms = useCallback(async () => {
     setLoading(true);
@@ -110,13 +117,15 @@ export default function FilingCenterPage({
           <p className={`text-sm text-light-text-secondary dark:text-dark-text-secondary ${embedded ? "" : "mt-1"}`}>
             Generate and manage your NRS tax forms
           </p>
+          {filedToast && <p className="text-sm text-success mt-2">{filedToast}</p>}
         </div>
-        <Link
-          href="/tax-reports/generate"
+        <button
+          type="button"
+          onClick={() => setShowGenerateModal(true)}
           className="btn-primary text-sm px-4 py-2 flex items-center gap-1.5 self-start"
         >
-          <FileText className="w-3.5 h-3.5" /> Generate New Form
-        </Link>
+          <FileText className="w-3.5 h-3.5" /> {TAX_COPY.filingGenTitle}
+        </button>
       </div>
 
       {/* Filters */}
@@ -193,12 +202,13 @@ export default function FilingCenterPage({
             <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary mb-4">
               Generate your first NRS tax form to get started
             </p>
-            <Link
-              href="/tax-reports/generate"
+            <button
+              type="button"
+              onClick={() => setShowGenerateModal(true)}
               className="btn-primary text-sm px-4 py-2 inline-flex"
             >
-              Generate Form
-            </Link>
+              {TAX_COPY.filingGenCta}
+            </button>
           </div>
         ) : (
           <div className="divide-y divide-light-border/50 dark:divide-dark-border/50">
@@ -255,12 +265,24 @@ export default function FilingCenterPage({
                           )}
                       </div>
                     </div>
-                    <button
-                      onClick={() => handleDownload(form)}
-                      className="btn-primary text-xs px-3 py-1.5 flex items-center gap-1.5 flex-shrink-0"
-                    >
-                      <Download className="w-3 h-3" /> Download
-                    </button>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => handleDownload(form)}
+                        className="btn-primary text-xs px-3 py-1.5 flex items-center gap-1.5"
+                      >
+                        <Download className="w-3 h-3" /> Download
+                      </button>
+                      {form.status !== "filed" && (
+                        <button
+                          type="button"
+                          onClick={() => setMarkFormId(form.id)}
+                          className="btn-secondary text-xs px-3 py-1.5"
+                        >
+                          {TAX_COPY.filingMark}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
@@ -268,6 +290,28 @@ export default function FilingCenterPage({
           </div>
         )}
       </div>
+
+      <FilingGenerateSheet
+        open={showGenerateModal}
+        onClose={() => setShowGenerateModal(false)}
+        onGenerated={(result) => {
+          const link = document.createElement("a");
+          link.href = result.pdfUrl;
+          link.download = `NRS_${result.formType}_${result.formId.slice(0, 8)}.pdf`;
+          link.click();
+          setFiledToast(TAX_COPY.filingToast);
+          void fetchForms();
+        }}
+      />
+      <MarkFiledSheet
+        open={Boolean(markFormId)}
+        formId={markFormId}
+        onClose={() => setMarkFormId(null)}
+        onFiled={() => {
+          setFiledToast("Marked as filed");
+          void fetchForms();
+        }}
+      />
     </div>
   );
 }
