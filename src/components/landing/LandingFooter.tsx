@@ -1,129 +1,135 @@
-import Image from 'next/image';
-import Link from 'next/link';
+import Image from "next/image";
+import Link from "next/link";
 
-const LOGO_URL =
-  "/logo.png";
+const LOGO_URL = "/assets/logo-primary.png";
 
 export default function LandingFooter() {
   return (
-    <footer className="border-t border-[rgb(var(--border))] bg-[rgb(var(--surface))] dark:bg-dark-bg py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-10">
+    <footer className="border-t border-border bg-surface py-12">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mb-10 grid grid-cols-2 gap-8 md:grid-cols-5">
           <div className="col-span-2 md:col-span-1">
-            <div className="flex items-center gap-2 mb-4">
-              <Image src={LOGO_URL} alt="KOMPLEET" width={28} height={28} className="rounded" />
-              <span className="font-bold text-[rgb(var(--text-primary))]">KOMPLEET</span>
+            <div className="mb-4 flex items-center gap-2">
+              <Image
+                src={LOGO_URL}
+                alt="KOMPLEET"
+                width={28}
+                height={28}
+                className="rounded"
+              />
+              <span className="font-ceoruse text-sm font-bold uppercase text-text-1">
+                KOMPLEET
+              </span>
             </div>
-            <p className="text-sm text-[rgb(var(--text-secondary))] leading-relaxed">
+            <p className="text-sm leading-relaxed text-text-2">
               Tax compliance and financial management for Nigerian SMEs.
             </p>
           </div>
           <div>
-            <h4 className="font-semibold text-sm mb-4 text-[rgb(var(--text-primary))]">Product</h4>
-            <ul className="space-y-2.5 text-sm text-[rgb(var(--text-secondary))]">
+            <h4 className="mb-4 text-sm font-semibold text-text-1">Product</h4>
+            <ul className="space-y-2.5 text-sm text-text-2">
               <li>
-                <a href="#features" className="hover:text-[rgb(var(--text-primary))] transition-colors">
+                <Link href="/#features" className="hover:text-text-1">
                   Features
-                </a>
+                </Link>
               </li>
               <li>
-                <Link href="/pricing" className="hover:text-[rgb(var(--text-primary))] transition-colors">
+                <Link href="/pricing" className="hover:text-text-1">
                   Pricing
                 </Link>
               </li>
               <li>
-                <Link href="/#features" className="hover:text-[rgb(var(--text-primary))] transition-colors">
+                <Link href="/#security" className="hover:text-text-1">
                   Security
                 </Link>
               </li>
               <li>
-                <Link href="/api-docs" className="hover:text-[rgb(var(--text-primary))] transition-colors">
+                <Link href="/api-docs" className="hover:text-text-1">
                   API Docs
                 </Link>
               </li>
             </ul>
           </div>
           <div>
-            <h4 className="font-semibold text-sm mb-4 text-[rgb(var(--text-primary))]">Company</h4>
-            <ul className="space-y-2.5 text-sm text-[rgb(var(--text-secondary))]">
+            <h4 className="mb-4 text-sm font-semibold text-text-1">Company</h4>
+            <ul className="space-y-2.5 text-sm text-text-2">
               <li>
-                <Link href="/about" className="hover:text-[rgb(var(--text-primary))] transition-colors">
+                <Link href="/about" className="hover:text-text-1">
                   About
                 </Link>
               </li>
               <li>
-                <Link href="/help" className="hover:text-[rgb(var(--text-primary))] transition-colors">
-                  Blog
+                <Link href="/help" className="hover:text-text-1">
+                  Help
                 </Link>
               </li>
               <li>
-                <Link href="/careers" className="hover:text-[rgb(var(--text-primary))] transition-colors">
+                <Link href="/careers" className="hover:text-text-1">
                   Careers
                 </Link>
               </li>
               <li>
-                <Link href="/contact" className="hover:text-[rgb(var(--text-primary))] transition-colors">
+                <Link href="/contact" className="hover:text-text-1">
                   Contact
                 </Link>
               </li>
             </ul>
           </div>
           <div>
-            <h4 className="font-semibold text-sm mb-4 text-[rgb(var(--text-primary))]">Resources</h4>
-            <ul className="space-y-2.5 text-sm text-[rgb(var(--text-secondary))]">
+            <h4 className="mb-4 text-sm font-semibold text-text-1">Resources</h4>
+            <ul className="space-y-2.5 text-sm text-text-2">
               <li>
-                <Link href="/help" className="hover:text-[rgb(var(--text-primary))] transition-colors">
+                <Link href="/help" className="hover:text-text-1">
                   Help Center
                 </Link>
               </li>
               <li>
-                <Link href="/help" className="hover:text-[rgb(var(--text-primary))] transition-colors">
-                  Guides
+                <Link href="/press" className="hover:text-text-1">
+                  Press
                 </Link>
               </li>
               <li>
-                <Link href="/help" className="hover:text-[rgb(var(--text-primary))] transition-colors">
-                  Webinars
+                <Link href="/help" className="hover:text-text-1">
+                  Guides
                 </Link>
               </li>
             </ul>
           </div>
           <div>
-            <h4 className="font-semibold text-sm mb-4 text-[rgb(var(--text-primary))]">Legal</h4>
-            <ul className="space-y-2.5 text-sm text-[rgb(var(--text-secondary))]">
+            <h4 className="mb-4 text-sm font-semibold text-text-1">Legal</h4>
+            <ul className="space-y-2.5 text-sm text-text-2">
               <li>
-                <Link href="/privacy" className="hover:text-[rgb(var(--text-primary))] transition-colors">
+                <Link href="/privacy" className="hover:text-text-1">
                   Privacy
                 </Link>
               </li>
               <li>
-                <Link href="/terms" className="hover:text-[rgb(var(--text-primary))] transition-colors">
+                <Link href="/terms" className="hover:text-text-1">
                   Terms
                 </Link>
               </li>
               <li>
-                <Link href="/cookies" className="hover:text-[rgb(var(--text-primary))] transition-colors">
+                <Link href="/cookies" className="hover:text-text-1">
                   Cookies
                 </Link>
               </li>
             </ul>
           </div>
         </div>
-        <div className="border-t border-[rgb(var(--border))] pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-[rgb(var(--text-secondary))] dark:text-white">
+        <div className="flex flex-col items-center justify-between gap-4 border-t border-border pt-8 text-sm text-text-2 md:flex-row">
           <p>&copy; 2026 KOMPLEET by Ivano Technologies Ltd. All rights reserved.</p>
           <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1">
-            <a href="mailto:hi@ivanotechnologies.com" className="hover:text-[rgb(var(--text-primary))] dark:hover:text-accent transition-colors">hi@ivanotechnologies.com</a>
-            <a href="mailto:support@ivanotechnologies.com" className="hover:text-[rgb(var(--text-primary))] dark:hover:text-accent transition-colors">support@ivanotechnologies.com</a>
-          </div>
-          <div className="flex gap-5">
-            <a href="https://twitter.com/kompleetng" target="_blank" rel="noopener noreferrer" className="hover:text-[rgb(var(--text-primary))] dark:hover:text-accent transition-colors">
-              Twitter
+            <a
+              href="mailto:hi@ivanotechnologies.com"
+              className="hover:text-text-1"
+            >
+              hi@ivanotechnologies.com
             </a>
-            <a href="https://www.linkedin.com/company/kompleet" target="_blank" rel="noopener noreferrer" className="hover:text-[rgb(var(--text-primary))] dark:hover:text-accent transition-colors">
-              LinkedIn
-            </a>
-            <a href="https://instagram.com/kompleet.ng" target="_blank" rel="noopener noreferrer" className="hover:text-[rgb(var(--text-primary))] dark:hover:text-accent transition-colors">
-              Instagram
+            <a
+              href="mailto:support@ivanotechnologies.com"
+              className="hover:text-text-1"
+            >
+              support@ivanotechnologies.com
             </a>
           </div>
         </div>

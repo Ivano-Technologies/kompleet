@@ -10,11 +10,11 @@ export const metadata: Metadata = {
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen bg-light-background dark:bg-dark-background py-12 px-4 sm:px-6 lg:px-8">
+    <div data-marketing className="min-h-screen bg-bg dark:bg-dark-bg py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         <Link
           href="/"
-          className="text-sm text-blue-600 hover:underline dark:text-blue-400 mb-6 inline-block"
+          className="text-sm text-primary hover:underline dark:text-dark-text-2 mb-6 inline-block"
         >
           &larr; Back to Home
         </Link>
@@ -475,7 +475,7 @@ export default function TermsPage() {
               If you have any dispute with us, please contact us first at{" "}
               <a
                 href="mailto:support@ivanotechnologies.com"
-                className="text-blue-600 hover:underline"
+                className="text-primary hover:underline"
               >
                 support@ivanotechnologies.com
               </a>{" "}
@@ -592,7 +592,7 @@ export default function TermsPage() {
                 Email:{" "}
                 <a
                   href="mailto:support@ivanotechnologies.com"
-                  className="text-blue-600 hover:underline"
+                  className="text-primary hover:underline"
                 >
                   support@ivanotechnologies.com
                 </a>
@@ -601,7 +601,7 @@ export default function TermsPage() {
                 Website:{" "}
                 <a
                   href="https://techivano.com"
-                  className="text-blue-600 hover:underline"
+                  className="text-primary hover:underline"
                 >
                   https://techivano.com
                 </a>

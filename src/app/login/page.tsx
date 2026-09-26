@@ -69,7 +69,7 @@ function LoginForm() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="mt-2 h-[52px] w-full rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 text-sm text-text-1 focus:border-accent focus:ring-2 focus:ring-accent/20 dark:text-dark-text-1"
+            className="mt-2 h-[52px] w-full rounded-md border border-border bg-surface px-4 text-sm text-text-1 focus:border-primary focus:ring-2 focus:ring-primary/20"
           />
         </div>
         <div className="mt-2 mb-2 flex items-center justify-between">
@@ -90,7 +90,7 @@ function LoginForm() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            className="h-[52px] w-full rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 pr-11 text-sm text-text-1 focus:border-accent focus:ring-2 focus:ring-accent/20 dark:text-dark-text-1"
+            className="h-[52px] w-full rounded-md border border-border bg-surface px-4 pr-11 text-sm text-text-1 focus:border-primary focus:ring-2 focus:ring-primary/20"
           />
           <button
             type="button"
@@ -109,7 +109,7 @@ function LoginForm() {
           <button
             type="submit"
             disabled={loading}
-            className="mt-6 h-[52px] w-full rounded-xl bg-accent text-sm font-bold text-charcoal transition-colors hover:bg-accent-hover disabled:opacity-50"
+            className="mt-6 h-[52px] w-full rounded-md bg-accent text-sm font-bold text-charcoal hover:bg-accent-hover disabled:opacity-50"
           >
             {loading ? "Signing in…" : "Sign In →"}
           </button>
@@ -117,8 +117,8 @@ function LoginForm() {
       </form>
       <p className="mt-4 text-center text-sm text-text-3 dark:text-dark-text-3">
         New to Kompleet?{" "}
-        <Link href="/signup" className="font-bold uppercase tracking-wider text-accent hover:text-accent-hover dark:text-accent">
-          Get Started for Free
+        <Link href="/signup" className="font-bold text-primary hover:underline">
+          Get started
         </Link>
       </p>
     </AuthLayout>

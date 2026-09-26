@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import LandingNav from "@/components/landing/LandingNav";
+import LandingFooter from "@/components/landing/LandingFooter";
 
 export const metadata: Metadata = {
   title: "Help Center | KOMPLEET",
@@ -31,12 +33,12 @@ const faqs = [
   {
     question: "Is my financial data secure?",
     answer:
-      "Yes. Data is encrypted in transit and at rest. We use Supabase with row-level security. Production data is hosted in the EU (Ireland). We do not claim Nigerian data residency.",
+      "Yes. Data is encrypted in transit and at rest. The app is hosted on Convex. We do not claim Nigerian data residency.",
   },
   {
     question: "What happens after the beta period?",
     answer:
-      "We will introduce affordable pricing tiers designed for Nigerian SMEs. Beta users will receive early-bird pricing. We will communicate all changes well in advance.",
+      "We will publish paid tiers for Nigerian SMEs before charging anyone. Beta users get advance notice and a stated early-tester discount.",
   },
   {
     question: "Can I export my data?",
@@ -50,103 +52,83 @@ const faqs = [
   },
 ];
 
+const topics = [
+  {
+    title: "Getting started",
+    body: "Create an account, add your business profile, then import a statement or issue an invoice.",
+  },
+  {
+    title: "Tax compliance",
+    body: "VAT, CIT, and filing-ready NRS and LIRS form generation.",
+  },
+  {
+    title: "Contact support",
+    body: "Need more help? Reach out and we will reply on a business day.",
+  },
+];
+
 export default function HelpPage() {
   return (
-    <div className="min-h-screen bg-light-background dark:bg-dark-background py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
-        <Link
-          href="/"
-          className="text-sm text-blue-600 hover:underline mb-8 inline-block"
-        >
-          &larr; Back to Home
-        </Link>
-
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-light-text-primary dark:text-dark-text-primary mb-4">
-            Help Center
-          </h1>
-          <p className="text-lg text-light-text-secondary dark:text-dark-text-secondary">
-            Find answers to common questions about using KOMPLEET.
+    <div data-marketing className="flex min-h-screen flex-col bg-bg text-text-1">
+      <LandingNav />
+      <main className="mx-auto w-full max-w-4xl flex-1 px-6 py-16">
+        <div className="mb-12 text-center">
+          <h1 className="font-display mb-4 text-4xl font-bold">Help Center</h1>
+          <p className="text-lg text-text-2">
+            Answers about using KOMPLEET today.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6 mb-12">
-          <div className="bg-light-surface dark:bg-dark-surface rounded-lg p-6 text-center">
-            <div className="text-3xl mb-3">&#128218;</div>
-            <h3 className="font-semibold text-light-text-primary dark:text-dark-text-primary mb-2">
-              Getting Started
-            </h3>
-            <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
-              New to KOMPLEET? Start here to set up your account and learn the
-              basics.
-            </p>
-          </div>
-          <div className="bg-light-surface dark:bg-dark-surface rounded-lg p-6 text-center">
-            <div className="text-3xl mb-3">&#9881;</div>
-            <h3 className="font-semibold text-light-text-primary dark:text-dark-text-primary mb-2">
-              Tax Compliance
-            </h3>
-            <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
-              Learn about VAT, CIT, and filing-ready NRS and LIRS form generation.
-            </p>
-          </div>
-          <div className="bg-light-surface dark:bg-dark-surface rounded-lg p-6 text-center">
-            <div className="text-3xl mb-3">&#128172;</div>
-            <h3 className="font-semibold text-light-text-primary dark:text-dark-text-primary mb-2">
-              Contact Support
-            </h3>
-            <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
-              Need more help?{" "}
-              <Link href="/contact" className="text-blue-600 hover:underline">
-                Reach out
-              </Link>{" "}
-              to our support team.
-            </p>
-          </div>
+        <div className="mb-12 grid gap-6 md:grid-cols-3">
+          {topics.map((topic) => (
+            <div
+              key={topic.title}
+              className="rounded-xl border border-border bg-surface p-6"
+            >
+              <h3 className="mb-2 font-semibold text-text-1">{topic.title}</h3>
+              <p className="text-sm text-text-2">{topic.body}</p>
+              {topic.title === "Contact support" && (
+                <p className="mt-3 text-sm">
+                  <Link href="/contact" className="text-primary hover:underline">
+                    Contact us
+                  </Link>
+                </p>
+              )}
+            </div>
+          ))}
         </div>
 
-        <div className="bg-light-surface dark:bg-dark-surface rounded-lg p-8">
-          <h2 className="text-2xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-8">
-            Frequently Asked Questions
+        <div className="rounded-xl border border-border bg-surface p-8">
+          <h2 className="font-display mb-8 text-2xl font-semibold">
+            Frequently asked questions
           </h2>
           <div className="space-y-6">
-            {faqs.map((faq, index) => (
+            {faqs.map((faq) => (
               <div
-                key={index}
-                className="border-b border-light-border dark:border-dark-border pb-6 last:border-0 last:pb-0"
+                key={faq.question}
+                className="border-b border-border pb-6 last:border-0 last:pb-0"
               >
-                <h3 className="text-lg font-medium text-light-text-primary dark:text-dark-text-primary mb-2">
+                <h3 className="mb-2 text-lg font-medium text-text-1">
                   {faq.question}
                 </h3>
-                <p className="text-light-text-secondary dark:text-dark-text-secondary">
-                  {faq.answer}
-                </p>
+                <p className="text-text-2">{faq.answer}</p>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="mt-8 bg-light-surface dark:bg-dark-surface rounded-lg p-8 text-center">
-          <h3 className="text-lg font-semibold text-light-text-primary dark:text-dark-text-primary mb-2">
-            Still need help?
-          </h3>
-          <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-            Our support team is here for you.
-          </p>
+        <div className="mt-8 rounded-xl border border-border bg-surface p-8 text-center">
+          <h3 className="mb-2 text-lg font-semibold">Still need help?</h3>
+          <p className="mb-4 text-text-2">Write to support and we will reply.</p>
           <Link
             href="/contact"
-            className="inline-block bg-green-700 text-white font-semibold py-2 px-6 rounded-lg hover:bg-green-800 transition-colors"
+            className="inline-block rounded-md bg-accent px-6 py-3 text-sm font-bold text-charcoal hover:bg-accent-hover"
           >
-            Contact Support
+            Contact support
           </Link>
         </div>
-
-        <div className="mt-12 pt-8 border-t border-light-border dark:border-dark-border">
-          <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary text-center">
-            &copy; 2026 Ivano Technologies Ltd. All rights reserved.
-          </p>
-        </div>
-      </div>
+      </main>
+      <LandingFooter />
     </div>
   );
 }
