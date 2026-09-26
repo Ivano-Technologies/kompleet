@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { BrandWordmark } from "@/components/brand/BrandWordmark";
+import { HERO_AUTH_ID, requestHeroAuth } from "@/components/landing/hero-auth";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Menu, Moon, Sun, X } from "lucide-react";
 
@@ -13,9 +14,23 @@ const NAV_LINKS = [
   { href: "/contact", label: "Contact" },
 ] as const;
 
-export default function LandingNav() {
+type LandingNavProps = {
+  /** Homepage: Sign in focuses the hero form; Get started is omitted. */
+  heroAuth?: boolean;
+};
+
+export default function LandingNav({ heroAuth = false }: LandingNavProps) {
   const { theme, toggleTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const signInHref = heroAuth ? `#${HERO_AUTH_ID}` : "/login";
+
+  const handleSignInClick = () => {
+    setMobileMenuOpen(false);
+    if (heroAuth) {
+      requestHeroAuth("signin");
+    }
+  };
 
   return (
     <nav className="sticky top-0 z-50 border-b border-border bg-bg/90 backdrop-blur-md">
@@ -44,17 +59,20 @@ export default function LandingNav() {
             )}
           </button>
           <Link
-            href="/login"
-            className="rounded-md border border-border bg-surface px-4 py-2 text-sm font-semibold text-text-1"
+            href={signInHref}
+            onClick={handleSignInClick}
+            className="text-sm font-semibold text-text-1 transition-colors hover:text-primary"
           >
             Sign in
           </Link>
-          <Link
-            href="/signup"
-            className="rounded-md bg-accent px-4 py-2 text-sm font-bold text-charcoal hover:bg-accent-hover"
-          >
-            Get started
-          </Link>
+          {heroAuth ? null : (
+            <Link
+              href="/signup"
+              className="rounded-md bg-accent px-4 py-2 text-sm font-bold text-charcoal hover:bg-accent-hover"
+            >
+              Get started
+            </Link>
+          )}
         </div>
 
         <button
@@ -98,17 +116,20 @@ export default function LandingNav() {
           </button>
           <div className="flex gap-2 pt-2">
             <Link
-              href="/login"
-              className="flex-1 rounded-md border border-border bg-surface px-4 py-2 text-center text-sm font-semibold text-text-1"
+              href={signInHref}
+              onClick={handleSignInClick}
+              className="flex-1 px-4 py-2 text-center text-sm font-semibold text-text-1"
             >
               Sign in
             </Link>
-            <Link
-              href="/signup"
-              className="flex-1 rounded-md bg-accent px-4 py-2 text-center text-sm font-bold text-charcoal hover:bg-accent-hover"
-            >
-              Get started
-            </Link>
+            {heroAuth ? null : (
+              <Link
+                href="/signup"
+                className="flex-1 rounded-md bg-accent px-4 py-2 text-center text-sm font-bold text-charcoal hover:bg-accent-hover"
+              >
+                Get started
+              </Link>
+            )}
           </div>
         </div>
       )}
