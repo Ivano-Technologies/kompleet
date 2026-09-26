@@ -1,4 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 88 88" fill="none" role="img" aria-hidden="true">
-  <path d="M20 30h16c3 0 5-4 8-4h24c3 0 5 4 8 4h8v34c0 4-3 7-7 7H27c-4 0-7-3-7-7V30z" stroke="#0B3A5C" stroke-width="1.75" stroke-linejoin="round"/>
-  <rect x="30" y="42" width="28" height="4" rx="2" fill="#0B3A5C"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="88" height="88" viewBox="0 0 88 88" fill="none" role="img" aria-label="Filing folder">
+  <!-- tab -->
+  <path d="M20 34 H20 V28 c0 -2.2 1.8 -4 4 -4 h18 c1.2 0 2.2 0.6 2.8 1.6 L48 32 H64 c2.2 0 4 1.8 4 4 v30 c0 2.2 -1.8 4 -4 4 H24 c-2.2 0 -4 -1.8 -4 -4 V34 Z"
+        fill="#EBE6DC" stroke="#0B3A5C" stroke-width="1.75" stroke-linejoin="round"/>
+  <line x1="20" y1="40" x2="68" y2="40" stroke="#0B3A5C" stroke-width="1.75" stroke-linecap="round"/>
+  <rect x="30" y="50" width="16" height="5" rx="2.5" fill="#0D9488"/>
 </svg>

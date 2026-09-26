@@ -1,6 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 88 88" fill="none" role="img" aria-hidden="true">
-  <rect x="18" y="18" width="52" height="52" rx="10" stroke="#0B3A5C" stroke-width="1.75"/>
-  <rect x="28" y="48" width="8" height="14" rx="2" fill="#0B3A5C"/>
-  <rect x="40" y="36" width="8" height="26" rx="2" fill="#0B3A5C"/>
-  <rect x="52" y="42" width="8" height="20" rx="2" fill="#0B3A5C"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="88" height="88" viewBox="0 0 88 88" fill="none" role="img" aria-label="P and L bars">
+  <!-- baseline -->
+  <line x1="18" y1="68" x2="70" y2="68" stroke="#0B3A5C" stroke-width="1.75" stroke-linecap="round"/>
+  <!-- bars -->
+  <rect x="22" y="44" width="10" height="24" rx="2" fill="#0B3A5C"/>
+  <rect x="38" y="28" width="10" height="40" rx="2" fill="#0B3A5C"/>
+  <rect x="54" y="36" width="10" height="32" rx="2" fill="#0B3A5C"/>
+  <!-- optional teal tip on tallest = highlight -->
+  <rect x="38" y="22" width="10" height="6" rx="2" fill="#0D9488"/>
 </svg>

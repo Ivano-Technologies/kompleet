@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -39,6 +39,7 @@ describe("IVA-72 landing copy", () => {
 
   it("does not use kill-listed stock assets", () => {
     expect(landing).not.toMatch(/hero-laptop|auth-lifestyle|expense-tracking\.png|invoicing\.png/);
+    expect(landing).not.toMatch(/hero-dashboard-crop\.png|hero-dashboard-full\.png/);
   });
 
   it("wires locked Design illustrations, not invented lifestyle art", () => {
@@ -47,6 +48,41 @@ describe("IVA-72 landing copy", () => {
     expect(landing).toMatch(/tax-filing-flow\.svg/);
     expect(authLayout).toMatch(/auth-panel\.svg/);
     expect(authLayout).toMatch(/auth-panel\.png/);
+  });
+
+  it("uses Design spot icons, KPI hero crop, and tax-filing-flow — no Demo chrome", () => {
+    expect(landing).toMatch(/hero-dashboard-hero-kpis\.png/);
+    expect(landing).not.toMatch(/ProductChrome/);
+    expect(
+      existsSync(
+        resolve(process.cwd(), "src/components/landing/ProductChrome.tsx"),
+      ),
+    ).toBe(false);
+    expect(
+      existsSync(
+        resolve(
+          process.cwd(),
+          "public/assets/illustrations/hero-dashboard-hero-kpis.png",
+        ),
+      ),
+    ).toBe(true);
+    for (const spot of [
+      "spot-banks",
+      "spot-invoice",
+      "spot-vat",
+      "spot-filing",
+      "spot-reports",
+      "spot-security",
+    ]) {
+      expect(landing).toMatch(new RegExp(`${spot}\\.svg`));
+      expect(landing).toMatch(new RegExp(`${spot}\\.png`));
+      expect(
+        existsSync(resolve(process.cwd(), `public/assets/illustrations/${spot}.svg`)),
+      ).toBe(true);
+      expect(
+        existsSync(resolve(process.cwd(), `public/assets/illustrations/${spot}.png`)),
+      ).toBe(true);
+    }
   });
 
   it("locks Option C navy + teal and strips lime/amber accents", () => {
