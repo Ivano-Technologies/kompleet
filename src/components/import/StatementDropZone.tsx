@@ -25,6 +25,11 @@ interface StatementDropZoneProps {
   disabled?: boolean;
   className?: string;
   inputId?: string;
+  title?: string;
+  subtitle?: string;
+  chooseLabel?: string;
+  showWhy?: boolean;
+  showBankSelect?: boolean;
 }
 
 const ACCEPT = ".csv,.xlsx,.xls,.pdf";
@@ -55,6 +60,11 @@ export function StatementDropZone({
   disabled = false,
   className,
   inputId,
+  title,
+  subtitle,
+  chooseLabel,
+  showWhy = true,
+  showBankSelect = false,
 }: StatementDropZoneProps) {
   const reactId = useId();
   const resolvedInputId = inputId ?? `statement-drop-${reactId}`;
@@ -67,8 +77,10 @@ export function StatementDropZone({
   const [error, setError] = useState<string | null>(null);
   const [passwordRequired, setPasswordRequired] = useState(false);
   const [password, setPassword] = useState("");
-  const [showAdvanced, setShowAdvanced] = useState(false);
-  const [bankOverride, setBankOverride] = useState(FALLBACK_BANK_CODE);
+  const [showAdvanced, setShowAdvanced] = useState(showBankSelect);
+  const [bankOverride, setBankOverride] = useState(
+    showBankSelect ? DEFAULT_BANK_CODE : FALLBACK_BANK_CODE,
+  );
   const [heldFile, setHeldFile] = useState<File | null>(null);
   const [whyOpen, setWhyOpen] = useState(false);
 
@@ -119,7 +131,7 @@ export function StatementDropZone({
           setPassword("");
           setHeldFile(null);
           setFileName(null);
-          setShowAdvanced(false);
+          if (!showBankSelect) setShowAdvanced(false);
           resetInput();
           onSuccess?.({
             imported: data.imported ?? 0,
@@ -146,7 +158,7 @@ export function StatementDropZone({
         setUploading(false);
       }
     },
-    [onSuccess],
+    [onSuccess, showBankSelect],
   );
 
   const takeFile = (file: File | undefined) => {
@@ -161,7 +173,9 @@ export function StatementDropZone({
     }
     setPasswordRequired(false);
     setPassword("");
-    void uploadFile(file, { bankCode: DEFAULT_BANK_CODE });
+    void uploadFile(file, {
+      bankCode: showBankSelect ? bankOverride : DEFAULT_BANK_CODE,
+    });
   };
 
   const onDragOver = (event: DragEvent<HTMLDivElement>) => {
@@ -201,6 +215,12 @@ export function StatementDropZone({
 
   const isHero = variant === "hero";
   const isStrip = variant === "strip" || variant === "compact";
+  const resolvedTitle = title ?? (isHero ? DROP_COPY.heroTitle : DROP_COPY.stripTitle);
+  const resolvedSub = subtitle ?? (isHero ? DROP_COPY.heroSub : DROP_COPY.stripSub);
+  const resolvedChoose = chooseLabel ?? (isHero ? DROP_COPY.heroChoose : DROP_COPY.stripChoose);
+  const bankChoices = showBankSelect
+    ? SUPPORTED_BANKS
+    : OVERRIDE_BANKS;
 
   return (
     <div className={cn("w-full", className)}>
@@ -220,7 +240,7 @@ export function StatementDropZone({
       <div
         role="button"
         tabIndex={disabled ? -1 : 0}
-        aria-label={isHero ? DROP_COPY.heroTitle : DROP_COPY.stripTitle}
+        aria-label={resolvedTitle}
         onClick={() => {
           if (!disabled && !uploading && !passwordRequired) {
             inputRef.current?.click();
@@ -251,25 +271,27 @@ export function StatementDropZone({
           <>
             <StackedDocsMark />
             <h2 className="mt-5 text-base font-semibold text-text-1">
-              {DROP_COPY.heroTitle}
+              {resolvedTitle}
             </h2>
             <p className="mt-2 text-sm text-text-3 max-w-md">
-              {DROP_COPY.heroSub}
+              {resolvedSub}
             </p>
             <div className="mt-5 flex flex-col items-center gap-2">
               <span className="text-sm font-medium text-primary underline-offset-2 hover:underline">
-                {uploading ? DROP_COPY.progress : DROP_COPY.heroChoose}
+                {uploading ? DROP_COPY.progress : resolvedChoose}
               </span>
-              <button
-                type="button"
-                className="text-xs text-text-3 hover:text-text-2"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  setWhyOpen(true);
-                }}
-              >
-                {DROP_COPY.heroWhy}
-              </button>
+              {showWhy && (
+                <button
+                  type="button"
+                  className="text-xs text-text-3 hover:text-text-2"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setWhyOpen(true);
+                  }}
+                >
+                  {DROP_COPY.heroWhy}
+                </button>
+              )}
             </div>
           </>
         )}
@@ -280,8 +302,11 @@ export function StatementDropZone({
               <Upload className="w-4 h-4 text-text-2 shrink-0" />
               <div>
                 <p className="text-sm font-medium text-text-1">
-                  {uploading ? DROP_COPY.progress : DROP_COPY.stripTitle}
+                  {uploading ? DROP_COPY.progress : resolvedTitle}
                 </p>
+                {resolvedSub && !uploading && (
+                  <p className="text-xs text-text-3">{resolvedSub}</p>
+                )}
                 {fileName && uploading && (
                   <p className="text-xs text-text-3 truncate max-w-[220px]">
                     {fileName}
@@ -290,7 +315,7 @@ export function StatementDropZone({
               </div>
             </div>
             <span className="text-sm font-medium text-primary shrink-0">
-              {DROP_COPY.stripChoose}
+              {resolvedChoose}
             </span>
           </>
         )}
@@ -326,7 +351,7 @@ export function StatementDropZone({
                   type="password"
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
-                  placeholder="Statement password"
+                  placeholder={DROP_COPY.passwordHint}
                   className="flex-1 px-3 py-2 text-sm rounded-md border border-border bg-surface text-text-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   onClick={(event) => event.stopPropagation()}
                 />
@@ -356,7 +381,7 @@ export function StatementDropZone({
                   className="flex-1 px-3 py-2 text-sm rounded-md border border-border bg-surface text-text-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   onClick={(event) => event.stopPropagation()}
                 >
-                  {OVERRIDE_BANKS.map((bank) => (
+                  {bankChoices.map((bank) => (
                     <option key={bank.code} value={bank.code}>
                       {bank.name}
                     </option>
