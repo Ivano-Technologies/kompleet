@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -47,6 +47,28 @@ describe("IVA-72 landing copy", () => {
     expect(landing).toMatch(/tax-filing-flow\.svg/);
     expect(authLayout).toMatch(/auth-panel\.svg/);
     expect(authLayout).toMatch(/auth-panel\.png/);
+  });
+
+  it("uses Design spot icons and tax-filing-flow proof, not invented tax chrome", () => {
+    expect(landing).toMatch(/ProductChrome variant="dashboard"/);
+    expect(landing).not.toMatch(/ProductChrome variant="tax"/);
+    for (const spot of [
+      "spot-banks",
+      "spot-invoice",
+      "spot-vat",
+      "spot-filing",
+      "spot-reports",
+      "spot-security",
+    ]) {
+      expect(landing).toMatch(new RegExp(`${spot}\\.svg`));
+      expect(landing).toMatch(new RegExp(`${spot}\\.png`));
+      expect(
+        existsSync(resolve(process.cwd(), `public/assets/illustrations/${spot}.svg`)),
+      ).toBe(true);
+      expect(
+        existsSync(resolve(process.cwd(), `public/assets/illustrations/${spot}.png`)),
+      ).toBe(true);
+    }
   });
 
   it("locks Option C navy + teal and strips lime/amber accents", () => {

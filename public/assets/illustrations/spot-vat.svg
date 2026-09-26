@@ -1,4 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 88 88" fill="none" role="img" aria-hidden="true">
-  <rect x="18" y="18" width="52" height="52" rx="10" stroke="#0B3A5C" stroke-width="1.75"/>
-  <text x="44" y="52" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="22" font-weight="600" fill="#0B3A5C">%</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="88" height="88" viewBox="0 0 88 88" fill="none" role="img" aria-label="VAT percent">
+  <rect x="16" y="16" width="56" height="56" rx="12" fill="#FFFDF8" stroke="#0B3A5C" stroke-width="1.75"/>
+  <!-- geometric % : two circles + diagonal -->
+  <circle cx="34" cy="34" r="7" stroke="#0B3A5C" stroke-width="1.75"/>
+  <circle cx="54" cy="54" r="7" stroke="#0B3A5C" stroke-width="1.75"/>
+  <line x1="52" y1="30" x2="36" y2="58" stroke="#0B3A5C" stroke-width="1.75" stroke-linecap="round"/>
 </svg>
