@@ -1,6 +1,7 @@
-import Link from "next/link";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
+import HeroAuthCard from "@/components/landing/HeroAuthCard";
+import Link from "next/link";
 
 const trustBarItems = [
   "11 bank parsers",
@@ -71,46 +72,26 @@ const capabilities = [
 export default function HomePage() {
   return (
     <div data-marketing className="bg-bg text-text-1">
-      <LandingNav />
+      <LandingNav heroAuth />
 
-      <header className="px-6 py-20 md:px-12 md:py-24">
-        <div className="mx-auto grid max-w-7xl items-center gap-12 md:grid-cols-2 md:gap-16">
-          <div className="space-y-6">
-            <div className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-              <span className="text-xs font-bold uppercase tracking-widest text-text-2">
-                Built for Nigerian <span className="normal-case">SMEs</span>
-              </span>
+      <header>
+        <div className="grid lg:grid-cols-[minmax(0,46fr)_minmax(0,54fr)]">
+          <div className="flex flex-col justify-center bg-bg px-6 py-16 sm:px-10 lg:px-12 lg:py-24 xl:px-16">
+            <div className="mx-auto w-full max-w-lg space-y-6">
+              <h1 className="font-display text-[40px] font-bold leading-tight tracking-tight md:text-5xl">
+                Control Your Money.
+                <br />
+                Grow Your Business.
+              </h1>
+              <p className="max-w-md text-base text-text-2">
+                Import Nigerian bank statements, run the Nigeria Tax Act 2025
+                engine, issue NRS-ready invoices, and export P&amp;L and balance
+                sheets.
+              </p>
+              <HeroAuthCard />
             </div>
-            <h1 className="font-display text-[40px] font-bold leading-tight tracking-tight md:text-5xl">
-              Control Your Money.
-              <br />
-              Grow Your Business.
-            </h1>
-            <p className="max-w-md text-base text-text-2">
-              Import Nigerian bank statements, run the Nigeria Tax Act 2025
-              engine, issue NRS-ready invoices, and export P&amp;L and balance
-              sheets.
-            </p>
-            <div className="flex flex-wrap items-center gap-4 pt-2">
-              <Link
-                href="/signup"
-                className="rounded-md bg-accent px-7 py-3.5 text-sm font-bold text-charcoal hover:bg-accent-hover"
-              >
-                Get started
-              </Link>
-              <a
-                href="#features"
-                className="rounded-md border border-border bg-surface px-6 py-3 text-sm font-semibold text-text-1"
-              >
-                See features
-              </a>
-            </div>
-            <p className="pt-2 text-xs font-medium text-text-3">
-              Free during beta. No credit card required.
-            </p>
           </div>
-          <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-1">
+          <div className="relative min-h-[240px] overflow-hidden bg-primary-deep sm:min-h-[320px] lg:min-h-[640px]">
             <picture>
               <source
                 srcSet="/assets/illustrations/hero-kompleet.svg"
@@ -122,7 +103,7 @@ export default function HomePage() {
                 alt="Geometric illustration of stacked ledger books with a naira mark and teal verified seal"
                 width={1440}
                 height={720}
-                className="h-auto w-full"
+                className="absolute inset-0 h-full w-full object-cover object-center"
               />
             </picture>
           </div>
