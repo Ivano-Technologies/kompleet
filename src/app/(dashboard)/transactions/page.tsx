@@ -17,7 +17,7 @@ import {
   Search,
   Upload,
 } from "lucide-react";
-import { EmptyState } from "@/components/ui/empty-state";
+import { StatementDropZone } from "@/components/import/StatementDropZone";
 
 interface Transaction {
   id: string;
@@ -207,8 +207,8 @@ export default function TransactionsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">
-            Transactions
+          <h1 className="font-display text-2xl text-light-text-primary dark:text-dark-text-primary">
+            Books
           </h1>
           <span className="text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary bg-light-surface dark:bg-dark-surface px-2.5 py-1 rounded-full border border-light-border dark:border-dark-border">
             {pagination.total.toLocaleString()} total
@@ -257,7 +257,7 @@ export default function TransactionsPage() {
             href="/transactions/upload"
             className="btn-secondary text-sm px-3 py-2 flex items-center gap-1.5"
           >
-            <Upload className="w-3.5 h-3.5" /> Upload
+            <Upload className="w-3.5 h-3.5" /> Advanced
           </Link>
           <button className="btn-primary text-sm px-3 py-2 flex items-center gap-1.5">
             <Plus className="w-3.5 h-3.5" /> Add New
@@ -329,11 +329,11 @@ export default function TransactionsPage() {
           </div>
         ) : transactions.length === 0 ? (
           <div className="p-6">
-            <EmptyState
-              icon={Upload}
-              title="No transactions yet"
-              description="Upload a bank statement to start tracking income, expenses, and taxes."
-              action={{ label: "Upload bank statement", href: "/transactions/upload" }}
+            <StatementDropZone
+              variant="hero"
+              onSuccess={() => {
+                void fetchTransactions();
+              }}
             />
           </div>
         ) : (
@@ -515,6 +515,15 @@ export default function TransactionsPage() {
           </>
         )}
       </div>
+
+      {transactions.length > 0 && (
+        <StatementDropZone
+          variant="strip"
+          onSuccess={() => {
+            void fetchTransactions();
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -18,7 +18,21 @@ const nextConfig = {
       {
         source: "/dashboard/overview",
         destination: "/dashboard",
-        permanent: true,
+        permanent: false,
+      },
+      { source: "/app", destination: "/dashboard", permanent: false },
+      { source: "/app/dashboard", destination: "/dashboard", permanent: false },
+      {
+        source: "/app/transactions",
+        destination: "/transactions",
+        permanent: false,
+      },
+      { source: "/app/:path*", destination: "/dashboard", permanent: false },
+      { source: "/filing", destination: "/tax?tab=filing", permanent: false },
+      {
+        source: "/tax-reports",
+        destination: "/tax?tab=reports",
+        permanent: false,
       },
     ];
   },
@@ -60,16 +74,6 @@ const nextConfig = {
     // We never use that path; AWS SDK was removed with the ML tier.
     config.resolve.fallback["@aws-sdk/client-s3"] = false;
     return config;
-  },
-
-  async redirects() {
-    return [
-      {
-        source: '/dashboard/overview',
-        destination: '/dashboard',
-        permanent: false,
-      },
-    ];
   },
 
   images: {

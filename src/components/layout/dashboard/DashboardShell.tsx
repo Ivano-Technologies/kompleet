@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { Bug } from "lucide-react";
 import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
+import { BottomNav } from "./BottomNav";
 import { SettingsModal } from "./SettingsModal";
 
 type SettingsSection = "general" | "notifications" | "preferences" | "admin" | "legal";
@@ -50,10 +51,12 @@ export function DashboardShell({ user, children }: DashboardShellProps) {
           onOpenSettings={(section) => openSettings(section)}
         />
 
-        <main className="flex-1 overflow-auto">
+        <main className="flex-1 overflow-auto pb-20 lg:pb-0">
           <div className="p-4 lg:p-6">{children}</div>
         </main>
       </div>
+
+      <BottomNav onOpenSettings={() => openSettings()} />
 
       <SettingsModal
         open={settingsOpen}
@@ -62,10 +65,9 @@ export function DashboardShell({ user, children }: DashboardShellProps) {
         initialSection={settingsSection}
       />
 
-      {/* Report a bug — option 3: small, low-prominence floating link */}
       <Link
         href="/contact?subject=bug"
-        className="fixed bottom-4 right-4 z-20 flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-surface-2/90 dark:bg-dark-surface/90 border border-border dark:border-dark-border text-[11px] text-text-4 dark:text-dark-text-3 hover:text-text-2 dark:hover:text-dark-text-1 transition-colors shadow-sm"
+        className="fixed bottom-20 right-4 lg:bottom-4 z-20 flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-surface-2/90 dark:bg-dark-surface/90 border border-border dark:border-dark-border text-[11px] text-text-4 dark:text-dark-text-3 hover:text-text-2 dark:hover:text-dark-text-1 transition-colors shadow-sm"
         title="Report a bug"
       >
         <Bug className="w-3 h-3 shrink-0" />
