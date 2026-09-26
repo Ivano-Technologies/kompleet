@@ -97,7 +97,10 @@ export default function TransactionsPage() {
         const rows = data.transactions as Transaction[];
         setTransactions(rows);
         setPagination(data.pagination);
-        setUncategorizedCount(rows.filter(isUncategorized).length);
+        const pageUncategorized = rows.filter(isUncategorized).length;
+        setUncategorizedCount((current) =>
+          current > 0 ? Math.max(current, pageUncategorized) : pageUncategorized,
+        );
         setError(null);
       } else {
         setError(data.error || "Failed to load transactions");
@@ -117,22 +120,37 @@ export default function TransactionsPage() {
 
   useEffect(() => {
     let cancelled = false;
+    const year = new Date().getFullYear();
+    const startDate = `${year}-01-01`;
+    const endDate = `${year}-12-31`;
     (async () => {
       try {
-        const response = await fetch("/api/transactions/duplicates", {
-          credentials: "include",
-        });
-        if (!response.ok || cancelled) return;
-        const body = (await response.json()) as { total?: number };
-        if (!cancelled) setDuplicatesCount(body.total ?? 0);
+        const [dupRes, summaryRes] = await Promise.all([
+          fetch("/api/transactions/duplicates", { credentials: "include" }),
+          fetch(
+            `/api/transactions/summary?startDate=${startDate}&endDate=${endDate}`,
+            { credentials: "include" },
+          ),
+        ]);
+        if (cancelled) return;
+        if (dupRes.ok) {
+          const body = (await dupRes.json()) as { total?: number };
+          setDuplicatesCount(body.total ?? 0);
+        }
+        if (summaryRes.ok) {
+          const body = (await summaryRes.json()) as { uncategorized?: number };
+          if (typeof body.uncategorized === "number") {
+            setUncategorizedCount(body.uncategorized);
+          }
+        }
       } catch {
-        /* optional health chip */
+        /* optional health chips */
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [toast]);
+  }, [toast, pagination.total]);
 
   const handleSuccess = useCallback(
     (result: StatementUploadResult) => {
