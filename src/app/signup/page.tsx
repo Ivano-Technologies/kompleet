@@ -109,9 +109,8 @@ export default function SignUpPage() {
         <div className="mb-2 text-xs font-bold uppercase tracking-widest text-text-4 dark:text-dark-text-4">
           Create Account
         </div>
-        <h1 className="mb-2 inline-flex items-center gap-2 text-base font-bold uppercase tracking-wider text-accent dark:text-accent">
-          <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-accent" aria-hidden />
-          Built for Nigerian <span className="normal-case">SMEs</span>
+        <h1 className="mb-2 font-display text-3xl font-bold text-text-1">
+          Sign up
         </h1>
         <p className="text-sm text-text-3 dark:text-dark-text-3">
           Track your spending, handle invoices, and avoid surprises.
@@ -136,7 +135,7 @@ export default function SignUpPage() {
               onChange={(e) => setFirstName(e.target.value)}
               required
               placeholder="e.g. Tunde"
-              className="mt-2 h-[52px] w-full rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 text-sm text-text-1 focus:border-accent focus:ring-2 focus:ring-accent/20 dark:text-dark-text-1"
+              className="mt-2 h-[52px] w-full rounded-md border border-border bg-surface px-4 text-sm text-text-1 focus:border-primary focus:ring-2 focus:ring-primary/20"
             />
           </div>
           <div>
@@ -149,7 +148,7 @@ export default function SignUpPage() {
               onChange={(e) => setLastName(e.target.value)}
               required
               placeholder="e.g. Balogun"
-              className="mt-2 h-[52px] w-full rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 text-sm text-text-1 focus:border-accent focus:ring-2 focus:ring-accent/20 dark:text-dark-text-1"
+              className="mt-2 h-[52px] w-full rounded-md border border-border bg-surface px-4 text-sm text-text-1 focus:border-primary focus:ring-2 focus:ring-primary/20"
             />
           </div>
         </div>
@@ -164,7 +163,7 @@ export default function SignUpPage() {
             onChange={(e) => setBusinessName(e.target.value)}
             required
             placeholder="e.g. Tunde Ventures Ltd"
-            className="mt-2 h-[52px] w-full rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 text-sm text-text-1 focus:border-accent focus:ring-2 focus:ring-accent/20 dark:text-dark-text-1"
+            className="mt-2 h-[52px] w-full rounded-md border border-border bg-surface px-4 text-sm text-text-1 focus:border-primary focus:ring-2 focus:ring-primary/20"
           />
         </div>
 
@@ -178,7 +177,7 @@ export default function SignUpPage() {
             onChange={(e) => setBusinessEmail(e.target.value)}
             required
             placeholder="name@company.ng"
-            className="mt-2 h-[52px] w-full rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 text-sm text-text-1 focus:border-accent focus:ring-2 focus:ring-accent/20 dark:text-dark-text-1"
+            className="mt-2 h-[52px] w-full rounded-md border border-border bg-surface px-4 text-sm text-text-1 focus:border-primary focus:ring-2 focus:ring-primary/20"
           />
         </div>
 
@@ -194,7 +193,7 @@ export default function SignUpPage() {
               required
               minLength={8}
               placeholder="Minimum 8 characters"
-              className="h-[52px] w-full rounded-xl border border-[#E5E7EB] bg-[#F9FAFB] px-4 pr-11 text-sm text-text-1 focus:border-accent focus:ring-2 focus:ring-accent/20 dark:text-dark-text-1"
+              className="h-[52px] w-full rounded-md border border-border bg-surface px-4 pr-11 text-sm text-text-1 focus:border-primary focus:ring-2 focus:ring-primary/20"
             />
             <button
               type="button"
@@ -222,7 +221,7 @@ export default function SignUpPage() {
         <button
           type="submit"
           disabled={loading}
-          className="mt-6 flex h-[52px] w-full items-center justify-center gap-2 rounded-xl bg-accent text-sm font-bold text-charcoal shadow-accent transition-all hover:-translate-y-0.5 hover:bg-accent-hover disabled:opacity-50 disabled:transform-none"
+          className="mt-6 flex h-[52px] w-full items-center justify-center gap-2 rounded-md bg-accent text-sm font-bold text-charcoal hover:bg-accent-hover disabled:opacity-50"
         >
           {loading ? 'Creating account…' : 'Create Free Account'}
           {!loading && <ArrowRight className="w-4 h-4" />}

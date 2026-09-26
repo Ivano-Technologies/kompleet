@@ -1,269 +1,236 @@
-import Image from "next/image";
 import Link from "next/link";
-import { Landmark, Zap, FileUp, BarChart3, TrendingUp, Lock } from "lucide-react";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
-
-const HERO_GRID_PATTERN =
-  "data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20width=%2248%22%20height=%2248%22%20viewBox=%220%200%2048%2048%22%3E%3Cpath%20fill=%22rgba(255,255,255,0.03)%22%20d=%22M0%201h48v-1H0zm0%2047h48v-1H0zM1%200v48H0V0zm47%200v48h-1V0z%22/%3E%3C/svg%3E";
+import ProductChrome from "@/components/landing/ProductChrome";
 
 const trustBarItems = [
-  "11 Nigerian bank parsers",
-  "Nigeria Tax Act 2025 engine",
-  "NRS-compliant invoice QR",
+  "11 bank parsers",
+  "Tax Act 2025",
+  "NRS invoice QR",
 ];
 
-const featuredCards = [
+const productProof = [
   {
-    icon: Zap,
-    title: "VAT Calculator",
-    desc: "Calculate value-added tax under the Nigeria Tax Act 2025 — standard, zero-rated, and exempt treatments.",
+    src: "/assets/illustrations/import-flow.svg",
+    fallback: "/assets/illustrations/import-flow.png",
+    title: "Import",
+    caption: "Statements from 11 Nigerian banks, with running-balance checks.",
   },
   {
-    icon: FileUp,
-    title: "Filing-Ready Forms",
-    desc: "Generate NRS and LIRS filing packages as downloadable forms you submit yourself. No portal auto-filing.",
-  },
-  {
-    icon: BarChart3,
-    title: "P&L and Balance Sheet",
-    desc: "Profit & loss and balance sheet reports generated from your books — ready to share with an accountant.",
+    src: "/assets/illustrations/invoice-nrs.svg",
+    fallback: "/assets/illustrations/invoice-nrs.png",
+    title: "Invoice",
+    caption: "NRS-ready invoices with an abstract QR block you can issue today.",
   },
 ];
 
-const features = [
+const capabilities = [
   {
-    icon: Landmark,
-    title: "Bank Statement Import",
-    desc: "Upload statements from 11 Nigerian banks. Parsers extract transactions and validate running balances so imports stay trustworthy.",
-    image: "/assets/features/expense-tracking.png",
+    icon: "/assets/illustrations/spot-banks.svg",
+    title: "11 Nigerian bank parsers",
+    desc: "Upload statements. Parsers extract transactions and validate running balances.",
   },
   {
-    icon: FileUp,
-    title: "Professional Invoicing",
-    desc: "Create and track invoices with NRS-compliant QR codes for e-invoicing. Record payment when your customer settles — checkout integrations are not live yet.",
-    image: "/assets/features/invoicing.png",
+    icon: "/assets/illustrations/spot-invoice.svg",
+    title: "NRS invoicing",
+    desc: "Create invoices with NRS-compliant QR codes. Record payment when the customer settles.",
   },
   {
-    icon: Landmark,
-    title: "Tax Compliance Centre",
-    desc: "Run VAT, CIT, and related calculations against the Nigeria Tax Act 2025 engine. Export filing-ready packages for NRS and LIRS.",
-    image: null,
+    icon: "/assets/illustrations/spot-vat.svg",
+    title: "VAT under Tax Act 2025",
+    desc: "Standard, zero-rated, and exempt treatments against the current engine.",
   },
   {
-    icon: TrendingUp,
-    title: "Business Reports",
-    desc: "Profit & loss and balance sheet reports generated from your recorded activity. Share with your accountant or investors.",
-    image: null,
+    icon: "/assets/illustrations/spot-filing.svg",
+    title: "NRS / LIRS packages",
+    desc: "Generate filing-ready forms you submit on the official portals. No auto-filing.",
   },
   {
-    icon: Lock,
-    title: "Bank-Grade Security",
-    desc: "Financial data is protected with encryption in transit and at rest, with NDPR-minded access controls. Hosted on Supabase in the EU (Ireland).",
-    image: null,
+    icon: "/assets/illustrations/spot-reports.svg",
+    title: "P&L and balance sheet",
+    desc: "Reports from your books — ready to share with an accountant.",
+  },
+  {
+    icon: "/assets/illustrations/spot-security.svg",
+    title: "NDPR-minded hosting",
+    desc: "Encrypted in transit and at rest. Hosted on Convex. We do not claim Nigerian data residency.",
   },
 ];
 
 export default function HomePage() {
   return (
-    <div className="bg-bg dark:bg-dark-bg text-text-1 dark:text-dark-text-1">
+    <div data-marketing className="bg-bg text-text-1">
       <LandingNav />
 
-      {/* Hero Section */}
-      <header className="bg-gradient-to-br from-primary-deep via-primary to-primary-mid text-white py-24 px-6 md:px-12 relative overflow-hidden">
-        <div
-          className="absolute inset-0 opacity-50"
-          style={{ backgroundImage: `url("${HERO_GRID_PATTERN}")` }}
-        />
-        <div className="grid md:grid-cols-2 gap-16 items-center relative z-10">
+      <header className="px-6 py-20 md:px-12 md:py-24">
+        <div className="mx-auto grid max-w-7xl items-center gap-12 md:grid-cols-2 md:gap-16">
           <div className="space-y-6">
-            <div className="inline-flex items-center gap-2 bg-accent/10 border border-accent/25 rounded-full px-4 py-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-              <span className="text-xs font-bold text-accent uppercase tracking-widest">
+            <div className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+              <span className="text-xs font-bold uppercase tracking-widest text-text-2">
                 Built for Nigerian <span className="normal-case">SMEs</span>
               </span>
             </div>
-            <h1 className="font-display text-4xl md:text-5xl font-bold leading-tight tracking-tighter">
+            <h1 className="font-display text-[40px] font-bold leading-tight tracking-tight md:text-5xl">
               Control Your Money.
               <br />
-              <em className="text-accent not-italic">Grow Your Business.</em>
+              Grow Your Business.
             </h1>
-            <p className="text-base text-white/60 max-w-md">
+            <p className="max-w-md text-base text-text-2">
               Import Nigerian bank statements, run the Nigeria Tax Act 2025
               engine, issue NRS-ready invoices, and export P&amp;L and balance
               sheets.
             </p>
-            <div className="flex items-center gap-4 pt-4">
+            <div className="flex flex-wrap items-center gap-4 pt-2">
               <Link
                 href="/signup"
-                className="bg-accent text-charcoal border-none px-7 py-3.5 rounded-md text-sm font-bold shadow-accent hover:bg-accent-hover transition-all transform hover:-translate-y-1"
+                className="rounded-md bg-accent px-7 py-3.5 text-sm font-bold text-charcoal hover:bg-accent-hover"
               >
-                Get Started for Free →
+                Get started
               </Link>
               <a
                 href="#features"
-                className="bg-white/10 text-white border-2 border-white/20 px-6 py-3 rounded-md text-sm font-semibold hover:bg-white/20 hover:border-white/40 transition-all"
+                className="rounded-md border border-border bg-surface px-6 py-3 text-sm font-semibold text-text-1"
               >
-                See Features
+                See features
               </a>
             </div>
-            <div className="flex flex-wrap gap-5 pt-6 text-xs text-white/50 font-medium">
-              <span className="flex items-center gap-1.5">
-                <span className="text-accent">✓</span> No credit card required
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="text-accent">✓</span> NDPR Compliant
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="text-accent">✓</span> Free during Beta
-              </span>
-            </div>
+            <p className="pt-2 text-xs font-medium text-text-3">
+              Free during beta. No credit card required.
+            </p>
           </div>
-          {/* Hero image — natural edges, no frame */}
-          <div className="relative rounded-2xl shadow-2xl">
-            <Image
-              src="/assets/hero-laptop.webp"
-              alt="Kompleet Dashboard Preview"
-              width={644}
-              height={483}
-              className="w-full h-auto rounded-2xl"
-              priority
-            />
-          </div>
+          <ProductChrome variant="dashboard" />
         </div>
       </header>
 
-      {/* Trust Bar */}
-      <div className="bg-charcoal-dk py-4 px-6 md:px-12 flex items-center justify-center gap-6 md:gap-10 flex-wrap">
-        {trustBarItems.map((item) => (
-          <div
-            key={item}
-            className="flex items-center gap-2 text-xs font-bold text-white/50 uppercase tracking-widest"
-          >
-            <span className="w-1 h-1 rounded-full bg-accent" />
-            {item}
-          </div>
-        ))}
+      <div className="bg-charcoal-dk px-6 py-4 md:px-12">
+        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-6 md:gap-10">
+          {trustBarItems.map((item) => (
+            <div
+              key={item}
+              className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-white/70"
+            >
+              <span className="h-1 w-1 rounded-full bg-white/40" />
+              {item}
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* Features Section */}
-      <section id="features" className="py-24 px-6 md:px-12">
-        <div className="text-center mb-12">
-          <div className="text-xs font-bold text-primary dark:text-accent uppercase tracking-widest mb-3">
-            What ships today
-          </div>
-          <h2 className="font-display text-3xl md:text-4xl font-bold text-text-1 dark:text-dark-text-1 leading-tight tracking-tighter">
-            Real Nigerian finance tooling
-            <br />
-            — not a feature wish list
-          </h2>
-          <p className="text-base text-text-3 dark:text-dark-text-3 max-w-xl mx-auto mt-4">
-            Statement parsers with balance validation, the Nigeria Tax Act 2025
-            engine, invoicing with NRS-compliant QR codes, and financial
-            statements you can export.
+      <section className="px-6 py-20 md:px-12 md:py-24">
+        <div className="mx-auto mb-12 max-w-7xl text-center">
+          <p className="mb-3 text-xs font-bold uppercase tracking-widest text-primary">
+            Product proof
           </p>
+          <h2 className="font-display text-[32px] font-bold tracking-tight md:text-4xl">
+            Real tooling, labeled demo data
+          </h2>
         </div>
-
-        {/* TOP ROW: 2 large photo cards */}
-        <div className="grid md:grid-cols-2 gap-6 mb-6">
-          {features
-            .filter((f) => f.image)
-            .map((f) => (
-              <div
-                key={f.title}
-                className="bg-surface dark:bg-dark-surface border border-border dark:border-dark-border rounded-xl overflow-hidden shadow-1 hover:shadow-3 hover:-translate-y-1 hover:border-accent/40 transition-all relative group flex flex-col"
-              >
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent opacity-0 group-hover:opacity-100 transition-opacity z-10" />
-                <div className="relative w-full aspect-[16/9] overflow-hidden bg-surface-2 dark:bg-dark-surface-2">
-                  <Image
-                    src={f.image!}
-                    alt={f.title}
-                    fill
-                    className="object-cover object-top"
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                  />
-                </div>
-                <div className="p-6">
-                  <h3 className="font-display text-lg font-bold text-text-1 dark:text-dark-text-1 mb-2">
-                    {f.title}
-                  </h3>
-                  <p className="text-sm text-text-3 dark:text-dark-text-3 leading-relaxed">
-                    {f.desc}
-                  </p>
-                </div>
-              </div>
-            ))}
-        </div>
-
-        {/* MIDDLE ROW: 3 featured cards */}
-        <div className="grid md:grid-cols-3 gap-6 mb-6">
-          {featuredCards.map((card) => {
-            const Icon = card.icon;
-            return (
-              <div
-                key={card.title}
-                className="bg-surface dark:bg-dark-surface border border-border dark:border-dark-border rounded-xl shadow-outer-soft border-t border-l border-black/5 dark:border-white/5 p-6 flex flex-col hover:shadow-3 hover:-translate-y-1 hover:border-accent/40 transition-all relative group overflow-hidden"
-              >
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="w-11 h-11 rounded-lg bg-primary flex items-center justify-center mb-4 shadow-primary">
-                  <Icon className="w-5 h-5 text-white" />
-                </div>
-                <h3 className="font-display text-lg font-bold text-text-1 dark:text-dark-text-1 mb-2">
-                  {card.title}
+        <div className="mx-auto grid max-w-7xl gap-6 md:grid-cols-3">
+          {productProof.map((item) => (
+            <figure
+              key={item.title}
+              className="overflow-hidden rounded-xl border border-border bg-surface"
+            >
+              <picture>
+                <source srcSet={item.src} type="image/svg+xml" />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={item.fallback}
+                  alt=""
+                  width={1200}
+                  height={670}
+                  className="h-auto w-full"
+                />
+              </picture>
+              <figcaption className="p-5">
+                <h3 className="font-display text-lg font-bold text-text-1">
+                  {item.title}
                 </h3>
-                <p className="text-sm text-text-3 dark:text-dark-text-3 leading-relaxed flex-1">
-                  {card.desc}
+                <p className="mt-2 text-sm leading-relaxed text-text-3">
+                  {item.caption}
                 </p>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* BOTTOM ROW: remaining feature cards */}
-        <div className="grid md:grid-cols-3 gap-6">
-          {features
-            .filter((f) => !f.image)
-            .map((f) => (
-              <div
-                key={f.title}
-                className="bg-surface dark:bg-dark-surface border border-border dark:border-dark-border rounded-xl overflow-hidden shadow-1 hover:shadow-3 hover:-translate-y-1 hover:border-accent/40 transition-all relative group"
-              >
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="p-6">
-                  <div className="w-11 h-11 rounded-lg bg-primary flex items-center justify-center mb-4 shadow-primary">
-                    <f.icon className="w-5 h-5 text-white" />
-                  </div>
-                  <h3 className="font-display text-lg font-bold text-text-1 dark:text-dark-text-1 mb-2">
-                    {f.title}
-                  </h3>
-                  <p className="text-sm text-text-3 dark:text-dark-text-3 leading-relaxed">
-                    {f.desc}
-                  </p>
-                </div>
-              </div>
-            ))}
+              </figcaption>
+            </figure>
+          ))}
+          <figure className="overflow-hidden rounded-xl border border-border bg-surface">
+            <ProductChrome variant="tax" />
+            <figcaption className="p-5">
+              <h3 className="font-display text-lg font-bold text-text-1">
+                Tax centre
+              </h3>
+              <p className="mt-2 text-sm leading-relaxed text-text-3">
+                VAT, CIT, and filing packages you download and submit yourself.
+              </p>
+            </figcaption>
+          </figure>
         </div>
       </section>
 
-      {/* Final CTA — no fabricated social proof */}
-      <section className="bg-gradient-to-br from-primary-deep to-primary py-24 px-6 md:px-12 text-center relative overflow-hidden">
-        <div className="absolute inset-0 text-[280px] md:text-[320px] font-bold font-display text-white/5 leading-none flex items-center justify-center pointer-events-none">
-          ₦
-        </div>
-        <div className="relative z-10">
-          <h2 className="font-display text-3xl md:text-4xl font-bold text-white leading-tight tracking-tighter">
-            Ready to Take Control of
-            <br />
-            Your <em className="text-accent not-italic">Business Finances?</em>
+      <section id="features" className="px-6 py-20 md:px-12 md:py-24">
+        <div className="mx-auto mb-12 max-w-7xl text-center">
+          <p className="mb-3 text-xs font-bold uppercase tracking-widest text-primary">
+            What ships today
+          </p>
+          <h2 className="font-display text-[32px] font-bold tracking-tight md:text-4xl">
+            Capability, not a wish list
           </h2>
-          <p className="text-base text-white/60 max-w-md mx-auto mt-4 mb-8">
-            Free during Beta — no credit card required.
+        </div>
+        <div className="mx-auto grid max-w-7xl gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {capabilities.map((item) => (
+            <article
+              key={item.title}
+              id={item.title === "NDPR-minded hosting" ? "security" : undefined}
+              className="rounded-xl border border-border bg-surface p-6"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={item.icon} alt="" width={44} height={44} className="mb-4" />
+              <h3 className="font-display text-xl font-bold text-text-1">
+                {item.title}
+              </h3>
+              <p className="mt-2 text-sm leading-relaxed text-text-3">
+                {item.desc}
+              </p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="px-6 py-16 md:px-12">
+        <div className="mx-auto max-w-7xl">
+          <picture>
+            <source
+              srcSet="/assets/illustrations/tax-filing-flow.svg"
+              type="image/svg+xml"
+            />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/assets/illustrations/tax-filing-flow.png"
+              alt=""
+              width={1440}
+              height={480}
+              className="h-auto w-full rounded-xl border border-border"
+            />
+          </picture>
+          <p className="mt-6 text-center text-sm text-text-2">
+            From books to NRS/LIRS packages you submit yourself.
+          </p>
+        </div>
+      </section>
+
+      <section className="relative overflow-hidden bg-primary-deep px-6 py-24 text-center md:px-12">
+        <div className="relative z-10 mx-auto max-w-2xl">
+          <h2 className="font-display text-[32px] font-bold leading-tight tracking-tight text-white md:text-4xl">
+            Ready to take control of your business finances?
+          </h2>
+          <p className="mx-auto mt-4 mb-8 max-w-md text-base text-white/70">
+            Free during beta — no credit card required.
           </p>
           <Link
             href="/signup"
-            className="inline-block bg-accent text-charcoal border-none px-8 py-4 rounded-md text-base font-bold shadow-accent hover:bg-accent-hover transition-all transform hover:-translate-y-1"
+            className="inline-block rounded-md bg-accent px-8 py-4 text-base font-bold text-charcoal hover:bg-accent-hover"
           >
-            Get Started for Free →
+            Get started
           </Link>
         </div>
       </section>

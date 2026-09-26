@@ -5,7 +5,7 @@ import LandingFooter from "@/components/landing/LandingFooter";
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen flex flex-col bg-bg dark:bg-dark-bg text-text-1 dark:text-dark-text-1">
+    <div data-marketing className="flex min-h-screen flex-col bg-bg text-text-1">
       <LandingNav />
       <main className="flex-1 flex items-center justify-center px-6 py-24">
         <div className="flex flex-col items-center gap-6 max-w-md text-center">
@@ -24,7 +24,7 @@ export default function NotFound() {
           <div className="flex items-center gap-3 pt-2">
             <Link
               href="/"
-              className="bg-accent text-charcoal font-bold text-sm px-6 py-3 rounded-md shadow-accent hover:bg-accent-hover transition-all transform hover:-translate-y-0.5 flex items-center gap-2"
+              className="flex items-center gap-2 rounded-md bg-accent px-6 py-3 text-sm font-bold text-charcoal hover:bg-accent-hover"
             >
               <Home className="w-4 h-4" />
               Back to Home

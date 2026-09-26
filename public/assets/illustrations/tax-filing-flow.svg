@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="480" viewBox="0 0 1440 480" fill="none" role="img" aria-label="Tax filing flow diagram">
+  <rect width="1440" height="480" fill="#F4F1EB"/>
+  <g>
+    <rect x="40" y="80" width="340" height="320" rx="20" fill="#FFFDF8" stroke="#DDD5C8" stroke-width="2"/>
+    <rect x="76" y="130" width="268" height="48" rx="12" fill="#EBE6DC"/>
+    <rect x="76" y="200" width="268" height="48" rx="12" fill="#EBE6DC"/>
+    <rect x="76" y="270" width="268" height="48" rx="12" fill="#3D6F99"/>
+    <text x="210" y="302" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="600" fill="#FFFDF8">Transactions</text>
+  </g>
+  <path d="M410 240 H490" stroke="#1B6CA8" stroke-width="5" stroke-linecap="round"/>
+  <path d="M475 226 L495 240 L475 254" fill="none" stroke="#1B6CA8" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <g>
+    <rect x="520" y="60" width="360" height="360" rx="28" fill="#2A5A7A"/>
+    <rect x="568" y="130" width="264" height="220" rx="20" fill="#3D6F99"/>
+    <text x="700" y="230" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="20" font-weight="700" fill="#FFFDF8">Tax Act</text>
+    <text x="700" y="262" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="20" font-weight="700" fill="#D6E8F5">2025 engine</text>
+  </g>
+  <path d="M910 240 H990" stroke="#1B6CA8" stroke-width="5" stroke-linecap="round"/>
+  <path d="M975 226 L995 240 L975 254" fill="none" stroke="#1B6CA8" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <g>
+    <rect x="1020" y="80" width="380" height="320" rx="20" fill="#FFFDF8" stroke="#DDD5C8" stroke-width="2"/>
+    <rect x="1060" y="130" width="200" height="200" rx="14" fill="#EBE6DC"/>
+    <rect x="1080" y="112" width="80" height="32" rx="8" fill="#1B6CA8"/>
+    <text x="1120" y="134" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" fill="#FFFDF8">NRS</text>
+    <rect x="1172" y="112" width="80" height="32" rx="8" fill="#3D6F99"/>
+    <text x="1212" y="134" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" fill="#FFFDF8">LIRS</text>
+    <circle cx="1320" cy="240" r="40" fill="#0D9488"/>
+    <path d="M1304 240 l12 12 24 -26" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
+</svg>
