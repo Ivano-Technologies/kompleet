@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="720" viewBox="0 0 1440 720" fill="none" role="img" aria-label="Kompleet hero — ledger moment, verified">
+  <defs>
+    <linearGradient id="navyWash" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#072A45"/>
+      <stop offset="100%" stop-color="#0B3A5C"/>
+    </linearGradient>
+    <filter id="soft" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="12" stdDeviation="18" flood-color="#020810" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+  <!-- deep navy wash (auth-panel energy) -->
+  <rect width="1440" height="720" fill="url(#navyWash)"/>
+  <!-- subtle grid -->
+  <g stroke="#1B6CA8" stroke-opacity="0.22" stroke-width="1">
+    <path d="M0 120 H1440 M0 240 H1440 M0 360 H1440 M0 480 H1440 M0 600 H1440"/>
+    <path d="M180 0 V720 M360 0 V720 M540 0 V720 M720 0 V720 M900 0 V720 M1080 0 V720 M1260 0 V720"/>
+  </g>
+
+  <!-- centered oversized ledger stack -->
+  <!-- back -->
+  <g filter="url(#soft)">
+    <rect x="470" y="90" width="420" height="520" rx="24" fill="#EBE6DC" transform="rotate(-7 680 350)"/>
+  </g>
+  <!-- mid -->
+  <g filter="url(#soft)">
+    <rect x="510" y="105" width="420" height="520" rx="24" fill="#FFFDF8" transform="rotate(3.5 720 365)"/>
+    <rect x="550" y="165" width="280" height="10" rx="5" fill="#DDD5C8" transform="rotate(3.5 720 365)"/>
+    <rect x="550" y="195" width="240" height="10" rx="5" fill="#DDD5C8" transform="rotate(3.5 720 365)"/>
+    <rect x="550" y="225" width="260" height="10" rx="5" fill="#DDD5C8" transform="rotate(3.5 720 365)"/>
+  </g>
+  <!-- front -->
+  <g filter="url(#soft)">
+    <rect x="520" y="130" width="440" height="520" rx="24" fill="#FFFDF8"/>
+    <rect x="520" y="130" width="440" height="60" rx="24" fill="#0B3A5C"/>
+    <rect x="520" y="168" width="440" height="22" fill="#0B3A5C"/>
+    <!-- ledger lines -->
+    <rect x="568" y="230" width="300" height="12" rx="6" fill="#EBE6DC"/>
+    <rect x="568" y="270" width="260" height="12" rx="6" fill="#EBE6DC"/>
+    <rect x="568" y="310" width="280" height="12" rx="6" fill="#EBE6DC"/>
+    <rect x="568" y="350" width="220" height="12" rx="6" fill="#EBE6DC"/>
+    <rect x="568" y="400" width="344" height="1.5" fill="#DDD5C8"/>
+    <rect x="568" y="440" width="280" height="12" rx="6" fill="#EBE6DC"/>
+    <rect x="568" y="480" width="300" height="12" rx="6" fill="#EBE6DC"/>
+    <rect x="568" y="520" width="240" height="12" rx="6" fill="#EBE6DC"/>
+    <!-- ₦ monogram -->
+    <g transform="translate(580 560)">
+      <rect width="72" height="72" rx="16" fill="#0B3A5C"/>
+      <text x="36" y="48" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="36" font-weight="700" fill="#FFFDF8">₦</text>
+    </g>
+    <!-- ONE teal verified seal -->
+    <circle cx="860" cy="596" r="32" fill="#0D9488"/>
+    <path d="M846 596 l10 10 20 -22" stroke="#FFFFFF" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
+</svg>
