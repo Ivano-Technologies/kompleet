@@ -40,7 +40,7 @@
 
   <!-- Naira monogram -->
   <circle cx="720" cy="420" r="54" fill="#0A2F4E"/>
-  <text x="720" y="438" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="42" font-weight="600" fill="#F4F1EB">¦</text>
+  <path d="M702 398h36M702 442h36M714 392v56M728 392v56M710 410l28 20" stroke="#F4F1EB" stroke-width="3.5" stroke-linecap="round"/>
 
   <!-- Single lime verified seal -->
   <circle cx="596" cy="836" r="22" fill="#C8F000"/>
