@@ -33,7 +33,7 @@ export default function TaxReportsPage({
     status?: string;
     reportType?: string;
   }>({});
-  const [showGenerate, setShowGenerate] = useState(false);
+  const [showGenerate, setShowGenerate] = useState(true);
 
   const fetchReports = useCallback(async () => {
     try {
