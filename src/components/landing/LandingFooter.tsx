@@ -1,7 +1,5 @@
-import Image from "next/image";
 import Link from "next/link";
-
-const LOGO_URL = "/assets/logo-primary.png";
+import { BrandWordmark } from "@/components/brand/BrandWordmark";
 
 export default function LandingFooter() {
   return (
@@ -9,17 +7,8 @@ export default function LandingFooter() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-10 grid grid-cols-2 gap-8 md:grid-cols-5">
           <div className="col-span-2 md:col-span-1">
-            <div className="mb-4 flex items-center gap-2">
-              <Image
-                src={LOGO_URL}
-                alt="KOMPLEET"
-                width={28}
-                height={28}
-                className="rounded"
-              />
-              <span className="font-ceoruse text-sm font-bold uppercase text-text-1">
-                KOMPLEET
-              </span>
+            <div className="mb-4">
+              <BrandWordmark size="sm" />
             </div>
             <p className="text-sm leading-relaxed text-text-2">
               Tax compliance and financial management for Nigerian SMEs.

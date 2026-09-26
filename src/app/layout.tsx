@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Montserrat } from "next/font/google";
 import localFont from "next/font/local";
 import { ConvexAuthNextjsServerProvider } from "@convex-dev/auth/nextjs/server";
 import "./globals.css";
@@ -7,9 +7,9 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { YearProvider } from "@/contexts/year-context";
 import { ConvexAuthClientProvider } from "@/components/providers/ConvexAuthClientProvider";
 
-const inter = Inter({
+const montserrat = Montserrat({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-montserrat",
   display: "swap",
 });
 
@@ -63,8 +63,8 @@ export default function RootLayout({
 }) {
   return (
     <ConvexAuthNextjsServerProvider>
-      <html lang="en" className={`${inter.variable} ${ceoruse.variable}`}>
-        <body className="font-sans">
+      <html lang="en" className={`${montserrat.variable} ${ceoruse.variable}`}>
+        <body className="font-body">
           <ConvexAuthClientProvider>
             <ThemeProvider>
               <YearProvider>{children}</YearProvider>

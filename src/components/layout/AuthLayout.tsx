@@ -1,7 +1,6 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
+import { BrandWordmark } from "@/components/brand/BrandWordmark";
 
 type AuthLayoutProps = {
   children: React.ReactNode;
@@ -14,7 +13,6 @@ type AuthLayoutProps = {
 export function AuthLayout({
   children,
   variant = "dark-split",
-  imagePriority = false,
   headerLeftAddon,
   headerRightAddon,
 }: AuthLayoutProps) {
@@ -42,16 +40,7 @@ export function AuthLayout({
       <div className="flex w-full items-center justify-center p-6 md:w-1/2 md:p-8">
         <main className="w-full max-w-[440px] rounded-xl border border-border bg-surface p-8 shadow-1 md:p-12">
           <div className="mb-6 flex justify-center">
-            <Link href="/">
-              <Image
-                src="/assets/logo-primary.png"
-                alt="Kompleet"
-                width={40}
-                height={40}
-                priority={imagePriority}
-                className="rounded-lg"
-              />
-            </Link>
+            <BrandWordmark href="/" size="lg" />
           </div>
 
           {(headerLeftAddon || headerRightAddon) && (

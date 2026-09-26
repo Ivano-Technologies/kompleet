@@ -102,9 +102,10 @@ module.exports = {
         },
       },
       fontFamily: {
-        display: ["Clash Display", "Inter", "sans-serif"],
+        display: ["Clash Display", "var(--font-montserrat)", "sans-serif"],
         ceoruse: ["var(--font-ceoruse)", "Clash Display", "sans-serif"],
-        body: ["Inter", "sans-serif"],
+        sans: ["var(--font-montserrat)", "Montserrat", "sans-serif"],
+        body: ["var(--font-montserrat)", "Montserrat", "sans-serif"],
       },
       spacing: {
         1: "4px",
