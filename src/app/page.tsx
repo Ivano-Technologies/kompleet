@@ -111,14 +111,20 @@ export default function HomePage() {
             </p>
           </div>
           <div className="overflow-hidden rounded-xl border border-border bg-surface shadow-1">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/assets/illustrations/hero-dashboard-hero-kpis.png"
-              alt="Kompleet dashboard with revenue, expenses, profit, and outstanding invoice KPIs"
-              width={1024}
-              height={280}
-              className="h-auto w-full"
-            />
+            <picture>
+              <source
+                srcSet="/assets/illustrations/hero-kompleet.svg"
+                type="image/svg+xml"
+              />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/assets/illustrations/hero-kompleet.png"
+                alt="Geometric illustration of stacked ledger books with a naira mark and teal verified seal"
+                width={1440}
+                height={720}
+                className="h-auto w-full"
+              />
+            </picture>
           </div>
         </div>
       </header>

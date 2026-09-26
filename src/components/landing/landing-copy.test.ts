@@ -63,7 +63,7 @@ describe("IVA-72 landing copy", () => {
 
   it("does not use kill-listed stock assets", () => {
     expect(landing).not.toMatch(/hero-laptop|auth-lifestyle|expense-tracking\.png|invoicing\.png/);
-    expect(landing).not.toMatch(/hero-dashboard-crop\.png|hero-dashboard-full\.png/);
+    expect(landing).not.toMatch(/hero-dashboard-crop\.png|hero-dashboard-full\.png|hero-dashboard-hero-kpis\.png/);
   });
 
   it("wires locked Design illustrations, not invented lifestyle art", () => {
@@ -74,9 +74,13 @@ describe("IVA-72 landing copy", () => {
     expect(authLayout).toMatch(/auth-panel\.png/);
   });
 
-  it("uses Design spot icons, KPI hero crop, and tax-filing-flow — no Demo chrome", () => {
-    expect(landing).toMatch(/hero-dashboard-hero-kpis\.png/);
+  it("uses Design spot icons, ledger hero illustration, and tax-filing-flow — no Demo chrome", () => {
+    expect(landing).toMatch(/hero-kompleet\.svg/);
+    expect(landing).toMatch(/hero-kompleet\.png/);
+    expect(landing).toMatch(/<picture>/);
+    expect(landing).not.toMatch(/screenshot/i);
     expect(landing).not.toMatch(/ProductChrome/);
+    expect(landing).not.toMatch(/hero-dashboard/);
     expect(
       existsSync(
         resolve(process.cwd(), "src/components/landing/ProductChrome.tsx"),
@@ -86,10 +90,26 @@ describe("IVA-72 landing copy", () => {
       existsSync(
         resolve(
           process.cwd(),
-          "public/assets/illustrations/hero-dashboard-hero-kpis.png",
+          "public/assets/illustrations/hero-kompleet.svg",
         ),
       ),
     ).toBe(true);
+    expect(
+      existsSync(
+        resolve(
+          process.cwd(),
+          "public/assets/illustrations/hero-kompleet.png",
+        ),
+      ),
+    ).toBe(true);
+    expect(
+      existsSync(
+        resolve(
+          process.cwd(),
+          "public/assets/illustrations/hero-dashboard-hero-kpis.png",
+        ),
+      ),
+    ).toBe(false);
     for (const spot of [
       "spot-banks",
       "spot-invoice",
