@@ -178,7 +178,7 @@ test.describe("Export centre", () => {
   }) => {
     await page.goto("/transactions");
     await expect(
-      page.getByRole("heading", { name: "Transactions", level: 1 }),
+      page.getByRole("heading", { name: "Books", level: 1 }),
     ).toBeVisible();
 
     await page.getByRole("button", { name: "Export", exact: true }).click();

@@ -1,10 +1,10 @@
 /**
- * Money path: signup -> email verification -> login -> protected routes.
+ * Money path: signup -> login -> protected routes.
  *
- * Signup is stubbed at the Supabase network boundary so the suite never creates
- * throwaway accounts in a real project. Login uses the seeded test account from
- * E2E_USER_EMAIL / E2E_USER_PASSWORD (see e2e/README.md) — no credential is ever
- * written into this file.
+ * Web auth is Convex Auth (Password). Isolated CI Convex is empty, so signup
+ * here creates a real local account. Login money-path specs use the seeded
+ * E2E_USER_EMAIL / E2E_USER_PASSWORD (see e2e/README.md) — no credential is
+ * ever written into this file.
  */
 
 import { test, expect } from "@playwright/test";
@@ -74,37 +74,10 @@ test.describe("Auth flow", () => {
     ).toBeVisible();
   });
 
-  test("signup shows the email verification prompt", async ({ page }) => {
+  test("signup creates an account and offers the dashboard", async ({
+    page,
+  }) => {
     const email = `e2e-${runId()}@example.test`;
-
-    // Stub the Supabase GoTrue signup endpoint. When email confirmation is
-    // required GoTrue answers with the bare User object and no session, which is
-    // exactly what src/app/signup/page.tsx branches on (`if (data.user)`).
-    //
-    // TODO(verify): the shape below matches supabase-js v2 `_sessionResponse`
-    // (user object, no access_token => session === null). If @supabase/supabase-js
-    // is upgraded and signUp stops resolving `data.user`, re-check this stub
-    // against node_modules/@supabase/auth-js before assuming a product bug.
-    await page.route(/\/auth\/v1\/signup/, async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({
-          id: "00000000-0000-4000-8000-000000000001",
-          aud: "authenticated",
-          role: "authenticated",
-          email,
-          email_confirmed_at: null,
-          confirmation_sent_at: new Date().toISOString(),
-          phone: "",
-          app_metadata: { provider: "email", providers: ["email"] },
-          user_metadata: { full_name: "Tunde Balogun" },
-          identities: [],
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        }),
-      });
-    });
 
     await page.goto("/signup");
 
@@ -135,22 +108,21 @@ test.describe("Auth flow", () => {
       page.getByRole("heading", { name: "Account Created!" }),
     ).toBeVisible();
     await expect(
-      page.getByText("Check your email to verify your account before signing in."),
+      page.getByRole("link", { name: "Go to Dashboard" }),
     ).toBeVisible();
-    await expect(page.getByRole("link", { name: "Go to Login" })).toBeVisible();
 
-    await page.getByRole("link", { name: "Go to Login" }).click();
-    await expect(page).toHaveURL(/\/login/);
+    await page.getByRole("link", { name: "Go to Dashboard" }).click();
+    await expect(page).toHaveURL(/\/dashboard/);
   });
 
-  test("verification callback without a code bounces back to login", async ({
+  test("legacy auth callback without a code lands on login", async ({
     page,
   }) => {
-    // src/app/auth/callback/route.ts redirects to /login?error=missing_code when
-    // neither a `code` nor a recovery `token` is present.
+    // src/app/auth/callback/route.ts is a leftover Supabase link target.
+    // It always redirects to /login so old email links do not 404.
     await page.goto("/auth/callback");
 
-    await expect(page).toHaveURL(/\/login\?error=missing_code/);
+    await expect(page).toHaveURL(/\/login/);
     await expect(
       page.getByPlaceholder(LOGIN_SELECTORS.email, { exact: true }),
     ).toBeVisible();
@@ -202,17 +174,9 @@ test.describe("Auth flow", () => {
       page.getByRole("button", { name: LOGIN_SELECTORS.submit, exact: true }),
     ).toBeEnabled();
 
-    const loginResponse = page.waitForResponse(
-      (res) =>
-        new URL(res.url()).pathname === "/api/auth/login" &&
-        res.request().method() === "POST",
-      { timeout: 60_000 },
-    );
     await page
       .getByRole("button", { name: LOGIN_SELECTORS.submit, exact: true })
       .click();
-    const response = await loginResponse;
-    expect(response.status()).toBe(401);
 
     await expect(page.getByText(/Invalid email or password\./)).toBeVisible();
     await expect(page).toHaveURL(/\/login/);
@@ -236,7 +200,7 @@ test.describe("Auth flow", () => {
       await page.goto("/transactions");
       await expect(page).toHaveURL(/\/transactions/);
       await expect(
-        page.getByRole("heading", { name: "Transactions", level: 1 }),
+        page.getByRole("heading", { name: "Books", level: 1 }),
       ).toBeVisible();
 
       await page.goto("/export");

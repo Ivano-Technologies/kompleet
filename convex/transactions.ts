@@ -186,6 +186,47 @@ export const totalsForYear = query({
   },
 });
 
+export const summaryForPeriod = query({
+  args: {
+    startDate: v.string(),
+    endDate: v.string(),
+  },
+  returns: v.object({
+    income: v.number(),
+    expenses: v.number(),
+    count: v.number(),
+    uncategorized: v.number(),
+  }),
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
+    const rows = await ctx.db
+      .query("transactions")
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .collect();
+    const inPeriod = rows.filter(
+      (row) =>
+        row.transactionDate >= args.startDate &&
+        row.transactionDate <= args.endDate,
+    );
+    let income = 0;
+    let expenses = 0;
+    let uncategorized = 0;
+    for (const row of inPeriod) {
+      if (row.transactionType === "credit") income += row.amount;
+      else expenses += row.amount;
+      if (!row.categoryId) {
+        uncategorized += 1;
+      } else if (
+        typeof row.confidenceScore === "number" &&
+        row.confidenceScore < 80
+      ) {
+        uncategorized += 1;
+      }
+    }
+    return { income, expenses, count: inPeriod.length, uncategorized };
+  },
+});
+
 export const monthlyTotals = query({
   args: { months: v.number() },
   returns: v.array(

@@ -369,6 +369,42 @@ export default defineSchema({
       "processingStartedAt",
     ]),
 
+  /**
+   * Wave 4 Documents library (IVA-75). Distinct from `documents`
+   * (OCR / document-intelligence queue).
+   */
+  uploadedFiles: defineTable({
+    externalId: v.string(),
+    userId: v.id("users"),
+    userExternalId: v.string(),
+    storageId: v.id("_storage"),
+    filename: v.string(),
+    contentType: v.string(),
+    size: v.number(),
+    uploadedAt: v.number(),
+    uploadedBy: v.id("users"),
+    source: v.union(
+      v.literal("documents"),
+      v.literal("invoice_drop"),
+      v.literal("expense_attach"),
+      v.literal("transaction_attach"),
+    ),
+    linkType: v.optional(
+      v.union(
+        v.literal("transaction"),
+        v.literal("invoice"),
+        v.literal("expense"),
+      ),
+    ),
+    linkId: v.optional(v.string()),
+    linkLabel: v.optional(v.string()),
+  })
+    .index("by_externalId", ["externalId"])
+    .index("by_user", ["userId"])
+    .index("by_user_and_uploadedAt", ["userId", "uploadedAt"])
+    .index("by_user_and_linkType", ["userId", "linkType"])
+    .index("by_link", ["linkType", "linkId"]),
+
   auditLogs: defineTable({
     userId: v.optional(v.id("users")),
     userExternalId: v.optional(v.string()),

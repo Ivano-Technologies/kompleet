@@ -1,0 +1,81 @@
+WAVE 4 SHIPPING HANDOFF — Kompleet / Ivano Technologies
+=========================================================
+Audience: Shipping · Design: Kompleet · Stakeholder: Kezie · 27 Sep 2026 WAT
+Parent Linear: IVA-71 (Kompleet brand & UI rethink)
+Child: IVA-75 (Wave 4 — Docs / uploads)
+
+DO NOT TOUCH: JUO campaign · Wave 1 locks under wave1/ · Wave 2–3 locks under wave2/ wave3/
+  (sidebar IA Dashboard·Books·Invoices·Tax·More · DropZone / Import AUTO / Invoices drop / Tax generate)
+  · AppSidebar /app stub as product IA · Supabase storage
+
+PATHS (authoritative)
+---------------------
+Brand (LOCKED Option C — reference only, do not edit):
+  /workspace/kompleet-design/wave1/OPTION-C-BRAND-SYSTEM.md
+
+Workflow / shell (LOCKED — reference only):
+  /workspace/kompleet-design/wave2/WORKFLOW-SIMPLIFICATION.md
+  /workspace/kompleet-design/wave2/APP-SHELL.md
+  /workspace/kompleet-design/wave2/DASHBOARD-DROPZONE.md
+
+Wave 3 drop language (LOCKED — reuse chrome, do not edit):
+  /workspace/kompleet-design/wave3/IMPORT-AUTO.md
+  /workspace/kompleet-design/wave3/INVOICES-DROP.md
+
+Wave 4 spec:
+  /workspace/kompleet-design/wave4/DOCS-UPLOADS.md          (IVA-75)
+
+Comps (Wave 4 product chrome — labeled Wave 4 · Option C hexes):
+  /workspace/kompleet-design/wave4/comps/docs-empty.png (+ .html)
+  /workspace/kompleet-design/wave4/comps/docs-list-drop.png (+ .html)
+  /workspace/kompleet-design/wave4/comps/docs-attach-sheet.png (+ .html)
+
+BRAND LOCKS (one-liner)
+-----------------------
+Option C: navy #0B3A5C / deep #072A45 · teal accent #0D9488 (CTA + active nav + drop drag-over ONLY)
+  · warm stone #F4F1EB / #FFFDF8 / #DDD5C8 · forest success #1B7A4E · Ceoruse wordmark ONLY
+  · Clash Display headlines · Montserrat body/UI · no lime/amber/Inter/emoji icons/teal glow.
+
+IA LOCK (Wave 4)
+----------------
+Documents hub at /documents lives under More → Documents (first row in More flyout).
+Do NOT add Documents as a 6th primary. Primary stays: Dashboard · Books · Invoices · Tax · More.
+Bank statements stay on Books/Dashboard StatementDropZone. Invoice draft-from-drop stays IVA-78.
+Docs = library + attach — pick-and-drop, no wizard walls.
+
+WHAT TO SHIP (IVA-75)
+---------------------
+· More → Documents → /documents hub
+· Empty: large drop hero — PDF / image / CSV; Upload teal CTA; Choose file tertiary
+· Populated: slim drop strip above list + filters (All · PDF · Images · CSV · Attached · Unattached)
+· Upload starts immediately to Convex storage; toast “{filename} uploaded” + soft Attach
+· Attach sheet: Link to Transaction | Invoice | Expense + search (or pre-lock from detail)
+· Detail surfaces: secondary “Attach file” opens same sheet
+· Preview (PDF / image / CSV table) · Delete with confirm (clears links)
+· FileDropZone hero|strip|compact (Docs accept set) — visual twin of StatementDropZone language
+· Convex only — no Supabase Storage path or copy
+
+ACCEPTANCE (short)
+------------------
+IVA-75 [ ] More→Documents only (no 6th primary) · drop-first empty+strip · attach sheet
+         · preview+delete · Convex storage · Option C drop chrome · comps present
+
+ENG HOOKS
+---------
+Convex: generateUploadUrl · saveFileMetadata · listFiles · getFileUrl · attachFile · deleteFile
+Accept: .pdf .png .jpg .jpeg .webp .csv .xlsx .xls
+Reuse DropZone chrome tokens from IVA-76/77; new FileDropZone component (do not overload StatementDropZone accept)
+Invoice-drop artifacts (IVA-78) should also appear in Documents library when Eng can share metadata
+
+OUT OF SCOPE
+------------
+JUO · Wave 1 marketing · Sidebar primary redesign · Statement import · Invoice OCR · logo squircle
+· Expenses merge · Multi-parent attach · Full-text OCR search
+
+OPEN TASTE QUESTIONS FOR KEZIE (do not block tokens / IA lock)
+--------------------------------------------------------------
+1. Soft nudge when a Docs drop looks like a bank statement → “Import to Books?” toast (Design leans yes, optional) vs silent library-only?
+2. CSV preview: in-app table (Design default) vs download-only if Eng capacity tight?
+3. Documents label in More: “Documents” (Design default) vs “Files” / “Uploads”?
+4. Attach default radio when opened from Docs hub: Transaction (Design default) vs last-used type?
+5. Should invoice PDF drops (IVA-78) auto-appear in Documents library in v1, or only explicit Docs uploads?

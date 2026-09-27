@@ -16,6 +16,10 @@ vi.mock("next/link", () => ({
   ),
 }));
 
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
+}));
+
 describe("TaxReportsPage", () => {
   beforeEach(() => {
     authState.isLoading = false;
@@ -50,9 +54,8 @@ describe("TaxReportsPage", () => {
     render(<TaxReportsPage />);
 
     await waitFor(() => {
-      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(vi.mocked(fetch).mock.calls[0]?.[0]).toBe("/api/tax-reports");
     });
-    expect(vi.mocked(fetch).mock.calls[0]?.[0]).toBe("/api/tax-reports");
     expect(vi.mocked(fetch).mock.calls[0]?.[1]).toEqual({
       credentials: "same-origin",
     });

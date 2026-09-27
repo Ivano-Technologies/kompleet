@@ -18,7 +18,21 @@ const nextConfig = {
       {
         source: "/dashboard/overview",
         destination: "/dashboard",
-        permanent: true,
+        permanent: false,
+      },
+      { source: "/app", destination: "/dashboard", permanent: false },
+      { source: "/app/dashboard", destination: "/dashboard", permanent: false },
+      {
+        source: "/app/transactions",
+        destination: "/transactions",
+        permanent: false,
+      },
+      { source: "/app/:path*", destination: "/dashboard", permanent: false },
+      { source: "/filing", destination: "/tax?tab=filing", permanent: false },
+      {
+        source: "/tax-reports",
+        destination: "/tax?tab=reports",
+        permanent: false,
       },
     ];
   },
@@ -50,6 +64,15 @@ const nextConfig = {
     cpus: 1,
   },
 
+  // Do not outputFileTracingIncludes node_modules globs: pnpm store paths
+  // are symlinks and Vercel patchBuild rejects them
+  // ("invalid deployment package … files in symlinked directories").
+  // upload-v2 pins WorkerMessageHandler from a real file under src/vendor.
+
+  // pdf-parse / pdfjs need the native canvas addon at runtime on Vercel.
+  // Bundling it drops the .node binary and getText() throws DOMMatrix.
+  serverExternalPackages: ["@napi-rs/canvas", "pdfjs-dist", "pdf-parse"],
+
   webpack: (config, { isServer }) => {
     // natural pulls in classifiers that require webworker-threads (optional native);
     // we only use PorterStemmer. Stub so build does not fail resolving it.
@@ -60,16 +83,6 @@ const nextConfig = {
     // We never use that path; AWS SDK was removed with the ML tier.
     config.resolve.fallback["@aws-sdk/client-s3"] = false;
     return config;
-  },
-
-  async redirects() {
-    return [
-      {
-        source: '/dashboard/overview',
-        destination: '/dashboard',
-        permanent: false,
-      },
-    ];
   },
 
   images: {
