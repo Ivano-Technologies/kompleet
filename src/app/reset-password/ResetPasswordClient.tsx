@@ -14,6 +14,7 @@ import {
   AUTH_SUBMIT,
   AUTH_SUBTITLE,
   AUTH_TITLE,
+  AUTH_TITLE_BLOCK,
 } from '@/components/layout/auth-density';
 import { CheckCircle2, Eye, EyeOff, KeyRound } from 'lucide-react';
 
@@ -96,7 +97,7 @@ export default function ResetPasswordClient() {
 
   return (
     <AuthLayout variant="dark-split" headerLeftAddon={headerLeftAddon}>
-      <div className="mb-3 text-center">
+      <div className={`${AUTH_TITLE_BLOCK} text-center`}>
         <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-accent/10">
           <KeyRound className="h-5 w-5 text-accent" />
         </div>
@@ -146,7 +147,7 @@ export default function ResetPasswordClient() {
           <label htmlFor="password" className={AUTH_LABEL}>
             New Password
           </label>
-          <div className="relative mt-1.5">
+          <div className="relative mt-1">
             <input
               id="password"
               type={showPassword ? 'text' : 'password'}

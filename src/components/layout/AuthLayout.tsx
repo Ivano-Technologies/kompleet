@@ -37,14 +37,14 @@ export function AuthLayout({
         </picture>
       </div>
 
-      <div className="flex w-full items-center justify-center p-5 md:w-1/2 md:p-4 lg:p-5">
-        <main className="w-full max-w-[400px] rounded-xl border border-border bg-surface px-5 py-5 shadow-1 md:max-w-[420px] md:px-6 md:py-5">
+      <div className="flex w-full items-center justify-center px-4 py-4 md:w-1/2 md:px-6 md:py-5">
+        <main className="w-full max-w-[440px] rounded-xl border border-border bg-surface p-5 shadow-1 md:p-6">
           <div className="mb-3 flex justify-center">
             <BrandWordmark href="/" size="md" />
           </div>
 
           {(headerLeftAddon || headerRightAddon) && (
-            <div className="mb-3 flex items-center justify-between gap-3 text-xs">
+            <div className="mb-2 flex items-center justify-between gap-3 text-sm">
               <div>{headerLeftAddon}</div>
               <div>{headerRightAddon}</div>
             </div>

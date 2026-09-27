@@ -13,8 +13,9 @@ import {
   AUTH_INPUT_WITH_TOGGLE,
   AUTH_LABEL,
   AUTH_SUBMIT,
-  AUTH_SUBTITLE,
+  AUTH_SUBTITLE_FOLD,
   AUTH_TITLE,
+  AUTH_TITLE_BLOCK,
 } from "@/components/layout/auth-density";
 import { Eye, EyeOff } from "lucide-react";
 
@@ -55,11 +56,13 @@ function LoginForm() {
 
   return (
     <AuthLayout variant="dark-split" imagePriority>
-      <div className={AUTH_EYEBROW}>Welcome Back</div>
-      <h2 className={AUTH_TITLE}>Sign in</h2>
-      <p className={`mb-3 ${AUTH_SUBTITLE}`}>
-        Access your business financial dashboard.
-      </p>
+      <div className={AUTH_TITLE_BLOCK}>
+        <div className={AUTH_EYEBROW}>Welcome Back</div>
+        <h2 className={AUTH_TITLE}>Sign in</h2>
+        <p className={AUTH_SUBTITLE_FOLD}>
+          Access your business financial dashboard.
+        </p>
+      </div>
       {error && <div className={AUTH_ERROR}>{error}</div>}
       <form onSubmit={handleSubmit} className={AUTH_FORM}>
         <div>
@@ -74,11 +77,11 @@ function LoginForm() {
           />
         </div>
         <div>
-          <div className="mb-1.5 flex items-center justify-between">
+          <div className="mb-1 flex items-center justify-between">
             <label className={AUTH_LABEL}>Password</label>
             <Link
               href="/forgot-password"
-              className="text-[10px] font-bold text-primary hover:underline"
+              className="text-xs font-bold text-primary hover:underline"
             >
               Forgot Password?
             </Link>

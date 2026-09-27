@@ -14,7 +14,11 @@ import {
   AUTH_LABEL,
   AUTH_SUBMIT,
   AUTH_SUBTITLE,
+  AUTH_SUBTITLE_FOLD,
+  AUTH_TERMS,
   AUTH_TITLE,
+  AUTH_TITLE_BLOCK,
+  AUTH_TRUST,
 } from '@/components/layout/auth-density';
 import { ArrowRight, CheckCircle2, Eye, EyeOff, Shield, Lock } from 'lucide-react';
 
@@ -105,15 +109,25 @@ export default function SignUpPage() {
   }
 
   return (
-    <AuthLayout variant="dark-split">
-      <div className="mb-3">
+    <AuthLayout
+      variant="dark-split"
+      headerRightAddon={
+        <span className="text-sm text-text-3">
+          Already have an account?{' '}
+          <Link href="/login" className="font-bold text-primary hover:underline">
+            Log in
+          </Link>
+        </span>
+      }
+    >
+      <div className={AUTH_TITLE_BLOCK}>
         <div className={AUTH_EYEBROW}>
           Create Account
         </div>
         <h1 className={AUTH_TITLE}>
           Sign up
         </h1>
-        <p className={AUTH_SUBTITLE}>
+        <p className={AUTH_SUBTITLE_FOLD}>
           Track your spending, handle invoices, and avoid surprises.
         </p>
       </div>
@@ -186,7 +200,7 @@ export default function SignUpPage() {
           <label className={AUTH_LABEL}>
             Password
           </label>
-          <div className="relative mt-1.5">
+          <div className="relative mt-1">
             <input
               type={showPassword ? 'text' : 'password'}
               value={password}
@@ -229,31 +243,23 @@ export default function SignUpPage() {
         </button>
       </form>
 
-      <p className="mt-3 text-center text-xs text-text-3 dark:text-dark-text-3">
-        Already have an account?{' '}
-        <Link href="/login" className="font-bold text-primary hover:underline">
-          Log in
-        </Link>
-      </p>
-
-      <p className="mt-2 text-center text-[11px] text-text-4 dark:text-dark-text-4">
+      <p className={AUTH_TERMS}>
         By signing up, you agree to our{' '}
         <Link href="/terms" className="text-primary hover:underline">Terms of Service</Link>
         {' '}and{' '}
         <Link href="/privacy" className="text-primary hover:underline">Privacy Policy</Link>
       </p>
 
-      <div className="mt-3 border-t border-border pt-3 dark:border-dark-border">
-        <div className="flex items-center justify-center gap-4 text-[11px] text-text-4 dark:text-dark-text-4">
-          <div className="flex items-center gap-1.5">
-            <Shield className="h-3.5 w-3.5" />
-            <span>NDPR Compliant</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Lock className="h-3.5 w-3.5" />
-            <span>256-bit SSL</span>
-          </div>
-        </div>
+      <div className={AUTH_TRUST}>
+        <span className="inline-flex items-center gap-1.5">
+          <Shield className="h-3 w-3" />
+          NDPR Compliant
+        </span>
+        <span aria-hidden="true">·</span>
+        <span className="inline-flex items-center gap-1.5">
+          <Lock className="h-3 w-3" />
+          256-bit SSL
+        </span>
       </div>
     </AuthLayout>
   );

@@ -17,8 +17,9 @@ async function pageOverflows(page: Page): Promise<boolean> {
 
 test.describe("IVA-90 auth density on laptop viewports", () => {
   for (const viewport of [
-    { width: 1280, height: 800 },
     { width: 1440, height: 900 },
+    { width: 1366, height: 768 },
+    { width: 1280, height: 800 },
   ] as const) {
     test(`auth forms fit ${viewport.width}x${viewport.height} without scroll`, async ({
       page,

@@ -12,6 +12,7 @@ import {
   AUTH_SUBMIT,
   AUTH_SUBTITLE,
   AUTH_TITLE,
+  AUTH_TITLE_BLOCK,
 } from '@/components/layout/auth-density';
 import { ArrowLeft, KeyRound, Mail } from 'lucide-react';
 
@@ -51,7 +52,7 @@ export default function ForgotPasswordPage() {
           </p>
           <Link
             href={`/reset-password?email=${encodeURIComponent(email)}`}
-            className="block w-full rounded-md bg-accent py-2.5 text-center text-sm font-bold text-charcoal hover:bg-accent-hover"
+            className="flex h-11 w-full items-center justify-center rounded-md bg-accent text-sm font-bold text-charcoal hover:bg-accent-hover"
           >
             Enter reset code
           </Link>
@@ -75,7 +76,7 @@ export default function ForgotPasswordPage() {
         </Link>
       }
     >
-      <div className="mb-3 text-center">
+      <div className={`${AUTH_TITLE_BLOCK} text-center`}>
         <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
           <KeyRound className="h-5 w-5 text-primary" />
         </div>
@@ -115,7 +116,7 @@ export default function ForgotPasswordPage() {
         </button>
       </form>
 
-      <p className="mt-3 text-center text-[11px] text-text-4 dark:text-dark-text-4">
+      <p className="mt-3 text-center text-xs text-text-4 dark:text-dark-text-4">
         The code expires in 15 minutes. Existing users can also reclaim by signing up with the same email.
       </p>
     </AuthLayout>

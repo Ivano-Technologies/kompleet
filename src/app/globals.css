@@ -261,6 +261,13 @@ html.dark .solid-nav {
   font-weight: 600;
 }
 
+/* AUTH-DENSITY: hide marketing subtitle on short laptop viewports. */
+@media (max-height: 800px) {
+  .auth-sub {
+    display: none;
+  }
+}
+
 /* Utility Classes */
 @layer utilities {
   .text-balance {
