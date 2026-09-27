@@ -11,6 +11,7 @@ import {
 import type { StatementUploadResult } from "@/components/import/StatementDropZone";
 import { ExceptionBanner, ImportToast } from "@/components/import/ImportToast";
 import { DROP_COPY } from "@/components/import/statement-copy";
+import { SetupChecklist } from "@/components/dashboard/SetupChecklist";
 import {
   Bar,
   BarChart,
@@ -50,6 +51,7 @@ interface Transaction {
 }
 
 interface DashboardClientProps {
+  userId: string;
   kpiData: KpiData;
   revenueData: RevenuePoint[];
   recentTransactions: Transaction[];
@@ -72,6 +74,7 @@ function formatFullNaira(val: number) {
 }
 
 export default function DashboardClient({
+  userId,
   kpiData,
   revenueData,
   recentTransactions,
@@ -147,6 +150,7 @@ export default function DashboardClient({
     return (
       <div className="space-y-6">
         {header}
+        <SetupChecklist userId={userId} />
         <StatementDropZone
           variant="hero"
           inputId={DASHBOARD_INPUT_ID}
@@ -180,6 +184,8 @@ export default function DashboardClient({
   return (
     <div className="space-y-6">
       {header}
+
+      <SetupChecklist userId={userId} />
 
       <ExceptionBanner
         uncategorizedCount={uncategorizedCount}
