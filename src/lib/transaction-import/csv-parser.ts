@@ -121,32 +121,44 @@ function parseRows(
   );
 }
 
+function namedColumns(
+  ...values: Array<string | number | undefined>
+): string[] {
+  return values.filter((value): value is string => typeof value === "string");
+}
+
 function buildColumnMap(
   headers: string[],
   bankConfig: BankConfig,
 ): ColumnMap {
-  const { csvConfig } = bankConfig;
+  const { csvConfig, excelConfig } = bankConfig;
   return {
-    date: findMatchingHeader(headers, [csvConfig.dateColumn, ...DATE_ALIASES]),
+    date: findMatchingHeader(headers, [
+      ...namedColumns(csvConfig.dateColumn, excelConfig.dateColumn),
+      ...DATE_ALIASES,
+    ]),
     merchant: findMatchingHeader(headers, [
-      csvConfig.merchantColumn,
+      ...namedColumns(csvConfig.merchantColumn, excelConfig.merchantColumn),
       ...MERCHANT_ALIASES,
     ]),
     amount: findMatchingHeader(headers, [
-      csvConfig.amountColumn,
+      ...namedColumns(csvConfig.amountColumn, excelConfig.amountColumn),
       ...AMOUNT_ALIASES,
     ]),
-    debit: findMatchingHeader(headers, [csvConfig.debitColumn, ...DEBIT_ALIASES]),
+    debit: findMatchingHeader(headers, [
+      ...namedColumns(csvConfig.debitColumn, excelConfig.debitColumn),
+      ...DEBIT_ALIASES,
+    ]),
     credit: findMatchingHeader(headers, [
-      csvConfig.creditColumn,
+      ...namedColumns(csvConfig.creditColumn, excelConfig.creditColumn),
       ...CREDIT_ALIASES,
     ]),
     balance: findMatchingHeader(headers, [
-      csvConfig.balanceColumn,
+      ...namedColumns(csvConfig.balanceColumn, excelConfig.balanceColumn),
       ...BALANCE_ALIASES,
     ]),
     reference: findMatchingHeader(headers, [
-      csvConfig.referenceColumn,
+      ...namedColumns(csvConfig.referenceColumn, excelConfig.referenceColumn),
       ...REFERENCE_ALIASES,
     ]),
   };
@@ -196,9 +208,6 @@ export async function parseCSV(
   fileContent: string,
   bankConfig: BankConfig,
 ): Promise<ParseResult> {
-  const transactions: ParsedTransaction[] = [];
-  const errors: ParseError[] = [];
-
   const stripped = stripBom(fileContent);
   const detectedDelimiter = detectDelimiter(stripped);
   const delimiter = detectedDelimiter || bankConfig.csvConfig.delimiter || ",";
@@ -212,6 +221,36 @@ export async function parseCSV(
           rowNumber: 0,
           errorType: "FILE_PARSING_ERROR",
           errorMessage: "CSV contained no rows",
+          rawData: {},
+        },
+      ],
+      totalRows: 0,
+      successfulRows: 0,
+    };
+  }
+
+  return parseTabularStatement(rows, bankConfig);
+}
+
+/**
+ * Shared row parser for CSV and Excel. Finds the header among preamble
+ * rows, maps columns via aliases, then extracts transactions.
+ */
+export function parseTabularStatement(
+  rows: string[][],
+  bankConfig: BankConfig,
+): ParseResult {
+  const transactions: ParsedTransaction[] = [];
+  const errors: ParseError[] = [];
+
+  if (rows.length === 0) {
+    return {
+      transactions: [],
+      errors: [
+        {
+          rowNumber: 0,
+          errorType: "FILE_PARSING_ERROR",
+          errorMessage: "Statement contained no rows",
           rawData: {},
         },
       ],
@@ -305,6 +344,10 @@ function extractTransaction(
     throw new Error(
       `Missing merchant in column "${columns.merchant ?? "Description"}"`,
     );
+  }
+
+  if (/^(opening|closing)\s+balance\b/i.test(merchant)) {
+    return null;
   }
 
   let amount: number;
@@ -472,6 +515,7 @@ export function parseAmount(amountStr: string | number | undefined): number {
 
   cleaned = cleaned
     .replace(/[()]/g, "")
+    .replace(/^\s*(DR|CR)\.?\s+/i, "")
     .replace(/\s*CR\s*$/i, "")
     .replace(/\s*DR\s*$/i, "");
 

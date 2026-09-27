@@ -77,7 +77,7 @@ describe("IVA-83 StatementDropZone error surfaces", () => {
       screen.getByText(IMPORT_ERROR_COPY.ubaLayout.title),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(IMPORT_ERROR_COPY.ubaLayout.body),
+      screen.getByText(IMPORT_ERROR_COPY.ubaLayout.pdf),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Try CSV instead" }),
