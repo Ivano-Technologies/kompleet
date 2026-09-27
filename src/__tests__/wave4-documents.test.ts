@@ -60,6 +60,7 @@ describe("IVA-75 drop-first library", () => {
     expect(hub).toMatch(/variant="strip"/);
     expect(hub).toMatch(/DOCS_COPY\.filterAll/);
     expect(hub).toMatch(/DOCS_COPY\.filterUnattached/);
+    expect(hub).toMatch(/DOCS_COPY\.rowDownload/);
   });
 
   it("does not overload StatementDropZone accept and reuses dashed chrome", () => {

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { useMutation, useQuery } from "convex/react";
+import { useConvex, useMutation, useQuery } from "convex/react";
 import {
   FileSpreadsheet,
   FileText,
@@ -44,6 +44,7 @@ const HUB_INPUT_ID = "documents-hub-input";
 export default function DocumentsPage() {
   const [filter, setFilter] = useState<DocsFilter>("all");
   const files = useQuery(api.files.listFiles, { filter });
+  const convex = useConvex();
   const deleteFile = useMutation(api.files.deleteFile);
   const { upload, uploading, progress, fileName } = useLibraryUpload();
 
@@ -151,6 +152,12 @@ export default function DocumentsPage() {
             onPreview={setPreviewFile}
             onAttach={setAttachFile}
             onDelete={setDeleteTarget}
+            onDownload={async (file) => {
+              const url = await convex.query(api.files.getFileUrl, {
+                fileId: file.id,
+              });
+              if (url) window.open(url, "_blank", "noopener,noreferrer");
+            }}
           />
         </>
       )}
@@ -204,6 +211,7 @@ function FileList({
   onPreview,
   onAttach,
   onDelete,
+  onDownload,
 }: {
   files: LibraryFile[];
   menuId: string | null;
@@ -211,6 +219,7 @@ function FileList({
   onPreview: (file: LibraryFile) => void;
   onAttach: (file: LibraryFile) => void;
   onDelete: (file: LibraryFile) => void;
+  onDownload: (file: LibraryFile) => void;
 }) {
   const rows = useMemo(() => files, [files]);
 
@@ -306,6 +315,16 @@ function FileList({
                     }}
                   >
                     {DOCS_COPY.rowPreview}
+                  </button>
+                  <button
+                    type="button"
+                    className="block w-full text-left px-3 py-1.5 text-sm text-text-1 hover:bg-surface-2"
+                    onClick={() => {
+                      onDownload(file);
+                      onMenu(null);
+                    }}
+                  >
+                    {DOCS_COPY.rowDownload}
                   </button>
                   <button
                     type="button"
