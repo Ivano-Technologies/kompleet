@@ -67,7 +67,7 @@ const nextConfig = {
   // Do not outputFileTracingIncludes node_modules globs: pnpm store paths
   // are symlinks and Vercel patchBuild rejects them
   // ("invalid deployment package … files in symlinked directories").
-  // The upload-v2 pin imports pdf.worker.mjs itself so NFT traces that file.
+  // upload-v2 pins WorkerMessageHandler from a real file under src/vendor.
 
   // pdf-parse / pdfjs need the native canvas addon at runtime on Vercel.
   // Bundling it drops the .node binary and getText() throws DOMMatrix.

@@ -4,8 +4,6 @@
  * DOMMatrix and the previous tesseract OCR path hung until a 504.
  */
 
-import { createRequire } from "node:module";
-import { pathToFileURL } from "node:url";
 import { inflateSync, inflateRawSync } from "node:zlib";
 import { installPdfJsDomPolyfills } from "./pdf-dom-polyfill";
 
@@ -199,8 +197,10 @@ type PdfJsWorkerModule = {
 
 async function pinPdfJsWorker(): Promise<void> {
   installPdfJsDomPolyfills();
+  // Real file under src/ — do not import pdfjs-dist's worker from pnpm
+  // node_modules (symlink). Vercel patchBuild rejects those paths.
   const worker = (await import(
-    "pdfjs-dist/legacy/build/pdf.worker.mjs"
+    "./vendor/pdf.worker.min.mjs"
   )) as PdfJsWorkerModule;
   const handler =
     worker.WorkerMessageHandler ??
@@ -218,14 +218,10 @@ async function pinPdfJsWorker(): Promise<void> {
 async function loadPdfJs() {
   await pinPdfJsWorker();
   const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
-  try {
-    const require = createRequire(import.meta.url);
-    pdfjs.GlobalWorkerOptions.workerSrc = pathToFileURL(
-      require.resolve("pdfjs-dist/legacy/build/pdf.worker.mjs"),
-    ).href;
-  } catch {
-    /* globalThis.pdfjsWorker is enough when the file is not on disk */
-  }
+  pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+    "./vendor/pdf.worker.min.mjs",
+    import.meta.url,
+  ).href;
   return pdfjs;
 }
 
