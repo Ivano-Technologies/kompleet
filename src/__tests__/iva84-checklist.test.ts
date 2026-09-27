@@ -65,7 +65,9 @@ describe("IVA-84 post-signup business checklist", () => {
       "kompleet-design/iva-84-checklist/POST-SIGNUP-CHECKLIST.md",
       "kompleet-design/iva-84-checklist/shipping-handoff-iva84.txt",
       "kompleet-design/iva-84-checklist/comps/checklist-card.html",
+      "kompleet-design/iva-84-checklist/comps/checklist-card.png",
       "kompleet-design/iva-84-checklist/comps/checklist-complete.html",
+      "kompleet-design/iva-84-checklist/comps/checklist-complete.png",
     ]) {
       expect(existsSync(resolve(process.cwd(), file))).toBe(true);
     }
