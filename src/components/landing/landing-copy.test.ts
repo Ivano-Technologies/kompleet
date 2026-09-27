@@ -110,14 +110,18 @@ describe("IVA-72 landing copy", () => {
   });
 
   it("keeps the hero compact so auth fits above the fold", () => {
-    expect(landing).toMatch(/lg:h-\[calc\(100svh-4rem\)\]/);
-    expect(landing).toMatch(/py-6/);
-    expect(landing).toMatch(/lg:py-8/);
-    expect(landing).toMatch(/text-\[32px\]/);
-    expect(landing).toMatch(/xl:text-\[40px\]/);
-    expect(landing).not.toMatch(/text-5xl/);
-    expect(landing).not.toMatch(/py-16|lg:py-24|lg:min-h-\[640px\]/);
-    expect(landing).toMatch(/Nigerian bank imports, Tax Act 2025, and NRS-ready invoices/);
+    const hero = landing.slice(
+      landing.indexOf("<header>"),
+      landing.indexOf("</header>"),
+    );
+    expect(hero).toMatch(/lg:h-\[calc\(100svh-4rem\)\]/);
+    expect(hero).toMatch(/py-6/);
+    expect(hero).toMatch(/lg:py-8/);
+    expect(hero).toMatch(/text-\[32px\]/);
+    expect(hero).toMatch(/xl:text-\[40px\]/);
+    expect(hero).not.toMatch(/text-5xl/);
+    expect(hero).not.toMatch(/py-16|lg:py-24|lg:min-h-\[640px\]/);
+    expect(hero).toMatch(/Nigerian bank imports, Tax Act 2025, and NRS-ready invoices/);
     expect(heroAuthCard).toMatch(/p-4 shadow-2/);
     expect(heroAuthCard).toMatch(/h-11/);
     expect(heroAuthCard).not.toMatch(/h-\[52px\]/);
