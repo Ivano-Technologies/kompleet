@@ -8,7 +8,17 @@
  */
 
 import OpenAI from "openai";
-import { ParsedTransaction, ParseResult, ParseError } from "./csv-parser";
+import {
+  ParsedTransaction,
+  ParseResult,
+  ParseError,
+  parseDateFlexible,
+} from "./csv-parser";
+import {
+  extractStructuredStatementTransactions,
+  repairWrappedStatementDates,
+} from "./statement-text-parser";
+import { extractPdfText } from "./pdf-text-extract";
 
 let _openai: OpenAI | null = null;
 
@@ -29,10 +39,14 @@ function getOpenAI(): OpenAI {
 }
 
 /**
- * Extract text using OCR for scanned/image-based PDFs
- * CRIT-005: OCR fallback implementation
+ * Extract text using OCR for scanned/image-based PDFs.
+ * Disabled on Vercel: tesseract's worker is missing
+ * (`/var/task/.next/worker-script/node/index.js`) and hung CoS smoke to 504.
  */
 async function extractTextWithOCR(buffer: Buffer): Promise<string> {
+  if (process.env.VERCEL || process.env.KOMPLEET_ENABLE_PDF_OCR !== "1") {
+    return "";
+  }
   console.log("Attempting OCR extraction...");
   try {
     const { createWorker } = await import("tesseract.js");
@@ -56,37 +70,11 @@ async function extractTextWithOCR(buffer: Buffer): Promise<string> {
 function checkPDFEncryption(buffer: Buffer): boolean {
   try {
     const bufferStr = buffer.toString("latin1");
-    return bufferStr.includes("/Encrypt");
+    // Require a dictionary token so font/name substrings do not false-positive.
+    return /\/Encrypt[\s/\[>]/.test(bufferStr);
   } catch {
     return false;
   }
-}
-
-/**
- * Extract text from password-protected PDF using pdfjs-dist
- */
-async function extractTextWithPdfJs(
-  buffer: Buffer,
-  password: string,
-): Promise<string> {
-  const { getDocument } = await import("pdfjs-dist");
-  const uint8 = new Uint8Array(buffer);
-  const loadingTask = getDocument({ data: uint8, password });
-  const pdf = await loadingTask.promise;
-  const numPages = pdf.numPages;
-  const textParts: string[] = [];
-
-  for (let i = 1; i <= numPages; i++) {
-    const page = await pdf.getPage(i);
-    const textContent = await page.getTextContent();
-    const pageText = textContent.items
-      .map((item) => ("str" in item ? (item as { str?: string }).str || "" : ""))
-      .join(" ");
-    textParts.push(pageText);
-  }
-
-  await pdf.destroy();
-  return textParts.join("\n");
 }
 
 /**
@@ -121,50 +109,24 @@ export async function parsePDF(
       );
     }
 
-    // Step 1: Extract raw text from PDF
+    // Step 1: Extract raw text. Never block on canvas/OCR on Vercel.
     let rawText = "";
-
-    if (isEncrypted && password) {
-      try {
-        rawText = await extractTextWithPdfJs(fileBuffer, password);
-      } catch (decryptError) {
-        const errMsg =
-          decryptError instanceof Error ? decryptError.message : String(decryptError);
-        if (errMsg.toLowerCase().includes("password") || errMsg.includes("correct password")) {
-          throw new Error("PASSWORD_REQUIRED");
-        }
-        throw decryptError;
+    try {
+      const extracted = await extractPdfText(
+        fileBuffer,
+        isEncrypted ? password : undefined,
+      );
+      rawText = extracted.text;
+    } catch (parseError) {
+      const errMsg =
+        parseError instanceof Error ? parseError.message : String(parseError);
+      if (errMsg === "PASSWORD_REQUIRED" || errMsg.toLowerCase().includes("password")) {
+        throw new Error("PASSWORD_REQUIRED");
       }
-    } else if (!isEncrypted) {
-      // Try normal text extraction for non-encrypted PDFs (dynamic import for build-safe bundle)
-      try {
-        const { PDFParse } = await import("pdf-parse");
-        const parser = new PDFParse({ data: fileBuffer });
-        const pdfData = await parser.getText();
-        rawText =
-          pdfData?.text != null && typeof pdfData.text === "string"
-            ? pdfData.text
-            : "";
-        await parser.destroy();
-      } catch (parseError) {
-        const errMsg =
-          parseError instanceof Error ? parseError.message : String(parseError);
-        if (errMsg.toLowerCase().includes("password")) {
-          throw new Error("PASSWORD_REQUIRED");
-        }
-        console.log("PDF text extraction failed:", errMsg);
-      }
+      console.log("PDF text extraction failed:", errMsg);
     }
 
-    // If encrypted (without password path) or no text extracted, try OCR
-    if (
-      (isEncrypted && !password) ||
-      !rawText ||
-      rawText.trim().length === 0
-    ) {
-      console.log(
-        "Attempting OCR extraction for encrypted or text-less PDF...",
-      );
+    if (!rawText || rawText.trim().length === 0) {
       rawText = await extractTextWithOCR(fileBuffer);
     }
 
@@ -190,6 +152,40 @@ export async function parsePDF(
       };
     }
 
+    const repairedText = repairWrappedStatementDates(rawText);
+    const structured = extractStructuredStatementTransactions(repairedText);
+    if (structured.length > 0) {
+      return {
+        transactions: structured,
+        errors,
+        totalRows: structured.length,
+        successfulRows: structured.length,
+      };
+    }
+
+    // Preview: LLM on header-only stream text timed out (504). Fail closed
+    // after deterministic extract — regex first, no OpenAI.
+    if (process.env.VERCEL) {
+      const regexTransactions = extractTransactionsWithRegex(repairedText);
+      return {
+        transactions: regexTransactions,
+        errors:
+          regexTransactions.length === 0
+            ? [
+                {
+                  rowNumber: 0,
+                  errorType: "NO_TRANSACTIONS",
+                  errorMessage:
+                    "Could not find transaction rows in this statement.",
+                  rawData: {},
+                },
+              ]
+            : [],
+        totalRows: regexTransactions.length,
+        successfulRows: regexTransactions.length,
+      };
+    }
+
     // Step 2: Check if OpenAI API key is available
     const apiKey =
       process.env.OPENAI_API_KEY ||
@@ -197,7 +193,7 @@ export async function parsePDF(
       process.env.NEXT_PUBLIC_OPEN_AI_API_KEY;
     if (!apiKey) {
       // Fallback: try basic regex extraction without LLM
-      const transactions = extractTransactionsWithRegex(rawText);
+      const transactions = extractTransactionsWithRegex(repairedText);
       return {
         transactions,
         errors:
@@ -220,7 +216,7 @@ export async function parsePDF(
     // Step 3: Use LLM to extract structured transaction data
     // Chunk text if it's very long (GPT-4o-mini context is 128k but we want to stay efficient)
     const maxChunkSize = 12000;
-    const textChunks = chunkText(rawText, maxChunkSize);
+    const textChunks = chunkText(repairedText, maxChunkSize);
 
     let allTransactions: ParsedTransaction[] = [];
 
@@ -294,9 +290,7 @@ async function extractTransactionsWithLLM(
       ? `This is chunk ${chunkIndex + 1} of ${totalChunks} from a multi-page statement.`
       : "";
 
-  // HIGH-002: Use retry logic for LLM calls
-  const completion = await callWithRetry(() =>
-    getOpenAI().chat.completions.create({
+  const completion = await getOpenAI().chat.completions.create({
       model: "gpt-4o-mini",
       temperature: 0,
       max_tokens: 4000,
@@ -333,7 +327,8 @@ Return JSON: {"transactions": [{"date": "YYYY-MM-DD", "description": "merchant/n
         },
       ],
       response_format: { type: "json_object" },
-    }),
+    },
+    { timeout: 12_000, maxRetries: 0 },
   );
 
   const content =
@@ -370,43 +365,6 @@ Return JSON: {"transactions": [{"date": "YYYY-MM-DD", "description": "merchant/n
         rawData: { source: "pdf", extractionIndex: i, original: t },
       }),
     );
-}
-
-/**
- * HIGH-002: Retry logic with exponential backoff for API calls
- */
-async function callWithRetry<T>(
-  fn: () => Promise<T>,
-  maxRetries: number = 3,
-  baseDelay: number = 1000,
-): Promise<T> {
-  let lastError: Error | null = null;
-
-  for (let attempt = 0; attempt < maxRetries; attempt++) {
-    try {
-      return await fn();
-    } catch (error) {
-      lastError = error as Error;
-
-      // Don't retry on client errors (4xx)
-      if (
-        error instanceof OpenAI.APIError &&
-        error.status &&
-        error.status < 500
-      ) {
-        throw error;
-      }
-
-      // Calculate delay with exponential backoff
-      const delay = baseDelay * Math.pow(2, attempt);
-      console.log(`Attempt ${attempt + 1} failed, retrying in ${delay}ms...`);
-
-      // Wait before retrying
-      await new Promise((resolve) => setTimeout(resolve, delay));
-    }
-  }
-
-  throw lastError || new Error("Max retries exceeded");
 }
 
 /**
@@ -472,43 +430,7 @@ function extractTransactionsWithRegex(text: string): ParsedTransaction[] {
  * Normalize date string to YYYY-MM-DD format
  */
 function normalizeDate(dateStr: string): string | null {
-  if (!dateStr) return null;
-
-  // Try DD/MM/YYYY format
-  let match = dateStr.match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
-  if (match) {
-    const [, day, month, year] = match;
-    const fullYear = year.length === 2 ? `20${year}` : year;
-    return `${fullYear}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
-  }
-
-  // Try DD-Mon-YYYY format
-  const months: Record<string, string> = {
-    jan: "01",
-    feb: "02",
-    mar: "03",
-    apr: "04",
-    may: "05",
-    jun: "06",
-    jul: "07",
-    aug: "08",
-    sep: "09",
-    oct: "10",
-    nov: "11",
-    dec: "12",
-  };
-
-  match = dateStr.match(/(\d{1,2})-([a-z]{3})-(\d{2,4})/i);
-  if (match) {
-    const [, day, mon, year] = match;
-    const month = months[mon.toLowerCase()];
-    if (month) {
-      const fullYear = year.length === 2 ? `20${year}` : year;
-      return `${fullYear}-${month}-${day.padStart(2, "0")}`;
-    }
-  }
-
-  return null;
+  return parseDateFlexible(dateStr, "DD-MMM-YYYY");
 }
 
 /**

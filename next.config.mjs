@@ -64,6 +64,15 @@ const nextConfig = {
     cpus: 1,
   },
 
+  // Do not outputFileTracingIncludes node_modules globs: pnpm store paths
+  // are symlinks and Vercel patchBuild rejects them
+  // ("invalid deployment package … files in symlinked directories").
+  // upload-v2 pins WorkerMessageHandler from a real file under src/vendor.
+
+  // pdf-parse / pdfjs need the native canvas addon at runtime on Vercel.
+  // Bundling it drops the .node binary and getText() throws DOMMatrix.
+  serverExternalPackages: ["@napi-rs/canvas", "pdfjs-dist", "pdf-parse"],
+
   webpack: (config, { isServer }) => {
     // natural pulls in classifiers that require webworker-threads (optional native);
     // we only use PorterStemmer. Stub so build does not fail resolving it.
