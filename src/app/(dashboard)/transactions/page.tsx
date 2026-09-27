@@ -20,6 +20,7 @@ import type { StatementUploadResult } from "@/components/import/StatementDropZon
 import { ExceptionBanner, ImportToast } from "@/components/import/ImportToast";
 import { AddManualTransaction } from "@/components/import/AddManualTransaction";
 import { DROP_COPY } from "@/components/import/statement-copy";
+import { TriageSheet, useTriageCount } from "@/components/review/TriageSheet";
 
 interface Transaction {
   id: string;
@@ -44,14 +45,6 @@ interface PaginationInfo {
   totalPages: number;
 }
 
-function isUncategorized(transaction: Transaction): boolean {
-  if (!transaction.category) return true;
-  return (
-    typeof transaction.confidence_score === "number" &&
-    transaction.confidence_score < 80
-  );
-}
-
 export default function TransactionsPage() {
   const router = useRouter();
   const booksInputId = "books-statement-input";
@@ -74,9 +67,9 @@ export default function TransactionsPage() {
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<StatementUploadResult | null>(null);
-  const [uncategorizedCount, setUncategorizedCount] = useState(0);
-  const [duplicatesCount, setDuplicatesCount] = useState(0);
   const [showManual, setShowManual] = useState(false);
+  const [triageOpen, setTriageOpen] = useState(false);
+  const { counts, setCounts, refresh: refreshTriage } = useTriageCount();
 
   const fetchTransactions = useCallback(async () => {
     setLoading(true);
@@ -97,10 +90,6 @@ export default function TransactionsPage() {
         const rows = data.transactions as Transaction[];
         setTransactions(rows);
         setPagination(data.pagination);
-        const pageUncategorized = rows.filter(isUncategorized).length;
-        setUncategorizedCount((current) =>
-          current > 0 ? Math.max(current, pageUncategorized) : pageUncategorized,
-        );
         setError(null);
       } else {
         setError(data.error || "Failed to load transactions");
@@ -119,47 +108,18 @@ export default function TransactionsPage() {
   }, [fetchTransactions]);
 
   useEffect(() => {
-    let cancelled = false;
-    const year = new Date().getFullYear();
-    const startDate = `${year}-01-01`;
-    const endDate = `${year}-12-31`;
-    (async () => {
-      try {
-        const [dupRes, summaryRes] = await Promise.all([
-          fetch("/api/transactions/duplicates", { credentials: "include" }),
-          fetch(
-            `/api/transactions/summary?startDate=${startDate}&endDate=${endDate}`,
-            { credentials: "include" },
-          ),
-        ]);
-        if (cancelled) return;
-        if (dupRes.ok) {
-          const body = (await dupRes.json()) as { total?: number };
-          setDuplicatesCount(body.total ?? 0);
-        }
-        if (summaryRes.ok) {
-          const body = (await summaryRes.json()) as { uncategorized?: number };
-          if (typeof body.uncategorized === "number") {
-            setUncategorizedCount(body.uncategorized);
-          }
-        }
-      } catch {
-        /* optional health chips */
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [toast, pagination.total]);
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("triage") === "open") setTriageOpen(true);
+  }, []);
 
   const handleSuccess = useCallback(
     (result: StatementUploadResult) => {
       setToast(result);
-      if (result.pendingReview > 0) setUncategorizedCount(result.pendingReview);
-      if (result.duplicates > 0) setDuplicatesCount(result.duplicates);
+      void refreshTriage();
       void fetchTransactions();
     },
-    [fetchTransactions],
+    [fetchTransactions, refreshTriage],
   );
 
   const handleSelectAll = () => {
@@ -323,8 +283,9 @@ export default function TransactionsPage() {
       </div>
 
       <ExceptionBanner
-        uncategorizedCount={uncategorizedCount}
-        duplicatesCount={duplicatesCount}
+        needsCheckCount={counts.needsCheck}
+        duplicatesCount={counts.duplicateSuspect}
+        onReview={() => setTriageOpen(true)}
       />
 
       {isEmpty ? (
@@ -596,7 +557,21 @@ export default function TransactionsPage() {
         </Link>
       </p>
 
-      {toast && <ImportToast result={toast} onDismiss={() => setToast(null)} />}
+      {toast && (
+        <ImportToast
+          result={toast}
+          onDismiss={() => setToast(null)}
+          onFixReview={() => {
+            setTriageOpen(true);
+            setToast(null);
+          }}
+        />
+      )}
+      <TriageSheet
+        open={triageOpen}
+        onClose={() => setTriageOpen(false)}
+        onCounts={setCounts}
+      />
       <AddManualTransaction
         open={showManual}
         onClose={() => setShowManual(false)}

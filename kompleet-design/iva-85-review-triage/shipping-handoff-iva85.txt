@@ -1,0 +1,41 @@
+**Status:** LOCKED by Kezie (UX plan approved via CoS; Design defaults) · 27 Sep 2026 WAT · Handed to Shipping
+
+**Status:** Design draft · LOCKED · Handed to Shipping 27 Sep 2026 WAT · 27 Sep 2026 WAT · Design (Coco)
+
+IVA-85 shipping handoff — Review triage: banner → actionable exception list (Design → Shippie)
+Date: 27 Sep 2026 WAT · Design (Coco) · High · LOCKED · Handed to Shipping 27 Sep 2026 WAT
+
+PATHS
+- Spec:  /workspace/kompleet-design/iva-85-review-triage/REVIEW-TRIAGE.md
+- Comps: /workspace/kompleet-design/iva-85-review-triage/comps/
+    banner-to-list.html (+ .png)  — Books + warning banner + right triage drawer
+    row-actions.html (+ .png)     — Categorise picker · Confirm/Ignore · undo · mobile sheet
+- Extends: /workspace/kompleet-design/wave3/IMPORT-AUTO.md (exception banner copy; happy path LOCKED)
+- DropZone: /workspace/kompleet-design/wave2/DASHBOARD-DROPZONE.md
+- Shell: /workspace/kompleet-design/wave2/APP-SHELL.md (Review demoted — stay demoted)
+- Workflow: /workspace/kompleet-design/wave2/WORKFLOW-SIMPLIFICATION.md
+- Brand: /workspace/kompleet-design/wave1/OPTION-C-BRAND-SYSTEM.md
+
+DESIGN DEFAULTS (ship unless Kezie overrides)
+1. Banner “{N} need a quick check” · outline Review CTA (not teal) · whole banner opens triage.
+2. Triage = sheet/panel (desktop right drawer 520px; mobile full-screen) — NOT sequential wizard graveyard.
+3. Rows: merchant · ₦ amount · date · reason chip (Uncategorised / Duplicate suspect / Low confidence).
+4. One primary per row: Uncategorised→Categorise (teal) · Low confidence→Confirm (teal) · Duplicate→Confirm (navy outline).
+5. Ignore always available (text) + Undo toast 5s; Categorise opens category picker.
+6. Bulk “Ignore all low-confidence” tertiary only + confirm.
+7. N=0 → banner unmounts. Toast “Fix {N} uncategorized” opens same sheet.
+8. /transactions/review deep link renders same triage UI (list), not old wizard.
+
+DO NOT CHANGE
+- IMPORT-AUTO / DropZone happy path (AUTO drop → books)
+- Review / Upload / Duplicates as sidebar children (remain absent)
+- JUO · Option C tokens · wordmark-only · no teal glow on Review CTA
+- IVA-83 import error surfaces
+
+ACCEPTANCE
+See §12 in REVIEW-TRIAGE.md.
+
+OPEN FOR KEZIE (non-blocking for Eng scaffold)
+- Right drawer 520px vs centered 640px sheet — Design default: right drawer.
+- Duplicate Confirm = keep both vs merge jump — Design default: keep both; View duplicate secondary.
+- Plural “1 need” vs “1 needs” — Design default: keep IMPORT-AUTO “{N} need a quick check”.
