@@ -11,17 +11,23 @@ const lineItemSchema = z.object({
 });
 
 const customerInfoSchema = z.object({
-  name: z.string().min(1, "Customer name is required").max(200),
+  name: z.string().max(200).optional().or(z.literal("")),
   email: z.string().email("Invalid email").optional().or(z.literal("")),
   address: z.string().max(500).optional(),
   phone: z.string().max(50).optional(),
   tin: z.string().max(50).optional(),
+  addressLine1: z.string().max(200).optional(),
+  addressLine2: z.string().max(200).optional(),
+  city: z.string().max(100).optional(),
+  state: z.string().max(100).optional(),
+  country: z.string().max(8).optional(),
 });
 
 export const createInvoiceSchema = z.object({
-  client_id: z.string().uuid("client_id is required"),
+  client_id: z.string().uuid().optional(),
+  title: z.string().max(200).optional(),
   tax_year: z.number().int().min(2000).max(2100).optional(),
-  customer_info: customerInfoSchema,
+  customer_info: customerInfoSchema.optional(),
   line_items: z
     .array(lineItemSchema)
     .min(1, "At least one line item is required"),

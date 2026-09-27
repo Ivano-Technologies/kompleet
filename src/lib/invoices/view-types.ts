@@ -4,6 +4,24 @@ export interface InvoiceCustomerInfo {
   phone?: string;
   address?: string;
   tin?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+}
+
+export interface InvoiceSenderInfo {
+  name?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  email?: string;
+  phone?: string;
+  tin?: string;
+  vatNumber?: string;
 }
 
 export interface InvoiceLineItem {
@@ -18,6 +36,8 @@ export interface InvoiceLineItem {
 export interface InvoiceView {
   id: string;
   invoice_number: string;
+  title?: string | null;
+  client_id?: string | null;
   status: string;
   tax_year?: number;
   is_immutable?: boolean;
@@ -31,6 +51,7 @@ export interface InvoiceView {
   payment_terms?: string | null;
   notes?: string | null;
   signature_hash?: string | null;
-  customer_info: InvoiceCustomerInfo;
+  customer_info?: InvoiceCustomerInfo | null;
+  sender?: InvoiceSenderInfo | null;
   line_items: InvoiceLineItem[];
 }

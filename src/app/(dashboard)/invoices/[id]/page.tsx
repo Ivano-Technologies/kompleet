@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
-import Image from "next/image";
 import {
   Loader2,
   ArrowLeft,
@@ -15,6 +14,19 @@ import {
 
 import type { InvoiceView } from "@/lib/invoices/view-types";
 import { AttachFileButton } from "@/components/documents/AttachFileButton";
+import { InvoicePreview } from "@/components/invoices/InvoicePreview";
+import { INV_COPY } from "@/components/invoices/invoice-copy";
+import { BIZ_COPY } from "@/components/settings/profile-copy";
+import {
+  attachInvoiceClient,
+  issueInvoice,
+} from "@/components/invoices/invoice-actions";
+import type { InvoiceClient } from "@/components/invoices/CustomerCombobox";
+import {
+  hasLegalName,
+  type BusinessProfile,
+} from "@/lib/invoices/profiles";
+import { onBusinessProfileChanged } from "@/lib/invoices/profile-events";
 
 type Invoice = InvoiceView;
 
@@ -27,6 +39,9 @@ export default function InvoiceDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [qrCodeImage, setQrCodeImage] = useState("");
+  const [profile, setProfile] = useState<BusinessProfile | null>(null);
+  const [clients, setClients] = useState<InvoiceClient[]>([]);
+  const [issuing, setIssuing] = useState(false);
 
   const fetchInvoice = useCallback(async () => {
     setLoading(true);
@@ -66,6 +81,38 @@ export default function InvoiceDetailPage() {
 
   useEffect(() => {
     fetchInvoice();
+  }, [fetchInvoice]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const [profileRes, clientsRes] = await Promise.all([
+          fetch("/api/business-profile", { credentials: "include" }),
+          fetch("/api/clients", { credentials: "include" }),
+        ]);
+        if (cancelled) return;
+        if (profileRes.ok) {
+          const body = (await profileRes.json()) as { profile?: BusinessProfile };
+          setProfile(body.profile ?? null);
+        }
+        if (clientsRes.ok) {
+          const body = (await clientsRes.json()) as { clients?: InvoiceClient[] };
+          setClients(body.clients ?? []);
+        }
+      } catch {
+        /* optional */
+      }
+    };
+    void load();
+    const stop = onBusinessProfileChanged(() => {
+      void load();
+      void fetchInvoice();
+    });
+    return () => {
+      cancelled = true;
+      stop();
+    };
   }, [fetchInvoice]);
 
   const handleDownloadPDF = () => {
@@ -163,6 +210,37 @@ export default function InvoiceDetailPage() {
         </div>
         <div className="flex items-center gap-4">
           {getStatusBadge(invoice.status)}
+          {invoice.status === "draft" && (
+            <button
+              type="button"
+              className="btn-primary disabled:opacity-45"
+              disabled={
+                issuing ||
+                !invoice.client_id ||
+                !hasLegalName(profile ?? { legalName: "" })
+              }
+              title={
+                !invoice.client_id
+                  ? INV_COPY.billtoRequired
+                  : !hasLegalName(profile ?? { legalName: "" })
+                    ? BIZ_COPY.blockLegalName
+                    : undefined
+              }
+              onClick={async () => {
+                setIssuing(true);
+                try {
+                  await issueInvoice(invoice.id);
+                  await fetchInvoice();
+                } catch (err) {
+                  alert(err instanceof Error ? err.message : "Failed to issue");
+                } finally {
+                  setIssuing(false);
+                }
+              }}
+            >
+              Issue
+            </button>
+          )}
           {invoice.is_immutable && (
             <span className="px-4 py-2 bg-yellow-100 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 rounded-full text-sm font-medium flex items-center gap-2">
               <Lock size={16} />
@@ -181,15 +259,24 @@ export default function InvoiceDetailPage() {
             label: invoice.invoice_number,
           }}
         />
-        {invoice.status === "issued" && (
-          <button onClick={handleDownloadPDF} className="btn-primary">
+        {(invoice.status === "issued" || invoice.status === "draft") && (
+          <button
+            onClick={handleDownloadPDF}
+            className="btn-primary disabled:opacity-45"
+            disabled={!hasLegalName(profile ?? { legalName: "" })}
+            title={
+              !hasLegalName(profile ?? { legalName: "" })
+                ? BIZ_COPY.blockLegalName
+                : undefined
+            }
+          >
             <Download size={16} />
             Download PDF
           </button>
         )}
         {invoice.status === "draft" && (
           <button
-            onClick={() => router.push(`/invoices/${invoice.id}/edit`)}
+            onClick={() => router.push(`/invoices/${invoice.id}`)}
             className="btn-secondary"
           >
             <Edit size={16} />
@@ -205,64 +292,43 @@ export default function InvoiceDetailPage() {
       </div>
 
       {/* Invoice Details */}
-      <div className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface mb-6">
-        {/* Customer Info */}
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">
-            Customer Information
-          </h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <div className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
-                Name
-              </div>
-              <div className="text-base font-medium text-light-text-primary dark:text-dark-text-primary">
-                {invoice.customer_info.name}
-              </div>
-            </div>
-            {invoice.customer_info.email && (
-              <div>
-                <div className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
-                  Email
-                </div>
-                <div className="text-base text-light-text-primary dark:text-dark-text-primary">
-                  {invoice.customer_info.email}
-                </div>
-              </div>
-            )}
-            {invoice.customer_info.phone && (
-              <div>
-                <div className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
-                  Phone
-                </div>
-                <div className="text-base text-light-text-primary dark:text-dark-text-primary">
-                  {invoice.customer_info.phone}
-                </div>
-              </div>
-            )}
-            {invoice.customer_info.tin && (
-              <div>
-                <div className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
-                  TIN
-                </div>
-                <div className="text-base text-light-text-primary dark:text-dark-text-primary">
-                  {invoice.customer_info.tin}
-                </div>
-              </div>
-            )}
-            {invoice.customer_info.address && (
-              <div className="col-span-2">
-                <div className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
-                  Address
-                </div>
-                <div className="text-base text-light-text-primary dark:text-dark-text-primary">
-                  {invoice.customer_info.address}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+      {invoice.title && (
+        <p className="text-sm text-text-3 mb-4">
+          Title: <strong className="text-text-2 font-semibold">{invoice.title}</strong>
+        </p>
+      )}
 
+      <div className="mb-6">
+        <InvoicePreview
+          invoice={invoice}
+          profile={profile}
+          clients={clients}
+          selectedClient={
+            clients.find((client) => client.id === invoice.client_id) ?? null
+          }
+          onSelectClient={(client) => {
+            if (!client) return;
+            void attachInvoiceClient(invoice.id, client.id).then(() => {
+              setInvoice({
+                ...invoice,
+                client_id: client.id,
+                customer_info: {
+                  name: client.legal_name,
+                  email: client.email,
+                  phone: client.phone,
+                  addressLine1: client.addressLine1,
+                  city: client.city,
+                },
+              });
+            });
+          }}
+          onClientCreated={(created) => setClients((prev) => [created, ...prev])}
+          onOpenSettings={() => router.push(`/invoices/${invoice.id}?settings=business`)}
+          editable={invoice.status === "draft"}
+        />
+      </div>
+
+      <div className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface mb-6">
         {/* Invoice Dates */}
         <div className="mb-8 grid grid-cols-3 gap-4">
           <div>

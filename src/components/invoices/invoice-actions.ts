@@ -1,28 +1,36 @@
-import type { InvoiceClient } from "./CustomerCombobox";
+import {
+  customerInfoFromParty,
+  partyFromClient,
+  titleFromFile,
+  type ClientProfile,
+} from "@/lib/invoices/profiles";
+
+export type InvoiceClient = ClientProfile;
 
 export async function createInvoiceDraft(input: {
-  client: InvoiceClient;
+  client?: InvoiceClient | null;
   amount: number;
   addVat: boolean;
   description?: string;
   notes?: string;
+  title?: string;
 }): Promise<{ invoice_id: string; invoice_number?: string }> {
   const vatRate = input.addVat ? 7.5 : 0;
   const description = input.description?.trim() || "Services";
   const today = new Date().toISOString().split("T")[0] ?? "";
+  const customerInfo = input.client
+    ? customerInfoFromParty(partyFromClient(input.client))
+    : undefined;
 
   const response = await fetch("/api/invoices/create", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
     body: JSON.stringify({
-      client_id: input.client.id,
+      client_id: input.client?.id,
+      title: input.title,
       tax_year: new Date().getFullYear(),
-      customer_info: {
-        name: input.client.legal_name,
-        email: input.client.email || "",
-        phone: input.client.phone || "",
-      },
+      customer_info: customerInfo,
       line_items: [
         {
           description,
@@ -59,25 +67,20 @@ export async function issueInvoice(invoiceId: string): Promise<void> {
   }
 }
 
-export async function ensureClientFromName(name: string): Promise<InvoiceClient> {
-  const legalName = name.trim() || "New customer";
-  const response = await fetch("/api/clients", {
-    method: "POST",
+export async function attachInvoiceClient(
+  invoiceId: string,
+  clientId: string,
+): Promise<void> {
+  const response = await fetch(`/api/invoices/${invoiceId}`, {
+    method: "PATCH",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
-    body: JSON.stringify({ legal_name: legalName }),
+    body: JSON.stringify({ client_id: clientId }),
   });
-  const body = (await response.json()) as {
-    client?: InvoiceClient;
-    error?: string;
-  };
-  if (!response.ok || !body.client) {
-    throw new Error(body.error || "Failed to create client");
+  if (!response.ok) {
+    const body = (await response.json().catch(() => ({}))) as { error?: string };
+    throw new Error(body.error || "Failed to attach client");
   }
-  return body.client;
 }
 
-export function clientNameFromFile(fileName: string): string {
-  const base = fileName.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ").trim();
-  return base || "New customer";
-}
+export { titleFromFile };

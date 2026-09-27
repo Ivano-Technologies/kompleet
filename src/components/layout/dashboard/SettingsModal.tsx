@@ -29,10 +29,12 @@ import {
   ExternalLink,
   Eye,
   EyeOff,
+  Briefcase,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-type SettingsSection = "general" | "notifications" | "preferences" | "admin" | "legal";
+import type { SettingsSection } from "./settings-types";
+import { BusinessProfileSection } from "@/components/settings/BusinessProfileSection";
+import { ClientsSection } from "@/components/settings/ClientsSection";
 
 interface SettingsModalProps {
   open: boolean;
@@ -216,7 +218,9 @@ export function SettingsModal({
   };
 
   const navSections: { id: SettingsSection; label: string; icon: typeof User }[] = [
-    { id: "general", label: "General", icon: SettingsIcon },
+    { id: "general", label: "Account", icon: SettingsIcon },
+    { id: "business", label: "Business", icon: Briefcase },
+    { id: "clients", label: "Clients", icon: Users },
     { id: "notifications", label: "Notifications", icon: Bell },
     { id: "preferences", label: "Preferences", icon: Globe },
     ...(isAdmin ? [{ id: "admin" as const, label: "Admin", icon: Shield }] : []),
@@ -274,6 +278,26 @@ export function SettingsModal({
                 <AlertCircle className="w-4 h-4 shrink-0" />
                 {error}
               </div>
+            )}
+
+            {section === "business" && (
+              <BusinessProfileSection
+                onStatus={(kind, message) => {
+                  setError(kind === "error" ? message : "");
+                  setSuccess(kind === "success" ? message : "");
+                  if (kind === "success") setTimeout(() => setSuccess(""), 4000);
+                }}
+              />
+            )}
+
+            {section === "clients" && (
+              <ClientsSection
+                onStatus={(kind, message) => {
+                  setError(kind === "error" ? message : "");
+                  setSuccess(kind === "success" ? message : "");
+                  if (kind === "success") setTimeout(() => setSuccess(""), 4000);
+                }}
+              />
             )}
 
             {/* General: Profile & Security */}

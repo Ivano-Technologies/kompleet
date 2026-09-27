@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, Bell, ChevronRight, Sun, Moon } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
+import type { SettingsSection } from "./settings-types";
 
 const pageTitles: Record<string, string> = {
   "/dashboard": "Dashboard",
@@ -61,7 +62,7 @@ function getBreadcrumbs(pathname: string): { label: string; href: string }[] {
 
 interface TopBarProps {
   onMenuToggle: () => void;
-  onOpenSettings?: (section?: "general" | "notifications" | "preferences" | "admin" | "legal") => void;
+  onOpenSettings?: (section?: SettingsSection) => void;
 }
 
 export function TopBar({ onMenuToggle, onOpenSettings }: TopBarProps) {
