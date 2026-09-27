@@ -163,6 +163,29 @@ export async function parsePDF(
       };
     }
 
+    // Preview: LLM on header-only stream text timed out (504). Fail closed
+    // after deterministic extract — regex first, no OpenAI.
+    if (process.env.VERCEL) {
+      const regexTransactions = extractTransactionsWithRegex(repairedText);
+      return {
+        transactions: regexTransactions,
+        errors:
+          regexTransactions.length === 0
+            ? [
+                {
+                  rowNumber: 0,
+                  errorType: "NO_TRANSACTIONS",
+                  errorMessage:
+                    "Could not find transaction rows in this statement.",
+                  rawData: {},
+                },
+              ]
+            : [],
+        totalRows: regexTransactions.length,
+        successfulRows: regexTransactions.length,
+      };
+    }
+
     // Step 2: Check if OpenAI API key is available
     const apiKey =
       process.env.OPENAI_API_KEY ||

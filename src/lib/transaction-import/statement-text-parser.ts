@@ -18,9 +18,9 @@ const DATE_TOKEN =
 const DATE_TOKEN_RE = new RegExp(`\\b${DATE_TOKEN}\\b`, "g");
 const DATE_AT_START_RE = new RegExp(`^${DATE_TOKEN}`);
 const WRAPPED_MON_DATE_RE =
-  /(\d{1,2}-[A-Za-z]{3})-\s*[\r\n]+\s*(\d{2,4})/g;
+  /(\d{1,2}-[A-Za-z]{3})-\s*[\r\n]+\s*((?:20|19)\d{2}|\d{2})\b/g;
 const WRAPPED_MON_DATE_SPACE_RE =
-  /(\d{1,2}-[A-Za-z]{3})-\s+(\d{2,4})\b/g;
+  /(\d{1,2}-[A-Za-z]{3})-\s+((?:20|19)\d{2})\b/g;
 const MONEY_RE = /\d{1,3}(?:,\d{3})*\.\d{2}/g;
 const PERIOD_RE = new RegExp(
   `${DATE_TOKEN}\\s+to\\s+${DATE_TOKEN}`,
@@ -42,12 +42,61 @@ interface StatementRow {
   raw: string;
 }
 
+const YEAR_LEAD_LINE_RE =
+  /^((?:20|19)\d{2})(?:\s+((?:20|19)\d{2}))?(?:\s+(.*))?$/;
+
+function incompleteMonDateRe(): RegExp {
+  return /(\d{1,2}-[A-Za-z]{3})-(?!\s*(?:20|19)\d{2})/g;
+}
+
+/**
+ * pdfjs Y-bucketing can put `10-Mar- 10-Mar- narration` on one line and
+ * `2024 2024 rest` two lines later. Pair those orphan years back onto the
+ * incomplete prefixes so structured extract still sees full dates.
+ */
+function repairInterleavedWrappedYears(text: string): string {
+  const lines = text.split(/\r?\n/);
+  const out: string[] = [];
+
+  for (const line of lines) {
+    const yearLead = line.trim().match(YEAR_LEAD_LINE_RE);
+    if (yearLead) {
+      const years = [yearLead[1], yearLead[2]].filter(
+        (token): token is string => Boolean(token),
+      );
+      let attached = false;
+      const searchFrom = Math.max(0, out.length - 4);
+      for (let i = out.length - 1; i >= searchFrom; i--) {
+        const prev = out[i] ?? "";
+        const incompletes = prev.match(incompleteMonDateRe());
+        if (!incompletes || incompletes.length === 0) continue;
+        if (incompletes.length > years.length) continue;
+        let yearIndex = 0;
+        out[i] = prev.replace(incompleteMonDateRe(), (prefix) => {
+          const year = years[yearIndex];
+          yearIndex += 1;
+          return year ? `${prefix}${year}` : prefix;
+        });
+        const rest = (yearLead[3] ?? "").trim();
+        if (rest) out.push(rest);
+        attached = true;
+        break;
+      }
+      if (attached) continue;
+    }
+    out.push(line);
+  }
+
+  return out.join("\n");
+}
+
 export function repairWrappedStatementDates(text: string): string {
   let repaired = text.replace(WRAPPED_MON_DATE_RE, "$1-$2");
   // Second pass for remaining wraps after the first join shifted newlines.
   repaired = repaired.replace(WRAPPED_MON_DATE_RE, "$1-$2");
   // Stream/pdfjs extractors often keep a space instead of a newline.
   repaired = repaired.replace(WRAPPED_MON_DATE_SPACE_RE, "$1-$2");
+  repaired = repairInterleavedWrappedYears(repaired);
   return repaired;
 }
 
@@ -101,7 +150,7 @@ function blockHasAmount(lines: string[]): boolean {
 }
 
 function isBalanceRow(merchant: string): boolean {
-  return /^(opening|closing)\s+balance$/i.test(merchant.trim());
+  return /^(opening|closing)\s+balance\b/i.test(merchant.trim());
 }
 
 function inferTypeFromNarration(merchant: string): "debit" | "credit" {

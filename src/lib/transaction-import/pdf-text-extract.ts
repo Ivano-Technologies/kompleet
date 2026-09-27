@@ -4,9 +4,10 @@
  * DOMMatrix and the previous tesseract OCR path hung until a 504.
  */
 
+import { createRequire } from "node:module";
+import { pathToFileURL } from "node:url";
 import { inflateSync, inflateRawSync } from "node:zlib";
 import { installPdfJsDomPolyfills } from "./pdf-dom-polyfill";
-import { looksLikeUbaTableStatement } from "./statement-text-parser";
 
 function decodePdfLiteral(raw: string): string {
   return raw
@@ -191,12 +192,48 @@ async function extractWithPdfParse(buffer: Buffer): Promise<string> {
   }
 }
 
+type PdfJsWorkerModule = {
+  WorkerMessageHandler?: unknown;
+  default?: { WorkerMessageHandler?: unknown };
+};
+
+async function pinPdfJsWorker(): Promise<void> {
+  installPdfJsDomPolyfills();
+  const worker = (await import(
+    "pdfjs-dist/legacy/build/pdf.worker.mjs"
+  )) as PdfJsWorkerModule;
+  const handler =
+    worker.WorkerMessageHandler ??
+    worker.default?.WorkerMessageHandler ??
+    (globalThis as { pdfjsWorker?: { WorkerMessageHandler?: unknown } })
+      .pdfjsWorker?.WorkerMessageHandler;
+  if (!handler) {
+    throw new Error("pdfjs worker missing WorkerMessageHandler");
+  }
+  (globalThis as Record<string, unknown>).pdfjsWorker = {
+    WorkerMessageHandler: handler,
+  };
+}
+
+async function loadPdfJs() {
+  await pinPdfJsWorker();
+  const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
+  try {
+    const require = createRequire(import.meta.url);
+    pdfjs.GlobalWorkerOptions.workerSrc = pathToFileURL(
+      require.resolve("pdfjs-dist/legacy/build/pdf.worker.mjs"),
+    ).href;
+  } catch {
+    /* globalThis.pdfjsWorker is enough when the file is not on disk */
+  }
+  return pdfjs;
+}
+
 async function extractWithPdfJsLegacy(
   buffer: Buffer,
   password?: string,
 ): Promise<string> {
-  installPdfJsDomPolyfills();
-  const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
+  const pdfjs = await loadPdfJs();
   const data = new Uint8Array(buffer);
   const loadingTask = pdfjs.getDocument({
     data,
@@ -210,13 +247,26 @@ async function extractWithPdfJsLegacy(
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
     const textContent = await page.getTextContent();
-    const pageText = textContent.items
-      .map((item) => ("str" in item ? item.str || "" : ""))
-      .join(" ");
-    textParts.push(pageText);
+    textParts.push(reconstructPdfJsPageText(textContent.items));
   }
   await pdf.destroy();
   return textParts.join("\n");
+}
+
+/**
+ * pdf-parse / pdfjs default getText follows item order + hasEOL.
+ * Sorting by Y interleaves UBA date-wrap cells (`10-Mar-` then `2024` at a
+ * lower Y) with narration, so wrap-repair never sees `10-Mar-\n2024`.
+ */
+function reconstructPdfJsPageText(items: unknown[]): string {
+  let text = "";
+  for (const item of items) {
+    if (!item || typeof item !== "object" || !("str" in item)) continue;
+    const row = item as { str?: string; hasEOL?: boolean };
+    text += row.str ?? "";
+    if (row.hasEOL) text += "\n";
+  }
+  return text.replace(/[ \t]+\n/g, "\n").trim();
 }
 
 function isUsableText(text: string): boolean {
@@ -245,9 +295,9 @@ async function withTimeout<T>(
 }
 
 /**
- * Extract statement text. Prefer pdf-parse (with DOM polyfills), then
- * pdfjs legacy, then raw FlateDecode streams. Never throws for extract
- * failures — callers decide EMPTY_PDF.
+ * Extract statement text. On Vercel skip pdf-parse (nested pdfjs worker is
+ * not traced). Use pdfjs with the worker pinned on this thread, then streams.
+ * Never throws for extract failures — callers decide EMPTY_PDF.
  */
 export async function extractPdfText(
   buffer: Buffer,
@@ -255,19 +305,11 @@ export async function extractPdfText(
 ): Promise<{ text: string; source: "pdf-parse" | "pdfjs" | "streams" | "none" }> {
   installPdfJsDomPolyfills();
 
-  // Vercel has no @napi-rs/canvas; pdfjs/pdf-parse throw or hang. Streams first.
-  if (process.env.VERCEL) {
-    const streamed = extractPdfTextFromStreams(buffer);
-    if (
-      isUsableText(streamed) &&
-      (looksLikeUbaTableStatement(streamed) ||
-        (streamed.match(/\d{1,2}-[A-Za-z]{3}-\d{2,4}/g) ?? []).length >= 4)
-    ) {
-      return { text: streamed, source: "streams" };
-    }
-  }
-
-  if (!password) {
+  // pdf-parse ships pdfjs 5.4 and `import("./pdf.worker.mjs")` (webpackIgnore).
+  // Vercel NFT drops that worker; getText() then throws and we used to fall
+  // through to header-only streams. Skip pdf-parse on Vercel and use our
+  // pinned pdfjs-dist 5.5 worker instead.
+  if (!password && !process.env.VERCEL) {
     try {
       const text = await withTimeout(
         extractWithPdfParse(buffer),
@@ -287,7 +329,7 @@ export async function extractPdfText(
   try {
     const text = await withTimeout(
       extractWithPdfJsLegacy(buffer, password),
-      8_000,
+      process.env.VERCEL ? 20_000 : 8_000,
       "pdfjs",
     );
     if (isUsableText(text)) return { text, source: "pdfjs" };

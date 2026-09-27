@@ -64,6 +64,21 @@ const nextConfig = {
     cpus: 1,
   },
 
+  // pdfjs Node fake-worker dynamically imports pdf.worker.mjs (webpackIgnore).
+  // NFT drops that file unless we include it — Preview then 400s ubaLayout.
+  outputFileTracingIncludes: {
+    "/api/transactions/upload-v2": [
+      "./node_modules/pdfjs-dist/legacy/build/**",
+      "./node_modules/pdfjs-dist/build/**",
+      "./node_modules/@napi-rs/canvas/**",
+    ],
+    "/src/app/api/transactions/upload-v2/route": [
+      "./node_modules/pdfjs-dist/legacy/build/**",
+      "./node_modules/pdfjs-dist/build/**",
+      "./node_modules/@napi-rs/canvas/**",
+    ],
+  },
+
   // pdf-parse / pdfjs need the native canvas addon at runtime on Vercel.
   // Bundling it drops the .node binary and getText() throws DOMMatrix.
   serverExternalPackages: ["@napi-rs/canvas", "pdfjs-dist", "pdf-parse"],

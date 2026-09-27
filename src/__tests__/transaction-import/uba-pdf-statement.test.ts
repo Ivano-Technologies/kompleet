@@ -8,7 +8,10 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { parseBankStatement } from "@/lib/transaction-import/bank-adapter";
 import { parsePDF } from "@/lib/transaction-import/pdf-parser";
-import { extractPdfTextFromStreams } from "@/lib/transaction-import/pdf-text-extract";
+import {
+  extractPdfText,
+  extractPdfTextFromStreams,
+} from "@/lib/transaction-import/pdf-text-extract";
 import {
   extractStructuredStatementTransactions,
   looksLikeUbaTableStatement,
@@ -121,6 +124,35 @@ describe("UBA wrapped-date statement text (IVA-81)", () => {
       transactions.some((row) => /opening balance/i.test(row.merchant)),
     ).toBe(false);
   });
+
+  it("repairs pdfjs-interleaved 10-Mar- / year-later lines", () => {
+    const interleaved = [
+      "01-Jan-2024 01-Jan-2024 Opening Balance 1,017.00",
+      "MOB/UTU/SAMPLE",
+      "10-Mar- 10-Mar- PAYER/Check/22024311590",
+      "1,000.00 2,017.00",
+      "2024 2024 MOB/UTU/From",
+      "SAMPLE PAYER",
+      "22-Mar- 22-Mar-",
+      "-stamp duty charges 50.00 1,967.00",
+      "2024 2024",
+    ].join("\n");
+    const repaired = repairWrappedStatementDates(interleaved);
+    expect(repaired).toContain("10-Mar-2024");
+    expect(repaired).toContain("22-Mar-2024");
+    const transactions = extractStructuredStatementTransactions(repaired);
+    expect(transactions).toHaveLength(2);
+    expect(transactions[0]).toMatchObject({
+      date: "2024-03-10",
+      amount: 1000,
+      type: "credit",
+    });
+    expect(transactions[1]).toMatchObject({
+      date: "2024-03-22",
+      amount: 50,
+      type: "debit",
+    });
+  });
 });
 
 describe("UBA PDF parse + persist-ready normalize (IVA-81)", () => {
@@ -183,10 +215,29 @@ describe("UBA PDF parse + persist-ready normalize (IVA-81)", () => {
     const transactions = extractStructuredStatementTransactions(text);
     expect(transactions.length).toBeGreaterThan(0);
   });
+
+  it("VERCEL/pdfjs path parses the committed wrapped fixture to 8 rows", async () => {
+    const previous = process.env.VERCEL;
+    process.env.VERCEL = "1";
+    try {
+      const extracted = await extractPdfText(wrappedPdf);
+      const parsed = await parsePDF(wrappedPdf, "UBA");
+      expect(
+        extracted.source === "pdfjs" || extracted.source === "pdf-parse",
+        `source=${extracted.source}`,
+      ).toBe(true);
+      expect(parsed.transactions).toHaveLength(8);
+      expect(parsed.errors).toHaveLength(0);
+    } finally {
+      if (previous === undefined) delete process.env.VERCEL;
+      else process.env.VERCEL = previous;
+    }
+  });
 });
 
 describe("CoS Preview PDFs (not committed)", () => {
   const cosUba = [
+    "/home/ubuntu/.cursor/projects/workspace/uploads/UBA-BAYEK-2024_14cc.pdf",
     "/home/ubuntu/.cursor/projects/workspace/uploads/UBA-BAYEK-2024_fa64.pdf",
     "/workspace/kompleet-import-uba/UBA-BAYEK-2024.pdf",
   ].find((path) => existsSync(path));
@@ -204,6 +255,29 @@ describe("CoS Preview PDFs (not committed)", () => {
     expect(parsed.errors).toHaveLength(0);
     if (streamed.length > 0) {
       expect(streamed.length).toBeGreaterThanOrEqual(8);
+    }
+  });
+
+  it.skipIf(!cosUba)("VERCEL path still yields 8 rows (pdfjs worker, not streams)", async () => {
+    const buf = readFileSync(cosUba!);
+    const previous = process.env.VERCEL;
+    process.env.VERCEL = "1";
+    try {
+      const extracted = await extractPdfText(buf);
+      const parsed = await parsePDF(buf, "UBA");
+      const dates = extracted.text.match(/\d{1,2}-[A-Za-z]{3}-\d{2,4}/g) ?? [];
+      const structured = extractStructuredStatementTransactions(
+        repairWrappedStatementDates(extracted.text),
+      );
+      expect(
+        structured.length,
+        `source=${extracted.source} chars=${extracted.text.length} dates=${dates.length} structured=${structured.length} sample=${JSON.stringify(extracted.text.slice(0, 500))}`,
+      ).toBe(8);
+      expect(parsed.transactions).toHaveLength(8);
+      expect(parsed.errors).toHaveLength(0);
+    } finally {
+      if (previous === undefined) delete process.env.VERCEL;
+      else process.env.VERCEL = previous;
     }
   });
 
