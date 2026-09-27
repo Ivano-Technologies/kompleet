@@ -5,8 +5,8 @@
  * by analyzing headers, patterns, and file structure.
  */
 
-import { BANK_CONFIGS, BankConfig } from "./bank-configs";
 import Papa from "papaparse";
+import * as XLSX from "xlsx";
 
 export interface BankDetectionResult {
   bankCode: string | null;
@@ -60,12 +60,21 @@ const BANK_PATTERNS: Record<
       "NARRATION",
       "Transaction Date",
       "Transaction Details",
+      "Transaction Remarks",
+      "Withdrawal",
+      "Deposit",
       "Debit",
       "Credit",
+      "Account Balance",
       "Balance",
     ],
-    contentPatterns: [/United Bank.*Africa/i, /UBA/],
-    fileNamePatterns: [/uba/i, /united.*bank/i],
+    contentPatterns: [
+      /United Bank.*Africa/i,
+      /\bUBA\b/,
+      /OpTransactionHistory/i,
+      /Transactions List/i,
+    ],
+    fileNamePatterns: [/uba/i, /united.*bank/i, /optransactionhistory/i],
   },
   ECO: {
     headers: ["Date", "Description", "Debit", "Credit", "Balance", "Ref"],
@@ -255,26 +264,152 @@ export async function detectBankFromExcel(
   fileBuffer: Buffer,
   fileName?: string,
 ): Promise<BankDetectionResult> {
-  // For now, we'll use filename-based detection for Excel files
-  // In the future, we can parse Excel files and analyze their structure
+  try {
+    const workbook = XLSX.read(fileBuffer, {
+      type: "buffer",
+      raw: false,
+    });
+    const preferred =
+      workbook.SheetNames.find((name) =>
+        /transaction|statement|history|optransaction/i.test(name),
+      ) ?? workbook.SheetNames[0];
+    const worksheet = preferred ? workbook.Sheets[preferred] : undefined;
+    const rows = worksheet
+      ? (XLSX.utils.sheet_to_json(worksheet, {
+          header: 1,
+          raw: false,
+          defval: "",
+        }) as unknown[][]).map((row) =>
+          Array.isArray(row)
+            ? row.map((cell) => (cell ?? "").toString())
+            : [],
+        )
+      : [];
 
-  if (!fileName) {
-    return { bankCode: null, confidence: 0, matchedFeatures: [] };
-  }
+    const headerRow =
+      rows.find((row) =>
+        row.some((cell) =>
+          /transaction date|trans date|narration|withdrawal|deposit/i.test(
+            cell,
+          ),
+        ),
+      ) ??
+      rows[0] ??
+      [];
+    const contentStr = [
+      preferred ?? "",
+      ...rows.slice(0, 20).flat(),
+    ].join(" ");
 
-  for (const [bankCode, patterns] of Object.entries(BANK_PATTERNS)) {
-    for (const pattern of patterns.fileNamePatterns) {
-      if (pattern.test(fileName)) {
-        return {
-          bankCode,
-          confidence: 60, // Lower confidence for filename-only detection
-          matchedFeatures: [`Filename pattern: ${pattern.source}`],
-        };
+    const scores: Record<string, { score: number; features: string[] }> = {};
+
+    for (const [bankCode, patterns] of Object.entries(BANK_PATTERNS)) {
+      let score = 0;
+      const features: string[] = [];
+
+      const headerMatch = calculateHeaderMatch(headerRow, patterns.headers);
+      score += headerMatch * 80;
+      if (headerMatch > 0.4) {
+        features.push(`Headers match (${Math.round(headerMatch * 100)}%)`);
+      }
+
+      for (const pattern of patterns.contentPatterns) {
+        if (pattern.test(contentStr)) {
+          score += 20;
+          features.push(`Content pattern: ${pattern.source}`);
+        }
+      }
+
+      if (preferred && /optransactionhistory/i.test(preferred)) {
+        if (bankCode === "UBA") {
+          score += 40;
+          features.push("Sheet name OpTransactionHistory");
+        }
+      }
+
+      if (fileName) {
+        for (const pattern of patterns.fileNamePatterns) {
+          if (pattern.test(fileName)) {
+            score += 15;
+            features.push(`Filename pattern: ${pattern.source}`);
+          }
+        }
+      }
+
+      scores[bankCode] = { score, features };
+    }
+
+    let bestBank: string | null = null;
+    let bestScore = 0;
+    let bestFeatures: string[] = [];
+
+    for (const [bankCode, { score, features }] of Object.entries(scores)) {
+      if (score > bestScore) {
+        bestScore = score;
+        bestBank = bankCode;
+        bestFeatures = features;
       }
     }
-  }
 
-  return { bankCode: null, confidence: 0, matchedFeatures: [] };
+    const confidence = Math.min(bestScore, 100);
+    if (confidence < 70) {
+      return { bankCode: null, confidence, matchedFeatures: bestFeatures };
+    }
+
+    return {
+      bankCode: bestBank,
+      confidence,
+      matchedFeatures: bestFeatures,
+    };
+  } catch {
+    if (!fileName) {
+      return { bankCode: null, confidence: 0, matchedFeatures: [] };
+    }
+
+    for (const [bankCode, patterns] of Object.entries(BANK_PATTERNS)) {
+      for (const pattern of patterns.fileNamePatterns) {
+        if (pattern.test(fileName)) {
+          return {
+            bankCode,
+            confidence: 60,
+            matchedFeatures: [`Filename pattern: ${pattern.source}`],
+          };
+        }
+      }
+    }
+
+    return { bankCode: null, confidence: 0, matchedFeatures: [] };
+  }
+}
+
+/**
+ * Detect bank from file buffer (auto-detects file type)
+ */
+function looksLikeExcel(fileBuffer: Buffer, fileName?: string): boolean {
+  if (fileName && /\.xlsx?$/i.test(fileName)) return true;
+  if (fileBuffer.length < 4) return false;
+  if (
+    fileBuffer[0] === 0xd0 &&
+    fileBuffer[1] === 0xcf &&
+    fileBuffer[2] === 0x11 &&
+    fileBuffer[3] === 0xe0
+  ) {
+    return true;
+  }
+  if (
+    fileBuffer[0] === 0x50 &&
+    fileBuffer[1] === 0x4b &&
+    fileBuffer[2] === 0x03 &&
+    fileBuffer[3] === 0x04
+  ) {
+    const head = fileBuffer.toString(
+      "utf8",
+      0,
+      Math.min(fileBuffer.length, 800),
+    );
+    return head.includes("xl/") || head.includes("workbook");
+  }
+  return false;
 }
 
 /**
@@ -284,16 +419,14 @@ export async function detectBank(
   fileBuffer: Buffer,
   fileName?: string,
 ): Promise<BankDetectionResult> {
-  // Determine file type from extension or content
   const isCSV = fileName?.toLowerCase().endsWith(".csv") || false;
-  const isExcel = fileName?.toLowerCase().match(/\.(xlsx?|xls)$/) || false;
 
   if (isCSV) {
     return detectBankFromCSV(fileBuffer, fileName);
-  } else if (isExcel) {
+  }
+  if (looksLikeExcel(fileBuffer, fileName)) {
     return detectBankFromExcel(fileBuffer, fileName);
   }
 
-  // Try CSV detection as fallback
   return detectBankFromCSV(fileBuffer, fileName);
 }
