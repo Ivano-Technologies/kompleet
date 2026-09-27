@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>IVA-84 Comp — Checklist complete (ready to dismiss)</title>
+<style>
+  @font-face {
+    font-family: 'Ceoruse';
+    src: url('/workspace/kompleet/public/fonts/ceoruse.otf') format('opentype');
+    font-weight: 700;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: Montserrat, system-ui, sans-serif;
+    background: #1a2332;
+    color: #0D1B2A;
+    padding: 24px;
+  }
+  .frame-label {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+    color: #FFFFFF; background: #072A45; padding: 10px 16px; border-radius: 8px 8px 0 0;
+    width: 1280px;
+  }
+  .shell {
+    display: flex; width: 1280px; height: 800px; border-radius: 0 0 12px 12px; overflow: hidden;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+  }
+  .sidebar {
+    width: 280px; flex-shrink: 0;
+    background: linear-gradient(180deg, #072A45 0%, #0B3A5C 100%);
+    color: #fff; display: flex; flex-direction: column; padding: 20px 12px;
+  }
+  .wm {
+    font-family: Ceoruse, Montserrat, sans-serif; font-weight: 700; letter-spacing: 0.12em;
+    font-size: 15px; padding: 8px 12px 20px; border-bottom: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: 12px;
+  }
+  .sec { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; color: rgba(255,255,255,0.3); padding: 8px 12px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 8px;
+    font-size: 13px; font-weight: 500; color: rgba(255,255,255,0.55); margin-bottom: 2px;
+  }
+  .nav-item.active {
+    background: rgba(13,148,136,0.15); color: #0D9488; font-weight: 600;
+    border: 1px solid rgba(13,148,136,0.25);
+  }
+  .nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+  .main { flex: 1; background: #F4F1EB; display: flex; flex-direction: column; min-width: 0; }
+  .topbar {
+    height: 56px; border-bottom: 1px solid #DDD5C8; display: flex; align-items: center;
+    padding: 0 24px; font-size: 13px; font-weight: 500; color: #3D4A55;
+  }
+  .content { padding: 20px 24px; flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 16px; }
+  .page-head { display: flex; align-items: center; justify-content: space-between; }
+  .page-title { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; }
+  .btns { display: flex; gap: 10px; }
+  .btn-primary {
+    background: #0D9488; color: #FFFFFF; border: none; border-radius: 10px;
+    padding: 10px 18px; font-size: 13px; font-weight: 600; font-family: inherit;
+  }
+  .btn-secondary {
+    background: #FFFDF8; color: #0D1B2A; border: 1px solid #DDD5C8; border-radius: 10px;
+    padding: 10px 18px; font-size: 13px; font-weight: 500; font-family: inherit;
+  }
+
+  .toast {
+    align-self: center; background: #0D1B2A; color: #F0F9FF; font-size: 13px; font-weight: 500;
+    padding: 10px 16px; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .toast .ok {
+    width: 20px; height: 20px; border-radius: 50%; background: #1B7A4E; color: #fff;
+    font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+  }
+
+  .setup-card {
+    background: #FFFDF8; border: 1px solid #1B7A4E; border-radius: 16px;
+    padding: 20px 22px; box-shadow: 0 2px 8px rgba(13,27,42,0.04);
+    position: relative;
+  }
+  .setup-head {
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+    margin-bottom: 6px;
+  }
+  .setup-title-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .setup-title { font-size: 17px; font-weight: 700; letter-spacing: -0.02em; color: #0D1B2A; }
+  .progress-pill {
+    font-size: 11px; font-weight: 600; color: #1B7A4E;
+    background: rgba(27,122,78,0.12); border-radius: 999px; padding: 4px 10px;
+  }
+  .setup-sub { font-size: 13px; color: #6B7280; margin-bottom: 16px; }
+  .items { display: flex; flex-direction: column; gap: 2px; margin-bottom: 14px; }
+  .item {
+    display: flex; align-items: center; gap: 12px; padding: 10px 8px; border-radius: 10px;
+    background: rgba(27,122,78,0.06);
+  }
+  .item.optional-off { background: transparent; }
+  .check {
+    width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700;
+  }
+  .check.on { background: #1B7A4E; color: #fff; }
+  .check.off { background: #FFFDF8; border: 1.5px solid #DDD5C8; }
+  .item-label { flex: 1; font-size: 13px; font-weight: 500; color: #3D4A55; }
+  .item-hint { font-size: 12px; font-weight: 400; color: #6B7280; margin-left: 4px; }
+  .item-status { font-size: 12px; font-weight: 600; color: #1B7A4E; }
+  .item-status.skip { color: #6B7280; font-weight: 500; }
+
+  .logo-note {
+    display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px;
+    background: #EBE6DC; border-radius: 10px; font-size: 12px; color: #3D4A55;
+    margin-bottom: 16px;
+  }
+  .logo-note .dot {
+    width: 18px; height: 18px; border-radius: 50%; background: #0B3A5C; color: #fff;
+    font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .setup-foot {
+    display: flex; justify-content: flex-end; gap: 10px; align-items: center;
+  }
+  .btn-done {
+    background: #1B7A4E; color: #FFFFFF; border: none; border-radius: 10px;
+    padding: 10px 18px; font-size: 13px; font-weight: 600; font-family: inherit;
+  }
+
+  .drop-hero {
+    background: #FFFDF8; border: 2px dashed #DDD5C8; border-radius: 16px;
+    min-height: 240px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 8px; padding: 32px 24px; text-align: center;
+  }
+  .drop-title { font-size: 16px; font-weight: 600; color: #0D1B2A; }
+  .drop-sub { font-size: 13px; color: #6B7280; }
+  .foot { font-size: 10px; color: rgba(255,255,255,0.4); padding: 12px; margin-top: auto; }
+  .anno {
+    width: 1280px; margin-top: 12px; font-size: 12px; color: #BAD8F5; line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+  <div class="frame-label">IVA-84 COMP · Checklist complete moment · Core 3 done (legalName + address + city) · Tax optional skipped · Permanent dismiss</div>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="wm">KOMPLEET</div>
+      <div class="sec">MAIN MENU</div>
+      <div class="nav-item active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </div>
+      <div class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 16l-4-4 4-4"/><path d="M17 8l4 4-4 4"/><path d="M3 12h18"/></svg>
+        Books
+      </div>
+      <div class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+        Invoices
+      </div>
+      <div class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        Tax
+      </div>
+      <div class="foot">Option C · wordmark-only · no JUO</div>
+    </aside>
+    <main class="main">
+      <div class="topbar">Dashboard · After Settings save</div>
+      <div class="content">
+        <div class="page-head">
+          <div class="page-title">Dashboard</div>
+          <div class="btns">
+            <button class="btn-secondary">Import</button>
+            <button class="btn-primary">New invoice</button>
+          </div>
+        </div>
+
+        <div class="toast">
+          <span class="ok">✓</span>
+          Business profile ready — it’ll show on invoices you send.
+        </div>
+
+        <section class="setup-card" aria-label="Set up your business — complete">
+          <div class="setup-head">
+            <div class="setup-title-row">
+              <h2 class="setup-title">Set up your business</h2>
+              <span class="progress-pill">3 of 4 complete</span>
+            </div>
+          </div>
+          <p class="setup-sub">You’re ready — sender details will appear on invoices. Tax IDs can wait.</p>
+
+          <div class="items">
+            <div class="item">
+              <div class="check on">✓</div>
+              <div class="item-label">Legal name</div>
+              <div class="item-status">Done</div>
+            </div>
+            <div class="item">
+              <div class="check on">✓</div>
+              <div class="item-label">Business address</div>
+              <div class="item-status">Done</div>
+            </div>
+            <div class="item">
+              <div class="check on">✓</div>
+              <div class="item-label">Contact (email or phone)</div>
+              <div class="item-status">Done</div>
+            </div>
+            <div class="item optional-off">
+              <div class="check off"></div>
+              <div class="item-label">Tax IDs (TIN / VAT) <span class="item-hint">optional</span></div>
+              <div class="item-status skip">Skipped</div>
+            </div>
+          </div>
+
+          <div class="logo-note">
+            <div class="dot">i</div>
+            <div><strong style="color:#0B3A5C">Logo upload coming later</strong> — not required to finish setup.</div>
+          </div>
+
+          <div class="setup-foot">
+            <button class="btn-done">Done</button>
+          </div>
+        </section>
+
+        <div class="drop-hero">
+          <div class="drop-title">Drop a bank statement to get started</div>
+          <div class="drop-sub">Production: hide this card permanently once legalName + addressLine1 + city are set</div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <p class="anno">
+    Permanent dismiss rule = IVA-82 complete profile (legalName + addressLine1 + city). Contact recommended but not required;
+    Tax optional. This frame is a handoff “complete moment” — Eng may auto-hide without showing Done.
+  </p>
+</body>
+</html>

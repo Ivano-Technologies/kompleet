@@ -71,6 +71,32 @@ export function hasLegalName(profile: Pick<BusinessProfile, "legalName">): boole
   return trimToEmpty(profile.legalName).length > 0;
 }
 
+function isForbiddenContactSeed(value: string): boolean {
+  const normalized = value.trim().toLowerCase();
+  return (
+    normalized === "support@ivanotechnologies.com" ||
+    normalized.includes("plot 42")
+  );
+}
+
+/** Fill empty contact from signup/account seed. Never invent fixture addresses. */
+export function applySignupContactSeed<T extends { email?: string; phone?: string }>(
+  profile: T,
+  seed: { email?: string; phone?: string },
+): T {
+  const seedEmail = trimToEmpty(seed.email);
+  const seedPhone = trimToEmpty(seed.phone);
+  return {
+    ...profile,
+    email:
+      trimToEmpty(profile.email) ||
+      (seedEmail && !isForbiddenContactSeed(seedEmail) ? seedEmail : ""),
+    phone:
+      trimToEmpty(profile.phone) ||
+      (seedPhone && !isForbiddenContactSeed(seedPhone) ? seedPhone : ""),
+  };
+}
+
 export function isBusinessProfileComplete(
   profile: Pick<BusinessProfile, "legalName" | "addressLine1" | "city">,
 ): boolean {

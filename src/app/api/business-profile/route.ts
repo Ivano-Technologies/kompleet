@@ -3,7 +3,11 @@ import { withRateLimit } from "@/lib/with-rate-limit";
 import { withAudit } from "@/lib/with-audit";
 import { api } from "@/lib/convex/http";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
-import { isValidEmail, trimToEmpty } from "@/lib/invoices/profiles";
+import {
+  applySignupContactSeed,
+  isValidEmail,
+  trimToEmpty,
+} from "@/lib/invoices/profiles";
 import { z } from "zod";
 
 const upsertSchema = z.object({
@@ -21,9 +25,11 @@ const upsertSchema = z.object({
 
 async function handleGET(request: NextRequest) {
   try {
-    const { convex } = await requireAuthedConvex(request);
+    const { convex, user } = await requireAuthedConvex(request);
     const profile = await convex.query(api.tenancy.getMyBusinessProfile, {});
-    return NextResponse.json({ profile });
+    return NextResponse.json({
+      profile: applySignupContactSeed(profile, { email: user.email }),
+    });
   } catch (error) {
     if (isUnauthorized(error)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -37,7 +43,7 @@ async function handleGET(request: NextRequest) {
 
 async function handlePATCH(request: NextRequest) {
   try {
-    const { convex } = await requireAuthedConvex(request);
+    const { convex, user } = await requireAuthedConvex(request);
     const body = await request.json();
     const parsed = upsertSchema.safeParse(body);
     if (!parsed.success) {
@@ -62,7 +68,9 @@ async function handlePATCH(request: NextRequest) {
       tin: parsed.data.tin,
       vatNumber: parsed.data.vatNumber,
     });
-    return NextResponse.json({ profile });
+    return NextResponse.json({
+      profile: applySignupContactSeed(profile, { email: user.email }),
+    });
   } catch (error) {
     if (isUnauthorized(error)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
