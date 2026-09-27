@@ -36,8 +36,12 @@ export const metadata: Metadata = {
     "Kompleet app",
   ],
   icons: {
-    icon: "/favicon.png",
-    apple: "/favicon.png",
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-16.png", sizes: "16x16", type: "image/png" },
+    ],
+    apple: { url: "/apple-touch-180.png", sizes: "180x180", type: "image/png" },
   },
   openGraph: {
     title: "Kompleet — Track Every Naira & Stay Compliant in Nigeria",

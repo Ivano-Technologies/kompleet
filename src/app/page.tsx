@@ -9,27 +9,6 @@ const trustBarItems = [
   "NRS invoice QR",
 ];
 
-const productProof = [
-  {
-    src: "/assets/illustrations/import-flow.svg",
-    fallback: "/assets/illustrations/import-flow.png",
-    title: "Import",
-    caption: "Statements from 11 Nigerian banks, with running-balance checks.",
-  },
-  {
-    src: "/assets/illustrations/invoice-nrs.svg",
-    fallback: "/assets/illustrations/invoice-nrs.png",
-    title: "Invoice",
-    caption: "NRS-ready invoices with an abstract QR block you can issue today.",
-  },
-  {
-    src: "/assets/illustrations/tax-filing-flow.svg",
-    fallback: "/assets/illustrations/tax-filing-flow.png",
-    title: "Tax centre",
-    caption: "VAT, CIT, and filing packages you download and submit yourself.",
-  },
-];
-
 const capabilities = [
   {
     src: "/assets/illustrations/spot-banks.svg",
@@ -75,23 +54,21 @@ export default function HomePage() {
       <LandingNav heroAuth />
 
       <header>
-        <div className="grid lg:grid-cols-[minmax(0,46fr)_minmax(0,54fr)]">
-          <div className="flex flex-col justify-center bg-bg px-6 py-16 sm:px-10 lg:px-12 lg:py-24 xl:px-16">
-            <div className="mx-auto w-full max-w-lg space-y-6">
-              <h1 className="font-display text-[40px] font-bold leading-tight tracking-tight md:text-5xl">
+        <div className="grid lg:h-[calc(100svh-4rem)] lg:grid-cols-[minmax(0,46fr)_minmax(0,54fr)]">
+          <div className="flex flex-col justify-center bg-bg px-6 py-6 sm:px-10 lg:px-12 lg:py-8 xl:px-16">
+            <div className="mx-auto w-full max-w-lg space-y-4">
+              <h1 className="font-display text-[32px] font-bold leading-[1.15] tracking-tight lg:text-[36px] xl:text-[40px]">
                 Control Your Money.
                 <br />
                 Grow Your Business.
               </h1>
-              <p className="max-w-md text-base text-text-2">
-                Import Nigerian bank statements, run the Nigeria Tax Act 2025
-                engine, issue NRS-ready invoices, and export P&amp;L and balance
-                sheets.
+              <p className="max-w-md text-sm text-text-2">
+                Nigerian bank imports, Tax Act 2025, and NRS-ready invoices.
               </p>
               <HeroAuthCard />
             </div>
           </div>
-          <div className="relative min-h-[240px] overflow-hidden bg-primary-deep sm:min-h-[320px] lg:min-h-[640px]">
+          <div className="relative min-h-[180px] overflow-hidden bg-primary-deep sm:min-h-[220px] lg:min-h-0">
             <picture>
               <source
                 srcSet="/assets/illustrations/hero-kompleet.svg"
@@ -103,7 +80,7 @@ export default function HomePage() {
                 alt="Geometric illustration of stacked ledger books with a naira mark and teal verified seal"
                 width={1440}
                 height={720}
-                className="absolute inset-0 h-full w-full object-cover object-center"
+                className="absolute inset-0 h-full w-full object-cover object-[center_28%]"
               />
             </picture>
           </div>
@@ -123,45 +100,6 @@ export default function HomePage() {
           ))}
         </div>
       </div>
-
-      <section className="px-6 py-20 md:px-12 md:py-24">
-        <div className="mx-auto mb-12 max-w-7xl text-center">
-          <p className="mb-3 text-xs font-bold uppercase tracking-widest text-primary">
-            Product proof
-          </p>
-          <h2 className="font-display text-[32px] font-bold tracking-tight md:text-4xl">
-            Real tooling, labeled demo data
-          </h2>
-        </div>
-        <div className="mx-auto grid max-w-7xl gap-6 md:grid-cols-3">
-          {productProof.map((item) => (
-            <figure
-              key={item.title}
-              className="overflow-hidden rounded-xl border border-border bg-surface"
-            >
-              <picture>
-                <source srcSet={item.src} type="image/svg+xml" />
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={item.fallback}
-                  alt=""
-                  width={1200}
-                  height={670}
-                  className="h-auto w-full"
-                />
-              </picture>
-              <figcaption className="p-5">
-                <h3 className="font-display text-lg font-bold text-text-1">
-                  {item.title}
-                </h3>
-                <p className="mt-2 text-sm leading-relaxed text-text-3">
-                  {item.caption}
-                </p>
-              </figcaption>
-            </figure>
-          ))}
-        </div>
-      </section>
 
       <section id="features" className="px-6 py-20 md:px-12 md:py-24">
         <div className="mx-auto mb-12 max-w-7xl text-center">
