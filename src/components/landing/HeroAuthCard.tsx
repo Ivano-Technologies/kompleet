@@ -18,7 +18,7 @@ import {
 } from "@/components/landing/hero-auth";
 
 const inputClassName =
-  "mt-2 h-[52px] w-full rounded-md border border-border bg-surface px-4 text-sm text-text-1 focus:border-primary focus:ring-2 focus:ring-primary/20";
+  "mt-1.5 h-11 w-full rounded-md border border-border bg-surface px-3 text-sm text-text-1 focus:border-primary focus:ring-2 focus:ring-primary/20";
 
 function validateSignupPassword(password: string): string | null {
   if (password.length < 8) {
@@ -119,7 +119,7 @@ export default function HeroAuthCard() {
       <form
         id={HERO_AUTH_ID}
         onSubmit={handleSubmit}
-        className="rounded-xl border border-border bg-surface p-6 shadow-2"
+        className="rounded-xl border border-border bg-surface p-4 shadow-2"
         aria-labelledby="hero-auth-heading"
       >
         <h2 id="hero-auth-heading" className="sr-only">
@@ -128,7 +128,7 @@ export default function HeroAuthCard() {
         {error ? (
           <div
             role="alert"
-            className="mb-4 rounded-md border border-error/30 bg-error-bg p-3 text-sm text-error"
+            className="mb-3 rounded-md border border-error/30 bg-error-bg p-2.5 text-sm text-error"
           >
             {error}
           </div>
@@ -152,7 +152,7 @@ export default function HeroAuthCard() {
             className={inputClassName}
           />
         </div>
-        <div className="mt-4">
+        <div className="mt-3">
           <div className="flex items-center justify-between">
             <label
               htmlFor="hero-auth-password"
@@ -200,7 +200,7 @@ export default function HeroAuthCard() {
         <button
           type="submit"
           disabled={loading}
-          className="mt-6 h-[52px] w-full rounded-md bg-accent text-sm font-bold text-white hover:bg-accent-hover disabled:opacity-50"
+          className="mt-4 h-11 w-full rounded-md bg-accent text-sm font-bold text-white hover:bg-accent-hover disabled:opacity-50"
         >
           {loading
             ? mode === "signup"
@@ -210,7 +210,7 @@ export default function HeroAuthCard() {
               ? "Get started"
               : "Sign in"}
         </button>
-        <p className="mt-4 text-center text-sm text-text-2">
+        <p className="mt-3 text-center text-sm text-text-2">
           {mode === "signup" ? (
             <>
               Already have an account?{" "}
@@ -239,7 +239,7 @@ export default function HeroAuthCard() {
           )}
         </p>
       </form>
-      <p className="pt-3 text-center text-xs font-medium text-text-3">
+      <p className="pt-2 text-center text-xs font-medium text-text-3">
         Free during beta. No credit card required.
       </p>
     </div>

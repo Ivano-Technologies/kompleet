@@ -75,11 +75,56 @@ describe("IVA-72 landing copy", () => {
   });
 
   it("wires locked Design illustrations, not invented lifestyle art", () => {
-    expect(landing).toMatch(/import-flow\.svg/);
-    expect(landing).toMatch(/invoice-nrs\.svg/);
     expect(landing).toMatch(/tax-filing-flow\.svg/);
     expect(authLayout).toMatch(/auth-panel\.svg/);
     expect(authLayout).toMatch(/auth-panel\.png/);
+  });
+
+  it("removes the Product Proof band from the homepage", () => {
+    expect(landing).not.toMatch(/Product proof/i);
+    expect(landing).not.toMatch(/Real tooling, labeled demo data/);
+    expect(landing).not.toMatch(/productProof/);
+    expect(landing).not.toMatch(/import-flow\.(svg|png)/);
+    expect(landing).not.toMatch(/invoice-nrs\.(svg|png)/);
+    expect(landing).not.toMatch(/Tax centre/);
+    expect(
+      existsSync(
+        resolve(process.cwd(), "public/assets/illustrations/import-flow.svg"),
+      ),
+    ).toBe(false);
+    expect(
+      existsSync(
+        resolve(process.cwd(), "public/assets/illustrations/import-flow.png"),
+      ),
+    ).toBe(false);
+    expect(
+      existsSync(
+        resolve(process.cwd(), "public/assets/illustrations/invoice-nrs.svg"),
+      ),
+    ).toBe(false);
+    expect(
+      existsSync(
+        resolve(process.cwd(), "public/assets/illustrations/invoice-nrs.png"),
+      ),
+    ).toBe(false);
+  });
+
+  it("keeps the hero compact so auth fits above the fold", () => {
+    const hero = landing.slice(
+      landing.indexOf("<header>"),
+      landing.indexOf("</header>"),
+    );
+    expect(hero).toMatch(/lg:h-\[calc\(100svh-4rem\)\]/);
+    expect(hero).toMatch(/py-6/);
+    expect(hero).toMatch(/lg:py-8/);
+    expect(hero).toMatch(/text-\[32px\]/);
+    expect(hero).toMatch(/xl:text-\[40px\]/);
+    expect(hero).not.toMatch(/text-5xl/);
+    expect(hero).not.toMatch(/py-16|lg:py-24|lg:min-h-\[640px\]/);
+    expect(hero).toMatch(/Nigerian bank imports, Tax Act 2025, and NRS-ready invoices/);
+    expect(heroAuthCard).toMatch(/p-4 shadow-2/);
+    expect(heroAuthCard).toMatch(/h-11/);
+    expect(heroAuthCard).not.toMatch(/h-\[52px\]/);
   });
 
   it("uses Design spot icons, ledger hero illustration, and tax-filing-flow — no Demo chrome", () => {
@@ -198,6 +243,34 @@ describe("IVA-72 landing copy", () => {
     expect(landingNav).toMatch(/heroAuth/);
     expect(landingNav).toMatch(/requestHeroAuth/);
     expect(landingNav).toMatch(/#\$\{HERO_AUTH_ID\}/);
+  });
+
+  it("ships Kezie locked teal naira favicon sitewide", () => {
+    expect(rootLayout).toMatch(/url: "\/favicon\.svg", type: "image\/svg\+xml"/);
+    expect(rootLayout).toMatch(/url: "\/favicon-32\.png", sizes: "32x32"/);
+    expect(rootLayout).toMatch(/url: "\/favicon-16\.png", sizes: "16x16"/);
+    expect(rootLayout).toMatch(/url: "\/apple-touch-180\.png"/);
+    expect(rootLayout).not.toMatch(/\/favicon\.png/);
+    expect(rootLayout).not.toMatch(/#C8F000|#E8A317/);
+
+    const faviconSvg = readFileSync(
+      resolve(process.cwd(), "public/favicon.svg"),
+      "utf8",
+    );
+    expect(faviconSvg).toMatch(/#0D9488/);
+    expect(faviconSvg).toMatch(/#FFFFFF|#FFF\b/i);
+    expect(faviconSvg).not.toMatch(/#0B3A5C|#C8F000|#E8A317/);
+    expect(faviconSvg).not.toMatch(/>\s*K\s*</);
+
+    for (const file of [
+      "public/favicon.svg",
+      "public/favicon-32.png",
+      "public/favicon-16.png",
+      "public/apple-touch-180.png",
+    ]) {
+      expect(existsSync(resolve(process.cwd(), file))).toBe(true);
+    }
+    expect(existsSync(resolve(process.cwd(), "public/favicon.png"))).toBe(false);
   });
 
   it("locks Option C navy + teal and strips lime/amber accents", () => {
