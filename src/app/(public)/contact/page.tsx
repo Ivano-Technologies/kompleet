@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import ContactFormClient from "@/components/contact/ContactFormClient";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
@@ -12,71 +11,70 @@ export const metadata: Metadata = {
 
 export default function ContactPage() {
   return (
-    <div className="min-h-screen bg-[rgb(var(--background))] dark:bg-dark-bg text-[rgb(var(--text-primary))] dark:text-dark-text-1 flex flex-col">
+    <div
+      data-marketing
+      className="flex min-h-screen flex-col bg-bg text-text-1"
+    >
       <LandingNav />
 
-      <main className="flex-1 py-16 px-6 sm:px-12 md:px-24 max-w-7xl mx-auto w-full">
-        <div className="text-center mb-16">
-          <div className="text-xs font-bold text-primary uppercase tracking-widest mb-3">
-            Get in Touch
-          </div>
-          <h1 className="font-display text-4xl md:text-5xl font-bold mb-4">
-            Contact Us
+      <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-16 sm:px-12">
+        <div className="mb-16 text-center">
+          <p className="mb-3 text-xs font-bold uppercase tracking-widest text-primary">
+            Get in touch
+          </p>
+          <h1 className="font-display mb-4 text-4xl font-bold md:text-5xl">
+            Contact us
           </h1>
-          <p className="text-base text-[rgb(var(--text-secondary))] max-w-2xl mx-auto">
-            Have a question or need help? We would love to hear from you.
+          <p className="mx-auto max-w-2xl text-base text-text-2">
+            A question or a partnership note — we read these.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-12">
+        <div className="grid gap-12 md:grid-cols-3">
           <div className="md:col-span-2">
-            <div className="bg-[rgb(var(--surface))] rounded-lg p-8 shadow-1 border border-[rgb(var(--border))]">
+            <div className="rounded-xl border border-border bg-surface p-8 shadow-1">
               <ContactFormClient />
             </div>
           </div>
 
           <div className="space-y-6">
-            <div className="bg-[rgb(var(--surface))] rounded-lg p-6 shadow-1 border border-[rgb(var(--border))]">
-              <h3 className="font-display font-bold text-lg mb-2">
-                Email Us
-              </h3>
-              <p className="text-sm text-[rgb(var(--text-secondary))] dark:text-white mb-1">
+            <div className="rounded-xl border border-border bg-surface p-6 shadow-1">
+              <h3 className="font-display mb-2 text-lg font-bold">Email</h3>
+              <p className="mb-1 text-sm text-text-2">
                 General:{" "}
                 <a
                   href="mailto:hi@ivanotechnologies.com"
-                  className="text-primary dark:text-white hover:underline font-medium"
+                  className="font-medium text-primary hover:underline"
                 >
                   hi@ivanotechnologies.com
                 </a>
               </p>
-              <p className="text-sm text-[rgb(var(--text-secondary))] dark:text-white">
+              <p className="text-sm text-text-2">
                 Support:{" "}
                 <a
                   href="mailto:support@ivanotechnologies.com"
-                  className="text-primary dark:text-white hover:underline font-medium"
+                  className="font-medium text-primary hover:underline"
                 >
                   support@ivanotechnologies.com
                 </a>
               </p>
             </div>
 
-            <div className="bg-[rgb(var(--surface))] rounded-lg p-6 shadow-1 border border-[rgb(var(--border))]">
-              <h3 className="font-display font-bold text-lg mb-2">
-                Office
-              </h3>
-              <p className="text-sm text-[rgb(var(--text-secondary))] leading-relaxed">
+            <div className="rounded-xl border border-border bg-surface p-6 shadow-1">
+              <h3 className="font-display mb-2 text-lg font-bold">Office</h3>
+              <p className="text-sm leading-relaxed text-text-2">
                 Ivano Technologies Ltd
                 <br />
                 Lagos, Nigeria
               </p>
             </div>
 
-            <div className="bg-[rgb(var(--surface))] rounded-lg p-6 shadow-1 border border-[rgb(var(--border))]">
-              <h3 className="font-display font-bold text-lg mb-2">
-                Response Time
+            <div className="rounded-xl border border-border bg-surface p-6 shadow-1">
+              <h3 className="font-display mb-2 text-lg font-bold">
+                Response time
               </h3>
-              <p className="text-sm text-[rgb(var(--text-secondary))] leading-relaxed">
-                We typically respond within 24 hours on business days.
+              <p className="text-sm leading-relaxed text-text-2">
+                Typically within 24 hours on business days.
               </p>
             </div>
           </div>

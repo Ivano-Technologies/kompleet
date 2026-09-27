@@ -37,6 +37,7 @@ export interface ParseResult {
   errors: ParseError[];
   totalRows: number;
   successfulRows: number;
+  detectedBankCode?: string | null;
 }
 
 export interface ParseError {

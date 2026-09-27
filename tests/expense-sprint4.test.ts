@@ -35,13 +35,16 @@ describe("Expense Sprint 4 – Reports, Export & Sync", () => {
   });
 
   describe("Sidebar nav", () => {
-    it("Expense Reports link under Reports", () => {
-      const sidebarPath = path.join(
+    it("Expenses lives in More, not a Reports child", () => {
+      const navPath = path.join(
         __dirname,
-        "../src/components/layout/dashboard/Sidebar.tsx",
+        "../src/components/layout/dashboard/nav-config.ts",
       );
-      const content = fs.readFileSync(sidebarPath, "utf-8");
-      expect(content).toMatch(/expense-reports|Expense Reports/);
+      const content = fs.readFileSync(navPath, "utf-8");
+      expect(content).toMatch(/href: "\/expenses"/);
+      expect(content).toMatch(/label: "Expenses"/);
+      expect(content).not.toMatch(/Compliance Reports/);
+      expect(content).not.toMatch(/expense-reports/);
     });
   });
 

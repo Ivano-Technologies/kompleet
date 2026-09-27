@@ -1,0 +1,91 @@
+Bank Statement
+SAMPLE BUSINESS LTD
+1 Sample Street Abuja
+Jan 01, 2024 to Dec 31, 2024
+Download App | Chat with Leo | Our Website
+Head Office: 57 Marina, Lagos Island, Lagos, Nigeria
++2341- 2808-822 (+234-700-CALL-UBA) | cfc@ubagroup.com | Privacy Policy
+Africa's global bank
+	01-Jan-2024 to 31-Dec-2024 Bank Statement
+1
+Hello SAMPLE BUSINESS LTD,
+Here is your Account Summary
+Account Number 1000000001
+Account Type: CURRENT
+Opening Balance: 1,017.00
+Currency: NGN
+Total Debit: 63.00
+Total Credit: 10,099.21
+Closing Balance: 11,053.21
+TRANS DATE VALUE DATE NARRATION CHQ
+NO DEBIT CREDIT BALANCE
+01-Jan-2024 01-Jan-2024 Opening Balance 1,017.00
+10-Mar-
+2024
+10-Mar-
+2024
+MOB/UTU/SAMPLE
+PAYER/Check/22024311590
+MOB/UTU/From
+SAMPLE PAYER
+1,000.00 2,017.00
+22-Mar-
+2024
+22-Mar-
+2024 -stamp duty charges 50.00 1,967.00
+17-Jun-2024 17-Jun-2024
+SMS/SMS CHARGES
+MAR 22ND 2024 - MAR
+24TH 2024
+270324000000000000000001
+4.00 1,963.00
+05-Jul-2024 04-Jul-2024
+SMS/SMS CHARGES
+MAR 7TH 2024 - MAR
+14TH 2024
+150324000000000000000002
+4.00 1,959.00
+19-Jul-2024 19-Jul-2024
+MOB/UTU/SAMPLE
+PAYER/check/24743928557
+MOB/UTU/From
+SAMPLE PAYER
+2,000.00 3,959.00
+
+-- 1 of 2 --
+
+Bank Statement
+SAMPLE BUSINESS LTD
+1 Sample Street Abuja
+Jan 01, 2024 to Dec 31, 2024
+Download App | Chat with Leo | Our Website
+Head Office: 57 Marina, Lagos Island, Lagos, Nigeria
++2341- 2808-822 (+234-700-CALL-UBA) | cfc@ubagroup.com | Privacy Policy
+Africa's global bank
+	01-Jan-2024 to 31-Dec-2024 Bank Statement
+2
+TRANS DATE VALUE DATE NARRATION CHQ
+NO DEBIT CREDIT BALANCE
+19-Jul-2024 19-Jul-2024
+MOB/UTU/SAMPLE
+PAYER/per/24750021359
+MOB/UTU/From
+SAMPLE PAYER
+5,000.00 8,959.00
+18-Dec-
+2024
+18-Dec-
+2024
+Cr to Xfer Ac due to
+closure of :1000000002 2,099.21 11,058.21
+22-Dec-
+2024
+22-Dec-
+2024
+SMS/SMS CHARGES
+DEC 13TH 2024 - DEC
+19TH 2024
+201224000000000000000003
+5.00 11,053.21
+
+-- 2 of 2 --

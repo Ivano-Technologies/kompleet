@@ -48,7 +48,7 @@ export default function ContactFormClient() {
       <div>
         <label
           htmlFor="name"
-          className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1"
+          className="mb-1 block text-sm font-medium text-text-2"
         >
           Full Name
         </label>
@@ -57,14 +57,14 @@ export default function ContactFormClient() {
           id="name"
           name="name"
           required
-          className="w-full px-4 py-2 border border-light-border dark:border-dark-border rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent text-light-text-primary dark:text-dark-text-primary"
+          className="w-full rounded-md border border-border bg-surface px-4 py-2 text-text-1 focus:border-primary focus:ring-2 focus:ring-primary/20"
           placeholder="Your full name"
         />
       </div>
       <div>
         <label
           htmlFor="email"
-          className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1"
+          className="mb-1 block text-sm font-medium text-text-2"
         >
           Email Address
         </label>
@@ -73,21 +73,21 @@ export default function ContactFormClient() {
           id="email"
           name="email"
           required
-          className="w-full px-4 py-2 border border-light-border dark:border-dark-border rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent text-light-text-primary dark:text-dark-text-primary"
+          className="w-full rounded-md border border-border bg-surface px-4 py-2 text-text-1 focus:border-primary focus:ring-2 focus:ring-primary/20"
           placeholder="you@example.com"
         />
       </div>
       <div>
         <label
           htmlFor="subject"
-          className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1"
+          className="mb-1 block text-sm font-medium text-text-2"
         >
           Subject
         </label>
         <select
           id="subject"
           name="subject"
-          className="w-full px-4 py-2 border border-light-border dark:border-dark-border rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent text-light-text-primary dark:text-dark-text-primary"
+          className="w-full rounded-md border border-border bg-surface px-4 py-2 text-text-1 focus:border-primary focus:ring-2 focus:ring-primary/20"
         >
           <option value="">Select a subject</option>
           <option value="general">General Inquiry</option>
@@ -100,7 +100,7 @@ export default function ContactFormClient() {
       <div>
         <label
           htmlFor="message"
-          className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1"
+          className="mb-1 block text-sm font-medium text-text-2"
         >
           Message
         </label>
@@ -109,7 +109,7 @@ export default function ContactFormClient() {
           name="message"
           rows={5}
           required
-          className="w-full px-4 py-2 border border-light-border dark:border-dark-border rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent text-light-text-primary dark:text-dark-text-primary"
+          className="w-full rounded-md border border-border bg-surface px-4 py-2 text-text-1 focus:border-primary focus:ring-2 focus:ring-primary/20"
           placeholder="How can we help you?"
         />
       </div>
@@ -125,7 +125,7 @@ export default function ContactFormClient() {
       <button
         type="submit"
         disabled={status === "sending"}
-        className="w-full bg-green-700 text-white font-semibold py-3 px-6 rounded-lg hover:bg-green-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full rounded-md bg-accent px-6 py-3 font-bold text-charcoal hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
       >
         {status === "sending" ? "Sending…" : "Send Message"}
       </button>

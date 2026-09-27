@@ -9,6 +9,11 @@ import {
   Clock,
   Info,
 } from "lucide-react";
+import {
+  FilingGenerateSheet,
+  MarkFiledSheet,
+} from "@/components/tax/FilingGenerateSheet";
+import { TAX_COPY } from "@/components/tax/tax-copy";
 
 interface Form {
   id: string;
@@ -24,12 +29,18 @@ interface Form {
   }[];
 }
 
-export default function FilingCenterPage() {
+export default function FilingCenterPage({
+  embedded = false,
+}: {
+  embedded?: boolean;
+}) {
   const [forms, setForms] = useState<Form[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedFormType, setSelectedFormType] = useState<string>("all");
   const [selectedYear, setSelectedYear] = useState<number>(2026);
   const [showGenerateModal, setShowGenerateModal] = useState(false);
+  const [filedToast, setFiledToast] = useState<string | null>(null);
+  const [markFormId, setMarkFormId] = useState<string | null>(null);
 
   const fetchForms = useCallback(async () => {
     setLoading(true);
@@ -98,18 +109,22 @@ export default function FilingCenterPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">
-            Filing Center
-          </h1>
-          <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mt-1">
+          {!embedded && (
+            <h1 className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">
+              Filing Center
+            </h1>
+          )}
+          <p className={`text-sm text-light-text-secondary dark:text-dark-text-secondary ${embedded ? "" : "mt-1"}`}>
             Generate and manage your NRS tax forms
           </p>
+          {filedToast && <p className="text-sm text-success mt-2">{filedToast}</p>}
         </div>
         <button
+          type="button"
           onClick={() => setShowGenerateModal(true)}
           className="btn-primary text-sm px-4 py-2 flex items-center gap-1.5 self-start"
         >
-          <FileText className="w-3.5 h-3.5" /> Generate New Form
+          <FileText className="w-3.5 h-3.5" /> {TAX_COPY.filingGenTitle}
         </button>
       </div>
 
@@ -188,10 +203,11 @@ export default function FilingCenterPage() {
               Generate your first NRS tax form to get started
             </p>
             <button
+              type="button"
               onClick={() => setShowGenerateModal(true)}
-              className="btn-primary text-sm px-4 py-2"
+              className="btn-primary text-sm px-4 py-2 inline-flex"
             >
-              Generate Form
+              {TAX_COPY.filingGenCta}
             </button>
           </div>
         ) : (
@@ -249,12 +265,24 @@ export default function FilingCenterPage() {
                           )}
                       </div>
                     </div>
-                    <button
-                      onClick={() => handleDownload(form)}
-                      className="btn-primary text-xs px-3 py-1.5 flex items-center gap-1.5 flex-shrink-0"
-                    >
-                      <Download className="w-3 h-3" /> Download
-                    </button>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => handleDownload(form)}
+                        className="btn-primary text-xs px-3 py-1.5 flex items-center gap-1.5"
+                      >
+                        <Download className="w-3 h-3" /> Download
+                      </button>
+                      {form.status !== "filed" && (
+                        <button
+                          type="button"
+                          onClick={() => setMarkFormId(form.id)}
+                          className="btn-secondary text-xs px-3 py-1.5"
+                        >
+                          {TAX_COPY.filingMark}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
@@ -262,6 +290,28 @@ export default function FilingCenterPage() {
           </div>
         )}
       </div>
+
+      <FilingGenerateSheet
+        open={showGenerateModal}
+        onClose={() => setShowGenerateModal(false)}
+        onGenerated={(result) => {
+          const link = document.createElement("a");
+          link.href = result.pdfUrl;
+          link.download = `NRS_${result.formType}_${result.formId.slice(0, 8)}.pdf`;
+          link.click();
+          setFiledToast(TAX_COPY.filingToast);
+          void fetchForms();
+        }}
+      />
+      <MarkFiledSheet
+        open={Boolean(markFormId)}
+        formId={markFormId}
+        onClose={() => setMarkFormId(null)}
+        onFiled={() => {
+          setFiledToast("Marked as filed");
+          void fetchForms();
+        }}
+      />
     </div>
   );
 }

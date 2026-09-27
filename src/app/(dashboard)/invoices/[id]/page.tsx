@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import type { InvoiceView } from "@/lib/invoices/view-types";
+import { AttachFileButton } from "@/components/documents/AttachFileButton";
 
 type Invoice = InvoiceView;
 
@@ -172,7 +173,14 @@ export default function InvoiceDetailPage() {
       </div>
 
       {/* Actions */}
-      <div className="flex gap-4 mb-8">
+      <div className="flex gap-4 mb-8 flex-wrap">
+        <AttachFileButton
+          link={{
+            type: "invoice",
+            id: invoice.id,
+            label: invoice.invoice_number,
+          }}
+        />
         {invoice.status === "issued" && (
           <button onClick={handleDownloadPDF} className="btn-primary">
             <Download size={16} />
