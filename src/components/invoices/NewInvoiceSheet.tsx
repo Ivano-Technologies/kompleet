@@ -16,6 +16,7 @@ import {
   titleFromFile,
 } from "./invoice-actions";
 import { useLibraryUpload } from "@/components/documents/use-library-upload";
+import { onBusinessProfileChanged } from "@/lib/invoices/profile-events";
 
 export function NewInvoiceSheet({
   open,
@@ -41,7 +42,7 @@ export function NewInvoiceSheet({
   useEffect(() => {
     if (!open) return;
     let cancelled = false;
-    (async () => {
+    const load = async () => {
       try {
         const response = await fetch("/api/clients", { credentials: "include" });
         if (!response.ok || cancelled) return;
@@ -59,9 +60,14 @@ export function NewInvoiceSheet({
       } catch {
         /* list can stay empty; inline create still works */
       }
-    })();
+    };
+    void load();
+    const stop = onBusinessProfileChanged(() => {
+      void load();
+    });
     return () => {
       cancelled = true;
+      stop();
     };
   }, [open]);
 

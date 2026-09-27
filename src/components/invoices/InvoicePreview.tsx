@@ -24,6 +24,28 @@ function senderFromInvoice(
   invoice: InvoiceView,
   profile: BusinessProfile | null,
 ): PartySnapshot {
+  const issued =
+    invoice.status === "issued" ||
+    invoice.status === "paid" ||
+    Boolean(invoice.is_immutable);
+
+  // Drafts: prefer live profile over stale invoice.sender snapshot
+  if (!issued && profile) {
+    if (!hasLegalName(profile)) return { name: "" };
+    return {
+      name: profile.legalName,
+      addressLine1: profile.addressLine1,
+      addressLine2: profile.addressLine2,
+      city: profile.city,
+      state: profile.state,
+      country: profile.country,
+      email: profile.email,
+      phone: profile.phone,
+      tin: profile.tin,
+      vatNumber: profile.vatNumber,
+    };
+  }
+
   const snap = partyFromUnknown(invoice.sender);
   if (snap && trimToEmpty(snap.name)) return snap;
   if (profile && hasLegalName(profile)) {

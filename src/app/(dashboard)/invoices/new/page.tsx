@@ -11,6 +11,7 @@ import {
 import { INV_COPY } from "@/components/invoices/invoice-copy";
 import { BIZ_COPY } from "@/components/settings/profile-copy";
 import { hasLegalName, type BusinessProfile } from "@/lib/invoices/profiles";
+import { onBusinessProfileChanged } from "@/lib/invoices/profile-events";
 
 export default function NewInvoicePage() {
   const router = useRouter();
@@ -50,7 +51,7 @@ export default function NewInvoicePage() {
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+    const load = async () => {
       try {
         const response = await fetch("/api/clients", { credentials: "include" });
         if (cancelled) return;
@@ -78,9 +79,14 @@ export default function NewInvoicePage() {
           setError(err instanceof Error ? err.message : "Failed to load clients");
         }
       }
-    })();
+    };
+    void load();
+    const stop = onBusinessProfileChanged(() => {
+      void load();
+    });
     return () => {
       cancelled = true;
+      stop();
     };
   }, []);
 

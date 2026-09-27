@@ -62,6 +62,20 @@ describe("IVA-82 business + client profiles", () => {
     expect(billToBlock).not.toMatch(/StatusBadge/);
   });
 
+  it("routes Edit Invoice to the existing draft invoice page, not a missing /edit URL", () => {
+    const detail = read("src/app/(dashboard)/invoices/[id]/page.tsx");
+    expect(detail).not.toMatch(/\/invoices\/\$\{invoice\.id\}\/edit/);
+    expect(detail).toMatch(/router\.push\(`\/invoices\/\$\{invoice\.id\}`\)/);
+    expect(
+      existsSync(
+        resolve(process.cwd(), "src/app/(dashboard)/invoices/[id]/edit/page.tsx"),
+      ),
+    ).toBe(true);
+    expect(read("src/app/(dashboard)/invoices/[id]/edit/page.tsx")).toMatch(
+      /redirect\(`\/invoices\/\$\{id\}`\)/,
+    );
+  });
+
   it("ships locked comps under kompleet-design/iva-82-profiles/comps", () => {
     for (const file of [
       "kompleet-design/iva-82-profiles/comps/settings-business-profile.html",

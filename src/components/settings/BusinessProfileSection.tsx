@@ -10,6 +10,7 @@ import {
   isValidEmail,
   type BusinessProfile,
 } from "@/lib/invoices/profiles";
+import { emitBusinessProfileChanged } from "@/lib/invoices/profile-events";
 
 const inputCls =
   "w-full px-3 py-2 text-sm rounded-[10px] border border-border bg-surface text-text-1 placeholder-text-3 focus:outline-none focus:border-primary";
@@ -63,6 +64,7 @@ export function BusinessProfileSection({
         throw new Error(body.error || "Failed to save");
       }
       setForm({ ...emptyBusinessProfile(), ...body.profile });
+      emitBusinessProfileChanged();
       if (!isBusinessProfileComplete(body.profile) && hasLegalName(body.profile)) {
         onStatus("success", BIZ_COPY.toastSavedIncomplete);
       } else if (!hasLegalName(body.profile)) {

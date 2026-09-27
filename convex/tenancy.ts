@@ -10,6 +10,7 @@ import {
   loadBusinessProfile,
   toBusinessApi,
   toClientApi,
+  trimToEmpty,
   trimToUndef,
 } from "./lib/profiles";
 
@@ -79,23 +80,23 @@ export const upsertMyBusinessProfile = mutation({
   returns: businessProfileApi,
   handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx);
-    const legalName = trimToUndef(args.legalName);
-    const email = trimToUndef(args.email);
+    const legalName = trimToEmpty(args.legalName);
+    const email = trimToEmpty(args.email);
     if (email && !isValidEmail(email)) {
       throw new Error("Invalid email address");
     }
 
     const next = {
       legalName,
-      addressLine1: trimToUndef(args.addressLine1),
-      addressLine2: trimToUndef(args.addressLine2),
-      city: trimToUndef(args.city),
-      state: trimToUndef(args.state),
-      country: trimToUndef(args.country) ?? DEFAULT_COUNTRY,
+      addressLine1: trimToEmpty(args.addressLine1),
+      addressLine2: trimToEmpty(args.addressLine2),
+      city: trimToEmpty(args.city),
+      state: trimToEmpty(args.state),
+      country: trimToEmpty(args.country) || DEFAULT_COUNTRY,
       email,
-      phone: trimToUndef(args.phone),
-      tin: trimToUndef(args.tin),
-      vatNumber: trimToUndef(args.vatNumber),
+      phone: trimToEmpty(args.phone),
+      tin: trimToEmpty(args.tin),
+      vatNumber: trimToEmpty(args.vatNumber),
     };
 
     const existing = await ctx.db
@@ -115,7 +116,7 @@ export const upsertMyBusinessProfile = mutation({
       });
     }
 
-    if (legalName && !user.companyName) {
+    if (user.companyName !== legalName) {
       await ctx.db.patch(user._id, { companyName: legalName, updatedAt: now });
     }
 

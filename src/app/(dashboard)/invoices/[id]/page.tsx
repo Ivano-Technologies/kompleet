@@ -26,6 +26,7 @@ import {
   hasLegalName,
   type BusinessProfile,
 } from "@/lib/invoices/profiles";
+import { onBusinessProfileChanged } from "@/lib/invoices/profile-events";
 
 type Invoice = InvoiceView;
 
@@ -84,7 +85,7 @@ export default function InvoiceDetailPage() {
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+    const load = async () => {
       try {
         const [profileRes, clientsRes] = await Promise.all([
           fetch("/api/business-profile", { credentials: "include" }),
@@ -102,11 +103,17 @@ export default function InvoiceDetailPage() {
       } catch {
         /* optional */
       }
-    })();
+    };
+    void load();
+    const stop = onBusinessProfileChanged(() => {
+      void load();
+      void fetchInvoice();
+    });
     return () => {
       cancelled = true;
+      stop();
     };
-  }, []);
+  }, [fetchInvoice]);
 
   const handleDownloadPDF = () => {
     window.open(`/api/invoices/${invoiceId}/pdf`, "_blank");
@@ -269,7 +276,7 @@ export default function InvoiceDetailPage() {
         )}
         {invoice.status === "draft" && (
           <button
-            onClick={() => router.push(`/invoices/${invoice.id}/edit`)}
+            onClick={() => router.push(`/invoices/${invoice.id}`)}
             className="btn-secondary"
           >
             <Edit size={16} />

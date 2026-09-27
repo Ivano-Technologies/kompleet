@@ -114,6 +114,10 @@ export function seedFromUser(user: Doc<"users">): BusinessProfileApi {
   });
 }
 
+function preferStored(stored: string | undefined, seed: string): string {
+  return stored !== undefined ? trimToEmpty(stored) : seed;
+}
+
 export function mergeSeed(
   stored: Doc<"businessProfiles"> | null,
   user: Doc<"users">,
@@ -121,15 +125,15 @@ export function mergeSeed(
   const seeded = seedFromUser(user);
   if (!stored) return seeded;
   return toBusinessApi({
-    legalName: stored.legalName || seeded.legalName,
-    addressLine1: stored.addressLine1 || seeded.addressLine1,
+    legalName: preferStored(stored.legalName, ""),
+    addressLine1: preferStored(stored.addressLine1, ""),
     addressLine2: stored.addressLine2,
     city: stored.city,
     state: stored.state,
-    country: stored.country || DEFAULT_COUNTRY,
-    email: stored.email || seeded.email,
-    phone: stored.phone || seeded.phone,
-    tin: stored.tin || seeded.tin,
+    country: preferStored(stored.country, DEFAULT_COUNTRY),
+    email: preferStored(stored.email, ""),
+    phone: preferStored(stored.phone, ""),
+    tin: preferStored(stored.tin, ""),
     vatNumber: stored.vatNumber,
   });
 }

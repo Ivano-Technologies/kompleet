@@ -26,6 +26,7 @@ import {
   hasLegalName,
   type BusinessProfile,
 } from "@/lib/invoices/profiles";
+import { onBusinessProfileChanged } from "@/lib/invoices/profile-events";
 
 type Invoice = InvoiceView;
 
@@ -89,7 +90,7 @@ function InvoicesPageInner() {
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+    const load = async () => {
       try {
         const [profileRes, clientsRes] = await Promise.all([
           fetch("/api/business-profile", { credentials: "include" }),
@@ -107,11 +108,17 @@ function InvoicesPageInner() {
       } catch {
         /* preview still works with empty profile */
       }
-    })();
+    };
+    void load();
+    const stop = onBusinessProfileChanged(() => {
+      void load();
+      void fetchInvoices();
+    });
     return () => {
       cancelled = true;
+      stop();
     };
-  }, []);
+  }, [fetchInvoices]);
 
   useEffect(() => {
     if (searchParams.get("new") === "1") setSheetOpen(true);
