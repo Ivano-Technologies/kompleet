@@ -1,5 +1,5 @@
 /**
- * Generate JWT_PRIVATE_KEY + JWKS for @convex-dev/auth.
+ * Generate JWT_PRIVATE_KEY + JWKS for @convex-dev/auth (Node crypto, no jose).
  *
  * Usage:
  *   node scripts/generate-convex-auth-keys.mjs
@@ -17,18 +17,23 @@
  * Optional password-reset email:
  *   npx convex env set AUTH_RESEND_KEY "re_..."
  */
+import { generateKeyPairSync } from "node:crypto";
 import { spawnSync } from "node:child_process";
-import { exportJWK, exportPKCS8, generateKeyPair } from "jose";
 
 const apply = process.argv.includes("--apply");
 const siteUrl = process.env.CONVEX_AUTH_SITE_URL || "http://localhost:3000";
 
-const keys = await generateKeyPair("RS256", { extractable: true });
-const privateKey = (await exportPKCS8(keys.privateKey))
-  .trimEnd()
-  .replace(/\n/g, " ");
-const publicKey = await exportJWK(keys.publicKey);
-const jwks = JSON.stringify({ keys: [{ use: "sig", ...publicKey }] });
+// jose is not a direct dependency (pnpm will not resolve it from this
+// script in CI). Node's RSA PKCS8 + JWK is what @convex-dev/auth expects.
+const pair = generateKeyPairSync("rsa", {
+  modulusLength: 2048,
+  publicKeyEncoding: { type: "spki", format: "jwk" },
+  privateKeyEncoding: { type: "pkcs8", format: "pem" },
+});
+const privateKey = pair.privateKey.trimEnd().replace(/\n/g, " ");
+const jwks = JSON.stringify({
+  keys: [{ use: "sig", alg: "RS256", ...pair.publicKey }],
+});
 
 if (!apply) {
   process.stdout.write(`JWT_PRIVATE_KEY="${privateKey}"\n`);
