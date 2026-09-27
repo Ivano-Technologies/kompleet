@@ -3,6 +3,7 @@
 import { useId, useRef, useState, type DragEvent, type ReactNode } from "react";
 import { Loader2, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { DocsEmptyHint } from "./DocsEmptyHint";
 import { DOCS_ACCEPT, DOCS_COPY } from "./docs-copy";
 import { rejectDocsFile } from "./file-kind";
 
@@ -17,7 +18,7 @@ interface FileDropZoneProps {
   title?: string;
   subtitle?: string;
   chooseLabel?: string;
-  hint?: string;
+  hint?: ReactNode;
   uploading?: boolean;
   progress?: number;
   fileName?: string | null;
@@ -75,7 +76,7 @@ export function FileDropZone({
   const resolvedSub = subtitle ?? (isHero ? DOCS_COPY.emptySub : undefined);
   const resolvedChoose =
     chooseLabel ?? (isHero ? DOCS_COPY.emptyChoose : DOCS_COPY.stripChoose);
-  const resolvedHint = hint ?? (isHero ? DOCS_COPY.emptyHint : undefined);
+  const resolvedHint = hint ?? (isHero ? <DocsEmptyHint /> : undefined);
 
   return (
     <div className={cn("w-full", className)}>
@@ -169,9 +170,7 @@ export function FileDropZone({
           </>
         )}
       </div>
-      {isHero && resolvedHint && (
-        <p className="mt-3 text-center text-xs text-text-3">{resolvedHint}</p>
-      )}
+      {isHero && resolvedHint && <div className="mt-4">{resolvedHint}</div>}
       {error && <p className="mt-2 text-sm text-error">{error}</p>}
     </div>
   );

@@ -4,6 +4,10 @@ import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Loader2, ArrowLeft, CheckCircle2 } from "lucide-react";
+import {
+  QuietLoadWarn,
+  QUIET_500_COPY,
+} from "@/components/feedback/QuietLoadWarn";
 
 interface DuplicateCandidate {
   id: string;
@@ -33,21 +37,28 @@ export default function DuplicateResolutionPage() {
 
   const [duplicates, setDuplicates] = useState<DuplicateCandidate[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [resolving, setResolving] = useState<string | null>(null);
   const [resolved, setResolved] = useState<Record<string, string>>({});
 
   const fetchDuplicates = useCallback(async () => {
+    setLoading(true);
+    setLoadError(false);
     try {
       const url = sessionId
         ? `/api/transactions/duplicates?sessionId=${sessionId}`
         : "/api/transactions/duplicates";
       const res = await fetch(url);
-      const data = await res.json();
+      const data = await res.json().catch(() => ({}));
       if (res.ok) {
         setDuplicates(data.duplicates || []);
+        setLoadError(false);
+      } else {
+        setLoadError(true);
       }
     } catch (error) {
       console.error("Error fetching duplicates:", error);
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -132,15 +143,29 @@ export default function DuplicateResolutionPage() {
           Resolve Duplicates
         </h1>
         <p className="mt-1 text-sm text-light-text-secondary dark:text-dark-text-secondary">
-          {duplicates.length > 0
-            ? `${duplicates.length} potential duplicate${duplicates.length !== 1 ? "s" : ""} found`
-            : "No pending duplicates"}
-          {sessionId && " for this import session"}
+          {loadError
+            ? QUIET_500_COPY.unavailable
+            : duplicates.length > 0
+              ? `${duplicates.length} potential duplicate${duplicates.length !== 1 ? "s" : ""} found`
+              : "No pending duplicates"}
+          {sessionId && !loadError && " for this import session"}
         </p>
       </div>
 
+      {loadError && (
+        <div className="mb-6">
+          <QuietLoadWarn
+            message={QUIET_500_COPY.duplicatesStrip}
+            onRetry={() => void fetchDuplicates()}
+          />
+          <p className="mt-4 text-center text-sm text-text-3">
+            {QUIET_500_COPY.unavailable}
+          </p>
+        </div>
+      )}
+
       {/* Empty State */}
-      {duplicates.length === 0 && (
+      {!loadError && duplicates.length === 0 && (
         <div className="rounded-xl border border-light-border bg-light-surface p-12 text-center dark:border-dark-border dark:bg-dark-surface">
           <CheckCircle2 className="mx-auto mb-4 h-16 w-16 text-primary-500" />
           <h2 className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">

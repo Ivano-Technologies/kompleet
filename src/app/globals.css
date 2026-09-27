@@ -95,6 +95,13 @@ body {
   overflow-x: hidden;
 }
 
+/* IVA-86: one vertical scroll owner while the authenticated shell is mounted */
+html.dashboard-shell-scroll-lock,
+html.dashboard-shell-scroll-lock body {
+  height: 100dvh;
+  overflow: hidden;
+}
+
 body {
   color: rgb(var(--text-primary));
   background: rgb(var(--background));

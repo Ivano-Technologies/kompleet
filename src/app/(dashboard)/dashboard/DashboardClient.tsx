@@ -57,7 +57,8 @@ interface DashboardClientProps {
   kpiData: KpiData;
   revenueData: RevenuePoint[];
   recentTransactions: Transaction[];
-  hasBooks: boolean;
+  hasRealBooks: boolean;
+  demoMode?: boolean;
   uncategorizedCount: number;
   duplicatesCount: number;
   initialTriageOpen?: boolean;
@@ -82,7 +83,8 @@ export default function DashboardClient({
   kpiData,
   revenueData,
   recentTransactions,
-  hasBooks,
+  hasRealBooks,
+  demoMode = false,
   uncategorizedCount: initialUncategorized,
   duplicatesCount: initialDuplicates,
   initialTriageOpen = false,
@@ -107,11 +109,18 @@ export default function DashboardClient({
 
   const header = (
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-      <h1 className="font-display text-2xl text-text-1 dark:text-dark-text-1">
-        Dashboard
-      </h1>
+      <div className="flex items-center gap-3">
+        <h1 className="font-display text-2xl text-text-1 dark:text-dark-text-1">
+          Dashboard
+        </h1>
+        {demoMode && (
+          <span className="text-xs font-semibold text-primary border border-primary rounded-full px-2.5 py-1">
+            {DROP_COPY.demoChip}
+          </span>
+        )}
+      </div>
       <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-        {hasBooks ? (
+        {hasRealBooks ? (
           <>
             <Link
               href="/invoices?new=1"
@@ -148,7 +157,7 @@ export default function DashboardClient({
     </div>
   );
 
-  if (!hasBooks) {
+  if (!hasRealBooks) {
     return (
       <div className="space-y-6">
         {header}
