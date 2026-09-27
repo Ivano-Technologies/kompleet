@@ -123,6 +123,8 @@ export default async function DashboardPage() {
 
   return (
     <DashboardClient
+      userId={user.id}
+      accountEmail={user.email}
       kpiData={kpiData}
       revenueData={revenueData}
       recentTransactions={recentTransactions}

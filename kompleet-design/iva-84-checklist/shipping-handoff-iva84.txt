@@ -1,0 +1,42 @@
+**Status:** LOCKED by Kezie (UX plan approved via CoS; Design defaults) · 27 Sep 2026 WAT · Handed to Shipping
+
+**Status:** Design draft · LOCKED · Handed to Shipping 27 Sep 2026 WAT · Do NOT mark LOCKED · 27 Sep 2026 WAT
+
+IVA-84 shipping handoff — Post-signup “Set up your business” checklist (Design → Shippie)
+Date: 27 Sep 2026 WAT · Design (Coco) · LOCKED · Handed to Shipping 27 Sep 2026 WAT · Design defaults
+
+PATHS
+- Spec:  /workspace/kompleet-design/iva-84-checklist/POST-SIGNUP-CHECKLIST.md
+- Comps: /workspace/kompleet-design/iva-84-checklist/comps/
+    checklist-card.html (+ .png)       — mid-progress dashboard card (1 of 4)
+    checklist-complete.html (+ .png)   — optional complete moment (3 of 4; tax skipped)
+- Align: /workspace/kompleet-design/iva-82-profiles/BUSINESS-CLIENT-PROFILES.md  (LOCKED)
+- Brand: /workspace/kompleet-design/wave1/OPTION-C-BRAND-SYSTEM.md
+- Shell: /workspace/kompleet-design/wave2/APP-SHELL.md  (SettingsModal — not a nav route)
+
+DESIGN DEFAULTS (ship unless Kezie overrides)
+1. Soft dashboard checklist card after signup — NOT a hard full-app modal gate.
+2. Four items only: Legal name · Business address · Contact · Tax IDs. NO logo checklist item.
+3. Optional “Logo upload coming later” note on card (not counted in progress).
+4. Progress = N of 4 from done rules (legalName; addressLine1+city; email|phone; tin|vatNumber).
+5. Primary CTA “Set up business” → SettingsModal → Business tab (IVA-82 SoT). No duplicate form required.
+6. “I’ll do this later” / × soft-dismisses card → soft info banner on dashboard until legalName set.
+7. Permanent dismiss when legalName + addressLine1 + city present (email optional). Hide card + banner forever.
+8. Invoice Issue/Send gates unchanged — still IVA-82 (block without legalName; address = nudge).
+9. Seed from signup when fields exist; never fixture Plot 42 / support@ivanotechnologies.com.
+10. Option C tokens · Ceoruse wordmark · no JUO · no logo mark.
+
+DO NOT CHANGE
+- IVA-82 field model / Settings Business form / invoice FROM·BILL TO rules
+- Logo upload / letterhead (deferred Kezie 27 Sep)
+- Hard-gating app nav until checklist complete
+- JUO · IVA-81 UBA · rebuilding signup wizard IA
+- Primary nav (no new route)
+
+ACCEPTANCE
+See §8 in POST-SIGNUP-CHECKLIST.md.
+
+OPEN FOR KEZIE (non-blocking for Eng scaffold)
+- Soft-dismiss persistence: session-only vs until next login (Design default: persist dismiss; banner until legalName).
+- Whether to show a one-shot “complete” toast (Design default: optional nice-to-have).
+- Inline mini-form on card vs Settings-only CTA (Design default: Settings-only).
