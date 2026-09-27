@@ -111,6 +111,9 @@ export default function TransactionsPage() {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
     if (params.get("triage") === "open") setTriageOpen(true);
+    if (params.get("import") === "1") {
+      triggerStatementPicker(booksInputId);
+    }
   }, []);
 
   const handleSuccess = useCallback(
@@ -296,6 +299,18 @@ export default function TransactionsPage() {
           title={DROP_COPY.heroTitle}
           subtitle={DROP_COPY.heroSub}
           onSuccess={handleSuccess}
+          footer={
+            <p className="mt-3 text-center text-sm text-text-2">
+              {DROP_COPY.booksDocsHint.split(DROP_COPY.booksDocsLink)[0]}
+              <Link
+                href="/documents"
+                className="font-semibold text-primary underline underline-offset-2"
+              >
+                {DROP_COPY.booksDocsLink}
+              </Link>
+              {DROP_COPY.booksDocsHint.split(DROP_COPY.booksDocsLink)[1]}
+            </p>
+          }
         />
       ) : (
         <StatementDropZone

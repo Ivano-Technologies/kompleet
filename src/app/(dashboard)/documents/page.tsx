@@ -57,6 +57,10 @@ export default function DocumentsPage() {
     actionLabel?: string;
     onAction?: () => void;
     actionHref?: string;
+    secondaryLabel?: string;
+    onSecondary?: () => void;
+    tone?: "success" | "nudge";
+    placement?: "top" | "bottom";
   } | null>(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -65,20 +69,23 @@ export default function DocumentsPage() {
 
   const handleUpload = async (file: File) => {
     const saved = await upload(file, { source: "documents" });
+    if (looksLikeBankStatement(saved.filename, { contentType: saved.contentType })) {
+      setToast({
+        title: DOCS_COPY.toastStatement,
+        actionLabel: DOCS_COPY.toastStatementCta,
+        actionHref: "/transactions?import=1",
+        secondaryLabel: DOCS_COPY.toastStatementKeep,
+        onSecondary: () => setToast(null),
+        tone: "nudge",
+        placement: "bottom",
+      });
+      return;
+    }
     setToast({
       title: DOCS_COPY.toastUploaded(saved.filename),
       actionLabel: DOCS_COPY.toastAttachCta,
       onAction: () => setAttachFile(saved),
     });
-    if (looksLikeBankStatement(saved.filename)) {
-      window.setTimeout(() => {
-        setToast({
-          title: DOCS_COPY.toastStatement,
-          actionLabel: DOCS_COPY.toastStatementCta,
-          actionHref: "/transactions",
-        });
-      }, 1600);
-    }
   };
 
   const confirmDelete = async () => {
@@ -168,6 +175,10 @@ export default function DocumentsPage() {
           actionLabel={toast.actionLabel}
           onAction={toast.onAction}
           actionHref={toast.actionHref}
+          secondaryLabel={toast.secondaryLabel}
+          onSecondary={toast.onSecondary}
+          tone={toast.tone}
+          placement={toast.placement}
           onDismiss={() => setToast(null)}
         />
       )}

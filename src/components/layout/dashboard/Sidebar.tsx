@@ -124,7 +124,7 @@ export function Sidebar({
         />
       </div>
 
-      <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
+      <nav className="flex-1 p-3 space-y-0.5 lg:overflow-y-auto">
         <p className="px-3 pt-3 pb-2 text-xs font-bold uppercase tracking-widest text-white/30">
           Main Menu
         </p>
@@ -247,7 +247,7 @@ export function Sidebar({
 
   return (
     <>
-      <aside className="hidden lg:flex w-80 shrink-0 flex-col h-screen sticky top-0 overflow-hidden shadow-outer-deep">
+      <aside className="hidden lg:flex w-80 shrink-0 flex-col h-full sticky top-0 overflow-hidden shadow-outer-deep">
         {sidebarContent}
       </aside>
 
@@ -258,7 +258,7 @@ export function Sidebar({
             onClick={onMobileClose}
             aria-label="Close sidebar"
           />
-          <aside className="fixed inset-y-0 left-0 w-80 z-50 shadow-outer-deep overflow-hidden">
+          <aside className="fixed inset-y-0 left-0 w-80 z-50 shadow-outer-deep overflow-y-auto">
             {sidebarContent}
           </aside>
         </div>

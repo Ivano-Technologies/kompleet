@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Montserrat } from "next/font/google";
 import localFont from "next/font/local";
 import { ConvexAuthNextjsServerProvider } from "@convex-dev/auth/nextjs/server";
@@ -23,6 +23,10 @@ const ceoruse = localFont({
 // fallback exists so local and preview builds still emit absolute OG URLs.
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL || "https://kompleet.techivano.com";
+
+export const viewport: Viewport = {
+  themeColor: "#0D9488",
+};
 
 export const metadata: Metadata = {
   title: "Kompleet — Track Every Naira & Stay Compliant in Nigeria",
@@ -68,6 +72,13 @@ export default function RootLayout({
   return (
     <ConvexAuthNextjsServerProvider>
       <html lang="en" className={`${montserrat.variable} ${ceoruse.variable}`}>
+        <head>
+          <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+          <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
+          <link rel="icon" href="/favicon-16.png" sizes="16x16" type="image/png" />
+          <link rel="apple-touch-icon" href="/apple-touch-180.png" />
+          <meta name="theme-color" content="#0D9488" />
+        </head>
         <body className="font-body">
           <ConvexAuthClientProvider>
             <ThemeProvider>
