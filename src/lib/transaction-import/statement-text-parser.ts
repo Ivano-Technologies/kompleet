@@ -19,6 +19,8 @@ const DATE_TOKEN_RE = new RegExp(`\\b${DATE_TOKEN}\\b`, "g");
 const DATE_AT_START_RE = new RegExp(`^${DATE_TOKEN}`);
 const WRAPPED_MON_DATE_RE =
   /(\d{1,2}-[A-Za-z]{3})-\s*[\r\n]+\s*(\d{2,4})/g;
+const WRAPPED_MON_DATE_SPACE_RE =
+  /(\d{1,2}-[A-Za-z]{3})-\s+(\d{2,4})\b/g;
 const MONEY_RE = /\d{1,3}(?:,\d{3})*\.\d{2}/g;
 const PERIOD_RE = new RegExp(
   `${DATE_TOKEN}\\s+to\\s+${DATE_TOKEN}`,
@@ -44,6 +46,8 @@ export function repairWrappedStatementDates(text: string): string {
   let repaired = text.replace(WRAPPED_MON_DATE_RE, "$1-$2");
   // Second pass for remaining wraps after the first join shifted newlines.
   repaired = repaired.replace(WRAPPED_MON_DATE_RE, "$1-$2");
+  // Stream/pdfjs extractors often keep a space instead of a newline.
+  repaired = repaired.replace(WRAPPED_MON_DATE_SPACE_RE, "$1-$2");
   return repaired;
 }
 

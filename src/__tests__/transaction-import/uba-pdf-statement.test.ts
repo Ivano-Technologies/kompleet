@@ -3,11 +3,12 @@
  * split narrations. Import must succeed without an LLM.
  */
 
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { parseBankStatement } from "@/lib/transaction-import/bank-adapter";
 import { parsePDF } from "@/lib/transaction-import/pdf-parser";
+import { extractPdfTextFromStreams } from "@/lib/transaction-import/pdf-text-extract";
 import {
   extractStructuredStatementTransactions,
   looksLikeUbaTableStatement,
@@ -174,5 +175,42 @@ describe("UBA PDF parse + persist-ready normalize (IVA-81)", () => {
   it("AUTO bank code still parses the UBA PDF table", async () => {
     const parsed = await parseBankStatement(wrappedPdf, "AUTO", "pdf");
     expect(parsed.transactions).toHaveLength(8);
+  });
+
+  it("FlateDecode stream extract (no canvas) yields statement text", () => {
+    const text = extractPdfTextFromStreams(wrappedPdf);
+    expect(text.length).toBeGreaterThan(50);
+    const transactions = extractStructuredStatementTransactions(text);
+    expect(transactions.length).toBeGreaterThan(0);
+  });
+});
+
+describe("CoS Preview PDFs (not committed)", () => {
+  const cosUba = [
+    "/home/ubuntu/.cursor/projects/workspace/uploads/UBA-BAYEK-2024_fa64.pdf",
+    "/workspace/kompleet-import-uba/UBA-BAYEK-2024.pdf",
+  ].find((path) => existsSync(path));
+  const cosBad = [
+    "/home/ubuntu/.cursor/projects/workspace/uploads/bad-layout_f893.pdf",
+  ].find((path) => existsSync(path));
+
+  it.skipIf(!cosUba)("real UBA-BAYEK-2024.pdf streams + parsePDF to 8 rows", async () => {
+    const buf = readFileSync(cosUba!);
+    const streamed = extractStructuredStatementTransactions(
+      extractPdfTextFromStreams(buf),
+    );
+    const parsed = await parsePDF(buf, "UBA");
+    expect(parsed.transactions).toHaveLength(8);
+    expect(parsed.errors).toHaveLength(0);
+    if (streamed.length > 0) {
+      expect(streamed.length).toBeGreaterThanOrEqual(8);
+    }
+  });
+
+  it.skipIf(!cosBad)("bad-layout.pdf fails closed without hanging", async () => {
+    const buf = readFileSync(cosBad!);
+    const parsed = await parsePDF(buf, "UBA");
+    expect(parsed.transactions).toHaveLength(0);
+    expect(parsed.errors.length).toBeGreaterThan(0);
   });
 });

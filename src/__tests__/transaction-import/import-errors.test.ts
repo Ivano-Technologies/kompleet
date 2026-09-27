@@ -109,6 +109,9 @@ describe("IVA-83 import error taxonomy", () => {
       classifyImportFailure({ status: 401, error: "Unauthorized" }).code,
     ).toBe("ERR_UPLOAD");
     expect(
+      classifyImportFailure({ status: 504, error: "Gateway Timeout" }).code,
+    ).toBe("ERR_NETWORK");
+    expect(
       classifyImportFailure({ status: 500, error: "boom" }).code,
     ).toBe("ERR_UNKNOWN");
   });

@@ -18,6 +18,7 @@ import {
   extractStructuredStatementTransactions,
   repairWrappedStatementDates,
 } from "./statement-text-parser";
+import { extractPdfText } from "./pdf-text-extract";
 
 let _openai: OpenAI | null = null;
 
@@ -38,10 +39,14 @@ function getOpenAI(): OpenAI {
 }
 
 /**
- * Extract text using OCR for scanned/image-based PDFs
- * CRIT-005: OCR fallback implementation
+ * Extract text using OCR for scanned/image-based PDFs.
+ * Disabled on Vercel: tesseract's worker is missing
+ * (`/var/task/.next/worker-script/node/index.js`) and hung CoS smoke to 504.
  */
 async function extractTextWithOCR(buffer: Buffer): Promise<string> {
+  if (process.env.VERCEL || process.env.KOMPLEET_ENABLE_PDF_OCR !== "1") {
+    return "";
+  }
   console.log("Attempting OCR extraction...");
   try {
     const { createWorker } = await import("tesseract.js");
@@ -70,36 +75,6 @@ function checkPDFEncryption(buffer: Buffer): boolean {
   } catch {
     return false;
   }
-}
-
-/**
- * Extract text from password-protected PDF using pdfjs-dist
- */
-async function extractTextWithPdfJs(
-  buffer: Buffer,
-  password?: string,
-): Promise<string> {
-  const { getDocument } = await import("pdfjs-dist");
-  const uint8 = new Uint8Array(buffer);
-  const loadingTask = getDocument({
-    data: uint8,
-    ...(password ? { password } : {}),
-  });
-  const pdf = await loadingTask.promise;
-  const numPages = pdf.numPages;
-  const textParts: string[] = [];
-
-  for (let i = 1; i <= numPages; i++) {
-    const page = await pdf.getPage(i);
-    const textContent = await page.getTextContent();
-    const pageText = textContent.items
-      .map((item) => ("str" in item ? (item as { str?: string }).str || "" : ""))
-      .join(" ");
-    textParts.push(pageText);
-  }
-
-  await pdf.destroy();
-  return textParts.join("\n");
 }
 
 /**
@@ -134,59 +109,24 @@ export async function parsePDF(
       );
     }
 
-    // Step 1: Extract raw text from PDF
+    // Step 1: Extract raw text. Never block on canvas/OCR on Vercel.
     let rawText = "";
-
-    if (isEncrypted && password) {
-      try {
-        rawText = await extractTextWithPdfJs(fileBuffer, password);
-      } catch (decryptError) {
-        const errMsg =
-          decryptError instanceof Error ? decryptError.message : String(decryptError);
-        if (errMsg.toLowerCase().includes("password") || errMsg.includes("correct password")) {
-          throw new Error("PASSWORD_REQUIRED");
-        }
-        throw decryptError;
+    try {
+      const extracted = await extractPdfText(
+        fileBuffer,
+        isEncrypted ? password : undefined,
+      );
+      rawText = extracted.text;
+    } catch (parseError) {
+      const errMsg =
+        parseError instanceof Error ? parseError.message : String(parseError);
+      if (errMsg === "PASSWORD_REQUIRED" || errMsg.toLowerCase().includes("password")) {
+        throw new Error("PASSWORD_REQUIRED");
       }
-    } else if (!isEncrypted) {
-      // Try normal text extraction for non-encrypted PDFs (dynamic import for build-safe bundle)
-      try {
-        const { PDFParse } = await import("pdf-parse");
-        const parser = new PDFParse({ data: fileBuffer });
-        const pdfData = await parser.getText();
-        rawText =
-          pdfData?.text != null && typeof pdfData.text === "string"
-            ? pdfData.text
-            : "";
-        await parser.destroy();
-      } catch (parseError) {
-        const errMsg =
-          parseError instanceof Error ? parseError.message : String(parseError);
-        if (errMsg.toLowerCase().includes("password")) {
-          throw new Error("PASSWORD_REQUIRED");
-        }
-        console.log("PDF text extraction failed:", errMsg);
-        try {
-          rawText = await extractTextWithPdfJs(fileBuffer);
-        } catch (pdfJsError) {
-          const pdfJsMsg =
-            pdfJsError instanceof Error
-              ? pdfJsError.message
-              : String(pdfJsError);
-          console.log("PDF.js text extraction failed:", pdfJsMsg);
-        }
-      }
+      console.log("PDF text extraction failed:", errMsg);
     }
 
-    // If encrypted (without password path) or no text extracted, try OCR
-    if (
-      (isEncrypted && !password) ||
-      !rawText ||
-      rawText.trim().length === 0
-    ) {
-      console.log(
-        "Attempting OCR extraction for encrypted or text-less PDF...",
-      );
+    if (!rawText || rawText.trim().length === 0) {
       rawText = await extractTextWithOCR(fileBuffer);
     }
 
@@ -327,9 +267,7 @@ async function extractTransactionsWithLLM(
       ? `This is chunk ${chunkIndex + 1} of ${totalChunks} from a multi-page statement.`
       : "";
 
-  // HIGH-002: Use retry logic for LLM calls
-  const completion = await callWithRetry(() =>
-    getOpenAI().chat.completions.create({
+  const completion = await getOpenAI().chat.completions.create({
       model: "gpt-4o-mini",
       temperature: 0,
       max_tokens: 4000,
@@ -366,7 +304,8 @@ Return JSON: {"transactions": [{"date": "YYYY-MM-DD", "description": "merchant/n
         },
       ],
       response_format: { type: "json_object" },
-    }),
+    },
+    { timeout: 12_000, maxRetries: 0 },
   );
 
   const content =
@@ -403,43 +342,6 @@ Return JSON: {"transactions": [{"date": "YYYY-MM-DD", "description": "merchant/n
         rawData: { source: "pdf", extractionIndex: i, original: t },
       }),
     );
-}
-
-/**
- * HIGH-002: Retry logic with exponential backoff for API calls
- */
-async function callWithRetry<T>(
-  fn: () => Promise<T>,
-  maxRetries: number = 3,
-  baseDelay: number = 1000,
-): Promise<T> {
-  let lastError: Error | null = null;
-
-  for (let attempt = 0; attempt < maxRetries; attempt++) {
-    try {
-      return await fn();
-    } catch (error) {
-      lastError = error as Error;
-
-      // Don't retry on client errors (4xx)
-      if (
-        error instanceof OpenAI.APIError &&
-        error.status &&
-        error.status < 500
-      ) {
-        throw error;
-      }
-
-      // Calculate delay with exponential backoff
-      const delay = baseDelay * Math.pow(2, attempt);
-      console.log(`Attempt ${attempt + 1} failed, retrying in ${delay}ms...`);
-
-      // Wait before retrying
-      await new Promise((resolve) => setTimeout(resolve, delay));
-    }
-  }
-
-  throw lastError || new Error("Max retries exceeded");
 }
 
 /**

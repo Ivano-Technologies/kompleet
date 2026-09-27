@@ -50,12 +50,13 @@ describe("IVA-83 StatementDropZone error surfaces", () => {
       vi.fn().mockResolvedValue({
         ok: false,
         status: 400,
-        json: async () => ({
-          errorCode: "ERR_BANK_PARSE",
-          error: "No valid transactions found",
-          bankCode: "UBA",
-          detectedBankCode: "UBA",
-        }),
+        text: async () =>
+          JSON.stringify({
+            errorCode: "ERR_BANK_PARSE",
+            error: "No valid transactions found",
+            bankCode: "UBA",
+            detectedBankCode: "UBA",
+          }),
       }),
     );
 
@@ -91,12 +92,13 @@ describe("IVA-83 StatementDropZone error surfaces", () => {
       vi.fn().mockResolvedValue({
         ok: false,
         status: 400,
-        json: async () => ({
-          errorCode: "ERR_BANK_UNKNOWN",
-          error: "No valid transactions found",
-          requestedBankCode: "AUTO",
-          detectedBankCode: null,
-        }),
+        text: async () =>
+          JSON.stringify({
+            errorCode: "ERR_BANK_UNKNOWN",
+            error: "No valid transactions found",
+            requestedBankCode: "AUTO",
+            detectedBankCode: null,
+          }),
       }),
     );
 
@@ -146,6 +148,37 @@ describe("IVA-83 StatementDropZone error surfaces", () => {
     expect(screen.getAllByRole("button", { name: /Retry/ }).length).toBeGreaterThan(
       0,
     );
+    expect(screen.queryByText(GENERIC_RETRY_COPY)).toBeNull();
+  });
+
+  it("leaves Updating books… and classifies a 504 HTML body as ERR_NETWORK", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 504,
+        text: async () => "<html>Gateway Timeout</html>",
+        json: async () => {
+          throw new SyntaxError("Unexpected token <");
+        },
+      }),
+    );
+
+    const user = userEvent.setup();
+    render(<StatementDropZone variant="hero" inputId="err-504" />);
+
+    const input = document.getElementById("err-504") as HTMLInputElement;
+    const file = new File(["%PDF-1.4"], "UBA-BAYEK-2024.pdf", {
+      type: "application/pdf",
+    });
+    await user.upload(input, file);
+
+    expect(await screen.findByRole("alert")).toHaveAttribute(
+      "data-import-error",
+      "ERR_NETWORK",
+    );
+    expect(screen.getByText(IMPORT_ERROR_COPY.network.title)).toBeInTheDocument();
+    expect(screen.queryByText("Updating books…")).toBeNull();
     expect(screen.queryByText(GENERIC_RETRY_COPY)).toBeNull();
   });
 });

@@ -224,7 +224,14 @@ export function classifyImportFailure(
   if (signal.clientKind === "size" || signal.status === 413) {
     return { code: "ERR_SIZE_LIMIT" };
   }
-  if (signal.clientKind === "network" || signal.status === 0) {
+  if (
+    signal.clientKind === "network" ||
+    signal.status === 0 ||
+    signal.status === 408 ||
+    signal.status === 502 ||
+    signal.status === 503 ||
+    signal.status === 504
+  ) {
     return { code: "ERR_NETWORK" };
   }
 

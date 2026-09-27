@@ -45,6 +45,35 @@ interface StatementDropZoneProps {
 
 const ACCEPT = ".csv,.xlsx,.xls,.pdf";
 const MAX_BYTES = 10 * 1024 * 1024;
+const UPLOAD_TIMEOUT_MS = 50_000;
+
+type UploadResponseBody = {
+  success?: boolean;
+  imported?: number;
+  duplicates?: number;
+  pendingReview?: number;
+  sessionId?: string;
+  error?: string;
+  message?: string;
+  errorCode?: string;
+  requiresPassword?: boolean;
+  bankCode?: string;
+  detectedBankCode?: string | null;
+  parseErrorType?: string;
+};
+
+async function readUploadResponse(response: Response): Promise<UploadResponseBody> {
+  const raw = await response.text();
+  if (!raw.trim()) return {};
+  try {
+    return JSON.parse(raw) as UploadResponseBody;
+  } catch {
+    return {
+      error: raw.slice(0, 180),
+      message: `HTTP ${response.status}`,
+    };
+  }
+}
 
 const OVERRIDE_BANKS = SUPPORTED_BANKS.filter((bank) => bank.code !== "AUTO");
 
@@ -134,6 +163,11 @@ export function StatementDropZone({
       abortRef.current?.abort();
       const controller = new AbortController();
       abortRef.current = controller;
+      let timedOut = false;
+      const timeoutId = window.setTimeout(() => {
+        timedOut = true;
+        controller.abort();
+      }, UPLOAD_TIMEOUT_MS);
 
       setUploading(true);
       setErrorView(null);
@@ -154,20 +188,7 @@ export function StatementDropZone({
           credentials: "include",
           signal: controller.signal,
         });
-        const data = (await response.json()) as {
-          success?: boolean;
-          imported?: number;
-          duplicates?: number;
-          pendingReview?: number;
-          sessionId?: string;
-          error?: string;
-          message?: string;
-          errorCode?: string;
-          requiresPassword?: boolean;
-          bankCode?: string;
-          detectedBankCode?: string | null;
-          parseErrorType?: string;
-        };
+        const data = await readUploadResponse(response);
 
         if (response.ok && data.success) {
           setPasswordRequired(false);
@@ -198,11 +219,27 @@ export function StatementDropZone({
             bankCode: data.bankCode,
             fileName: file.name,
             parseErrorType: data.parseErrorType,
+            clientKind:
+              response.status === 504 || response.status === 502
+                ? "network"
+                : undefined,
           }),
           file,
         );
       } catch (err) {
-        if (err instanceof DOMException && err.name === "AbortError") return;
+        if (err instanceof DOMException && err.name === "AbortError") {
+          if (!timedOut) return;
+          applyClassifiedError(
+            classifyImportFailure({
+              clientKind: "network",
+              status: 504,
+              requestedBankCode: options?.bankCode ?? DEFAULT_BANK_CODE,
+              fileName: file.name,
+            }),
+            file,
+          );
+          return;
+        }
         applyClassifiedError(
           classifyImportFailure({
             clientKind: classifyClientException(err) ?? "network",
@@ -212,6 +249,7 @@ export function StatementDropZone({
           file,
         );
       } finally {
+        window.clearTimeout(timeoutId);
         setUploading(false);
       }
     },

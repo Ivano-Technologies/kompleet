@@ -64,6 +64,10 @@ const nextConfig = {
     cpus: 1,
   },
 
+  // pdf-parse / pdfjs need the native canvas addon at runtime on Vercel.
+  // Bundling it drops the .node binary and getText() throws DOMMatrix.
+  serverExternalPackages: ["@napi-rs/canvas", "pdfjs-dist", "pdf-parse"],
+
   webpack: (config, { isServer }) => {
     // natural pulls in classifiers that require webworker-threads (optional native);
     // we only use PorterStemmer. Stub so build does not fail resolving it.
