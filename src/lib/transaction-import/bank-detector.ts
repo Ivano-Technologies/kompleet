@@ -55,12 +55,14 @@ const BANK_PATTERNS: Record<
   },
   UBA: {
     headers: [
+      "TRANS DATE",
+      "VALUE DATE",
+      "NARRATION",
       "Transaction Date",
       "Transaction Details",
       "Debit",
       "Credit",
       "Balance",
-      "Reference",
     ],
     contentPatterns: [/United Bank.*Africa/i, /UBA/],
     fileNamePatterns: [/uba/i, /united.*bank/i],

@@ -89,12 +89,13 @@ export async function parseBankStatement(
     const { detectBank } = await import("./bank-detector");
     const detected = await detectBank(buffer);
     const detectedCode = detected.bankCode ?? "GENERIC";
-    return parseWithGenericFallback(
+    const parsed = await parseWithGenericFallback(
       fileContent,
       detectedCode,
       fileType,
       password,
     );
+    return { ...parsed, detectedBankCode: detected.bankCode };
   }
 
   return parseWithGenericFallback(fileContent, resolved, fileType, password);

@@ -134,7 +134,7 @@ test.describe("Bank statement upload", () => {
     });
 
     await expect(
-      page.getByText("Please select a CSV, Excel, or PDF file"),
+      page.getByText("This file type isn’t supported"),
     ).toBeVisible();
   });
 });
