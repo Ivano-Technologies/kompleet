@@ -8,7 +8,16 @@
  */
 
 import OpenAI from "openai";
-import { ParsedTransaction, ParseResult, ParseError } from "./csv-parser";
+import {
+  ParsedTransaction,
+  ParseResult,
+  ParseError,
+  parseDateFlexible,
+} from "./csv-parser";
+import {
+  extractStructuredStatementTransactions,
+  repairWrappedStatementDates,
+} from "./statement-text-parser";
 
 let _openai: OpenAI | null = null;
 
@@ -56,7 +65,8 @@ async function extractTextWithOCR(buffer: Buffer): Promise<string> {
 function checkPDFEncryption(buffer: Buffer): boolean {
   try {
     const bufferStr = buffer.toString("latin1");
-    return bufferStr.includes("/Encrypt");
+    // Require a dictionary token so font/name substrings do not false-positive.
+    return /\/Encrypt[\s/\[>]/.test(bufferStr);
   } catch {
     return false;
   }
@@ -67,11 +77,14 @@ function checkPDFEncryption(buffer: Buffer): boolean {
  */
 async function extractTextWithPdfJs(
   buffer: Buffer,
-  password: string,
+  password?: string,
 ): Promise<string> {
   const { getDocument } = await import("pdfjs-dist");
   const uint8 = new Uint8Array(buffer);
-  const loadingTask = getDocument({ data: uint8, password });
+  const loadingTask = getDocument({
+    data: uint8,
+    ...(password ? { password } : {}),
+  });
   const pdf = await loadingTask.promise;
   const numPages = pdf.numPages;
   const textParts: string[] = [];
@@ -153,6 +166,15 @@ export async function parsePDF(
           throw new Error("PASSWORD_REQUIRED");
         }
         console.log("PDF text extraction failed:", errMsg);
+        try {
+          rawText = await extractTextWithPdfJs(fileBuffer);
+        } catch (pdfJsError) {
+          const pdfJsMsg =
+            pdfJsError instanceof Error
+              ? pdfJsError.message
+              : String(pdfJsError);
+          console.log("PDF.js text extraction failed:", pdfJsMsg);
+        }
       }
     }
 
@@ -190,6 +212,17 @@ export async function parsePDF(
       };
     }
 
+    const repairedText = repairWrappedStatementDates(rawText);
+    const structured = extractStructuredStatementTransactions(repairedText);
+    if (structured.length > 0) {
+      return {
+        transactions: structured,
+        errors,
+        totalRows: structured.length,
+        successfulRows: structured.length,
+      };
+    }
+
     // Step 2: Check if OpenAI API key is available
     const apiKey =
       process.env.OPENAI_API_KEY ||
@@ -197,7 +230,7 @@ export async function parsePDF(
       process.env.NEXT_PUBLIC_OPEN_AI_API_KEY;
     if (!apiKey) {
       // Fallback: try basic regex extraction without LLM
-      const transactions = extractTransactionsWithRegex(rawText);
+      const transactions = extractTransactionsWithRegex(repairedText);
       return {
         transactions,
         errors:
@@ -220,7 +253,7 @@ export async function parsePDF(
     // Step 3: Use LLM to extract structured transaction data
     // Chunk text if it's very long (GPT-4o-mini context is 128k but we want to stay efficient)
     const maxChunkSize = 12000;
-    const textChunks = chunkText(rawText, maxChunkSize);
+    const textChunks = chunkText(repairedText, maxChunkSize);
 
     let allTransactions: ParsedTransaction[] = [];
 
@@ -472,43 +505,7 @@ function extractTransactionsWithRegex(text: string): ParsedTransaction[] {
  * Normalize date string to YYYY-MM-DD format
  */
 function normalizeDate(dateStr: string): string | null {
-  if (!dateStr) return null;
-
-  // Try DD/MM/YYYY format
-  let match = dateStr.match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
-  if (match) {
-    const [, day, month, year] = match;
-    const fullYear = year.length === 2 ? `20${year}` : year;
-    return `${fullYear}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
-  }
-
-  // Try DD-Mon-YYYY format
-  const months: Record<string, string> = {
-    jan: "01",
-    feb: "02",
-    mar: "03",
-    apr: "04",
-    may: "05",
-    jun: "06",
-    jul: "07",
-    aug: "08",
-    sep: "09",
-    oct: "10",
-    nov: "11",
-    dec: "12",
-  };
-
-  match = dateStr.match(/(\d{1,2})-([a-z]{3})-(\d{2,4})/i);
-  if (match) {
-    const [, day, mon, year] = match;
-    const month = months[mon.toLowerCase()];
-    if (month) {
-      const fullYear = year.length === 2 ? `20${year}` : year;
-      return `${fullYear}-${month}-${day.padStart(2, "0")}`;
-    }
-  }
-
-  return null;
+  return parseDateFlexible(dateStr, "DD-MMM-YYYY");
 }
 
 /**

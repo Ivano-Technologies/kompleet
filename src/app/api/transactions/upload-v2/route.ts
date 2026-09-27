@@ -141,9 +141,10 @@ async function handlePOST(request: NextRequest) {
           errorsCount: parseResult.errors.length,
         });
 
+        const firstError = parseResult.errors[0]?.errorMessage;
         return NextResponse.json(
           {
-            error: "No valid transactions found",
+            error: firstError || "No valid transactions found",
             errors: parseResult.errors,
           },
           { status: 400 },
