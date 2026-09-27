@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>IVA-85 Comp — Row actions · picker · undo · mobile</title>
+<style>
+  @font-face {
+    font-family: 'Ceoruse';
+    src: url('/workspace/kompleet/public/fonts/ceoruse.otf') format('opentype');
+    font-weight: 700;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: Montserrat, system-ui, sans-serif;
+    background: #1a2332;
+    color: #0D1B2A;
+    padding: 24px;
+  }
+  .frame-label {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+    color: #FFFFFF; background: #072A45; padding: 10px 16px; border-radius: 8px 8px 0 0;
+    width: 1280px;
+  }
+  .board {
+    width: 1280px; background: #F4F1EB; border-radius: 0 0 12px 12px;
+    padding: 28px; box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+    display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+  }
+  .panel {
+    background: #FFFDF8; border: 1px solid #DDD5C8; border-radius: 16px; padding: 20px;
+  }
+  .panel-title {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    color: #6B7280; margin-bottom: 14px;
+  }
+  .h { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+  .sub { font-size: 12px; color: #6B7280; margin-bottom: 16px; }
+  .row {
+    background: #FFFDF8; border: 1px solid #DDD5C8; border-radius: 16px; padding: 14px 16px;
+    margin-bottom: 10px; position: relative;
+  }
+  .row-top { display: flex; justify-content: space-between; gap: 12px; }
+  .merchant { font-size: 14px; font-weight: 600; }
+  .row-amt { font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .row-amt.credit { color: #1B7A4E; }
+  .row-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+  .meta { font-size: 12px; color: #6B7280; }
+  .chip {
+    display: inline-flex; padding: 2px 10px; border-radius: 999px; font-size: 11px; font-weight: 600;
+  }
+  .chip-neutral { background: #EBE6DC; color: #3D4A55; border: 1px solid #DDD5C8; }
+  .chip-warn {
+    background: rgba(217,119,6,0.10); color: #D97706; border: 1px solid rgba(217,119,6,0.35);
+  }
+  .suggested { font-size: 12px; color: #6B7280; margin-top: 4px; }
+  .row-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+  .btn-primary {
+    background: #0D9488; color: #fff; border: none; border-radius: 10px;
+    padding: 8px 14px; font-size: 13px; font-weight: 600; font-family: inherit;
+  }
+  .btn-outline {
+    background: #FFFDF8; color: #0B3A5C; border: 1px solid #DDD5C8; border-radius: 10px;
+    padding: 8px 14px; font-size: 13px; font-weight: 600; font-family: inherit;
+  }
+  .btn-text {
+    background: none; border: none; color: #6B7280; font-size: 13px; font-weight: 500;
+    font-family: inherit; padding: 8px 10px;
+  }
+  /* Category picker */
+  .picker-wrap { position: relative; }
+  .picker {
+    position: absolute; right: 0; top: calc(100% + 6px); width: 280px; z-index: 5;
+    background: #FFFDF8; border: 1px solid #DDD5C8; border-radius: 12px;
+    box-shadow: 0 12px 28px rgba(11,58,92,0.16); overflow: hidden;
+  }
+  .picker-search {
+    width: 100%; border: none; border-bottom: 1px solid #DDD5C8; padding: 10px 12px;
+    font-size: 13px; font-family: inherit; background: #FFFDF8; color: #0D1B2A; outline: none;
+  }
+  .picker-item {
+    padding: 10px 12px; font-size: 13px; color: #0D1B2A; border-bottom: 1px solid #EBE6DC;
+  }
+  .picker-item:last-child { border-bottom: none; }
+  .picker-item.active { background: rgba(13,148,136,0.10); color: #0D9488; font-weight: 600; }
+  .picker-item.muted { color: #6B7280; font-size: 12px; }
+  /* Toast */
+  .toast {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    background: #0B3A5C; color: #fff; border-radius: 12px; padding: 12px 16px;
+    margin-top: 8px; font-size: 13px; font-weight: 500;
+  }
+  .toast button {
+    background: none; border: none; color: #5EEAD4; font-size: 13px; font-weight: 700;
+    font-family: inherit; cursor: default;
+  }
+  /* Banner empty callout */
+  .banner-gone {
+    border: 1px dashed #DDD5C8; border-radius: 12px; padding: 14px 16px;
+    font-size: 13px; color: #6B7280; background: #EBE6DC;
+  }
+  .banner-gone strong { color: #0D1B2A; }
+  /* Mobile phone */
+  .phone {
+    width: 320px; height: 640px; margin: 0 auto; background: #F4F1EB;
+    border: 8px solid #072A45; border-radius: 28px; overflow: hidden; position: relative;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  }
+  .phone-bar {
+    height: 44px; background: #F4F1EB; display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 600; color: #6B7280; border-bottom: 1px solid #DDD5C8;
+  }
+  .phone-sheet {
+    position: absolute; inset: 0; background: #FFFDF8; display: flex; flex-direction: column;
+  }
+  .phone-head {
+    padding: 16px; border-bottom: 1px solid #DDD5C8;
+    display: flex; justify-content: space-between; align-items: flex-start;
+  }
+  .phone-title { font-size: 18px; font-weight: 700; }
+  .phone-sub { font-size: 12px; color: #6B7280; margin-top: 2px; }
+  .phone-close {
+    width: 32px; height: 32px; border-radius: 8px; border: 1px solid #DDD5C8;
+    background: #FFFDF8; font-size: 18px; color: #0B3A5C;
+  }
+  .phone-body { flex: 1; overflow: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+  .phone-foot {
+    padding: 12px 16px 20px; border-top: 1px solid #DDD5C8;
+  }
+  .bulk-link {
+    background: none; border: none; color: #6B7280; font-size: 12px;
+    text-decoration: underline; text-underline-offset: 2px; font-family: inherit;
+  }
+  .legend {
+    grid-column: 1 / -1; display: flex; gap: 20px; flex-wrap: wrap;
+    padding: 12px 16px; background: #FFFDF8; border: 1px solid #DDD5C8; border-radius: 12px;
+    font-size: 12px; color: #3D4A55;
+  }
+  .legend span { display: flex; align-items: center; gap: 8px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .full { grid-column: 1 / -1; }
+</style>
+</head>
+<body>
+  <div class="frame-label">IVA-85 · Row actions · category picker · undo toast · mobile full-screen · Design draft pending Kezie lock</div>
+  <div class="board">
+    <div class="legend">
+      <span><i class="dot" style="background:#0D9488"></i> One teal primary per row</span>
+      <span><i class="dot" style="background:#D97706"></i> Warning chips · banner</span>
+      <span><i class="dot" style="background:#0B3A5C"></i> Navy outline / Confirm duplicate</span>
+      <span><i class="dot" style="background:#6B7280"></i> Ignore / bulk tertiary</span>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">01 · Uncategorised → Categorise + picker</div>
+      <div class="h">One primary: Categorise</div>
+      <div class="sub">Opens category picker · apply removes row · Undo toast</div>
+
+      <div class="row picker-wrap">
+        <div class="row-top">
+          <div class="merchant">Jumia Foods · Lagos</div>
+          <div class="row-amt">−₦8,750.00</div>
+        </div>
+        <div class="row-meta">
+          <span class="meta">22 Sep 2026</span>
+          <span class="chip chip-neutral">Uncategorised</span>
+        </div>
+        <div class="row-actions">
+          <button class="btn-text">Ignore</button>
+          <button class="btn-primary">Categorise</button>
+        </div>
+        <div class="picker">
+          <input class="picker-search" value="Search categories" readonly/>
+          <div class="picker-item">Cost of sales</div>
+          <div class="picker-item active">Meals & entertainment</div>
+          <div class="picker-item">Office supplies</div>
+          <div class="picker-item">Travel</div>
+          <div class="picker-item muted">Manage categories…</div>
+        </div>
+      </div>
+      <div style="height: 200px"></div>
+      <div class="toast">
+        <span>Categorised as Meals & entertainment</span>
+        <button>Undo</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">02 · Confirm · Ignore · Duplicate</div>
+      <div class="h">Action map by reason chip</div>
+      <div class="sub">Confirm (teal) · Duplicate Confirm (navy outline) · Ignore + undo</div>
+
+      <div class="row">
+        <div class="row-top">
+          <div class="merchant">Flutterwave · Settlement</div>
+          <div class="row-amt credit">+₦125,400.00</div>
+        </div>
+        <div class="row-meta">
+          <span class="meta">21 Sep 2026</span>
+          <span class="chip chip-warn">Low confidence</span>
+        </div>
+        <div class="suggested">Suggested: Sales</div>
+        <div class="row-actions">
+          <button class="btn-text">Ignore</button>
+          <button class="btn-primary">Confirm</button>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="row-top">
+          <div class="merchant">Uber Trips · Sep batch</div>
+          <div class="row-amt">−₦14,200.00</div>
+        </div>
+        <div class="row-meta">
+          <span class="meta">20 Sep 2026</span>
+          <span class="chip chip-warn">Duplicate suspect</span>
+        </div>
+        <div class="row-actions">
+          <button class="btn-text">View duplicate</button>
+          <button class="btn-text">Ignore</button>
+          <button class="btn-outline">Confirm</button>
+        </div>
+      </div>
+
+      <div class="toast">
+        <span>Ignored</span>
+        <button>Undo</button>
+      </div>
+
+      <div style="margin-top:16px" class="banner-gone">
+        When <strong>N = 0</strong> → banner unmounts (no “All clear” chrome on Dashboard / Books).
+      </div>
+    </div>
+
+    <div class="panel full" style="display:flex; gap:32px; align-items:flex-start;">
+      <div style="flex:1">
+        <div class="panel-title">03 · Mobile · full-screen sheet</div>
+        <div class="h">Same triage, thumb-first</div>
+        <div class="sub" style="max-width:360px">
+          Banner tap → full-screen sheet. Sticky header · scroll rows · tertiary bulk at bottom.
+          Desktop uses 520px right drawer (see banner-to-list comp).
+        </div>
+        <ul style="font-size:13px; color:#3D4A55; line-height:1.7; padding-left:18px; margin-top:8px">
+          <li>Primary nav: Review stays demoted (Wave 2)</li>
+          <li>Toast “Fix {N} uncategorized” opens this sheet</li>
+          <li>Bulk “Ignore all low-confidence” tertiary + confirm</li>
+          <li>No sequential wizard; no JUO; no logo mark</li>
+        </ul>
+      </div>
+      <div class="phone">
+        <div class="phone-bar">9:41</div>
+        <div class="phone-sheet">
+          <div class="phone-head">
+            <div>
+              <div class="phone-title">Quick check</div>
+              <div class="phone-sub">12 to review</div>
+            </div>
+            <button class="phone-close">×</button>
+          </div>
+          <div class="phone-body">
+            <div class="row">
+              <div class="row-top">
+                <div class="merchant">Jumia Foods</div>
+                <div class="row-amt">−₦8,750</div>
+              </div>
+              <div class="row-meta">
+                <span class="meta">22 Sep</span>
+                <span class="chip chip-neutral">Uncategorised</span>
+              </div>
+              <div class="row-actions">
+                <button class="btn-text">Ignore</button>
+                <button class="btn-primary">Categorise</button>
+              </div>
+            </div>
+            <div class="row">
+              <div class="row-top">
+                <div class="merchant">Flutterwave</div>
+                <div class="row-amt credit">+₦125,400</div>
+              </div>
+              <div class="row-meta">
+                <span class="meta">21 Sep</span>
+                <span class="chip chip-warn">Low confidence</span>
+              </div>
+              <div class="row-actions">
+                <button class="btn-text">Ignore</button>
+                <button class="btn-primary">Confirm</button>
+              </div>
+            </div>
+            <div class="row">
+              <div class="row-top">
+                <div class="merchant">Uber Trips</div>
+                <div class="row-amt">−₦14,200</div>
+              </div>
+              <div class="row-meta">
+                <span class="meta">20 Sep</span>
+                <span class="chip chip-warn">Duplicate suspect</span>
+              </div>
+              <div class="row-actions">
+                <button class="btn-text">Ignore</button>
+                <button class="btn-outline">Confirm</button>
+              </div>
+            </div>
+          </div>
+          <div class="phone-foot">
+            <button class="bulk-link">Ignore all low-confidence</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

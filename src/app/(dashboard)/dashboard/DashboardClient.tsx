@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import {
@@ -12,6 +12,7 @@ import type { StatementUploadResult } from "@/components/import/StatementDropZon
 import { ExceptionBanner, ImportToast } from "@/components/import/ImportToast";
 import { DROP_COPY } from "@/components/import/statement-copy";
 import { SetupChecklist } from "@/components/dashboard/SetupChecklist";
+import { TriageSheet, useTriageCount } from "@/components/review/TriageSheet";
 import {
   Bar,
   BarChart,
@@ -59,6 +60,7 @@ interface DashboardClientProps {
   hasBooks: boolean;
   uncategorizedCount: number;
   duplicatesCount: number;
+  initialTriageOpen?: boolean;
 }
 
 const DASHBOARD_INPUT_ID = "dashboard-statement-input";
@@ -83,26 +85,24 @@ export default function DashboardClient({
   hasBooks,
   uncategorizedCount: initialUncategorized,
   duplicatesCount: initialDuplicates,
+  initialTriageOpen = false,
 }: DashboardClientProps) {
   const router = useRouter();
-  const [uncategorizedCount, setUncategorizedCount] =
-    useState(initialUncategorized);
-  const [duplicatesCount, setDuplicatesCount] = useState(initialDuplicates);
   const [toast, setToast] = useState<StatementUploadResult | null>(null);
-
-  useEffect(() => {
-    setUncategorizedCount(initialUncategorized);
-    setDuplicatesCount(initialDuplicates);
-  }, [initialUncategorized, initialDuplicates]);
+  const [triageOpen, setTriageOpen] = useState(initialTriageOpen);
+  const { counts, setCounts, refresh: refreshTriage } = useTriageCount({
+    needsCheck: initialUncategorized + initialDuplicates,
+    uncategorised: initialUncategorized,
+    duplicateSuspect: initialDuplicates,
+  });
 
   const handleSuccess = useCallback(
     (result: StatementUploadResult) => {
       setToast(result);
-      if (result.pendingReview > 0) setUncategorizedCount(result.pendingReview);
-      if (result.duplicates > 0) setDuplicatesCount(result.duplicates);
+      void refreshTriage();
       router.refresh();
     },
-    [router],
+    [router, refreshTriage],
   );
 
   const header = (
@@ -159,8 +159,20 @@ export default function DashboardClient({
           onSuccess={handleSuccess}
         />
         {toast && (
-          <ImportToast result={toast} onDismiss={() => setToast(null)} />
+          <ImportToast
+            result={toast}
+            onDismiss={() => setToast(null)}
+            onFixReview={() => {
+              setTriageOpen(true);
+              setToast(null);
+            }}
+          />
         )}
+        <TriageSheet
+          open={triageOpen}
+          onClose={() => setTriageOpen(false)}
+          onCounts={setCounts}
+        />
       </div>
     );
   }
@@ -190,8 +202,9 @@ export default function DashboardClient({
       <SetupChecklist userId={userId} accountEmail={accountEmail} />
 
       <ExceptionBanner
-        uncategorizedCount={uncategorizedCount}
-        duplicatesCount={duplicatesCount}
+        needsCheckCount={counts.needsCheck}
+        duplicatesCount={counts.duplicateSuspect}
+        onReview={() => setTriageOpen(true)}
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -282,7 +295,21 @@ export default function DashboardClient({
         onSuccess={handleSuccess}
       />
 
-      {toast && <ImportToast result={toast} onDismiss={() => setToast(null)} />}
+      {toast && (
+        <ImportToast
+          result={toast}
+          onDismiss={() => setToast(null)}
+          onFixReview={() => {
+            setTriageOpen(true);
+            setToast(null);
+          }}
+        />
+      )}
+      <TriageSheet
+        open={triageOpen}
+        onClose={() => setTriageOpen(false)}
+        onCounts={setCounts}
+      />
     </div>
   );
 }
