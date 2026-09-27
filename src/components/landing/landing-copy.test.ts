@@ -245,6 +245,34 @@ describe("IVA-72 landing copy", () => {
     expect(landingNav).toMatch(/#\$\{HERO_AUTH_ID\}/);
   });
 
+  it("ships Kezie locked teal naira favicon sitewide", () => {
+    expect(rootLayout).toMatch(/url: "\/favicon\.svg", type: "image\/svg\+xml"/);
+    expect(rootLayout).toMatch(/url: "\/favicon-32\.png", sizes: "32x32"/);
+    expect(rootLayout).toMatch(/url: "\/favicon-16\.png", sizes: "16x16"/);
+    expect(rootLayout).toMatch(/url: "\/apple-touch-180\.png"/);
+    expect(rootLayout).not.toMatch(/\/favicon\.png/);
+    expect(rootLayout).not.toMatch(/#C8F000|#E8A317/);
+
+    const faviconSvg = readFileSync(
+      resolve(process.cwd(), "public/favicon.svg"),
+      "utf8",
+    );
+    expect(faviconSvg).toMatch(/#0D9488/);
+    expect(faviconSvg).toMatch(/#FFFFFF|#FFF\b/i);
+    expect(faviconSvg).not.toMatch(/#0B3A5C|#C8F000|#E8A317/);
+    expect(faviconSvg).not.toMatch(/>\s*K\s*</);
+
+    for (const file of [
+      "public/favicon.svg",
+      "public/favicon-32.png",
+      "public/favicon-16.png",
+      "public/apple-touch-180.png",
+    ]) {
+      expect(existsSync(resolve(process.cwd(), file))).toBe(true);
+    }
+    expect(existsSync(resolve(process.cwd(), "public/favicon.png"))).toBe(false);
+  });
+
   it("locks Option C navy + teal and strips lime/amber accents", () => {
     expect(tokens).toMatch(/#0B3A5C/);
     expect(tokens).toMatch(/#0D9488/);
