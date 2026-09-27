@@ -63,7 +63,11 @@ export const IMPORT_ERROR_COPY = {
   },
   ubaLayout: {
     title: "We couldn’t read this statement layout",
-    body: "This UBA PDF doesn’t match a layout we support yet. Export CSV from UBA internet banking and import that.",
+    body: "This UBA statement doesn’t match a layout we support yet. Export CSV from UBA internet banking and import that.",
+    pdf: "This UBA PDF doesn’t match a layout we support yet. Export CSV from UBA internet banking and import that.",
+    excel:
+      "This UBA Excel export doesn’t match a layout we support yet. Export CSV from UBA internet banking and import that.",
+    csv: "This UBA CSV export doesn’t match a layout we support yet. Try another export from UBA internet banking.",
     primary: "Try CSV instead",
   },
   empty: {
@@ -162,6 +166,26 @@ export function bankDisplayName(code?: string | null): string | undefined {
     return config.name;
   }
   return undefined;
+}
+
+export type StatementFormatKind = "pdf" | "excel" | "csv" | "unknown";
+
+export function statementFormatKind(
+  fileName?: string | null,
+): StatementFormatKind {
+  const name = fileName?.toLowerCase() ?? "";
+  if (name.endsWith(".pdf")) return "pdf";
+  if (name.endsWith(".xls") || name.endsWith(".xlsx")) return "excel";
+  if (name.endsWith(".csv")) return "csv";
+  return "unknown";
+}
+
+export function ubaLayoutBody(fileName?: string | null): string {
+  const kind = statementFormatKind(fileName);
+  if (kind === "pdf") return IMPORT_ERROR_COPY.ubaLayout.pdf;
+  if (kind === "excel") return IMPORT_ERROR_COPY.ubaLayout.excel;
+  if (kind === "csv") return IMPORT_ERROR_COPY.ubaLayout.csv;
+  return IMPORT_ERROR_COPY.ubaLayout.body;
 }
 
 export function looksLikeUba(signal: {
@@ -439,7 +463,7 @@ export function viewModelForImportError(
         return {
           ...base,
           title: IMPORT_ERROR_COPY.ubaLayout.title,
-          body: IMPORT_ERROR_COPY.ubaLayout.body,
+          body: ubaLayoutBody(extras?.fileName),
           primary: {
             label: IMPORT_ERROR_COPY.ubaLayout.primary,
             action: "try-csv",

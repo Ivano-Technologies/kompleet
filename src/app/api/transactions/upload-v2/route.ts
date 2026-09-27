@@ -145,6 +145,7 @@ async function handlePOST(request: NextRequest) {
           bankCode,
           fileType,
           password,
+          file.name,
         );
       } catch (parseError) {
         const errMsg =

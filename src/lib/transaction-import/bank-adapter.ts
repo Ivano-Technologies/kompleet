@@ -54,7 +54,10 @@ async function parseWithGenericFallback(
   password?: string,
 ): Promise<ParseResult> {
   const primary = await parseOnce(fileContent, bankCode, fileType, password);
-  if (primary.transactions.length > 0 || fileType !== "csv") {
+  if (
+    primary.transactions.length > 0 ||
+    (fileType !== "csv" && fileType !== "excel")
+  ) {
     return primary;
   }
   if (bankCode === "GENERIC") {
@@ -76,6 +79,7 @@ export async function parseBankStatement(
   bankCode: string,
   fileType: FileType,
   password?: string,
+  fileName?: string,
 ): Promise<ParseResult> {
   const resolved = resolveBankCode(bankCode);
   if (!resolved) {
@@ -87,7 +91,7 @@ export async function parseBankStatement(
       ? fileContent
       : Buffer.from(fileContent);
     const { detectBank } = await import("./bank-detector");
-    const detected = await detectBank(buffer);
+    const detected = await detectBank(buffer, fileName);
     const detectedCode = detected.bankCode ?? "GENERIC";
     const parsed = await parseWithGenericFallback(
       fileContent,
