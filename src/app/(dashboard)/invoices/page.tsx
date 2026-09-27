@@ -18,6 +18,7 @@ import {
   createInvoiceDraft,
   ensureClientFromName,
 } from "@/components/invoices/invoice-actions";
+import { useLibraryUpload } from "@/components/documents/use-library-upload";
 
 type Invoice = InvoiceView;
 
@@ -42,6 +43,7 @@ function InvoicesPageInner() {
   const [yearFilter] = useState<number>(new Date().getFullYear());
   const [sheetOpen, setSheetOpen] = useState(false);
   const [dropNotice, setDropNotice] = useState<string | null>(null);
+  const { upload } = useLibraryUpload();
 
   const fetchInvoices = useCallback(async () => {
     setLoading(true);
@@ -128,6 +130,11 @@ function InvoicesPageInner() {
       description: "Services",
       notes: `Attached: ${file.name}`,
     });
+    await upload(file, {
+      source: "invoice_drop",
+      linkType: "invoice",
+      linkId: created.invoice_id,
+    }).catch(() => undefined);
     setDropNotice(INV_COPY.dropToast);
     await fetchInvoices();
     router.push(`/invoices/${created.invoice_id}`);
