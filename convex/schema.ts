@@ -141,6 +141,7 @@ export default defineSchema({
     reference: v.optional(v.string()),
     notes: v.optional(v.string()),
     isReconciled: v.boolean(),
+    triageIgnoredAt: v.optional(v.number()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
