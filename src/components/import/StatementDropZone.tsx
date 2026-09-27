@@ -7,6 +7,7 @@ import {
   useRef,
   useState,
   type DragEvent,
+  type ReactNode,
 } from "react";
 import { Loader2, Lock, Upload } from "lucide-react";
 import { SUPPORTED_BANKS } from "@/lib/transaction-import/bank-configs";
@@ -48,6 +49,7 @@ interface StatementDropZoneProps {
   chooseLabel?: string;
   showWhy?: boolean;
   showBankSelect?: boolean;
+  footer?: ReactNode;
 }
 
 const ACCEPT = ".csv,.xlsx,.xls,.pdf";
@@ -112,6 +114,7 @@ export function StatementDropZone({
   chooseLabel,
   showWhy = true,
   showBankSelect = false,
+  footer,
 }: StatementDropZoneProps) {
   const reactId = useId();
   const resolvedInputId = inputId ?? `statement-drop-${reactId}`;
@@ -474,6 +477,8 @@ export function StatementDropZone({
           </>
         )}
       </div>
+
+      {isHero && footer}
 
       {(uploading || errorView || passwordRequired || showAdvanced) && (
         <div className="mt-3 space-y-3">

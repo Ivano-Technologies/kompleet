@@ -116,10 +116,19 @@ export function rejectDocsFile(file: File): string | null {
   return null;
 }
 
-export function looksLikeBankStatement(filename: string): boolean {
+export function looksLikeBankStatement(
+  filename: string,
+  options?: { contentType?: string },
+): boolean {
   const lower = filename.toLowerCase();
   const ext = extensionOf(lower);
-  if (![".pdf", ".csv", ".xlsx", ".xls"].includes(ext)) return false;
+  const mime = options?.contentType?.toLowerCase() ?? "";
+  const statementExt =
+    [".pdf", ".csv", ".xlsx", ".xls"].includes(ext) ||
+    mime === "application/pdf" ||
+    mime === "text/csv" ||
+    mime.includes("spreadsheet");
+  if (!statementExt) return false;
   return STATEMENT_HINTS.some((hint) => lower.includes(hint));
 }
 
