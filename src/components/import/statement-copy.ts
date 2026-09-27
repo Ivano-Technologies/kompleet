@@ -6,9 +6,14 @@ export const DROP_COPY = {
   whyBody:
     "Your statement is how books start. We read the file, detect the bank, and post income and expenses so dashboards, invoices, and tax have real numbers — not a form you retype.",
   stripTitle: "Drop another statement to update books",
+  stripSub: "We'll detect the bank and update your books.",
   stripChoose: "Choose file",
+  booksStripTitle: "Drop bank statement (CSV, Excel, or PDF)",
+  booksStripSub: "We'll detect the bank and update your books.",
   ctaImport: "Drop statement",
   ctaImportShort: "Import",
+  ctaExport: "Export",
+  ctaManual: "Add manually",
   ctaInvoice: "New invoice",
   toastSuccess: (n: number) => `${n} transactions added · books updated`,
   toastViewBooks: "View books",
@@ -21,7 +26,12 @@ export const DROP_COPY = {
   progress: "Updating books…",
   advanced: "Advanced · choose bank",
   password: "This PDF is password-protected",
+  passwordHint: "Enter the PDF password to continue",
   emptyTaxNudge: "Drop a statement first",
+  advancedTitle: "Advanced import",
+  advancedEyebrow: "Most imports work from Books — drop a statement there first.",
+  advancedBack: "Back to Books",
+  advancedTrouble: "Having trouble? Advanced import",
 } as const;
 
 export const DEFAULT_BANK_CODE = "AUTO";

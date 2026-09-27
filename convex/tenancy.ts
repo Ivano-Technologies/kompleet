@@ -85,3 +85,60 @@ export const createFirmWithClient = mutation({
     return { firmId: firmExternalId, clientId: clientExternalId };
   },
 });
+
+export const createClient = mutation({
+  args: {
+    legalName: v.string(),
+    tin: v.optional(v.string()),
+  },
+  returns: v.object({
+    id: v.string(),
+    legal_name: v.string(),
+  }),
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
+    const legalName = args.legalName.trim();
+    if (legalName.length < 1) {
+      throw new Error("Client name is required");
+    }
+    if (legalName.length > 200) {
+      throw new Error("Client name must be less than 200 characters");
+    }
+
+    const memberships = await ctx.db
+      .query("firmMembers")
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .collect();
+
+    let firmId = memberships[0]?.firmId;
+    if (!firmId) {
+      const now = Date.now();
+      firmId = await ctx.db.insert("firms", {
+        externalId: newExternalId(),
+        name: user.companyName || user.fullName || user.name?.trim() || "My firm",
+        ownerUserId: user._id,
+        ownerExternalId: user.externalId,
+        subscriptionTier: "free",
+        createdAt: now,
+      });
+      await ctx.db.insert("firmMembers", {
+        firmId,
+        userId: user._id,
+        userExternalId: user.externalId,
+        role: "owner",
+      });
+    }
+
+    const clientExternalId = newExternalId();
+    await ctx.db.insert("clients", {
+      externalId: clientExternalId,
+      firmId,
+      legalName,
+      tin: args.tin,
+      status: "active",
+      createdAt: Date.now(),
+    });
+
+    return { id: clientExternalId, legal_name: legalName };
+  },
+});

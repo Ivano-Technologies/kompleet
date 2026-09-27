@@ -4,15 +4,18 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { InvoiceLineItem, CustomerInfo } from "@/lib/invoice-service";
 import { FilePlus2, Loader2, Plus, Trash2 } from "lucide-react";
-
-type ClientOption = { id: string; legal_name: string };
+import {
+  CustomerCombobox,
+  type InvoiceClient,
+} from "@/components/invoices/CustomerCombobox";
 
 export default function NewInvoicePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [clients, setClients] = useState<ClientOption[]>([]);
+  const [clients, setClients] = useState<InvoiceClient[]>([]);
   const [clientId, setClientId] = useState("");
+  const selectedClient = clients.find((client) => client.id === clientId) ?? null;
 
   // Form state
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
@@ -53,7 +56,7 @@ export default function NewInvoicePage() {
           return;
         }
         const body = (await response.json()) as {
-          clients?: Array<{ id: string; legal_name: string }>;
+          clients?: InvoiceClient[];
         };
         const data = body.clients ?? [];
         setClients(data);
@@ -296,23 +299,31 @@ export default function NewInvoicePage() {
         <label className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2">
           Client <span className="text-red-500">*</span>
         </label>
-        <select
-          value={clientId}
-          onChange={(e) => setClientId(e.target.value)}
-          className="w-full px-4 py-2 border border-light-border dark:border-dark-border rounded-lg bg-light-background dark:bg-dark-background focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-        >
-          <option value="">Select a client</option>
-          {clients.map((client) => (
-            <option key={client.id} value={client.id}>
-              {client.legal_name}
-            </option>
-          ))}
-        </select>
-        {clients.length === 0 && (
-          <p className="mt-2 text-sm text-light-text-secondary dark:text-dark-text-secondary">
-            No clients found. Add a client before issuing an invoice.
-          </p>
-        )}
+        <CustomerCombobox
+          clients={clients}
+          value={selectedClient}
+          onChange={(client) => {
+            setClientId(client?.id ?? "");
+            if (client && !customerInfo.name) {
+              setCustomerInfo({
+                ...customerInfo,
+                name: client.legal_name,
+                email: client.email || customerInfo.email,
+                phone: client.phone || customerInfo.phone,
+              });
+            }
+          }}
+          onCreated={(created) => {
+            setClients((prev) => [created, ...prev]);
+            setClientId(created.id);
+            setCustomerInfo({
+              ...customerInfo,
+              name: created.legal_name,
+              email: created.email || "",
+              phone: created.phone || "",
+            });
+          }}
+        />
       </div>
 
       {/* Customer Information */}
