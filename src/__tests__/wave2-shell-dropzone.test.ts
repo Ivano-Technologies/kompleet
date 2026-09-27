@@ -108,7 +108,7 @@ describe("IVA-76 dashboard DropZone", () => {
       /Drop your bank statement \(CSV, Excel, or PDF\)/,
     );
     expect(copy).toMatch(/We'll detect the bank and update your books/);
-    expect(dashboard).toMatch(/hasBooks \?/);
+    expect(dashboard).toMatch(/hasRealBooks \?/);
     expect(dashboard).toMatch(/DROP_COPY\.ctaImport/);
     expect(dashboard).toMatch(/DROP_COPY\.ctaInvoice/);
     expect(dashboard).toMatch(/variant="hero"/);

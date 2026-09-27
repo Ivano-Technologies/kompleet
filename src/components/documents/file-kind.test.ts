@@ -32,5 +32,8 @@ describe("docs file kind", () => {
     expect(looksLikeBankStatement("access-bank.csv")).toBe(true);
     expect(looksLikeBankStatement("invoice-scan.jpg")).toBe(false);
     expect(looksLikeBankStatement("clients.csv")).toBe(false);
+    expect(
+      looksLikeBankStatement("gtb-export", { contentType: "text/csv" }),
+    ).toBe(true);
   });
 });

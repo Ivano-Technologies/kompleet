@@ -2,6 +2,9 @@ export const DROP_COPY = {
   heroTitle: "Drop your bank statement (CSV, Excel, or PDF)",
   heroSub: "We'll detect the bank and update your books.",
   heroChoose: "Choose file",
+  booksDocsHint: "Receipts & other files go in Documents.",
+  booksDocsLink: "Documents",
+  demoChip: "Demo data",
   heroWhy: "Why we need a statement",
   whyBody:
     "Your statement is how books start. We read the file, detect the bank, and post income and expenses so dashboards, invoices, and tax have real numbers — not a form you retype.",

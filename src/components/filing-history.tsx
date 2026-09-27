@@ -8,6 +8,10 @@ import {
   CheckCircle,
   Filter,
 } from "lucide-react";
+import {
+  QuietLoadWarn,
+  QUIET_500_COPY,
+} from "@/components/feedback/QuietLoadWarn";
 
 interface FilingRecord {
   id: string;
@@ -26,24 +30,30 @@ interface FilingRecord {
 export default function FilingHistory() {
   const [filings, setFilings] = useState<FilingRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [filterYear, setFilterYear] = useState<number | "all">("all");
   const [filterType, setFilterType] = useState<string>("all");
 
   const fetchFilingHistory = useCallback(async () => {
     setLoading(true);
+    setLoadError(false);
     try {
       const params = new URLSearchParams();
       if (filterYear !== "all") params.append("taxYear", filterYear.toString());
       if (filterType !== "all") params.append("formType", filterType);
 
       const response = await fetch(`/api/forms/list?${params}`);
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
 
-      if (data.success) {
+      if (response.ok && data.success) {
         setFilings(data.forms);
+        setLoadError(false);
+      } else {
+        setLoadError(true);
       }
     } catch (error) {
       console.error("Error fetching filing history:", error);
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -195,6 +205,15 @@ export default function FilingHistory() {
         </div>
       </div>
 
+      {loadError && (
+        <div className="px-6 pt-4">
+          <QuietLoadWarn
+            message={QUIET_500_COPY.formsStrip}
+            onRetry={() => void fetchFilingHistory()}
+          />
+        </div>
+      )}
+
       {/* Filing List */}
       {loading ? (
         <div className="p-12 text-center">
@@ -202,6 +221,10 @@ export default function FilingHistory() {
           <p className="mt-4 text-light-text-secondary dark:text-dark-text-secondary">
             Loading filing history...
           </p>
+        </div>
+      ) : loadError ? (
+        <div className="p-12 text-center">
+          <p className="text-sm text-text-3">{QUIET_500_COPY.unavailable}</p>
         </div>
       ) : filings.length === 0 ? (
         <div className="p-12 text-center">
