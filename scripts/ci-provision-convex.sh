@@ -68,7 +68,7 @@ configure_isolated_backend() {
   echo "Setting Convex Auth JWT keys on isolated backend"
   CONVEX_AUTH_SITE_URL="${CONVEX_AUTH_SITE_URL:-http://localhost:3000}" \
     node scripts/generate-convex-auth-keys.mjs --apply
-  if ! pnpm exec convex env get JWT_PRIVATE_KEY >/dev/null; then
+  if ! pnpm exec convex env get JWT_PRIVATE_KEY >/dev/null 2>/dev/null; then
     echo "::error::JWT_PRIVATE_KEY was not set on the isolated Convex backend" >&2
     exit 1
   fi

@@ -17,8 +17,11 @@
  * Optional password-reset email:
  *   npx convex env set AUTH_RESEND_KEY "re_..."
  */
-import { generateKeyPairSync } from "node:crypto";
 import { spawnSync } from "node:child_process";
+import { generateKeyPairSync } from "node:crypto";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 const apply = process.argv.includes("--apply");
 const siteUrl = process.env.CONVEX_AUTH_SITE_URL || "http://localhost:3000";
@@ -42,13 +45,18 @@ if (!apply) {
 }
 
 function setConvexEnv(name, value) {
-  // PEM values start with "-----BEGIN" and commander treats them as flags
-  // if passed as argv. Pipe the value on stdin instead.
+  // PEM starts with "-----BEGIN"; argv/word-split makes commander treat it
+  // as a flag. `--from-file` is the Convex-supported path for multiline
+  // values and keeps the key out of process argv / CI logs.
+  const dir = mkdtempSync(join(tmpdir(), "convex-auth-"));
+  const file = join(dir, name);
+  writeFileSync(file, value, { encoding: "utf8", mode: 0o600 });
   const result = spawnSync(
     "pnpm",
-    ["exec", "convex", "env", "set", "--force", name],
-    { input: value, stdio: ["pipe", "inherit", "inherit"], env: process.env },
+    ["exec", "convex", "env", "set", "--force", name, "--from-file", file],
+    { stdio: "inherit", env: process.env },
   );
+  rmSync(dir, { recursive: true, force: true });
   if (result.status !== 0) {
     process.exit(result.status ?? 1);
   }
