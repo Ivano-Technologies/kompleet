@@ -121,44 +121,84 @@ function parseRows(
   );
 }
 
-function namedColumns(
-  ...values: Array<string | number | undefined>
+export interface TabularParseOptions {
+  /** 1-based header row from excelConfig.headerRow */
+  headerRowHint?: number;
+  /** Resolve A/B/C excelConfig columns against the header row */
+  resolveExcelLetters?: boolean;
+}
+
+function letterToIndex(column: string): number | null {
+  if (!/^[A-Za-z]{1,2}$/.test(column)) return null;
+  let index = 0;
+  for (const char of column.toUpperCase()) {
+    index = index * 26 + (char.charCodeAt(0) - 64);
+  }
+  return index - 1;
+}
+
+function configuredColumnNames(
+  headers: string[],
+  column: string | number | undefined,
+  resolveLetters: boolean,
 ): string[] {
-  return values.filter((value): value is string => typeof value === "string");
+  if (typeof column === "number") {
+    const name = headers[column]?.trim();
+    return [name || `col_${column}`];
+  }
+  if (typeof column !== "string" || !column.trim()) return [];
+  if (resolveLetters) {
+    const index = letterToIndex(column);
+    if (index !== null) {
+      const name = headers[index]?.trim();
+      return [name || `col_${index}`];
+    }
+  }
+  return [column];
 }
 
 function buildColumnMap(
   headers: string[],
   bankConfig: BankConfig,
+  resolveExcelLetters = false,
 ): ColumnMap {
   const { csvConfig, excelConfig } = bankConfig;
+  const excelNames = (column: string | number | undefined) =>
+    configuredColumnNames(headers, column, resolveExcelLetters);
   return {
     date: findMatchingHeader(headers, [
-      ...namedColumns(csvConfig.dateColumn, excelConfig.dateColumn),
+      csvConfig.dateColumn,
+      ...excelNames(excelConfig.dateColumn),
       ...DATE_ALIASES,
     ]),
     merchant: findMatchingHeader(headers, [
-      ...namedColumns(csvConfig.merchantColumn, excelConfig.merchantColumn),
+      csvConfig.merchantColumn,
+      ...excelNames(excelConfig.merchantColumn),
       ...MERCHANT_ALIASES,
     ]),
     amount: findMatchingHeader(headers, [
-      ...namedColumns(csvConfig.amountColumn, excelConfig.amountColumn),
+      csvConfig.amountColumn,
+      ...excelNames(excelConfig.amountColumn),
       ...AMOUNT_ALIASES,
     ]),
     debit: findMatchingHeader(headers, [
-      ...namedColumns(csvConfig.debitColumn, excelConfig.debitColumn),
+      csvConfig.debitColumn,
+      ...excelNames(excelConfig.debitColumn),
       ...DEBIT_ALIASES,
     ]),
     credit: findMatchingHeader(headers, [
-      ...namedColumns(csvConfig.creditColumn, excelConfig.creditColumn),
+      csvConfig.creditColumn,
+      ...excelNames(excelConfig.creditColumn),
       ...CREDIT_ALIASES,
     ]),
     balance: findMatchingHeader(headers, [
-      ...namedColumns(csvConfig.balanceColumn, excelConfig.balanceColumn),
+      csvConfig.balanceColumn,
+      ...excelNames(excelConfig.balanceColumn),
       ...BALANCE_ALIASES,
     ]),
     reference: findMatchingHeader(headers, [
-      ...namedColumns(csvConfig.referenceColumn, excelConfig.referenceColumn),
+      csvConfig.referenceColumn,
+      ...excelNames(excelConfig.referenceColumn),
       ...REFERENCE_ALIASES,
     ]),
   };
@@ -172,7 +212,23 @@ function columnMapIsUsable(map: ColumnMap): boolean {
 function findHeaderRowIndex(
   rows: string[][],
   bankConfig: BankConfig,
+  options?: TabularParseOptions,
 ): number {
+  const resolveLetters = options?.resolveExcelLetters === true;
+  const hint =
+    options?.headerRowHint && options.headerRowHint > 0
+      ? options.headerRowHint - 1
+      : undefined;
+  if (hint !== undefined && hint < rows.length) {
+    const hinted = rows[hint] ?? [];
+    if (
+      rowLooksLikeHeader(hinted) ||
+      columnMapIsUsable(buildColumnMap(hinted, bankConfig, resolveLetters))
+    ) {
+      return hint;
+    }
+  }
+
   const configuredSkip = bankConfig.csvConfig.skipRows;
   if (
     configuredSkip >= 0 &&
@@ -182,13 +238,14 @@ function findHeaderRowIndex(
     return configuredSkip;
   }
 
-  for (let i = 0; i < Math.min(rows.length, 30); i++) {
+  for (let i = 0; i < Math.min(rows.length, 40); i++) {
     const row = rows[i] ?? [];
     if (rowLooksLikeHeader(row)) return i;
-    const map = buildColumnMap(row, bankConfig);
+    const map = buildColumnMap(row, bankConfig, resolveLetters);
     if (columnMapIsUsable(map)) return i;
   }
 
+  if (hint !== undefined && hint < rows.length) return hint;
   return configuredSkip < rows.length ? configuredSkip : 0;
 }
 
@@ -239,6 +296,7 @@ export async function parseCSV(
 export function parseTabularStatement(
   rows: string[][],
   bankConfig: BankConfig,
+  options?: TabularParseOptions,
 ): ParseResult {
   const transactions: ParsedTransaction[] = [];
   const errors: ParseError[] = [];
@@ -259,11 +317,15 @@ export function parseTabularStatement(
     };
   }
 
-  const headerIndex = findHeaderRowIndex(rows, bankConfig);
+  const headerIndex = findHeaderRowIndex(rows, bankConfig, options);
   const rawHeaders = (rows[headerIndex] ?? []).map((cell) =>
     cell.replace(/^\uFEFF/, "").trim(),
   );
-  const columns = buildColumnMap(rawHeaders, bankConfig);
+  const columns = buildColumnMap(
+    rawHeaders,
+    bankConfig,
+    options?.resolveExcelLetters === true,
+  );
 
   if (!columnMapIsUsable(columns)) {
     return {

@@ -33,6 +33,17 @@ const livePdf = [
 ].find((path) => existsSync(path));
 
 describe("UBA OpTransactionHistory.xls (OLE)", () => {
+  it("maps excelConfig to the OpTransactionHistoryUX header/columns", () => {
+    const uba = getBankConfig("UBA")!;
+    expect(uba.excelConfig.headerRow).toBe(15);
+    expect(uba.excelConfig.dateColumn).toBe("C");
+    expect(uba.excelConfig.merchantColumn).toBe("G");
+    expect(uba.excelConfig.debitColumn).toBe("I");
+    expect(uba.excelConfig.creditColumn).toBe("K");
+    expect(uba.excelConfig.balanceColumn).toBe("L");
+    expect(uba.excelConfig.dateFormat).toBe("DD/MM/YYYY");
+  });
+
   it("fixture is a real OLE Compound Document, not HTML or PDF", () => {
     expect(fixture.subarray(0, 4).equals(Buffer.from([0xd0, 0xcf, 0x11, 0xe0]))).toBe(
       true,

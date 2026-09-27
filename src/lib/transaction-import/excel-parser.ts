@@ -86,7 +86,10 @@ export async function parseExcel(
       Array.isArray(row) ? row.map((cell) => cellToString(cell)) : [],
     );
 
-    return parseTabularStatement(rows, bankConfig);
+    return parseTabularStatement(rows, bankConfig, {
+      headerRowHint: bankConfig.excelConfig.headerRow,
+      resolveExcelLetters: true,
+    });
   } catch (error) {
     const errMsg = error instanceof Error ? error.message : String(error);
     if (
