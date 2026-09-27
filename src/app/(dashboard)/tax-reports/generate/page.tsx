@@ -73,16 +73,19 @@ export default function GenerateTaxReportPage() {
       {/* Header */}
       <div>
         <button
-          onClick={() => router.back()}
-          className="flex items-center gap-1.5 text-sm text-primary-500 hover:text-primary-400 mb-4"
+          onClick={() => router.push("/tax")}
+          className="flex items-center gap-1.5 text-sm text-primary mb-4"
         >
-          <ArrowLeft className="w-3.5 h-3.5" /> Back to Tax Reports
+          <ArrowLeft className="w-3.5 h-3.5" /> Back to Tax
         </button>
-        <h1 className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">
-          Generate Tax Report
+        <p className="text-xs font-bold uppercase tracking-widest text-text-3">
+          Books already have your totals. Override only if you need different numbers.
+        </p>
+        <h1 className="font-display text-2xl text-text-1 mt-2">
+          Override figures
         </h1>
-        <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mt-1">
-          Complete the form to generate a report based on Nigeria Tax Act 2025
+        <p className="text-sm text-text-2 mt-1">
+          Advanced generate — Nigeria Tax Act 2025. Happy path is Generate from books.
         </p>
       </div>
 

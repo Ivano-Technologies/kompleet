@@ -5,19 +5,21 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowDown,
-  ArrowLeft,
-  ArrowRight,
   ArrowUp,
-  Camera,
   ChevronLeft,
   ChevronRight,
   Download,
   MoreVertical,
-  Plus,
   Search,
-  Upload,
 } from "lucide-react";
-import { StatementDropZone } from "@/components/import/StatementDropZone";
+import {
+  StatementDropZone,
+  triggerStatementPicker,
+} from "@/components/import/StatementDropZone";
+import type { StatementUploadResult } from "@/components/import/StatementDropZone";
+import { ExceptionBanner, ImportToast } from "@/components/import/ImportToast";
+import { AddManualTransaction } from "@/components/import/AddManualTransaction";
+import { DROP_COPY } from "@/components/import/statement-copy";
 
 interface Transaction {
   id: string;
@@ -42,8 +44,17 @@ interface PaginationInfo {
   totalPages: number;
 }
 
+function isUncategorized(transaction: Transaction): boolean {
+  if (!transaction.category) return true;
+  return (
+    typeof transaction.confidence_score === "number" &&
+    transaction.confidence_score < 80
+  );
+}
+
 export default function TransactionsPage() {
   const router = useRouter();
+  const booksInputId = "books-statement-input";
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [pagination, setPagination] = useState<PaginationInfo>({
     page: 1,
@@ -62,6 +73,10 @@ export default function TransactionsPage() {
   const [exporting, setExporting] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [toast, setToast] = useState<StatementUploadResult | null>(null);
+  const [uncategorizedCount, setUncategorizedCount] = useState(0);
+  const [duplicatesCount, setDuplicatesCount] = useState(0);
+  const [showManual, setShowManual] = useState(false);
 
   const fetchTransactions = useCallback(async () => {
     setLoading(true);
@@ -79,14 +94,19 @@ export default function TransactionsPage() {
       const data = await response.json();
 
       if (response.ok) {
-        setTransactions(data.transactions);
+        const rows = data.transactions as Transaction[];
+        setTransactions(rows);
         setPagination(data.pagination);
+        const pageUncategorized = rows.filter(isUncategorized).length;
+        setUncategorizedCount((current) =>
+          current > 0 ? Math.max(current, pageUncategorized) : pageUncategorized,
+        );
         setError(null);
       } else {
         setError(data.error || "Failed to load transactions");
       }
-    } catch (error) {
-      console.error("Error fetching transactions:", error);
+    } catch (fetchError) {
+      console.error("Error fetching transactions:", fetchError);
       setError("Failed to load transactions. Please try again.");
     } finally {
       setLoading(false);
@@ -98,6 +118,50 @@ export default function TransactionsPage() {
     fetchTransactions();
   }, [fetchTransactions]);
 
+  useEffect(() => {
+    let cancelled = false;
+    const year = new Date().getFullYear();
+    const startDate = `${year}-01-01`;
+    const endDate = `${year}-12-31`;
+    (async () => {
+      try {
+        const [dupRes, summaryRes] = await Promise.all([
+          fetch("/api/transactions/duplicates", { credentials: "include" }),
+          fetch(
+            `/api/transactions/summary?startDate=${startDate}&endDate=${endDate}`,
+            { credentials: "include" },
+          ),
+        ]);
+        if (cancelled) return;
+        if (dupRes.ok) {
+          const body = (await dupRes.json()) as { total?: number };
+          setDuplicatesCount(body.total ?? 0);
+        }
+        if (summaryRes.ok) {
+          const body = (await summaryRes.json()) as { uncategorized?: number };
+          if (typeof body.uncategorized === "number") {
+            setUncategorizedCount(body.uncategorized);
+          }
+        }
+      } catch {
+        /* optional health chips */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [toast, pagination.total]);
+
+  const handleSuccess = useCallback(
+    (result: StatementUploadResult) => {
+      setToast(result);
+      if (result.pendingReview > 0) setUncategorizedCount(result.pendingReview);
+      if (result.duplicates > 0) setDuplicatesCount(result.duplicates);
+      void fetchTransactions();
+    },
+    [fetchTransactions],
+  );
+
   const handleSelectAll = () => {
     if (selectedIds.size === transactions.length) {
       setSelectedIds(new Set());
@@ -107,13 +171,10 @@ export default function TransactionsPage() {
   };
 
   const handleSelectOne = (id: string) => {
-    const newSelected = new Set(selectedIds);
-    if (newSelected.has(id)) {
-      newSelected.delete(id);
-    } else {
-      newSelected.add(id);
-    }
-    setSelectedIds(newSelected);
+    const next = new Set(selectedIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelectedIds(next);
   };
 
   const handleBulkDelete = async () => {
@@ -135,8 +196,8 @@ export default function TransactionsPage() {
         const data = await response.json().catch(() => ({}));
         setError(data.error || "Failed to delete transactions");
       }
-    } catch (error) {
-      console.error("Error deleting transactions:", error);
+    } catch (deleteError) {
+      console.error("Error deleting transactions:", deleteError);
       setError("Failed to delete transactions. Please try again.");
     }
   };
@@ -183,13 +244,15 @@ export default function TransactionsPage() {
         const data = await response.json().catch(() => ({}));
         setError(data.error || "Export failed");
       }
-    } catch (error) {
-      console.error("Export error:", error);
+    } catch (exportError) {
+      console.error("Export error:", exportError);
       setError("Export failed. Please try again.");
     } finally {
       setExporting(false);
     }
   };
+
+  const isEmpty = !loading && pagination.total === 0 && !filters.search && !filters.type;
 
   return (
     <div className="space-y-6">
@@ -204,326 +267,341 @@ export default function TransactionsPage() {
           </button>
         </div>
       )}
-      {/* Header */}
+
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
-          <h1 className="font-display text-2xl text-light-text-primary dark:text-dark-text-primary">
-            Books
-          </h1>
-          <span className="text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary bg-light-surface dark:bg-dark-surface px-2.5 py-1 rounded-full border border-light-border dark:border-dark-border">
+          <h1 className="font-display text-2xl text-text-1">Books</h1>
+          <span className="text-xs font-medium text-text-3 bg-surface px-2.5 py-1 rounded-full border border-border">
             {pagination.total.toLocaleString()} total
           </span>
         </div>
-        <div className="flex items-center gap-2">
-          <Link
-            href="/transactions/review"
-            className="btn-secondary text-sm px-3 py-2 hidden lg:flex items-center gap-1.5"
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            className="btn-primary text-sm px-3 py-2"
+            onClick={() => triggerStatementPicker(booksInputId)}
           >
-            Review Uncategorized
-          </Link>
+            {DROP_COPY.ctaImportShort}
+          </button>
           <div className="relative">
             <button
+              type="button"
               onClick={() => setShowExportMenu(!showExportMenu)}
               disabled={exporting}
               className="btn-secondary text-sm px-3 py-2 flex items-center gap-1.5 disabled:opacity-50"
             >
               <Download className="w-3.5 h-3.5" />
-              {exporting ? "Exporting..." : "Export"}
+              {exporting ? "Exporting..." : DROP_COPY.ctaExport}
             </button>
             {showExportMenu && (
-              <div className="absolute right-0 mt-1 w-44 bg-light-surface dark:bg-dark-surface rounded-lg border border-light-border dark:border-dark-border shadow-lg z-20">
+              <div className="absolute right-0 mt-1 w-44 bg-surface rounded-lg border border-border shadow-1 z-20">
                 <button
+                  type="button"
                   onClick={() => handleExport("csv")}
-                  className="block w-full text-left px-4 py-2.5 text-sm hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover rounded-t-lg text-light-text-primary dark:text-dark-text-primary"
+                  className="block w-full text-left px-4 py-2.5 text-sm hover:bg-surface-2 rounded-t-lg text-text-1"
                 >
                   Export as CSV
                 </button>
                 <button
+                  type="button"
                   onClick={() => handleExport("json")}
-                  className="block w-full text-left px-4 py-2.5 text-sm hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover rounded-b-lg text-light-text-primary dark:text-dark-text-primary"
+                  className="block w-full text-left px-4 py-2.5 text-sm hover:bg-surface-2 rounded-b-lg text-text-1"
                 >
                   Export as JSON
                 </button>
               </div>
             )}
           </div>
-          <Link
-            href="/transactions/add-from-receipt"
-            className="btn-secondary text-sm px-3 py-2 flex items-center gap-1.5"
+          <button
+            type="button"
+            className="text-sm font-medium text-primary px-2 py-2"
+            onClick={() => setShowManual(true)}
           >
-            <Camera className="w-3.5 h-3.5" /> Add from receipt
-          </Link>
-          <Link
-            href="/transactions/upload"
-            className="btn-secondary text-sm px-3 py-2 flex items-center gap-1.5"
-          >
-            <Upload className="w-3.5 h-3.5" /> Advanced
-          </Link>
-          <button className="btn-primary text-sm px-3 py-2 flex items-center gap-1.5">
-            <Plus className="w-3.5 h-3.5" /> Add New
+            {DROP_COPY.ctaManual}
           </button>
         </div>
       </div>
 
-      {/* Search and Filters */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-        <div className="flex-1 relative">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-light-text-tertiary dark:text-dark-text-tertiary" />
+      <ExceptionBanner
+        uncategorizedCount={uncategorizedCount}
+        duplicatesCount={duplicatesCount}
+      />
+
+      {isEmpty ? (
+        <StatementDropZone
+          variant="hero"
+          inputId={booksInputId}
+          showWhy={false}
+          title={DROP_COPY.heroTitle}
+          subtitle={DROP_COPY.heroSub}
+          onSuccess={handleSuccess}
+        />
+      ) : (
+        <StatementDropZone
+          variant="strip"
+          inputId={booksInputId}
+          title={DROP_COPY.booksStripTitle}
+          subtitle={DROP_COPY.booksStripSub}
+          onSuccess={handleSuccess}
+        />
+      )}
+
+      {!isEmpty && (
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <div className="flex-1 relative">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-text-3" />
+            <input
+              type="text"
+              placeholder="Search transactions..."
+              value={filters.search}
+              onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+              className="w-full pl-10 pr-4 py-2.5 text-sm bg-surface border border-border rounded-lg text-text-1 placeholder-text-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            />
+          </div>
+          <select
+            value={filters.type}
+            onChange={(e) => setFilters({ ...filters, type: e.target.value })}
+            className="px-3 py-2.5 text-sm bg-surface border border-border rounded-lg text-text-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          >
+            <option value="">All Types</option>
+            <option value="credit">Credit</option>
+            <option value="debit">Debit</option>
+          </select>
           <input
-            type="text"
-            placeholder="Search transactions..."
-            value={filters.search}
-            onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-            className="w-full pl-10 pr-4 py-2.5 text-sm bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-lg text-light-text-primary dark:text-dark-text-primary placeholder-light-text-tertiary dark:placeholder-dark-text-tertiary focus:outline-none focus:border-primary-500 transition-colors"
+            type="date"
+            value={filters.startDate}
+            onChange={(e) =>
+              setFilters({ ...filters, startDate: e.target.value })
+            }
+            className="px-3 py-2.5 text-sm bg-surface border border-border rounded-lg text-text-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          />
+          <input
+            type="date"
+            value={filters.endDate}
+            onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
+            className="px-3 py-2.5 text-sm bg-surface border border-border rounded-lg text-text-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           />
         </div>
-        <select
-          value={filters.type}
-          onChange={(e) => setFilters({ ...filters, type: e.target.value })}
-          className="px-3 py-2.5 text-sm bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-lg text-light-text-secondary dark:text-dark-text-secondary focus:outline-none focus:border-primary-500"
-        >
-          <option value="">All Types</option>
-          <option value="credit">Credit</option>
-          <option value="debit">Debit</option>
-        </select>
-        <input
-          type="date"
-          value={filters.startDate}
-          onChange={(e) =>
-            setFilters({ ...filters, startDate: e.target.value })
-          }
-          className="px-3 py-2.5 text-sm bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-lg text-light-text-secondary dark:text-dark-text-secondary focus:outline-none focus:border-primary-500"
-        />
-        <input
-          type="date"
-          value={filters.endDate}
-          onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
-          className="px-3 py-2.5 text-sm bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-lg text-light-text-secondary dark:text-dark-text-secondary focus:outline-none focus:border-primary-500"
-        />
-      </div>
+      )}
 
-      {/* Bulk Actions */}
       {selectedIds.size > 0 && (
-        <div className="bg-primary-500/10 border border-primary-500/20 rounded-lg p-3 flex items-center justify-between">
-          <span className="text-sm text-primary-500 font-medium">
+        <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 flex items-center justify-between">
+          <span className="text-sm text-primary font-medium">
             {selectedIds.size} transaction{selectedIds.size !== 1 ? "s" : ""}{" "}
             selected
           </span>
           <button
             onClick={handleBulkDelete}
-            className="text-sm bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg transition-colors"
+            className="text-sm bg-error hover:bg-error/90 text-white px-3 py-1.5 rounded-lg transition-colors"
           >
             Delete Selected
           </button>
         </div>
       )}
 
-      {/* Transactions Table */}
-      <div className="rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface overflow-hidden">
-        {loading ? (
-          <div className="p-12 text-center">
-            <div className="w-6 h-6 border-2 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-            <p className="text-sm text-light-text-tertiary dark:text-dark-text-tertiary">
-              Loading transactions...
-            </p>
-          </div>
-        ) : transactions.length === 0 ? (
-          <div className="p-6">
-            <StatementDropZone
-              variant="hero"
-              onSuccess={() => {
-                void fetchTransactions();
-              }}
-            />
-          </div>
-        ) : (
-          <>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-light-border dark:border-dark-border">
-                    <th className="px-5 py-3 text-left w-10">
-                      <input
-                        type="checkbox"
-                        checked={
-                          selectedIds.size === transactions.length &&
-                          transactions.length > 0
-                        }
-                        onChange={handleSelectAll}
-                        className="rounded border-light-border dark:border-dark-border"
-                      />
-                    </th>
-                    <th className="px-5 py-3 text-left text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary">
-                      Date
-                    </th>
-                    <th className="px-5 py-3 text-left text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary">
-                      Description
-                    </th>
-                    <th className="px-5 py-3 text-left text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary hidden md:table-cell">
-                      Category
-                    </th>
-                    <th className="px-5 py-3 text-right text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary">
-                      Amount
-                    </th>
-                    <th className="px-5 py-3 text-center text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary hidden sm:table-cell">
-                      Status
-                    </th>
-                    <th className="px-5 py-3 text-center text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary w-10"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {transactions.map((transaction) => (
-                    <tr
-                      key={transaction.id}
-                      className="border-b border-light-border/50 dark:border-dark-border/50 last:border-0 hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover cursor-pointer transition-colors"
-                      onClick={() =>
-                        router.push(`/transactions/${transaction.id}`)
-                      }
-                    >
-                      <td
-                        className="px-5 py-3.5"
-                        onClick={(e) => e.stopPropagation()}
-                      >
+      {!isEmpty && (
+        <div className="rounded-xl border border-border bg-surface overflow-hidden">
+          {loading ? (
+            <div className="p-12 text-center">
+              <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+              <p className="text-sm text-text-3">Loading transactions...</p>
+            </div>
+          ) : transactions.length === 0 ? (
+            <div className="p-10 text-center text-sm text-text-3">
+              No transactions match these filters.
+            </div>
+          ) : (
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border">
+                      <th className="px-5 py-3 text-left w-10">
                         <input
                           type="checkbox"
-                          checked={selectedIds.has(transaction.id)}
-                          onChange={() => handleSelectOne(transaction.id)}
-                          className="rounded border-light-border dark:border-dark-border"
+                          checked={
+                            selectedIds.size === transactions.length &&
+                            transactions.length > 0
+                          }
+                          onChange={handleSelectAll}
+                          className="rounded border-border"
                         />
-                      </td>
-                      <td className="px-5 py-3.5 text-light-text-secondary dark:text-dark-text-secondary text-xs">
-                        {formatDate(transaction.transaction_date)}
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-lg bg-primary-500/10 flex items-center justify-center flex-shrink-0">
-                            {transaction.transaction_type === "credit" ? (
-                              <ArrowDown className="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
-                            ) : (
-                              <ArrowUp className="w-3.5 h-3.5 text-red-500 dark:text-red-400" />
-                            )}
-                          </div>
-                          <span className="font-medium text-sm text-light-text-primary dark:text-dark-text-primary truncate">
-                            {transaction.description}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-5 py-3.5 hidden md:table-cell">
-                        {transaction.category ? (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                            {transaction.category.name}
-                            {transaction.confidence_score !== undefined &&
-                              transaction.confidence_score < 100 && (
-                                <span className="ml-1 opacity-60">
-                                  ({transaction.confidence_score}%)
-                                </span>
-                              )}
-                          </span>
-                        ) : (
-                          <span className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
-                            Uncategorized
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-5 py-3.5 text-right">
-                        <span
-                          className={`font-semibold text-sm ${transaction.transaction_type === "credit"
-                            ? "text-green-600 dark:text-green-400"
-                            : "text-light-text-primary dark:text-dark-text-primary"
-                            }`}
-                        >
-                          {transaction.transaction_type === "credit" ? "+" : ""}
-                          {formatCurrency(transaction.amount)}
-                        </span>
-                      </td>
-                      <td className="px-5 py-3.5 text-center hidden sm:table-cell">
-                        <span
-                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${transaction.is_reconciled
-                            ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                            : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-                            }`}
-                        >
-                          {transaction.is_reconciled ? "Reconciled" : "Pending"}
-                        </span>
-                      </td>
-                      <td
-                        className="px-5 py-3.5 text-center"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <button className="p-1.5 hover:bg-light-background dark:hover:bg-dark-background rounded-lg transition-colors">
-                          <MoreVertical className="w-4 h-4 text-light-text-tertiary dark:text-dark-text-tertiary" />
-                        </button>
-                      </td>
+                      </th>
+                      <th className="px-5 py-3 text-left text-xs font-medium text-text-3">
+                        Date
+                      </th>
+                      <th className="px-5 py-3 text-left text-xs font-medium text-text-3">
+                        Description
+                      </th>
+                      <th className="px-5 py-3 text-left text-xs font-medium text-text-3 hidden md:table-cell">
+                        Category
+                      </th>
+                      <th className="px-5 py-3 text-right text-xs font-medium text-text-3">
+                        Amount
+                      </th>
+                      <th className="px-5 py-3 text-center text-xs font-medium text-text-3 hidden sm:table-cell">
+                        Status
+                      </th>
+                      <th className="px-5 py-3 text-center text-xs font-medium text-text-3 w-10"></th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Pagination */}
-            <div className="flex items-center justify-between px-5 py-3 border-t border-light-border dark:border-dark-border">
-              <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
-                Showing {(pagination.page - 1) * pagination.limit + 1} to{" "}
-                {Math.min(pagination.page * pagination.limit, pagination.total)}{" "}
-                of {pagination.total.toLocaleString()} entries
-              </p>
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() =>
-                    setPagination({ ...pagination, page: pagination.page - 1 })
-                  }
-                  disabled={pagination.page === 1}
-                  className="p-1.5 rounded-md hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <span className="px-3 py-1 text-xs font-medium bg-primary-500 text-white rounded-md">
-                  {pagination.page}
-                </span>
-                {pagination.totalPages > 1 &&
-                  pagination.page < pagination.totalPages && (
-                    <>
-                      {pagination.page < pagination.totalPages - 1 && (
-                        <span className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary px-1">
-                          ...
-                        </span>
-                      )}
-                      <button
+                  </thead>
+                  <tbody>
+                    {transactions.map((transaction) => (
+                      <tr
+                        key={transaction.id}
+                        className="border-b border-border/50 last:border-0 hover:bg-surface-2 cursor-pointer transition-colors"
                         onClick={() =>
-                          setPagination({
-                            ...pagination,
-                            page: pagination.totalPages,
-                          })
+                          router.push(`/transactions/${transaction.id}`)
                         }
-                        className="px-3 py-1 text-xs rounded-md hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover transition-colors"
                       >
-                        {pagination.totalPages}
-                      </button>
-                    </>
-                  )}
-                <button
-                  onClick={() =>
-                    setPagination({ ...pagination, page: pagination.page + 1 })
-                  }
-                  disabled={pagination.page >= pagination.totalPages}
-                  className="p-1.5 rounded-md hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
+                        <td
+                          className="px-5 py-3.5"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.has(transaction.id)}
+                            onChange={() => handleSelectOne(transaction.id)}
+                            className="rounded border-border"
+                          />
+                        </td>
+                        <td className="px-5 py-3.5 text-text-2 text-xs">
+                          {formatDate(transaction.transaction_date)}
+                        </td>
+                        <td className="px-5 py-3.5">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                              {transaction.transaction_type === "credit" ? (
+                                <ArrowDown className="w-3.5 h-3.5 text-success" />
+                              ) : (
+                                <ArrowUp className="w-3.5 h-3.5 text-error" />
+                              )}
+                            </div>
+                            <span className="font-medium text-sm text-text-1 truncate">
+                              {transaction.description}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-5 py-3.5 hidden md:table-cell">
+                          {transaction.category ? (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-success/10 text-success">
+                              {transaction.category.name}
+                              {transaction.confidence_score !== undefined &&
+                                transaction.confidence_score < 100 && (
+                                  <span className="ml-1 opacity-60">
+                                    ({transaction.confidence_score}%)
+                                  </span>
+                                )}
+                            </span>
+                          ) : (
+                            <span className="text-xs text-text-3">
+                              Uncategorized
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-5 py-3.5 text-right">
+                          <span
+                            className={`font-semibold text-sm ${
+                              transaction.transaction_type === "credit"
+                                ? "text-success"
+                                : "text-text-1"
+                            }`}
+                          >
+                            {transaction.transaction_type === "credit" ? "+" : ""}
+                            {formatCurrency(transaction.amount)}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3.5 text-center hidden sm:table-cell">
+                          <span
+                            className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                              transaction.is_reconciled
+                                ? "bg-success/10 text-success"
+                                : "bg-warning/10 text-warning"
+                            }`}
+                          >
+                            {transaction.is_reconciled ? "Reconciled" : "Pending"}
+                          </span>
+                        </td>
+                        <td
+                          className="px-5 py-3.5 text-center"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <button className="p-1.5 hover:bg-bg rounded-lg transition-colors">
+                            <MoreVertical className="w-4 h-4 text-text-3" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-            </div>
-          </>
-        )}
-      </div>
 
-      {transactions.length > 0 && (
-        <StatementDropZone
-          variant="strip"
-          onSuccess={() => {
-            void fetchTransactions();
-          }}
-        />
+              <div className="flex items-center justify-between px-5 py-3 border-t border-border">
+                <p className="text-xs text-text-3">
+                  Showing {(pagination.page - 1) * pagination.limit + 1} to{" "}
+                  {Math.min(pagination.page * pagination.limit, pagination.total)}{" "}
+                  of {pagination.total.toLocaleString()} entries
+                </p>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() =>
+                      setPagination({ ...pagination, page: pagination.page - 1 })
+                    }
+                    disabled={pagination.page === 1}
+                    className="p-1.5 rounded-md hover:bg-surface-2 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <span className="px-3 py-1 text-xs font-medium bg-primary text-white rounded-md">
+                    {pagination.page}
+                  </span>
+                  {pagination.totalPages > 1 &&
+                    pagination.page < pagination.totalPages && (
+                      <>
+                        {pagination.page < pagination.totalPages - 1 && (
+                          <span className="text-xs text-text-3 px-1">...</span>
+                        )}
+                        <button
+                          onClick={() =>
+                            setPagination({
+                              ...pagination,
+                              page: pagination.totalPages,
+                            })
+                          }
+                          className="px-3 py-1 text-xs rounded-md hover:bg-surface-2 transition-colors"
+                        >
+                          {pagination.totalPages}
+                        </button>
+                      </>
+                    )}
+                  <button
+                    onClick={() =>
+                      setPagination({ ...pagination, page: pagination.page + 1 })
+                    }
+                    disabled={pagination.page >= pagination.totalPages}
+                    className="p-1.5 rounded-md hover:bg-surface-2 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
       )}
+
+      <p className="text-xs text-text-3 text-right">
+        <Link href="/transactions/upload" className="text-primary font-medium">
+          {DROP_COPY.advancedTrouble}
+        </Link>
+      </p>
+
+      {toast && <ImportToast result={toast} onDismiss={() => setToast(null)} />}
+      <AddManualTransaction
+        open={showManual}
+        onClose={() => setShowManual(false)}
+        onCreated={() => void fetchTransactions()}
+      />
     </div>
   );
 }

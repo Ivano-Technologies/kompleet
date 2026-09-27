@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { X } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import {
   StatementDropZone,
   triggerStatementPicker,
 } from "@/components/import/StatementDropZone";
 import type { StatementUploadResult } from "@/components/import/StatementDropZone";
+import { ExceptionBanner, ImportToast } from "@/components/import/ImportToast";
 import { DROP_COPY } from "@/components/import/statement-copy";
 import {
   Bar,
@@ -109,7 +109,7 @@ export default function DashboardClient({
         {hasBooks ? (
           <>
             <Link
-              href="/invoices/new"
+              href="/invoices?new=1"
               className="btn-primary text-sm px-3 py-2 text-center"
             >
               {DROP_COPY.ctaInvoice}
@@ -132,7 +132,7 @@ export default function DashboardClient({
               {DROP_COPY.ctaImport}
             </button>
             <Link
-              href="/invoices/new"
+              href="/invoices?new=1"
               className="btn-secondary text-sm px-3 py-2 text-center"
             >
               {DROP_COPY.ctaInvoice}
@@ -181,36 +181,10 @@ export default function DashboardClient({
     <div className="space-y-6">
       {header}
 
-      {(uncategorizedCount > 0 || duplicatesCount > 0) && (
-        <div className="rounded-xl border border-warning bg-warning/10 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div className="text-sm text-text-1 space-y-0.5">
-            {uncategorizedCount > 0 && (
-              <p>{DROP_COPY.bannerReview(uncategorizedCount)}</p>
-            )}
-            {duplicatesCount > 0 && (
-              <p>{DROP_COPY.bannerDuplicates(duplicatesCount)}</p>
-            )}
-          </div>
-          <div className="flex gap-2">
-            {uncategorizedCount > 0 && (
-              <Link
-                href="/transactions/review"
-                className="btn-secondary text-sm px-3 py-1.5"
-              >
-                {DROP_COPY.bannerReviewCta}
-              </Link>
-            )}
-            {duplicatesCount > 0 && (
-              <Link
-                href="/transactions/duplicates"
-                className="btn-secondary text-sm px-3 py-1.5"
-              >
-                {DROP_COPY.bannerDuplicatesCta}
-              </Link>
-            )}
-          </div>
-        </div>
-      )}
+      <ExceptionBanner
+        uncategorizedCount={uncategorizedCount}
+        duplicatesCount={duplicatesCount}
+      />
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {kpis.map((kpi) => (
@@ -301,55 +275,6 @@ export default function DashboardClient({
       />
 
       {toast && <ImportToast result={toast} onDismiss={() => setToast(null)} />}
-    </div>
-  );
-}
-
-function ImportToast({
-  result,
-  onDismiss,
-}: {
-  result: StatementUploadResult;
-  onDismiss: () => void;
-}) {
-  return (
-    <div className="fixed top-20 right-4 z-40 w-[min(100%-2rem,22rem)] rounded-xl border border-border bg-surface p-4 shadow-1">
-      <div className="flex items-start gap-3">
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-success">
-            {DROP_COPY.toastSuccess(result.imported)}
-          </p>
-          <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-sm">
-            <Link href="/transactions" className="text-primary font-medium">
-              {DROP_COPY.toastViewBooks}
-            </Link>
-            {result.pendingReview > 0 && (
-              <Link
-                href="/transactions/review"
-                className="text-primary font-medium"
-              >
-                {DROP_COPY.toastReview(result.pendingReview)}
-              </Link>
-            )}
-            {result.duplicates > 0 && (
-              <Link
-                href="/transactions/duplicates"
-                className="text-primary font-medium"
-              >
-                {DROP_COPY.toastDuplicates}
-              </Link>
-            )}
-          </div>
-        </div>
-        <button
-          type="button"
-          onClick={onDismiss}
-          className="text-text-3 hover:text-text-1"
-          aria-label="Dismiss"
-        >
-          <X className="w-4 h-4" />
-        </button>
-      </div>
     </div>
   );
 }
