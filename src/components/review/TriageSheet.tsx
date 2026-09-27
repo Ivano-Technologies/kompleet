@@ -49,22 +49,10 @@ export function useTriageCount(initial?: Partial<TriageCounts>) {
   }, []);
 
   useEffect(() => {
-    let cancelled = false;
-    const start = () => {
-      if (!cancelled) void refresh();
-    };
-    if (typeof window !== "undefined" && "requestIdleCallback" in window) {
-      const idle = window.requestIdleCallback(start);
-      return () => {
-        cancelled = true;
-        window.cancelIdleCallback(idle);
-      };
-    }
-    const timer = window.setTimeout(start, 0);
-    return () => {
-      cancelled = true;
-      window.clearTimeout(timer);
-    };
+    const timer = setTimeout(() => {
+      void refresh();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [refresh]);
 
   return { counts, setCounts, refresh };
