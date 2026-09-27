@@ -36,9 +36,14 @@ function isUncategorized(txn: {
  * KOMPLEET Dashboard - Financial Health Overview
  * Server component: auth via Convex Auth; app data via Convex.
  */
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ triage?: string }>;
+}) {
   const user = await requireAuth();
   const { convex } = await requireAuthedConvex();
+  const params = searchParams ? await searchParams : {};
 
   const currentYear = new Date().getFullYear();
 
@@ -131,6 +136,7 @@ export default async function DashboardPage() {
       hasBooks={booksPage.total > 0}
       uncategorizedCount={uncategorizedCount}
       duplicatesCount={0}
+      initialTriageOpen={params.triage === "open"}
     />
   );
 }

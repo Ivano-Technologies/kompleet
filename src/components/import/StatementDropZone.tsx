@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useId, useRef, useState, type DragEvent } from "react";
+import {
+  useCallback,
+  useId,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type DragEvent,
+} from "react";
 import { Loader2, Lock, Upload } from "lucide-react";
 import { SUPPORTED_BANKS } from "@/lib/transaction-import/bank-configs";
 import {
@@ -125,6 +132,15 @@ export function StatementDropZone({
   const [heldFile, setHeldFile] = useState<File | null>(null);
   const [whyOpen, setWhyOpen] = useState(false);
   const bankSelectRef = useRef<HTMLSelectElement>(null);
+  const [pendingBankFocus, setPendingBankFocus] = useState(false);
+
+  useLayoutEffect(() => {
+    if (!pendingBankFocus || !showAdvanced || uploading) return;
+    const node = bankSelectRef.current;
+    if (!node) return;
+    node.focus();
+    setPendingBankFocus(false);
+  }, [pendingBankFocus, showAdvanced, uploading]);
 
   const resetInput = () => {
     if (inputRef.current) inputRef.current.value = "";
@@ -144,7 +160,7 @@ export function StatementDropZone({
       setShowAdvanced(true);
     }
     if (view.revealBankPicker) {
-      window.setTimeout(() => bankSelectRef.current?.focus(), 0);
+      setPendingBankFocus(true);
     }
   };
 
@@ -335,7 +351,7 @@ export function StatementDropZone({
     }
     if (action === "select-bank" || action === "advanced") {
       setShowAdvanced(true);
-      window.setTimeout(() => bankSelectRef.current?.focus(), 0);
+      setPendingBankFocus(true);
       return;
     }
     if (action === "unlock") {

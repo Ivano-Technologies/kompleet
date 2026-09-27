@@ -121,9 +121,8 @@ describe("IVA-83 StatementDropZone error surfaces", () => {
       screen.getByText(IMPORT_ERROR_COPY.bankUnknown.title),
     ).toBeInTheDocument();
     expect(screen.getByText("Advanced · choose bank")).toBeInTheDocument();
-    const select = screen.getByRole("combobox");
     await waitFor(() => {
-      expect(select).toHaveFocus();
+      expect(screen.getByRole("combobox")).toHaveFocus();
     });
   });
 

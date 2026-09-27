@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { X } from "lucide-react";
+import { AlertTriangle, X } from "lucide-react";
 import type { StatementUploadResult } from "./StatementDropZone";
 import { DROP_COPY } from "./statement-copy";
 
@@ -9,10 +9,12 @@ export function ImportToast({
   result,
   onDismiss,
   viewBooksHref = "/transactions",
+  onFixReview,
 }: {
   result: StatementUploadResult;
   onDismiss: () => void;
   viewBooksHref?: string;
+  onFixReview?: () => void;
 }) {
   return (
     <div className="fixed top-20 right-4 z-40 w-[min(100%-2rem,22rem)] rounded-xl border border-border bg-surface p-4 shadow-1">
@@ -25,14 +27,23 @@ export function ImportToast({
             <Link href={viewBooksHref} className="text-primary font-medium">
               {DROP_COPY.toastViewBooks}
             </Link>
-            {result.pendingReview > 0 && (
-              <Link
-                href="/transactions/review"
-                className="text-primary font-medium"
-              >
-                {DROP_COPY.toastReview(result.pendingReview)}
-              </Link>
-            )}
+            {result.pendingReview > 0 &&
+              (onFixReview ? (
+                <button
+                  type="button"
+                  onClick={onFixReview}
+                  className="text-primary font-medium"
+                >
+                  {DROP_COPY.toastReview(result.pendingReview)}
+                </button>
+              ) : (
+                <Link
+                  href="/transactions?triage=open"
+                  className="text-primary font-medium"
+                >
+                  {DROP_COPY.toastReview(result.pendingReview)}
+                </Link>
+              ))}
             {result.duplicates > 0 && (
               <Link
                 href="/transactions/duplicates"
@@ -57,42 +68,60 @@ export function ImportToast({
 }
 
 export function ExceptionBanner({
+  needsCheckCount,
   uncategorizedCount,
   duplicatesCount,
+  onReview,
 }: {
-  uncategorizedCount: number;
+  needsCheckCount?: number;
+  uncategorizedCount?: number;
   duplicatesCount: number;
+  onReview?: () => void;
 }) {
-  if (uncategorizedCount <= 0 && duplicatesCount <= 0) return null;
+  const reviewCount = needsCheckCount ?? uncategorizedCount ?? 0;
+  if (reviewCount <= 0 && duplicatesCount <= 0) return null;
+
+  const openReview = () => {
+    if (onReview) {
+      onReview();
+      return;
+    }
+    window.location.href = "/transactions?triage=open";
+  };
 
   return (
-    <div className="rounded-xl border border-warning bg-warning/10 px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-      <div className="text-sm text-text-1 space-y-0.5">
-        {uncategorizedCount > 0 && (
-          <p>{DROP_COPY.bannerReview(uncategorizedCount)}</p>
-        )}
-        {duplicatesCount > 0 && (
-          <p>{DROP_COPY.bannerDuplicates(duplicatesCount)}</p>
-        )}
-      </div>
-      <div className="flex gap-2">
-        {uncategorizedCount > 0 && (
-          <Link
-            href="/transactions/review"
-            className="btn-secondary text-sm px-3 py-1.5"
-          >
+    <div className="space-y-2">
+      {reviewCount > 0 ? (
+        <button
+          type="button"
+          onClick={openReview}
+          className="flex w-full items-center justify-between gap-4 rounded-xl border border-warning/35 bg-warning/10 px-4 py-3 text-left"
+          style={{ borderLeftWidth: 4, borderLeftColor: "#D97706" }}
+        >
+          <span className="flex items-center gap-3">
+            <AlertTriangle className="h-[18px] w-[18px] shrink-0 text-warning" />
+            <span className="text-sm font-semibold text-text-1">
+              {DROP_COPY.bannerReview(reviewCount)}
+            </span>
+          </span>
+          <span className="rounded-[10px] border border-border bg-surface px-4 py-2 text-sm font-semibold text-primary">
             {DROP_COPY.bannerReviewCta}
-          </Link>
-        )}
-        {duplicatesCount > 0 && (
+          </span>
+        </button>
+      ) : null}
+      {duplicatesCount > 0 ? (
+        <div className="flex items-center justify-between gap-3 px-1">
+          <p className="text-sm text-text-2">
+            {DROP_COPY.bannerDuplicates(duplicatesCount)}
+          </p>
           <Link
             href="/transactions/duplicates"
-            className="btn-secondary text-sm px-3 py-1.5"
+            className="text-sm font-medium text-primary"
           >
             {DROP_COPY.bannerDuplicatesCta}
           </Link>
-        )}
-      </div>
+        </div>
+      ) : null}
     </div>
   );
 }

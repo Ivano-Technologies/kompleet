@@ -90,6 +90,12 @@ async function handlePUT(
         typeof updates.is_reconciled === "boolean"
           ? updates.is_reconciled
           : undefined,
+      confidenceScore:
+        typeof updates.confidence_score === "number"
+          ? updates.confidence_score
+          : updates.confidence_score === null
+            ? null
+            : undefined,
     });
 
     return NextResponse.json({

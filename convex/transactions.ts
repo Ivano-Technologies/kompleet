@@ -1,7 +1,14 @@
 import { v } from "convex/values";
-import { internalMutation, mutation, query } from "./_generated/server";
+import {
+  internalMutation,
+  mutation,
+  query,
+  type MutationCtx,
+  type QueryCtx,
+} from "./_generated/server";
 import { getCurrentUser } from "./lib/auth";
 import { newExternalId, toMs } from "./lib/ids";
+import { transactionTriageReason } from "./lib/triage";
 
 const categoryEmbed = v.union(
   v.object({
@@ -27,9 +34,52 @@ const transactionApi = v.object({
   reference: v.union(v.string(), v.null()),
   notes: v.union(v.string(), v.null()),
   is_reconciled: v.boolean(),
+  triage_ignored: v.boolean(),
   created_at: v.string(),
   updated_at: v.string(),
   category: categoryEmbed,
+});
+
+const triageCategory = v.union(
+  v.object({
+    id: v.string(),
+    name: v.string(),
+  }),
+  v.null(),
+);
+
+const triageRow = v.object({
+  id: v.string(),
+  kind: v.union(v.literal("transaction"), v.literal("duplicate")),
+  merchant: v.string(),
+  amount: v.number(),
+  transaction_type: v.union(v.literal("debit"), v.literal("credit")),
+  date: v.string(),
+  bank_meta: v.union(v.string(), v.null()),
+  reason: v.union(
+    v.literal("uncategorised"),
+    v.literal("low_confidence"),
+    v.literal("duplicate_suspect"),
+  ),
+  category: triageCategory,
+  confidence_score: v.union(v.number(), v.null()),
+});
+
+const triageCounts = v.object({
+  needsCheck: v.number(),
+  uncategorised: v.number(),
+  lowConfidence: v.number(),
+  duplicateSuspect: v.number(),
+});
+
+const triageSnapshot = v.object({
+  kind: v.union(v.literal("transaction"), v.literal("duplicate")),
+  id: v.string(),
+  categoryId: v.union(v.string(), v.null()),
+  confidenceScore: v.union(v.number(), v.null()),
+  triageIgnored: v.boolean(),
+  duplicateStatus: v.union(v.string(), v.null()),
+  createdTransactionId: v.union(v.string(), v.null()),
 });
 
 async function embedCategory(
@@ -64,6 +114,7 @@ async function toApi(
     reference?: string;
     notes?: string;
     isReconciled: boolean;
+    triageIgnoredAt?: number;
     createdAt: number;
     updatedAt: number;
   },
@@ -82,6 +133,7 @@ async function toApi(
     reference: row.reference ?? null,
     notes: row.notes ?? null,
     is_reconciled: row.isReconciled,
+    triage_ignored: Boolean(row.triageIgnoredAt),
     created_at: new Date(row.createdAt).toISOString(),
     updated_at: new Date(row.updatedAt).toISOString(),
     category: await embedCategory(ctx, row.categoryId),
@@ -378,6 +430,8 @@ export const updateMine = mutation({
     categoryExternalId: v.optional(v.union(v.string(), v.null())),
     notes: v.optional(v.string()),
     isReconciled: v.optional(v.boolean()),
+    confidenceScore: v.optional(v.union(v.number(), v.null())),
+    triageIgnoredAt: v.optional(v.union(v.number(), v.null())),
   },
   returns: transactionApi,
   handler: async (ctx, args) => {
@@ -404,6 +458,14 @@ export const updateMine = mutation({
       categoryId = cat?._id;
       categoryExternalId = args.categoryExternalId;
     }
+    const confidenceScore =
+      args.confidenceScore === null
+        ? undefined
+        : (args.confidenceScore ?? row.confidenceScore);
+    const triageIgnoredAt =
+      args.triageIgnoredAt === null
+        ? undefined
+        : (args.triageIgnoredAt ?? row.triageIgnoredAt);
     await ctx.db.patch(row._id, {
       description: args.description ?? row.description,
       amount: args.amount ?? row.amount,
@@ -413,6 +475,8 @@ export const updateMine = mutation({
       categoryExternalId,
       notes: args.notes ?? row.notes,
       isReconciled: args.isReconciled ?? row.isReconciled,
+      confidenceScore,
+      triageIgnoredAt,
       updatedAt: Date.now(),
     });
     const updated = await ctx.db.get(row._id);
@@ -512,3 +576,384 @@ export const upsertFromBackfill = internalMutation({
     return args.externalId;
   },
 });
+
+function duplicatePayloadFields(payload: unknown): {
+  merchant: string;
+  amount: number;
+  date: string;
+  transactionType: "debit" | "credit";
+  bankMeta: string | null;
+} | null {
+  if (typeof payload !== "object" || payload === null) return null;
+  const record = payload as Record<string, unknown>;
+  const data =
+    typeof record.new_transaction_data === "object" &&
+    record.new_transaction_data !== null
+      ? (record.new_transaction_data as Record<string, unknown>)
+      : record;
+  const merchant =
+    typeof data.merchant === "string"
+      ? data.merchant
+      : typeof data.description === "string"
+        ? data.description
+        : "";
+  const amount = typeof data.amount === "number" ? data.amount : NaN;
+  const date =
+    typeof data.date === "string"
+      ? data.date
+      : typeof data.transaction_date === "string"
+        ? data.transaction_date
+        : "";
+  if (!merchant || !date || Number.isNaN(amount)) return null;
+  return {
+    merchant,
+    amount,
+    date,
+    transactionType: data.type === "credit" ? "credit" : "debit",
+    bankMeta:
+      typeof data.reference === "string"
+        ? data.reference
+        : typeof data.narration === "string"
+          ? data.narration
+          : null,
+  };
+}
+
+async function collectTriage(ctx: QueryCtx | MutationCtx) {
+  const user = await getCurrentUser(ctx);
+  const rows = await ctx.db
+    .query("transactions")
+    .withIndex("by_user", (q) => q.eq("userId", user._id))
+    .collect();
+  const duplicates = await ctx.db
+    .query("duplicateCandidates")
+    .withIndex("by_user", (q) => q.eq("userId", user._id))
+    .collect();
+
+  const items: Array<{
+    id: string;
+    kind: "transaction" | "duplicate";
+    merchant: string;
+    amount: number;
+    transaction_type: "debit" | "credit";
+    date: string;
+    bank_meta: string | null;
+    reason: "uncategorised" | "low_confidence" | "duplicate_suspect";
+    category: { id: string; name: string } | null;
+    confidence_score: number | null;
+    sortAt: number;
+  }> = [];
+
+  let uncategorised = 0;
+  let lowConfidence = 0;
+  for (const row of rows) {
+    const reason = transactionTriageReason(row);
+    if (!reason) continue;
+    if (reason === "uncategorised") uncategorised += 1;
+    else lowConfidence += 1;
+    const category = row.categoryId ? await embedCategory(ctx, row.categoryId) : null;
+    items.push({
+      id: row.externalId,
+      kind: "transaction",
+      merchant: row.description ?? "",
+      amount: row.amount ?? 0,
+      transaction_type: row.transactionType ?? "debit",
+      date: row.transactionDate ?? "",
+      bank_meta: row.reference ?? row.source ?? null,
+      reason,
+      category: category ? { id: category.id, name: category.name } : null,
+      confidence_score: row.confidenceScore ?? null,
+      sortAt: row.createdAt,
+    });
+  }
+
+  let duplicateSuspect = 0;
+  for (const row of duplicates) {
+    if ((row.status ?? "pending") !== "pending") continue;
+    const fields = duplicatePayloadFields(row.payload);
+    if (!fields) continue;
+    duplicateSuspect += 1;
+    items.push({
+      id: row.externalId,
+      kind: "duplicate",
+      merchant: fields.merchant,
+      amount: fields.amount,
+      transaction_type: fields.transactionType,
+      date: fields.date,
+      bank_meta: fields.bankMeta,
+      reason: "duplicate_suspect",
+      category: null,
+      confidence_score: null,
+      sortAt: row.createdAt,
+    });
+  }
+
+  items.sort((a, b) => {
+    if (a.date !== b.date) return a.date < b.date ? 1 : -1;
+    return b.sortAt - a.sortAt;
+  });
+
+  return {
+    items,
+    counts: {
+      needsCheck: uncategorised + lowConfidence + duplicateSuspect,
+      uncategorised,
+      lowConfidence,
+      duplicateSuspect,
+    },
+  };
+}
+
+export const listTriageMine = query({
+  args: {
+    limit: v.optional(v.number()),
+  },
+  returns: v.object({
+    items: v.array(triageRow),
+    counts: triageCounts,
+  }),
+  handler: async (ctx, args) => {
+    const collected = await collectTriage(ctx);
+    const limit = Math.min(Math.max(args.limit ?? 100, 1), 200);
+    return {
+      items: collected.items.slice(0, limit).map(({ sortAt: _sortAt, ...row }) => row),
+      counts: collected.counts,
+    };
+  },
+});
+
+export const countTriageMine = query({
+  args: {},
+  returns: triageCounts,
+  handler: async (ctx) => {
+    const collected = await collectTriage(ctx);
+    return collected.counts;
+  },
+});
+
+export const applyTriageMine = mutation({
+  args: {
+    kind: v.union(v.literal("transaction"), v.literal("duplicate")),
+    id: v.string(),
+    action: v.union(
+      v.literal("categorise"),
+      v.literal("confirm"),
+      v.literal("ignore"),
+    ),
+    categoryExternalId: v.optional(v.string()),
+  },
+  returns: v.object({
+    snapshot: triageSnapshot,
+    createdTransactionId: v.union(v.string(), v.null()),
+  }),
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
+    if (args.kind === "duplicate") {
+      const row = await ctx.db
+        .query("duplicateCandidates")
+        .withIndex("by_externalId", (q) => q.eq("externalId", args.id))
+        .unique();
+      if (!row || row.userId !== user._id) {
+        throw new Error("Duplicate not found");
+      }
+      const snapshot = {
+        kind: "duplicate" as const,
+        id: row.externalId,
+        categoryId: null,
+        confidenceScore: null,
+        triageIgnored: false,
+        duplicateStatus: row.status ?? "pending",
+        createdTransactionId: null as string | null,
+      };
+      if (args.action === "confirm") {
+        const fields = duplicatePayloadFields(row.payload);
+        if (!fields) throw new Error("Duplicate transaction data is incomplete");
+        const createdId = newExternalId();
+        const now = Date.now();
+        await ctx.db.insert("transactions", {
+          externalId: createdId,
+          userId: user._id,
+          userExternalId: user.externalId,
+          transactionDate: fields.date,
+          description: fields.merchant,
+          amount: fields.amount,
+          transactionType: fields.transactionType,
+          reference: fields.bankMeta ?? undefined,
+          source: "import",
+          isReconciled: false,
+          createdAt: now,
+          updatedAt: now,
+        });
+        await ctx.db.patch(row._id, { status: "kept_both" });
+        return {
+          snapshot: { ...snapshot, createdTransactionId: createdId },
+          createdTransactionId: createdId,
+        };
+      }
+      await ctx.db.patch(row._id, { status: "dismissed" });
+      return { snapshot, createdTransactionId: null };
+    }
+
+    const row = await ctx.db
+      .query("transactions")
+      .withIndex("by_externalId", (q) => q.eq("externalId", args.id))
+      .unique();
+    if (!row || row.userId !== user._id) {
+      throw new Error("Transaction not found");
+    }
+    const snapshot = {
+      kind: "transaction" as const,
+      id: row.externalId,
+      categoryId: row.categoryExternalId ?? null,
+      confidenceScore: row.confidenceScore ?? null,
+      triageIgnored: Boolean(row.triageIgnoredAt),
+      duplicateStatus: null,
+      createdTransactionId: null,
+    };
+
+    if (args.action === "ignore") {
+      await ctx.db.patch(row._id, {
+        triageIgnoredAt: Date.now(),
+        updatedAt: Date.now(),
+      });
+      return { snapshot, createdTransactionId: null };
+    }
+
+    if (args.action === "categorise") {
+      if (!args.categoryExternalId) {
+        throw new Error("Category is required");
+      }
+      const cat = await ctx.db
+        .query("categories")
+        .withIndex("by_externalId", (q) =>
+          q.eq("externalId", args.categoryExternalId as string),
+        )
+        .unique();
+      if (!cat) throw new Error("Category not found");
+      await ctx.db.patch(row._id, {
+        categoryId: cat._id,
+        categoryExternalId: cat.externalId,
+        confidenceScore: 100,
+        triageIgnoredAt: undefined,
+        updatedAt: Date.now(),
+      });
+      return { snapshot, createdTransactionId: null };
+    }
+
+    await ctx.db.patch(row._id, {
+      confidenceScore: 100,
+      triageIgnoredAt: undefined,
+      updatedAt: Date.now(),
+    });
+    return { snapshot, createdTransactionId: null };
+  },
+});
+
+export const undoTriageMine = mutation({
+  args: {
+    snapshot: triageSnapshot,
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
+    const { snapshot } = args;
+    if (snapshot.kind === "duplicate") {
+      const row = await ctx.db
+        .query("duplicateCandidates")
+        .withIndex("by_externalId", (q) => q.eq("externalId", snapshot.id))
+        .unique();
+      if (!row || row.userId !== user._id) {
+        throw new Error("Duplicate not found");
+      }
+      if (snapshot.createdTransactionId) {
+        const created = await ctx.db
+          .query("transactions")
+          .withIndex("by_externalId", (q) =>
+            q.eq("externalId", snapshot.createdTransactionId as string),
+          )
+          .unique();
+        if (created && created.userId === user._id) {
+          await ctx.db.delete(created._id);
+        }
+      }
+      await ctx.db.patch(row._id, {
+        status: snapshot.duplicateStatus ?? "pending",
+      });
+      return null;
+    }
+
+    const row = await ctx.db
+      .query("transactions")
+      .withIndex("by_externalId", (q) => q.eq("externalId", snapshot.id))
+      .unique();
+    if (!row || row.userId !== user._id) {
+      throw new Error("Transaction not found");
+    }
+    let categoryId = row.categoryId;
+    let categoryExternalId = row.categoryExternalId;
+    if (snapshot.categoryId === null) {
+      categoryId = undefined;
+      categoryExternalId = undefined;
+    } else if (snapshot.categoryId) {
+      const cat = await ctx.db
+        .query("categories")
+        .withIndex("by_externalId", (q) =>
+          q.eq("externalId", snapshot.categoryId as string),
+        )
+        .unique();
+      categoryId = cat?._id;
+      categoryExternalId = snapshot.categoryId;
+    }
+    await ctx.db.patch(row._id, {
+      categoryId,
+      categoryExternalId,
+      confidenceScore: snapshot.confidenceScore ?? undefined,
+      triageIgnoredAt: snapshot.triageIgnored ? Date.now() : undefined,
+      updatedAt: Date.now(),
+    });
+    return null;
+  },
+});
+
+export const ignoreLowConfidenceMine = mutation({
+  args: {},
+  returns: v.object({
+    count: v.number(),
+    snapshots: v.array(triageSnapshot),
+  }),
+  handler: async (ctx) => {
+    const user = await getCurrentUser(ctx);
+    const rows = await ctx.db
+      .query("transactions")
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .collect();
+    const snapshots: Array<{
+      kind: "transaction";
+      id: string;
+      categoryId: string | null;
+      confidenceScore: number | null;
+      triageIgnored: boolean;
+      duplicateStatus: null;
+      createdTransactionId: null;
+    }> = [];
+    const now = Date.now();
+    for (const row of rows) {
+      if (transactionTriageReason(row) !== "low_confidence") continue;
+      snapshots.push({
+        kind: "transaction",
+        id: row.externalId,
+        categoryId: row.categoryExternalId ?? null,
+        confidenceScore: row.confidenceScore ?? null,
+        triageIgnored: Boolean(row.triageIgnoredAt),
+        duplicateStatus: null,
+        createdTransactionId: null,
+      });
+      await ctx.db.patch(row._id, {
+        triageIgnoredAt: now,
+        updatedAt: now,
+      });
+    }
+    return { count: snapshots.length, snapshots };
+  },
+});
+

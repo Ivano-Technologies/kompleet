@@ -156,30 +156,28 @@ test.describe("Receipt OCR", () => {
       .fill(vendor);
     await expect(page.getByText(vendor).first()).toBeVisible();
 
-    // Review UI shows one card at a time from the first 100 uncategorized
-    // rows. This shared CI account already has a backlog, so assert via the
-    // list payload rather than whichever card is on screen.
+    // Review is a triage list (IVA-85), not the old sequential wizard.
+    // Shared CI accounts can have a backlog, so assert via the list payload.
     const reviewList = page.waitForResponse(
       (response) =>
-        new URL(response.url()).pathname === "/api/transactions" &&
-        new URL(response.url()).searchParams.get("uncategorized") === "true" &&
+        new URL(response.url()).pathname === "/api/transactions/triage" &&
         response.request().method() === "GET",
       { timeout: 30_000 },
     );
     await page.goto("/transactions/review");
     await expect(
-      page.getByRole("heading", { name: "Review Transactions", level: 1 }),
+      page.getByRole("heading", { name: "Quick check" }),
     ).toBeVisible();
     const reviewResponse = await reviewList;
     expect(reviewResponse.ok()).toBe(true);
     const reviewBody = (await reviewResponse.json()) as {
-      transactions?: Array<{ description?: string }>;
+      items?: Array<{ merchant?: string }>;
     };
     expect(
-      (reviewBody.transactions ?? []).some((row) =>
-        (row.description ?? "").includes(vendor),
+      (reviewBody.items ?? []).some((row) =>
+        (row.merchant ?? "").includes(vendor),
       ),
-      "receipt was recorded but missing from uncategorized list",
+      "receipt was recorded but missing from triage list",
     ).toBe(true);
   });
 
