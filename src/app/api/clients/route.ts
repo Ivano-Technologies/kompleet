@@ -2,16 +2,19 @@ import { NextRequest, NextResponse } from "next/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { withAudit } from "@/lib/with-audit";
 import { api } from "@/lib/convex/http";
-import {
-  isUnauthorized,
-  requireAuthedConvex,
-} from "@/lib/convex/server";
+import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
+import { isValidEmail, trimToEmpty } from "@/lib/invoices/profiles";
 import { z } from "zod";
 
 const createClientSchema = z.object({
   legal_name: z.string().trim().min(1).max(200),
-  email: z.string().email().optional().or(z.literal("")),
+  email: z.string().max(200).optional().or(z.literal("")),
   phone: z.string().max(50).optional(),
+  addressLine1: z.string().max(200).optional().or(z.literal("")),
+  addressLine2: z.string().max(200).optional().or(z.literal("")),
+  city: z.string().max(100).optional().or(z.literal("")),
+  state: z.string().max(100).optional().or(z.literal("")),
+  country: z.string().max(8).optional().or(z.literal("")),
 });
 
 async function handleGET(request: NextRequest) {
@@ -41,22 +44,23 @@ async function handlePOST(request: NextRequest) {
         { status: 400 },
       );
     }
+    const email = trimToEmpty(parsed.data.email);
+    if (email && !isValidEmail(email)) {
+      return NextResponse.json({ error: "Invalid email address" }, { status: 400 });
+    }
 
     const client = await convex.mutation(api.tenancy.createClient, {
       legalName: parsed.data.legal_name,
+      email: parsed.data.email,
+      phone: parsed.data.phone,
+      addressLine1: parsed.data.addressLine1,
+      addressLine2: parsed.data.addressLine2,
+      city: parsed.data.city,
+      state: parsed.data.state,
+      country: parsed.data.country,
     });
 
-    return NextResponse.json(
-      {
-        client: {
-          id: client.id,
-          legal_name: client.legal_name,
-          email: parsed.data.email || "",
-          phone: parsed.data.phone || "",
-        },
-      },
-      { status: 201 },
-    );
+    return NextResponse.json({ client }, { status: 201 });
   } catch (error) {
     if (isUnauthorized(error)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

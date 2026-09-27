@@ -83,7 +83,38 @@ async function handleDELETE(request: NextRequest, context: RouteContext) {
   }
 }
 
+async function handlePATCH(request: NextRequest, context: RouteContext) {
+  try {
+    const { id } = await context.params;
+    const { convex } = await requireAuthedConvex(request);
+    const body = (await request.json().catch(() => ({}))) as {
+      client_id?: string | null;
+      title?: string;
+      notes?: string;
+    };
+    const invoice = await convex.mutation(api.invoices.updateMine, {
+      externalId: id,
+      patch: {
+        clientExternalId: body.client_id === undefined ? undefined : body.client_id,
+        title: body.title,
+        notes: body.notes,
+      },
+    });
+    return NextResponse.json({ success: true, invoice });
+  } catch (error) {
+    if (isUnauthorized(error)) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    const message =
+      error instanceof Error ? error.message : "Failed to update invoice";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
 export const GET = withRateLimit(handleGET);
+export const PATCH = withRateLimit(
+  withAudit(handlePATCH, { action: "update", resourceType: "invoices" }),
+);
 export const DELETE = withRateLimit(
   withAudit(handleDELETE, { action: "delete", resourceType: "invoices" }),
 );

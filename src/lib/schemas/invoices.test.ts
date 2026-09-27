@@ -47,33 +47,29 @@ describe("createInvoiceSchema", () => {
     expect(result.success).toBe(true);
   });
 
-  it("rejects an invoice without client_id", () => {
+  it("accepts a draft invoice without client_id (IVA-82)", () => {
     const { client_id: _clientId, ...rest } = validInvoice();
-    const result = createInvoiceSchema.safeParse(rest);
-    expect(result.success).toBe(false);
-    if (!result.success) {
-      const paths = result.error.issues.map((i) => i.path.join("."));
-      expect(paths).toContain("client_id");
-    }
+    const result = createInvoiceSchema.safeParse({
+      ...rest,
+      title: "invoice drop flow",
+    });
+    expect(result.success).toBe(true);
   });
 
-  // 2. Missing customer_info fails
-  it("rejects an invoice without customer_info", () => {
-    const { customer_info, ...rest } = validInvoice();
-    const result = createInvoiceSchema.safeParse(rest);
-
-    expect(result.success).toBe(false);
-    if (!result.success) {
-      const paths = result.error.issues.map((i) => i.path.join("."));
-      expect(paths).toContain("customer_info");
-    }
+  it("accepts a draft invoice without customer_info (IVA-82)", () => {
+    const { customer_info: _customerInfo, ...rest } = validInvoice();
+    const result = createInvoiceSchema.safeParse({
+      ...rest,
+      title: "invoice drop flow",
+    });
+    expect(result.success).toBe(true);
   });
 
-  it("rejects customer_info with empty name", () => {
+  it("accepts customer_info with empty name on a draft", () => {
     const result = createInvoiceSchema.safeParse(
-      validInvoice({ customer_info: { name: "" } }),
+      validInvoice({ customer_info: { name: "" }, title: "Draft" }),
     );
-    expect(result.success).toBe(false);
+    expect(result.success).toBe(true);
   });
 
   // 3. Empty line_items array fails

@@ -1,0 +1,39 @@
+**Status:** LOCKED by Kezie (UX plan approved via CoS; Design defaults) · 27 Sep 2026 WAT · Handed to Shipping
+
+IVA-82 shipping handoff — Business + client profiles (Design → Shippie)
+Date: 27 Sep 2026 WAT · Design (Coco) · LOCKED · Design defaults · Handed to Shipping 27 Sep 2026 WAT
+
+PATHS
+- Spec:  /workspace/kompleet-design/iva-82-profiles/BUSINESS-CLIENT-PROFILES.md
+- Comps: /workspace/kompleet-design/iva-82-profiles/comps/
+    settings-business-profile.html (+ .png)
+    invoice-preview-personalised.html (+ .png)
+    invoice-billto-empty.html (+ .png)
+- Brand: /workspace/kompleet-design/wave1/OPTION-C-BRAND-SYSTEM.md
+- Shell: /workspace/kompleet-design/wave2/APP-SHELL.md  (SettingsModal — not a nav route)
+- Extend: /workspace/kompleet-design/wave3/INVOICES-DROP.md  (IVA-78 New sheet — do NOT redesign)
+
+DESIGN DEFAULTS (ship unless Kezie overrides)
+1. Business profile in SettingsModal: legalName, address lines, city/state/country, email, phone, TIN, VAT. No logo field.
+2. Clients: invoice-first create (extend IVA-78 with addressLine1 + city) + Settings → Clients list for edit.
+3. Invoice FROM = Business profile. Empty legalName → show KOMPLEET wordmark + nudge. Kill Plot 42 / support@ivanotechnologies fixtures.
+4. BILL TO = selected Client only. Drop filename → draft title + attachment name NEVER bill-to.
+5. Status chip stays outside BILL TO card.
+6. Gates: Save draft always OK. Issue/Send blocked without client. Issue/Send blocked without legalName. Incomplete address = banner nudge only (PDF/Send still allowed if legalName set).
+7. Onboarding: map fields if present; else Settings is SoT — do not rebuild onboarding in this ticket.
+
+DO NOT CHANGE
+- IVA-78 New sheet IA (Drop / Quick create / Full form) — extend client fields only
+- IVA-81 UBA import
+- Logo mark / letterhead image
+- JUO campaign
+- Option C tokens / wordmark-only / no teal glow
+- NRS Issue / QR / PDF pipeline beyond header data source
+- Primary nav (no new Settings or Clients route)
+
+ACCEPTANCE
+See §10 in BUSINESS-CLIENT-PROFILES.md.
+
+OPEN FOR KEZIE (non-blocking for Eng scaffold)
+- Soft-confirm vs soft-disable Issue when legalName set but address incomplete (Design default: nudge only).
+- Client delete policy when used on issued invoices (Design default: soft-hide / block hard delete).

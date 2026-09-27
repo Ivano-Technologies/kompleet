@@ -149,11 +149,21 @@ function asCustomerInfo(value: unknown): CustomerInfo {
     return { name: "" };
   }
   const row = value as Record<string, unknown>;
+  const structured = [
+    typeof row.addressLine1 === "string" ? row.addressLine1 : "",
+    typeof row.addressLine2 === "string" ? row.addressLine2 : "",
+    [row.city, row.state, row.country].filter((part) => typeof part === "string" && part).join(", "),
+  ]
+    .filter(Boolean)
+    .join("\n");
   return {
     name: typeof row.name === "string" ? row.name : "",
     email: typeof row.email === "string" ? row.email : undefined,
     phone: typeof row.phone === "string" ? row.phone : undefined,
-    address: typeof row.address === "string" ? row.address : undefined,
+    address:
+      typeof row.address === "string" && row.address
+        ? row.address
+        : structured || undefined,
     tin: typeof row.tin === "string" ? row.tin : undefined,
   };
 }
@@ -206,6 +216,11 @@ export async function generateInvoicePDF(invoiceId: string): Promise<Buffer> {
 
   const invoiceExtras = invoice as Record<string, unknown>;
   const customer = asCustomerInfo(invoice.customer_info);
+  const sender = asCustomerInfo(
+    (invoice as { sender?: unknown }).sender ?? {
+      name: "",
+    },
+  );
   const lineItems = asLineItems(invoice.line_items);
   const subtotal = invoice.subtotal ?? 0;
   const vatAmount = invoice.vat_amount ?? 0;
@@ -238,11 +253,17 @@ export async function generateInvoicePDF(invoiceId: string): Promise<Buffer> {
 
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
-  doc.text("KOMPLEET Platform", pageWidth - 15, 15, { align: "right" });
-  doc.text("Tax Compliance & E-Invoicing", pageWidth - 15, 20, {
-    align: "right",
-  });
-  doc.text("Nigeria", pageWidth - 15, 25, { align: "right" });
+  const senderName = sender.name.trim() || "KOMPLEET";
+  doc.text(senderName, pageWidth - 15, 15, { align: "right" });
+  if (sender.address) {
+    const senderLines = doc.splitTextToSize(sender.address, 80);
+    doc.text(senderLines, pageWidth - 15, 20, { align: "right" });
+  } else if (sender.email) {
+    doc.text(sender.email, pageWidth - 15, 20, { align: "right" });
+  }
+  if (sender.tin) {
+    doc.text(`TIN ${sender.tin}`, pageWidth - 15, 30, { align: "right" });
+  }
 
   // ============================================
   // Invoice Details
