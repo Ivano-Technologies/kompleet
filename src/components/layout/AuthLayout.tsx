@@ -21,8 +21,8 @@ export function AuthLayout({
   }
 
   return (
-    <div data-marketing className="flex min-h-screen w-full bg-bg">
-      <div className="relative hidden min-h-screen overflow-hidden bg-primary-deep md:block md:w-1/2">
+    <div data-marketing className="flex min-h-dvh w-full bg-bg">
+      <div className="relative hidden min-h-dvh overflow-hidden bg-primary-deep md:block md:w-1/2">
         <picture>
           <source
             srcSet="/assets/illustrations/auth-panel.svg"
@@ -37,14 +37,14 @@ export function AuthLayout({
         </picture>
       </div>
 
-      <div className="flex w-full items-center justify-center p-6 md:w-1/2 md:p-8">
-        <main className="w-full max-w-[440px] rounded-xl border border-border bg-surface p-8 shadow-1 md:p-12">
-          <div className="mb-6 flex justify-center">
-            <BrandWordmark href="/" size="lg" />
+      <div className="flex w-full items-center justify-center px-4 py-4 md:w-1/2 md:px-6 md:py-5">
+        <main className="w-full max-w-[440px] rounded-xl border border-border bg-surface p-5 shadow-1 md:p-6">
+          <div className="mb-3 flex justify-center">
+            <BrandWordmark href="/" size="md" />
           </div>
 
           {(headerLeftAddon || headerRightAddon) && (
-            <div className="mb-4 flex items-center justify-between gap-4 text-sm">
+            <div className="mb-2 flex items-center justify-between gap-3 text-sm">
               <div>{headerLeftAddon}</div>
               <div>{headerRightAddon}</div>
             </div>

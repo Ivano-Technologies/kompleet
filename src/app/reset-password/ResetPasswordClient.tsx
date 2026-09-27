@@ -5,12 +5,23 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthActions } from '@convex-dev/auth/react';
 import Link from 'next/link';
 import { AuthLayout } from '@/components/layout/AuthLayout';
+import {
+  AUTH_ERROR,
+  AUTH_FORM,
+  AUTH_INPUT,
+  AUTH_INPUT_WITH_TOGGLE,
+  AUTH_LABEL,
+  AUTH_SUBMIT,
+  AUTH_SUBTITLE,
+  AUTH_TITLE,
+  AUTH_TITLE_BLOCK,
+} from '@/components/layout/auth-density';
 import { CheckCircle2, Eye, EyeOff, KeyRound } from 'lucide-react';
 
 const headerLeftAddon = (
   <Link
     href="/login"
-    className="flex items-center gap-2 text-sm text-text-3 hover:text-text-1"
+    className="flex items-center gap-1.5 text-xs text-text-3 hover:text-text-1"
   >
     Back to Login
   </Link>
@@ -71,12 +82,12 @@ export default function ResetPasswordClient() {
   if (success) {
     return (
       <AuthLayout variant="dark-split" headerLeftAddon={headerLeftAddon}>
-        <div className="space-y-6 text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-accent/10">
-            <CheckCircle2 className="h-8 w-8 text-accent" />
+        <div className="space-y-4 text-center">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-accent/10">
+            <CheckCircle2 className="h-6 w-6 text-accent" />
           </div>
-          <h1 className="font-display text-2xl font-bold text-text-1 dark:text-dark-text-1">Password Updated!</h1>
-          <p className="text-sm text-text-3 dark:text-dark-text-3">
+          <h1 className={AUTH_TITLE}>Password Updated!</h1>
+          <p className={AUTH_SUBTITLE}>
             Your password has been reset. Redirecting to dashboard...
           </p>
         </div>
@@ -86,25 +97,25 @@ export default function ResetPasswordClient() {
 
   return (
     <AuthLayout variant="dark-split" headerLeftAddon={headerLeftAddon}>
-      <div className="mb-6 text-center">
-        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-accent/10">
-          <KeyRound className="h-7 w-7 text-accent" />
+      <div className={`${AUTH_TITLE_BLOCK} text-center`}>
+        <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-accent/10">
+          <KeyRound className="h-5 w-5 text-accent" />
         </div>
-        <h1 className="mb-2 font-display text-2xl font-bold text-text-1 dark:text-dark-text-1">Set New Password</h1>
-        <p className="text-sm text-text-3 dark:text-dark-text-3">
+        <h1 className={AUTH_TITLE}>Set New Password</h1>
+        <p className={AUTH_SUBTITLE}>
           Enter the 8-digit code from your email and choose a new password.
         </p>
       </div>
 
       {error && (
-        <div className="mb-6 rounded-md border border-error/30 bg-error-bg p-3 text-sm text-error dark:bg-error-darkBg dark:text-error-dark">
+        <div className={AUTH_ERROR}>
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className={AUTH_FORM}>
         <div>
-          <label htmlFor="email" className="text-xs font-bold uppercase tracking-wider text-text-2 dark:text-dark-text-2">
+          <label htmlFor="email" className={AUTH_LABEL}>
             Email
           </label>
           <input
@@ -113,11 +124,11 @@ export default function ResetPasswordClient() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="mt-2 h-[52px] w-full rounded-md border border-border bg-surface px-4 text-sm text-text-1 focus:border-primary focus:ring-2 focus:ring-primary/20"
+            className={AUTH_INPUT}
           />
         </div>
         <div>
-          <label htmlFor="code" className="text-xs font-bold uppercase tracking-wider text-text-2 dark:text-dark-text-2">
+          <label htmlFor="code" className={AUTH_LABEL}>
             Reset code
           </label>
           <input
@@ -129,14 +140,14 @@ export default function ResetPasswordClient() {
             required
             minLength={6}
             placeholder="8-digit code"
-            className="mt-2 h-[52px] w-full rounded-md border border-border bg-surface px-4 text-sm text-text-1 focus:border-primary focus:ring-2 focus:ring-primary/20"
+            className={AUTH_INPUT}
           />
         </div>
         <div>
-          <label htmlFor="password" className="text-xs font-bold uppercase tracking-wider text-text-2 dark:text-dark-text-2">
+          <label htmlFor="password" className={AUTH_LABEL}>
             New Password
           </label>
-          <div className="relative mt-2">
+          <div className="relative mt-1">
             <input
               id="password"
               type={showPassword ? 'text' : 'password'}
@@ -145,7 +156,7 @@ export default function ResetPasswordClient() {
               required
               minLength={8}
               placeholder="At least 8 characters"
-              className="h-[52px] w-full rounded-md border border-border bg-surface px-4 pr-11 text-sm text-text-1 focus:border-primary focus:ring-2 focus:ring-primary/20"
+              className={AUTH_INPUT_WITH_TOGGLE}
             />
             <button
               type="button"
@@ -158,7 +169,7 @@ export default function ResetPasswordClient() {
           </div>
         </div>
         <div>
-          <label htmlFor="confirmPassword" className="text-xs font-bold uppercase tracking-wider text-text-2 dark:text-dark-text-2">
+          <label htmlFor="confirmPassword" className={AUTH_LABEL}>
             Confirm Password
           </label>
           <input
@@ -169,13 +180,13 @@ export default function ResetPasswordClient() {
             required
             minLength={8}
             placeholder="Re-enter your password"
-            className="mt-2 h-[52px] w-full rounded-md border border-border bg-surface px-4 text-sm text-text-1 focus:border-primary focus:ring-2 focus:ring-primary/20"
+            className={AUTH_INPUT}
           />
         </div>
         <button
           type="submit"
           disabled={loading}
-          className="mt-6 h-[52px] w-full rounded-md bg-accent text-sm font-bold text-charcoal hover:bg-accent-hover disabled:opacity-50"
+          className={AUTH_SUBMIT}
         >
           {loading ? 'Updating...' : 'Update Password'}
         </button>

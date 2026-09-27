@@ -1,0 +1,45 @@
+Kompleet — Auth density handoff (Coco → Shipping)
+LOCKED 27 Sep 2026 WAT
+
+TICKET
+  Absorb into IVA-90 (same PR as Report a Bug FAB removal).
+  https://linear.app/ivano-technologies/issue/IVA-90/remove-floating-report-a-bug-fab-from-kompleet-app-ui
+  PR: https://github.com/Ivano-Technologies/kompleet/pull/126
+  Do NOT open a sibling Linear for density. Kezie/CoS: one PR, hold Preview Ready until BOTH FAB removal and auth density land.
+
+ASK
+  Tighten vertical rhythm on dedicated auth pages so the full form (incl. primary CTA + terms) fits one viewport with no page scroll on 1440×900, 1366×768, 1280×800. Signup is densest (currently cuts off after Business Email). Density only — keep Option C brand.
+
+DESIGN PACK
+  /workspace/kompleet-design/auth-density/AUTH-DENSITY.md
+  /workspace/kompleet-design/auth-density/comps/signup-dense-1366.html (+ .png)
+  /workspace/kompleet-design/auth-density/comps/login-dense.html (+ .png)
+  /workspace/kompleet-design/auth-density/shipping-handoff-auth-density.txt
+
+ENG TOUCHPOINTS
+  1. src/components/layout/AuthLayout.tsx  — card pad p-5/md:p-6 (was p-8/md:p-12), page py modest, wordmark mb-3
+  2. src/app/signup/page.tsx             — space-y-3, h-11 inputs/button, title text-2xl/~26, tighter mbs, trust mt-3 pt-3
+  3. src/app/login/page.tsx              — same tokens
+  4. src/app/forgot-password/page.tsx    — same tokens
+  5. src/app/reset-password/*            — same tokens
+  Sisters using AuthLayout inherit shell density.
+
+TOKEN SNAPSHOT (see AUTH-DENSITY.md for full table)
+  Card max-w-[440px] UNCHANGED
+  Card pad 20–24 | field gap 12 | input/button h 40–44 | Clash title 24–28
+  Label mt-1 | button drop mt-6 | trust inline tighter
+  Optional: hide subtitle @ max-height 800px
+
+DO NOT CHANGE
+  Fields/copy meaning, Option C colors, Ceoruse wordmark-only, Clash+Montserrat, no logo mark, no JUO
+  Homepage / hero auth (HERO-WITH-LOGIN.md) — separate fold rules; do not conflict
+
+ACCEPTANCE
+  At 1440×900, 1366×768, 1280×800: /signup shows Password + Create Free Account + Terms without page scroll.
+  Login / forgot / reset use same density; no scroll for full form+CTA.
+  FAB gone sitewide AND density landed before Preview Ready / CoS ping.
+
+RELATION
+  IVA-90 primary = remove Report a Bug FAB
+  IVA-90 add-on  = this auth density pack (same PR)
+  HERO-WITH-LOGIN = homepage only (already locked)

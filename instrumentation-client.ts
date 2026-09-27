@@ -28,16 +28,6 @@ Sentry.init({
       maskAllInputs: true, // Mask form inputs (tax data is sensitive)
       blockAllMedia: true, // Block media elements
     }),
-
-    // User Feedback: widget for users to report bugs
-    Sentry.feedbackIntegration({
-      colorScheme: "system",
-      showBranding: false,
-      buttonLabel: "Report a Bug",
-      submitButtonLabel: "Send Report",
-      formTitle: "Report a Problem",
-      messagePlaceholder: "What happened? What did you expect?",
-    }),
   ],
 
   // --- Environment ---

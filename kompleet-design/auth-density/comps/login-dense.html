@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Auth density — Login dense · Option C</title>
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=clash-display@600,700&display=swap"/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap"/>
+<style>
+  @font-face {
+    font-family: 'Ceoruse';
+    src: url('/workspace/kompleet/public/fonts/ceoruse.otf') format('opentype');
+    font-weight: 700;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: Montserrat, system-ui, sans-serif;
+    background: #1a2332;
+    color: #0D1B2A;
+    padding: 20px;
+  }
+  .page-title {
+    color: #fff; font-size: 13px; font-weight: 600; letter-spacing: 0.06em;
+    text-transform: uppercase; margin-bottom: 14px;
+  }
+  .page-title span { color: #0D9488; }
+  .label {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 8px 14px; border-radius: 8px 8px 0 0; color: #fff; background: #0B3A5C;
+    display: inline-block;
+  }
+  .label .meta { font-weight: 500; opacity: 0.75; margin-left: 8px; }
+  .viewport {
+    width: 1280px; height: 800px; border-radius: 0 10px 10px 10px; overflow: hidden;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.4); display: flex;
+  }
+  .art {
+    width: 50%; background: #072A45; position: relative; overflow: hidden; flex-shrink: 0;
+  }
+  .art::after {
+    content: ''; position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse at 30% 40%, rgba(13,148,136,0.18), transparent 55%),
+      linear-gradient(160deg, #072A45 0%, #0B3A5C 55%, #0a2f4a 100%);
+  }
+  .art-grid {
+    position: absolute; inset: 40px; z-index: 1; opacity: 0.35;
+    border: 1px solid rgba(255,255,255,0.12); border-radius: 12px;
+    background:
+      repeating-linear-gradient(0deg, transparent, transparent 31px, rgba(255,255,255,0.06) 31px, rgba(255,255,255,0.06) 32px),
+      repeating-linear-gradient(90deg, transparent, transparent 47px, rgba(255,255,255,0.05) 47px, rgba(255,255,255,0.05) 48px);
+  }
+  .form-col {
+    width: 50%; display: flex; align-items: center; justify-content: center;
+    background: #F4F1EB; padding: 20px 24px;
+  }
+  .card {
+    width: 100%; max-width: 440px; background: #FFFDF8;
+    border: 1px solid #DDD5C8; border-radius: 16px;
+    box-shadow: 0 4px 16px rgba(11,58,92,0.08);
+    padding: 22px 24px;
+  }
+  .wm {
+    font-family: Ceoruse, 'Clash Display', sans-serif;
+    font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+    font-size: 18px; color: #0B3A5C; text-align: center; margin-bottom: 12px;
+  }
+  .eyebrow {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+    color: #9CA3AF; margin-bottom: 4px;
+  }
+  .title {
+    font-family: 'Clash Display', Montserrat, sans-serif;
+    font-weight: 700; font-size: 26px; color: #0D1B2A; letter-spacing: -0.02em; margin-bottom: 4px;
+  }
+  .sub { font-size: 13px; color: #6B7280; margin-bottom: 12px; }
+  .fields { display: flex; flex-direction: column; gap: 12px; }
+  label {
+    display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; color: #3D4A55; margin-bottom: 4px;
+  }
+  .lab-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+  .lab-row label { margin-bottom: 0; }
+  .forgot { font-size: 11px; font-weight: 700; color: #0B3A5C; text-decoration: none; }
+  input {
+    width: 100%; height: 42px; border: 1px solid #DDD5C8; border-radius: 10px;
+    background: #FFFDF8; color: #0D1B2A; font-family: inherit; font-size: 13px;
+    padding: 0 12px; outline: none;
+  }
+  .btn {
+    width: 100%; height: 42px; margin-top: 4px; border: none; border-radius: 10px;
+    background: #0D9488; color: #fff; font-family: inherit; font-size: 13px; font-weight: 700;
+  }
+  .footer-link {
+    margin-top: 12px; text-align: center; font-size: 13px; color: #6B7280;
+  }
+  .footer-link a { color: #0B3A5C; font-weight: 700; text-decoration: none; }
+  .foot-note {
+    margin-top: 14px; color: rgba(255,255,255,0.45); font-size: 11px; max-width: 720px; line-height: 1.45;
+  }
+</style>
+</head>
+<body>
+  <div class="page-title">Kompleet auth density · Login · <span>dense tokens</span> · Option C</div>
+  <div class="label">After — login dense<span class="meta">same tokens as signup</span></div>
+  <div class="viewport">
+    <div class="art"><div class="art-grid"></div></div>
+    <div class="form-col">
+      <div class="card">
+        <div class="wm">Kompleet</div>
+        <div class="eyebrow">Welcome Back</div>
+        <div class="title">Sign in</div>
+        <div class="sub">Access your books, invoices, and tax centre.</div>
+        <div class="fields">
+          <div>
+            <label>Business Email</label>
+            <input type="email" placeholder="name@company.ng"/>
+          </div>
+          <div>
+            <div class="lab-row">
+              <label>Password</label>
+              <a class="forgot" href="#">Forgot password?</a>
+            </div>
+            <input type="password" placeholder="Your password"/>
+          </div>
+          <button class="btn" type="button">Sign in</button>
+        </div>
+        <p class="footer-link">Don't have an account? <a href="#">Create account</a></p>
+      </div>
+    </div>
+  </div>
+  <p class="foot-note">
+    Tokens: card p 22–24 · input/button h 42 · space-y 12 · Clash 26 · wordmark mb 12.
+    Dedicated /login only — homepage hero auth stays HERO-WITH-LOGIN.
+  </p>
+</body>
+</html>
