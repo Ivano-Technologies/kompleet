@@ -3,7 +3,18 @@
 import { useCallback, useId, useRef, useState, type DragEvent } from "react";
 import { Loader2, Lock, Upload } from "lucide-react";
 import { SUPPORTED_BANKS } from "@/lib/transaction-import/bank-configs";
+import {
+  classifyClientException,
+  classifyImportFailure,
+  formatFileSizeLabel,
+  viewModelForImportError,
+  type ClassifiedImportError,
+  type ImportErrorAction,
+  type ImportErrorViewModel,
+} from "@/lib/transaction-import/import-errors";
 import { cn } from "@/lib/utils";
+import { ImportErrorCard } from "./ImportErrorCard";
+import { ImportErrorToast } from "./ImportErrorToast";
 import {
   DEFAULT_BANK_CODE,
   DROP_COPY,
@@ -74,7 +85,8 @@ export function StatementDropZone({
   const [dragging, setDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [errorView, setErrorView] = useState<ImportErrorViewModel | null>(null);
+  const [showErrorToast, setShowErrorToast] = useState(false);
   const [passwordRequired, setPasswordRequired] = useState(false);
   const [password, setPassword] = useState("");
   const [showAdvanced, setShowAdvanced] = useState(showBankSelect);
@@ -83,9 +95,35 @@ export function StatementDropZone({
   );
   const [heldFile, setHeldFile] = useState<File | null>(null);
   const [whyOpen, setWhyOpen] = useState(false);
+  const bankSelectRef = useRef<HTMLSelectElement>(null);
 
   const resetInput = () => {
     if (inputRef.current) inputRef.current.value = "";
+  };
+
+  const applyClassifiedError = (
+    classified: ClassifiedImportError,
+    file: File | null,
+  ) => {
+    const view = viewModelForImportError(classified, {
+      fileName: file?.name ?? fileName,
+    });
+    setErrorView(view);
+    setShowErrorToast(view.showToast);
+    setPasswordRequired(view.showPasswordField);
+    if (view.revealBankPicker || showBankSelect) {
+      setShowAdvanced(true);
+    }
+    if (view.revealBankPicker) {
+      window.setTimeout(() => bankSelectRef.current?.focus(), 0);
+    }
+  };
+
+  const clearImportError = () => {
+    setErrorView(null);
+    setShowErrorToast(false);
+    setPasswordRequired(false);
+    if (!showBankSelect) setShowAdvanced(false);
   };
 
   const uploadFile = useCallback(
@@ -98,7 +136,8 @@ export function StatementDropZone({
       abortRef.current = controller;
 
       setUploading(true);
-      setError(null);
+      setErrorView(null);
+      setShowErrorToast(false);
       setFileName(file.name);
       setHeldFile(file);
 
@@ -123,7 +162,11 @@ export function StatementDropZone({
           sessionId?: string;
           error?: string;
           message?: string;
+          errorCode?: string;
           requiresPassword?: boolean;
+          bankCode?: string;
+          detectedBankCode?: string | null;
+          parseErrorType?: string;
         };
 
         if (response.ok && data.success) {
@@ -131,6 +174,7 @@ export function StatementDropZone({
           setPassword("");
           setHeldFile(null);
           setFileName(null);
+          clearImportError();
           if (!showBankSelect) setShowAdvanced(false);
           resetInput();
           onSuccess?.({
@@ -142,18 +186,31 @@ export function StatementDropZone({
           return;
         }
 
-        if (data.requiresPassword) {
-          setPasswordRequired(true);
-          setError(DROP_COPY.password);
-          return;
-        }
-
-        setError(data.error || data.message || "Upload failed. Please try again.");
-        setShowAdvanced(true);
+        applyClassifiedError(
+          classifyImportFailure({
+            errorCode: data.errorCode,
+            status: response.status,
+            error: data.error,
+            message: data.message,
+            requiresPassword: data.requiresPassword,
+            requestedBankCode: options?.bankCode ?? DEFAULT_BANK_CODE,
+            detectedBankCode: data.detectedBankCode,
+            bankCode: data.bankCode,
+            fileName: file.name,
+            parseErrorType: data.parseErrorType,
+          }),
+          file,
+        );
       } catch (err) {
         if (err instanceof DOMException && err.name === "AbortError") return;
-        setError("Upload failed. Please try again.");
-        setShowAdvanced(true);
+        applyClassifiedError(
+          classifyImportFailure({
+            clientKind: classifyClientException(err) ?? "network",
+            requestedBankCode: options?.bankCode ?? DEFAULT_BANK_CODE,
+            fileName: file.name,
+          }),
+          file,
+        );
       } finally {
         setUploading(false);
       }
@@ -163,12 +220,26 @@ export function StatementDropZone({
 
   const takeFile = (file: File | undefined) => {
     if (!file || disabled || uploading) return;
+    setHeldFile(file);
+    setFileName(file.name);
     if (!isSupportedStatementFile(file)) {
-      setError("Please select a CSV, Excel, or PDF file");
+      applyClassifiedError(
+        classifyImportFailure({
+          clientKind: "unsupported",
+          fileName: file.name,
+        }),
+        file,
+      );
       return;
     }
     if (file.size > MAX_BYTES) {
-      setError("File size must be less than 10MB");
+      applyClassifiedError(
+        classifyImportFailure({
+          clientKind: "size",
+          fileName: file.name,
+        }),
+        file,
+      );
       return;
     }
     setPasswordRequired(false);
@@ -197,20 +268,49 @@ export function StatementDropZone({
     takeFile(event.dataTransfer.files[0]);
   };
 
-  const retryWithPassword = () => {
+  const retryHeldFile = (bankCode?: string) => {
     if (!heldFile) return;
     void uploadFile(heldFile, {
       password,
-      bankCode: showAdvanced ? bankOverride : DEFAULT_BANK_CODE,
+      bankCode:
+        bankCode ??
+        (showAdvanced || showBankSelect
+          ? bankOverride || FALLBACK_BANK_CODE
+          : DEFAULT_BANK_CODE),
     });
   };
 
+  const openPicker = () => {
+    resetInput();
+    inputRef.current?.click();
+  };
+
+  const handleErrorAction = (action: ImportErrorAction) => {
+    if (action === "retry" || action === "retry-upload") {
+      retryHeldFile();
+      return;
+    }
+    if (action === "choose-file" || action === "try-csv") {
+      clearImportError();
+      openPicker();
+      return;
+    }
+    if (action === "select-bank" || action === "advanced") {
+      setShowAdvanced(true);
+      window.setTimeout(() => bankSelectRef.current?.focus(), 0);
+      return;
+    }
+    if (action === "unlock") {
+      retryHeldFile();
+    }
+  };
+
+  const retryWithPassword = () => {
+    retryHeldFile();
+  };
+
   const retryAdvanced = () => {
-    if (!heldFile) return;
-    void uploadFile(heldFile, {
-      password,
-      bankCode: bankOverride || FALLBACK_BANK_CODE,
-    });
+    retryHeldFile(bankOverride || FALLBACK_BANK_CODE);
   };
 
   const isHero = variant === "hero";
@@ -321,7 +421,7 @@ export function StatementDropZone({
         )}
       </div>
 
-      {(uploading || error || passwordRequired || showAdvanced) && (
+      {(uploading || errorView || passwordRequired || showAdvanced) && (
         <div className="mt-3 space-y-3">
           {uploading && (
             <div className="flex items-center gap-2 text-sm text-text-2">
@@ -341,10 +441,13 @@ export function StatementDropZone({
           )}
 
           {passwordRequired && (
-            <div className="rounded-xl border border-border bg-surface p-3 space-y-2">
-              <p className="text-sm font-medium text-text-1 flex items-center gap-2">
-                <Lock className="w-4 h-4" />
-                {DROP_COPY.password}
+            <div className="rounded-lg border border-error/35 bg-error/[0.08] border-l-4 border-l-error p-3.5 space-y-2">
+              <p className="text-sm font-semibold text-text-1 flex items-center gap-2">
+                <Lock className="w-5 h-5 text-error" />
+                {errorView?.title ?? DROP_COPY.password}
+              </p>
+              <p className="text-[13px] text-text-2">
+                {errorView?.body ?? DROP_COPY.passwordHint}
               </p>
               <div className="flex flex-col sm:flex-row gap-2">
                 <input
@@ -357,18 +460,39 @@ export function StatementDropZone({
                 />
                 <button
                   type="button"
-                  className="btn-primary text-sm px-3 py-2"
+                  className="btn-primary text-[13px] px-3.5 py-2"
                   onClick={retryWithPassword}
                   disabled={uploading || !password.trim()}
                 >
-                  Unlock & update
+                  {errorView?.primary.label ?? "Unlock"}
+                </button>
+                <button
+                  type="button"
+                  className="btn-secondary text-[13px] px-3.5 py-2"
+                  onClick={() => {
+                    clearImportError();
+                    openPicker();
+                  }}
+                >
+                  Choose different file
                 </button>
               </div>
             </div>
           )}
 
-          {error && !passwordRequired && (
-            <p className="text-sm text-error">{error}</p>
+          {errorView && !passwordRequired && !uploading && (
+            <ImportErrorCard
+              view={errorView}
+              fileLabel={
+                fileName
+                  ? [fileName, formatFileSizeLabel(heldFile?.size)]
+                      .filter(Boolean)
+                      .join(" · ")
+                  : undefined
+              }
+              onAction={handleErrorAction}
+              onDismiss={clearImportError}
+            />
           )}
 
           {showAdvanced && !uploading && (
@@ -376,6 +500,7 @@ export function StatementDropZone({
               <p className="text-sm font-medium text-text-1">{DROP_COPY.advanced}</p>
               <div className="flex flex-col sm:flex-row gap-2">
                 <select
+                  ref={bankSelectRef}
                   value={bankOverride}
                   onChange={(event) => setBankOverride(event.target.value)}
                   className="flex-1 px-3 py-2 text-sm rounded-md border border-border bg-surface text-text-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
@@ -399,6 +524,14 @@ export function StatementDropZone({
             </div>
           )}
         </div>
+      )}
+
+      {showErrorToast && errorView && (
+        <ImportErrorToast
+          view={errorView}
+          onRetry={() => handleErrorAction("retry-upload")}
+          onDismiss={() => setShowErrorToast(false)}
+        />
       )}
 
       {whyOpen && (

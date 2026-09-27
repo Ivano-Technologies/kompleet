@@ -23,11 +23,29 @@ import { resolveBankCode } from "@/lib/transaction-import/bank-configs";
 import { normalizeTransactions } from "@/lib/transaction-import/normalizer";
 import { validateBalances } from "@/lib/transaction-import/balance-validator";
 import { findDuplicates } from "@/lib/transaction-import/duplicate-detector";
+import {
+  classifyImportFailure,
+  type ImportErrorCode,
+} from "@/lib/transaction-import/import-errors";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
+function errorPayload(
+  signal: Parameters<typeof classifyImportFailure>[0],
+  extra: Record<string, unknown> = {},
+) {
+  const classified = classifyImportFailure(signal);
+  return {
+    errorCode: classified.code as ImportErrorCode,
+    bankCode: classified.bankCode,
+    bankName: classified.bankName,
+    detectedBankCode: signal.detectedBankCode ?? null,
+    ...extra,
+  };
+}
 
 async function handlePOST(request: NextRequest) {
   try {
@@ -41,17 +59,38 @@ async function handlePOST(request: NextRequest) {
     const password = (formData.get("password") as string)?.trim() || undefined;
 
     if (!file) {
-      return NextResponse.json({ error: "No file provided" }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: "No file provided",
+          ...errorPayload({ errorCode: "ERR_UPLOAD", error: "No file provided" }),
+        },
+        { status: 400 },
+      );
     }
 
     if (!bankCode || !isValidBankCode(bankCode)) {
-      return NextResponse.json({ error: "Invalid bank code" }, { status: 400 });
+      return NextResponse.json(
+        {
+          error: "Invalid bank code",
+          ...errorPayload({
+            errorCode: "ERR_BANK_UNKNOWN",
+            requestedBankCode: bankCode,
+            fileName: file.name,
+          }),
+        },
+        { status: 400 },
+      );
     }
 
     if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json(
         {
           error: `File size exceeds maximum of ${MAX_FILE_SIZE / 1024 / 1024}MB`,
+          ...errorPayload({
+            clientKind: "size",
+            requestedBankCode: bankCode,
+            fileName: file.name,
+          }),
         },
         { status: 400 },
       );
@@ -65,6 +104,11 @@ async function handlePOST(request: NextRequest) {
         {
           error:
             "Unsupported file type. Please upload CSV, Excel, or PDF files.",
+          ...errorPayload({
+            clientKind: "unsupported",
+            requestedBankCode: bankCode,
+            fileName: file.name,
+          }),
         },
         { status: 400 },
       );
@@ -115,6 +159,12 @@ async function handlePOST(request: NextRequest) {
               error:
                 "This file is password-protected. Please provide the password.",
               requiresPassword: true,
+              ...errorPayload({
+                errorCode: "ERR_PASSWORD",
+                requiresPassword: true,
+                requestedBankCode: bankCode,
+                fileName: file.name,
+              }),
             },
             { status: 400 },
           );
@@ -141,11 +191,24 @@ async function handlePOST(request: NextRequest) {
           errorsCount: parseResult.errors.length,
         });
 
-        const firstError = parseResult.errors[0]?.errorMessage;
+        const firstError = parseResult.errors[0];
+        const detectedBankCode = parseResult.detectedBankCode ?? null;
         return NextResponse.json(
           {
-            error: firstError || "No valid transactions found",
+            error: firstError?.errorMessage || "No valid transactions found",
             errors: parseResult.errors,
+            parseErrorType: firstError?.errorType,
+            ...errorPayload({
+              error: firstError?.errorMessage || "No valid transactions found",
+              parseErrorType: firstError?.errorType,
+              requestedBankCode: bankCode,
+              detectedBankCode,
+              bankCode:
+                bankCode === "AUTO"
+                  ? detectedBankCode
+                  : bankCode,
+              fileName: file.name,
+            }),
           },
           { status: 400 },
         );
@@ -257,6 +320,12 @@ async function handlePOST(request: NextRequest) {
         {
           error: errMsg,
           message: errMsg,
+          ...errorPayload({
+            status: 500,
+            error: errMsg,
+            requestedBankCode: bankCode,
+            fileName: file.name,
+          }),
         },
         { status: 500 },
       );
@@ -267,13 +336,21 @@ async function handlePOST(request: NextRequest) {
         {
           error: "Please sign in to upload bank statements",
           message: "Unauthorized",
+          ...errorPayload({ status: 401, error: "Unauthorized" }),
         },
         { status: 401 },
       );
     }
     console.error("Upload error:", error);
-    const message = error instanceof Error ? error.message : "Upload failed";
-    return NextResponse.json({ error: message, message }, { status: 500 });
+    const message = error instanceof Error ? error.message : "Import didn’t complete";
+    return NextResponse.json(
+      {
+        error: message,
+        message,
+        ...errorPayload({ status: 500, error: message }),
+      },
+      { status: 500 },
+    );
   }
 }
 
