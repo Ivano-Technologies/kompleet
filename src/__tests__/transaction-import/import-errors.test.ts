@@ -43,10 +43,21 @@ describe("IVA-83 import error taxonomy", () => {
     );
     expect(view.useUbaLayout).toBe(true);
     expect(view.title).toBe(IMPORT_ERROR_COPY.ubaLayout.title);
-    expect(view.body).toBe(IMPORT_ERROR_COPY.ubaLayout.body);
+    expect(view.body).toBe(IMPORT_ERROR_COPY.ubaLayout.pdf);
     expect(view.primary.label).toBe("Try CSV instead");
     expect(view.secondary?.label).toBe("Choose different file");
     expect(view.tertiary?.label).toBe("Advanced · choose bank");
+  });
+
+  it("does not call a UBA Excel miss a PDF", () => {
+    const view = viewModelForImportError(
+      { code: "ERR_BANK_PARSE", bankCode: "UBA", bankName: "UBA" },
+      { fileName: "OpTransactionHistoryUX527-09092026.xls" },
+    );
+    expect(view.useUbaLayout).toBe(true);
+    expect(view.body).toBe(IMPORT_ERROR_COPY.ubaLayout.excel);
+    expect(view.body).not.toMatch(/PDF/i);
+    expect(view.body).toMatch(/Excel/i);
   });
 
   it("interpolates {Bank} for non-UBA bank parse misses", () => {
