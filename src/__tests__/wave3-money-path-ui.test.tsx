@@ -18,6 +18,11 @@ vi.mock("next/link", () => ({
   ),
 }));
 
+vi.mock("convex/react", () => ({
+  useMutation: () => vi.fn(),
+  useQuery: () => undefined,
+}));
+
 describe("Wave 3 money-path UI", () => {
   beforeEach(() => {
     vi.stubGlobal(

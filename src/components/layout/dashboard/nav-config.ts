@@ -3,6 +3,7 @@ import {
   Calculator,
   FileSpreadsheet,
   FileText,
+  FolderOpen,
   FolderTree,
   History,
   LayoutDashboard,
@@ -36,6 +37,7 @@ export const PRIMARY_NAV: PrimaryNavItem[] = [
 ];
 
 export const MORE_NAV: MoreNavItem[] = [
+  { href: "/documents", label: "Documents", icon: FolderOpen },
   { href: "/expenses", label: "Expenses", icon: Wallet },
   { href: "/export", label: "Export / Audit", icon: FileSpreadsheet },
   { href: "/reports/profit-loss", label: "Profit & Loss", icon: PieChart },

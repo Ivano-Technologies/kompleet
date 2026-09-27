@@ -15,6 +15,7 @@ import {
   ensureClientFromName,
   issueInvoice,
 } from "./invoice-actions";
+import { useLibraryUpload } from "@/components/documents/use-library-upload";
 
 export function NewInvoiceSheet({
   open,
@@ -34,6 +35,7 @@ export function NewInvoiceSheet({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const { upload } = useLibraryUpload();
 
   useEffect(() => {
     if (!open) return;
@@ -142,6 +144,11 @@ export function NewInvoiceSheet({
         description: "Services",
         notes: `Attached: ${file.name}`,
       });
+      await upload(file, {
+        source: "invoice_drop",
+        linkType: "invoice",
+        linkId: created.invoice_id,
+      }).catch(() => undefined);
       setNotice(INV_COPY.dropToast);
       onCreated?.(created.invoice_id);
       close();
