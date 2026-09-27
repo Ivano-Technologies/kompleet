@@ -64,20 +64,10 @@ const nextConfig = {
     cpus: 1,
   },
 
-  // pdfjs Node fake-worker dynamically imports pdf.worker.mjs (webpackIgnore).
-  // NFT drops that file unless we include it — Preview then 400s ubaLayout.
-  outputFileTracingIncludes: {
-    "/api/transactions/upload-v2": [
-      "./node_modules/pdfjs-dist/legacy/build/**",
-      "./node_modules/pdfjs-dist/build/**",
-      "./node_modules/@napi-rs/canvas/**",
-    ],
-    "/src/app/api/transactions/upload-v2/route": [
-      "./node_modules/pdfjs-dist/legacy/build/**",
-      "./node_modules/pdfjs-dist/build/**",
-      "./node_modules/@napi-rs/canvas/**",
-    ],
-  },
+  // Do not outputFileTracingIncludes node_modules globs: pnpm store paths
+  // are symlinks and Vercel patchBuild rejects them
+  // ("invalid deployment package … files in symlinked directories").
+  // The upload-v2 pin imports pdf.worker.mjs itself so NFT traces that file.
 
   // pdf-parse / pdfjs need the native canvas addon at runtime on Vercel.
   // Bundling it drops the .node binary and getText() throws DOMMatrix.
