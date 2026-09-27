@@ -13,6 +13,10 @@ import {
   FilingGenerateSheet,
   MarkFiledSheet,
 } from "@/components/tax/FilingGenerateSheet";
+import {
+  QuietLoadWarn,
+  QUIET_500_COPY,
+} from "@/components/feedback/QuietLoadWarn";
 import { TAX_COPY } from "@/components/tax/tax-copy";
 
 interface Form {
@@ -36,6 +40,7 @@ export default function FilingCenterPage({
 }) {
   const [forms, setForms] = useState<Form[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [selectedFormType, setSelectedFormType] = useState<string>("all");
   const [selectedYear, setSelectedYear] = useState<number>(2026);
   const [showGenerateModal, setShowGenerateModal] = useState(false);
@@ -44,16 +49,23 @@ export default function FilingCenterPage({
 
   const fetchForms = useCallback(async () => {
     setLoading(true);
+    setLoadError(false);
     try {
       const params = new URLSearchParams();
       if (selectedFormType !== "all")
         params.append("formType", selectedFormType);
       if (selectedYear) params.append("taxYear", selectedYear.toString());
       const response = await fetch(`/api/forms/list?${params}`);
-      const data = await response.json();
-      if (data.success) setForms(data.forms);
+      const data = await response.json().catch(() => ({}));
+      if (response.ok && data.success) {
+        setForms(data.forms);
+        setLoadError(false);
+      } else {
+        setLoadError(true);
+      }
     } catch (error) {
       console.error("Error fetching forms:", error);
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -175,6 +187,13 @@ export default function FilingCenterPage({
         </ol>
       </div>
 
+      {loadError && (
+        <QuietLoadWarn
+          message={QUIET_500_COPY.formsStrip}
+          onRetry={() => void fetchForms()}
+        />
+      )}
+
       {/* Forms List */}
       <div className="rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface overflow-hidden">
         <div className="px-5 py-4 border-b border-light-border dark:border-dark-border">
@@ -192,6 +211,10 @@ export default function FilingCenterPage({
             <p className="text-sm text-light-text-tertiary dark:text-dark-text-tertiary">
               Loading forms...
             </p>
+          </div>
+        ) : loadError ? (
+          <div className="py-12 text-center">
+            <p className="text-sm text-text-3">{QUIET_500_COPY.unavailable}</p>
           </div>
         ) : forms.length === 0 ? (
           <div className="py-12 text-center">

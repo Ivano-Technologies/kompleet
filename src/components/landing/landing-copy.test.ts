@@ -250,8 +250,14 @@ describe("IVA-72 landing copy", () => {
     expect(rootLayout).toMatch(/url: "\/favicon-32\.png", sizes: "32x32"/);
     expect(rootLayout).toMatch(/url: "\/favicon-16\.png", sizes: "16x16"/);
     expect(rootLayout).toMatch(/url: "\/apple-touch-180\.png"/);
+    expect(rootLayout).toMatch(/themeColor: "#0D9488"/);
+    expect(rootLayout).toMatch(/<meta name="theme-color" content="#0D9488" \/>/);
+    expect(rootLayout).toMatch(
+      /<link rel="icon" href="\/favicon\.svg" type="image\/svg\+xml" \/>/,
+    );
     expect(rootLayout).not.toMatch(/\/favicon\.png/);
     expect(rootLayout).not.toMatch(/#C8F000|#E8A317/);
+    expect(rootLayout).not.toMatch(/#0B3A5C/);
 
     const faviconSvg = readFileSync(
       resolve(process.cwd(), "public/favicon.svg"),

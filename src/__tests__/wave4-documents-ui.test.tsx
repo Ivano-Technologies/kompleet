@@ -48,8 +48,17 @@ describe("IVA-75 Documents hub UI", () => {
       screen.getByText("Attach to a transaction, invoice, or expense anytime."),
     ).toBeTruthy();
     expect(screen.getByText("Choose file")).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Books" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Dashboard" })).toBeTruthy();
     expect(
-      screen.getByText("Bank statements? Drop them on Books or Dashboard."),
+      screen.getByText((_, node) =>
+        Boolean(
+          node &&
+            node.tagName === "P" &&
+            node.textContent ===
+              "Bank statements? Drop them on Books or Dashboard.",
+        ),
+      ),
     ).toBeTruthy();
   });
 

@@ -126,5 +126,7 @@ describe("IVA-75 attach / preview / Convex storage", () => {
     expect(invoicePage).toMatch(/source: "invoice_drop"/);
     expect(hub).toMatch(/looksLikeBankStatement/);
     expect(hub).toMatch(/DOCS_COPY\.toastStatement/);
+    expect(hub).toMatch(/DOCS_COPY\.toastStatementKeep/);
+    expect(hub).toMatch(/\/transactions\?import=1/);
   });
 });

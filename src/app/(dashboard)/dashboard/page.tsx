@@ -1,5 +1,9 @@
 import { requireAuth } from "@/lib/auth";
 import { getMonthlyIncomeExpenses } from "@/lib/dashboard/data-aggregation";
+import {
+  computeHasRealBooks,
+  isDemoBooksEnabled,
+} from "@/lib/dashboard/has-real-books";
 import { api } from "@/lib/convex/http";
 import { requireAuthedConvex } from "@/lib/convex/server";
 import DashboardClient from "./DashboardClient";
@@ -39,15 +43,19 @@ function isUncategorized(txn: {
 export default async function DashboardPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ triage?: string }>;
+  searchParams?: Promise<{ triage?: string; demo?: string }>;
 }) {
   const user = await requireAuth();
   const { convex } = await requireAuthedConvex();
   const params = searchParams ? await searchParams : {};
+  const demoMode = isDemoBooksEnabled({
+    searchParam: params.demo,
+    envFlag: process.env.NEXT_PUBLIC_ALLOW_DEMO_BOOKS,
+  });
 
   const currentYear = new Date().getFullYear();
 
-  const [thisYear, lastYear, monthlyData, invoices, booksPage] =
+  const [thisYear, lastYear, monthlyData, invoices, booksPage, importSessions] =
     await Promise.all([
       convex.query(api.transactions.totalsForYear, { taxYear: currentYear }),
       convex.query(api.transactions.totalsForYear, {
@@ -56,7 +64,14 @@ export default async function DashboardPage({
       getMonthlyIncomeExpenses(user.id, 8),
       convex.query(api.invoices.listMine, { status: "sent" }),
       convex.query(api.transactions.listMine, { page: 1, limit: 100 }),
+      convex.query(api.imports.listMine, {}),
     ]);
+
+  const hasRealBooks = computeHasRealBooks({
+    sessions: importSessions,
+    transactionCount: booksPage.total,
+    demoMode,
+  });
 
   const totalIncome = thisYear.income;
   const totalExpenses = thisYear.expenses;
@@ -133,7 +148,8 @@ export default async function DashboardPage({
       kpiData={kpiData}
       revenueData={revenueData}
       recentTransactions={recentTransactions}
-      hasBooks={booksPage.total > 0}
+      hasRealBooks={hasRealBooks}
+      demoMode={demoMode}
       uncategorizedCount={uncategorizedCount}
       duplicatesCount={0}
       initialTriageOpen={params.triage === "open"}
