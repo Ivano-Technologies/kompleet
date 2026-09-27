@@ -26,7 +26,7 @@ export default defineConfig({
   // all server-side and comparatively slow, so the per-test budget is generous.
   timeout: process.env.CI ? 120_000 : 90_000,
   expect: { timeout: 15_000 },
-  retries: process.env.CI ? 2 : 0,
+  retries: process.env.CI ? 1 : 0,
   // Several specs write to the same test account (transactions, calculation
   // history, export history), so CI stays single-worker to keep assertions on
   // "the most recent record" deterministic.

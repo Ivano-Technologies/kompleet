@@ -49,6 +49,51 @@ export async function fillHydrated(
 }
 
 /**
+ * Isolated CI Convex (`convex dev --once` / anonymous) starts empty. GitHub
+ * secrets still supply E2E_USER_* so specs do not skip — but that account is
+ * not in the local backend (`InvalidAccountId`). Waiting 45s for /dashboard
+ * then retrying twice blew the 45-minute e2e job. Seed via signup, then sign in.
+ */
+async function seedE2eUserViaSignup(page: Page): Promise<void> {
+  if (E2E_USER_PASSWORD.length < 8 || !/\d/.test(E2E_USER_PASSWORD)) {
+    throw new Error(
+      "Isolated Convex has no E2E user, and E2E_USER_PASSWORD cannot be used for signup (need 8+ characters and a digit).",
+    );
+  }
+
+  await page.goto("/signup");
+  await fillHydrated(page.getByPlaceholder("e.g. Tunde", { exact: true }), "E2E");
+  await fillHydrated(page.getByPlaceholder("e.g. Balogun", { exact: true }), "Tester");
+  await fillHydrated(
+    page.getByPlaceholder("e.g. Tunde Ventures Ltd", { exact: true }),
+    "Kompleet E2E",
+  );
+  await fillHydrated(
+    page.getByPlaceholder("name@company.ng", { exact: true }),
+    E2E_USER_EMAIL,
+  );
+  await fillHydrated(
+    page.getByPlaceholder("Minimum 8 characters", { exact: true }),
+    E2E_USER_PASSWORD,
+  );
+  await page.getByRole("button", { name: /Create Free Account/ }).click();
+
+  const created = page.getByRole("heading", { name: "Account Created!" });
+  const already = page.getByText(/already exists/i);
+  await Promise.race([
+    created.waitFor({ state: "visible", timeout: 20_000 }),
+    already.waitFor({ state: "visible", timeout: 20_000 }),
+  ]);
+
+  if (await already.isVisible().catch(() => false)) {
+    return;
+  }
+
+  await page.getByRole("link", { name: "Go to Dashboard" }).click();
+  await page.waitForURL(/\/dashboard(\?|$|\/)/, { timeout: 20_000 });
+}
+
+/**
  * Signs in through the real login form (src/app/login/page.tsx) using
  * Convex Auth (`useAuthActions` → `/api/auth`). Cookies are written by
  * `@convex-dev/auth/nextjs` middleware.
@@ -65,10 +110,33 @@ export async function login(page: Page): Promise<void> {
 
   await submit.click();
 
-  // requireAuth() in src/app/(dashboard)/layout.tsx bounces unverified users to
-  // /verify-email, so landing anywhere else means the seeded user is not
-  // email-confirmed. Assert the happy path explicitly for a clear failure.
-  await page.waitForURL(/\/dashboard(\?|$|\/)/, { timeout: 45_000 });
+  const invalid = page.getByText(/Invalid email or password/);
+  const reachedDashboard = page
+    .waitForURL(/\/dashboard(\?|$|\/)/, { timeout: 20_000 })
+    .then(() => "dashboard" as const);
+  const sawInvalid = invalid
+    .waitFor({ state: "visible", timeout: 20_000 })
+    .then(() => "invalid" as const);
+
+  const outcome = await Promise.race([reachedDashboard, sawInvalid]);
+
+  if (outcome === "invalid") {
+    await seedE2eUserViaSignup(page);
+    if (!/\/dashboard(\?|$|\/)/.test(page.url())) {
+      await page.goto("/login");
+      await fillHydrated(
+        page.getByPlaceholder("you@company.ng", { exact: true }),
+        E2E_USER_EMAIL,
+      );
+      await fillHydrated(
+        page.getByPlaceholder("Enter your password", { exact: true }),
+        E2E_USER_PASSWORD,
+      );
+      await page.getByRole("button", { name: "Sign In →" }).click();
+      await page.waitForURL(/\/dashboard(\?|$|\/)/, { timeout: 20_000 });
+    }
+  }
+
   await expect(page.getByPlaceholder("you@company.ng", { exact: true })).toHaveCount(0);
 
   // Isolated CI Convex starts empty. Money-path specs call Convex
