@@ -80,12 +80,22 @@ async function seedE2eUserViaSignup(page: Page): Promise<void> {
 
   const created = page.getByRole("heading", { name: "Account Created!" });
   const already = page.getByText(/already exists/i);
-  await Promise.race([
-    created.waitFor({ state: "visible", timeout: 20_000 }),
-    already.waitFor({ state: "visible", timeout: 20_000 }),
+  const jwtMissing = page.getByText(/JWT_PRIVATE_KEY|Missing environment variable/i);
+  const outcome = await Promise.race([
+    created.waitFor({ state: "visible", timeout: 20_000 }).then(() => "created" as const),
+    already.waitFor({ state: "visible", timeout: 20_000 }).then(() => "already" as const),
+    jwtMissing
+      .waitFor({ state: "visible", timeout: 20_000 })
+      .then(() => "jwt" as const),
   ]);
 
-  if (await already.isVisible().catch(() => false)) {
+  if (outcome === "jwt") {
+    throw new Error(
+      "Isolated Convex is missing JWT_PRIVATE_KEY / JWKS — scripts/ci-provision-convex.sh must set Convex Auth keys.",
+    );
+  }
+
+  if (outcome === "already") {
     return;
   }
 

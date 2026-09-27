@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# Provision an isolated Convex deployment for CI e2e (path B).
+# Provision an isolated Convex deployment for CI e2e.
 #
-# Auth stays on Supabase. This only needs a live Convex HTTP URL so
-# Playwright's local `pnpm dev` can call queries/mutations.
+# Web auth is Convex Auth (Password). Anonymous backends start with no
+# JWT_PRIVATE_KEY / JWKS, so signup/signin cannot issue tokens until we
+# generate and set those env vars. SITE_URL is the Playwright origin.
 #
 # Preference:
 #   1. NEXT_PUBLIC_CONVEX_URL already set (and not the CI placeholder)
@@ -61,6 +62,20 @@ functions_ready() {
   grep -Fq 'Convex functions ready' "${LOG}"
 }
 
+# Isolated backends cannot mint Convex Auth JWTs until these exist.
+# Also seed PIT tax rules so calculator e2e is not empty-table red.
+configure_isolated_backend() {
+  echo "Setting Convex Auth JWT keys on isolated backend"
+  CONVEX_AUTH_SITE_URL="${CONVEX_AUTH_SITE_URL:-http://localhost:3000}" \
+    node scripts/generate-convex-auth-keys.mjs --apply
+  if ! pnpm exec convex env get JWT_PRIVATE_KEY >/dev/null; then
+    echo "::error::JWT_PRIVATE_KEY was not set on the isolated Convex backend" >&2
+    exit 1
+  fi
+  echo "Seeding e2e tax rules on isolated backend"
+  pnpm exec convex run internal.tax.seedE2eTaxRules '{}'
+}
+
 # Anonymous local backends write the URL to .env.local before the first
 # function push. Wait for both the URL and a successful push so e2e does
 # not race "Missing NEXT_PUBLIC_CONVEX_URL" → empty schema.
@@ -73,6 +88,7 @@ for _ in $(seq 1 90); do
     echo "Provisioned isolated Convex at ${url}"
     write_github_env "${url}"
     export NEXT_PUBLIC_CONVEX_URL="${url}"
+    configure_isolated_backend
     exit 0
   fi
   if ! kill -0 "$(cat "${PID_FILE}")" 2>/dev/null; then

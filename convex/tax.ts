@@ -723,3 +723,64 @@ export const upsertTaxRuleFromBackfill = internalMutation({
     return args.externalId;
   },
 });
+
+/**
+ * Isolated CI Convex starts empty. Calculator e2e needs an active
+ * individual_income_tax bundle (same shape as populate_tax_rules.sql).
+ */
+export const seedE2eTaxRules = internalMutation({
+  args: {},
+  returns: v.object({
+    versionId: v.string(),
+    ruleCount: v.number(),
+  }),
+  handler: async (ctx) => {
+    const existing = await ctx.db
+      .query("ruleVersions")
+      .withIndex("by_active", (q) => q.eq("isActive", true))
+      .first();
+    if (existing) {
+      const rules = await ctx.db
+        .query("taxRules")
+        .withIndex("by_version", (q) => q.eq("ruleVersionId", existing._id))
+        .collect();
+      return { versionId: existing.externalId, ruleCount: rules.length };
+    }
+
+    const now = Date.now();
+    const versionId = "e2e-tax-rules";
+    const versionDocId = await ctx.db.insert("ruleVersions", {
+      externalId: versionId,
+      version: "e2e",
+      isActive: true,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    const rules: Array<{ key: string; value: Record<string, number | boolean | null> }> =
+      [
+        { key: "tax_bracket_1", value: { from: 0, to: 800_000, rate: 0 } },
+        { key: "tax_bracket_2", value: { from: 800_001, to: 3_000_000, rate: 15 } },
+        { key: "tax_bracket_3", value: { from: 3_000_001, to: 12_000_000, rate: 18 } },
+        { key: "tax_bracket_4", value: { from: 12_000_001, to: 25_000_000, rate: 21 } },
+        { key: "tax_bracket_5", value: { from: 25_000_001, to: 50_000_000, rate: 23 } },
+        { key: "tax_bracket_6", value: { from: 50_000_001, to: null, rate: 25 } },
+        { key: "rent_relief", value: { cap: 500_000, percentage: 20 } },
+        { key: "owner_occupier_interest", value: { deductible: true } },
+      ];
+
+    for (const rule of rules) {
+      await ctx.db.insert("taxRules", {
+        externalId: `e2e-${rule.key}`,
+        ruleVersionId: versionDocId,
+        ruleVersionExternalId: versionId,
+        ruleType: "individual_income_tax",
+        ruleKey: rule.key,
+        ruleValue: rule.value,
+        confidenceLevel: "verified",
+      });
+    }
+
+    return { versionId, ruleCount: rules.length };
+  },
+});
