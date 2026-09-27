@@ -30,7 +30,10 @@ async function handlePOST(request: NextRequest, context: RouteContext) {
     console.error("[Issue Invoice Error]", error);
     const message =
       error instanceof Error ? error.message : "Failed to issue invoice";
-    return NextResponse.json({ error: message }, { status: 500 });
+    const gated =
+      message === "Select a client before issuing" ||
+      message === "Add your business name in Settings before issuing";
+    return NextResponse.json({ error: message }, { status: gated ? 400 : 500 });
   }
 }
 

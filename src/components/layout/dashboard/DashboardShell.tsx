@@ -8,8 +8,7 @@ import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
 import { BottomNav } from "./BottomNav";
 import { SettingsModal } from "./SettingsModal";
-
-type SettingsSection = "general" | "notifications" | "preferences" | "admin" | "legal";
+import { parseSettingsSection, type SettingsSection } from "./settings-types";
 
 interface DashboardShellProps {
   user: { email?: string | null; id: string; role?: string };
@@ -24,8 +23,12 @@ export function DashboardShell({ user, children }: DashboardShellProps) {
 
   useEffect(() => {
     const q = searchParams.get("settings");
-    if (q === "open" || q === "notifications") {
-      setSettingsSection(q === "notifications" ? "notifications" : "general");
+    const parsed = parseSettingsSection(q);
+    if (parsed) {
+      setSettingsSection(parsed);
+      setSettingsOpen(true);
+    } else if (q === "open") {
+      setSettingsSection("general");
       setSettingsOpen(true);
     }
   }, [searchParams]);

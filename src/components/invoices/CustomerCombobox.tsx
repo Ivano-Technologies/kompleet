@@ -2,13 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { INV_COPY } from "./invoice-copy";
+import type { ClientProfile } from "@/lib/invoices/profiles";
 
-export type InvoiceClient = {
-  id: string;
-  legal_name: string;
-  email?: string;
-  phone?: string;
-};
+export type InvoiceClient = ClientProfile;
 
 export function CustomerCombobox({
   clients,
@@ -26,6 +22,8 @@ export function CustomerCombobox({
   const [creating, setCreating] = useState(false);
   const [newEmail, setNewEmail] = useState("");
   const [newPhone, setNewPhone] = useState("");
+  const [newAddress1, setNewAddress1] = useState("");
+  const [newCity, setNewCity] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -60,6 +58,8 @@ export function CustomerCombobox({
           legal_name: name,
           email: newEmail,
           phone: newPhone,
+          addressLine1: newAddress1,
+          city: newCity,
         }),
       });
       const body = (await response.json()) as {
@@ -69,17 +69,15 @@ export function CustomerCombobox({
       if (!response.ok || !body.client) {
         throw new Error(body.error || "Failed to create client");
       }
-      const created = {
-        ...body.client,
-        email: newEmail,
-        phone: newPhone,
-      };
+      const created = body.client;
       onCreated(created);
       onChange(created);
       setCreating(false);
       setOpen(false);
       setNewEmail("");
       setNewPhone("");
+      setNewAddress1("");
+      setNewCity("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create client");
     } finally {
@@ -151,6 +149,22 @@ export function CustomerCombobox({
                 <input
                   value={newPhone}
                   onChange={(event) => setNewPhone(event.target.value)}
+                  className="mt-1 w-full px-3 py-2 text-sm rounded-md border border-border bg-surface text-text-1"
+                />
+              </label>
+              <label className="block text-xs text-text-2">
+                {INV_COPY.clientAddress1}
+                <input
+                  value={newAddress1}
+                  onChange={(event) => setNewAddress1(event.target.value)}
+                  className="mt-1 w-full px-3 py-2 text-sm rounded-md border border-border bg-surface text-text-1"
+                />
+              </label>
+              <label className="block text-xs text-text-2">
+                {INV_COPY.clientCity}
+                <input
+                  value={newCity}
+                  onChange={(event) => setNewCity(event.target.value)}
                   className="mt-1 w-full px-3 py-2 text-sm rounded-md border border-border bg-surface text-text-1"
                 />
               </label>

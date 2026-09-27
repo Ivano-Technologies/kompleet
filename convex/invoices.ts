@@ -2,16 +2,24 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { getCurrentUser, userCanAccessClient } from "./lib/auth";
 import { newExternalId } from "./lib/ids";
+import {
+  customerInfoFromParty,
+  loadBusinessProfile,
+  partyFromBusiness,
+  partyFromClient,
+} from "./lib/profiles";
 
 const invoiceApi = v.object({
   id: v.string(),
   user_id: v.string(),
   client_id: v.union(v.string(), v.null()),
   invoice_number: v.string(),
+  title: v.union(v.string(), v.null()),
   invoice_date: v.union(v.string(), v.null()),
   due_date: v.union(v.string(), v.null()),
   tax_year: v.union(v.number(), v.null()),
   customer_info: v.any(),
+  sender: v.any(),
   line_items: v.any(),
   subtotal: v.union(v.number(), v.null()),
   vat_amount: v.union(v.number(), v.null()),
@@ -24,35 +32,42 @@ const invoiceApi = v.object({
   updated_at: v.string(),
 });
 
-function toApi(row: {
-  externalId: string;
-  userExternalId: string;
-  clientExternalId?: string;
-  invoiceNumber: string;
-  invoiceDate?: string;
-  dueDate?: string;
-  taxYear?: number;
-  customerInfo?: unknown;
-  lineItems?: unknown;
-  subtotal?: number;
-  vatAmount?: number;
-  totalAmount?: number;
-  amountDue?: number;
-  status: string;
-  notes?: string;
-  isImmutable: boolean;
-  createdAt: number;
-  updatedAt: number;
-}) {
+function toApi(
+  row: {
+    externalId: string;
+    userExternalId: string;
+    clientExternalId?: string;
+    invoiceNumber: string;
+    title?: string;
+    invoiceDate?: string;
+    dueDate?: string;
+    taxYear?: number;
+    customerInfo?: unknown;
+    senderSnapshot?: unknown;
+    lineItems?: unknown;
+    subtotal?: number;
+    vatAmount?: number;
+    totalAmount?: number;
+    amountDue?: number;
+    status: string;
+    notes?: string;
+    isImmutable: boolean;
+    createdAt: number;
+    updatedAt: number;
+  },
+  extras?: { customerInfo?: unknown; sender?: unknown },
+) {
   return {
     id: row.externalId,
     user_id: row.userExternalId,
     client_id: row.clientExternalId ?? null,
     invoice_number: row.invoiceNumber,
+    title: row.title ?? null,
     invoice_date: row.invoiceDate ?? null,
     due_date: row.dueDate ?? null,
     tax_year: row.taxYear ?? null,
-    customer_info: row.customerInfo ?? null,
+    customer_info: extras?.customerInfo ?? row.customerInfo ?? null,
+    sender: extras?.sender ?? row.senderSnapshot ?? null,
     line_items: row.lineItems ?? null,
     subtotal: row.subtotal ?? null,
     vat_amount: row.vatAmount ?? null,
@@ -64,6 +79,55 @@ function toApi(row: {
     created_at: new Date(row.createdAt).toISOString(),
     updated_at: new Date(row.updatedAt).toISOString(),
   };
+}
+
+async function hydrateInvoice(
+  ctx: Parameters<typeof getCurrentUser>[0],
+  row: {
+    externalId: string;
+    userExternalId: string;
+    clientId?: import("./_generated/dataModel").Id<"clients">;
+    clientExternalId?: string;
+    invoiceNumber: string;
+    title?: string;
+    invoiceDate?: string;
+    dueDate?: string;
+    taxYear?: number;
+    customerInfo?: unknown;
+    senderSnapshot?: unknown;
+    lineItems?: unknown;
+    subtotal?: number;
+    vatAmount?: number;
+    totalAmount?: number;
+    amountDue?: number;
+    status: string;
+    notes?: string;
+    isImmutable: boolean;
+    createdAt: number;
+    updatedAt: number;
+  },
+  user: Awaited<ReturnType<typeof getCurrentUser>>,
+) {
+  const issued = row.isImmutable || row.status === "issued" || row.status === "paid";
+  if (issued) {
+    return toApi(row, {
+      customerInfo: row.customerInfo,
+      sender: row.senderSnapshot,
+    });
+  }
+
+  const profile = await loadBusinessProfile(ctx, user);
+  const sender = partyFromBusiness(profile);
+  let customerInfo = row.customerInfo ?? null;
+  if (row.clientId) {
+    const client = await ctx.db.get(row.clientId);
+    if (client) {
+      customerInfo = customerInfoFromParty(partyFromClient(client));
+    }
+  } else {
+    customerInfo = null;
+  }
+  return toApi(row, { customerInfo, sender });
 }
 
 export const listMine = query({
@@ -83,7 +147,11 @@ export const listMine = query({
       if (args.taxYear !== undefined && r.taxYear !== args.taxYear) return false;
       return true;
     });
-    return filtered.map(toApi);
+    const out = [];
+    for (const row of filtered) {
+      out.push(await hydrateInvoice(ctx, row, user));
+    }
+    return out;
   },
 });
 
@@ -97,7 +165,7 @@ export const getMine = query({
       .withIndex("by_externalId", (q) => q.eq("externalId", args.externalId))
       .unique();
     if (!row || row.userId !== user._id) return null;
-    return toApi(row);
+    return await hydrateInvoice(ctx, row, user);
   },
 });
 
@@ -136,6 +204,7 @@ export const createMine = mutation({
     dueDate: v.optional(v.string()),
     taxYear: v.optional(v.number()),
     clientExternalId: v.optional(v.string()),
+    title: v.optional(v.string()),
     customerInfo: v.optional(v.any()),
     lineItems: v.optional(v.any()),
     subtotal: v.optional(v.number()),
@@ -194,6 +263,7 @@ export const createMine = mutation({
       clientId,
       clientExternalId: args.clientExternalId,
       invoiceNumber,
+      title: args.title,
       invoiceDate: args.invoiceDate,
       dueDate: args.dueDate,
       taxYear: year,
@@ -221,7 +291,7 @@ export const createMine = mutation({
       action: "create",
       createdAt: now,
     });
-    return toApi(row);
+    return await hydrateInvoice(ctx, row, user);
   },
 });
 
@@ -240,14 +310,41 @@ export const updateMine = mutation({
     if (!row || row.userId !== user._id) throw new Error("Invoice not found");
     if (row.isImmutable) throw new Error("Invoice is immutable");
     const patch = args.patch as Record<string, unknown>;
+
+    let clientId = row.clientId;
+    let clientExternalId = row.clientExternalId;
+    let customerInfo = row.customerInfo;
+    if (typeof patch.clientExternalId === "string" && patch.clientExternalId) {
+      const client = await ctx.db
+        .query("clients")
+        .withIndex("by_externalId", (q) =>
+          q.eq("externalId", patch.clientExternalId as string),
+        )
+        .unique();
+      if (!client) throw new Error("Client not found");
+      const ok = await userCanAccessClient(ctx, client._id);
+      if (!ok) throw new Error("Unauthorized");
+      clientId = client._id;
+      clientExternalId = client.externalId;
+      customerInfo = customerInfoFromParty(partyFromClient(client));
+    } else if (patch.clientExternalId === null) {
+      clientId = undefined;
+      clientExternalId = undefined;
+      customerInfo = undefined;
+    }
+
     await ctx.db.patch(row._id, {
       status: typeof patch.status === "string" ? patch.status : row.status,
       notes: typeof patch.notes === "string" ? patch.notes : row.notes,
+      title: typeof patch.title === "string" ? patch.title : row.title,
+      clientId,
+      clientExternalId,
+      customerInfo,
       updatedAt: Date.now(),
     });
     const updated = await ctx.db.get(row._id);
     if (!updated) throw new Error("Invoice not found");
-    return toApi(updated);
+    return await hydrateInvoice(ctx, updated, user);
   },
 });
 
@@ -261,12 +358,30 @@ export const issueMine = mutation({
       .withIndex("by_externalId", (q) => q.eq("externalId", args.externalId))
       .unique();
     if (!row || row.userId !== user._id) throw new Error("Invoice not found");
+
+    if (!row.clientId) {
+      throw new Error("Select a client before issuing");
+    }
+    const client = await ctx.db.get(row.clientId);
+    if (!client) {
+      throw new Error("Select a client before issuing");
+    }
+
+    const profile = await loadBusinessProfile(ctx, user);
+    if (!profile.legalName.trim()) {
+      throw new Error("Add your business name in Settings before issuing");
+    }
+
+    const senderSnapshot = partyFromBusiness(profile);
+    const customerInfo = customerInfoFromParty(partyFromClient(client));
     const now = Date.now();
     await ctx.db.patch(row._id, {
       status: "issued",
       isImmutable: true,
       issuedAt: now,
       updatedAt: now,
+      senderSnapshot,
+      customerInfo,
     });
     await ctx.db.insert("invoiceAuditLogs", {
       invoiceId: row._id,
@@ -277,7 +392,7 @@ export const issueMine = mutation({
     });
     const updated = await ctx.db.get(row._id);
     if (!updated) throw new Error("Invoice not found");
-    return toApi(updated);
+    return await hydrateInvoice(ctx, updated, user);
   },
 });
 

@@ -28,4 +28,13 @@ export const INV_COPY = {
   clientPhone: "Phone",
   clientSave: "Save client",
   clientSearch: "Search or type a name…",
+  clientAddress1: "Address line 1",
+  clientCity: "City",
+  billtoLabel: "BILL TO",
+  billtoEmpty: "Select or create a client",
+  billtoRequired: "Select a client before issuing",
+  fromLabel: "FROM",
+  fromEdit: "Edit in Settings",
+  fromFallback: "KOMPLEET",
+  fromNoAddress: "No business address yet",
 } as const;
