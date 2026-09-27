@@ -68,4 +68,13 @@ describe("IVA-85 review triage lock", () => {
     expect(sheet).not.toMatch(/#C8F000|#E8A317/);
     expect(sheet).not.toMatch(/Skip for now/);
   });
+
+  it("falls back when triage Convex mutations are undeployed", () => {
+    const route = read("src/app/api/transactions/triage/route.ts");
+    const fallback = read("src/lib/transactions/triage-fallback.ts");
+    expect(route).toMatch(/applyTriageFallback/);
+    expect(route).toMatch(/withConvexRetry/);
+    expect(fallback).toMatch(/applyTriageMine/);
+    expect(fallback).toMatch(/updateMine/);
+  });
 });

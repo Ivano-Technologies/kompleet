@@ -7,8 +7,11 @@ import {
   type TriageRow,
 } from "@/lib/transactions/triage";
 import {
+  applyTriageFallback,
   isMissingConvexFunction,
+  isTransientConvexError,
   listTriageFallback,
+  withConvexRetry,
 } from "@/lib/transactions/triage-fallback";
 import { z } from "zod";
 
@@ -46,12 +49,14 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
     const limit = limitRaw ? Number(limitRaw) : 100;
     const safeLimit = Number.isFinite(limit) ? limit : 100;
     try {
-      const [triage, categories] = await Promise.all([
-        convex.query(api.transactions.listTriageMine, {
-          limit: safeLimit,
-        }),
-        convex.query(api.categories.list, {}),
-      ]);
+      const [triage, categories] = await withConvexRetry(() =>
+        Promise.all([
+          convex.query(api.transactions.listTriageMine, {
+            limit: safeLimit,
+          }),
+          convex.query(api.categories.list, {}),
+        ]),
+      );
 
       const items: TriageRow[] = triage.items.map((row) => ({
         id: row.id,
@@ -83,7 +88,9 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
         })),
       });
     } catch (error) {
-      if (!isMissingConvexFunction(error)) throw error;
+      if (!isMissingConvexFunction(error) && !isTransientConvexError(error)) {
+        throw error;
+      }
       const fallback = await listTriageFallback(convex, safeLimit);
       return NextResponse.json(fallback);
     }
@@ -111,36 +118,47 @@ async function handlePOST(request: NextRequest): Promise<NextResponse> {
     }
 
     const body = parsed.data;
-    if (body.op === "undo") {
-      await convex.mutation(api.transactions.undoTriageMine, {
-        snapshot: body.snapshot,
-      });
-      return NextResponse.json({ success: true });
-    }
+    try {
+      if (body.op === "undo") {
+        await withConvexRetry(() =>
+          convex.mutation(api.transactions.undoTriageMine, {
+            snapshot: body.snapshot,
+          }),
+        );
+        return NextResponse.json({ success: true });
+      }
 
-    if (body.op === "ignore_low") {
-      const result = await convex.mutation(
-        api.transactions.ignoreLowConfidenceMine,
-        {},
+      if (body.op === "ignore_low") {
+        const result = await withConvexRetry(() =>
+          convex.mutation(api.transactions.ignoreLowConfidenceMine, {}),
+        );
+        return NextResponse.json({
+          success: true,
+          count: result.count,
+          snapshots: result.snapshots,
+        });
+      }
+
+      const result = await withConvexRetry(() =>
+        convex.mutation(api.transactions.applyTriageMine, {
+          kind: body.kind,
+          id: body.id,
+          action: body.op,
+          categoryExternalId: body.categoryId,
+        }),
       );
       return NextResponse.json({
         success: true,
-        count: result.count,
-        snapshots: result.snapshots,
+        snapshot: result.snapshot,
+        createdTransactionId: result.createdTransactionId,
       });
+    } catch (error) {
+      if (!isMissingConvexFunction(error) && !isTransientConvexError(error)) {
+        throw error;
+      }
+      const fallback = await applyTriageFallback(convex, body);
+      return NextResponse.json(fallback);
     }
-
-    const result = await convex.mutation(api.transactions.applyTriageMine, {
-      kind: body.kind,
-      id: body.id,
-      action: body.op,
-      categoryExternalId: body.categoryId,
-    });
-    return NextResponse.json({
-      success: true,
-      snapshot: result.snapshot,
-      createdTransactionId: result.createdTransactionId,
-    });
   } catch (error) {
     if (isUnauthorized(error)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
