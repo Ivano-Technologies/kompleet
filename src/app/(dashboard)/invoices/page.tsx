@@ -12,13 +12,20 @@ import {
 } from "lucide-react";
 import { NewInvoiceSheet } from "@/components/invoices/NewInvoiceSheet";
 import { InvoiceDropZone } from "@/components/invoices/InvoiceDropZone";
+import { InvoicePreview } from "@/components/invoices/InvoicePreview";
 import { INV_COPY } from "@/components/invoices/invoice-copy";
+import { BIZ_COPY } from "@/components/settings/profile-copy";
 import {
-  clientNameFromFile,
+  attachInvoiceClient,
   createInvoiceDraft,
-  ensureClientFromName,
+  titleFromFile,
 } from "@/components/invoices/invoice-actions";
+import type { InvoiceClient } from "@/components/invoices/CustomerCombobox";
 import { useLibraryUpload } from "@/components/documents/use-library-upload";
+import {
+  hasLegalName,
+  type BusinessProfile,
+} from "@/lib/invoices/profiles";
 
 type Invoice = InvoiceView;
 
@@ -43,7 +50,15 @@ function InvoicesPageInner() {
   const [yearFilter] = useState<number>(new Date().getFullYear());
   const [sheetOpen, setSheetOpen] = useState(false);
   const [dropNotice, setDropNotice] = useState<string | null>(null);
+  const [profile, setProfile] = useState<BusinessProfile | null>(null);
+  const [clients, setClients] = useState<InvoiceClient[]>([]);
   const { upload } = useLibraryUpload();
+
+  const openBusinessSettings = () => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("settings", "business");
+    router.push(`/invoices?${params.toString()}`);
+  };
 
   const fetchInvoices = useCallback(async () => {
     setLoading(true);
@@ -73,6 +88,32 @@ function InvoicesPageInner() {
   }, [fetchInvoices]);
 
   useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const [profileRes, clientsRes] = await Promise.all([
+          fetch("/api/business-profile", { credentials: "include" }),
+          fetch("/api/clients", { credentials: "include" }),
+        ]);
+        if (cancelled) return;
+        if (profileRes.ok) {
+          const body = (await profileRes.json()) as { profile?: BusinessProfile };
+          setProfile(body.profile ?? null);
+        }
+        if (clientsRes.ok) {
+          const body = (await clientsRes.json()) as { clients?: InvoiceClient[] };
+          setClients(body.clients ?? []);
+        }
+      } catch {
+        /* preview still works with empty profile */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
     if (searchParams.get("new") === "1") setSheetOpen(true);
   }, [searchParams]);
 
@@ -88,7 +129,8 @@ function InvoicesPageInner() {
     const q = searchQuery.toLowerCase();
     return (
       invoice.invoice_number.toLowerCase().includes(q) ||
-      invoice.customer_info.name.toLowerCase().includes(q)
+      (invoice.title ?? "").toLowerCase().includes(q) ||
+      (invoice.customer_info?.name ?? "").toLowerCase().includes(q)
     );
   });
 
@@ -122,13 +164,12 @@ function InvoicesPageInner() {
   );
 
   const handleEmptyDrop = async (file: File) => {
-    const client = await ensureClientFromName(clientNameFromFile(file.name));
     const created = await createInvoiceDraft({
-      client,
       amount: 0,
       addVat: true,
       description: "Services",
       notes: `Attached: ${file.name}`,
+      title: titleFromFile(file.name),
     });
     await upload(file, {
       source: "invoice_drop",
@@ -279,14 +320,14 @@ function InvoicesPageInner() {
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div className="w-8 h-8 rounded-lg bg-primary-500/10 flex items-center justify-center flex-shrink-0">
                         <span className="text-primary-500 font-bold text-xs">
-                          {invoice.customer_info.name
+                          {(invoice.customer_info?.name || invoice.title || "IN")
                             .substring(0, 2)
                             .toUpperCase()}
                         </span>
                       </div>
                       <div className="min-w-0">
                         <div className="font-medium text-sm text-light-text-primary dark:text-dark-text-primary truncate">
-                          {invoice.customer_info.name}
+                          {invoice.customer_info?.name || invoice.title || invoice.invoice_number}
                         </div>
                         <div className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
                           {invoice.invoice_number}
@@ -322,19 +363,41 @@ function InvoicesPageInner() {
         {selectedInvoice ? (
           <div className="max-w-3xl mx-auto p-6 lg:p-8">
             {/* Action Bar */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-start justify-between mb-6 gap-4">
               <div>
-                <h2 className="text-lg font-bold text-light-text-primary dark:text-dark-text-primary">
-                  {selectedInvoice.invoice_number}
-                </h2>
-                <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary mt-0.5">
-                  Invoice preview
+                <button
+                  type="button"
+                  onClick={() => router.push(`/invoices/${selectedInvoice.id}`)}
+                  className="text-left"
+                >
+                  <h2 className="text-lg font-bold text-text-1 hover:text-primary">
+                    {selectedInvoice.invoice_number}
+                  </h2>
+                </button>
+                <p className="text-xs text-text-3 mt-0.5">
+                  Title:{" "}
+                  <strong className="text-text-2 font-semibold">
+                    {selectedInvoice.title ||
+                      selectedInvoice.customer_info?.name ||
+                      "Untitled draft"}
+                  </strong>
                 </p>
               </div>
               <div className="flex items-center gap-2">
+                <StatusBadge status={selectedInvoice.status} />
                 <button
                   onClick={() => router.push(`/invoices/${selectedInvoice.id}`)}
-                  className="btn-primary text-sm px-3 py-2 flex items-center gap-1.5"
+                  className="btn-primary text-sm px-3 py-2 flex items-center gap-1.5 disabled:opacity-45"
+                  disabled={
+                    !selectedInvoice.client_id || !hasLegalName(profile ?? { legalName: "" })
+                  }
+                  title={
+                    !selectedInvoice.client_id
+                      ? INV_COPY.billtoRequired
+                      : !hasLegalName(profile ?? { legalName: "" })
+                        ? BIZ_COPY.blockLegalName
+                        : undefined
+                  }
                 >
                   <Send className="w-3.5 h-3.5" /> Send
                 </button>
@@ -345,99 +408,50 @@ function InvoicesPageInner() {
                       "_blank",
                     )
                   }
-                  className="btn-secondary text-sm px-3 py-2 flex items-center gap-1.5"
+                  className="btn-secondary text-sm px-3 py-2 flex items-center gap-1.5 disabled:opacity-45"
+                  disabled={!hasLegalName(profile ?? { legalName: "" })}
+                  title={
+                    !hasLegalName(profile ?? { legalName: "" })
+                      ? BIZ_COPY.blockLegalName
+                      : undefined
+                  }
                 >
                   <Download className="w-3.5 h-3.5" /> PDF
                 </button>
               </div>
             </div>
 
-            {/* Invoice Card */}
-            <div className="bg-light-surface dark:bg-dark-surface border border-light-border dark:border-dark-border rounded-xl p-8 lg:p-10">
-              {/* Header */}
-              <div className="flex items-start justify-between mb-10">
-                <div>
-                  <div className="flex items-center gap-2.5 mb-3">
-                    <div className="w-10 h-10 rounded-lg bg-primary-500 flex items-center justify-center">
-                      <span className="text-white font-bold">K</span>
-                    </div>
-                    <span className="text-xl font-bold text-light-text-primary dark:text-dark-text-primary">
-                      KOMPLEET
-                    </span>
-                  </div>
-                  <div className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary space-y-0.5">
-                    <p>Plot 42, Lekki Phase 1</p>
-                    <p>Lagos, Nigeria</p>
-                    <p className="text-primary-500">support@ivanotechnologies.com</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-3xl font-bold text-light-text-primary dark:text-dark-text-primary mb-1">
-                    INVOICE
-                  </div>
-                  <div className="text-primary-500 font-semibold text-sm">
-                    {selectedInvoice.invoice_number}
-                  </div>
-                  <div className="mt-3 space-y-1 text-xs">
-                    <div className="flex justify-end gap-4">
-                      <span className="text-light-text-tertiary dark:text-dark-text-tertiary">
-                        Issued:
-                      </span>
-                      <span className="text-light-text-primary dark:text-dark-text-primary font-medium">
-                        {new Date(
-                          selectedInvoice.invoice_date,
-                        ).toLocaleDateString("en-NG", {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        })}
-                      </span>
-                    </div>
-                    {selectedInvoice.due_date && (
-                      <div className="flex justify-end gap-4">
-                        <span className="text-light-text-tertiary dark:text-dark-text-tertiary">
-                          Due:
-                        </span>
-                        <span className="text-light-text-primary dark:text-dark-text-primary font-medium">
-                          {new Date(
-                            selectedInvoice.due_date,
-                          ).toLocaleDateString("en-NG", {
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
-                          })}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
+            <InvoicePreview
+              invoice={selectedInvoice}
+              profile={profile}
+              clients={clients}
+              selectedClient={
+                clients.find((client) => client.id === selectedInvoice.client_id) ??
+                null
+              }
+              onSelectClient={(client) => {
+                if (!client) return;
+                void attachInvoiceClient(selectedInvoice.id, client.id).then(() => {
+                  setSelectedInvoice({
+                    ...selectedInvoice,
+                    client_id: client.id,
+                    customer_info: {
+                      name: client.legal_name,
+                      email: client.email,
+                      phone: client.phone,
+                      addressLine1: client.addressLine1,
+                      city: client.city,
+                    },
+                  });
+                  void fetchInvoices();
+                });
+              }}
+              onClientCreated={(created) => setClients((prev) => [created, ...prev])}
+              onOpenSettings={openBusinessSettings}
+              editable={selectedInvoice.status === "draft"}
+            />
 
-              {/* Client Info */}
-              <div className="mb-8">
-                <p className="text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary mb-2 uppercase tracking-wide">
-                  Bill To
-                </p>
-                <div className="bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border rounded-lg p-4">
-                  <p className="font-semibold text-light-text-primary dark:text-dark-text-primary">
-                    {selectedInvoice.customer_info.name}
-                  </p>
-                  {selectedInvoice.customer_info.address && (
-                    <p className="text-xs text-light-text-secondary dark:text-dark-text-secondary mt-0.5">
-                      {selectedInvoice.customer_info.address}
-                    </p>
-                  )}
-                  {selectedInvoice.customer_info.email && (
-                    <p className="text-xs text-light-text-secondary dark:text-dark-text-secondary mt-0.5">
-                      {selectedInvoice.customer_info.email}
-                    </p>
-                  )}
-                  <div className="mt-2">
-                    <StatusBadge status={selectedInvoice.status} />
-                  </div>
-                </div>
-              </div>
-
+            <div className="bg-surface border border-border rounded-xl p-8 lg:p-10 mt-4">
               {/* Line Items */}
               <div className="mb-8">
                 <p className="text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary mb-3 uppercase tracking-wide">

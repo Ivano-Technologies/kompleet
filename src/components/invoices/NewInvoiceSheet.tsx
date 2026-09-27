@@ -4,16 +4,16 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
 import { INV_COPY } from "./invoice-copy";
+import { BIZ_COPY } from "@/components/settings/profile-copy";
 import {
   CustomerCombobox,
   type InvoiceClient,
 } from "./CustomerCombobox";
 import { InvoiceDropZone } from "./InvoiceDropZone";
 import {
-  clientNameFromFile,
   createInvoiceDraft,
-  ensureClientFromName,
   issueInvoice,
+  titleFromFile,
 } from "./invoice-actions";
 import { useLibraryUpload } from "@/components/documents/use-library-upload";
 
@@ -35,6 +35,7 @@ export function NewInvoiceSheet({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [hasBusinessName, setHasBusinessName] = useState(true);
   const { upload } = useLibraryUpload();
 
   useEffect(() => {
@@ -46,6 +47,15 @@ export function NewInvoiceSheet({
         if (!response.ok || cancelled) return;
         const body = (await response.json()) as { clients?: InvoiceClient[] };
         if (!cancelled) setClients(body.clients ?? []);
+        const profileRes = await fetch("/api/business-profile", {
+          credentials: "include",
+        });
+        if (profileRes.ok && !cancelled) {
+          const profileBody = (await profileRes.json()) as {
+            profile?: { legalName?: string };
+          };
+          setHasBusinessName(Boolean(profileBody.profile?.legalName?.trim()));
+        }
       } catch {
         /* list can stay empty; inline create still works */
       }
@@ -71,28 +81,29 @@ export function NewInvoiceSheet({
     onClose();
   };
 
-  const validateQuick = (): string | null => {
-    if (!customer) return "Customer is required";
+  const validateQuick = (forIssue: boolean): string | null => {
+    if (forIssue && !customer) return INV_COPY.billtoRequired;
+    if (forIssue && !hasBusinessName) return BIZ_COPY.blockLegalName;
     const value = Number(amount);
     if (!Number.isFinite(value) || value <= 0) return "Amount must be greater than 0";
     return null;
   };
 
   const saveDraft = async () => {
-    const problem = validateQuick();
+    const problem = validateQuick(false);
     if (problem) {
       setError(problem);
       return;
     }
-    if (!customer) return;
     setBusy(true);
     setError(null);
     try {
       const created = await createInvoiceDraft({
-        client: customer,
+        client: customer ?? undefined,
         amount: Number(amount),
         addVat,
         description,
+        title: description.trim() || undefined,
       });
       onCreated?.(created.invoice_id);
       close();
@@ -104,7 +115,7 @@ export function NewInvoiceSheet({
   };
 
   const issue = async () => {
-    const problem = validateQuick();
+    const problem = validateQuick(true);
     if (problem) {
       setError(problem);
       return;
@@ -134,15 +145,13 @@ export function NewInvoiceSheet({
     setBusy(true);
     setError(null);
     try {
-      const client =
-        customer ?? (await ensureClientFromName(clientNameFromFile(file.name)));
-      if (!customer) setCustomer(client);
       const created = await createInvoiceDraft({
-        client,
+        client: customer ?? undefined,
         amount: 0,
         addVat: true,
         description: "Services",
         notes: `Attached: ${file.name}`,
+        title: titleFromFile(file.name),
       });
       await upload(file, {
         source: "invoice_drop",
@@ -253,8 +262,15 @@ export function NewInvoiceSheet({
               </button>
               <button
                 type="button"
-                className="btn-primary text-sm px-3 py-2"
-                disabled={busy}
+                className="btn-primary text-sm px-3 py-2 disabled:opacity-45"
+                disabled={busy || !customer || !hasBusinessName}
+                title={
+                  !customer
+                    ? INV_COPY.billtoRequired
+                    : !hasBusinessName
+                      ? BIZ_COPY.blockLegalName
+                      : undefined
+                }
                 onClick={() => void issue()}
               >
                 {INV_COPY.quickIssue}

@@ -25,6 +25,7 @@ async function handlePOST(request: NextRequest) {
 
     const {
       client_id,
+      title,
       tax_year,
       customer_info,
       line_items,
@@ -47,6 +48,7 @@ async function handlePOST(request: NextRequest) {
 
     const invoice = await convex.mutation(api.invoices.createMine, {
       clientExternalId: client_id,
+      title,
       taxYear: tax_year ?? new Date().getFullYear(),
       customerInfo: customer_info,
       lineItems: items,

@@ -8,6 +8,9 @@ import {
   CustomerCombobox,
   type InvoiceClient,
 } from "@/components/invoices/CustomerCombobox";
+import { INV_COPY } from "@/components/invoices/invoice-copy";
+import { BIZ_COPY } from "@/components/settings/profile-copy";
+import { hasLegalName, type BusinessProfile } from "@/lib/invoices/profiles";
 
 export default function NewInvoicePage() {
   const router = useRouter();
@@ -15,6 +18,7 @@ export default function NewInvoicePage() {
   const [error, setError] = useState("");
   const [clients, setClients] = useState<InvoiceClient[]>([]);
   const [clientId, setClientId] = useState("");
+  const [profile, setProfile] = useState<BusinessProfile | null>(null);
   const selectedClient = clients.find((client) => client.id === clientId) ?? null;
 
   // Form state
@@ -60,8 +64,14 @@ export default function NewInvoicePage() {
         };
         const data = body.clients ?? [];
         setClients(data);
-        if (data.length === 1 && data[0]) {
-          setClientId(data[0].id);
+        const profileRes = await fetch("/api/business-profile", {
+          credentials: "include",
+        });
+        if (!cancelled && profileRes.ok) {
+          const profileBody = (await profileRes.json()) as {
+            profile?: BusinessProfile;
+          };
+          setProfile(profileBody.profile ?? null);
         }
       } catch (err: unknown) {
         if (!cancelled) {
@@ -145,15 +155,14 @@ export default function NewInvoicePage() {
   const totals = calculateTotals();
 
   // Validate form
-  const validateForm = (): string[] => {
+  const validateForm = (forIssue: boolean): string[] => {
     const errors: string[] = [];
 
-    if (!clientId) {
-      errors.push("Client is required");
+    if (forIssue && !clientId) {
+      errors.push(INV_COPY.billtoRequired);
     }
-
-    if (!customerInfo.name.trim()) {
-      errors.push("Customer name is required");
+    if (forIssue && !hasLegalName(profile ?? { legalName: "" })) {
+      errors.push(BIZ_COPY.blockLegalName);
     }
 
     if (lineItems.length === 0) {
@@ -178,7 +187,7 @@ export default function NewInvoicePage() {
 
   // Save as draft
   const saveDraft = async () => {
-    const errors = validateForm();
+    const errors = validateForm(false);
     if (errors.length > 0) {
       setError(errors.join(". "));
       return;
@@ -193,9 +202,10 @@ export default function NewInvoicePage() {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          client_id: clientId,
+          client_id: clientId || undefined,
+          title: customerInfo.name || undefined,
           tax_year: new Date(invoiceDate).getFullYear(),
-          customer_info: customerInfo,
+          customer_info: customerInfo.name ? customerInfo : undefined,
           line_items: lineItems,
           invoice_date: invoiceDate,
           due_date: dueDate || undefined,
@@ -220,7 +230,7 @@ export default function NewInvoicePage() {
 
   // Issue invoice
   const issueInvoice = async () => {
-    const errors = validateForm();
+    const errors = validateForm(true);
     if (errors.length > 0) {
       setError(errors.join(". "));
       return;
@@ -236,9 +246,10 @@ export default function NewInvoicePage() {
         headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({
-          client_id: clientId,
+          client_id: clientId || undefined,
+          title: customerInfo.name || undefined,
           tax_year: new Date(invoiceDate).getFullYear(),
-          customer_info: customerInfo,
+          customer_info: customerInfo.name ? customerInfo : undefined,
           line_items: lineItems,
           invoice_date: invoiceDate,
           due_date: dueDate || undefined,
@@ -304,12 +315,13 @@ export default function NewInvoicePage() {
           value={selectedClient}
           onChange={(client) => {
             setClientId(client?.id ?? "");
-            if (client && !customerInfo.name) {
+            if (client) {
               setCustomerInfo({
                 ...customerInfo,
                 name: client.legal_name,
                 email: client.email || customerInfo.email,
                 phone: client.phone || customerInfo.phone,
+                address: [client.addressLine1, client.city].filter(Boolean).join(", "),
               });
             }
           }}
@@ -321,6 +333,7 @@ export default function NewInvoicePage() {
               name: created.legal_name,
               email: created.email || "",
               phone: created.phone || "",
+              address: [created.addressLine1, created.city].filter(Boolean).join(", "),
             });
           }}
         />
@@ -665,8 +678,19 @@ export default function NewInvoicePage() {
         </button>
         <button
           onClick={issueInvoice}
-          disabled={loading}
-          className="btn-primary"
+          disabled={
+            loading ||
+            !clientId ||
+            !hasLegalName(profile ?? { legalName: "" })
+          }
+          title={
+            !clientId
+              ? INV_COPY.billtoRequired
+              : !hasLegalName(profile ?? { legalName: "" })
+                ? BIZ_COPY.blockLegalName
+                : undefined
+          }
+          className="btn-primary disabled:opacity-45"
         >
           {loading ? (
             <Loader2 className="animate-spin h-5 w-5" />
