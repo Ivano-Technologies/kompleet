@@ -26,6 +26,7 @@ import type * as invoices from "../invoices.js";
 import type * as lib_auth from "../lib/auth.js";
 import type * as lib_ids from "../lib/ids.js";
 import type * as lib_profiles from "../lib/profiles.js";
+import type * as lib_triage from "../lib/triage.js";
 import type * as lib_workerAuth from "../lib/workerAuth.js";
 import type * as passwordReset from "../passwordReset.js";
 import type * as reports from "../reports.js";
@@ -60,6 +61,7 @@ declare const fullApi: ApiFromModules<{
   "lib/auth": typeof lib_auth;
   "lib/ids": typeof lib_ids;
   "lib/profiles": typeof lib_profiles;
+  "lib/triage": typeof lib_triage;
   "lib/workerAuth": typeof lib_workerAuth;
   passwordReset: typeof passwordReset;
   reports: typeof reports;

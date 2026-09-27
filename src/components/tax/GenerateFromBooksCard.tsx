@@ -180,7 +180,7 @@ export function GenerateFromBooksCard({
           {(summary?.uncategorized ?? 0) > 0 && (
             <div className="rounded-xl border border-warning bg-warning/10 px-3 py-2 text-sm text-text-1 flex items-center justify-between gap-3">
               <span>{TAX_COPY.warnUncat(summary?.uncategorized ?? 0)}</span>
-              <Link href="/transactions/review" className="text-primary font-medium">
+              <Link href="/transactions?triage=open" className="text-primary font-medium">
                 {TAX_COPY.warnReview}
               </Link>
             </div>
