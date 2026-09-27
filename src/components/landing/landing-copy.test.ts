@@ -75,11 +75,52 @@ describe("IVA-72 landing copy", () => {
   });
 
   it("wires locked Design illustrations, not invented lifestyle art", () => {
-    expect(landing).toMatch(/import-flow\.svg/);
-    expect(landing).toMatch(/invoice-nrs\.svg/);
     expect(landing).toMatch(/tax-filing-flow\.svg/);
     expect(authLayout).toMatch(/auth-panel\.svg/);
     expect(authLayout).toMatch(/auth-panel\.png/);
+  });
+
+  it("removes the Product Proof band from the homepage", () => {
+    expect(landing).not.toMatch(/Product proof/i);
+    expect(landing).not.toMatch(/Real tooling, labeled demo data/);
+    expect(landing).not.toMatch(/productProof/);
+    expect(landing).not.toMatch(/import-flow\.(svg|png)/);
+    expect(landing).not.toMatch(/invoice-nrs\.(svg|png)/);
+    expect(landing).not.toMatch(/Tax centre/);
+    expect(
+      existsSync(
+        resolve(process.cwd(), "public/assets/illustrations/import-flow.svg"),
+      ),
+    ).toBe(false);
+    expect(
+      existsSync(
+        resolve(process.cwd(), "public/assets/illustrations/import-flow.png"),
+      ),
+    ).toBe(false);
+    expect(
+      existsSync(
+        resolve(process.cwd(), "public/assets/illustrations/invoice-nrs.svg"),
+      ),
+    ).toBe(false);
+    expect(
+      existsSync(
+        resolve(process.cwd(), "public/assets/illustrations/invoice-nrs.png"),
+      ),
+    ).toBe(false);
+  });
+
+  it("keeps the hero compact so auth fits above the fold", () => {
+    expect(landing).toMatch(/lg:h-\[calc\(100svh-4rem\)\]/);
+    expect(landing).toMatch(/py-6/);
+    expect(landing).toMatch(/lg:py-8/);
+    expect(landing).toMatch(/text-\[32px\]/);
+    expect(landing).toMatch(/xl:text-\[40px\]/);
+    expect(landing).not.toMatch(/text-5xl/);
+    expect(landing).not.toMatch(/py-16|lg:py-24|lg:min-h-\[640px\]/);
+    expect(landing).toMatch(/Nigerian bank imports, Tax Act 2025, and NRS-ready invoices/);
+    expect(heroAuthCard).toMatch(/p-4 shadow-2/);
+    expect(heroAuthCard).toMatch(/h-11/);
+    expect(heroAuthCard).not.toMatch(/h-\[52px\]/);
   });
 
   it("uses Design spot icons, ledger hero illustration, and tax-filing-flow — no Demo chrome", () => {
