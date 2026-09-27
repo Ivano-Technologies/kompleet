@@ -31,7 +31,7 @@ describe("IVA-84 post-signup business checklist", () => {
     expect(logic).toMatch(/id: "address"/);
     expect(logic).toMatch(/id: "contact"/);
     expect(logic).toMatch(/id: "tax"/);
-    expect(card).not.toMatch(/itemLogo|Logo upload<\/);
+    expect(card).not.toMatch(/itemLogo/);
     expect(logic).not.toMatch(/id: "logo"/);
   });
 
