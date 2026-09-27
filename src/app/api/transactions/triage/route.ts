@@ -6,6 +6,10 @@ import {
   suggestCategory,
   type TriageRow,
 } from "@/lib/transactions/triage";
+import {
+  isMissingConvexFunction,
+  listTriageFallback,
+} from "@/lib/transactions/triage-fallback";
 import { z } from "zod";
 
 export const runtime = "nodejs";
@@ -40,42 +44,49 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
     const { convex } = await requireAuthedConvex(request);
     const limitRaw = request.nextUrl.searchParams.get("limit");
     const limit = limitRaw ? Number(limitRaw) : 100;
-    const [triage, categories] = await Promise.all([
-      convex.query(api.transactions.listTriageMine, {
-        limit: Number.isFinite(limit) ? limit : 100,
-      }),
-      convex.query(api.categories.list, {}),
-    ]);
+    const safeLimit = Number.isFinite(limit) ? limit : 100;
+    try {
+      const [triage, categories] = await Promise.all([
+        convex.query(api.transactions.listTriageMine, {
+          limit: safeLimit,
+        }),
+        convex.query(api.categories.list, {}),
+      ]);
 
-    const items: TriageRow[] = triage.items.map((row) => ({
-      id: row.id,
-      kind: row.kind,
-      merchant: row.merchant,
-      amount: row.amount,
-      transactionType: row.transaction_type,
-      date: row.date,
-      bankMeta: row.bank_meta,
-      reason: row.reason,
-      category: row.category,
-      confidenceScore: row.confidence_score,
-      suggestedCategory:
-        row.reason === "duplicate_suspect"
-          ? null
-          : suggestCategory(
-              row.merchant,
-              categories,
-              row.transaction_type,
-            ) ?? row.category,
-    }));
+      const items: TriageRow[] = triage.items.map((row) => ({
+        id: row.id,
+        kind: row.kind,
+        merchant: row.merchant,
+        amount: row.amount,
+        transactionType: row.transaction_type,
+        date: row.date,
+        bankMeta: row.bank_meta,
+        reason: row.reason,
+        category: row.category,
+        confidenceScore: row.confidence_score,
+        suggestedCategory:
+          row.reason === "duplicate_suspect"
+            ? null
+            : suggestCategory(
+                row.merchant,
+                categories,
+                row.transaction_type,
+              ) ?? row.category,
+      }));
 
-    return NextResponse.json({
-      items,
-      counts: triage.counts,
-      categories: categories.map((category) => ({
-        id: category.id,
-        name: category.name,
-      })),
-    });
+      return NextResponse.json({
+        items,
+        counts: triage.counts,
+        categories: categories.map((category) => ({
+          id: category.id,
+          name: category.name,
+        })),
+      });
+    } catch (error) {
+      if (!isMissingConvexFunction(error)) throw error;
+      const fallback = await listTriageFallback(convex, safeLimit);
+      return NextResponse.json(fallback);
+    }
   } catch (error) {
     if (isUnauthorized(error)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
