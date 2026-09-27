@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { emptyBusinessProfile, type BusinessProfile } from "./profiles";
+import {
+  applySignupContactSeed,
+  emptyBusinessProfile,
+  type BusinessProfile,
+} from "./profiles";
 import {
   CHECKLIST_ITEM_COUNT,
   checklistDoneCount,
@@ -78,6 +82,30 @@ describe("IVA-84 checklist progress rules", () => {
     expect(JSON.stringify(checklistItems(profile()))).not.toMatch(/logo/i);
   });
 
+  it("counts signup/account email as contact for the 3-of-4 tax-skipped complete moment", () => {
+    const coreOnly = profile({
+      legalName: "Lekki Crafts Ltd",
+      addressLine1: "14 Marina",
+      city: "Lagos",
+    });
+    expect(checklistDoneCount(coreOnly)).toBe(2);
+    const seeded = applySignupContactSeed(coreOnly, {
+      email: "billing@lekkicrafts.ng",
+    });
+    expect(checklistDoneCount(seeded)).toBe(3);
+    expect(checklistItems(seeded).find((item) => item.id === "contact")?.done).toBe(
+      true,
+    );
+    expect(checklistItems(seeded).find((item) => item.id === "tax")?.done).toBe(
+      false,
+    );
+    expect(
+      applySignupContactSeed(coreOnly, {
+        email: "support@ivanotechnologies.com",
+      }).email,
+    ).toBe("");
+  });
+
   it("permanently completes when legalName + addressLine1 + city are set (email optional)", () => {
     expect(
       isSetupPermanentlyComplete(
@@ -147,7 +175,7 @@ describe("IVA-84 checklist dismiss surfaces", () => {
     ).toBe("hidden");
   });
 
-  it("hides the banner for the rest of the session after banner dismiss", () => {
+  it("hides the banner only in-memory after dismiss; reload (flag reset) shows it again", () => {
     expect(
       checklistSurface({
         profile: incomplete,
@@ -157,6 +185,15 @@ describe("IVA-84 checklist dismiss surfaces", () => {
         sawIncomplete: true,
       }),
     ).toBe("hidden");
+    expect(
+      checklistSurface({
+        profile: incomplete,
+        softDismissed: true,
+        bannerSessionDismissed: false,
+        completeAck: false,
+        sawIncomplete: true,
+      }),
+    ).toBe("banner");
   });
 
   it("hides card + banner forever once the IVA-82 complete-profile rule is met", () => {

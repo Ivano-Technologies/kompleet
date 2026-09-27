@@ -67,10 +67,6 @@ export function checklistSoftKey(userId: string): string {
   return `kompleet:setup-checklist:soft:${userId}`;
 }
 
-export function checklistBannerSessionKey(userId: string): string {
-  return `kompleet:setup-checklist:banner-session:${userId}`;
-}
-
 export function checklistCompleteAckKey(userId: string): string {
   return `kompleet:setup-checklist:complete-ack:${userId}`;
 }

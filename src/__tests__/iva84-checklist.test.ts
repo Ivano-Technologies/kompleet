@@ -35,6 +35,14 @@ describe("IVA-84 post-signup business checklist", () => {
     expect(logic).not.toMatch(/id: "logo"/);
   });
 
+  it("keeps banner dismiss in memory only — not localStorage or sessionStorage", () => {
+    const checklist = read("src/components/dashboard/SetupChecklist.tsx");
+    expect(checklist).toMatch(/setBannerSessionDismissed\(true\)/);
+    expect(checklist).not.toMatch(/checklistBannerSessionKey/);
+    expect(checklist).not.toMatch(/sessionStorage/);
+    expect(checklist).not.toMatch(/banner-session/);
+  });
+
   it("opens SettingsModal Business tab via the IVA-82 query, with no duplicate form", () => {
     const checklist = read("src/components/dashboard/SetupChecklist.tsx");
     const card = read("src/components/dashboard/SetupChecklistCard.tsx");

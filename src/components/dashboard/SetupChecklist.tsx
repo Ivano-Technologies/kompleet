@@ -4,12 +4,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Check } from "lucide-react";
 import {
+  applySignupContactSeed,
   emptyBusinessProfile,
   type BusinessProfile,
 } from "@/lib/invoices/profiles";
 import { onBusinessProfileChanged } from "@/lib/invoices/profile-events";
 import {
-  checklistBannerSessionKey,
   checklistCompleteAckKey,
   checklistDoneCount,
   checklistItems,
@@ -22,16 +22,22 @@ import { SetupChecklistCard } from "./SetupChecklistCard";
 import { SetupSoftBanner } from "./SetupSoftBanner";
 import { SETUP_COPY } from "./setup-copy";
 
-function browserStorage(kind: "local" | "session"): Storage | undefined {
+function localStore(): Storage | undefined {
   if (typeof window === "undefined") return undefined;
   try {
-    return kind === "local" ? window.localStorage : window.sessionStorage;
+    return window.localStorage;
   } catch {
     return undefined;
   }
 }
 
-export function SetupChecklist({ userId }: { userId: string }) {
+export function SetupChecklist({
+  userId,
+  accountEmail,
+}: {
+  userId: string;
+  accountEmail?: string;
+}) {
   const router = useRouter();
   const [profile, setProfile] = useState<BusinessProfile | null>(null);
   const [softDismissed, setSoftDismissed] = useState(false);
@@ -47,24 +53,21 @@ export function SetupChecklist({ userId }: { userId: string }) {
       const res = await fetch("/api/business-profile", { credentials: "include" });
       if (!res.ok) return;
       const body = (await res.json()) as { profile?: BusinessProfile };
-      if (body.profile) {
-        setProfile({ ...emptyBusinessProfile(), ...body.profile });
-      } else {
-        setProfile(emptyBusinessProfile());
-      }
+      const incoming = body.profile
+        ? { ...emptyBusinessProfile(), ...body.profile }
+        : emptyBusinessProfile();
+      setProfile(applySignupContactSeed(incoming, { email: accountEmail }));
     } catch {
       /* dashboard remains usable without the checklist */
     }
-  }, []);
+  }, [accountEmail]);
 
   useEffect(() => {
-    setSoftDismissed(readStorageFlag(browserStorage("local"), checklistSoftKey(userId)));
+    setSoftDismissed(readStorageFlag(localStore(), checklistSoftKey(userId)));
     setCompleteAck(
-      readStorageFlag(browserStorage("local"), checklistCompleteAckKey(userId)),
+      readStorageFlag(localStore(), checklistCompleteAckKey(userId)),
     );
-    setBannerSessionDismissed(
-      readStorageFlag(browserStorage("session"), checklistBannerSessionKey(userId)),
-    );
+    setBannerSessionDismissed(false);
     setHydrated(true);
   }, [userId]);
 
@@ -107,25 +110,25 @@ export function SetupChecklist({ userId }: { userId: string }) {
   };
 
   const softDismiss = () => {
-    writeStorageFlag(browserStorage("local"), checklistSoftKey(userId));
+    writeStorageFlag(localStore(), checklistSoftKey(userId));
     setSoftDismissed(true);
   };
 
   const dismissBanner = () => {
-    writeStorageFlag(browserStorage("session"), checklistBannerSessionKey(userId));
     setBannerSessionDismissed(true);
   };
 
   const ackComplete = () => {
-    writeStorageFlag(browserStorage("local"), checklistCompleteAckKey(userId));
+    writeStorageFlag(localStore(), checklistCompleteAckKey(userId));
     setCompleteAck(true);
     setShowToast(false);
   };
 
   if (!profile || surface === "hidden") return null;
 
-  const items = checklistItems(profile);
-  const doneCount = checklistDoneCount(profile);
+  const viewProfile = applySignupContactSeed(profile, { email: accountEmail });
+  const items = checklistItems(viewProfile);
+  const doneCount = checklistDoneCount(viewProfile);
 
   return (
     <div className="flex flex-col gap-4">

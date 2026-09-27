@@ -52,6 +52,7 @@ interface Transaction {
 
 interface DashboardClientProps {
   userId: string;
+  accountEmail?: string;
   kpiData: KpiData;
   revenueData: RevenuePoint[];
   recentTransactions: Transaction[];
@@ -75,6 +76,7 @@ function formatFullNaira(val: number) {
 
 export default function DashboardClient({
   userId,
+  accountEmail,
   kpiData,
   revenueData,
   recentTransactions,
@@ -150,7 +152,7 @@ export default function DashboardClient({
     return (
       <div className="space-y-6">
         {header}
-        <SetupChecklist userId={userId} />
+        <SetupChecklist userId={userId} accountEmail={accountEmail} />
         <StatementDropZone
           variant="hero"
           inputId={DASHBOARD_INPUT_ID}
@@ -185,7 +187,7 @@ export default function DashboardClient({
     <div className="space-y-6">
       {header}
 
-      <SetupChecklist userId={userId} />
+      <SetupChecklist userId={userId} accountEmail={accountEmail} />
 
       <ExceptionBanner
         uncategorizedCount={uncategorizedCount}
