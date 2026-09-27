@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  applySignupContactSeed,
+  emptyBusinessProfile,
   hasLegalName,
   isBusinessProfileComplete,
   titleFromFile,
@@ -28,5 +30,23 @@ describe("IVA-82 profile helpers", () => {
         city: "Lagos",
       }),
     ).toBe(true);
+  });
+
+  it("seeds empty contact from the account email and ignores fixture addresses", () => {
+    const empty = emptyBusinessProfile();
+    expect(
+      applySignupContactSeed(empty, { email: "billing@lekkicrafts.ng" }).email,
+    ).toBe("billing@lekkicrafts.ng");
+    expect(
+      applySignupContactSeed(
+        { ...empty, email: "keep@lekki.ng" },
+        { email: "other@lekki.ng" },
+      ).email,
+    ).toBe("keep@lekki.ng");
+    expect(
+      applySignupContactSeed(empty, {
+        email: "support@ivanotechnologies.com",
+      }).email,
+    ).toBe("");
   });
 });
