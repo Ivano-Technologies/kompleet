@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Auth density — Signup BEFORE vs AFTER · 1366×768</title>
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=clash-display@600,700&display=swap"/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap"/>
+<style>
+  @font-face {
+    font-family: 'Ceoruse';
+    src: url('/workspace/kompleet/public/fonts/ceoruse.otf') format('opentype');
+    font-weight: 700;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: Montserrat, system-ui, sans-serif;
+    background: #1a2332;
+    color: #0D1B2A;
+    padding: 20px;
+  }
+  .page-title {
+    color: #fff; font-size: 13px; font-weight: 600; letter-spacing: 0.06em;
+    text-transform: uppercase; margin-bottom: 14px;
+  }
+  .page-title span { color: #0D9488; }
+  .frames { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
+  .col { display: flex; flex-direction: column; }
+  .label {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 8px 14px; border-radius: 8px 8px 0 0; color: #fff;
+  }
+  .label.before { background: #7F1D1D; }
+  .label.after { background: #0B3A5C; }
+  .label .meta { font-weight: 500; opacity: 0.75; margin-left: 8px; letter-spacing: 0.04em; }
+  .viewport {
+    width: 1366px; height: 768px; max-width: 100%;
+    border-radius: 0 0 10px 10px; overflow: hidden;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+    display: flex; position: relative;
+    transform-origin: top left;
+  }
+  /* Scale down for side-by-side on design review */
+  .viewport.scaled {
+    width: 683px; height: 384px;
+  }
+  .viewport.scaled .auth-shell {
+    transform: scale(0.5); transform-origin: top left;
+    width: 1366px; height: 768px;
+  }
+  .auth-shell {
+    display: flex; width: 1366px; height: 768px; background: #F4F1EB;
+  }
+  .art {
+    width: 50%; background: #072A45; position: relative; overflow: hidden; flex-shrink: 0;
+  }
+  .art::after {
+    content: ''; position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse at 30% 40%, rgba(13,148,136,0.18), transparent 55%),
+      linear-gradient(160deg, #072A45 0%, #0B3A5C 55%, #0a2f4a 100%);
+  }
+  .art-grid {
+    position: absolute; inset: 40px; z-index: 1; opacity: 0.35;
+    border: 1px solid rgba(255,255,255,0.12); border-radius: 12px;
+    background:
+      repeating-linear-gradient(0deg, transparent, transparent 31px, rgba(255,255,255,0.06) 31px, rgba(255,255,255,0.06) 32px),
+      repeating-linear-gradient(90deg, transparent, transparent 47px, rgba(255,255,255,0.05) 47px, rgba(255,255,255,0.05) 48px);
+  }
+  .form-col {
+    width: 50%; display: flex; align-items: center; justify-content: center;
+    background: #F4F1EB; overflow: hidden; position: relative;
+  }
+  .form-col.before-pad { padding: 32px; }
+  .form-col.after-pad { padding: 20px 24px; }
+
+  .card {
+    width: 100%; max-width: 440px; background: #FFFDF8;
+    border: 1px solid #DDD5C8; border-radius: 16px;
+    box-shadow: 0 4px 16px rgba(11,58,92,0.08);
+  }
+  .card.before { padding: 48px; }
+  .card.after { padding: 22px 24px; }
+
+  .wm {
+    font-family: Ceoruse, 'Clash Display', sans-serif;
+    font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+    font-size: 18px; color: #0B3A5C; text-align: center;
+  }
+  .before .wm { margin-bottom: 24px; }
+  .after .wm { margin-bottom: 12px; }
+
+  .addon {
+    font-size: 13px; color: #6B7280; text-align: right;
+  }
+  .addon a { color: #0B3A5C; font-weight: 700; text-decoration: none; }
+  .before .addon { margin-bottom: 16px; }
+  .after .addon { margin-bottom: 8px; }
+
+  .eyebrow {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #9CA3AF;
+  }
+  .title {
+    font-family: 'Clash Display', Montserrat, sans-serif;
+    font-weight: 700; color: #0D1B2A; letter-spacing: -0.02em;
+  }
+  .sub { font-size: 13px; color: #6B7280; line-height: 1.35; }
+  .before .head { margin-bottom: 24px; }
+  .before .eyebrow { margin-bottom: 8px; }
+  .before .title { font-size: 30px; margin-bottom: 8px; }
+  .before .sub { margin-top: 0; }
+  .after .head { margin-bottom: 12px; }
+  .after .eyebrow { margin-bottom: 4px; }
+  .after .title { font-size: 26px; margin-bottom: 4px; }
+  .after .sub { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .fields { display: flex; flex-direction: column; }
+  .before .fields { gap: 20px; }
+  .after .fields { gap: 12px; }
+
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; }
+  .before .row2 { gap: 16px; }
+  .after .row2 { gap: 12px; }
+
+  label {
+    display: block; font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; color: #3D4A55;
+  }
+  .before label { margin-bottom: 8px; }
+  .after label { margin-bottom: 4px; }
+
+  input {
+    width: 100%; border: 1px solid #DDD5C8; border-radius: 10px;
+    background: #FFFDF8; color: #0D1B2A; font-family: inherit; font-size: 13px;
+    padding: 0 14px; outline: none;
+  }
+  .before input { height: 52px; }
+  .after input { height: 42px; padding: 0 12px; }
+
+  .btn {
+    width: 100%; border: none; border-radius: 10px; background: #0D9488; color: #fff;
+    font-family: inherit; font-size: 13px; font-weight: 700; cursor: default;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .before .btn { height: 52px; margin-top: 24px; }
+  .after .btn { height: 42px; margin-top: 4px; }
+
+  .terms {
+    text-align: center; font-size: 11px; color: #9CA3AF; line-height: 1.4;
+  }
+  .terms a { color: #0B3A5C; text-decoration: none; font-weight: 600; }
+  .before .terms { margin-top: 20px; }
+  .after .terms { margin-top: 12px; }
+
+  .trust {
+    display: flex; align-items: center; justify-content: center; gap: 16px;
+    font-size: 11px; color: #9CA3AF; border-top: 1px solid #DDD5C8;
+  }
+  .trust span { display: inline-flex; align-items: center; gap: 6px; }
+  .before .trust { margin-top: 24px; padding-top: 20px; }
+  .after .trust { margin-top: 12px; padding-top: 12px; gap: 12px; }
+
+  .cut-banner {
+    position: absolute; left: 0; right: 0; bottom: 0; z-index: 5;
+    background: linear-gradient(transparent, rgba(127,29,29,0.92));
+    color: #fff; font-size: 12px; font-weight: 700; letter-spacing: 0.06em;
+    text-transform: uppercase; text-align: center; padding: 28px 12px 14px;
+    pointer-events: none;
+  }
+  .ok-chip {
+    position: absolute; top: 12px; right: 12px; z-index: 5;
+    background: #0D9488; color: #fff; font-size: 10px; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 6px 10px; border-radius: 6px;
+  }
+  .foot-note {
+    margin-top: 16px; color: rgba(255,255,255,0.45); font-size: 11px; max-width: 900px; line-height: 1.45;
+  }
+  svg { flex-shrink: 0; }
+</style>
+</head>
+<body>
+  <div class="page-title">Kompleet auth density · Signup · <span>1366×768</span> · Option C · IVA-90 add-on</div>
+  <div class="frames">
+
+    <!-- BEFORE -->
+    <div class="col">
+      <div class="label before">Before — cuts off after Business Email<span class="meta">live rhythm</span></div>
+      <div class="viewport scaled">
+        <div class="auth-shell">
+          <div class="art"><div class="art-grid"></div></div>
+          <div class="form-col before-pad">
+            <div class="cut-banner">▼ Page scroll required — Password / CTA / Terms below fold</div>
+            <div class="card before">
+              <div class="wm">Kompleet</div>
+              <div class="addon">Already have an account? <a href="#">Log in</a></div>
+              <div class="head">
+                <div class="eyebrow">Create Account</div>
+                <div class="title">Sign up</div>
+                <div class="sub">Track your spending, handle invoices, and avoid surprises.</div>
+              </div>
+              <div class="fields">
+                <div class="row2">
+                  <div><label>First Name</label><input placeholder="e.g. Tunde" value=""/></div>
+                  <div><label>Last Name</label><input placeholder="e.g. Balogun" value=""/></div>
+                </div>
+                <div><label>Business Name</label><input placeholder="e.g. Tunde Ventures Ltd" value=""/></div>
+                <div><label>Business Email</label><input placeholder="name@company.ng" value=""/></div>
+                <div><label>Password</label><input type="password" placeholder="Minimum 8 characters" value=""/></div>
+                <button class="btn" type="button">Create Free Account →</button>
+              </div>
+              <p class="terms">By signing up, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></p>
+              <div class="trust">
+                <span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  NDPR Compliant
+                </span>
+                <span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                  256-bit SSL
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AFTER -->
+    <div class="col">
+      <div class="label after">After — dense tokens<span class="meta">full form in fold</span></div>
+      <div class="viewport scaled">
+        <div class="auth-shell">
+          <div class="art"><div class="art-grid"></div></div>
+          <div class="form-col after-pad">
+            <div class="ok-chip">No page scroll</div>
+            <div class="card after">
+              <div class="wm">Kompleet</div>
+              <div class="addon">Already have an account? <a href="#">Log in</a></div>
+              <div class="head">
+                <div class="eyebrow">Create Account</div>
+                <div class="title">Sign up</div>
+                <div class="sub">Track your spending, handle invoices, and avoid surprises.</div>
+              </div>
+              <div class="fields">
+                <div class="row2">
+                  <div><label>First Name</label><input placeholder="e.g. Tunde" value=""/></div>
+                  <div><label>Last Name</label><input placeholder="e.g. Balogun" value=""/></div>
+                </div>
+                <div><label>Business Name</label><input placeholder="e.g. Tunde Ventures Ltd" value=""/></div>
+                <div><label>Business Email</label><input placeholder="name@company.ng" value=""/></div>
+                <div><label>Password</label><input type="password" placeholder="Minimum 8 characters" value=""/></div>
+                <button class="btn" type="button">Create Free Account →</button>
+              </div>
+              <p class="terms">By signing up, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></p>
+              <div class="trust">
+                <span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  NDPR Compliant
+                </span>
+                <span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                  256-bit SSL
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="foot-note">
+    Density only: card pad 20–24 · inputs/buttons h 40–44 · field gap 12 · Clash title ~26 · trust inline.
+    Brand locked Option C. Absorb into IVA-90 PR with FAB removal. Not a sibling ticket.
+  </p>
+</body>
+</html>

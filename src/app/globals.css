@@ -261,10 +261,11 @@ html.dark .solid-nav {
   font-weight: 600;
 }
 
-/* Hide Sentry feedback chrome on marketing / auth (kill list). */
-html:has([data-marketing]) sentry-feedback,
-html:has([data-marketing]) #sentry-feedback {
-  display: none !important;
+/* AUTH-DENSITY: hide marketing subtitle on short laptop viewports. */
+@media (max-height: 800px) {
+  .auth-sub {
+    display: none;
+  }
 }
 
 /* Utility Classes */

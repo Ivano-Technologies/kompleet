@@ -5,6 +5,18 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { AuthLayout } from "@/components/layout/AuthLayout";
+import {
+  AUTH_ERROR,
+  AUTH_EYEBROW,
+  AUTH_FORM,
+  AUTH_INPUT,
+  AUTH_INPUT_WITH_TOGGLE,
+  AUTH_LABEL,
+  AUTH_SUBMIT,
+  AUTH_SUBTITLE_FOLD,
+  AUTH_TITLE,
+  AUTH_TITLE_BLOCK,
+} from "@/components/layout/auth-density";
 import { Eye, EyeOff } from "lucide-react";
 
 function LoginForm() {
@@ -44,78 +56,64 @@ function LoginForm() {
 
   return (
     <AuthLayout variant="dark-split" imagePriority>
-      <div className="mb-2 text-xs font-bold uppercase tracking-widest text-text-4 dark:text-dark-text-4">
-        Welcome Back
+      <div className={AUTH_TITLE_BLOCK}>
+        <div className={AUTH_EYEBROW}>Welcome Back</div>
+        <h2 className={AUTH_TITLE}>Sign in</h2>
+        <p className={AUTH_SUBTITLE_FOLD}>
+          Access your business financial dashboard.
+        </p>
       </div>
-      <h2 className="mb-2 font-display text-3xl font-bold text-text-1 dark:text-dark-text-1">
-        Sign in
-      </h2>
-      <p className="mb-6 text-sm text-text-3 dark:text-dark-text-3">
-        Access your business financial dashboard.
-      </p>
-      {error && (
-        <div className="mb-6 rounded-md border border-error/30 bg-error-bg p-3 text-sm text-error dark:bg-error-darkBg dark:text-error-dark">
-          {error}
-        </div>
-      )}
-      <form onSubmit={handleSubmit} className="space-y-5">
+      {error && <div className={AUTH_ERROR}>{error}</div>}
+      <form onSubmit={handleSubmit} className={AUTH_FORM}>
         <div>
-          <label className="text-xs font-bold uppercase tracking-wider text-text-2 dark:text-dark-text-2">
-            Business Email
-          </label>
+          <label className={AUTH_LABEL}>Business Email</label>
           <input
             type="email"
             placeholder="you@company.ng"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="mt-2 h-[52px] w-full rounded-md border border-border bg-surface px-4 text-sm text-text-1 focus:border-primary focus:ring-2 focus:ring-primary/20"
+            className={AUTH_INPUT}
           />
         </div>
-        <div className="mt-2 mb-2 flex items-center justify-between">
-          <label className="text-xs font-bold uppercase tracking-wider text-text-2 dark:text-dark-text-2">
-            Password
-          </label>
-          <Link
-            href="/forgot-password"
-            className="text-xs font-bold text-primary hover:underline"
-          >
-            Forgot Password?
-          </Link>
+        <div>
+          <div className="mb-1 flex items-center justify-between">
+            <label className={AUTH_LABEL}>Password</label>
+            <Link
+              href="/forgot-password"
+              className="text-xs font-bold text-primary hover:underline"
+            >
+              Forgot Password?
+            </Link>
+          </div>
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className={AUTH_INPUT_WITH_TOGGLE}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-text-3 hover:text-text-1 dark:text-dark-text-3 dark:hover:text-dark-text-1"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? (
+                <EyeOff className="h-4 w-4" />
+              ) : (
+                <Eye className="h-4 w-4" />
+              )}
+            </button>
+          </div>
         </div>
-        <div className="relative">
-          <input
-            type={showPassword ? "text" : "password"}
-            placeholder="Enter your password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="h-[52px] w-full rounded-md border border-border bg-surface px-4 pr-11 text-sm text-text-1 focus:border-primary focus:ring-2 focus:ring-primary/20"
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-text-3 hover:text-text-1 dark:text-dark-text-3 dark:hover:text-dark-text-1"
-            aria-label={showPassword ? "Hide password" : "Show password"}
-          >
-            {showPassword ? (
-              <EyeOff className="h-4 w-4" />
-            ) : (
-              <Eye className="h-4 w-4" />
-            )}
-          </button>
-        </div>
-        <div className="pt-1">
-          <button
-            type="submit"
-            disabled={loading}
-            className="mt-6 h-[52px] w-full rounded-md bg-accent text-sm font-bold text-charcoal hover:bg-accent-hover disabled:opacity-50"
-          >
-            {loading ? "Signing in…" : "Sign In →"}
-          </button>
-        </div>
+        <button type="submit" disabled={loading} className={AUTH_SUBMIT}>
+          {loading ? "Signing in…" : "Sign In →"}
+        </button>
       </form>
-      <p className="mt-4 text-center text-sm text-text-3 dark:text-dark-text-3">
+      <p className="mt-3 text-center text-xs text-text-3 dark:text-dark-text-3">
         New to Kompleet?{" "}
         <Link href="/signup" className="font-bold text-primary hover:underline">
           Get started
