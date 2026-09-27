@@ -42,10 +42,12 @@ if (!apply) {
 }
 
 function setConvexEnv(name, value) {
+  // PEM values start with "-----BEGIN" and commander treats them as flags
+  // if passed as argv. Pipe the value on stdin instead.
   const result = spawnSync(
     "pnpm",
-    ["exec", "convex", "env", "set", "--force", name, value],
-    { stdio: "inherit", env: process.env },
+    ["exec", "convex", "env", "set", "--force", name],
+    { input: value, stdio: ["pipe", "inherit", "inherit"], env: process.env },
   );
   if (result.status !== 0) {
     process.exit(result.status ?? 1);
