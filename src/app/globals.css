@@ -261,12 +261,6 @@ html.dark .solid-nav {
   font-weight: 600;
 }
 
-/* Hide Sentry feedback chrome on marketing / auth (kill list). */
-html:has([data-marketing]) sentry-feedback,
-html:has([data-marketing]) #sentry-feedback {
-  display: none !important;
-}
-
 /* Utility Classes */
 @layer utilities {
   .text-balance {
