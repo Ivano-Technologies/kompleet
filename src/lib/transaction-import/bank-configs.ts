@@ -174,16 +174,19 @@ export const BANK_CONFIGS: Record<string, BankConfig> = {
       skipRows: 0,
       hasHeader: true,
     },
+    // UBA internet-banking OpTransactionHistoryUX*.xls (OLE / JExcelAPI):
+    // 14-row search-criteria preamble, header on row 15, then:
+    // C Transaction Date | G Transaction Remarks | I Withdrawal | K Deposit | L Account Balance
     excelConfig: {
       sheetName: 0,
-      headerRow: 1,
-      dateColumn: "A",
-      merchantColumn: "B",
-      debitColumn: "C",
-      creditColumn: "D",
-      balanceColumn: "E",
+      headerRow: 15,
+      dateColumn: "C",
+      merchantColumn: "G",
+      debitColumn: "I",
+      creditColumn: "K",
+      balanceColumn: "L",
       referenceColumn: "F",
-      dateFormat: "DD-MMM-YYYY",
+      dateFormat: "DD/MM/YYYY",
     },
   },
 

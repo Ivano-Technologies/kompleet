@@ -121,32 +121,84 @@ function parseRows(
   );
 }
 
+export interface TabularParseOptions {
+  /** 1-based header row from excelConfig.headerRow */
+  headerRowHint?: number;
+  /** Resolve A/B/C excelConfig columns against the header row */
+  resolveExcelLetters?: boolean;
+}
+
+function letterToIndex(column: string): number | null {
+  if (!/^[A-Za-z]{1,2}$/.test(column)) return null;
+  let index = 0;
+  for (const char of column.toUpperCase()) {
+    index = index * 26 + (char.charCodeAt(0) - 64);
+  }
+  return index - 1;
+}
+
+function configuredColumnNames(
+  headers: string[],
+  column: string | number | undefined,
+  resolveLetters: boolean,
+): string[] {
+  if (typeof column === "number") {
+    const name = headers[column]?.trim();
+    return [name || `col_${column}`];
+  }
+  if (typeof column !== "string" || !column.trim()) return [];
+  if (resolveLetters) {
+    const index = letterToIndex(column);
+    if (index !== null) {
+      const name = headers[index]?.trim();
+      return [name || `col_${index}`];
+    }
+  }
+  return [column];
+}
+
 function buildColumnMap(
   headers: string[],
   bankConfig: BankConfig,
+  resolveExcelLetters = false,
 ): ColumnMap {
-  const { csvConfig } = bankConfig;
+  const { csvConfig, excelConfig } = bankConfig;
+  const excelNames = (column: string | number | undefined) =>
+    configuredColumnNames(headers, column, resolveExcelLetters);
   return {
-    date: findMatchingHeader(headers, [csvConfig.dateColumn, ...DATE_ALIASES]),
+    date: findMatchingHeader(headers, [
+      csvConfig.dateColumn,
+      ...excelNames(excelConfig.dateColumn),
+      ...DATE_ALIASES,
+    ]),
     merchant: findMatchingHeader(headers, [
       csvConfig.merchantColumn,
+      ...excelNames(excelConfig.merchantColumn),
       ...MERCHANT_ALIASES,
     ]),
     amount: findMatchingHeader(headers, [
       csvConfig.amountColumn,
+      ...excelNames(excelConfig.amountColumn),
       ...AMOUNT_ALIASES,
     ]),
-    debit: findMatchingHeader(headers, [csvConfig.debitColumn, ...DEBIT_ALIASES]),
+    debit: findMatchingHeader(headers, [
+      csvConfig.debitColumn,
+      ...excelNames(excelConfig.debitColumn),
+      ...DEBIT_ALIASES,
+    ]),
     credit: findMatchingHeader(headers, [
       csvConfig.creditColumn,
+      ...excelNames(excelConfig.creditColumn),
       ...CREDIT_ALIASES,
     ]),
     balance: findMatchingHeader(headers, [
       csvConfig.balanceColumn,
+      ...excelNames(excelConfig.balanceColumn),
       ...BALANCE_ALIASES,
     ]),
     reference: findMatchingHeader(headers, [
       csvConfig.referenceColumn,
+      ...excelNames(excelConfig.referenceColumn),
       ...REFERENCE_ALIASES,
     ]),
   };
@@ -160,7 +212,23 @@ function columnMapIsUsable(map: ColumnMap): boolean {
 function findHeaderRowIndex(
   rows: string[][],
   bankConfig: BankConfig,
+  options?: TabularParseOptions,
 ): number {
+  const resolveLetters = options?.resolveExcelLetters === true;
+  const hint =
+    options?.headerRowHint && options.headerRowHint > 0
+      ? options.headerRowHint - 1
+      : undefined;
+  if (hint !== undefined && hint < rows.length) {
+    const hinted = rows[hint] ?? [];
+    if (
+      rowLooksLikeHeader(hinted) ||
+      columnMapIsUsable(buildColumnMap(hinted, bankConfig, resolveLetters))
+    ) {
+      return hint;
+    }
+  }
+
   const configuredSkip = bankConfig.csvConfig.skipRows;
   if (
     configuredSkip >= 0 &&
@@ -170,13 +238,14 @@ function findHeaderRowIndex(
     return configuredSkip;
   }
 
-  for (let i = 0; i < Math.min(rows.length, 30); i++) {
+  for (let i = 0; i < Math.min(rows.length, 40); i++) {
     const row = rows[i] ?? [];
     if (rowLooksLikeHeader(row)) return i;
-    const map = buildColumnMap(row, bankConfig);
+    const map = buildColumnMap(row, bankConfig, resolveLetters);
     if (columnMapIsUsable(map)) return i;
   }
 
+  if (hint !== undefined && hint < rows.length) return hint;
   return configuredSkip < rows.length ? configuredSkip : 0;
 }
 
@@ -196,9 +265,6 @@ export async function parseCSV(
   fileContent: string,
   bankConfig: BankConfig,
 ): Promise<ParseResult> {
-  const transactions: ParsedTransaction[] = [];
-  const errors: ParseError[] = [];
-
   const stripped = stripBom(fileContent);
   const detectedDelimiter = detectDelimiter(stripped);
   const delimiter = detectedDelimiter || bankConfig.csvConfig.delimiter || ",";
@@ -220,11 +286,46 @@ export async function parseCSV(
     };
   }
 
-  const headerIndex = findHeaderRowIndex(rows, bankConfig);
+  return parseTabularStatement(rows, bankConfig);
+}
+
+/**
+ * Shared row parser for CSV and Excel. Finds the header among preamble
+ * rows, maps columns via aliases, then extracts transactions.
+ */
+export function parseTabularStatement(
+  rows: string[][],
+  bankConfig: BankConfig,
+  options?: TabularParseOptions,
+): ParseResult {
+  const transactions: ParsedTransaction[] = [];
+  const errors: ParseError[] = [];
+
+  if (rows.length === 0) {
+    return {
+      transactions: [],
+      errors: [
+        {
+          rowNumber: 0,
+          errorType: "FILE_PARSING_ERROR",
+          errorMessage: "Statement contained no rows",
+          rawData: {},
+        },
+      ],
+      totalRows: 0,
+      successfulRows: 0,
+    };
+  }
+
+  const headerIndex = findHeaderRowIndex(rows, bankConfig, options);
   const rawHeaders = (rows[headerIndex] ?? []).map((cell) =>
     cell.replace(/^\uFEFF/, "").trim(),
   );
-  const columns = buildColumnMap(rawHeaders, bankConfig);
+  const columns = buildColumnMap(
+    rawHeaders,
+    bankConfig,
+    options?.resolveExcelLetters === true,
+  );
 
   if (!columnMapIsUsable(columns)) {
     return {
@@ -305,6 +406,10 @@ function extractTransaction(
     throw new Error(
       `Missing merchant in column "${columns.merchant ?? "Description"}"`,
     );
+  }
+
+  if (/^(opening|closing)\s+balance\b/i.test(merchant)) {
+    return null;
   }
 
   let amount: number;
@@ -472,6 +577,7 @@ export function parseAmount(amountStr: string | number | undefined): number {
 
   cleaned = cleaned
     .replace(/[()]/g, "")
+    .replace(/^\s*(DR|CR)\.?\s+/i, "")
     .replace(/\s*CR\s*$/i, "")
     .replace(/\s*DR\s*$/i, "");
 

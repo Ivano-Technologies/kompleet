@@ -27,6 +27,8 @@ export const MERCHANT_ALIASES = [
   "memo",
   "merchant",
   "transaction description",
+  "transaction remarks",
+  "remarks",
 ];
 
 export const DEBIT_ALIASES = [
@@ -53,7 +55,6 @@ export const AMOUNT_ALIASES = [
   "amount",
   "transaction amount",
   "txn amount",
-  "value",
 ];
 
 export const BALANCE_ALIASES = [
@@ -62,6 +63,7 @@ export const BALANCE_ALIASES = [
   "closing balance",
   "available balance",
   "book balance",
+  "account balance",
 ];
 
 export const REFERENCE_ALIASES = [
@@ -133,9 +135,7 @@ export function findMatchingHeader(
   for (const alias of wanted) {
     if (alias.length <= 3) continue;
     const partial = normalized.find(
-      (header) =>
-        header.norm.length > 0 &&
-        (header.norm.includes(alias) || alias.includes(header.norm)),
+      (header) => header.norm.length > 0 && header.norm.includes(alias),
     );
     if (partial) return partial.original;
   }
