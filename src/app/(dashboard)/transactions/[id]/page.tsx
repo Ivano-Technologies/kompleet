@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
+import { AttachFileButton } from "@/components/documents/AttachFileButton";
 
 interface Transaction {
   id: string;
@@ -216,7 +217,14 @@ export default function TransactionDetailsPage() {
               {formatDate(transaction.transaction_date)}
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap justify-end">
+            <AttachFileButton
+              link={{
+                type: "transaction",
+                id: transaction.id,
+                label: transaction.description,
+              }}
+            />
             {!editing ? (
               <>
                 <button

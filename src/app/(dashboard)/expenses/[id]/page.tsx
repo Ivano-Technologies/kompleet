@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Save, Trash2 } from "lucide-react";
+import { AttachFileButton } from "@/components/documents/AttachFileButton";
 
 interface Expense {
   id: string;
@@ -149,7 +150,16 @@ export default function ExpenseDetailPage() {
         </Link>
       </div>
 
-      <h1 className="text-2xl font-bold text-foreground">Edit expense</h1>
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <h1 className="text-2xl font-bold text-foreground">Edit expense</h1>
+        <AttachFileButton
+          link={{
+            type: "expense",
+            id: expense.id,
+            label: expense.vendor?.trim() || "Expense",
+          }}
+        />
+      </div>
 
       <div className="rounded-lg border border-border bg-card p-6 space-y-4">
         <div>

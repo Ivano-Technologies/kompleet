@@ -40,6 +40,7 @@ describe("IVA-80 app shell / nav IA", () => {
 
   it("puts secondary destinations in More", () => {
     for (const href of [
+      "/documents",
       "/expenses",
       "/export",
       "/reports/profit-loss",
