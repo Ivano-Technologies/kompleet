@@ -5,6 +5,17 @@ import { useAuthActions } from '@convex-dev/auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { AuthLayout } from '@/components/layout/AuthLayout';
+import {
+  AUTH_ERROR,
+  AUTH_EYEBROW,
+  AUTH_FORM,
+  AUTH_INPUT,
+  AUTH_INPUT_WITH_TOGGLE,
+  AUTH_LABEL,
+  AUTH_SUBMIT,
+  AUTH_SUBTITLE,
+  AUTH_TITLE,
+} from '@/components/layout/auth-density';
 import { ArrowRight, CheckCircle2, Eye, EyeOff, Shield, Lock } from 'lucide-react';
 
 function getPasswordStrength(pw: string) {
@@ -77,15 +88,15 @@ export default function SignUpPage() {
   if (success) {
     return (
       <AuthLayout variant="dark-split">
-        <div className="space-y-6 text-center">
-          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-success/10">
-            <CheckCircle2 className="h-8 w-8 text-success dark:text-success-dark" />
+        <div className="space-y-4 text-center">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-success/10">
+            <CheckCircle2 className="h-6 w-6 text-success dark:text-success-dark" />
           </div>
-          <h1 className="font-display text-2xl font-bold text-text-1 dark:text-dark-text-1">Account Created!</h1>
-          <p className="text-text-3 dark:text-dark-text-3">
+          <h1 className={AUTH_TITLE}>Account Created!</h1>
+          <p className={AUTH_SUBTITLE}>
             Your account is ready. Existing Kompleet data for this email stays attached.
           </p>
-          <Link href="/dashboard" className="bg-primary text-white font-bold text-sm py-3 px-6 rounded-md block w-full text-center hover:bg-primary-deep transition-colors">
+          <Link href="/dashboard" className="bg-primary text-white font-bold text-sm py-2.5 px-6 rounded-md block w-full text-center hover:bg-primary-deep transition-colors">
             Go to Dashboard
           </Link>
         </div>
@@ -94,39 +105,29 @@ export default function SignUpPage() {
   }
 
   return (
-    <AuthLayout
-      variant="dark-split"
-      headerRightAddon={
-        <span className="text-sm text-text-3">
-          Already have an account?{' '}
-          <Link href="/login" className="font-bold text-primary hover:underline">
-            Log in
-          </Link>
-        </span>
-      }
-    >
-      <div className="mb-6">
-        <div className="mb-2 text-xs font-bold uppercase tracking-widest text-text-4 dark:text-dark-text-4">
+    <AuthLayout variant="dark-split">
+      <div className="mb-3">
+        <div className={AUTH_EYEBROW}>
           Create Account
         </div>
-        <h1 className="mb-2 font-display text-3xl font-bold text-text-1">
+        <h1 className={AUTH_TITLE}>
           Sign up
         </h1>
-        <p className="text-sm text-text-3 dark:text-dark-text-3">
+        <p className={AUTH_SUBTITLE}>
           Track your spending, handle invoices, and avoid surprises.
         </p>
       </div>
 
       {error && (
-        <div className="mb-6 rounded-md border border-error/30 bg-error-bg p-3 text-sm text-error dark:bg-error-darkBg dark:text-error-dark">
+        <div className={AUTH_ERROR}>
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-5">
-        <div className="grid grid-cols-2 gap-4">
+      <form onSubmit={handleSubmit} className={AUTH_FORM}>
+        <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-xs font-bold uppercase tracking-wider text-text-2 dark:text-dark-text-2">
+            <label className={AUTH_LABEL}>
               First Name
             </label>
             <input
@@ -135,11 +136,11 @@ export default function SignUpPage() {
               onChange={(e) => setFirstName(e.target.value)}
               required
               placeholder="e.g. Tunde"
-              className="mt-2 h-[52px] w-full rounded-md border border-border bg-surface px-4 text-sm text-text-1 focus:border-primary focus:ring-2 focus:ring-primary/20"
+              className={AUTH_INPUT}
             />
           </div>
           <div>
-            <label className="text-xs font-bold uppercase tracking-wider text-text-2 dark:text-dark-text-2">
+            <label className={AUTH_LABEL}>
               Last Name
             </label>
             <input
@@ -148,13 +149,13 @@ export default function SignUpPage() {
               onChange={(e) => setLastName(e.target.value)}
               required
               placeholder="e.g. Balogun"
-              className="mt-2 h-[52px] w-full rounded-md border border-border bg-surface px-4 text-sm text-text-1 focus:border-primary focus:ring-2 focus:ring-primary/20"
+              className={AUTH_INPUT}
             />
           </div>
         </div>
 
         <div>
-          <label className="text-xs font-bold uppercase tracking-wider text-text-2 dark:text-dark-text-2">
+          <label className={AUTH_LABEL}>
             Business Name
           </label>
           <input
@@ -163,12 +164,12 @@ export default function SignUpPage() {
             onChange={(e) => setBusinessName(e.target.value)}
             required
             placeholder="e.g. Tunde Ventures Ltd"
-            className="mt-2 h-[52px] w-full rounded-md border border-border bg-surface px-4 text-sm text-text-1 focus:border-primary focus:ring-2 focus:ring-primary/20"
+            className={AUTH_INPUT}
           />
         </div>
 
         <div>
-          <label className="text-xs font-bold uppercase tracking-wider text-text-2 dark:text-dark-text-2">
+          <label className={AUTH_LABEL}>
             Business Email
           </label>
           <input
@@ -177,15 +178,15 @@ export default function SignUpPage() {
             onChange={(e) => setBusinessEmail(e.target.value)}
             required
             placeholder="name@company.ng"
-            className="mt-2 h-[52px] w-full rounded-md border border-border bg-surface px-4 text-sm text-text-1 focus:border-primary focus:ring-2 focus:ring-primary/20"
+            className={AUTH_INPUT}
           />
         </div>
 
         <div>
-          <label className="text-xs font-bold uppercase tracking-wider text-text-2 dark:text-dark-text-2">
+          <label className={AUTH_LABEL}>
             Password
           </label>
-          <div className="relative mt-2">
+          <div className="relative mt-1.5">
             <input
               type={showPassword ? 'text' : 'password'}
               value={password}
@@ -193,7 +194,7 @@ export default function SignUpPage() {
               required
               minLength={8}
               placeholder="Minimum 8 characters"
-              className="h-[52px] w-full rounded-md border border-border bg-surface px-4 pr-11 text-sm text-text-1 focus:border-primary focus:ring-2 focus:ring-primary/20"
+              className={AUTH_INPUT_WITH_TOGGLE}
             />
             <button
               type="button"
@@ -204,14 +205,14 @@ export default function SignUpPage() {
             </button>
           </div>
           {password.length > 0 && (
-            <div className="mt-2 space-y-1.5">
+            <div className="mt-1.5 space-y-1">
               <div className="h-1 overflow-hidden rounded-full bg-surface-2 dark:bg-dark-surface-2">
                 <div
                   className={`h-full rounded-full transition-all duration-300 ${strength.color}`}
                   style={{ width: strength.width }}
                 />
               </div>
-              <p className="text-xs text-text-4 dark:text-dark-text-4">
+              <p className="text-[11px] text-text-4 dark:text-dark-text-4">
                 Password strength: <span className="font-semibold">{strength.label}</span>
               </p>
             </div>
@@ -221,22 +222,29 @@ export default function SignUpPage() {
         <button
           type="submit"
           disabled={loading}
-          className="mt-6 flex h-[52px] w-full items-center justify-center gap-2 rounded-md bg-accent text-sm font-bold text-charcoal hover:bg-accent-hover disabled:opacity-50"
+          className={AUTH_SUBMIT}
         >
           {loading ? 'Creating account…' : 'Create Free Account'}
           {!loading && <ArrowRight className="w-4 h-4" />}
         </button>
       </form>
 
-      <p className="mt-5 text-center text-xs text-text-4 dark:text-dark-text-4">
+      <p className="mt-3 text-center text-xs text-text-3 dark:text-dark-text-3">
+        Already have an account?{' '}
+        <Link href="/login" className="font-bold text-primary hover:underline">
+          Log in
+        </Link>
+      </p>
+
+      <p className="mt-2 text-center text-[11px] text-text-4 dark:text-dark-text-4">
         By signing up, you agree to our{' '}
         <Link href="/terms" className="text-primary hover:underline">Terms of Service</Link>
         {' '}and{' '}
         <Link href="/privacy" className="text-primary hover:underline">Privacy Policy</Link>
       </p>
 
-      <div className="mt-6 border-t border-border pt-5 dark:border-dark-border">
-        <div className="flex items-center justify-center gap-5 text-xs text-text-4 dark:text-dark-text-4">
+      <div className="mt-3 border-t border-border pt-3 dark:border-dark-border">
+        <div className="flex items-center justify-center gap-4 text-[11px] text-text-4 dark:text-dark-text-4">
           <div className="flex items-center gap-1.5">
             <Shield className="h-3.5 w-3.5" />
             <span>NDPR Compliant</span>
