@@ -37,6 +37,9 @@ describe("IVA-85 review triage lock", () => {
     expect(sheet).toMatch(/lg:w-\[520px\]/);
     expect(sheet).toMatch(/categorise/);
     expect(sheet).toMatch(/Ignore all low-confidence|bulkIgnoreLow/);
+    expect(sheet).toMatch(/QuietLoadWarn/);
+    expect(sheet).toMatch(/TRIAGE_COPY\.loadError/);
+    expect(sheet).toMatch(/} catch \{/);
     expect(sheet).not.toMatch(/Skip for now/);
     expect(review).toMatch(/TriageSheet/);
     expect(review).not.toMatch(/Review Transactions/);
@@ -63,6 +66,7 @@ describe("IVA-85 review triage lock", () => {
     expect(copy).toMatch(/Duplicate suspect/);
     expect(copy).toMatch(/Low confidence/);
     expect(copy).toMatch(/Ignore all low-confidence/);
+    expect(copy).toMatch(/Couldn’t load exceptions — try again/);
     expect(copy).not.toMatch(/JUO|AI-powered|Inbox zero/);
     expect(sheet).toMatch(/text-success/);
     expect(sheet).not.toMatch(/#C8F000|#E8A317/);
