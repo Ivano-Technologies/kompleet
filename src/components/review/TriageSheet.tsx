@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
+import { QuietLoadWarn } from "@/components/feedback/QuietLoadWarn";
 import { CategoryPicker } from "./CategoryPicker";
 import { TRIAGE_COPY } from "./triage-copy";
 import {
@@ -194,6 +195,8 @@ function TriagePanel({
   categories,
   busy,
   confirmBulk,
+  error,
+  onRetryError,
   onAction,
   onClose,
   onBulkIgnore,
@@ -205,6 +208,8 @@ function TriagePanel({
   categories: TriageCategory[];
   busy: boolean;
   confirmBulk: boolean;
+  error: string | null;
+  onRetryError: () => void;
   onAction: (
     op: "categorise" | "confirm" | "ignore",
     row: TriageRow,
@@ -233,10 +238,15 @@ function TriagePanel({
           <X className="h-4 w-4" />
         </button>
       </header>
+      {error ? (
+        <div className="px-4 pt-3">
+          <QuietLoadWarn message={error} onRetry={onRetryError} />
+        </div>
+      ) : null}
       <div className="flex-1 space-y-2 overflow-auto p-4">
         {items.length === 0 ? (
           <p className="px-2 py-8 text-center text-sm text-text-2">
-            {TRIAGE_COPY.empty}
+            {error ? TRIAGE_COPY.unavailable : TRIAGE_COPY.empty}
           </p>
         ) : (
           items.map((row) => (
@@ -304,19 +314,38 @@ export function TriageSheet({
   const [busy, setBusy] = useState(false);
   const [confirmBulk, setConfirmBulk] = useState(false);
   const [toast, setToast] = useState<ToastState | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const retryErrorRef = useRef<() => void>(() => undefined);
+
+  const showError = (message: string, retry: () => void) => {
+    retryErrorRef.current = retry;
+    setError(message);
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const response = await fetch("/api/transactions/triage", {
         credentials: "include",
       });
-      if (!response.ok) return;
+      if (!response.ok) {
+        retryErrorRef.current = () => {
+          void load();
+        };
+        setError(TRIAGE_COPY.loadError);
+        return;
+      }
       const body = (await response.json()) as TriageResponse;
       setItems(body.items ?? []);
       setCounts(body.counts ?? emptyTriageCounts());
       setCategories(body.categories ?? []);
       onCounts?.(body.counts ?? emptyTriageCounts());
+    } catch {
+      retryErrorRef.current = () => {
+        void load();
+      };
+      setError(TRIAGE_COPY.loadError);
     } finally {
       setLoading(false);
     }
@@ -347,6 +376,7 @@ export function TriageSheet({
     category?: TriageCategory,
   ) => {
     setBusy(true);
+    setError(null);
     try {
       const response = await fetch("/api/transactions/triage", {
         method: "POST",
@@ -359,7 +389,12 @@ export function TriageSheet({
           categoryId: category?.id,
         }),
       });
-      if (!response.ok) return;
+      if (!response.ok) {
+        showError(TRIAGE_COPY.actionError, () => {
+          void apply(op, row, category);
+        });
+        return;
+      }
       const body = (await response.json()) as { snapshot?: TriageSnapshot };
       if (body.snapshot) {
         const message =
@@ -371,6 +406,10 @@ export function TriageSheet({
         setToast({ message, snapshots: [body.snapshot] });
       }
       await load();
+    } catch {
+      showError(TRIAGE_COPY.actionError, () => {
+        void apply(op, row, category);
+      });
     } finally {
       setBusy(false);
     }
@@ -379,17 +418,28 @@ export function TriageSheet({
   const undo = async () => {
     if (!toast) return;
     setBusy(true);
+    setError(null);
     try {
       for (const snapshot of toast.snapshots) {
-        await fetch("/api/transactions/triage", {
+        const response = await fetch("/api/transactions/triage", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
           body: JSON.stringify({ op: "undo", snapshot }),
         });
+        if (!response.ok) {
+          showError(TRIAGE_COPY.undoError, () => {
+            void undo();
+          });
+          return;
+        }
       }
       setToast(null);
       await load();
+    } catch {
+      showError(TRIAGE_COPY.undoError, () => {
+        void undo();
+      });
     } finally {
       setBusy(false);
     }
@@ -397,6 +447,7 @@ export function TriageSheet({
 
   const confirmBulkIgnore = async () => {
     setBusy(true);
+    setError(null);
     try {
       const response = await fetch("/api/transactions/triage", {
         method: "POST",
@@ -404,15 +455,23 @@ export function TriageSheet({
         credentials: "include",
         body: JSON.stringify({ op: "ignore_low" }),
       });
-      if (response.ok) {
-        const body = (await response.json()) as { snapshots?: TriageSnapshot[] };
-        setToast({
-          message: TRIAGE_COPY.toastIgnored,
-          snapshots: body.snapshots ?? [],
+      if (!response.ok) {
+        showError(TRIAGE_COPY.actionError, () => {
+          void confirmBulkIgnore();
         });
+        return;
       }
+      const body = (await response.json()) as { snapshots?: TriageSnapshot[] };
+      setToast({
+        message: TRIAGE_COPY.toastIgnored,
+        snapshots: body.snapshots ?? [],
+      });
       setConfirmBulk(false);
       await load();
+    } catch {
+      showError(TRIAGE_COPY.actionError, () => {
+        void confirmBulkIgnore();
+      });
     } finally {
       setBusy(false);
     }
@@ -425,6 +484,8 @@ export function TriageSheet({
       categories={categories}
       busy={busy}
       confirmBulk={confirmBulk}
+      error={error}
+      onRetryError={() => retryErrorRef.current()}
       onAction={apply}
       onClose={
         variant === "page"

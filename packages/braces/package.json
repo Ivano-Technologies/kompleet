@@ -1,0 +1,21 @@
+{
+  "name": "braces",
+  "description": "Patched braces 3.0.4 for GHSA-vfj7-8cjw-p6xm (nesting depth guard). Backport of micromatch/braces#79 onto 3.0.3; no npm 3.0.4 exists.",
+  "version": "3.0.4",
+  "license": "MIT",
+  "private": true,
+  "homepage": "https://github.com/micromatch/braces",
+  "author": "Jon Schlinkert (https://github.com/jonschlinkert)",
+  "repository": "micromatch/braces",
+  "files": [
+    "index.js",
+    "lib"
+  ],
+  "main": "index.js",
+  "engines": {
+    "node": ">=8"
+  },
+  "dependencies": {
+    "fill-range": "^7.1.1"
+  }
+}

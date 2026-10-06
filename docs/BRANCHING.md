@@ -48,7 +48,7 @@ Review dependency currency deliberately once a quarter rather than continuously.
 ## Repo settings that make this work
 
 - **Automatically delete head branches** — on.
-- **Branch protection on `main`**: require the CI checks (`secret-scan`, `typecheck`, `test`, `build`, `lint`, `check-schema-drift`, `check-tax-rates`), no direct pushes.
+- **Branch protection on `main`**: require the CI checks (`secret-scan`, `typecheck`, `test`, `build`, `lint`, `check-tax-rates`), no direct pushes.
 - **Branch protection on `staging`**: require the same checks, but allow direct pushes. The checks run; they just don't block the push.
 - Allow auto-merge (needed for Dependabot security PRs).
 

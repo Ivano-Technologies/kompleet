@@ -1,5 +1,6 @@
 // instrumentation-client.ts
 import * as Sentry from "@sentry/nextjs";
+import { shouldDropStaleHostFailedFetch } from "./src/lib/sentry/drop-stale-host-fetch";
 
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
@@ -36,6 +37,15 @@ Sentry.init({
   // --- Data Scrubbing ---
   // Strip sensitive financial data before sending to Sentry
   beforeSend(event) {
+    const pageHost =
+      typeof window !== "undefined" ? window.location.hostname : undefined;
+    // KOMPLEET-PLATFORM-6: stale www tabs after the 308 cutover POST to
+    // /api/auth on the old host, get blocked, and page as Failed to fetch.
+    // Keep Failed-to-fetch on kompleet.techivano.com.
+    if (shouldDropStaleHostFailedFetch(event, pageHost)) {
+      return null;
+    }
+
     // Remove any accidentally captured tax data from breadcrumbs
     if (event.breadcrumbs) {
       event.breadcrumbs = event.breadcrumbs.map((crumb) => {
