@@ -142,6 +142,8 @@
   },
   "pnpm": {
     "overrides": {
+      "braces": "workspace:*",
+      "node-forge": "workspace:*",
       "tar": "^7.5.10",
       "iconv-lite": "0.7.3",
       "esbuild@<=0.24.2": ">=0.25.0",

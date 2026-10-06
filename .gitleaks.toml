@@ -50,6 +50,8 @@ paths = [
   '''(^|/)e2e/''',
   # Build / dependency trees — never contain first-party secrets, dominate scan time
   '''(^|/)node_modules/''',
+  # Vendored patched deps (braces 3.0.4, node-forge 1.4.1) — not first-party secrets
+  '''(^|/)packages/''',
   '''(^|/)\.next/''',
   '''(^|/)apps/mobile/\.expo/''',
   '''(^|/)apps/mobile/android/''',
