@@ -1,0 +1,32 @@
+{
+  "name": "node-forge",
+  "version": "1.4.1",
+  "description": "Patched node-forge 1.4.1 for GHSA-86w9-cpqp-85rv (nested DigestAlgorithm length check). Backport of digitalbazaar/forge#1152 onto 1.4.0; no npm 1.4.1 exists.",
+  "license": "(BSD-3-Clause OR GPL-2.0)",
+  "private": true,
+  "homepage": "https://github.com/digitalbazaar/forge",
+  "author": {
+    "name": "Digital Bazaar, Inc.",
+    "email": "support@digitalbazaar.com",
+    "url": "http://digitalbazaar.com/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/digitalbazaar/forge"
+  },
+  "main": "lib/index.js",
+  "files": [
+    "lib/*.js",
+    "flash/swf/*.swf",
+    "dist/*.min.js",
+    "dist/*.min.js.map"
+  ],
+  "engines": {
+    "node": ">= 6.13.0"
+  },
+  "browser": {
+    "buffer": false,
+    "crypto": false,
+    "process": false
+  }
+}
