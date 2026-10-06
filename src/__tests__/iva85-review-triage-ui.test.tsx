@@ -150,6 +150,161 @@ describe("IVA-85 review triage UI", () => {
     });
   });
 
+  it("shows a retry warning when load fails with Failed to fetch", async () => {
+    const unhandled = vi.fn();
+    window.addEventListener("unhandledrejection", unhandled);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        throw new TypeError("Failed to fetch");
+      }),
+    );
+
+    render(<TriageSheet open onClose={() => undefined} />);
+
+    expect(
+      await screen.findByText("Couldn’t load exceptions — try again"),
+    ).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Retry" })).toBeTruthy();
+    expect(screen.queryByText("You’re all caught up")).toBeNull();
+    expect(unhandled).not.toHaveBeenCalled();
+    window.removeEventListener("unhandledrejection", unhandled);
+  });
+
+  it("shows a retry warning when apply fails with Failed to fetch", async () => {
+    const unhandled = vi.fn();
+    window.addEventListener("unhandledrejection", unhandled);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (_url: string, init?: RequestInit) => {
+        if (init?.method === "POST") {
+          throw new TypeError("Failed to fetch");
+        }
+        return {
+          ok: true,
+          json: async () => ({
+            items: rows,
+            counts: {
+              needsCheck: 3,
+              uncategorised: 1,
+              lowConfidence: 1,
+              duplicateSuspect: 1,
+            },
+            categories: [{ id: "sales", name: "Sales" }],
+          }),
+        };
+      }),
+    );
+
+    render(<TriageSheet open onClose={() => undefined} />);
+    await waitFor(() => {
+      expect(screen.getByText("Flutterwave · Settlement")).toBeTruthy();
+    });
+    await userEvent.click(screen.getAllByRole("button", { name: "Confirm" })[0]);
+    expect(
+      await screen.findByText("Couldn’t save that change — try again"),
+    ).toBeTruthy();
+    expect(screen.getByText("Flutterwave · Settlement")).toBeTruthy();
+    expect(unhandled).not.toHaveBeenCalled();
+    window.removeEventListener("unhandledrejection", unhandled);
+  });
+
+  it("shows a retry warning when undo fails with Failed to fetch", async () => {
+    const unhandled = vi.fn();
+    window.addEventListener("unhandledrejection", unhandled);
+    let postCount = 0;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (_url: string, init?: RequestInit) => {
+        if (init?.method === "POST") {
+          postCount += 1;
+          if (postCount > 1) throw new TypeError("Failed to fetch");
+          return {
+            ok: true,
+            json: async () => ({
+              success: true,
+              snapshot: {
+                kind: "transaction",
+                id: "t2",
+                categoryId: "sales",
+                confidenceScore: 42,
+                triageIgnored: false,
+                duplicateStatus: null,
+                createdTransactionId: null,
+              },
+            }),
+          };
+        }
+        return {
+          ok: true,
+          json: async () => ({
+            items: rows,
+            counts: {
+              needsCheck: 3,
+              uncategorised: 1,
+              lowConfidence: 1,
+              duplicateSuspect: 1,
+            },
+            categories: [{ id: "sales", name: "Sales" }],
+          }),
+        };
+      }),
+    );
+
+    render(<TriageSheet open onClose={() => undefined} />);
+    await waitFor(() => {
+      expect(screen.getByText("Flutterwave · Settlement")).toBeTruthy();
+    });
+    await userEvent.click(screen.getAllByRole("button", { name: "Confirm" })[0]);
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Undo" })).toBeTruthy();
+    });
+    await userEvent.click(screen.getByRole("button", { name: "Undo" }));
+    expect(await screen.findByText("Couldn’t undo — try again")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Undo" })).toBeTruthy();
+    expect(unhandled).not.toHaveBeenCalled();
+    window.removeEventListener("unhandledrejection", unhandled);
+  });
+
+  it("shows a retry warning when bulk ignore fails with Failed to fetch", async () => {
+    const unhandled = vi.fn();
+    window.addEventListener("unhandledrejection", unhandled);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (_url: string, init?: RequestInit) => {
+        if (init?.method === "POST") {
+          throw new TypeError("Failed to fetch");
+        }
+        return {
+          ok: true,
+          json: async () => ({
+            items: rows,
+            counts: {
+              needsCheck: 3,
+              uncategorised: 1,
+              lowConfidence: 1,
+              duplicateSuspect: 1,
+            },
+            categories: [{ id: "sales", name: "Sales" }],
+          }),
+        };
+      }),
+    );
+
+    render(<TriageSheet open onClose={() => undefined} />);
+    await waitFor(() => {
+      expect(screen.getByText("Ignore all low-confidence")).toBeTruthy();
+    });
+    await userEvent.click(screen.getByText("Ignore all low-confidence"));
+    const ignoreButtons = screen.getAllByRole("button", { name: "Ignore" });
+    await userEvent.click(ignoreButtons[ignoreButtons.length - 1]);
+    expect(
+      await screen.findByText("Couldn’t save that change — try again"),
+    ).toBeTruthy();
+    expect(unhandled).not.toHaveBeenCalled();
+    window.removeEventListener("unhandledrejection", unhandled);
+  });
+
   it("opens the same sheet from the post-import Fix toast", async () => {
     const onFix = vi.fn();
     render(
