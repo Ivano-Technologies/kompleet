@@ -62,7 +62,7 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 Convex deployment env (dashboard / `npx convex env set`), not Next.js:
 
 - `JWT_PRIVATE_KEY` + `JWKS` — generate with `node scripts/generate-convex-auth-keys.mjs`
-- `SITE_URL` — staging origin, e.g. `https://kompleet-git-staging-techivano.vercel.app`
+- `SITE_URL` — soak origin, e.g. `https://kompleet-git-dev-techivano.vercel.app`
 - `AUTH_RESEND_KEY` (optional) — enables `/forgot-password` emails
 
 See [docs/ENVIRONMENT_VARIABLES.md](docs/ENVIRONMENT_VARIABLES.md).
