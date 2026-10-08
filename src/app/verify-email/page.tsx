@@ -10,7 +10,7 @@ export default function VerifyEmailPage() {
     <AuthLayout variant="dark-split">
       <div className="space-y-4 text-center">
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-success/10">
-          <CheckCircle2 className="h-6 w-6 text-success" />
+          <CheckCircle2 className="h-6 w-6 text-success dark:text-success-dark" />
         </div>
         <h1 className={AUTH_TITLE}>
           Email verification is not required
