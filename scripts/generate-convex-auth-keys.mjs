@@ -12,7 +12,7 @@
  * Manual set (dashboard or):
  *   npx convex env set JWT_PRIVATE_KEY "..."
  *   npx convex env set JWKS "..."
- *   npx convex env set SITE_URL https://kompleet-git-staging-techivano.vercel.app
+ *   npx convex env set SITE_URL https://kompleet-git-dev-techivano.vercel.app
  *
  * Optional password-reset email:
  *   npx convex env set AUTH_RESEND_KEY "re_..."

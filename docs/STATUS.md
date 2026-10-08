@@ -17,8 +17,10 @@ the originals stop being ancestors, so `git merge-base --is-ancestor` and cleanu
 false-negative, and `staging` forks from `main` the moment follow-up PRs land on `main`
 only. That stranded Phase 2 once (#57 into a dead base) and forked `staging` after #59.
 
-**Chosen: (a)** Squash only **feature → staging**. Use a **merge commit** for
-**staging → main**. Keeps the two long-lived tips reconcilable without
+_The soak branch was renamed `staging` → `dev` on 2026-10-08; dated notes below keep the old name._
+
+**Chosen: (a)** Squash only **feature → dev**. Use a **merge commit** for
+**dev → main**. Keeps the two long-lived tips reconcilable without
 `--force-with-lease` resets.
 
 Rejected for standing policy:
@@ -29,8 +31,8 @@ Rejected for standing policy:
   soak/promotion gate that caught the stranded Phase 2. Revisit only if staging stops
   earning that role.
 
-**Ops note:** after any accidental squash of staging→main, content-verify then
-`git reset --hard origin/main && git push --force-with-lease origin staging`. Prefer
+**Ops note:** after any accidental squash of dev→main, content-verify then
+`git reset --hard origin/main && git push --force-with-lease origin dev`. Prefer
 not needing that. Enable GitHub **Automatically delete head branches** so squash-merged
 feature heads do not linger.
 
@@ -112,4 +114,4 @@ Intentionally deferred (separate Wave C invoicing PR #88):
 
 ## Owner — required status checks (not set)
 
-Neither `main` nor `staging` has branch protection. Set these as required on both: `secret-scan`, `typecheck`, `test`, `build`, `lint`, `check-schema-drift`, `check-tax-rates`, `rls-negative`. Do **not** require `e2e` or the OSV scan.
+Neither `main` nor `dev` has branch protection. Set these as required on both: `secret-scan`, `typecheck`, `test`, `build`, `lint`, `check-schema-drift`, `check-tax-rates`, `rls-negative`. Do **not** require `e2e` or the OSV scan.
