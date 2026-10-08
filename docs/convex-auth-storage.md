@@ -19,7 +19,7 @@ Supabase JWT verification remains in `convex/auth.config.ts` so the Expo app can
 
 ```
 NEXT_PUBLIC_CONVEX_URL=https://shiny-cricket-316.convex.cloud
-NEXT_PUBLIC_SITE_URL=https://kompleet-git-staging-techivano.vercel.app
+NEXT_PUBLIC_SITE_URL=https://kompleet-git-dev-techivano.vercel.app
 ```
 
 Leave **Production** `NEXT_PUBLIC_CONVEX_URL` unset.
@@ -31,7 +31,7 @@ Supabase URL / keys stay set for leftover Postgres + keep-alive. They are not th
 ```
 npx convex env set JWT_PRIVATE_KEY "..."
 npx convex env set JWKS "..."
-npx convex env set SITE_URL https://kompleet-git-staging-techivano.vercel.app
+npx convex env set SITE_URL https://kompleet-git-dev-techivano.vercel.app
 # optional, enables /forgot-password email
 npx convex env set AUTH_RESEND_KEY "re_..."
 ```
@@ -71,7 +71,7 @@ npx convex run users:listEmailsInternal
 
 ## Rollback
 
-1. Revert this PR on `staging`.
+1. Revert this PR on `dev`.
 2. Web login returns to Supabase Auth; Convex data rows are unchanged.
 3. Do not delete Convex Auth tables until soak is abandoned.
 4. Do not pause or delete the Supabase project (later ticket).

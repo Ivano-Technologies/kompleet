@@ -125,7 +125,7 @@ pnpm exec playwright show-report          # open the last HTML report
 ## CI
 
 The `e2e` job in `.github/workflows/ci.yml` installs Chromium and runs
-`pnpm test:e2e` on pushes and pull requests targeting `main` and `staging`.
+`pnpm test:e2e` on pushes and pull requests targeting `main` and `dev`.
 
 Configure it in **Settings → Secrets and variables → Actions**:
 
