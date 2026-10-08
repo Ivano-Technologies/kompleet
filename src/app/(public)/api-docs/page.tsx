@@ -90,7 +90,7 @@ export default function ApiDocsPage() {
             Base URL
           </h2>
           <div className="bg-dark-background rounded-lg p-4 text-sm font-mono">
-            <p className="text-green-400">{API_BASE_URL}</p>
+            <p className="break-all text-green-400">{API_BASE_URL}</p>
           </div>
           <p className="text-sm text-light-text-tertiary dark:text-dark-text-tertiary mt-2">
             All endpoints are relative to this base URL.
