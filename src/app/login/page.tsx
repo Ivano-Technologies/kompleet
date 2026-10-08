@@ -12,6 +12,7 @@ import {
   AUTH_INPUT,
   AUTH_INPUT_WITH_TOGGLE,
   AUTH_LABEL,
+  AUTH_LINK,
   AUTH_SUBMIT,
   AUTH_SUBTITLE_FOLD,
   AUTH_TITLE,
@@ -79,10 +80,7 @@ function LoginForm() {
         <div>
           <div className="mb-1 flex items-center justify-between">
             <label className={AUTH_LABEL}>Password</label>
-            <Link
-              href="/forgot-password"
-              className="text-xs font-bold text-primary hover:underline"
-            >
+            <Link href="/forgot-password" className={`text-xs ${AUTH_LINK}`}>
               Forgot Password?
             </Link>
           </div>
@@ -115,7 +113,7 @@ function LoginForm() {
       </form>
       <p className="mt-3 text-center text-xs text-text-3 dark:text-dark-text-3">
         New to Kompleet?{" "}
-        <Link href="/signup" className="font-bold text-primary hover:underline">
+        <Link href="/signup" className={AUTH_LINK}>
           Get started
         </Link>
       </p>

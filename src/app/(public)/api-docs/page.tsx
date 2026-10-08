@@ -7,6 +7,14 @@ export const metadata: Metadata = {
     "KOMPLEET API documentation for developers integrating with the platform.",
 };
 
+/**
+ * Documented API base. Hardcoded to the production host on purpose: docs must
+ * point integrators at the stable public API, not at whichever deployment is
+ * rendering the page (Preview's NEXT_PUBLIC_SITE_URL is the protected dev
+ * alias, which external clients cannot call).
+ */
+const API_BASE_URL = "https://kompleet.techivano.com/api";
+
 const endpoints = [
   {
     method: "GET",
@@ -42,7 +50,7 @@ export default function ApiDocsPage() {
       <div className="max-w-4xl mx-auto">
         <Link
           href="/"
-          className="text-sm text-primary hover:underline mb-8 inline-block"
+          className="text-sm font-semibold text-primary hover:underline dark:text-teal-400 mb-8 inline-block"
         >
           &larr; Back to Home
         </Link>
@@ -67,7 +75,7 @@ export default function ApiDocsPage() {
             your token by authenticating through Convex Auth.
           </p>
           <div className="bg-dark-background rounded-lg p-4 text-sm font-mono">
-            <p className="text-light-text-tertiary dark:text-dark-text-tertiary mb-1">
+            <p className="text-dark-text-tertiary mb-1">
               # Example request header
             </p>
             <p className="text-green-400">
@@ -82,7 +90,7 @@ export default function ApiDocsPage() {
             Base URL
           </h2>
           <div className="bg-dark-background rounded-lg p-4 text-sm font-mono">
-            <p className="text-green-400">https://kompleet.vercel.app/api</p>
+            <p className="break-all text-green-400">{API_BASE_URL}</p>
           </div>
           <p className="text-sm text-light-text-tertiary dark:text-dark-text-tertiary mt-2">
             All endpoints are relative to this base URL.
@@ -154,7 +162,7 @@ export default function ApiDocsPage() {
             Errors follow a consistent JSON format:
           </p>
           <div className="bg-dark-background rounded-lg p-4 text-sm font-mono">
-            <p className="text-light-text-tertiary dark:text-dark-text-tertiary">
+            <p className="text-dark-text-tertiary">
               {"{"}
             </p>
             <p className="text-green-400 pl-4">{'"error": "Unauthorized",'}</p>
@@ -162,7 +170,7 @@ export default function ApiDocsPage() {
               {'"message": "Invalid or expired token",'}
             </p>
             <p className="text-green-400 pl-4">{'"status": 401'}</p>
-            <p className="text-light-text-tertiary dark:text-dark-text-tertiary">
+            <p className="text-dark-text-tertiary">
               {"}"}
             </p>
           </div>
@@ -177,7 +185,7 @@ export default function ApiDocsPage() {
           </p>
           <Link
             href="/contact"
-            className="inline-block rounded-md bg-accent px-6 py-3 text-sm font-bold text-charcoal hover:bg-accent-hover transition-colors"
+            className="inline-block rounded-md bg-accent-hover px-6 py-3 text-sm font-bold text-charcoal hover:bg-[#115E59] transition-colors"
           >
             Contact Developer Support
           </Link>

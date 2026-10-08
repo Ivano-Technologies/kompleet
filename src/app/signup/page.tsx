@@ -12,6 +12,7 @@ import {
   AUTH_INPUT,
   AUTH_INPUT_WITH_TOGGLE,
   AUTH_LABEL,
+  AUTH_LINK,
   AUTH_SUBMIT,
   AUTH_SUBTITLE,
   AUTH_SUBTITLE_FOLD,
@@ -112,9 +113,9 @@ export default function SignUpPage() {
     <AuthLayout
       variant="dark-split"
       headerRightAddon={
-        <span className="text-sm text-text-3">
+        <span className="text-sm text-text-3 dark:text-dark-text-3">
           Already have an account?{' '}
-          <Link href="/login" className="font-bold text-primary hover:underline">
+          <Link href="/login" className={AUTH_LINK}>
             Log in
           </Link>
         </span>
@@ -213,7 +214,7 @@ export default function SignUpPage() {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-text-4 hover:text-text-1 dark:text-dark-text-4 dark:hover:text-dark-text-1"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-text-3 hover:text-text-1 dark:text-dark-text-3 dark:hover:text-dark-text-1"
             >
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
@@ -226,7 +227,7 @@ export default function SignUpPage() {
                   style={{ width: strength.width }}
                 />
               </div>
-              <p className="text-[11px] text-text-4 dark:text-dark-text-4">
+              <p className="text-[11px] text-text-3 dark:text-dark-text-3">
                 Password strength: <span className="font-semibold">{strength.label}</span>
               </p>
             </div>
@@ -245,9 +246,9 @@ export default function SignUpPage() {
 
       <p className={AUTH_TERMS}>
         By signing up, you agree to our{' '}
-        <Link href="/terms" className="text-primary hover:underline">Terms of Service</Link>
+        <Link href="/terms" className={AUTH_LINK}>Terms of Service</Link>
         {' '}and{' '}
-        <Link href="/privacy" className="text-primary hover:underline">Privacy Policy</Link>
+        <Link href="/privacy" className={AUTH_LINK}>Privacy Policy</Link>
       </p>
 
       <div className={AUTH_TRUST}>

@@ -11,6 +11,7 @@ import {
   AUTH_INPUT,
   AUTH_INPUT_WITH_TOGGLE,
   AUTH_LABEL,
+  AUTH_LINK_MUTED,
   AUTH_SUBMIT,
   AUTH_SUBTITLE,
   AUTH_TITLE,
@@ -21,7 +22,7 @@ import { CheckCircle2, Eye, EyeOff, KeyRound } from 'lucide-react';
 const headerLeftAddon = (
   <Link
     href="/login"
-    className="flex items-center gap-1.5 text-xs text-text-3 hover:text-text-1"
+    className={`flex items-center gap-1.5 ${AUTH_LINK_MUTED}`}
   >
     Back to Login
   </Link>
