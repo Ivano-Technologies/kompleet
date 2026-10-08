@@ -28,7 +28,7 @@ Production deploy
 | Environment   | Branch          | Purpose                    |
 |---------------|-----------------|----------------------------|
 | **Preview**   | feature branches| Test individual changes    |
-| **Staging**   | `staging`       | Pre-production / QA        |
+| **Staging**   | `dev`           | Pre-production / QA        |
 | **Production**| `main`          | Live system                |
 
 ## Vercel configuration
@@ -38,7 +38,7 @@ In **Vercel project settings**:
 - **Production Branch:** `main`
 - **Branch deployments:**
   - `main` → Production
-  - `staging` → Staging (e.g. `staging.kompleet.ng` or project-specific staging URL)
+  - `dev` → Staging soak Preview (`https://kompleet-git-dev-techivano.vercel.app`)
   - `feature/*` → Preview deployments
 
 Pushing a branch like `feature/new-dashboard` creates a preview URL, e.g.:
@@ -67,13 +67,13 @@ This prevents accidental production deploys and keeps history clean.
 
 ### Staging
 
-1. Merge feature into `staging`: e.g. open PR `feature/asset-dashboard` → `staging`
+1. Merge feature into `dev`: e.g. open PR `feature/asset-dashboard` → `dev`
 2. After merge, Vercel deploys the **staging** environment.
 3. QA validates on staging (e.g. `staging.kompleet.ng`).
 
 ### Production
 
-1. When staging is approved, merge `staging` → `main` (e.g. via PR).
+1. When staging is approved, merge `dev` → `main` (e.g. via PR).
 2. Vercel automatically deploys **production**.
 3. Production URL: e.g. `kompleet.ng` or your production domain.
 
@@ -91,7 +91,7 @@ Example layout:
 ```
 Projects/
 ├── kompleet-feature-auth   # feature/auth
-├── kompleet-platform       # staging or default branch
+├── kompleet-platform       # dev or default branch
 └── kompleet-main-deploy    # main (production deploy worktree)
 ```
 
@@ -129,7 +129,7 @@ GitHub Actions (install, security gate, tests)
 Vercel preview deployment
         │
         ▼
-Merge → staging
+Merge → dev
         │
         ▼
 Staging deployment

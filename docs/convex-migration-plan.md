@@ -571,7 +571,7 @@ If CoS wants **A in one go** because there are only 5 users: still do a **stagin
 
 ## 7. Suggested milestones and PR contents
 
-Repo convention (`docs/BRANCHING.md`): work integrates on **`staging`**; schema/security waves use a short-lived PR; `main` only receives `staging`. Treat Convex schema + wrapper PRs as **schema-wave equivalents** (PR required).
+Repo convention (`docs/BRANCHING.md`): work integrates on **`dev`** (formerly `staging`); schema/security waves use a short-lived PR; `main` only receives `dev`. Treat Convex schema + wrapper PRs as **schema-wave equivalents** (PR required).
 
 | # | Milestone | What the PR contains | Done when |
 | --- | --- | --- | --- |

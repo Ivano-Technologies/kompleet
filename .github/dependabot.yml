@@ -6,7 +6,7 @@
 # Why version updates are off
 #   Weekly grouped minor/patch PRs and individual majors produced a standing
 #   backlog of Dependabot branches that could not drain under the two-branch
-#   model (staging + main only). Routine currency is a quarterly review, not
+#   model (dev + main only). Routine currency is a quarterly review, not
 #   a continuous PR stream.
 #
 # Why security updates stay on

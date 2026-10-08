@@ -136,7 +136,7 @@ Sequence after clearing the dependency backlog, never before.
 ## 5. Standing rules now that the repo is public
 
 1. **No credential ever enters the tree.** Everything through Vercel env vars, GitHub Actions secrets, or EAS secrets.
-2. **`secret-scan` is a required status check.** Set it in Settings → Branches → `main` and `staging` protection rules — a CI job that can be merged past is decoration.
+2. **`secret-scan` is a required status check.** Set it in Settings → Branches → `main` and `dev` protection rules — a CI job that can be merged past is decoration.
 3. **Install the pre-commit hook** so leaks fail locally, not in CI:
    ```bash
    pnpm exec husky add .husky/pre-commit "gitleaks protect --staged --config .gitleaks.toml"
@@ -155,7 +155,7 @@ Sequence after clearing the dependency backlog, never before.
 - [ ] Google Drive grant revoked
 - [ ] Supabase logs reviewed for unauthorized `service_role` use; NDPR assessment recorded
 - [ ] Security commit pushed; `secret-scan` green on `main`
-- [ ] `secret-scan` set as required status check on `main` and `staging`
+- [ ] `secret-scan` set as required status check on `main` and `dev`
 - [ ] GitHub push protection enabled
 - [ ] Local `.user_env` / `.gdrive-rclone.ini` deleted from disk
 - [x] History purge decision made and recorded — **declined**, see §4
