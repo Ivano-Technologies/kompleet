@@ -9,6 +9,7 @@ import {
   AUTH_FORM,
   AUTH_INPUT,
   AUTH_LABEL,
+  AUTH_LINK_MUTED,
   AUTH_SUBMIT,
   AUTH_SUBTITLE,
   AUTH_TITLE,
@@ -44,7 +45,7 @@ export default function ForgotPasswordPage() {
       <AuthLayout variant="dark-split">
         <div className="space-y-4 text-center">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-            <Mail className="h-6 w-6 text-primary" />
+            <Mail className="h-6 w-6 text-primary dark:text-teal-400" />
           </div>
           <h1 className={AUTH_TITLE}>Check Your Email</h1>
           <p className={AUTH_SUBTITLE}>
@@ -52,11 +53,11 @@ export default function ForgotPasswordPage() {
           </p>
           <Link
             href={`/reset-password?email=${encodeURIComponent(email)}`}
-            className="flex h-11 w-full items-center justify-center rounded-md bg-accent text-sm font-bold text-charcoal hover:bg-accent-hover"
+            className="flex h-11 w-full items-center justify-center rounded-md bg-accent-hover text-sm font-bold text-charcoal hover:bg-[#115E59]"
           >
             Enter reset code
           </Link>
-          <Link href="/login" className="text-xs text-text-3 hover:text-primary">
+          <Link href="/login" className={AUTH_LINK_MUTED}>
             Back to Login
           </Link>
         </div>
@@ -70,7 +71,7 @@ export default function ForgotPasswordPage() {
       headerLeftAddon={
         <Link
           href="/login"
-          className="flex items-center gap-1.5 text-xs text-text-3 hover:text-text-1"
+          className={`flex items-center gap-1.5 ${AUTH_LINK_MUTED}`}
         >
           <ArrowLeft className="h-3.5 w-3.5" /> Back to Login
         </Link>
@@ -78,7 +79,7 @@ export default function ForgotPasswordPage() {
     >
       <div className={`${AUTH_TITLE_BLOCK} text-center`}>
         <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-          <KeyRound className="h-5 w-5 text-primary" />
+          <KeyRound className="h-5 w-5 text-primary dark:text-teal-400" />
         </div>
         <h1 className={AUTH_TITLE}>Reset your password</h1>
         <p className={AUTH_SUBTITLE}>
@@ -116,7 +117,7 @@ export default function ForgotPasswordPage() {
         </button>
       </form>
 
-      <p className="mt-3 text-center text-xs text-text-4 dark:text-dark-text-4">
+      <p className="mt-3 text-center text-xs text-text-3 dark:text-dark-text-3">
         The code expires in 15 minutes. Existing users can also reclaim by signing up with the same email.
       </p>
     </AuthLayout>
