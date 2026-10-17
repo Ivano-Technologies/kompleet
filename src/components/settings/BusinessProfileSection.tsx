@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { BIZ_COPY } from "./profile-copy";
+import { BusinessLogoControl } from "./BusinessLogoControl";
 import {
   emptyBusinessProfile,
   hasLegalName,
@@ -41,7 +42,10 @@ export function BusinessProfileSection({
     };
   }, []);
 
-  const set = (key: keyof BusinessProfile, value: string) => {
+  const set = (
+    key: Exclude<keyof BusinessProfile, "logoStorageId" | "logoUrl" | "logoWidth" | "logoHeight">,
+    value: string,
+  ) => {
     setForm((prev) => ({ ...prev, [key]: value }));
   };
 
@@ -219,10 +223,20 @@ export function BusinessProfileSection({
         </div>
       </div>
 
-      <div className="flex gap-2.5 items-start px-3 py-2.5 rounded-[10px] bg-surface-2 text-xs text-text-2">
-        <span>ℹ</span>
-        <p>{BIZ_COPY.logoDeferred}</p>
-      </div>
+      <BusinessLogoControl
+        logoUrl={form.logoUrl}
+        onStatus={onStatus}
+        onChange={(profile) => {
+          setForm((prev) => ({
+            ...prev,
+            logoStorageId: profile.logoStorageId ?? null,
+            logoUrl: profile.logoUrl ?? null,
+            logoWidth: profile.logoWidth ?? null,
+            logoHeight: profile.logoHeight ?? null,
+          }));
+          emitBusinessProfileChanged();
+        }}
+      />
 
       <div className="flex justify-end gap-2.5 pt-2">
         <button

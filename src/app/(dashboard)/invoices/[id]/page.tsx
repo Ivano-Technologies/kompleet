@@ -38,7 +38,6 @@ export default function InvoiceDetailPage() {
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [qrCodeImage, setQrCodeImage] = useState("");
   const [profile, setProfile] = useState<BusinessProfile | null>(null);
   const [clients, setClients] = useState<InvoiceClient[]>([]);
   const [issuing, setIssuing] = useState(false);
@@ -59,19 +58,6 @@ export default function InvoiceDetailPage() {
       const data = payload.invoice;
       setInvoice(data);
 
-      const qrPayload = (data as Invoice & { qr_payload?: string }).qr_payload;
-      if (qrPayload) {
-        const qrResponse = await fetch("/api/invoices/qr-code", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ payload: qrPayload }),
-        });
-
-        if (qrResponse.ok) {
-          const { qrCodeDataUrl } = await qrResponse.json();
-          setQrCodeImage(qrCodeDataUrl);
-        }
-      }
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -328,152 +314,8 @@ export default function InvoiceDetailPage() {
         />
       </div>
 
-      <div className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface mb-6">
-        {/* Invoice Dates */}
-        <div className="mb-8 grid grid-cols-3 gap-4">
-          <div>
-            <div className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
-              Invoice Date
-            </div>
-            <div className="text-base font-medium text-light-text-primary dark:text-dark-text-primary">
-              {new Date(invoice.invoice_date).toLocaleDateString("en-NG", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
-            </div>
-          </div>
-          {invoice.due_date && (
-            <div>
-              <div className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
-                Due Date
-              </div>
-              <div className="text-base font-medium text-light-text-primary dark:text-dark-text-primary">
-                {new Date(invoice.due_date).toLocaleDateString("en-NG", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </div>
-            </div>
-          )}
-          {invoice.issued_at && (
-            <div>
-              <div className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
-                Issued At
-              </div>
-              <div className="text-base font-medium text-light-text-primary dark:text-dark-text-primary">
-                {new Date(invoice.issued_at).toLocaleDateString("en-NG", {
-                  year: "numeric",
-                  month: "long",
-                  day: "numeric",
-                })}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Line Items */}
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">
-            Line Items
-          </h2>
-          <div className="overflow-x-auto">
-            <table className="w-full table-fixed">
-              <thead className="bg-light-background dark:bg-dark-background border-b border-light-border dark:border-dark-border">
-                <tr>
-                  <th className="w-[35%] px-4 py-3 text-left text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary uppercase">
-                    Description
-                  </th>
-                  <th className="w-[10%] min-w-[4rem] px-4 py-3 text-right text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary uppercase">
-                    Qty
-                  </th>
-                  <th className="w-[20%] min-w-[6rem] px-4 py-3 text-right text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary uppercase">
-                    Unit Price (₦)
-                  </th>
-                  <th className="w-[10%] min-w-[4rem] px-4 py-3 text-right text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary uppercase">
-                    VAT
-                  </th>
-                  <th className="w-[25%] min-w-[7rem] px-4 py-3 text-right text-xs font-medium text-light-text-tertiary dark:text-dark-text-tertiary uppercase">
-                    Amount (₦)
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-light-border dark:divide-dark-border">
-                {invoice.line_items.map((item, index) => (
-                  <tr key={index}>
-                    <td className="px-4 py-3 text-sm text-light-text-primary dark:text-dark-text-primary break-words">
-                      {item.description}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-light-text-primary dark:text-dark-text-primary text-right tabular-nums">
-                      {item.quantity}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-light-text-primary dark:text-dark-text-primary text-right tabular-nums whitespace-nowrap">
-                      ₦{item.unit_price.toLocaleString("en-NG", {
-                        minimumFractionDigits: 2,
-                      })}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-light-text-primary dark:text-dark-text-primary text-right tabular-nums">
-                      {item.vat_rate}%
-                    </td>
-                    <td className="px-4 py-3 text-sm text-light-text-primary dark:text-dark-text-primary text-right tabular-nums whitespace-nowrap">
-                      ₦{item.amount.toLocaleString("en-NG", {
-                        minimumFractionDigits: 2,
-                      })}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Totals */}
-        <div className="border-t border-light-border dark:border-dark-border pt-6">
-          <div className="flex justify-end">
-            <div className="w-full md:w-1/2 space-y-3">
-              <div className="flex justify-between text-light-text-secondary dark:text-dark-text-secondary">
-                <span>Subtotal:</span>
-                <span className="font-medium">
-                  ₦
-                  {invoice.subtotal.toLocaleString("en-NG", {
-                    minimumFractionDigits: 2,
-                  })}
-                </span>
-              </div>
-              <div className="flex justify-between text-light-text-secondary dark:text-dark-text-secondary">
-                <span>VAT (7.5%):</span>
-                <span className="font-medium">
-                  ₦
-                  {invoice.vat_amount.toLocaleString("en-NG", {
-                    minimumFractionDigits: 2,
-                  })}
-                </span>
-              </div>
-              {invoice.discount_amount > 0 && (
-                <div className="flex justify-between text-light-text-secondary dark:text-dark-text-secondary">
-                  <span>Discount:</span>
-                  <span className="font-medium">
-                    -₦
-                    {invoice.discount_amount.toLocaleString("en-NG", {
-                      minimumFractionDigits: 2,
-                    })}
-                  </span>
-                </div>
-              )}
-              <div className="flex justify-between text-2xl font-bold text-light-text-primary dark:text-dark-text-primary pt-3 border-t border-light-border dark:border-dark-border">
-                <span>Total:</span>
-                <span>
-                  ₦
-                  {invoice.total_amount.toLocaleString("en-NG", {
-                    minimumFractionDigits: 2,
-                  })}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
+      {/* Line Items and totals render inside InvoicePreview (IVA-185, black and white) */}
+      <div className="mb-6">
         {/* Additional Info */}
         {(invoice.payment_terms || invoice.notes) && (
           <div className="mt-8 pt-6 border-t border-light-border dark:border-dark-border">
@@ -501,7 +343,7 @@ export default function InvoiceDetailPage() {
         )}
       </div>
 
-      {/* Digital Signature & QR Code */}
+      {/* Digital Signature. The QR block is hidden: there is no NRS integration and issueMine creates no IRN (IVA-185). */}
       {invoice.signature_hash && (
         <div className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
           <h2 className="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-6">
@@ -528,25 +370,6 @@ export default function InvoiceDetailPage() {
                 </div>
               </div>
             </div>
-
-            {/* QR Code */}
-            {qrCodeImage && (
-              <div>
-                <h3 className="text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-3">
-                  NRS-Compliant QR Code
-                </h3>
-                <div className="bg-light-background dark:bg-dark-background rounded-lg p-4 flex flex-col items-center">
-                  <img
-                    src={qrCodeImage}
-                    alt="Invoice QR Code"
-                    className="w-48 h-48"
-                  />
-                  <div className="mt-3 text-xs text-light-text-tertiary dark:text-dark-text-tertiary text-center">
-                    Scan to verify invoice authenticity
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       )}

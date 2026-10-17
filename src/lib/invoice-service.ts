@@ -1,6 +1,5 @@
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-import QRCode from "qrcode";
+import { resolveInvoiceSender } from "@/lib/invoices/invoice-branding";
+import { loadPdfLogo, renderInvoicePdf } from "@/lib/invoices/invoice-pdf";
 import { api } from "@/lib/convex/http";
 import { requireAuthedConvex } from "@/lib/convex/server";
 
@@ -196,14 +195,6 @@ function extraNumber(invoice: Record<string, unknown>, key: string): number {
   return typeof value === "number" ? value : 0;
 }
 
-function formatInvoiceDate(value: string | null): string {
-  if (!value) return "";
-  const parsed = new Date(value);
-  return Number.isNaN(parsed.getTime())
-    ? value
-    : parsed.toLocaleDateString("en-NG");
-}
-
 export async function generateInvoicePDF(invoiceId: string): Promise<Buffer> {
   const { convex } = await requireAuthedConvex();
   const invoice = await convex.query(api.invoices.getMine, {
@@ -215,296 +206,30 @@ export async function generateInvoicePDF(invoiceId: string): Promise<Buffer> {
   }
 
   const invoiceExtras = invoice as Record<string, unknown>;
-  const customer = asCustomerInfo(invoice.customer_info);
-  const sender = asCustomerInfo(
-    (invoice as { sender?: unknown }).sender ?? {
-      name: "",
-    },
-  );
-  const lineItems = asLineItems(invoice.line_items);
-  const subtotal = invoice.subtotal ?? 0;
-  const vatAmount = invoice.vat_amount ?? 0;
-  const totalAmount = invoice.total_amount ?? 0;
-  const discountAmount = extraNumber(invoiceExtras, "discount_amount");
-  const paymentTerms = extraString(invoiceExtras, "payment_terms");
-  const qrPayload = extraString(invoiceExtras, "qr_payload");
-  const signatureHash = extraString(invoiceExtras, "signature_hash");
+  // getMine already returns the issue time snapshot for issued invoices and
+  // the live business profile for drafts (IVA-185).
+  const sender = resolveInvoiceSender(invoice, null);
+  const logo = await loadPdfLogo(sender.logoUrl);
 
-  // Create PDF document
-  const doc = new jsPDF();
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const pageHeight = doc.internal.pageSize.getHeight();
-
-  // Colors (Nigerian green branding)
-  const primaryColor: [number, number, number] = [10, 104, 71]; // #0A6847
-  const textColor: [number, number, number] = [0, 0, 0];
-  const grayColor: [number, number, number] = [128, 128, 128];
-
-  // ============================================
-  // Header Section
-  // ============================================
-  doc.setFillColor(...primaryColor);
-  doc.rect(0, 0, pageWidth, 40, "F");
-
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(24);
-  doc.setFont("helvetica", "bold");
-  doc.text("INVOICE", 15, 25);
-
-  doc.setFontSize(10);
-  doc.setFont("helvetica", "normal");
-  const senderName = sender.name.trim() || "KOMPLEET";
-  doc.text(senderName, pageWidth - 15, 15, { align: "right" });
-  if (sender.address) {
-    const senderLines = doc.splitTextToSize(sender.address, 80);
-    doc.text(senderLines, pageWidth - 15, 20, { align: "right" });
-  } else if (sender.email) {
-    doc.text(sender.email, pageWidth - 15, 20, { align: "right" });
-  }
-  if (sender.tin) {
-    doc.text(`TIN ${sender.tin}`, pageWidth - 15, 30, { align: "right" });
-  }
-
-  // ============================================
-  // Invoice Details
-  // ============================================
-  doc.setTextColor(...textColor);
-  doc.setFontSize(10);
-  let yPos = 55;
-
-  doc.setFont("helvetica", "bold");
-  doc.text("Invoice Number:", 15, yPos);
-  doc.setFont("helvetica", "normal");
-  doc.text(invoice.invoice_number, 60, yPos);
-
-  yPos += 7;
-  doc.setFont("helvetica", "bold");
-  doc.text("Invoice Date:", 15, yPos);
-  doc.setFont("helvetica", "normal");
-  doc.text(formatInvoiceDate(invoice.invoice_date), 60, yPos);
-
-  if (invoice.due_date) {
-    yPos += 7;
-    doc.setFont("helvetica", "bold");
-    doc.text("Due Date:", 15, yPos);
-    doc.setFont("helvetica", "normal");
-    doc.text(new Date(invoice.due_date).toLocaleDateString("en-NG"), 60, yPos);
-  }
-
-  yPos += 7;
-  doc.setFont("helvetica", "bold");
-  doc.text("Tax Year:", 15, yPos);
-  doc.setFont("helvetica", "normal");
-  doc.text(String(invoice.tax_year ?? ""), 60, yPos);
-
-  // ============================================
-  // Customer Details
-  // ============================================
-  yPos += 15;
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(12);
-  doc.text("Bill To:", 15, yPos);
-
-  yPos += 7;
-  doc.setFontSize(10);
-  doc.setFont("helvetica", "normal");
-  doc.text(customer.name, 15, yPos);
-
-  if (customer.email) {
-    yPos += 5;
-    doc.text(customer.email, 15, yPos);
-  }
-
-  if (customer.phone) {
-    yPos += 5;
-    doc.text(customer.phone, 15, yPos);
-  }
-
-  if (customer.address) {
-    yPos += 5;
-    const addressLines = doc.splitTextToSize(customer.address, 80);
-    doc.text(addressLines, 15, yPos);
-    yPos += addressLines.length * 5;
-  }
-
-  if (customer.tin) {
-    yPos += 5;
-    doc.text(`TIN: ${customer.tin}`, 15, yPos);
-  }
-
-  // ============================================
-  // Line Items Table
-  // ============================================
-  yPos += 15;
-
-  const tableData = lineItems.map((item: InvoiceLineItem) => [
-    item.description,
-    item.quantity.toString(),
-    `₦${item.unit_price.toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-    `${item.vat_rate}%`,
-    item.discount
-      ? `₦${item.discount.toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-      : "-",
-    `₦${item.amount.toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-  ]);
-
-  autoTable(doc, {
-    startY: yPos,
-    head: [["Description", "Qty", "Unit Price", "VAT", "Discount", "Amount"]],
-    body: tableData,
-    theme: "striped",
-    headStyles: {
-      fillColor: primaryColor,
-      textColor: [255, 255, 255],
-      fontStyle: "bold",
-    },
-    styles: {
-      fontSize: 9,
-      cellPadding: 3,
-    },
-    columnStyles: {
-      0: { cellWidth: 60 },
-      1: { halign: "center", cellWidth: 15 },
-      2: { halign: "right", cellWidth: 25 },
-      3: { halign: "center", cellWidth: 15 },
-      4: { halign: "right", cellWidth: 25 },
-      5: { halign: "right", cellWidth: 30 },
-    },
+  const doc = renderInvoicePdf({
+    invoiceNumber: invoice.invoice_number,
+    invoiceDate: invoice.invoice_date,
+    dueDate: invoice.due_date,
+    taxYear: invoice.tax_year,
+    customer: asCustomerInfo(invoice.customer_info),
+    sender,
+    lineItems: asLineItems(invoice.line_items),
+    subtotal: invoice.subtotal ?? 0,
+    vatAmount: invoice.vat_amount ?? 0,
+    discountAmount: extraNumber(invoiceExtras, "discount_amount"),
+    totalAmount: invoice.total_amount ?? 0,
+    paymentTerms: extraString(invoiceExtras, "payment_terms"),
+    notes: invoice.notes,
+    signatureHash: extraString(invoiceExtras, "signature_hash"),
+    logo,
   });
 
-  // Get final Y position after table
-  yPos = (doc as any).lastAutoTable.finalY + 10;
-
-  // ============================================
-  // Totals Section
-  // ============================================
-  const totalsX = pageWidth - 70;
-
-  doc.setFont("helvetica", "normal");
-  doc.text("Subtotal:", totalsX, yPos, { align: "right" });
-  doc.text(
-    `₦${subtotal.toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-    pageWidth - 15,
-    yPos,
-    { align: "right" },
-  );
-
-  yPos += 7;
-  doc.text("VAT (7.5%):", totalsX, yPos, { align: "right" });
-  doc.text(
-    `₦${vatAmount.toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-    pageWidth - 15,
-    yPos,
-    { align: "right" },
-  );
-
-  if (discountAmount > 0) {
-    yPos += 7;
-    doc.text("Discount:", totalsX, yPos, { align: "right" });
-    doc.text(
-      `-₦${discountAmount.toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-      pageWidth - 15,
-      yPos,
-      { align: "right" },
-    );
-  }
-
-  yPos += 10;
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(12);
-  doc.text("Total:", totalsX, yPos, { align: "right" });
-  doc.text(
-    `₦${totalAmount.toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-    pageWidth - 15,
-    yPos,
-    { align: "right" },
-  );
-
-  // ============================================
-  // Payment Terms & Notes
-  // ============================================
-  yPos += 15;
-  doc.setFontSize(10);
-  doc.setFont("helvetica", "normal");
-
-  if (paymentTerms) {
-    doc.setFont("helvetica", "bold");
-    doc.text("Payment Terms:", 15, yPos);
-    yPos += 5;
-    doc.setFont("helvetica", "normal");
-    const termsLines = doc.splitTextToSize(paymentTerms, pageWidth - 30);
-    doc.text(termsLines, 15, yPos);
-    yPos += termsLines.length * 5 + 5;
-  }
-
-  if (invoice.notes) {
-    doc.setFont("helvetica", "bold");
-    doc.text("Notes:", 15, yPos);
-    yPos += 5;
-    doc.setFont("helvetica", "normal");
-    const notesLines = doc.splitTextToSize(invoice.notes, pageWidth - 30);
-    doc.text(notesLines, 15, yPos);
-    yPos += notesLines.length * 5;
-  }
-
-  // ============================================
-  // Footer with QR Code (if available)
-  // ============================================
-  if (qrPayload) {
-    try {
-      const qrDataUrl = await QRCode.toDataURL(qrPayload, {
-        width: 80,
-        margin: 1,
-      });
-      doc.addImage(qrDataUrl, "PNG", 15, pageHeight - 50, 30, 30);
-
-      doc.setFontSize(8);
-      doc.setTextColor(...grayColor);
-      doc.text("Scan to verify", 15, pageHeight - 15);
-    } catch (error) {
-      console.error("Error generating QR code:", error);
-    }
-  }
-
-  // Digital signature indicator
-  if (signatureHash) {
-    doc.setFontSize(8);
-    doc.setTextColor(...grayColor);
-    doc.text("Digitally Signed", pageWidth - 15, pageHeight - 20, {
-      align: "right",
-    });
-    doc.text(
-      `Signature: ${signatureHash.substring(0, 16)}...`,
-      pageWidth - 15,
-      pageHeight - 15,
-      { align: "right" },
-    );
-  }
-
-  // Footer text with tagline
-  doc.setFontSize(8);
-  doc.setTextColor(...grayColor);
-  doc.text(
-    "Generated by KOMPLEET Platform - NRS-Compliant E-Invoicing",
-    pageWidth / 2,
-    pageHeight - 15,
-    {
-      align: "center",
-    },
-  );
-  doc.setFontSize(7);
-  doc.text(
-    "Kompleet records. Kompleet filings. Kompleet compliance.",
-    pageWidth / 2,
-    pageHeight - 10,
-    {
-      align: "center",
-    },
-  );
-
-  // Convert to buffer
-  const pdfBuffer = Buffer.from(doc.output("arraybuffer"));
-  return pdfBuffer;
+  return Buffer.from(doc.output("arraybuffer"));
 }
 
 // ============================================
