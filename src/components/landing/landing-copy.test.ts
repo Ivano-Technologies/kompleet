@@ -125,7 +125,7 @@ describe("IVA-72 landing copy", () => {
     expect(hero).toMatch(/xl:text-\[40px\]/);
     expect(hero).not.toMatch(/text-5xl/);
     expect(hero).not.toMatch(/py-16|lg:py-24|lg:min-h-\[640px\]/);
-    expect(hero).toMatch(/Nigerian bank imports, Tax Act 2025, and NRS-ready invoices/);
+    expect(hero).toMatch(/Nigerian bank imports, easy invoicing and clean financial reports/);
     expect(heroAuthCard).toMatch(/p-4 shadow-2/);
     expect(heroAuthCard).toMatch(/h-11/);
     expect(heroAuthCard).not.toMatch(/h-\[52px\]/);

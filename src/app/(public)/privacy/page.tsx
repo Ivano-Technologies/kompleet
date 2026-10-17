@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy | KOMPLEET",
+  title: "Kompleet: Privacy Policy",
   description:
-    "Privacy Policy for KOMPLEET, the Nigerian tax compliance and financial management platform. Covers data collection, use, storage, and your rights under Nigerian law.",
+    "Privacy Policy for Kompleet, the bookkeeping and invoicing web app. Covers data collection, use, storage, and your rights under Nigerian law.",
   alternates: { canonical: "/privacy" },
 };
 
@@ -35,8 +35,8 @@ export default function PrivacyPage() {
               Welcome to KOMPLEET ("we," "our," or "us"). We are committed to
               protecting your personal information and your right to privacy.
               This Privacy Policy explains how we collect, use, disclose, and
-              safeguard your information when you use our Nigerian tax
-              compliance platform.
+              safeguard your information when you use our bookkeeping and
+              invoicing platform.
             </p>
             <p className="text-light-text-secondary dark:text-dark-text-secondary">
               By using KOMPLEET, you agree to the collection and use of
@@ -111,7 +111,7 @@ export default function PrivacyPage() {
             </p>
             <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
               <li>
-                Provide, operate, and maintain our tax compliance services
+                Provide, operate, and maintain our services
               </li>
               <li>Process your tax calculations and generate reports</li>
               <li>Manage your account and provide customer support</li>
