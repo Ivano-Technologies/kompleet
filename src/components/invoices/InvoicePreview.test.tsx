@@ -87,3 +87,28 @@ describe("IVA-185 InvoicePreview sender", () => {
     expect(screen.getByText("Powered by Kompleet")).toBeInTheDocument();
   });
 });
+
+describe("IVA-185 InvoicePreview line amounts", () => {
+  it("shows the pre-VAT line amount even when the stored amount includes VAT", () => {
+    render(
+      <InvoicePreview
+        invoice={invoice({
+          subtotal: 900000,
+          vat_amount: 63750,
+          total_amount: 963750,
+          line_items: [
+            { description: "Catering", quantity: 1, unit_price: 850000, vat_rate: 7.5, amount: 913750 },
+            { description: "Delivery", quantity: 2, unit_price: 25000, vat_rate: 0, amount: 50000 },
+          ],
+        })}
+        profile={profile()}
+        onOpenSettings={() => {}}
+      />,
+    );
+    const table = screen.getByTestId("invoice-items");
+    expect(table).not.toHaveTextContent("913,750.00");
+    expect(table.querySelectorAll("tbody tr")[0]).toHaveTextContent(/850,000\.00.*850,000\.00/);
+    expect(screen.getByTestId("invoice-total")).toHaveTextContent("963,750.00");
+  });
+});
+
