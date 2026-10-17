@@ -81,7 +81,7 @@ describe("IVA-185 InvoicePreview sender", () => {
 
   it("shows the Ivano mark top right, an outline status badge and the footer", () => {
     render(<InvoicePreview invoice={invoice({ status: "paid", is_immutable: true, sender: { name: "Ada" } })} profile={profile()} onOpenSettings={() => {}} />);
-    expect(screen.getByTestId("ivano-mark")).toHaveAttribute("src", "/brand/ivano-mark.svg");
+    expect(screen.getByTestId("ivano-mark")).toHaveAttribute("src", "/brand/ivano-mark-invoice.svg");
     expect(screen.getByTestId("ivano-mark")).toHaveAttribute("height", "20");
     expect(screen.getByTestId("invoice-status").style.background).toBe("transparent");
     expect(screen.getByText("Powered by Kompleet")).toBeInTheDocument();
