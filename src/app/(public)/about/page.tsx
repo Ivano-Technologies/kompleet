@@ -4,9 +4,10 @@ import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/about" },
   title: "About Us | KOMPLEET",
   description:
-    "KOMPLEET is financial tooling built for Nigerian SMEs — bank parsers, Tax Act 2025, and NRS invoices.",
+    "KOMPLEET is financial tooling built for Nigerian SMEs: bank parsers, Tax Act 2025, and NRS invoices.",
 };
 
 export default function AboutPage() {
