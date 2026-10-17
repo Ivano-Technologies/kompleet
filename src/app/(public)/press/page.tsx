@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/press" },
   title: "Press | KOMPLEET",
   description:
     "Press resources and media information for KOMPLEET by Ivano Technologies Ltd.",

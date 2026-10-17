@@ -2,6 +2,13 @@ import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 import HeroAuthCard from "@/components/landing/HeroAuthCard";
 import Link from "next/link";
+import type { Metadata } from "next";
+import { kompleetJsonLd, serializeJsonLd } from "@/lib/seo/jsonLd";
+
+// Title, description and og tags come from the root layout unchanged.
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 const trustBarItems = [
   "11 bank parsers",
@@ -51,6 +58,10 @@ const capabilities = [
 export default function HomePage() {
   return (
     <div data-marketing className="bg-bg text-text-1">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(kompleetJsonLd()) }}
+      />
       <LandingNav heroAuth />
 
       <header>
