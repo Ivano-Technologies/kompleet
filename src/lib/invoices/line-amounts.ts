@@ -53,3 +53,32 @@ export function totalsFromLines(items: LineInput[]): {
     total_amount: round2(subtotal + vat),
   };
 }
+
+/**
+ * Return line items with `amount` set to the pre-VAT net. Used where stored
+ * invoice lines leave the server (GET /api/invoices, GET /api/invoices/[id]),
+ * so older full-form invoices never show VAT inclusive line amounts.
+ * Non-array input is returned unchanged.
+ */
+export function withNetLineAmounts<T>(lineItems: T): T {
+  if (!Array.isArray(lineItems)) return lineItems;
+  return lineItems.map((item) => {
+    if (!item || typeof item !== "object") return item;
+    const row = item as Record<string, unknown>;
+    return {
+      ...row,
+      amount: lineNetAmount({
+        quantity: num(row.quantity),
+        unit_price: num(row.unit_price),
+        vat_rate: num(row.vat_rate),
+        discount: num(row.discount),
+      }),
+    };
+  }) as T;
+}
+
+/** Same as withNetLineAmounts, for a whole invoice API object. */
+export function invoiceWithNetLineAmounts<T extends { line_items?: unknown }>(invoice: T): T {
+  if (!invoice || !Array.isArray(invoice.line_items)) return invoice;
+  return { ...invoice, line_items: withNetLineAmounts(invoice.line_items) };
+}

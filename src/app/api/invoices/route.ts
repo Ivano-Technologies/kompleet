@@ -5,6 +5,7 @@ import {
   isUnauthorized,
   requireAuthedConvex,
 } from "@/lib/convex/server";
+import { invoiceWithNetLineAmounts } from "@/lib/invoices/line-amounts";
 
 async function handleGET(request: NextRequest) {
   try {
@@ -16,7 +17,8 @@ async function handleGET(request: NextRequest) {
       status: status === "all" ? undefined : status,
       taxYear: Number.isFinite(taxYear) ? taxYear : undefined,
     });
-    return NextResponse.json({ invoices });
+    // Stored line amounts are mixed (older full-form invoices include VAT); always send the pre-VAT net.
+    return NextResponse.json({ invoices: invoices.map(invoiceWithNetLineAmounts) });
   } catch (error) {
     if (isUnauthorized(error)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
