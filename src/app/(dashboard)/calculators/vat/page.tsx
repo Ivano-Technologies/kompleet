@@ -578,7 +578,7 @@ export default function VATCalculatorPage() {
                           vat_rate: `${result.vatRate}%`,
                         },
                         ruleVersion: "v1.0.0-2025-tax-act",
-                        sources: ["Nigerian Revenue Service (NRS)"],
+                        sources: ["Nigeria Revenue Service (NRS)"],
                         confidenceLevel:
                           rules?.standard_rate?.confidence || "unavailable",
                       });
@@ -609,7 +609,7 @@ export default function VATCalculatorPage() {
               as unverified candidates — they do not change the VAT amount.
             </p>
             <p>
-              <strong>Data Source:</strong> Nigerian Revenue Service (NRS),
+              <strong>Data Source:</strong> Nigeria Revenue Service (NRS),
               Confidence level:{" "}
               {rules?.standard_rate?.confidence || "unavailable"}.
             </p>

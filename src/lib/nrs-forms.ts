@@ -76,7 +76,7 @@ export function generatePITForm(data: PITFormData): jsPDF {
   // Header
   doc.setFontSize(16);
   doc.setFont("helvetica", "bold");
-  doc.text("NIGERIAN REVENUE SERVICE", pageWidth / 2, 20, { align: "center" });
+  doc.text("NIGERIA REVENUE SERVICE", pageWidth / 2, 20, { align: "center" });
 
   doc.setFontSize(14);
   doc.text("PERSONAL INCOME TAX RETURN", pageWidth / 2, 28, {
@@ -215,7 +215,7 @@ export function generateCITForm(data: CITFormData): jsPDF {
   // Header
   doc.setFontSize(16);
   doc.setFont("helvetica", "bold");
-  doc.text("NIGERIAN REVENUE SERVICE", pageWidth / 2, 20, { align: "center" });
+  doc.text("NIGERIA REVENUE SERVICE", pageWidth / 2, 20, { align: "center" });
 
   doc.setFontSize(14);
   doc.text("COMPANY INCOME TAX RETURN", pageWidth / 2, 28, { align: "center" });
@@ -357,7 +357,7 @@ export function generateVATForm(data: VATFormData): jsPDF {
   // Header
   doc.setFontSize(16);
   doc.setFont("helvetica", "bold");
-  doc.text("NIGERIAN REVENUE SERVICE", pageWidth / 2, 20, { align: "center" });
+  doc.text("NIGERIA REVENUE SERVICE", pageWidth / 2, 20, { align: "center" });
 
   doc.setFontSize(14);
   doc.text("VALUE ADDED TAX (VAT) RETURN", pageWidth / 2, 28, {
@@ -496,7 +496,7 @@ function addFooter(doc: jsPDF): void {
     align: "center",
   });
   doc.text(
-    "For official use only. Submit to Nigerian Revenue Service.",
+    "For official use only. Submit to Nigeria Revenue Service.",
     pageWidth / 2,
     pageHeight - 10,
     { align: "center" },
