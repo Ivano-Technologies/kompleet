@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Cookie Policy | KOMPLEET",
+  alternates: { canonical: "/cookies" },
+  title: "Kompleet: Cookie Policy",
   description:
-    "Cookie Policy for KOMPLEET - how we use cookies and similar technologies.",
+    "Cookie Policy for KOMPLEET: how we use cookies and similar technologies.",
 };
 
 export default function CookiesPage() {

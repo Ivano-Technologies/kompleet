@@ -2,11 +2,18 @@ import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 import HeroAuthCard from "@/components/landing/HeroAuthCard";
 import Link from "next/link";
+import type { Metadata } from "next";
+import { kompleetJsonLd, serializeJsonLd } from "@/lib/seo/jsonLd";
+
+// Title, description and og tags come from the root layout unchanged.
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 const trustBarItems = [
   "11 bank parsers",
-  "Tax Act 2025",
-  "NRS invoice QR",
+  "Easy invoicing",
+  "Clean reports",
 ];
 
 const capabilities = [
@@ -19,26 +26,26 @@ const capabilities = [
   {
     src: "/assets/illustrations/spot-invoice.svg",
     fallback: "/assets/illustrations/spot-invoice.png",
-    title: "NRS invoicing",
-    desc: "Create invoices with NRS-compliant QR codes. Record payment when the customer settles.",
+    title: "Easy invoicing",
+    desc: "Create professional invoices in minutes. Record payment when the customer settles.",
   },
   {
     src: "/assets/illustrations/spot-vat.svg",
     fallback: "/assets/illustrations/spot-vat.png",
-    title: "VAT under Tax Act 2025",
-    desc: "Standard, zero-rated, and exempt treatments against the current engine.",
+    title: "Expense tracking",
+    desc: "Sort every naira you spend into clear categories so you always know where money goes.",
   },
   {
     src: "/assets/illustrations/spot-filing.svg",
     fallback: "/assets/illustrations/spot-filing.png",
-    title: "NRS / LIRS packages",
-    desc: "Generate filing-ready forms you submit on the official portals. No auto-filing.",
+    title: "Clean exports",
+    desc: "Export transactions, invoices and reports as CSV or PDF whenever you need them.",
   },
   {
     src: "/assets/illustrations/spot-reports.svg",
     fallback: "/assets/illustrations/spot-reports.png",
     title: "P&L and balance sheet",
-    desc: "Reports from your books — ready to share with an accountant.",
+    desc: "Reports from your books, ready to share with an accountant.",
   },
   {
     src: "/assets/illustrations/spot-security.svg",
@@ -51,6 +58,10 @@ const capabilities = [
 export default function HomePage() {
   return (
     <div data-marketing className="bg-bg text-text-1">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(kompleetJsonLd()) }}
+      />
       <LandingNav heroAuth />
 
       <header>
@@ -63,7 +74,7 @@ export default function HomePage() {
                 Grow Your Business.
               </h1>
               <p className="max-w-md text-sm text-text-2">
-                Nigerian bank imports, Tax Act 2025, and NRS-ready invoices.
+                Nigerian bank imports, easy invoicing and clean financial reports.
               </p>
               <HeroAuthCard />
             </div>
@@ -156,7 +167,7 @@ export default function HomePage() {
             />
           </picture>
           <p className="mt-6 text-center text-sm text-text-2">
-            From books to NRS/LIRS packages you submit yourself.
+            From imported statements to clean financial reports you can share.
           </p>
         </div>
       </section>
@@ -167,7 +178,7 @@ export default function HomePage() {
             Ready to take control of your business finances?
           </h2>
           <p className="mx-auto mt-4 mb-8 max-w-md text-base text-white/70">
-            Free during beta — no credit card required.
+            Free during beta. No credit card required.
           </p>
           <Link
             href="/signup"

@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Developer API | KOMPLEET",
+  alternates: { canonical: "/api-docs" },
+  title: "Kompleet: Developer API",
   description:
     "KOMPLEET API documentation for developers integrating with the platform.",
 };
@@ -61,7 +62,7 @@ export default function ApiDocsPage() {
           </h1>
           <p className="text-lg text-light-text-secondary dark:text-dark-text-secondary leading-relaxed">
             Integrate KOMPLEET into your applications with our REST API. Access
-            tax calculations, invoicing, transactions, and reporting
+            transactions, invoicing, calculations, and reporting
             programmatically.
           </p>
         </div>

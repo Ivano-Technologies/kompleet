@@ -11,7 +11,7 @@ export default function LandingFooter() {
               <BrandWordmark size="sm" />
             </div>
             <p className="text-sm leading-relaxed text-text-2">
-              Tax compliance and financial management for Nigerian SMEs.
+              Simple bookkeeping and invoicing for Nigerian SMEs.
             </p>
           </div>
           <div>
