@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/api-docs" },
   title: "Developer API | KOMPLEET",
   description:
     "KOMPLEET API documentation for developers integrating with the platform.",

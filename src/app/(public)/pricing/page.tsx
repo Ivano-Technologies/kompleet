@@ -5,6 +5,7 @@ import LandingFooter from "@/components/landing/LandingFooter";
 import { Check } from "lucide-react";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/pricing" },
   title: "Pricing | KOMPLEET",
   description:
     "KOMPLEET is free during beta. See what is included today and what we will price later.",
