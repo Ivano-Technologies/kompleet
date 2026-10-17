@@ -36,7 +36,7 @@ function LoginForm() {
     const err = searchParams.get("error");
     // Never render free text from the URL; map known codes to fixed copy.
     if (err === "auth_failed") setError("We couldn't sign you in. Please try again.");
-    if (err === "expired_link") setError("This link has expired. Request a new one.");
+    if (err === "expired_link") setError("This link has expired. Please request a new one.");
   }, [searchParams]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
