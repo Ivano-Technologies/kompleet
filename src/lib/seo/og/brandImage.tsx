@@ -21,6 +21,7 @@ const URL_TEXT = "rgba(255, 255, 255, 0.7)";
 /** Side margin shared by the wordmark, tagline and URL line. */
 const SIDE = 104;
 const WORDMARK_FONT_SIZE = 132.15;
+const WORDMARK_LINE_BOX = 146;
 
 /**
  * KOMPLEET share card: primary-deep navy, the Ceoruse KOMPLEET wordmark
@@ -54,7 +55,9 @@ export async function renderBrandImage(): Promise<ImageResponse> {
             fontFamily: "Ceoruse",
             // Ink spans x 104 to 1003: 900px wide on the 104px left edge (Coco, 17 Oct 2026).
             fontSize: WORDMARK_FONT_SIZE,
-            lineHeight: 1,
+            // Keep the previous 146px line box so the rule, tagline and URL line
+            // stay where they were when the wordmark shrank to 900px.
+            lineHeight: `${WORDMARK_LINE_BOX}px`,
             letterSpacing: 4,
             color: "#FFFFFF",
             textTransform: "uppercase",
