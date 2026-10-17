@@ -8,6 +8,7 @@
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { sniffImage } from "../../../convex/lib/imageMeta";
+import { lineNetAmount } from "./line-amounts";
 import {
   INVOICE_BW,
   INVOICE_FOOTER_TEXT,
@@ -82,7 +83,6 @@ function money(value: number): string {
   return `NGN ${value.toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-const COLUMN_ALIGN: Array<"left" | "center" | "right"> = ["left", "center", "right", "center", "right", "right"];
 
 function formatDate(value: string | null): string {
   if (!value) return "";
@@ -246,18 +246,38 @@ export function renderInvoicePdf(input: InvoicePdfInput): jsPDF {
   // ============================================
   // Line items: no fills, black header rule, grey hairlines
   // ============================================
+  // Amount is the pre-VAT net (quantity x rate minus discount), recomputed so
+  // rows always add up to the Subtotal even for older VAT inclusive data.
+  // The Discount column only shows when a line has a discount.
+  const showDiscount = input.lineItems.some((item) => (item.discount ?? 0) > 0);
+  const columns: Array<{
+    head: string;
+    align: "left" | "center" | "right";
+    width: number;
+    cell: (item: PdfLineItem) => string;
+  }> = [
+    { head: "Description", align: "left", width: showDiscount ? 62 : 88, cell: (item) => item.description },
+    { head: "Qty", align: "center", width: 14, cell: (item) => String(item.quantity) },
+    { head: "Unit price", align: "right", width: 32, cell: (item) => money(item.unit_price) },
+    { head: "VAT", align: "center", width: 14, cell: (item) => `${item.vat_rate}%` },
+    ...(showDiscount
+      ? [
+          {
+            head: "Discount",
+            align: "right" as const,
+            width: 26,
+            cell: (item: PdfLineItem) => (item.discount ? money(item.discount) : ""),
+          },
+        ]
+      : []),
+    { head: "Amount", align: "right", width: 32, cell: (item) => money(lineNetAmount(item)) },
+  ];
+
   autoTable(doc, {
     startY: yPos,
     margin: { left: MARGIN, right: MARGIN },
-    head: [["Description", "Qty", "Unit price", "VAT", "Discount", "Amount"]],
-    body: input.lineItems.map((item) => [
-      item.description,
-      String(item.quantity),
-      money(item.unit_price),
-      `${item.vat_rate}%`,
-      item.discount ? money(item.discount) : "",
-      money(item.amount),
-    ]),
+    head: [columns.map((column) => column.head)],
+    body: input.lineItems.map((item) => columns.map((column) => column.cell(item))),
     theme: "plain",
     styles: {
       font: "helvetica",
@@ -276,18 +296,11 @@ export function renderInvoicePdf(input: InvoicePdfInput): jsPDF {
       lineWidth: { bottom: 0.3 },
     },
     didParseCell: (data) => {
-      if (data.section === "head") {
-        data.cell.styles.halign = COLUMN_ALIGN[data.column.index] ?? "left";
-      }
+      data.cell.styles.halign = columns[data.column.index]?.align ?? "left";
     },
-    columnStyles: {
-      0: { cellWidth: 62 },
-      1: { halign: "center", cellWidth: 14 },
-      2: { halign: "right", cellWidth: 32 },
-      3: { halign: "center", cellWidth: 14 },
-      4: { halign: "right", cellWidth: 26 },
-      5: { halign: "right", cellWidth: 32 },
-    },
+    columnStyles: Object.fromEntries(
+      columns.map((column, index) => [index, { cellWidth: column.width }]),
+    ),
   });
 
   yPos = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 10;

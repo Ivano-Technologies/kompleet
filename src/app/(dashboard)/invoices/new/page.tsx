@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { lineNetAmount } from "@/lib/invoices/line-amounts";
 import { useRouter } from "next/navigation";
 import { InvoiceLineItem, CustomerInfo } from "@/lib/invoice-service";
 import { FilePlus2, Loader2, Plus, Trash2 } from "lucide-react";
@@ -90,14 +91,8 @@ export default function NewInvoicePage() {
     };
   }, []);
 
-  // Calculate line item amount
-  const calculateLineItemAmount = (item: InvoiceLineItem): number => {
-    const baseAmount = item.quantity * item.unit_price;
-    const discount = item.discount || 0;
-    const subtotal = baseAmount - discount;
-    const vatAmount = (subtotal * item.vat_rate) / 100;
-    return Number((subtotal + vatAmount).toFixed(2));
-  };
+  // Line amount is the pre-VAT net (quantity x rate minus discount), so rows add up to the Subtotal
+  const calculateLineItemAmount = (item: InvoiceLineItem): number => lineNetAmount(item);
 
   // Update line item
   const updateLineItem = (

@@ -121,3 +121,32 @@ describe("IVA-185 logo bytes", () => {
     expect(isAllowedLogoUrl("https://169.254.169.254/latest")).toBe(false);
   });
 });
+
+describe("IVA-185 PDF line amounts", () => {
+  const legacy = (discount?: number): InvoicePdfInput => ({
+    ...base({ name: "Ada Foods Ltd" }),
+    lineItems: [
+      // Older full form data stored the amount including VAT.
+      { description: "Catering", quantity: 1, unit_price: 850000, vat_rate: 7.5, amount: 913750, discount },
+      { description: "Delivery", quantity: 2, unit_price: 25000, vat_rate: 0, amount: 50000 },
+    ],
+    subtotal: 900000 - (discount ?? 0),
+    vatAmount: 63750,
+    totalAmount: 963750,
+  });
+
+  it("prints the pre-VAT amount, so rows add up to the subtotal", () => {
+    const out = text(legacy());
+    expect(out).toContain("NGN 850,000.00");
+    expect(out).not.toContain("913,750.00");
+    expect(out).toContain("NGN 900,000.00");
+  });
+
+  it("hides the Discount column when no line has a discount", () => {
+    expect(text(legacy())).not.toContain("Discount");
+    const withDiscount = text(legacy(10000));
+    expect(withDiscount).toContain("Discount");
+    expect(withDiscount).toContain("NGN 840,000.00");
+  });
+});
+

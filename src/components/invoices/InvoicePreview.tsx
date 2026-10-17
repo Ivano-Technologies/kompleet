@@ -32,6 +32,7 @@ import {
   type InvoiceSenderParty,
 } from "@/lib/invoices/invoice-branding";
 import type { InvoiceView } from "@/lib/invoices/view-types";
+import { lineNetAmount } from "@/lib/invoices/line-amounts";
 
 /*
  * IVA-185: the invoice document is black and white only. The business logo is
@@ -357,7 +358,7 @@ export function InvoicePreview({
           </dl>
         </div>
 
-        {/* Line Items: no fills, black header rule, grey hairlines */}
+        {/* Line Items: no fills, black header rule, grey hairlines. Amount is the pre-VAT net. */}
         <div className="overflow-x-auto">
           <table className="w-full text-sm" data-testid="invoice-items">
             <thead>
@@ -371,7 +372,7 @@ export function InvoicePreview({
             <tbody>
               {(lineItems.length > 0
                 ? lineItems
-                : [{ description: invoice.title || "Services", quantity: 1, unit_price: subtotal, amount: subtotal }]
+                : [{ description: invoice.title || "Services", quantity: 1, unit_price: subtotal, vat_rate: 0, amount: subtotal }]
               ).map((item, index) => (
                 <tr key={index} style={{ borderBottom: `1px solid ${BW.hairline}` }}>
                   <td className="py-2.5 pr-2 break-words">{item.description}</td>
@@ -380,7 +381,7 @@ export function InvoicePreview({
                     {money(item.unit_price)}
                   </td>
                   <td className="py-2.5 pl-2 text-right tabular-nums whitespace-nowrap">
-                    {money(item.amount)}
+                    {money(lineNetAmount(item))}
                   </td>
                 </tr>
               ))}

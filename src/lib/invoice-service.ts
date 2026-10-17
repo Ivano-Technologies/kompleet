@@ -1,4 +1,5 @@
 import { resolveInvoiceSender } from "@/lib/invoices/invoice-branding";
+import { lineNetAmount, totalsFromLines } from "@/lib/invoices/line-amounts";
 import { loadPdfLogo, renderInvoicePdf } from "@/lib/invoices/invoice-pdf";
 import { api } from "@/lib/convex/http";
 import { requireAuthedConvex } from "@/lib/convex/server";
@@ -48,44 +49,15 @@ export interface InvoiceCalculation {
 // VAT Calculation Service
 // ============================================
 
+/** Pre-VAT line amount (quantity x rate minus line discount). See line-amounts.ts. */
 export function calculateLineItemAmount(item: InvoiceLineItem): number {
-  const baseAmount = item.quantity * item.unit_price;
-  const discountAmount = item.discount || 0;
-  const subtotal = baseAmount - discountAmount;
-  const vatAmount = (subtotal * item.vat_rate) / 100;
-  return Number((subtotal + vatAmount).toFixed(2));
+  return lineNetAmount(item);
 }
 
 export function calculateInvoiceTotals(
   lineItems: InvoiceLineItem[],
 ): InvoiceCalculation {
-  let subtotal = 0;
-  let vatAmount = 0;
-  let discountAmount = 0;
-
-  for (const item of lineItems) {
-    const baseAmount = item.quantity * item.unit_price;
-    const itemDiscount = item.discount || 0;
-    const itemSubtotal = baseAmount - itemDiscount;
-    const itemVat = (itemSubtotal * item.vat_rate) / 100;
-
-    subtotal += itemSubtotal;
-    vatAmount += itemVat;
-    discountAmount += itemDiscount;
-  }
-
-  // Round to 2 decimal places (Nigerian Naira)
-  subtotal = Number(subtotal.toFixed(2));
-  vatAmount = Number(vatAmount.toFixed(2));
-  discountAmount = Number(discountAmount.toFixed(2));
-  const totalAmount = Number((subtotal + vatAmount).toFixed(2));
-
-  return {
-    subtotal,
-    vat_amount: vatAmount,
-    discount_amount: discountAmount,
-    total_amount: totalAmount,
-  };
+  return totalsFromLines(lineItems);
 }
 
 // ============================================
