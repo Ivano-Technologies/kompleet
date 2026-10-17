@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
+import { getEmailFrom } from "@/lib/email-from";
 
 const CONTACT_EMAILS = {
   hi: "hi@ivanotechnologies.com",
@@ -70,7 +71,7 @@ async function handlePOST(request: NextRequest) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "Ivano Technologies <noreply@ivanotechnologies.com>",
+        from: getEmailFrom(),
         to: [recipient],
         replyTo: email,
         subject: `[Contact] ${subjectLabel} — ${name}`,

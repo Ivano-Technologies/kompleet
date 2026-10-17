@@ -4,6 +4,8 @@
  * Sends deadline reminder emails using Resend API
  */
 
+import { getEmailFrom } from "@/lib/email-from";
+
 /**
  * Canonical host used for every link in an outbound email.
  *
@@ -396,7 +398,7 @@ export async function sendEmail(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "KOMPLEET <noreply@ivanotechnologies.com>",
+        from: getEmailFrom(),
         to: [to],
         subject: template.subject,
         html: template.html,
