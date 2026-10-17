@@ -34,3 +34,14 @@ describe("IVA-185 line amounts", () => {
     expect(totals).toMatchObject({ subtotal: 900000, vat_amount: 63750, total_amount: 963750 });
   });
 });
+
+describe("IVA-185 withNetLineAmounts", () => {
+  it("rewrites stored VAT inclusive amounts to the net and keeps other fields", async () => {
+    const { withNetLineAmounts, invoiceWithNetLineAmounts } = await import("./line-amounts");
+    const out = withNetLineAmounts(items);
+    expect(out.map((item) => item.amount)).toEqual([850000, 50000, 2501.5]);
+    expect(out[0]!.description).toBe("Event catering");
+    expect(withNetLineAmounts(null)).toBeNull();
+    expect(invoiceWithNetLineAmounts({ id: "x", line_items: null }).line_items).toBeNull();
+  });
+});
