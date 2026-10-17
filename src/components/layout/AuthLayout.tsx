@@ -1,6 +1,6 @@
 "use client";
 
-import { BrandWordmark } from "@/components/brand/BrandWordmark";
+import { BrandLockup } from "@/components/brand/BrandLockup";
 
 type AuthLayoutProps = {
   children: React.ReactNode;
@@ -40,11 +40,7 @@ export function AuthLayout({
       <div className="flex w-full items-center justify-center px-4 py-4 md:w-1/2 md:px-6 md:py-5">
         <main className="w-full max-w-[440px] rounded-xl border border-border bg-surface p-5 shadow-1 md:p-6 dark:border-dark-border dark:bg-dark-surface">
           <div className="mb-3 flex justify-center">
-            <BrandWordmark
-              href="/"
-              size="md"
-              className="dark:text-dark-text-1"
-            />
+            <BrandLockup href="/" size="md" tone="auto" markHeight={20} />
           </div>
 
           {(headerLeftAddon || headerRightAddon) && (
