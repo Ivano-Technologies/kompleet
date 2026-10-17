@@ -4,9 +4,10 @@ import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 
 export const metadata: Metadata = {
-  title: "About Us | KOMPLEET",
+  alternates: { canonical: "/about" },
+  title: "Kompleet: About Us",
   description:
-    "KOMPLEET is financial tooling built for Nigerian SMEs — bank parsers, Tax Act 2025, and NRS invoices.",
+    "Kompleet is simple bookkeeping for Nigerian small businesses. Import bank statements, track spending, send invoices and export clean financial reports.",
 };
 
 export default function AboutPage() {
@@ -22,15 +23,14 @@ export default function AboutPage() {
         </h1>
         <div className="space-y-6 rounded-xl border border-border bg-surface p-8">
           <p className="text-base leading-relaxed text-text-2">
-            KOMPLEET is financial software for Nigerian small and medium
-            enterprises. Import statements from 11 local banks, run the Nigeria
-            Tax Act 2025 engine, issue NRS-ready invoices, and export P&amp;L
-            and balance sheets.
+            KOMPLEET is bookkeeping and invoicing software for Nigerian small
+            and medium enterprises. Import statements from 11 local banks,
+            track spending, send invoices, and export P&amp;L and balance
+            sheets.
           </p>
           <p className="leading-relaxed text-text-2">
-            We do not auto-file to NRS or LIRS. You download filing-ready
-            packages and submit them yourself. Checkout integrations are not
-            live yet — invoice payment is recorded manually.
+            Checkout integrations are not live yet, so invoice payment is
+            recorded manually.
           </p>
         </div>
 
@@ -40,8 +40,9 @@ export default function AboutPage() {
               Why Nigeria
             </h2>
             <p className="leading-relaxed text-text-2">
-              Naira, Tax Act 2025, NRS/LIRS, and local bank statement formats
-              are the product — not a localisation layer on a generic ledger.
+              Naira amounts, local bank statement formats and the way Nigerian
+              businesses invoice are the product, not a localisation layer on
+              a generic ledger.
             </p>
           </div>
           <div className="rounded-xl border border-border bg-surface p-8">

@@ -5,16 +5,17 @@ import LandingFooter from "@/components/landing/LandingFooter";
 import { Check } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Pricing | KOMPLEET",
+  alternates: { canonical: "/pricing" },
+  title: "Kompleet: Pricing",
   description:
     "KOMPLEET is free during beta. See what is included today and what we will price later.",
 };
 
 const included = [
   "Bank statement import for 11 Nigerian banks",
-  "VAT calculator under Nigeria Tax Act 2025",
-  "Filing-ready NRS and LIRS form generation",
-  "Invoicing with NRS-compliant QR codes",
+  "Expense tracking",
+  "Invoicing with payment tracking",
+  "CSV and PDF exports",
   "P&L and balance sheet reports",
   "Transaction categorization",
   "Email support during beta",
@@ -75,7 +76,7 @@ export default function PricingPage() {
           <p className="text-sm leading-relaxed text-text-2">
             We will publish paid tiers for Nigerian SMEs before charging anyone.
             Beta accounts keep access through that notice period. Early testers
-            get a stated discount — we will email it, not bury it.
+            get a stated discount. We will email it, not bury it.
           </p>
         </div>
       </main>

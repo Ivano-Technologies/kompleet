@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Press | KOMPLEET",
+  alternates: { canonical: "/press" },
+  title: "Kompleet: Press",
   description:
     "Press resources and media information for KOMPLEET by Ivano Technologies Ltd.",
 };
@@ -71,11 +72,11 @@ export default function PressPage() {
             About KOMPLEET
           </h2>
           <p className="text-light-text-secondary dark:text-dark-text-secondary leading-relaxed mb-4">
-            KOMPLEET is a financial management and tax compliance platform built
-            for Nigerian SMEs. Developed by Ivano Technologies Ltd, it supports
-            Nigerian bank statement import, VAT calculation under the Nigeria
-            Tax Act 2025, filing-ready NRS and LIRS form generation, invoicing
-            with NRS-compliant QR codes, and P&amp;L and balance sheet reports.
+            KOMPLEET is a bookkeeping and invoicing platform built for Nigerian
+            SMEs. Developed by Ivano Technologies Ltd, it supports Nigerian
+            bank statement import, transaction categorization, expense
+            tracking, invoicing with payment tracking, and P&amp;L and balance
+            sheet reports.
           </p>
           <p className="text-light-text-secondary dark:text-dark-text-secondary leading-relaxed">
             Currently in beta. Product claims reflect shipped capabilities only.
