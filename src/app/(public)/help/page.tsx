@@ -4,6 +4,7 @@ import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/help" },
   title: "Help Center | KOMPLEET",
   description:
     "Find answers to common questions and learn how to get the most out of KOMPLEET.",

@@ -3,6 +3,7 @@ import { Montserrat } from "next/font/google";
 import localFont from "next/font/local";
 import { ConvexAuthNextjsServerProvider } from "@convex-dev/auth/nextjs/server";
 import "./globals.css";
+import { CANONICAL_ORIGIN } from "@/lib/seo/site";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { YearProvider } from "@/contexts/year-context";
 import { ConvexAuthClientProvider } from "@/components/providers/ConvexAuthClientProvider";
@@ -29,6 +30,8 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  // Production host for canonical and OG image URLs (see src/lib/seo/site.ts).
+  metadataBase: new URL(CANONICAL_ORIGIN),
   title: "Kompleet — Track Every Naira & Stay Compliant in Nigeria",
   description:
     "Track spending, send invoices, export tax-ready reports for Nigerian SMEs.",

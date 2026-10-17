@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: "Privacy Policy | KOMPLEET",
   description:
     "Privacy Policy for KOMPLEET — Nigerian tax compliance and financial management. Data collection, use, storage, and your rights under Nigerian law.",
-  alternates: { canonical: "https://techivano.com/privacy" },
+  alternates: { canonical: "/privacy" },
 };
 
 export default function PrivacyPage() {
