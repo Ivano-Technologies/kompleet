@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: "Terms of Service | KOMPLEET",
   description:
     "Terms of Service for KOMPLEET — Nigerian tax compliance and financial management platform. User responsibilities, disclaimers, and governing law.",
-  alternates: { canonical: "https://techivano.com/terms" },
+  alternates: { canonical: "/terms" },
 };
 
 export default function TermsPage() {
