@@ -5,7 +5,7 @@ import LandingFooter from "@/components/landing/LandingFooter";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/contact" },
-  title: "Contact Us | Kompleet",
+  title: "Kompleet: Contact Us",
   description:
     "Get in touch with the Kompleet team for support, partnerships, or inquiries.",
 };
@@ -27,7 +27,7 @@ export default function ContactPage() {
             Contact us
           </h1>
           <p className="mx-auto max-w-2xl text-base text-text-2">
-            A question or a partnership note — we read these.
+            A question or a partnership note? We read these.
           </p>
         </div>
 
