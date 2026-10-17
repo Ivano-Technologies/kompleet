@@ -4,6 +4,7 @@ import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/contact" },
   title: "Contact Us | Kompleet",
   description:
     "Get in touch with the Kompleet team for support, partnerships, or inquiries.",

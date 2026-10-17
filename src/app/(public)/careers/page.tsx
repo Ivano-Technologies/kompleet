@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
+  alternates: { canonical: "/careers" },
   title: "Careers | KOMPLEET",
   description:
     "Join the KOMPLEET team and help build the future of financial management for Nigerian businesses.",
