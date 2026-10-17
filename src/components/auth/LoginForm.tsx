@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { useRouter } from "next/navigation";
+import { toFriendlyMessage } from "@/lib/friendly-error";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
@@ -22,7 +23,7 @@ export default function LoginForm() {
       router.push("/dashboard");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed");
+      setError(toFriendlyMessage(err, "Sign in failed. Please try again."));
     }
 
     setLoading(false);

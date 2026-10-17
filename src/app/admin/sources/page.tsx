@@ -7,6 +7,7 @@
 
 import { useEffect, useState } from "react";
 import type { Source } from "@/types/tax";
+import { toFriendlyMessage, userFacingError } from "@/lib/friendly-error";
 
 export default function AdminSourcesPage() {
   const [sources, setSources] = useState<Source[]>([]);
@@ -27,10 +28,10 @@ export default function AdminSourcesPage() {
         body: JSON.stringify({ sourceId }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Check failed");
+      if (!res.ok) throw userFacingError(data.error, "Check failed. Please try again.");
       await fetchSources();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Check failed");
+      setError(toFriendlyMessage(err, "Check failed. Please try again."));
     } finally {
       setCheckingId(null);
     }
@@ -43,12 +44,12 @@ export default function AdminSourcesPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to fetch sources");
+        throw userFacingError(data.error, "We couldn't load sources. Please try again.");
       }
 
       setSources(data.sources);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error");
+      setError(toFriendlyMessage(err));
     } finally {
       setLoading(false);
     }

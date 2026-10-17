@@ -99,9 +99,7 @@ export default function VATCalculatorPage() {
 
     if (!rules || missingRuleKeys.length > 0) {
       setError(
-        `Tax rules unavailable — cannot calculate VAT. Missing rule(s): ${
-          missingRuleKeys.length > 0 ? missingRuleKeys.join(", ") : "vat.*"
-        }. Please try again later or contact support.`,
+        "Tax rules aren't available right now, so we can't calculate VAT. Please try again later or contact support.",
       );
       return;
     }
@@ -127,7 +125,7 @@ export default function VATCalculatorPage() {
 
     const ratePercent = rules.standard_rate.value.rate;
     if (typeof ratePercent !== "number") {
-      setError("VAT standard_rate rule is malformed — calculation blocked.");
+      setError("Tax rules aren't available right now, so we can't calculate VAT. Please try again later or contact support.");
       return;
     }
     const VAT_RATE = ratePercent / 100;
@@ -139,7 +137,7 @@ export default function VATCalculatorPage() {
     if (isRentTransaction) {
       if (!rules.rent_exemption?.value?.exempt) {
         setError(
-          "Rent exemption rule unavailable — cannot treat this as exempt without a verified schedule entry.",
+          "We can't treat this rent as VAT exempt yet because the exemption rule hasn't been verified. Please try again later or contact support.",
         );
         return;
       }
@@ -228,9 +226,7 @@ export default function VATCalculatorPage() {
           >
             <InfoIcon className="h-4 w-4" />
             <AlertDescription>
-              {rulesError
-                ? `Failed to load tax rules: ${rulesError}.`
-                : `Required VAT rules are unavailable (${missingRuleKeys.join(", ") || "vat.*"}).`}{" "}
+              Tax rules aren&apos;t available right now.{" "}
               Calculation is disabled until this is resolved.
             </AlertDescription>
           </Alert>

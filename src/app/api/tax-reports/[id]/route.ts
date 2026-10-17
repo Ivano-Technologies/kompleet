@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { api } from "@/lib/convex/http";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
+import { toFriendlyMessage } from "@/lib/friendly-error";
 
 export const runtime = "nodejs";
 
@@ -23,7 +24,7 @@ async function handleGET(
     }
     console.error("Error in GET /api/tax-reports/[id]:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Internal server error" },
+      { error: toFriendlyMessage(error) },
       { status: 500 },
     );
   }
@@ -60,7 +61,7 @@ async function handlePATCH(
     }
     console.error("Error in PATCH /api/tax-reports/[id]:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Internal server error" },
+      { error: toFriendlyMessage(error) },
       { status: 400 },
     );
   }
@@ -81,7 +82,7 @@ async function handleDELETE(
     }
     console.error("Error in DELETE /api/tax-reports/[id]:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Internal server error" },
+      { error: toFriendlyMessage(error) },
       { status: 400 },
     );
   }

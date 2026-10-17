@@ -9,6 +9,7 @@ import {
   trimToEmpty,
 } from "@/lib/invoices/profiles";
 import { z } from "zod";
+import { toFriendlyMessage } from "@/lib/friendly-error";
 
 const upsertSchema = z.object({
   legalName: z.string().max(200).optional(),
@@ -75,8 +76,7 @@ async function handlePATCH(request: NextRequest) {
     if (isUnauthorized(error)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const message =
-      error instanceof Error ? error.message : "Failed to save business profile";
+    const message = toFriendlyMessage(error, "We couldn't save your business profile. Please try again.");
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

@@ -8,6 +8,7 @@ import { api } from "@/lib/convex/browser";
 import { DOCS_COPY } from "./docs-copy";
 import { formatFileSize, formatUploadedDate } from "./docs-format";
 import { extensionOf, kindLabel, type LibraryFile } from "./file-kind";
+import { toFriendlyMessage, UserFacingError } from "@/lib/friendly-error";
 
 const CSV_PREVIEW_ROWS = 50;
 
@@ -142,7 +143,7 @@ function CsvTable({ url }: { url: string }) {
     (async () => {
       try {
         const response = await fetch(url);
-        if (!response.ok) throw new Error("Could not load CSV");
+        if (!response.ok) throw new UserFacingError("We couldn't load this CSV. Please try again.");
         const text = await response.text();
         const parsed = Papa.parse<string[]>(text, {
           skipEmptyLines: true,
@@ -152,7 +153,7 @@ function CsvTable({ url }: { url: string }) {
         setRows(data);
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : "Could not load CSV");
+          setError(toFriendlyMessage(err, "We couldn't load this CSV. Please try again."));
         }
       }
     })();

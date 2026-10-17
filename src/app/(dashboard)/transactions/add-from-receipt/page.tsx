@@ -10,6 +10,7 @@ import {
   CheckCircle2,
   AlertCircle,
 } from "lucide-react";
+import { apiErrorMessage, toFriendlyMessage } from "@/lib/friendly-error";
 
 interface Category {
   id: string;
@@ -85,7 +86,7 @@ export default function AddFromReceiptPage() {
       const ocrData = await ocrRes.json();
 
       if (!ocrRes.ok) {
-        setError(ocrData.error || "Failed to read receipt.");
+        setError(apiErrorMessage(ocrData.error, "We couldn't read this receipt. Please try again."));
         setLoading(false);
         return;
       }
@@ -140,7 +141,7 @@ export default function AddFromReceiptPage() {
       setSuggestedCategory(categoryName ?? null);
       setStep("form");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong.");
+      setError(toFriendlyMessage(err));
     } finally {
       setLoading(false);
     }
@@ -176,13 +177,13 @@ export default function AddFromReceiptPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Failed to create transaction.");
+        setError(apiErrorMessage(data.error, "We couldn't create this transaction. Please try again."));
         setLoading(false);
         return;
       }
       setStep("success");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong.");
+      setError(toFriendlyMessage(err));
     } finally {
       setLoading(false);
     }

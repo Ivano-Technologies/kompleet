@@ -16,6 +16,7 @@ import {
   type LinkType,
 } from "./file-kind";
 import { useLibraryUpload } from "./use-library-upload";
+import { toFriendlyMessage } from "@/lib/friendly-error";
 
 export interface LockedLink {
   type: LinkType;
@@ -139,7 +140,7 @@ export function AttachFileSheet({
       onAttached?.(targetLabel);
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not attach file");
+      setError(toFriendlyMessage(err, "We couldn't attach this file. Please try again."));
     } finally {
       setBusy(false);
     }

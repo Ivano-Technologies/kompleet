@@ -4,6 +4,7 @@ import { api } from "@/lib/convex/http";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 import { generateInvoicePDF } from "@/lib/invoice-service";
 import { hasLegalName, type BusinessProfile } from "@/lib/invoices/profiles";
+import { toFriendlyMessage } from "@/lib/friendly-error";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -34,8 +35,7 @@ async function handleGET(request: NextRequest, context: RouteContext) {
     if (isUnauthorized(error)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const message =
-      error instanceof Error ? error.message : "Failed to generate PDF";
+    const message = toFriendlyMessage(error, "We couldn't generate the PDF. Please try again.");
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

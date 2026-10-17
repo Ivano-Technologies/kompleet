@@ -76,9 +76,7 @@ export default function StampDutyCalculator() {
   const calculateStampDuty = () => {
     if (rulesUnavailable) {
       alert(
-        `Tax rules unavailable — cannot calculate stamp duty. Missing rule(s): ${
-          missingRuleKeys.length > 0 ? missingRuleKeys.join(", ") : "stamp_duty.*"
-        }.`,
+        "Tax rules aren't available right now, so we can't calculate stamp duty. Please try again later or contact support.",
       );
       return;
     }
@@ -211,9 +209,7 @@ export default function StampDutyCalculator() {
         >
           <InfoIcon className="h-4 w-4" />
           <AlertDescription>
-            {rulesError
-              ? `Failed to load tax rules: ${rulesError}.`
-              : `Required stamp duty rules are unavailable (${missingRuleKeys.join(", ") || "stamp_duty.*"}).`}{" "}
+            Tax rules aren&apos;t available right now.{" "}
             Calculation is disabled until this is resolved.
           </AlertDescription>
         </Alert>
@@ -308,7 +304,7 @@ export default function StampDutyCalculator() {
                 {rules.lease_rate_short?.value?.rate != null &&
                 rules.lease_rate_long?.value?.rate != null
                   ? `≤7 years: ${rules.lease_rate_short.value.rate}% rate | >7 years: ${rules.lease_rate_long.value.rate}% rate`
-                  : "Lease rates unavailable — tax rules not loaded"}
+                  : "Lease rates aren't available right now"}
               </p>
             </div>
           )}

@@ -19,6 +19,7 @@ import {
   AUTH_TITLE_BLOCK,
 } from "@/components/layout/auth-density";
 import { Eye, EyeOff } from "lucide-react";
+import { FRIENDLY_MESSAGES, toFriendlyMessage } from "@/lib/friendly-error";
 
 function LoginForm() {
   const [email, setEmail] = useState("");
@@ -33,9 +34,9 @@ function LoginForm() {
 
   useEffect(() => {
     const err = searchParams.get("error");
-    const msg = searchParams.get("message");
-    if (err === "auth_failed") setError(msg || "Authentication failed.");
-    if (err === "expired_link") setError(msg || "This link has expired.");
+    // Never render free text from the URL; map known codes to fixed copy.
+    if (err === "auth_failed") setError("We couldn't sign you in. Please try again.");
+    if (err === "expired_link") setError("This link has expired. Request a new one.");
   }, [searchParams]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -47,9 +48,14 @@ function LoginForm() {
       await fetch("/api/auth/ensure-profile", { method: "POST" }).catch(() => {});
       router.push(redirectTo);
       router.refresh();
-    } catch {
+    } catch (err) {
+      const message = toFriendlyMessage(err, FRIENDLY_MESSAGES.fallback, {
+        context: "login",
+      });
       setError(
-        "Invalid email or password. Existing Kompleet users: create an account on Sign up with this same email to reclaim your data.",
+        message === FRIENDLY_MESSAGES.network || message === FRIENDLY_MESSAGES.rateLimited
+          ? message
+          : "Email or password is incorrect. Existing Kompleet users: create an account on Sign up with this same email to reclaim your data.",
       );
       setLoading(false);
     }

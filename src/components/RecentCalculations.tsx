@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import type { CalculationHistory } from "@/types/calculation-history";
+import { toFriendlyMessage, UserFacingError } from "@/lib/friendly-error";
 
 export function RecentCalculations() {
   const [calculations, setCalculations] = useState<CalculationHistory[]>([]);
@@ -21,13 +22,13 @@ export function RecentCalculations() {
       const response = await fetch("/api/history?limit=5&offset=0");
 
       if (!response.ok) {
-        throw new Error("Failed to fetch recent calculations");
+        throw new UserFacingError("We couldn't load your recent calculations. Please try again.");
       }
 
       const result = await response.json();
       setCalculations(result.data || []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An error occurred");
+      setError(toFriendlyMessage(err));
     } finally {
       setLoading(false);
     }

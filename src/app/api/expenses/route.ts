@@ -9,6 +9,7 @@ import {
   isUnauthorized,
   requireAuthedConvex,
 } from "@/lib/convex/server";
+import { toFriendlyMessage } from "@/lib/friendly-error";
 
 const querySchema = z.object({
   startDate: z
@@ -79,7 +80,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Server error" },
+      { error: toFriendlyMessage(err) },
       { status: 500 },
     );
   }
@@ -116,7 +117,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Server error" },
+      { error: toFriendlyMessage(err) },
       { status: 500 },
     );
   }

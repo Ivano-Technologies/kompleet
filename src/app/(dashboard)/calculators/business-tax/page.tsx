@@ -61,9 +61,7 @@ export default function BusinessTaxCalculatorPage() {
     // Check if rules are loaded
     if (!rules || missingRuleKeys.length > 0) {
       setError(
-        `Tax rules unavailable — cannot calculate business tax. Missing rule(s): ${
-          missingRuleKeys.length > 0 ? missingRuleKeys.join(", ") : "business_tax.*"
-        }. Please try again later or contact support.`,
+        "Tax rules aren't available right now, so we can't calculate business tax. Please try again later or contact support.",
       );
       return;
     }
@@ -212,9 +210,7 @@ export default function BusinessTaxCalculatorPage() {
           >
             <InfoIcon className="h-4 w-4" />
             <AlertDescription>
-              {rulesError
-                ? `Failed to load tax rules: ${rulesError}.`
-                : `Required business tax rules are unavailable (${missingRuleKeys.join(", ") || "business_tax.*"}).`}{" "}
+              Tax rules aren&apos;t available right now.{" "}
               Calculation is disabled until this is resolved.
             </AlertDescription>
           </Alert>

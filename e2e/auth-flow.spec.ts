@@ -178,7 +178,7 @@ test.describe("Auth flow", () => {
       .getByRole("button", { name: LOGIN_SELECTORS.submit, exact: true })
       .click();
 
-    await expect(page.getByText(/Invalid email or password\./)).toBeVisible();
+    await expect(page.getByText(/Email or password is incorrect\./)).toBeVisible();
     await expect(page).toHaveURL(/\/login/);
   });
 

@@ -27,6 +27,7 @@ import {
   type BusinessProfile,
 } from "@/lib/invoices/profiles";
 import { onBusinessProfileChanged } from "@/lib/invoices/profile-events";
+import { toFriendlyMessage } from "@/lib/friendly-error";
 
 type Invoice = InvoiceView;
 
@@ -78,7 +79,7 @@ function InvoicesPageInner() {
       const body = (await response.json()) as { invoices?: Invoice[] };
       setInvoices((body.invoices || []) as Invoice[]);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load invoices");
+      setError(toFriendlyMessage(err, "We couldn't load your invoices. Please try again."));
     } finally {
       setLoading(false);
     }

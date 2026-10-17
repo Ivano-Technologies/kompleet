@@ -7,6 +7,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import type { TaxRule } from "@/types/tax";
+import { toFriendlyMessage, userFacingError } from "@/lib/friendly-error";
 
 export default function AdminRulesPage() {
   const [rules, setRules] = useState<TaxRule[]>([]);
@@ -26,12 +27,12 @@ export default function AdminRulesPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to fetch rules");
+        throw userFacingError(data.error, "We couldn't load rules. Please try again.");
       }
 
       setRules(data.rules);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error");
+      setError(toFriendlyMessage(err));
     } finally {
       setLoading(false);
     }

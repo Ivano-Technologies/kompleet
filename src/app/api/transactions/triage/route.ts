@@ -14,6 +14,7 @@ import {
   withConvexRetry,
 } from "@/lib/transactions/triage-fallback";
 import { z } from "zod";
+import { toFriendlyMessage } from "@/lib/friendly-error";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -163,7 +164,7 @@ async function handlePOST(request: NextRequest): Promise<NextResponse> {
     if (isUnauthorized(error)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const message = error instanceof Error ? error.message : "Failed to apply triage";
+    const message = toFriendlyMessage(error, "We couldn't apply this change. Please try again.");
     console.error("Triage action error:", error);
     return NextResponse.json({ error: message }, { status: 500 });
   }

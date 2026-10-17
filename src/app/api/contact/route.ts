@@ -83,7 +83,7 @@ async function handlePOST(request: NextRequest) {
       const err = await response.text();
       console.error("[Contact] Resend error:", err);
       return NextResponse.json(
-        { error: "Failed to send message. Please try again later." },
+        { error: "We couldn't send your message. Please try again later." },
         { status: 500 },
       );
     }
@@ -92,7 +92,7 @@ async function handlePOST(request: NextRequest) {
   } catch (error) {
     console.error("[Contact] Error:", error);
     return NextResponse.json(
-      { error: "An unexpected error occurred." },
+      { error: "Something went wrong. Please try again." },
       { status: 500 },
     );
   }

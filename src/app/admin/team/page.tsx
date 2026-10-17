@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Users, Shield, ChevronDown, Check, AlertCircle } from "lucide-react";
+import { apiErrorMessage } from "@/lib/friendly-error";
 
 const ROLE_OPTIONS = [
   {
@@ -46,7 +47,7 @@ export default function TeamManagementPage() {
       const res = await fetch("/api/admin/users");
       if (!res.ok) {
         const data = await res.json();
-        setError(data.error || "Failed to load users");
+        setError(apiErrorMessage(data.error, "We couldn't load users. Please try again."));
         setLoading(false);
         return;
       }
@@ -74,7 +75,7 @@ export default function TeamManagementPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || "Failed to update role");
+        setError(apiErrorMessage(data.error, "We couldn't update this role. Please try again."));
         setUpdatingId(null);
         return;
       }

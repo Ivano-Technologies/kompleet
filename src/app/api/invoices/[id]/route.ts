@@ -12,6 +12,7 @@ import {
   isUnauthorized,
   requireAuthedConvex,
 } from "@/lib/convex/server";
+import { toFriendlyMessage } from "@/lib/friendly-error";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -105,8 +106,7 @@ async function handlePATCH(request: NextRequest, context: RouteContext) {
     if (isUnauthorized(error)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const message =
-      error instanceof Error ? error.message : "Failed to update invoice";
+    const message = toFriendlyMessage(error, "We couldn't update this invoice. Please try again.");
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

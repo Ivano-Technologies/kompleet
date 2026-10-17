@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { useRouter } from "next/navigation";
+import { toFriendlyMessage } from "@/lib/friendly-error";
 
 export default function SignUpForm() {
   const [email, setEmail] = useState("");
@@ -25,7 +26,7 @@ export default function SignUpForm() {
       router.push("/dashboard");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Sign up failed");
+      setError(toFriendlyMessage(err, "Sign up failed. Please try again."));
     }
 
     setLoading(false);

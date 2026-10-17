@@ -4,6 +4,7 @@ import { withAudit } from "@/lib/with-audit";
 import { z } from "zod";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 import { listAllTransactionsMine } from "@/lib/convex/money-lists";
+import { toFriendlyMessage } from "@/lib/friendly-error";
 
 export const runtime = "nodejs";
 
@@ -101,7 +102,7 @@ async function handleGET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     console.error("Error in GET /api/transactions/export:", error);
-    const message = error instanceof Error ? error.message : "Internal server error";
+    const message = toFriendlyMessage(error);
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

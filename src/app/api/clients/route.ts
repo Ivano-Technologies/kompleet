@@ -5,6 +5,7 @@ import { api } from "@/lib/convex/http";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 import { isValidEmail, trimToEmpty } from "@/lib/invoices/profiles";
 import { z } from "zod";
+import { toFriendlyMessage } from "@/lib/friendly-error";
 
 const createClientSchema = z.object({
   legal_name: z.string().trim().min(1).max(200),
@@ -65,8 +66,7 @@ async function handlePOST(request: NextRequest) {
     if (isUnauthorized(error)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const message =
-      error instanceof Error ? error.message : "Failed to create client";
+    const message = toFriendlyMessage(error, "We couldn't create this client. Please try again.");
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

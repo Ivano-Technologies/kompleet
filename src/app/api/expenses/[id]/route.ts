@@ -10,6 +10,7 @@ import {
   isUnauthorized,
   requireAuthedConvex,
 } from "@/lib/convex/server";
+import { toFriendlyMessage } from "@/lib/friendly-error";
 
 const patchBodySchema = z.object({
   date: z
@@ -44,7 +45,7 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Server error" },
+      { error: toFriendlyMessage(err) },
       { status: 500 },
     );
   }
@@ -86,8 +87,9 @@ export async function PATCH(
     if (isUnauthorized(err)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const message = err instanceof Error ? err.message : "Server error";
-    const status = /not found/i.test(message) ? 404 : 500;
+    const raw = err instanceof Error ? err.message : "";
+    const message = toFriendlyMessage(err);
+    const status = /not found/i.test(raw) ? 404 : 500;
     return NextResponse.json({ error: message }, { status });
   }
 }
@@ -106,7 +108,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Server error" },
+      { error: toFriendlyMessage(err) },
       { status: 500 },
     );
   }

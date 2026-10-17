@@ -12,6 +12,7 @@ import { INV_COPY } from "@/components/invoices/invoice-copy";
 import { BIZ_COPY } from "@/components/settings/profile-copy";
 import { hasLegalName, type BusinessProfile } from "@/lib/invoices/profiles";
 import { onBusinessProfileChanged } from "@/lib/invoices/profile-events";
+import { UserFacingError, apiErrorMessage, toFriendlyMessage, userFacingError } from "@/lib/friendly-error";
 
 export default function NewInvoicePage() {
   const router = useRouter();
@@ -57,7 +58,7 @@ export default function NewInvoicePage() {
         if (cancelled) return;
         if (!response.ok) {
           const body = await response.json().catch(() => ({}));
-          setError(body?.error || "Failed to load clients");
+          setError(apiErrorMessage(body?.error, "We couldn't load your clients. Please try again."));
           return;
         }
         const body = (await response.json()) as {
@@ -76,7 +77,7 @@ export default function NewInvoicePage() {
         }
       } catch (err: unknown) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : "Failed to load clients");
+          setError(toFriendlyMessage(err, "We couldn't load your clients. Please try again."));
         }
       }
     };
@@ -222,13 +223,13 @@ export default function NewInvoicePage() {
 
       if (!response.ok) {
         const body = await response.json().catch(() => ({}));
-        throw new Error(body?.error || "Failed to create invoice");
+        throw userFacingError(body?.error, "We couldn't create this invoice. Please try again.");
       }
 
       const { invoice_id } = await response.json();
       router.push(`/invoices/${invoice_id}`);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(toFriendlyMessage(err, "We couldn't save this invoice. Please try again."));
     } finally {
       setLoading(false);
     }
@@ -266,7 +267,7 @@ export default function NewInvoicePage() {
 
       if (!createResponse.ok) {
         const body = await createResponse.json().catch(() => ({}));
-        throw new Error(body?.error || "Failed to create invoice");
+        throw userFacingError(body?.error, "We couldn't create this invoice. Please try again.");
       }
 
       const { invoice_id } = await createResponse.json();
@@ -278,12 +279,12 @@ export default function NewInvoicePage() {
       });
 
       if (!issueResponse.ok) {
-        throw new Error("Failed to issue invoice");
+        throw new UserFacingError("We couldn't issue this invoice. Please try again.");
       }
 
       router.push(`/invoices/${invoice_id}`);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(toFriendlyMessage(err, "We couldn't save this invoice. Please try again."));
     } finally {
       setLoading(false);
     }

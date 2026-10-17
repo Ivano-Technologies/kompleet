@@ -11,6 +11,7 @@ export default function GlobalError({
   error: Error & { digest?: string };
 }) {
   useEffect(() => {
+    console.error("[global-error]", error);
     Sentry.captureException(error);
   }, [error]);
 
@@ -33,7 +34,7 @@ export default function GlobalError({
             Something went wrong
           </h1>
           <p style={{ color: "#666", marginBottom: "1.5rem" }}>
-            We&apos;ve been notified and are looking into it.
+            Please try again. We&apos;ve been notified and are looking into it.
           </p>
           <button
             onClick={() => window.location.reload()}
@@ -47,8 +48,22 @@ export default function GlobalError({
               fontSize: "1rem",
             }}
           >
-            Try Again
+            Try again
           </button>
+          <a
+            href="/"
+            style={{
+              marginTop: "0.75rem",
+              padding: "0.75rem 1.5rem",
+              color: "#008751",
+              border: "1px solid #008751",
+              borderRadius: "0.5rem",
+              textDecoration: "none",
+              fontSize: "1rem",
+            }}
+          >
+            Go home
+          </a>
         </div>
         {/* NextError for fallback rendering */}
         <NextError statusCode={0} />

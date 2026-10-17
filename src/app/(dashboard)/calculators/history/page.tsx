@@ -21,6 +21,7 @@ import {
   History,
 } from "lucide-react";
 import Link from "next/link";
+import { toFriendlyMessage, userFacingError } from "@/lib/friendly-error";
 
 interface TaxCalculation {
   id: string;
@@ -66,13 +67,12 @@ export default function CalculationHistoryPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "Failed to fetch calculations");
+        throw userFacingError(data.message, "We couldn't load your calculations. Please try again.");
       }
 
       setCalculations(data.calculations || []);
-    } catch (err: any) {
-      console.error("[Fetch Calculations Error]", err);
-      setError(err.message || "Failed to load calculations");
+    } catch (err: unknown) {
+      setError(toFriendlyMessage(err, "We couldn't load your calculations. Please try again."));
     } finally {
       setLoading(false);
     }
@@ -92,13 +92,13 @@ export default function CalculationHistoryPage() {
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.message || "Failed to delete");
+        throw userFacingError(data.message, "We couldn't delete this calculation. Please try again.");
       }
 
       // Refresh list
       fetchCalculations();
-    } catch (err: any) {
-      alert(err.message || "Failed to delete calculation");
+    } catch (err: unknown) {
+      alert(toFriendlyMessage(err, "We couldn't delete this calculation. Please try again."));
     }
   };
 

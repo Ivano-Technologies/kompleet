@@ -26,6 +26,7 @@ import { withRateLimit } from "@/lib/with-rate-limit";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 import { rethrowIfNextControlFlow } from "@/lib/next-control-flow";
 import { IngestionRequest } from "@/lib/ingestion/types";
+import { toFriendlyMessage } from "@/lib/friendly-error";
 
 async function handlePOST(request: NextRequest) {
   try {
@@ -98,15 +99,12 @@ async function handlePOST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        message: `Ingestion failed: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`,
+        message: toFriendlyMessage(error, "We couldn't process this file. Please try again."),
         errors: [
           {
             rowNumber: 0,
             errorType: "SERVER_ERROR",
-            errorMessage:
-              error instanceof Error ? error.message : "Unknown error",
+            errorMessage: "We couldn't process this file. Please try again.",
           },
         ],
       },
@@ -130,9 +128,7 @@ export async function POST(request: NextRequest, context?: unknown) {
     return NextResponse.json(
       {
         success: false,
-        message: `Ingestion failed: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`,
+        message: toFriendlyMessage(error, "We couldn't process this file. Please try again."),
       },
       { status: 500 },
     );

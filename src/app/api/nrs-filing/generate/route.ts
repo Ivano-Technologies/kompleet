@@ -17,6 +17,7 @@ import {
 } from "@/lib/nrs-filing/form-generator";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 import { listStatementTransactions } from "@/lib/convex/statement-txns";
+import { toFriendlyMessage } from "@/lib/friendly-error";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -131,7 +132,7 @@ async function handlePOST(request: NextRequest) {
     }
     console.error("Generate NRS form error:", error);
     if (error instanceof MissingTaxRuleError) {
-      return NextResponse.json({ error: error.message }, { status: 422 });
+      return NextResponse.json({ error: toFriendlyMessage(error) }, { status: 422 });
     }
     return NextResponse.json(
       { error: "Failed to generate NRS form" },

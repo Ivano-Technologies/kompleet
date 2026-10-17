@@ -12,6 +12,7 @@ import {
   type TaxEntity,
 } from "./tax-copy";
 import { fetchBooksSummary, formatNaira, type BooksSummary } from "./books-summary";
+import { toFriendlyMessage, userFacingError } from "@/lib/friendly-error";
 
 export function GenerateFromBooksCard({
   embedded = false,
@@ -89,11 +90,11 @@ export function GenerateFromBooksCard({
         error?: string;
       };
       if (!response.ok || !body.report?.id) {
-        throw new Error(body.error || "Failed to generate report");
+        throw userFacingError(body.error, "We couldn't generate the report. Please try again.");
       }
       router.push(`/tax-reports/${body.report.id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to generate report");
+      setError(toFriendlyMessage(err, "We couldn't generate the report. Please try again."));
     } finally {
       setGenerating(false);
     }

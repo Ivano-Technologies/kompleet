@@ -76,7 +76,7 @@ export default function PropertyTaxCalculator() {
   const calculatePropertyTax = () => {
     if (rulesUnavailable) {
       alert(
-        "Tax rules unavailable — cannot calculate property tax WHT. The withholding_tax_on_rent rate has not been verified in the tax rules database.",
+        "Tax rules aren't available right now, so we can't calculate property tax WHT. Please try again later or contact support.",
       );
       return;
     }
@@ -213,9 +213,7 @@ export default function PropertyTaxCalculator() {
         >
           <InfoIcon className="h-4 w-4" />
           <AlertDescription>
-            {rulesError
-              ? `Failed to load tax rules: ${rulesError}.`
-              : "The withholding tax rate on rent has not been verified in the tax rules database (withholding_tax_on_rent.rate is missing)."}{" "}
+            Tax rules aren&apos;t available right now.{" "}
             Calculation is disabled until this is resolved.
           </AlertDescription>
         </Alert>
