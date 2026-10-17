@@ -183,8 +183,7 @@ export default function TaxCenterPage() {
           </h1>
         </div>
         <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
-          Professional tax calculators compliant with Nigerian Tax Act 2026 and
-          NRS regulations.
+          Tax calculators based on the Nigeria Tax Act, 2025 and NRS guidance.
         </p>
       </div>
 
