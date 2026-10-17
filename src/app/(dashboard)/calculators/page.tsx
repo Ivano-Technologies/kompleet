@@ -15,7 +15,7 @@ export default function TaxCenterPage() {
       id: "business-tax",
       title: "Business Tax (CIT)",
       description:
-        "Company Income Tax, Development Levy, and business taxes per NTA 2026.",
+        "Company Income Tax, Development Levy, and business taxes under the Nigeria Tax Act, 2025.",
       href: "/calculators/business-tax",
       Icon: Building2,
       phase: 1,
@@ -250,8 +250,8 @@ export default function TaxCenterPage() {
               Accuracy
             </h4>
             <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary leading-relaxed">
-              All calculations follow the latest NTA 2026 and NRS regulations.
-              For complex situations, consult a licensed tax professional.
+              Calculations are based on the Nigeria Tax Act, 2025 and NRS guidance.
+              Check results with a tax adviser before filing.
             </p>
           </div>
         </div>
