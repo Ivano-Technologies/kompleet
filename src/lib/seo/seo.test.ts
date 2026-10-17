@@ -21,7 +21,7 @@ describe("kompleet SEO surfaces", () => {
     expect(urls[0]).toBe("https://kompleet.techivano.com");
     expect(urls).toContain("https://kompleet.techivano.com/pricing");
     for (const url of urls) {
-      expect(url.startsWith("https://kompleet.techivano.com")).toBe(true);
+      expect(new URL(url).origin).toBe("https://kompleet.techivano.com");
       expect(url).not.toMatch(/\/(dashboard|login|signup|app|api|admin)(\/|$)/);
     }
   });
