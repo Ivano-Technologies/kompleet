@@ -11,7 +11,7 @@ describe("kompleet SEO surfaces", () => {
     expect(rules.disallow).toEqual(
       expect.arrayContaining(["/api/", "/app/", "/dashboard", "/login", "/auth/"]),
     );
-    // "/app" alone would also block /apple-touch-180.png.
+    // "/app" alone would also block /apple-touch-icon.png.
     expect(rules.disallow).not.toContain("/app");
     expect(r.sitemap).toBe("https://kompleet.techivano.com/sitemap.xml");
   });
