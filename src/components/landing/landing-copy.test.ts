@@ -27,6 +27,10 @@ const landingFooter = readFileSync(
   resolve(process.cwd(), "src/components/landing/LandingFooter.tsx"),
   "utf8",
 );
+const brandLockup = readFileSync(
+  resolve(process.cwd(), "src/components/brand/BrandLockup.tsx"),
+  "utf8",
+);
 const brandWordmark = readFileSync(
   resolve(process.cwd(), "src/components/brand/BrandWordmark.tsx"),
   "utf8",
@@ -182,7 +186,7 @@ describe("IVA-72 landing copy", () => {
     }
   });
 
-  it("ships wordmark-only branding with the locked ceoruse face", () => {
+  it("ships the Ivano V mark lockup with the locked ceoruse wordmark (IVA-186)", () => {
     expect(brandWordmark).toMatch(/font-ceoruse/);
     expect(brandWordmark).toMatch(/KOMPLEET/);
     expect(brandWordmark).not.toMatch(/font-display|font-sans|next\/image|logo-primary|logo-inverted|\/logo\.png/);
@@ -191,6 +195,19 @@ describe("IVA-72 landing copy", () => {
     expect(tokens).toMatch(/--font-ceoruse/);
     expect(tokens).toMatch(/\.font-ceoruse[\s\S]*var\(--font-ceoruse\)/);
 
+    // Lockup: V, 12px gap, 1px divider at 25% of the text colour, 12px gap, wordmark.
+    expect(brandLockup).toMatch(/BrandWordmark/);
+    expect(brandLockup).toMatch(/\/brand\/ivano-mark\.svg/);
+    expect(brandLockup).toMatch(/\/brand\/ivano-mark-reverse\.svg/);
+    expect(brandLockup).toMatch(/inline-flex items-center gap-3/);
+    expect(brandLockup).toMatch(/h-\[0\.72em\] w-px shrink-0 bg-current opacity-25/);
+    expect(brandLockup).toMatch(/COLLAPSED_MARK_HEIGHT = 24/);
+    expect(brandLockup).toMatch(/"Ivano Technologies"/);
+    expect(brandLockup).toMatch(/aria-hidden/);
+    for (const file of ["public/brand/ivano-mark.svg", "public/brand/ivano-mark-reverse.svg"]) {
+      expect(existsSync(resolve(process.cwd(), file))).toBe(true);
+    }
+
     for (const source of [
       landingNav,
       landingFooter,
@@ -198,11 +215,17 @@ describe("IVA-72 landing copy", () => {
       dashboardSidebar,
       appSidebar,
     ]) {
-      expect(source).toMatch(/BrandWordmark/);
+      expect(source).toMatch(/BrandLockup/);
+      expect(source).not.toMatch(/BrandWordmark/);
       expect(source).not.toMatch(
         /logo-primary|logo-inverted|\/logo\.png|logo\.png/,
       );
     }
+    // Navy panels use the reverse V; the auth card follows the theme.
+    expect(dashboardSidebar).toMatch(/tone="inverse"/);
+    expect(appSidebar).toMatch(/tone="inverse"/);
+    expect(authLayout).toMatch(/tone="auto"/);
+    expect(authLayout).toMatch(/markHeight=\{20\}/);
   });
 
   it("locks Ceoruse wordmark, Clash headlines, and Montserrat body", () => {
