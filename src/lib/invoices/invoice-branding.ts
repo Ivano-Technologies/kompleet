@@ -17,22 +17,28 @@ export const SENDER_NAME_PLACEHOLDER = "Your business name";
  * ratio with no tint or filter. Coco sets the final height: change
  * IVANO_MARK_HEIGHT_PX only.
  *
- * Source: public/brand/ivano-mark.svg (Coco's vector, viewBox 265.85 x 180).
- * The PDF draws the same two polygons as vector paths.
+ * Invoices use a pure greyscale version of Coco's vector (same geometry,
+ * viewBox 265.85 x 180): V #000, slash #555, so invoices stay black and white.
+ * The app, favicons and BrandLockup keep the slate mark (#5C6673 / #141B26).
+ * Source: public/brand/ivano-mark-invoice.svg. The PDF draws the same two
+ * polygons as vector paths.
  */
-export const IVANO_MARK_SRC = "/brand/ivano-mark.svg";
+/** Greyscale invoice mark colours. */
+export const INVOICE_MARK_V = "#000000";
+export const INVOICE_MARK_SLASH = "#555555";
+export const IVANO_MARK_SRC = "/brand/ivano-mark-invoice.svg";
 export const IVANO_MARK_ALT = "Ivano";
 export const IVANO_MARK_VIEWBOX = { width: 265.85, height: 180 } as const;
 export const IVANO_MARK_HEIGHT_PX = 20;
 export const IVANO_MARK_WIDTH_PX =
   (IVANO_MARK_HEIGHT_PX * IVANO_MARK_VIEWBOX.width) / IVANO_MARK_VIEWBOX.height;
-/** The mark's polygons in viewBox units, copied from ivano-mark.svg. */
+/** The mark's polygons in viewBox units, copied from ivano-mark-invoice.svg. */
 export const IVANO_MARK_POLYGONS: ReadonlyArray<{
   fill: string;
   points: ReadonlyArray<readonly [number, number]>;
 }> = [
   {
-    fill: "#5C6673",
+    fill: INVOICE_MARK_SLASH,
     points: [
       [0, 0],
       [36, 0],
@@ -41,7 +47,7 @@ export const IVANO_MARK_POLYGONS: ReadonlyArray<{
     ],
   },
   {
-    fill: "#141B26",
+    fill: INVOICE_MARK_V,
     points: [
       [58, 0],
       [94, 0],

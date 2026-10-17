@@ -99,6 +99,14 @@ describe("IVA-185 invoice PDF", () => {
     expect(out).not.toContain("Ada Foods Ltd");
   });
 
+  it("draws the Ivano mark in #000 and #555 only, not slate", () => {
+    const out = text(base({ name: "Ada Foods Ltd" }));
+    // jsPDF writes greys as a single "g" value: 0 g for #000, 0.333 g for #555.
+    expect(out).toMatch(/\b0\.333 g\b/);
+    expect(out).not.toMatch(/0\.361 0\.4 0\.451 rg/); // #5C6673
+    expect(out).not.toMatch(/0\.078 0\.106 0\.149 rg/); // #141B26
+  });
+
   it("has no green band or colour fills", () => {
     const out = text(base({ name: "Ada Foods Ltd" }));
     // #0A6847 as PDF rgb fill: 0.039 0.408 0.278

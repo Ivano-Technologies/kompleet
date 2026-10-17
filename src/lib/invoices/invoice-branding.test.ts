@@ -74,3 +74,26 @@ describe("IVA-185 issued snapshot vs live draft", () => {
     expect(resolveInvoiceSender({ status: "draft", sender: null }, null).name).toBe("");
   });
 });
+
+describe("IVA-185 invoice Ivano mark is greyscale", () => {
+  it("uses only #000 and #555, in code and in the invoice SVG", async () => {
+    const { IVANO_MARK_POLYGONS, IVANO_MARK_SRC } = await import("./invoice-branding");
+    const { readFileSync } = await import("node:fs");
+    const { resolve } = await import("node:path");
+    const fills = IVANO_MARK_POLYGONS.map((polygon) => polygon.fill.toLowerCase());
+    expect(new Set(fills)).toEqual(new Set(["#000000", "#555555"]));
+    expect(IVANO_MARK_SRC).toBe("/brand/ivano-mark-invoice.svg");
+    const svg = readFileSync(resolve(process.cwd(), "public", IVANO_MARK_SRC.slice(1)), "utf8");
+    const svgFills = [...svg.matchAll(/fill="([^"]+)"/g)].map((m) => m[1]!.toLowerCase());
+    expect(svgFills.length).toBe(2);
+    expect(svgFills.every((fill) => fill === "#000000" || fill === "#555555")).toBe(true);
+    expect(svg).not.toMatch(/5c6673|141b26/i);
+  });
+
+  it("keeps the slate geometry: V and slash polygons at 20px tall", async () => {
+    const { IVANO_MARK_POLYGONS, IVANO_MARK_VIEWBOX } = await import("./invoice-branding");
+    expect(IVANO_MARK_VIEWBOX).toEqual({ width: 265.85, height: 180 });
+    expect(IVANO_MARK_POLYGONS.map((p) => p.points.length)).toEqual([4, 6]);
+    expect(IVANO_MARK_HEIGHT_PX).toBe(20);
+  });
+});
