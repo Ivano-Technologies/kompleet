@@ -10,6 +10,7 @@ import {
   type TaxEntity,
 } from "./tax-copy";
 import { fetchBooksSummary, type BooksSummary } from "./books-summary";
+import { toFriendlyMessage, userFacingError } from "@/lib/friendly-error";
 
 function entityToFormType(entity: TaxEntity): "PIT" | "CIT" | "VAT" {
   if (entity === "pit") return "PIT";
@@ -144,12 +145,12 @@ export function FilingGenerateSheet({
         error?: string;
       };
       if (!response.ok || !body.formId || !body.pdfUrl) {
-        throw new Error(body.error || "Failed to generate PDF");
+        throw userFacingError(body.error, "We couldn't generate the PDF. Please try again.");
       }
       onGenerated({ formId: body.formId, pdfUrl: body.pdfUrl, formType });
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to generate PDF");
+      setError(toFriendlyMessage(err, "We couldn't generate the PDF. Please try again."));
     } finally {
       setBusy(false);
     }
@@ -301,13 +302,13 @@ export function MarkFiledSheet({
       });
       const body = (await response.json()) as { error?: string; success?: boolean };
       if (!response.ok) {
-        throw new Error(body.error || "Failed to mark as filed");
+        throw userFacingError(body.error, "We couldn't mark this as filed. Please try again.");
       }
       setConfirmation("");
       onFiled();
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to mark as filed");
+      setError(toFriendlyMessage(err, "We couldn't mark this as filed. Please try again."));
     } finally {
       setBusy(false);
     }

@@ -8,6 +8,7 @@ import PasswordPrompt from "./PasswordPrompt";
 import UploadProgress from "./UploadProgress";
 import UploadSuccess from "./UploadSuccess";
 import UploadError from "./UploadError";
+import { toFriendlyMessage, userFacingError } from "@/lib/friendly-error";
 
 export type UploadState =
   | "idle"
@@ -129,7 +130,7 @@ export default function UploadWidget({
           return;
         }
 
-        throw new Error(data.message || "Upload failed");
+        throw userFacingError(data.message, "Upload failed. Please try again.");
       }
 
       if (data.success) {
@@ -140,11 +141,11 @@ export default function UploadWidget({
         }));
         onSuccess?.(data.transactionCount);
       } else {
-        throw new Error(data.message || "Upload failed");
+        throw userFacingError(data.message, "Upload failed. Please try again.");
       }
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : "Unknown error";
+        toFriendlyMessage(error);
       setUploadState((prev) => ({
         ...prev,
         state: "error",

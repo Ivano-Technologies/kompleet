@@ -7,6 +7,7 @@
 
 import { useState } from "react";
 import { SUPPORTED_BANKS } from "@/lib/transaction-import/bank-configs";
+import { toFriendlyMessage } from "@/lib/friendly-error";
 
 interface UploadResult {
   success: boolean;
@@ -82,7 +83,7 @@ export function TransactionUpload() {
     } catch (error) {
       setResult({
         success: false,
-        error: error instanceof Error ? error.message : "Upload failed",
+        error: toFriendlyMessage(error, "Upload failed. Please try again."),
       });
     } finally {
       setUploading(false);

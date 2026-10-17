@@ -92,11 +92,7 @@ export default function CapitalAllowancesCalculator() {
   const calculateCapitalAllowance = () => {
     if (rulesUnavailable) {
       alert(
-        `Tax rules unavailable — cannot calculate capital allowance. Missing rule(s): ${
-          missingRuleKeys.length > 0
-            ? missingRuleKeys.join(", ")
-            : "capital_allowance.*"
-        }.`,
+        "Tax rules aren't available right now, so we can't calculate capital allowance. Please try again later or contact support.",
       );
       return;
     }
@@ -233,9 +229,7 @@ export default function CapitalAllowancesCalculator() {
         >
           <InfoIcon className="h-4 w-4" />
           <AlertDescription>
-            {rulesError
-              ? `Failed to load tax rules: ${rulesError}.`
-              : `Required capital allowance rules are unavailable (${missingRuleKeys.join(", ") || "capital_allowance.*"}).`}{" "}
+            Tax rules aren&apos;t available right now.{" "}
             Calculation is disabled until this is resolved.
           </AlertDescription>
         </Alert>

@@ -27,6 +27,7 @@ import {
   type BusinessProfile,
 } from "@/lib/invoices/profiles";
 import { onBusinessProfileChanged } from "@/lib/invoices/profile-events";
+import { UserFacingError, toFriendlyMessage, userFacingError } from "@/lib/friendly-error";
 
 type Invoice = InvoiceView;
 
@@ -53,7 +54,7 @@ export default function InvoiceDetailPage() {
       });
       if (!response.ok) {
         const body = await response.json().catch(() => ({}));
-        throw new Error(body?.error || "Invoice not found");
+        throw userFacingError(body?.error, "We couldn't find this invoice.");
       }
       const payload = (await response.json()) as { invoice: Invoice };
       const data = payload.invoice;
@@ -72,8 +73,8 @@ export default function InvoiceDetailPage() {
           setQrCodeImage(qrCodeDataUrl);
         }
       }
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(toFriendlyMessage(err, "We couldn't load this invoice. Please try again."));
     } finally {
       setLoading(false);
     }
@@ -134,13 +135,13 @@ export default function InvoiceDetailPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to cancel invoice");
+        throw new UserFacingError("We couldn't cancel this invoice. Please try again.");
       }
 
       await fetchInvoice();
       alert("Invoice cancelled successfully");
-    } catch (err: any) {
-      alert(`Error: ${err.message}`);
+    } catch (err: unknown) {
+      alert(toFriendlyMessage(err, "We couldn't cancel this invoice. Please try again."));
     }
   };
 
@@ -232,7 +233,7 @@ export default function InvoiceDetailPage() {
                   await issueInvoice(invoice.id);
                   await fetchInvoice();
                 } catch (err) {
-                  alert(err instanceof Error ? err.message : "Failed to issue");
+                  alert(toFriendlyMessage(err, "We couldn't issue this invoice. Please try again."));
                 } finally {
                   setIssuing(false);
                 }

@@ -5,6 +5,7 @@ import { useMutation } from "convex/react";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { api } from "@/lib/convex/browser";
 import { rejectDocsFile, type FileSource, type LibraryFile, type LinkType } from "./file-kind";
+import { toFriendlyMessage } from "@/lib/friendly-error";
 
 interface UploadOptions {
   source?: FileSource;
@@ -103,7 +104,7 @@ export function useLibraryUpload() {
         return saved as LibraryFile;
       } catch (err) {
         const message =
-          err instanceof Error ? err.message : "Upload failed. Please try again.";
+          toFriendlyMessage(err, "Upload failed. Please try again.");
         setState({
           uploading: false,
           progress: 0,

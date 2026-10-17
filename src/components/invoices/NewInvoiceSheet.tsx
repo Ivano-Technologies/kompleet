@@ -17,6 +17,7 @@ import {
 } from "./invoice-actions";
 import { useLibraryUpload } from "@/components/documents/use-library-upload";
 import { onBusinessProfileChanged } from "@/lib/invoices/profile-events";
+import { toFriendlyMessage } from "@/lib/friendly-error";
 
 export function NewInvoiceSheet({
   open,
@@ -114,7 +115,7 @@ export function NewInvoiceSheet({
       onCreated?.(created.invoice_id);
       close();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save draft");
+      setError(toFriendlyMessage(err, "We couldn't save the draft. Please try again."));
     } finally {
       setBusy(false);
     }
@@ -141,7 +142,7 @@ export function NewInvoiceSheet({
       close();
       router.push(`/invoices/${created.invoice_id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to issue invoice");
+      setError(toFriendlyMessage(err, "We couldn't issue this invoice. Please try again."));
     } finally {
       setBusy(false);
     }
@@ -169,7 +170,7 @@ export function NewInvoiceSheet({
       close();
       router.push(`/invoices/${created.invoice_id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create draft");
+      setError(toFriendlyMessage(err, "We couldn't create the draft. Please try again."));
     } finally {
       setBusy(false);
     }

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Save, Loader2, Check, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { toFriendlyMessage, userFacingError } from "@/lib/friendly-error";
 
 interface SaveCalculationButtonProps {
   taxType: "pit" | "cit" | "vat" | "wht";
@@ -63,16 +64,17 @@ export function SaveCalculationButton({
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "Failed to save calculation");
+        throw userFacingError(data.message, "We couldn't save this calculation. Please try again.");
       }
 
       setSaved(true);
       // Reset saved state after 3 seconds
       setTimeout(() => setSaved(false), 3000);
-    } catch (error: any) {
-      console.error("[Save Calculation Error]", error);
+    } catch (error: unknown) {
       setError(
-        error.message || "Failed to save calculation. Please try again.",
+        toFriendlyMessage(error, "We couldn't save this calculation. Please try again.", {
+          context: "calculators:save",
+        }),
       );
     } finally {
       setSaving(false);

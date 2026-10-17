@@ -18,6 +18,11 @@ import {
   AUTH_TITLE_BLOCK,
 } from '@/components/layout/auth-density';
 import { CheckCircle2, Eye, EyeOff, KeyRound } from 'lucide-react';
+import {
+  FRIENDLY_MESSAGES,
+  normalizeEmail,
+  toFriendlyMessage,
+} from '@/lib/friendly-error';
 
 const headerLeftAddon = (
   <Link
@@ -53,15 +58,15 @@ export default function ResetPasswordClient() {
     }
 
     if (password.length < 8 || !/\d/.test(password)) {
-      setError('Password must be at least 8 characters and include a number');
+      setError('Password must be at least 8 characters and include a number.');
       setLoading(false);
       return;
     }
 
     try {
       await signIn('password', {
-        email,
-        code,
+        email: normalizeEmail(email),
+        code: code.trim(),
         newPassword: password,
         flow: 'reset-verification',
       });
@@ -71,10 +76,14 @@ export default function ResetPasswordClient() {
         router.refresh();
       }, 1500);
     } catch (err) {
+      const message = toFriendlyMessage(err, FRIENDLY_MESSAGES.fallback, {
+        context: 'reset-password',
+      });
+      // In the reset flow an unknown account or bad secret means the code is wrong.
       setError(
-        err instanceof Error
-          ? err.message
-          : 'Invalid or expired code. Request a new reset.',
+        message === FRIENDLY_MESSAGES.invalidCredentials
+          ? FRIENDLY_MESSAGES.invalidCode
+          : message,
       );
       setLoading(false);
     }

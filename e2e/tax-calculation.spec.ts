@@ -53,7 +53,7 @@ test.describe("Tax calculation", () => {
     // banner and calculateIndividualTax() refuses to run at all. Fail here with
     // a readable message instead of on a confusing downstream assertion.
     await expect(
-      page.getByText(/Failed to load tax rules/),
+      page.getByText(/Tax rules aren.t available right now/),
       "tax rules are not seeded — run populate_tax_rules.sql against the test project",
     ).toHaveCount(0);
 
@@ -101,7 +101,7 @@ test.describe("Tax calculation", () => {
     // banner and calculateIndividualTax() refuses to run at all. Fail here with
     // a readable message instead of on a confusing downstream assertion.
     await expect(
-      page.getByText(/Failed to load tax rules/),
+      page.getByText(/Tax rules aren.t available right now/),
       "tax rules are not seeded — run populate_tax_rules.sql against the test project",
     ).toHaveCount(0);
 

@@ -72,11 +72,7 @@ export default function IndividualTaxCalculatorPage() {
 
     if (!rules || missingRuleKeys.length > 0) {
       setError(
-        `Tax rules unavailable — cannot calculate individual tax. Missing rule(s): ${
-          missingRuleKeys.length > 0
-            ? missingRuleKeys.join(", ")
-            : "individual_income_tax.*"
-        }. Please try again later or contact support.`,
+        "Tax rules aren't available right now, so we can't calculate individual tax. Please try again later or contact support.",
       );
       return;
     }
@@ -203,9 +199,7 @@ export default function IndividualTaxCalculatorPage() {
           >
             <InfoIcon className="h-4 w-4" />
             <AlertDescription>
-              {rulesError
-                ? `Failed to load tax rules: ${rulesError}.`
-                : `Required individual tax rules are unavailable (${missingRuleKeys.join(", ") || "individual_income_tax.*"}).`}{" "}
+              Tax rules aren&apos;t available right now.{" "}
               Calculation is disabled until this is resolved.
             </AlertDescription>
           </Alert>
@@ -260,7 +254,7 @@ export default function IndividualTaxCalculatorPage() {
                   {rules?.rent_relief?.value?.cap != null &&
                   rules?.rent_relief?.value?.percentage != null
                     ? `Relief: ₦${rules.rent_relief.value.cap.toLocaleString()} or ${rules.rent_relief.value.percentage}% of rent (whichever is lower)`
-                    : "Relief amount unavailable — tax rules not loaded"}
+                    : "Relief amount isn't available right now"}
                 </p>
               </div>
 
@@ -472,8 +466,8 @@ export default function IndividualTaxCalculatorPage() {
                 <CardContent className="p-0">
                   {rulesUnavailable ? (
                     <p className="text-sm text-light-text-tertiary dark:text-dark-text-tertiary">
-                      Tax bracket rates are unavailable — tax rules failed to
-                      load.
+                      Tax bracket rates aren&apos;t available right now. Please
+                      try again later.
                     </p>
                   ) : (
                     <div className="space-y-2 text-sm text-light-text-secondary dark:text-dark-text-secondary">

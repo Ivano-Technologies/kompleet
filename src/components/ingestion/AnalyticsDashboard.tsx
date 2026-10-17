@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { TrendingUp, AlertCircle, CheckCircle, BarChart3 } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { toFriendlyMessage, UserFacingError } from "@/lib/friendly-error";
 
 interface FeedbackStats {
   totalFeedback: number;
@@ -37,18 +38,18 @@ export default function AnalyticsDashboard() {
       try {
         // Fetch statistics
         const statsRes = await fetch("/api/feedback?type=statistics");
-        if (!statsRes.ok) throw new Error("Failed to fetch statistics");
+        if (!statsRes.ok) throw new UserFacingError("We couldn't load statistics. Please try again.");
         const statsData = await statsRes.json();
         setStats(statsData.data);
 
         // Fetch category accuracy
         const accuracyRes = await fetch("/api/feedback?type=accuracy");
-        if (!accuracyRes.ok) throw new Error("Failed to fetch accuracy");
+        if (!accuracyRes.ok) throw new UserFacingError("We couldn't load accuracy data. Please try again.");
         const accuracyData = await accuracyRes.json();
         setCategoryAccuracy(accuracyData.data);
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : "Failed to load analytics",
+          toFriendlyMessage(err, "We couldn't load analytics. Please try again."),
         );
       } finally {
         setIsLoading(false);

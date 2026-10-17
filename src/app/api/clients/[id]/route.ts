@@ -5,6 +5,7 @@ import { api } from "@/lib/convex/http";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 import { isValidEmail, trimToEmpty } from "@/lib/invoices/profiles";
 import { z } from "zod";
+import { toFriendlyMessage } from "@/lib/friendly-error";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -53,9 +54,9 @@ async function handlePATCH(request: NextRequest, context: RouteContext) {
     if (isUnauthorized(error)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const message =
-      error instanceof Error ? error.message : "Failed to update client";
-    const status = message === "Used on invoices" ? 409 : 500;
+    const raw = error instanceof Error ? error.message : "";
+    const message = toFriendlyMessage(error, "We couldn't update this client. Please try again.");
+    const status = /Used on invoices/.test(raw) ? 409 : 500;
     return NextResponse.json({ error: message }, { status });
   }
 }
@@ -81,8 +82,7 @@ async function handleDELETE(request: NextRequest, context: RouteContext) {
     if (isUnauthorized(error)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const message =
-      error instanceof Error ? error.message : "Failed to hide client";
+    const message = toFriendlyMessage(error, "We couldn't hide this client. Please try again.");
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

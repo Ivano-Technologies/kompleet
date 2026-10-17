@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { FinancialStatementsService } from "@/lib/services/financial-statements-service";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 import { listStatementTransactions } from "@/lib/convex/statement-txns";
+import { toFriendlyMessage } from "@/lib/friendly-error";
 
 export const runtime = "nodejs";
 
@@ -68,7 +69,7 @@ async function handlePOST(request: NextRequest) {
     console.error("Error in POST /api/reports/export-pdf:", error);
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : "Internal server error",
+        error: toFriendlyMessage(error),
       },
       { status: 500 },
     );

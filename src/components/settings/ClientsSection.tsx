@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Loader2, Plus } from "lucide-react";
 import { CLIENTS_COPY } from "./profile-copy";
 import { DEFAULT_COUNTRY, type ClientProfile } from "@/lib/invoices/profiles";
+import { toFriendlyMessage, userFacingError, UserFacingError } from "@/lib/friendly-error";
 
 const inputCls =
   "w-full px-3 py-2 text-sm rounded-[10px] border border-border bg-surface text-text-1 placeholder-text-3 focus:outline-none focus:border-primary";
@@ -35,7 +36,7 @@ export function ClientsSection({
 
   const load = async () => {
     const res = await fetch("/api/clients", { credentials: "include" });
-    if (!res.ok) throw new Error("Failed to load clients");
+    if (!res.ok) throw new UserFacingError("We couldn't load your clients. Please try again.");
     const body = (await res.json()) as { clients?: ClientProfile[] };
     setClients(body.clients ?? []);
   };
@@ -49,7 +50,7 @@ export function ClientsSection({
         if (!cancelled) {
           onStatusRef.current(
             "error",
-            err instanceof Error ? err.message : "Failed to load clients",
+            toFriendlyMessage(err, "We couldn't load your clients. Please try again."),
           );
         }
       } finally {
@@ -114,13 +115,13 @@ export function ClientsSection({
         body: JSON.stringify(payload),
       });
       const body = (await res.json()) as { client?: ClientProfile; error?: string };
-      if (!res.ok || !body.client) throw new Error(body.error || "Failed to save client");
+      if (!res.ok || !body.client) throw userFacingError(body.error, "We couldn't save this client. Please try again.");
       await load();
       setEditing(null);
       setForm(emptyClient());
       onStatus("success", "Client saved");
     } catch (err) {
-      onStatus("error", err instanceof Error ? err.message : "Failed to save client");
+      onStatus("error", toFriendlyMessage(err, "We couldn't save this client. Please try again."));
     } finally {
       setSaving(false);
     }
@@ -135,7 +136,7 @@ export function ClientsSection({
       });
       if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(body.error || CLIENTS_COPY.deleteBlocked);
+        throw userFacingError(body.error, CLIENTS_COPY.deleteBlocked);
       }
       await load();
       if (editing?.id === client.id) {
@@ -144,7 +145,7 @@ export function ClientsSection({
       }
       onStatus("success", "Client hidden");
     } catch (err) {
-      onStatus("error", err instanceof Error ? err.message : CLIENTS_COPY.deleteBlocked);
+      onStatus("error", toFriendlyMessage(err, CLIENTS_COPY.deleteBlocked));
     }
   };
 

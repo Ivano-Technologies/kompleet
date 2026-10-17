@@ -6,6 +6,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { apiErrorMessage, toFriendlyMessage } from "@/lib/friendly-error";
 
 interface ImportSession {
   id: string;
@@ -34,10 +35,10 @@ export function ImportHistory() {
       if (response.ok) {
         setSessions(data.sessions || []);
       } else {
-        setError(data.error || "Failed to load history");
+        setError(apiErrorMessage(data.error, "We couldn't load your import history. Please try again."));
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load history");
+      setError(toFriendlyMessage(err, "We couldn't load your import history. Please try again."));
     } finally {
       setLoading(false);
     }

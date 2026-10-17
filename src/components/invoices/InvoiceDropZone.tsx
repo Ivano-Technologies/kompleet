@@ -4,6 +4,7 @@ import { useRef, useState, type DragEvent } from "react";
 import { Loader2, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { INV_COPY } from "./invoice-copy";
+import { toFriendlyMessage } from "@/lib/friendly-error";
 
 const ACCEPT = ".pdf,.png,.jpg,.jpeg,.webp";
 const MAX_BYTES = 10 * 1024 * 1024;
@@ -52,7 +53,7 @@ export function InvoiceDropZone({
     try {
       await onFile(file);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create draft");
+      setError(toFriendlyMessage(err, "We couldn't create the draft. Please try again."));
     } finally {
       setBusy(false);
       if (inputRef.current) inputRef.current.value = "";

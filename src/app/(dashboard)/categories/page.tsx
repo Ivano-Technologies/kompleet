@@ -12,6 +12,7 @@ import {
   ArrowRight,
   Lightbulb,
 } from "lucide-react";
+import { apiErrorMessage } from "@/lib/friendly-error";
 
 interface Category {
   id: string;
@@ -45,7 +46,7 @@ export default function CategoriesPage() {
         setCategories(data.categories || []);
         setError(null);
       } else {
-        setError(data.error || "Failed to load categories");
+        setError(apiErrorMessage(data.error, "We couldn't load your categories. Please try again."));
       }
     } catch (error) {
       console.error("Error fetching categories:", error);
@@ -80,7 +81,7 @@ export default function CategoriesPage() {
         setError(null);
       } else {
         const data = await response.json().catch(() => ({}));
-        setError(data.error || "Failed to save category");
+        setError(apiErrorMessage(data.error, "We couldn't save this category. Please try again."));
       }
     } catch (error) {
       console.error("Error saving category:", error);

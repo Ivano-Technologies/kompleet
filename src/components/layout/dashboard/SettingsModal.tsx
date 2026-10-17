@@ -35,6 +35,7 @@ import { cn } from "@/lib/utils";
 import type { SettingsSection } from "./settings-types";
 import { BusinessProfileSection } from "@/components/settings/BusinessProfileSection";
 import { ClientsSection } from "@/components/settings/ClientsSection";
+import { apiErrorMessage, toFriendlyMessage, userFacingError } from "@/lib/friendly-error";
 
 interface SettingsModalProps {
   open: boolean;
@@ -149,12 +150,12 @@ export function SettingsModal({
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || "Failed to update");
+        throw userFacingError(data.error, "We couldn't save your changes. Please try again.");
       }
       setSuccess("Profile updated successfully!");
       setTimeout(() => setSuccess(""), 3000);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to update");
+      setError(toFriendlyMessage(err, "We couldn't save your changes. Please try again."));
     } finally {
       setLoading(false);
     }
@@ -176,7 +177,7 @@ export function SettingsModal({
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || "Failed to change password");
+        setError(apiErrorMessage(data.error, "We couldn't change your password. Please try again."));
       } else {
         setSuccess("Password updated successfully!");
         setShowPasswordChange(false);
@@ -205,7 +206,7 @@ export function SettingsModal({
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || "Failed to delete account");
+        setError(apiErrorMessage(data.error, "We couldn't delete your account. Please try again."));
       } else {
         onOpenChange(false);
         router.push("/login");

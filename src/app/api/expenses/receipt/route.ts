@@ -10,6 +10,7 @@ import {
 } from "@/lib/convex/server";
 import { uploadToConvexStorage } from "@/lib/convex/store-file";
 import type { Id } from "../../../../../convex/_generated/dataModel";
+import { toFriendlyMessage } from "@/lib/friendly-error";
 
 export async function POST(request: NextRequest) {
   try {
@@ -49,8 +50,9 @@ export async function POST(request: NextRequest) {
     if (isUnauthorized(error)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const message = error instanceof Error ? error.message : "Upload failed";
-    const status = /not found/i.test(message) ? 404 : 500;
+    const raw = error instanceof Error ? error.message : "";
+    const message = toFriendlyMessage(error, "Upload failed. Please try again.");
+    const status = /not found/i.test(raw) ? 404 : 500;
     return NextResponse.json({ error: message }, { status });
   }
 }

@@ -16,6 +16,7 @@ import {
   HERO_AUTH_ID,
   type HeroAuthMode,
 } from "@/components/landing/hero-auth";
+import { FRIENDLY_MESSAGES, toFriendlyMessage } from "@/lib/friendly-error";
 
 const inputClassName =
   "mt-1.5 h-11 w-full rounded-md border border-border bg-surface px-3 text-sm text-text-1 focus:border-primary focus:ring-2 focus:ring-primary/20";
@@ -98,17 +99,19 @@ export default function HeroAuthCard() {
       router.push("/dashboard");
       router.refresh();
     } catch (err) {
-      const message = err instanceof Error ? err.message : "";
-      if (mode === "signup" && /already|exist/i.test(message)) {
+      const message = toFriendlyMessage(err, FRIENDLY_MESSAGES.fallback, {
+        context: `hero-auth:${mode}`,
+      });
+      if (
+        mode === "signin" &&
+        message !== FRIENDLY_MESSAGES.network &&
+        message !== FRIENDLY_MESSAGES.rateLimited
+      ) {
         setError(
-          "An account with this email already exists. Sign in, or use Forgot password.",
-        );
-      } else if (mode === "signin") {
-        setError(
-          "Invalid email or password. Existing Kompleet users: create an account on Get started with this same email to reclaim your data.",
+          "Email or password is incorrect. Existing Kompleet users: create an account on Get started with this same email to reclaim your data.",
         );
       } else {
-        setError(message || "An unexpected error occurred. Please try again.");
+        setError(message);
       }
       setLoading(false);
     }

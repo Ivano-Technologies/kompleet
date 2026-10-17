@@ -21,6 +21,7 @@ import { ExceptionBanner, ImportToast } from "@/components/import/ImportToast";
 import { AddManualTransaction } from "@/components/import/AddManualTransaction";
 import { DROP_COPY } from "@/components/import/statement-copy";
 import { TriageSheet, useTriageCount } from "@/components/review/TriageSheet";
+import { apiErrorMessage } from "@/lib/friendly-error";
 
 interface Transaction {
   id: string;
@@ -92,7 +93,7 @@ export default function TransactionsPage() {
         setPagination(data.pagination);
         setError(null);
       } else {
-        setError(data.error || "Failed to load transactions");
+        setError(apiErrorMessage(data.error, "We couldn't load your transactions. Please try again."));
       }
     } catch (fetchError) {
       console.error("Error fetching transactions:", fetchError);
@@ -157,7 +158,7 @@ export default function TransactionsPage() {
         fetchTransactions();
       } else {
         const data = await response.json().catch(() => ({}));
-        setError(data.error || "Failed to delete transactions");
+        setError(apiErrorMessage(data.error, "We couldn't delete these transactions. Please try again."));
       }
     } catch (deleteError) {
       console.error("Error deleting transactions:", deleteError);
@@ -205,7 +206,7 @@ export default function TransactionsPage() {
         document.body.removeChild(a);
       } else {
         const data = await response.json().catch(() => ({}));
-        setError(data.error || "Export failed");
+        setError(apiErrorMessage(data.error, "Export failed. Please try again."));
       }
     } catch (exportError) {
       console.error("Export error:", exportError);

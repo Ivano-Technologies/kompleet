@@ -4,6 +4,7 @@ import { withRateLimit } from "@/lib/with-rate-limit";
 import { api } from "@/lib/convex/http";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 import { listStatementTransactions } from "@/lib/convex/statement-txns";
+import { toFriendlyMessage } from "@/lib/friendly-error";
 
 export const runtime = "nodejs";
 
@@ -51,7 +52,7 @@ async function handleGET(request: NextRequest) {
     }
     console.error("Error in GET /api/reports/profit-loss:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Internal server error" },
+      { error: toFriendlyMessage(error) },
       { status: 500 },
     );
   }

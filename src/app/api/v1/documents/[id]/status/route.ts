@@ -53,7 +53,7 @@ async function handleGET(request: NextRequest, context?: RouteContext) {
     }
     if (error instanceof NotFoundError) {
       return NextResponse.json(
-        { error: "Not found", message: error.message },
+        { error: "Not found", message: "We couldn't find this document." },
         { status: 404 },
       );
     }

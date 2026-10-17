@@ -11,6 +11,7 @@ import {
   isUnauthorized,
   requireAuthedConvex,
 } from "@/lib/convex/server";
+import { toFriendlyMessage } from "@/lib/friendly-error";
 
 const changePasswordSchema = z
   .object({
@@ -53,8 +54,7 @@ async function handlePOST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     console.error("[Change Password Error]", error);
-    const message =
-      error instanceof Error ? error.message : "Internal server error";
+    const message = toFriendlyMessage(error);
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }

@@ -16,6 +16,7 @@ import { MissingTaxRuleError } from "@/lib/tax/errors";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 import { listStatementTransactions } from "@/lib/convex/statement-txns";
+import { toFriendlyMessage } from "@/lib/friendly-error";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -81,7 +82,7 @@ async function handlePOST(request: NextRequest) {
     }
     console.error("Generate financial statements error:", error);
     if (error instanceof MissingTaxRuleError) {
-      return NextResponse.json({ error: error.message }, { status: 422 });
+      return NextResponse.json({ error: toFriendlyMessage(error) }, { status: 422 });
     }
     return NextResponse.json(
       { error: "Failed to generate financial statements" },

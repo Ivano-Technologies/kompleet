@@ -22,6 +22,7 @@ import {
   AUTH_TRUST,
 } from '@/components/layout/auth-density';
 import { ArrowRight, CheckCircle2, Eye, EyeOff, Shield, Lock } from 'lucide-react';
+import { FRIENDLY_MESSAGES, toFriendlyMessage } from '@/lib/friendly-error';
 
 function getPasswordStrength(pw: string) {
   const checks = { minLength: pw.length >= 8, hasNumber: /\d/.test(pw) };
@@ -80,12 +81,12 @@ export default function SignUpPage() {
       setSuccess(true);
       router.refresh();
     } catch (err) {
-      const message = err instanceof Error ? err.message : '';
-      if (/already|exist/i.test(message)) {
-        setError('An account with this email already exists. Sign in, or use Forgot password.');
-      } else {
-        setError(message || 'An unexpected error occurred. Please try again.');
-      }
+      const message = toFriendlyMessage(err, FRIENDLY_MESSAGES.fallback, {
+        context: 'signup',
+      });
+      // Convex hides the reason in production, so an existing account can
+      // arrive as a generic server error. Never show raw text either way.
+      setError(message);
       setLoading(false);
     }
   };

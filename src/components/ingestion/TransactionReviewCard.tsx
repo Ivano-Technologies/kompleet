@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toFriendlyMessage } from "@/lib/friendly-error";
 
 interface TransactionReviewCardProps {
   transactionId: string;
@@ -53,7 +54,7 @@ export default function TransactionReviewCard({
     try {
       await onAccept(selectedCategory);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to accept");
+      setError(toFriendlyMessage(err, "We couldn't accept this transaction. Please try again."));
     } finally {
       setIsLoading(false);
     }
@@ -64,7 +65,7 @@ export default function TransactionReviewCard({
     try {
       await onReject(predictedCategory, selectedCategory);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to reject");
+      setError(toFriendlyMessage(err, "We couldn't reject this transaction. Please try again."));
     } finally {
       setIsLoading(false);
     }

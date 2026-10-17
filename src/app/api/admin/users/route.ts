@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import type { Role } from "@/lib/auth/rbac";
 import { api } from "@/lib/convex/http";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
+import { toFriendlyMessage } from "@/lib/friendly-error";
 
 const VALID_ROLES: Role[] = [
   "owner",
@@ -35,7 +36,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Internal server error" },
+      { error: toFriendlyMessage(error) },
       { status: 500 },
     );
   }
@@ -74,7 +75,7 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Internal server error" },
+      { error: toFriendlyMessage(error) },
       { status: 500 },
     );
   }

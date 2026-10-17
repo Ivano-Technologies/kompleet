@@ -6,6 +6,7 @@ import { withRateLimit } from "@/lib/with-rate-limit";
 import { z } from "zod";
 import { api } from "@/lib/convex/http";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
+import { toFriendlyMessage } from "@/lib/friendly-error";
 
 const taxReportSchema = z.object({
   reportType: z.string().min(1),
@@ -125,10 +126,10 @@ async function handlePOST(request: NextRequest) {
     }
     console.error("Error in POST /api/tax-reports/generate:", error);
     if (error instanceof MissingTaxRuleError) {
-      return NextResponse.json({ error: error.message }, { status: 422 });
+      return NextResponse.json({ error: toFriendlyMessage(error) }, { status: 422 });
     }
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Internal server error" },
+      { error: toFriendlyMessage(error) },
       { status: 500 },
     );
   }

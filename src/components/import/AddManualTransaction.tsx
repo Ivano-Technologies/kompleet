@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import { DROP_COPY } from "./statement-copy";
+import { toFriendlyMessage, userFacingError } from "@/lib/friendly-error";
 
 export function AddManualTransaction({
   open,
@@ -46,14 +47,14 @@ export function AddManualTransaction({
         const body = (await response.json().catch(() => ({}))) as {
           error?: string;
         };
-        throw new Error(body.error || "Failed to add transaction");
+        throw userFacingError(body.error, "We couldn't add this transaction. Please try again.");
       }
       setDescription("");
       setAmount("");
       onCreated();
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to add transaction");
+      setError(toFriendlyMessage(err, "We couldn't add this transaction. Please try again."));
     } finally {
       setSaving(false);
     }

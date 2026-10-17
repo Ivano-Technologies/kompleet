@@ -9,6 +9,7 @@ import { logger } from "@/lib/logger";
 import { parseReceiptText } from "@/lib/expense-ocr/parse-receipt-text";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
+import { toFriendlyMessage } from "@/lib/friendly-error";
 
 async function handlePOST(request: NextRequest) {
   try {
@@ -58,7 +59,7 @@ async function handlePOST(request: NextRequest) {
       operation: "expenses/ocr",
     });
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "OCR failed" },
+      { error: toFriendlyMessage(err, "We couldn't read this receipt. Please try again.") },
       { status: 500 },
     );
   }

@@ -8,6 +8,7 @@ import autoTable from "jspdf-autotable";
 import ExcelJS from "exceljs";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 import { listAllExpensesMine } from "@/lib/convex/money-lists";
+import { toFriendlyMessage } from "@/lib/friendly-error";
 
 const FORMATS = ["csv", "pdf", "excel"] as const;
 type ExportFormat = (typeof FORMATS)[number];
@@ -139,7 +140,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Export failed" },
+      { error: toFriendlyMessage(err, "Export failed. Please try again.") },
       { status: 500 },
     );
   }

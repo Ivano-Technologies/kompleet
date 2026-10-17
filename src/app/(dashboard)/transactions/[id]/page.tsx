@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { AttachFileButton } from "@/components/documents/AttachFileButton";
+import { apiErrorMessage } from "@/lib/friendly-error";
 
 interface Transaction {
   id: string;
@@ -123,7 +124,7 @@ export default function TransactionDetailsPage() {
         setEditing(false);
       } else {
         const data = await response.json();
-        setError(data.error || "Failed to save transaction");
+        setError(apiErrorMessage(data.error, "We couldn't save this transaction. Please try again."));
       }
     } catch (err) {
       setError("Failed to save transaction");

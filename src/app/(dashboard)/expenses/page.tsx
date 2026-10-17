@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Wallet, Plus, Search, ChevronRight } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
+import { apiErrorMessage } from "@/lib/friendly-error";
 
 interface Expense {
   id: string;
@@ -52,7 +53,7 @@ export default function ExpensesPage() {
         setExpenses(data.expenses ?? []);
         setTotal(data.total ?? 0);
       } else {
-        setError(data.error ?? "Failed to load expenses");
+        setError(apiErrorMessage(data.error, "We couldn't load your expenses. Please try again."));
       }
     } catch {
       setError("Failed to load expenses");

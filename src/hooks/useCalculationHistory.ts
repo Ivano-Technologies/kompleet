@@ -4,6 +4,7 @@ import type {
   CalculationHistoryFilters,
   CalculationHistoryResponse,
 } from "@/types/calculation-history";
+import { toFriendlyMessage, UserFacingError } from "@/lib/friendly-error";
 
 export function useCalculationHistory(filters: CalculationHistoryFilters = {}) {
   const [data, setData] = useState<CalculationHistory[]>([]);
@@ -27,14 +28,14 @@ export function useCalculationHistory(filters: CalculationHistoryFilters = {}) {
       const response = await fetch(`/api/history?${params}`);
 
       if (!response.ok) {
-        throw new Error("Failed to fetch calculation history");
+        throw new UserFacingError("We couldn't load your calculation history. Please try again.");
       }
 
       const result: CalculationHistoryResponse = await response.json();
       setData(result.data);
       setTotal(result.total);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error");
+      setError(toFriendlyMessage(err));
     } finally {
       setLoading(false);
     }
@@ -58,14 +59,14 @@ export function useCalculationHistory(filters: CalculationHistoryFilters = {}) {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to delete calculation");
+        throw new UserFacingError("We couldn't delete this calculation. Please try again.");
       }
 
       // Refresh the list
       await fetchHistory();
       return true;
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error");
+      setError(toFriendlyMessage(err));
       return false;
     }
   };

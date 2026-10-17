@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import Image from "next/image";
+import { UserFacingError, toFriendlyMessage } from "@/lib/friendly-error";
 
 export function AvatarUpload() {
   const { user } = useAuth();
@@ -40,14 +41,14 @@ export function AvatarUpload() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to upload avatar");
+        throw new UserFacingError("We couldn't upload your avatar. Please try again.");
       }
 
       const data = await response.json();
       setAvatarUrl(data.url);
       setUploading(false);
-    } catch (err: any) {
-      setError(err.message || "Failed to upload avatar");
+    } catch (err: unknown) {
+      setError(toFriendlyMessage(err, "We couldn't upload your avatar. Please try again."));
       setUploading(false);
     }
   };

@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { toFriendlyMessage } from "@/lib/friendly-error";
 
 interface PasswordPromptProps {
   fileName: string;
@@ -57,7 +58,7 @@ export default function PasswordPrompt({
       await onSubmit(password);
     } catch (err) {
       setLocalError(
-        err instanceof Error ? err.message : "Failed to unlock file",
+        toFriendlyMessage(err, "We couldn't unlock this file. Please try again."),
       );
     } finally {
       setIsSubmitting(false);

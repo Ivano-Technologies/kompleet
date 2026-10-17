@@ -27,6 +27,7 @@ import {
   classifyImportFailure,
   type ImportErrorCode,
 } from "@/lib/transaction-import/import-errors";
+import { toFriendlyMessage } from "@/lib/friendly-error";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -316,14 +317,16 @@ async function handlePOST(request: NextRequest) {
         externalId: session.id,
         status: "failed",
       });
-      const errMsg = error instanceof Error ? error.message : "Unknown error";
+      // Raw text is only used to classify the failure, never returned.
+      const rawMsg = error instanceof Error ? error.message : "Unknown error";
+      const errMsg = toFriendlyMessage(error, "Import didn't complete. Please try again.");
       return NextResponse.json(
         {
           error: errMsg,
           message: errMsg,
           ...errorPayload({
             status: 500,
-            error: errMsg,
+            error: rawMsg,
             requestedBankCode: bankCode,
             fileName: file.name,
           }),
@@ -343,7 +346,7 @@ async function handlePOST(request: NextRequest) {
       );
     }
     console.error("Upload error:", error);
-    const message = error instanceof Error ? error.message : "Import didn’t complete";
+    const message = toFriendlyMessage(error, "Import didn't complete. Please try again.");
     return NextResponse.json(
       {
         error: message,

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { INV_COPY } from "./invoice-copy";
 import type { ClientProfile } from "@/lib/invoices/profiles";
+import { toFriendlyMessage, userFacingError } from "@/lib/friendly-error";
 
 export type InvoiceClient = ClientProfile;
 
@@ -67,7 +68,7 @@ export function CustomerCombobox({
         error?: string;
       };
       if (!response.ok || !body.client) {
-        throw new Error(body.error || "Failed to create client");
+        throw userFacingError(body.error, "We couldn't create this client. Please try again.");
       }
       const created = body.client;
       onCreated(created);
@@ -79,7 +80,7 @@ export function CustomerCombobox({
       setNewAddress1("");
       setNewCity("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create client");
+      setError(toFriendlyMessage(err, "We couldn't create this client. Please try again."));
     } finally {
       setSaving(false);
     }
