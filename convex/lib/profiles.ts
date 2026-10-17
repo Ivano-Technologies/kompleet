@@ -16,6 +16,18 @@ export type BusinessProfileApi = {
   tin: string;
   vatNumber: string;
   complete: boolean;
+  /** IVA-185: the business's own logo. Null when none is set. */
+  logoStorageId: Id<"_storage"> | null;
+  logoUrl: string | null;
+  logoWidth: number | null;
+  logoHeight: number | null;
+};
+
+export type BusinessLogoFields = {
+  logoStorageId?: Id<"_storage"> | null;
+  logoUrl?: string | null;
+  logoWidth?: number | null;
+  logoHeight?: number | null;
 };
 
 export type ClientApi = {
@@ -45,6 +57,11 @@ export type PartySnapshot = {
   phone?: string;
   tin?: string;
   vatNumber?: string;
+  /** IVA-185: logo copied at issue so issued invoices never change later. */
+  logoStorageId?: string;
+  logoUrl?: string;
+  logoWidth?: number;
+  logoHeight?: number;
 };
 
 export function trimToEmpty(value: string | undefined | null): string {
@@ -84,7 +101,7 @@ export function toBusinessApi(fields: {
   phone?: string;
   tin?: string;
   vatNumber?: string;
-}): BusinessProfileApi {
+} & BusinessLogoFields): BusinessProfileApi {
   const legalName = trimToEmpty(fields.legalName);
   const addressLine1 = trimToEmpty(fields.addressLine1);
   const city = trimToEmpty(fields.city);
@@ -100,6 +117,10 @@ export function toBusinessApi(fields: {
     tin: trimToEmpty(fields.tin),
     vatNumber: trimToEmpty(fields.vatNumber),
     complete: isProfileComplete({ legalName, addressLine1, city }),
+    logoStorageId: fields.logoStorageId ?? null,
+    logoUrl: fields.logoStorageId ? (fields.logoUrl ?? null) : null,
+    logoWidth: fields.logoStorageId ? (fields.logoWidth ?? null) : null,
+    logoHeight: fields.logoStorageId ? (fields.logoHeight ?? null) : null,
   };
 }
 
@@ -121,6 +142,7 @@ function preferStored(stored: string | undefined, seed: string): string {
 export function mergeSeed(
   stored: Doc<"businessProfiles"> | null,
   user: Doc<"users">,
+  logoUrl: string | null = null,
 ): BusinessProfileApi {
   const seeded = seedFromUser(user);
   if (!stored) return seeded;
@@ -135,6 +157,10 @@ export function mergeSeed(
     phone: preferStored(stored.phone, ""),
     tin: preferStored(stored.tin, ""),
     vatNumber: stored.vatNumber,
+    logoStorageId: stored.logoStorageId ?? null,
+    logoUrl,
+    logoWidth: stored.logoWidth ?? null,
+    logoHeight: stored.logoHeight ?? null,
   });
 }
 
@@ -150,6 +176,20 @@ export function partyFromBusiness(profile: BusinessProfileApi): PartySnapshot {
     phone: trimToUndef(profile.phone),
     tin: trimToUndef(profile.tin),
     vatNumber: trimToUndef(profile.vatNumber),
+    ...logoSnapshot(profile),
+  };
+}
+
+/** Logo fields for a sender snapshot. Empty when no logo or no resolvable URL. */
+export function logoSnapshot(
+  profile: Pick<BusinessProfileApi, "logoStorageId" | "logoUrl" | "logoWidth" | "logoHeight">,
+): Pick<PartySnapshot, "logoStorageId" | "logoUrl" | "logoWidth" | "logoHeight"> {
+  if (!profile.logoStorageId || !profile.logoUrl) return {};
+  return {
+    logoStorageId: profile.logoStorageId,
+    logoUrl: profile.logoUrl,
+    ...(profile.logoWidth ? { logoWidth: profile.logoWidth } : {}),
+    ...(profile.logoHeight ? { logoHeight: profile.logoHeight } : {}),
   };
 }
 
@@ -234,7 +274,26 @@ export async function loadBusinessProfile(
     .query("businessProfiles")
     .withIndex("by_user", (q) => q.eq("userId", user._id))
     .unique();
-  return mergeSeed(stored, user);
+  const logoUrl = stored?.logoStorageId
+    ? await ctx.storage.getUrl(stored.logoStorageId)
+    : null;
+  return mergeSeed(stored, user, logoUrl);
+}
+
+/** True when an issued invoice snapshot still points at this logo file. */
+export async function logoUsedOnIssuedInvoice(
+  ctx: QueryCtx | MutationCtx,
+  userId: Id<"users">,
+  storageId: Id<"_storage">,
+): Promise<boolean> {
+  const invoices = await ctx.db
+    .query("invoices")
+    .withIndex("by_user", (q) => q.eq("userId", userId))
+    .collect();
+  return invoices.some((invoice) => {
+    const snap = invoice.senderSnapshot as { logoStorageId?: unknown } | undefined;
+    return Boolean(snap && snap.logoStorageId === storageId);
+  });
 }
 
 export async function clientHasIssuedInvoices(

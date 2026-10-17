@@ -44,7 +44,7 @@ describe("SetupChecklistCard", () => {
     expect(screen.getByText(SETUP_COPY.itemTaxHint)).toBeTruthy();
     expect(screen.getByText(SETUP_COPY.logoDeferred)).toBeTruthy();
     expect(screen.queryByRole("checkbox")).toBeNull();
-    expect(screen.queryByText(/logo upload coming later/i)?.closest("li")).toBeNull();
+    expect(screen.queryByText(/add your logo in settings/i)?.closest("li")).toBeNull();
 
     await userEvent.click(screen.getByRole("button", { name: SETUP_COPY.ctaPrimary }));
     const later = screen.getAllByRole("button", { name: SETUP_COPY.ctaLater });
