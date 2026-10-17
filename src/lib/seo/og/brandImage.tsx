@@ -7,8 +7,8 @@ export const OG_SIZE = { width: 1200, height: 630 };
 export const OG_ALT = "Kompleet";
 export const OG_CONTENT_TYPE = "image/png";
 
-/** Footer tagline under the wordmark (components/landing/LandingFooter.tsx), verbatim. */
-const TAGLINE = "Tax compliance and financial management for Nigerian SMEs.";
+/** Share card line under the wordmark. Card-only copy; the site footer keeps its own tagline. */
+const TAGLINE = "Track spending, send invoices and export clean reports in one place.";
 
 /* Option C teal lock tokens (tailwind.config.cjs). */
 const PRIMARY_DEEP = "#072A45";

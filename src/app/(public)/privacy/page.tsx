@@ -4,7 +4,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Privacy Policy | KOMPLEET",
   description:
-    "Privacy Policy for KOMPLEET — Nigerian tax compliance and financial management. Data collection, use, storage, and your rights under Nigerian law.",
+    "Privacy Policy for KOMPLEET, the Nigerian tax compliance and financial management platform. Covers data collection, use, storage, and your rights under Nigerian law.",
   alternates: { canonical: "/privacy" },
 };
 

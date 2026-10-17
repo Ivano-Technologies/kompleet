@@ -1,4 +1,4 @@
-// Card revision 3 (900px wordmark). Editing this file changes the image URL cache key.
+// Card revision 4 (900px wordmark, new card line). Editing this file changes the image URL cache key.
 import {
   OG_ALT,
   OG_CONTENT_TYPE,

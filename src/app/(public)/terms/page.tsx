@@ -4,7 +4,7 @@ import Link from "next/link";
 export const metadata: Metadata = {
   title: "Terms of Service | KOMPLEET",
   description:
-    "Terms of Service for KOMPLEET — Nigerian tax compliance and financial management platform. User responsibilities, disclaimers, and governing law.",
+    "Terms of Service for KOMPLEET, the Nigerian tax compliance and financial management platform. Covers user responsibilities, disclaimers, and governing law.",
   alternates: { canonical: "/terms" },
 };
 

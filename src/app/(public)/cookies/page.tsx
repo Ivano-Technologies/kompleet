@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/cookies" },
   title: "Cookie Policy | KOMPLEET",
   description:
-    "Cookie Policy for KOMPLEET - how we use cookies and similar technologies.",
+    "Cookie Policy for KOMPLEET: how we use cookies and similar technologies.",
 };
 
 export default function CookiesPage() {
