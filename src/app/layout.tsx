@@ -3,6 +3,7 @@ import { Montserrat } from "next/font/google";
 import localFont from "next/font/local";
 import { ConvexAuthNextjsServerProvider } from "@convex-dev/auth/nextjs/server";
 import "./globals.css";
+import { CANONICAL_ORIGIN } from "@/lib/seo/site";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { YearProvider } from "@/contexts/year-context";
 import { ConvexAuthClientProvider } from "@/components/providers/ConvexAuthClientProvider";
@@ -29,16 +30,11 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Kompleet — Track Every Naira & Stay Compliant in Nigeria",
+  // Production host for canonical and OG image URLs (see src/lib/seo/site.ts).
+  metadataBase: new URL(CANONICAL_ORIGIN),
+  title: "Kompleet: Stress-Free Bookkeeping and Invoicing",
   description:
-    "Track spending, send invoices, export tax-ready reports for Nigerian SMEs.",
-  keywords: [
-    "expense tracking Nigeria",
-    "SME finance Nigeria",
-    "tax compliance Nigeria",
-    "cash flow Nigeria",
-    "Kompleet app",
-  ],
+    "Bookkeeping made simple. Track spending, send invoices and export clean financial reports from one easy web app built for growing businesses.",
   icons: {
     icon: [
       { url: "/favicon.svg", type: "image/svg+xml" },
@@ -48,9 +44,9 @@ export const metadata: Metadata = {
     apple: { url: "/apple-touch-180.png", sizes: "180x180", type: "image/png" },
   },
   openGraph: {
-    title: "Kompleet — Track Every Naira & Stay Compliant in Nigeria",
+    title: "Kompleet: Stress-Free Bookkeeping and Invoicing",
     description:
-      "Track spending, send invoices, export tax-ready reports for Nigerian SMEs.",
+      "Bookkeeping made simple. Track spending, send invoices and export clean financial reports from one easy web app built for growing businesses.",
     url: siteUrl,
     siteName: "Kompleet",
     locale: "en_NG",
@@ -58,9 +54,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Kompleet — Track Every Naira & Stay Compliant in Nigeria",
+    title: "Kompleet: Stress-Free Bookkeeping and Invoicing",
     description:
-      "Track spending, send invoices, export tax-ready reports for Nigerian SMEs.",
+      "Bookkeeping made simple. Track spending, send invoices and export clean financial reports from one easy web app built for growing businesses.",
   },
 };
 
