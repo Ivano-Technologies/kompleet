@@ -20,7 +20,7 @@ export const PasswordResetEmail = Email({
   async sendVerificationRequest({ identifier: email, token }) {
     const apiKey = process.env.AUTH_RESEND_KEY ?? process.env.RESEND_API_KEY;
     const from =
-      process.env.AUTH_EMAIL_FROM ?? "Kompleet <noreply@ivanotechnologies.com>";
+      process.env.AUTH_EMAIL_FROM || "Kompleet <noreply@techivano.com>";
 
     if (!apiKey) {
       console.warn(
