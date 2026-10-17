@@ -30,8 +30,8 @@ const capabilities = [
     desc: "Create invoices with NRS-compliant QR codes. Record payment when the customer settles.",
   },
   {
-    src: "/assets/illustrations/spot-vat.svg",
-    fallback: "/assets/illustrations/spot-vat.png",
+    src: "/assets/illustrations/spot-expenses.svg",
+    fallback: "/assets/illustrations/spot-expenses.png",
     title: "VAT under Tax Act 2025",
     desc: "Standard, zero-rated, and exempt treatments against the current engine.",
   },
@@ -154,13 +154,13 @@ export default function HomePage() {
         <div className="mx-auto max-w-7xl">
           <picture>
             <source
-              srcSet="/assets/illustrations/tax-filing-flow.svg"
+              srcSet="/assets/illustrations/bookkeeping-flow.svg"
               type="image/svg+xml"
             />
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/assets/illustrations/tax-filing-flow.png"
-              alt=""
+              src="/assets/illustrations/bookkeeping-flow.png"
+              alt="Bookkeeping flow from bank import to sorted expenses, an invoice and a monthly report"
               width={1440}
               height={480}
               className="h-auto w-full rounded-xl border border-border"
