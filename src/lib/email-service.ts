@@ -96,7 +96,7 @@ export function generate7DayReminderEmail(
       <li>Go to the Filing Center</li>
       <li>Generate your ${formName} form</li>
       <li>Review and download the PDF</li>
-      <li>Submit to the Nigerian Revenue Service</li>
+      <li>Submit to the Nigeria Revenue Service</li>
     </ol>
     
     <div style="text-align: center; margin: 30px 0;">
@@ -141,7 +141,7 @@ What You Need to Do:
 2. Go to the Filing Center
 3. Generate your ${formName} form
 4. Review and download the PDF
-5. Submit to the Nigerian Revenue Service
+5. Submit to the Nigeria Revenue Service
 
 Go to Filing Center: ${SITE_URL}/filing
 
