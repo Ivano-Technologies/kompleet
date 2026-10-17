@@ -14,6 +14,13 @@ const TAGLINE = "Tax compliance and financial management for Nigerian SMEs.";
 const PRIMARY_DEEP = "#072A45";
 const PRIMARY = "#0B3A5C";
 const ACCENT = "#0D9488";
+/** Hairline and URL text on navy, as text-white/70 on the marketing dark bands. */
+const HAIRLINE = "rgba(255, 255, 255, 0.16)";
+const URL_TEXT = "rgba(255, 255, 255, 0.7)";
+
+/** Side margin shared by the wordmark, tagline and URL line. */
+const SIDE = 104;
+const WORDMARK_FONT_SIZE = 146;
 
 /**
  * KOMPLEET share card: primary-deep navy, the Ceoruse KOMPLEET wordmark
@@ -36,7 +43,7 @@ export async function renderBrandImage(): Promise<ImageResponse> {
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
-          padding: "0 104px",
+          padding: `0 ${SIDE}px`,
           backgroundColor: PRIMARY_DEEP,
           backgroundImage: `linear-gradient(135deg, ${PRIMARY_DEEP} 0%, ${PRIMARY_DEEP} 50%, ${PRIMARY} 100%)`,
         }}
@@ -45,7 +52,8 @@ export async function renderBrandImage(): Promise<ImageResponse> {
           style={{
             display: "flex",
             fontFamily: "Ceoruse",
-            fontSize: 150,
+            // Ink spans x 104 to 1096: 992px with equal 104px side margins.
+            fontSize: WORDMARK_FONT_SIZE,
             lineHeight: 1,
             letterSpacing: 4,
             color: "#FFFFFF",
@@ -76,6 +84,22 @@ export async function renderBrandImage(): Promise<ImageResponse> {
           }}
         >
           {TAGLINE}
+        </div>
+        <div
+          style={{
+            display: "flex",
+            position: "absolute",
+            left: SIDE,
+            right: SIDE,
+            bottom: 56,
+            paddingTop: 22,
+            borderTop: `1px solid ${HAIRLINE}`,
+            fontFamily: "Montserrat",
+            fontSize: 26,
+            color: URL_TEXT,
+          }}
+        >
+          kompleet.techivano.com
         </div>
         <div
           style={{
