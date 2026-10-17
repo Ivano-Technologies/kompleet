@@ -7,6 +7,7 @@
 
 import { useEffect, useState } from "react";
 import type { Source } from "@/types/tax";
+import { sourceDisplayName } from "@/lib/tax/source-display-name";
 
 export default function AdminSourcesPage() {
   const [sources, setSources] = useState<Source[]>([]);
@@ -162,7 +163,7 @@ export default function AdminSourcesPage() {
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="text-lg font-semibold text-light-text-primary dark:text-dark-text-primary">
-                        {source.name}
+                        {sourceDisplayName(source.name)}
                       </h3>
                       <span
                         className={`px-2 py-1 text-xs font-medium rounded-full ${getSourceBadgeColor(source.type)}`}
