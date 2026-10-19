@@ -225,3 +225,13 @@ describe("IVA-185 vatByRate", () => {
     expect(vatByRate([{ quantity: 1, unit_price: 10, vat_rate: 0 }])).toEqual([]);
   });
 });
+
+describe("IVA-185 VAT row label matches the invoice", () => {
+  it("uses the invoice's rate format with no brackets", async () => {
+    const { vatRowLabel, vatRateText } = await import("./line-amounts");
+    expect(vatRateText(7.5)).toBe("7.5%");
+    expect(vatRowLabel(7.5)).toBe("VAT 7.5%");
+    expect(vatRowLabel(5)).toBe("VAT 5%");
+  });
+});
+

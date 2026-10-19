@@ -197,3 +197,11 @@ describe("IVA-185 PDF totals and discount", () => {
   });
 });
 
+describe("IVA-185 PDF VAT rate format", () => {
+  it("prints rates as 7.5% with no brackets, the format the form's VAT rows copy", () => {
+    const out = text({ ...base({ name: "Ada Foods Ltd" }), lineItems: [{ description: "A", quantity: 1, unit_price: 10, vat_rate: 7.5, amount: 10 }] });
+    expect(out).toContain("(7.5%)"); // PDF text operator wraps strings in brackets
+    expect(out).not.toContain("(\\(7.5%\\))");
+  });
+});
+

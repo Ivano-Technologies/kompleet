@@ -8,7 +8,7 @@
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { sniffImage } from "../../../convex/lib/imageMeta";
-import { hasLineDiscount, lineDiscount, lineNetAmount, totalsFromLines } from "./line-amounts";
+import { hasLineDiscount, lineDiscount, lineNetAmount, totalsFromLines, vatRateText } from "./line-amounts";
 import {
   INVOICE_BW,
   INVOICE_FOOTER_TEXT,
@@ -260,7 +260,7 @@ export function renderInvoicePdf(input: InvoicePdfInput): jsPDF {
     { head: "Description", align: "left", width: showDiscount ? 56 : 88, cell: (item) => item.description },
     { head: "Qty", align: "center", width: 14, cell: (item) => String(item.quantity) },
     { head: "Unit price", align: "right", width: 32, cell: (item) => money(item.unit_price) },
-    { head: "VAT", align: "center", width: 14, cell: (item) => `${item.vat_rate}%` },
+    { head: "VAT", align: "center", width: 14, cell: (item) => vatRateText(item.vat_rate) },
     ...(showDiscount
       ? [
           {

@@ -141,6 +141,12 @@ function vatGroupsKobo(items: LineInput[]): Array<{ rate: number; baseKobo: numb
 
 export type VatLine = { rate: number; base: number; vat: number };
 
+/** How the invoice writes a VAT rate (the PDF VAT column): "7.5%", no brackets. */
+export const vatRateText = (rate: number) => `${rate}%`;
+
+/** Label for a per-rate VAT row: the invoice's "VAT" totals label plus its rate format, e.g. "VAT 7.5%". */
+export const vatRowLabel = (rate: number) => `VAT ${vatRateText(rate)}`;
+
 /**
  * The VAT that makes up `totalsFromLines().vat_amount`, one entry per non-zero
  * rate, highest rate first. The entries add up to vat_amount exactly, so a

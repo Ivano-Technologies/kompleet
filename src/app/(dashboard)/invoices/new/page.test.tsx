@@ -53,14 +53,15 @@ describe("IVA-185 /invoices/new summary matches the invoice totals", () => {
     expect(screen.getByTestId("form-subtotal")).toHaveTextContent(naira(invoice.subtotal));
     const vatRows = screen.getAllByTestId("form-vat-row");
     expect(vatRows.map((row) => row.textContent)).toEqual([
-      `VAT (7.5%)${naira(67.5)}`,
-      `VAT (5%)${naira(16.67)}`, // 16.6665 half-up
+      `VAT 7.5%${naira(67.5)}`,
+      `VAT 5%${naira(16.67)}`, // 16.6665 half-up
     ]);
     expect(screen.getByTestId("form-total")).toHaveTextContent(naira(invoice.total_amount));
     // The summary reads Subtotal + VAT rows = Total, the same as the invoice.
     expect(Number((invoice.subtotal + 67.5 + 16.67).toFixed(2))).toBe(invoice.total_amount);
     expect(screen.queryByText(/^Discount \(₦\)$/)).toBeNull();
-    expect(screen.queryByText("VAT (0%)")).toBeNull();
+    expect(screen.queryByText("VAT 0%")).toBeNull();
+    expect(screen.queryByText(/VAT \(/)).toBeNull();
   });
 
   it("accepts a discount equal to the shown line total and refuses one kobo more", async () => {
