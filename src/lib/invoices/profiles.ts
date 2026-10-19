@@ -11,6 +11,11 @@ export type BusinessProfile = {
   phone: string;
   tin: string;
   vatNumber: string;
+  /** IVA-185: business logo, resolved to a URL by Convex. */
+  logoStorageId?: string | null;
+  logoUrl?: string | null;
+  logoWidth?: number | null;
+  logoHeight?: number | null;
 };
 
 export type ClientProfile = {
