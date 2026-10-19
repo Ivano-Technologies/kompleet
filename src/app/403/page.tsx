@@ -13,7 +13,7 @@ export default function Forbidden() {
           <ShieldX className="w-7 h-7 text-red-600 dark:text-red-400" />
         </div>
         <div className="space-y-2">
-          <h1 className="text-5xl font-bold text-red-600 dark:text-red-400">
+          <h1 className="font-display text-5xl font-bold text-primary/10 dark:text-dark-text-4/10 leading-none select-none">
             403
           </h1>
           <h2 className="text-xl font-bold">No access</h2>
@@ -24,7 +24,7 @@ export default function Forbidden() {
         </div>
         <Link
           href="/dashboard"
-          className="px-4 py-2 text-sm font-medium rounded-lg bg-[rgb(var(--primary))] text-white hover:opacity-90 transition-opacity flex items-center gap-2"
+          className="flex items-center gap-2 rounded-md bg-accent px-6 py-3 text-sm font-bold text-charcoal hover:bg-accent-hover"
         >
           <LayoutDashboard className="w-4 h-4" />
           Go to dashboard

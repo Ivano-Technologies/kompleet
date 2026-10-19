@@ -209,7 +209,7 @@ export default function HeroAuthCard() {
               : "Sign in"}
         </button>
         {mode === "signin" ? (
-          <p data-testid="reclaim-note" className="mt-2 text-center text-xs text-text-3">
+          <p data-testid="reclaim-note" className="mt-2 text-center text-xs tracking-normal [word-spacing:0.12em] text-text-3">
             Existing Kompleet users: create an account on Get started with this same email to
             reclaim your data.
           </p>
