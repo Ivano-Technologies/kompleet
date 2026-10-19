@@ -19,7 +19,7 @@ export const FRIENDLY_FALLBACK = "Something went wrong. Please try again.";
 
 export const FRIENDLY_MESSAGES = {
   fallback: FRIENDLY_FALLBACK,
-  invalidCredentials: "Email or password is incorrect.",
+  invalidCredentials: "That email or password doesn't match. Check and try again.",
   accountExists:
     "An account with this email already exists. Try signing in or reset your password.",
   invalidCode: "This code is invalid or has expired. Request a new one.",
@@ -33,12 +33,56 @@ export const FRIENDLY_MESSAGES = {
 /** An error whose message is written for end users and is safe to display. */
 export class UserFacingError extends Error {
   readonly status?: number;
+  /** Ref already issued (e.g. by an API route), reused instead of a new one. */
+  readonly ref?: string;
 
-  constructor(message: string, options?: { status?: number }) {
+  constructor(message: string, options?: { status?: number; ref?: string }) {
     super(message);
     this.name = "UserFacingError";
     this.status = options?.status;
+    this.ref = options?.ref && isRef(options.ref) ? options.ref : undefined;
   }
+}
+
+const REF_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const REF_PATTERN = /^[A-Z0-9]{8}$/;
+
+/** True for an 8 character support reference code. */
+export function isRef(value: unknown): value is string {
+  return typeof value === "string" && REF_PATTERN.test(value);
+}
+
+/** Generate an 8 character support reference code. */
+export function generateRef(): string {
+  const bytes = new Uint8Array(8);
+  if (typeof globalThis.crypto?.getRandomValues === "function") {
+    globalThis.crypto.getRandomValues(bytes);
+  } else {
+    for (let i = 0; i < bytes.length; i++) bytes[i] = Math.floor(Math.random() * 256);
+  }
+  return Array.from(bytes, (b) => REF_ALPHABET[b % REF_ALPHABET.length]).join("");
+}
+
+/** Turn a Sentry event id (32 hex chars) into an 8 character ref. */
+export function refFromEventId(eventId: unknown): string | null {
+  if (typeof eventId !== "string") return null;
+  const hex = eventId.replace(/-/g, "");
+  return /^[0-9a-f]{8}/i.test(hex) ? hex.slice(0, 8).toUpperCase() : null;
+}
+
+/** Separator between a friendly message and its ref in plain strings. */
+export const REF_SEPARATOR = "\nRef: ";
+
+/** "message\nRef: XXXXXXXX". Plain-text form for alerts and string state. */
+export function withRef(message: string, ref: string): string {
+  return `${message}${REF_SEPARATOR}${ref}`;
+}
+
+/** Split a string produced by `withRef` back into message and ref. */
+export function splitRef(text: string): { message: string; ref: string | null } {
+  const m = /\s*Ref: ([A-Z0-9]{8})\s*$/.exec(text);
+  if (!m) return { message: text, ref: null };
+  return { message: text.slice(0, m.index), ref: m[1] };
 }
 
 /** Normalise an email for auth calls: trim whitespace and lowercase. */
@@ -212,40 +256,67 @@ export interface FriendlyMessageOptions {
   context?: string;
 }
 
+export interface FriendlyError {
+  /** Friendly copy, without the ref. */
+  message: string;
+  /** 8 character support reference, logged next to the raw error. */
+  ref: string;
+}
+
 /**
- * Turn any thrown value into text that is safe to show a user.
+ * Turn any thrown value into friendly copy plus a support ref.
+ * The ref is the Sentry event id when the error is reported to Sentry,
+ * otherwise a generated code. The raw error is logged with the same ref.
  * @param err The caught value.
  * @param fallback Shown when the error is unexpected. Defaults to
  *   "Something went wrong. Please try again."
+ */
+export function toFriendlyError(
+  err: unknown,
+  fallback: string = FRIENDLY_FALLBACK,
+  options: FriendlyMessageOptions = {},
+): FriendlyError {
+  const deliberate = deliberateMessage(err);
+  const text = stripErrorWrappers(
+    deliberate ?? (err instanceof Error ? err.message : rawText(err)),
+  );
+  const known = deliberate ? null : mapKnown(err, text);
+  const message = deliberate ?? known ?? (fallback || FRIENDLY_FALLBACK);
+
+  let ref: string | null = err instanceof UserFacingError && err.ref ? err.ref : null;
+  if (!ref && !deliberate && !known && !options.silent) {
+    try {
+      ref = refFromEventId(
+        Sentry.captureException(err, {
+          tags: options.context ? { context: options.context } : undefined,
+        }),
+      );
+    } catch {
+      // Sentry not configured; the console log below is enough.
+    }
+  }
+  ref = ref ?? generateRef();
+
+  if (!options.silent) {
+    console.error(
+      `[friendly-error] ref=${ref}${options.context ? ` context=${options.context}` : ""}`,
+      err,
+    );
+  }
+  return { message, ref };
+}
+
+/**
+ * String form of `toFriendlyError`: "message\nRef: XXXXXXXX".
+ * Render it with `<ErrorText>` so the ref shows as a muted line.
  */
 export function toFriendlyMessage(
   err: unknown,
   fallback: string = FRIENDLY_FALLBACK,
   options: FriendlyMessageOptions = {},
 ): string {
-  const deliberate = deliberateMessage(err);
-  const text = stripErrorWrappers(
-    deliberate ?? (err instanceof Error ? err.message : rawText(err)),
-  );
-  const known = deliberate ? null : mapKnown(err, text);
-  const result = deliberate ?? known ?? (fallback || FRIENDLY_FALLBACK);
-
-  if (!options.silent && err !== undefined && err !== null) {
-    console.error(
-      `[friendly-error]${options.context ? ` ${options.context}` : ""}`,
-      err,
-    );
-    if (!deliberate && !known) {
-      try {
-        Sentry.captureException(err, {
-          tags: options.context ? { context: options.context } : undefined,
-        });
-      } catch {
-        // Sentry not configured; console.error above is enough.
-      }
-    }
-  }
-  return result;
+  const { message, ref } = toFriendlyError(err, fallback, options);
+  return withRef(message, ref);
 }
 
 const RAW_PATTERN =
@@ -256,20 +327,33 @@ export function looksLikeRawError(message: string): boolean {
   return RAW_PATTERN.test(message) || message.length > 300;
 }
 
+type ApiErrorBody = { error?: unknown; message?: unknown; ref?: unknown };
+
 /**
- * Build a UserFacingError from an `error` string returned by one of our own
- * API routes. API routes only return friendly text, but anything that still
- * looks raw is replaced with the fallback.
+ * Build a UserFacingError from a JSON error body returned by one of our own
+ * API routes (`{ error, ref }`), or from a bare message. API routes only
+ * return friendly text, but anything that still looks raw is replaced with
+ * the fallback. The API's ref is kept so the UI shows the logged ref.
  */
 export function userFacingError(
-  message: unknown,
+  body: unknown,
   fallback: string = FRIENDLY_FALLBACK,
   status?: number,
 ): UserFacingError {
+  let message: unknown = body;
+  let ref: unknown;
+  if (body && typeof body === "object") {
+    const b = body as ApiErrorBody;
+    message = typeof b.error === "string" ? b.error : b.message;
+    ref = b.ref;
+  }
   const text = typeof message === "string" ? message.trim() : "";
   const safe =
     text && !looksLikeRawError(text) ? text : fallback || FRIENDLY_FALLBACK;
-  return new UserFacingError(safe, { status });
+  return new UserFacingError(safe, {
+    status,
+    ref: isRef(ref) ? ref : undefined,
+  });
 }
 
 /** Read a friendly error out of a failed fetch response from our own API routes. */
@@ -277,26 +361,69 @@ export async function responseError(
   res: Response,
   fallback: string = FRIENDLY_FALLBACK,
 ): Promise<UserFacingError> {
-  if (res.status === 429) {
-    return new UserFacingError(FRIENDLY_MESSAGES.rateLimited, { status: 429 });
-  }
-  let message: unknown = null;
+  let body: unknown = null;
   try {
-    const data: unknown = await res.clone().json();
-    if (data && typeof data === "object") {
-      const d = data as { error?: unknown; message?: unknown };
-      message = typeof d.error === "string" ? d.error : d.message;
-    }
+    body = await res.clone().json();
   } catch {
     // Non-JSON body.
   }
-  return userFacingError(message, fallback, res.status);
+  if (res.status === 429) {
+    const ref = body && typeof body === "object" ? (body as ApiErrorBody).ref : undefined;
+    return new UserFacingError(FRIENDLY_MESSAGES.rateLimited, {
+      status: 429,
+      ref: isRef(ref) ? ref : undefined,
+    });
+  }
+  return userFacingError(body, fallback, res.status);
 }
 
-/** String form of `userFacingError` for setting UI error state directly. */
+/**
+ * Friendly string (with ref) for a JSON error body from our own API routes,
+ * for setting UI error state directly. Logs the ref with the body.
+ */
 export function apiErrorMessage(
-  message: unknown,
+  body: unknown,
   fallback: string = FRIENDLY_FALLBACK,
 ): string {
-  return userFacingError(message, fallback).message;
+  return toFriendlyMessage(userFacingError(body, fallback), fallback, {
+    context: "api",
+  });
+}
+
+/**
+ * API route JSON body for a caught exception: `{ error, ref }`.
+ * Logs the raw error with the same ref on the server (and Sentry for
+ * unexpected errors). Spread it into the response object.
+ */
+export function friendlyErrorBody(
+  err: unknown,
+  fallback: string = FRIENDLY_FALLBACK,
+  options: FriendlyMessageOptions = {},
+): { error: string; ref: string } {
+  const { message, ref } = toFriendlyError(err, fallback, options);
+  return { error: message, ref };
+}
+
+/**
+ * API route JSON body for an error we return on purpose (validation, auth,
+ * not found): `{ error, ref }`. Logs the ref and message on the server.
+ */
+export function apiErrorBody(message: string): { error: string; ref: string } {
+  const ref = generateRef();
+  console.warn(`[api-error] ref=${ref}`, message);
+  return { error: message, ref };
+}
+
+/**
+ * For friendly errors we raise ourselves (no thrown value): issue a ref,
+ * log it with the context and detail, and return "message\nRef: XXXXXXXX".
+ */
+export function friendlyWithNewRef(
+  message: string,
+  context: string,
+  detail?: unknown,
+): string {
+  const ref = generateRef();
+  console.error(`[friendly-error] ref=${ref} context=${context}`, detail ?? message);
+  return withRef(message, ref);
 }

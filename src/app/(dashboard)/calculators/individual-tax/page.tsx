@@ -17,6 +17,9 @@ import { useTaxRules } from "@/hooks/useTaxRules";
 import { logCalculation } from "@/hooks/useAuditLog";
 import { generateCalculationPDF } from "@/lib/pdf-generator";
 import { SaveCalculationButton } from "@/components/calculators/SaveCalculationButton";
+import { useErrorRef } from "@/hooks/use-error-ref";
+import { withRef } from "@/lib/friendly-error";
+import { ErrorRef, ErrorText } from "@/components/ui/error-ref";
 
 interface TaxBracket {
   from: number;
@@ -65,15 +68,17 @@ export default function IndividualTaxCalculatorPage() {
     : [];
   const rulesUnavailable =
     !rulesLoading && (!!rulesError || !rules || missingRuleKeys.length > 0);
+  const rulesRef = useErrorRef(rulesUnavailable, "calculators:individual-tax", {
+    missingRuleKeys,
+    rulesError,
+  }, typeof rulesError === "string" ? rulesError : null);
 
   const calculateIndividualTax = () => {
     setError("");
     setResult(null);
 
     if (!rules || missingRuleKeys.length > 0) {
-      setError(
-        "Tax rules aren't available right now, so we can't calculate individual tax. Please try again later or contact support.",
-      );
+      setError(withRef("Tax rules aren't available right now, so we can't calculate individual tax. Please try again later or contact support.", rulesRef));
       return;
     }
 
@@ -201,6 +206,7 @@ export default function IndividualTaxCalculatorPage() {
             <AlertDescription>
               Tax rules aren&apos;t available right now.{" "}
               Calculation is disabled until this is resolved.
+              <ErrorRef value={rulesRef} />
             </AlertDescription>
           </Alert>
         )}
@@ -307,7 +313,7 @@ export default function IndividualTaxCalculatorPage() {
                   variant="destructive"
                   className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-900/30 text-red-800 dark:text-red-200"
                 >
-                  <AlertDescription>{error}</AlertDescription>
+                  <AlertDescription><ErrorText text={error} /></AlertDescription>
                 </Alert>
               )}
             </CardContent>

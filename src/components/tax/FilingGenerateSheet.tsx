@@ -11,6 +11,7 @@ import {
 } from "./tax-copy";
 import { fetchBooksSummary, type BooksSummary } from "./books-summary";
 import { toFriendlyMessage, userFacingError } from "@/lib/friendly-error";
+import { ErrorText } from "@/components/ui/error-ref";
 
 function entityToFormType(entity: TaxEntity): "PIT" | "CIT" | "VAT" {
   if (entity === "pit") return "PIT";
@@ -145,7 +146,7 @@ export function FilingGenerateSheet({
         error?: string;
       };
       if (!response.ok || !body.formId || !body.pdfUrl) {
-        throw userFacingError(body.error, "We couldn't generate the PDF. Please try again.");
+        throw userFacingError(body, "We couldn't generate the PDF. Please try again.");
       }
       onGenerated({ formId: body.formId, pdfUrl: body.pdfUrl, formType });
       onClose();
@@ -252,7 +253,7 @@ export function FilingGenerateSheet({
           {(summary?.uncategorized ?? 0) > 0 && source === "books" && (
             <p className="text-sm text-warning">{TAX_COPY.warnUncat(summary?.uncategorized ?? 0)}</p>
           )}
-          {error && <p className="text-sm text-error">{error}</p>}
+          {error && <p className="text-sm text-error"><ErrorText text={error} /></p>}
           <div className="flex justify-end">
             <button
               type="button"
@@ -302,7 +303,7 @@ export function MarkFiledSheet({
       });
       const body = (await response.json()) as { error?: string; success?: boolean };
       if (!response.ok) {
-        throw userFacingError(body.error, "We couldn't mark this as filed. Please try again.");
+        throw userFacingError(body, "We couldn't mark this as filed. Please try again.");
       }
       setConfirmation("");
       onFiled();
@@ -335,7 +336,7 @@ export function MarkFiledSheet({
             className="mt-1 w-full px-3 py-2 text-sm rounded-md border border-border bg-surface text-text-1"
           />
         </label>
-        {error && <p className="text-sm text-error mt-2">{error}</p>}
+        {error && <p className="text-sm text-error mt-2"><ErrorText text={error} /></p>}
         <div className="flex justify-end gap-2 mt-4">
           <button type="button" className="btn-secondary text-sm px-3 py-2" onClick={onClose}>
             Cancel

@@ -8,7 +8,7 @@ import autoTable from "jspdf-autotable";
 import ExcelJS from "exceljs";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 import { listAllExpensesMine } from "@/lib/convex/money-lists";
-import { toFriendlyMessage } from "@/lib/friendly-error";
+import { friendlyErrorBody, apiErrorBody } from "@/lib/friendly-error";
 
 const FORMATS = ["csv", "pdf", "excel"] as const;
 type ExportFormat = (typeof FORMATS)[number];
@@ -36,14 +36,12 @@ export async function GET(request: NextRequest) {
       !/^\d{4}-\d{2}-\d{2}$/.test(startDate) ||
       !/^\d{4}-\d{2}-\d{2}$/.test(endDate)
     ) {
-      return NextResponse.json(
-        { error: "startDate and endDate required (YYYY-MM-DD)" },
+      return NextResponse.json({ ...apiErrorBody("startDate and endDate required (YYYY-MM-DD)") },
         { status: 400 },
       );
     }
     if (!FORMATS.includes(format)) {
-      return NextResponse.json(
-        { error: "format must be csv, pdf, or excel" },
+      return NextResponse.json({ ...apiErrorBody("format must be csv, pdf, or excel") },
         { status: 400 },
       );
     }
@@ -137,10 +135,10 @@ export async function GET(request: NextRequest) {
     });
   } catch (err) {
     if (isUnauthorized(err)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     return NextResponse.json(
-      { error: toFriendlyMessage(err, "Export failed. Please try again.") },
+      { ...friendlyErrorBody(err, "Export failed. Please try again.") },
       { status: 500 },
     );
   }

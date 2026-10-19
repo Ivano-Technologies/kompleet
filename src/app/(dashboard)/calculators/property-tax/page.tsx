@@ -14,6 +14,9 @@ import {
   Building,
 } from "lucide-react";
 import { generateCalculationPDF } from "@/lib/pdf-generator";
+import { useErrorRef } from "@/hooks/use-error-ref";
+import { withRef } from "@/lib/friendly-error";
+import { ErrorRef } from "@/components/ui/error-ref";
 
 interface MonthlyBreakdown {
   month: number;
@@ -72,12 +75,14 @@ export default function PropertyTaxCalculator() {
   });
   const rulesUnavailable =
     !rulesLoading && (!!rulesError || missingRuleKeys.length > 0);
+  const rulesRef = useErrorRef(rulesUnavailable, "calculators:property-tax", {
+    missingRuleKeys,
+    rulesError,
+  }, typeof rulesError === "string" ? rulesError : null);
 
   const calculatePropertyTax = () => {
     if (rulesUnavailable) {
-      alert(
-        "Tax rules aren't available right now, so we can't calculate property tax WHT. Please try again later or contact support.",
-      );
+      alert(withRef("Tax rules aren't available right now, so we can't calculate property tax WHT. Please try again later or contact support.", rulesRef));
       return;
     }
 
@@ -215,6 +220,7 @@ export default function PropertyTaxCalculator() {
           <AlertDescription>
             Tax rules aren&apos;t available right now.{" "}
             Calculation is disabled until this is resolved.
+              <ErrorRef value={rulesRef} />
           </AlertDescription>
         </Alert>
       )}

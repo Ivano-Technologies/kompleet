@@ -36,6 +36,7 @@ import type { SettingsSection } from "./settings-types";
 import { BusinessProfileSection } from "@/components/settings/BusinessProfileSection";
 import { ClientsSection } from "@/components/settings/ClientsSection";
 import { apiErrorMessage, toFriendlyMessage, userFacingError } from "@/lib/friendly-error";
+import { ErrorText } from "@/components/ui/error-ref";
 
 interface SettingsModalProps {
   open: boolean;
@@ -150,7 +151,7 @@ export function SettingsModal({
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw userFacingError(data.error, "We couldn't save your changes. Please try again.");
+        throw userFacingError(data, "We couldn't save your changes. Please try again.");
       }
       setSuccess("Profile updated successfully!");
       setTimeout(() => setSuccess(""), 3000);
@@ -177,7 +178,7 @@ export function SettingsModal({
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(apiErrorMessage(data.error, "We couldn't change your password. Please try again."));
+        setError(apiErrorMessage(data, "We couldn't change your password. Please try again."));
       } else {
         setSuccess("Password updated successfully!");
         setShowPasswordChange(false);
@@ -206,7 +207,7 @@ export function SettingsModal({
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(apiErrorMessage(data.error, "We couldn't delete your account. Please try again."));
+        setError(apiErrorMessage(data, "We couldn't delete your account. Please try again."));
       } else {
         onOpenChange(false);
         router.push("/login");
@@ -277,7 +278,7 @@ export function SettingsModal({
             {error && (
               <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-400 flex items-center gap-2 text-sm">
                 <AlertCircle className="w-4 h-4 shrink-0" />
-                {error}
+                <ErrorText text={error} />
               </div>
             )}
 

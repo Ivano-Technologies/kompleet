@@ -19,7 +19,16 @@ import {
   AUTH_TITLE_BLOCK,
 } from "@/components/layout/auth-density";
 import { Eye, EyeOff } from "lucide-react";
-import { FRIENDLY_MESSAGES, toFriendlyMessage } from "@/lib/friendly-error";
+import {
+  FRIENDLY_MESSAGES,
+  generateRef,
+  toFriendlyError,
+  withRef,
+} from "@/lib/friendly-error";
+import { ErrorText } from "@/components/ui/error-ref";
+
+const RECLAIM_NOTE =
+  "Existing Kompleet users: create an account on Sign up with this same email to reclaim your data.";
 
 function LoginForm() {
   const [email, setEmail] = useState("");
@@ -35,8 +44,17 @@ function LoginForm() {
   useEffect(() => {
     const err = searchParams.get("error");
     // Never render free text from the URL; map known codes to fixed copy.
-    if (err === "auth_failed") setError("We couldn't sign you in. Please try again.");
-    if (err === "expired_link") setError("This link has expired. Please request a new one.");
+    const copy =
+      err === "auth_failed"
+        ? "We couldn't sign you in. Please try again."
+        : err === "expired_link"
+          ? "This link has expired. Please request a new one."
+          : null;
+    if (copy) {
+      const ref = generateRef();
+      console.error(`[friendly-error] ref=${ref} context=login:${err}`);
+      setError(withRef(copy, ref));
+    }
   }, [searchParams]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -49,13 +67,16 @@ function LoginForm() {
       router.push(redirectTo);
       router.refresh();
     } catch (err) {
-      const message = toFriendlyMessage(err, FRIENDLY_MESSAGES.fallback, {
+      const { message, ref } = toFriendlyError(err, FRIENDLY_MESSAGES.fallback, {
         context: "login",
       });
       setError(
-        message === FRIENDLY_MESSAGES.network || message === FRIENDLY_MESSAGES.rateLimited
-          ? message
-          : "Email or password is incorrect. Existing Kompleet users: create an account on Sign up with this same email to reclaim your data.",
+        withRef(
+          message === FRIENDLY_MESSAGES.network || message === FRIENDLY_MESSAGES.rateLimited
+            ? message
+            : FRIENDLY_MESSAGES.invalidCredentials,
+          ref,
+        ),
       );
       setLoading(false);
     }
@@ -70,7 +91,7 @@ function LoginForm() {
           Access your business financial dashboard.
         </p>
       </div>
-      {error && <div className={AUTH_ERROR}>{error}</div>}
+      {error && <div className={AUTH_ERROR}><ErrorText text={error} /></div>}
       <form onSubmit={handleSubmit} className={AUTH_FORM}>
         <div>
           <label className={AUTH_LABEL}>Business Email</label>
@@ -117,6 +138,12 @@ function LoginForm() {
           {loading ? "Signing in…" : "Sign In →"}
         </button>
       </form>
+      <p
+        data-testid="reclaim-note"
+        className="mt-2 text-center text-xs text-text-3 dark:text-dark-text-3"
+      >
+        {RECLAIM_NOTE}
+      </p>
       <p className="mt-3 text-center text-xs text-text-3 dark:text-dark-text-3">
         New to Kompleet?{" "}
         <Link href="/signup" className={AUTH_LINK}>

@@ -115,7 +115,7 @@ export function ClientsSection({
         body: JSON.stringify(payload),
       });
       const body = (await res.json()) as { client?: ClientProfile; error?: string };
-      if (!res.ok || !body.client) throw userFacingError(body.error, "We couldn't save this client. Please try again.");
+      if (!res.ok || !body.client) throw userFacingError(body, "We couldn't save this client. Please try again.");
       await load();
       setEditing(null);
       setForm(emptyClient());
@@ -136,7 +136,7 @@ export function ClientsSection({
       });
       if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as { error?: string };
-        throw userFacingError(body.error, CLIENTS_COPY.deleteBlocked);
+        throw userFacingError(body, CLIENTS_COPY.deleteBlocked);
       }
       await load();
       if (editing?.id === client.id) {

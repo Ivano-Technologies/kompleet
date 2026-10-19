@@ -4,6 +4,7 @@ import { useState } from "react";
 import { X } from "lucide-react";
 import { DROP_COPY } from "./statement-copy";
 import { toFriendlyMessage, userFacingError } from "@/lib/friendly-error";
+import { ErrorText } from "@/components/ui/error-ref";
 
 export function AddManualTransaction({
   open,
@@ -47,7 +48,7 @@ export function AddManualTransaction({
         const body = (await response.json().catch(() => ({}))) as {
           error?: string;
         };
-        throw userFacingError(body.error, "We couldn't add this transaction. Please try again.");
+        throw userFacingError(body, "We couldn't add this transaction. Please try again.");
       }
       setDescription("");
       setAmount("");
@@ -126,7 +127,7 @@ export function AddManualTransaction({
               />
             </label>
           </div>
-          {error && <p className="text-sm text-error">{error}</p>}
+          {error && <p className="text-sm text-error"><ErrorText text={error} /></p>}
           <div className="flex justify-end gap-2 pt-1">
             <button type="button" className="btn-secondary text-sm px-3 py-2" onClick={onClose}>
               Cancel

@@ -54,7 +54,7 @@ export default function InvoiceDetailPage() {
       });
       if (!response.ok) {
         const body = await response.json().catch(() => ({}));
-        throw userFacingError(body?.error, "We couldn't find this invoice.");
+        throw userFacingError(body, "We couldn't find this invoice.");
       }
       const payload = (await response.json()) as { invoice: Invoice };
       const data = payload.invoice;

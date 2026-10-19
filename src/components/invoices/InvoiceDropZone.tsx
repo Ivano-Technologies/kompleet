@@ -5,6 +5,7 @@ import { Loader2, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { INV_COPY } from "./invoice-copy";
 import { toFriendlyMessage } from "@/lib/friendly-error";
+import { ErrorText } from "@/components/ui/error-ref";
 
 const ACCEPT = ".pdf,.png,.jpg,.jpeg,.webp";
 const MAX_BYTES = 10 * 1024 * 1024;
@@ -124,7 +125,7 @@ export function InvoiceDropZone({
           {INV_COPY.dropChoose}
         </span>
       </div>
-      {error && <p className="mt-2 text-sm text-error">{error}</p>}
+      {error && <p className="mt-2 text-sm text-error"><ErrorText text={error} /></p>}
     </div>
   );
 }

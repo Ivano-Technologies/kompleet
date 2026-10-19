@@ -23,6 +23,7 @@ import {
 } from '@/components/layout/auth-density';
 import { ArrowRight, CheckCircle2, Eye, EyeOff, Shield, Lock } from 'lucide-react';
 import { FRIENDLY_MESSAGES, toFriendlyMessage } from '@/lib/friendly-error';
+import { ErrorText } from '@/components/ui/error-ref';
 
 function getPasswordStrength(pw: string) {
   const checks = { minLength: pw.length >= 8, hasNumber: /\d/.test(pw) };
@@ -136,7 +137,7 @@ export default function SignUpPage() {
 
       {error && (
         <div className={AUTH_ERROR}>
-          {error}
+          <ErrorText text={error} />
         </div>
       )}
 

@@ -6,6 +6,7 @@ import { omitUndefined } from "@/lib/convex/args";
 import { toJsonSafe } from "@/lib/convex/json";
 import { getConvexAccessToken } from "@/lib/auth/session";
 import { rethrowIfNextControlFlow } from "@/lib/next-control-flow";
+import { apiErrorBody } from "@/lib/friendly-error";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -29,7 +30,7 @@ function listArgs(request: NextRequest) {
 async function handleGET(request: NextRequest) {
   const token = await getConvexAccessToken(request);
   if (!token) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
   }
 
   try {

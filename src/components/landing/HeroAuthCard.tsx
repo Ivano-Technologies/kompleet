@@ -16,7 +16,8 @@ import {
   HERO_AUTH_ID,
   type HeroAuthMode,
 } from "@/components/landing/hero-auth";
-import { FRIENDLY_MESSAGES, toFriendlyMessage } from "@/lib/friendly-error";
+import { FRIENDLY_MESSAGES, toFriendlyError, withRef } from "@/lib/friendly-error";
+import { ErrorText } from "@/components/ui/error-ref";
 
 const inputClassName =
   "mt-1.5 h-11 w-full rounded-md border border-border bg-surface px-3 text-sm text-text-1 focus:border-primary focus:ring-2 focus:ring-primary/20";
@@ -99,20 +100,14 @@ export default function HeroAuthCard() {
       router.push("/dashboard");
       router.refresh();
     } catch (err) {
-      const message = toFriendlyMessage(err, FRIENDLY_MESSAGES.fallback, {
+      const { message, ref } = toFriendlyError(err, FRIENDLY_MESSAGES.fallback, {
         context: `hero-auth:${mode}`,
       });
-      if (
+      const signInMismatch =
         mode === "signin" &&
         message !== FRIENDLY_MESSAGES.network &&
-        message !== FRIENDLY_MESSAGES.rateLimited
-      ) {
-        setError(
-          "Email or password is incorrect. Existing Kompleet users: create an account on Get started with this same email to reclaim your data.",
-        );
-      } else {
-        setError(message);
-      }
+        message !== FRIENDLY_MESSAGES.rateLimited;
+      setError(withRef(signInMismatch ? FRIENDLY_MESSAGES.invalidCredentials : message, ref));
       setLoading(false);
     }
   };
@@ -133,7 +128,7 @@ export default function HeroAuthCard() {
             role="alert"
             className="mb-3 rounded-md border border-error/30 bg-error-bg p-2.5 text-sm text-error"
           >
-            {error}
+            <ErrorText text={error} />
           </div>
         ) : null}
         <div>
@@ -213,6 +208,12 @@ export default function HeroAuthCard() {
               ? "Get started"
               : "Sign in"}
         </button>
+        {mode === "signin" ? (
+          <p data-testid="reclaim-note" className="mt-2 text-center text-xs text-text-3">
+            Existing Kompleet users: create an account on Get started with this same email to
+            reclaim your data.
+          </p>
+        ) : null}
         <p className="mt-3 text-center text-sm text-text-2">
           {mode === "signup" ? (
             <>

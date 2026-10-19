@@ -4,7 +4,7 @@ import { withAudit } from "@/lib/with-audit";
 import { z } from "zod";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 import { listAllTransactionsMine } from "@/lib/convex/money-lists";
-import { toFriendlyMessage } from "@/lib/friendly-error";
+import { toFriendlyError, apiErrorBody } from "@/lib/friendly-error";
 
 export const runtime = "nodejs";
 
@@ -34,8 +34,7 @@ async function handleGET(request: NextRequest) {
     const parsed = exportQuerySchema.safeParse(raw);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Invalid query parameters", details: parsed.error.flatten() },
+      return NextResponse.json({ ...apiErrorBody("Invalid query parameters"), details: parsed.error.flatten() },
         { status: 400 },
       );
     }
@@ -49,9 +48,7 @@ async function handleGET(request: NextRequest) {
 
     const MAX_EXPORT = 50000;
     if (total > MAX_EXPORT) {
-      return NextResponse.json(
-        {
-          error: `Export limited to ${MAX_EXPORT.toLocaleString()} transactions. Please use date filters to narrow your results.`,
+      return NextResponse.json({ ...apiErrorBody(`Export limited to ${MAX_EXPORT.toLocaleString()} transactions. Please use date filters to narrow your results.`),
         },
         { status: 400 },
       );
@@ -99,11 +96,11 @@ async function handleGET(request: NextRequest) {
     });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     console.error("Error in GET /api/transactions/export:", error);
-    const message = toFriendlyMessage(error);
-    return NextResponse.json({ error: message }, { status: 500 });
+    const { message, ref } = toFriendlyError(error);
+    return NextResponse.json({ error: message, ref }, { status: 500 });
   }
 }
 

@@ -13,6 +13,7 @@ import {
   Lightbulb,
 } from "lucide-react";
 import { apiErrorMessage } from "@/lib/friendly-error";
+import { ErrorText } from "@/components/ui/error-ref";
 
 interface Category {
   id: string;
@@ -46,7 +47,7 @@ export default function CategoriesPage() {
         setCategories(data.categories || []);
         setError(null);
       } else {
-        setError(apiErrorMessage(data.error, "We couldn't load your categories. Please try again."));
+        setError(apiErrorMessage(data, "We couldn't load your categories. Please try again."));
       }
     } catch (error) {
       console.error("Error fetching categories:", error);
@@ -81,7 +82,7 @@ export default function CategoriesPage() {
         setError(null);
       } else {
         const data = await response.json().catch(() => ({}));
-        setError(apiErrorMessage(data.error, "We couldn't save this category. Please try again."));
+        setError(apiErrorMessage(data, "We couldn't save this category. Please try again."));
       }
     } catch (error) {
       console.error("Error saving category:", error);
@@ -147,7 +148,7 @@ export default function CategoriesPage() {
     <div className="space-y-6">
       {error && (
         <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 rounded-lg flex justify-between items-center">
-          <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
+          <p className="text-red-600 dark:text-red-400 text-sm"><ErrorText text={error} /></p>
           <button
             onClick={() => setError(null)}
             className="text-red-400 hover:text-red-600 dark:hover:text-red-300 text-lg leading-none"

@@ -5,6 +5,7 @@ import {
   isUnauthorized,
   requireAuthedConvex,
 } from "@/lib/convex/server";
+import { apiErrorBody } from "@/lib/friendly-error";
 
 async function handleGET(request: NextRequest) {
   try {
@@ -19,11 +20,10 @@ async function handleGET(request: NextRequest) {
     return NextResponse.json({ invoices });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     console.error("[List invoices]", error);
-    return NextResponse.json(
-      { error: "Failed to list invoices" },
+    return NextResponse.json({ ...apiErrorBody("Failed to list invoices") },
       { status: 500 },
     );
   }

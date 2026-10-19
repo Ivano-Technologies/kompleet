@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import type { CalculationHistory } from "@/types/calculation-history";
 import { toFriendlyMessage, UserFacingError } from "@/lib/friendly-error";
+import { ErrorText } from "@/components/ui/error-ref";
 
 export function RecentCalculations() {
   const [calculations, setCalculations] = useState<CalculationHistory[]>([]);
@@ -88,7 +89,7 @@ export function RecentCalculations() {
           <CardTitle>Recent Calculations</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-destructive">{error}</p>
+          <p className="text-sm text-destructive"><ErrorText text={error} /></p>
         </CardContent>
       </Card>
     );

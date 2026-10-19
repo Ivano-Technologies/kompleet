@@ -18,6 +18,7 @@ import {
 import { useLibraryUpload } from "@/components/documents/use-library-upload";
 import { onBusinessProfileChanged } from "@/lib/invoices/profile-events";
 import { toFriendlyMessage } from "@/lib/friendly-error";
+import { ErrorText } from "@/components/ui/error-ref";
 
 export function NewInvoiceSheet({
   open,
@@ -256,7 +257,7 @@ export function NewInvoiceSheet({
                 className="mt-1 w-full px-3 py-2 text-sm rounded-md border border-border bg-surface text-text-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               />
             </label>
-            {error && <p className="text-sm text-error">{error}</p>}
+            {error && <p className="text-sm text-error"><ErrorText text={error} /></p>}
             {notice && <p className="text-sm text-success">{notice}</p>}
             <div className="flex justify-end gap-2">
               <button

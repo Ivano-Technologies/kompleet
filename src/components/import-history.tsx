@@ -7,6 +7,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { apiErrorMessage, toFriendlyMessage } from "@/lib/friendly-error";
+import { ErrorText } from "@/components/ui/error-ref";
 
 interface ImportSession {
   id: string;
@@ -35,7 +36,7 @@ export function ImportHistory() {
       if (response.ok) {
         setSessions(data.sessions || []);
       } else {
-        setError(apiErrorMessage(data.error, "We couldn't load your import history. Please try again."));
+        setError(apiErrorMessage(data, "We couldn't load your import history. Please try again."));
       }
     } catch (err) {
       setError(toFriendlyMessage(err, "We couldn't load your import history. Please try again."));
@@ -59,7 +60,7 @@ export function ImportHistory() {
   if (error) {
     return (
       <div className="p-4 bg-error/10 border border-error rounded-lg">
-        <p className="text-error">{error}</p>
+        <p className="text-error"><ErrorText text={error} /></p>
       </div>
     );
   }

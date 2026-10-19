@@ -21,8 +21,10 @@ import { CheckCircle2, Eye, EyeOff, KeyRound } from 'lucide-react';
 import {
   FRIENDLY_MESSAGES,
   normalizeEmail,
-  toFriendlyMessage,
+  toFriendlyError,
+  withRef,
 } from '@/lib/friendly-error';
+import { ErrorText } from '@/components/ui/error-ref';
 
 const headerLeftAddon = (
   <Link
@@ -76,14 +78,17 @@ export default function ResetPasswordClient() {
         router.refresh();
       }, 1500);
     } catch (err) {
-      const message = toFriendlyMessage(err, FRIENDLY_MESSAGES.fallback, {
+      const { message, ref } = toFriendlyError(err, FRIENDLY_MESSAGES.fallback, {
         context: 'reset-password',
       });
       // In the reset flow an unknown account or bad secret means the code is wrong.
       setError(
-        message === FRIENDLY_MESSAGES.invalidCredentials
-          ? FRIENDLY_MESSAGES.invalidCode
-          : message,
+        withRef(
+          message === FRIENDLY_MESSAGES.invalidCredentials
+            ? FRIENDLY_MESSAGES.invalidCode
+            : message,
+          ref,
+        ),
       );
       setLoading(false);
     }
@@ -119,7 +124,7 @@ export default function ResetPasswordClient() {
 
       {error && (
         <div className={AUTH_ERROR}>
-          {error}
+          <ErrorText text={error} />
         </div>
       )}
 

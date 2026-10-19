@@ -29,7 +29,7 @@ export default function ExpenseReportsPage() {
       const res = await fetch(`/api/expenses/export?${params}`);
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw userFacingError(data.error, "Export failed. Please try again.");
+        throw userFacingError(data, "Export failed. Please try again.");
       }
       const blob = await res.blob();
       const url = window.URL.createObjectURL(blob);

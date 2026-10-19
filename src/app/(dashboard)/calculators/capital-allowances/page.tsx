@@ -16,6 +16,9 @@ import {
   Package,
 } from "lucide-react";
 import { generateCalculationPDF } from "@/lib/pdf-generator";
+import { useErrorRef } from "@/hooks/use-error-ref";
+import { withRef } from "@/lib/friendly-error";
+import { ErrorRef } from "@/components/ui/error-ref";
 
 interface DepreciationSchedule {
   year: number;
@@ -79,6 +82,10 @@ export default function CapitalAllowancesCalculator() {
   );
   const rulesUnavailable =
     !rulesLoading && (!!rulesError || missingRuleKeys.length > 0);
+  const rulesRef = useErrorRef(rulesUnavailable, "calculators:capital-allowances", {
+    missingRuleKeys,
+    rulesError,
+  }, typeof rulesError === "string" ? rulesError : null);
 
   const getAssetRate = (type: string): number => {
     const rateMap: Record<string, number> = {
@@ -91,9 +98,7 @@ export default function CapitalAllowancesCalculator() {
 
   const calculateCapitalAllowance = () => {
     if (rulesUnavailable) {
-      alert(
-        "Tax rules aren't available right now, so we can't calculate capital allowance. Please try again later or contact support.",
-      );
+      alert(withRef("Tax rules aren't available right now, so we can't calculate capital allowance. Please try again later or contact support.", rulesRef));
       return;
     }
 
@@ -231,6 +236,7 @@ export default function CapitalAllowancesCalculator() {
           <AlertDescription>
             Tax rules aren&apos;t available right now.{" "}
             Calculation is disabled until this is resolved.
+              <ErrorRef value={rulesRef} />
           </AlertDescription>
         </Alert>
       )}

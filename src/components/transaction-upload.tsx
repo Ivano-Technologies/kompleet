@@ -8,6 +8,7 @@
 import { useState } from "react";
 import { SUPPORTED_BANKS } from "@/lib/transaction-import/bank-configs";
 import { toFriendlyMessage } from "@/lib/friendly-error";
+import { ErrorText } from "@/components/ui/error-ref";
 
 interface UploadResult {
   success: boolean;
@@ -195,7 +196,7 @@ export function TransactionUpload() {
           ) : (
             <div>
               <h3 className="font-semibold text-error mb-2">Import Failed</h3>
-              <p className="text-sm text-muted">{result.error}</p>
+              <p className="text-sm text-muted"><ErrorText text={result.error} /></p>
             </div>
           )}
         </div>

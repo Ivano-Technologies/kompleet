@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { TrendingUp, AlertCircle, CheckCircle, BarChart3 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { toFriendlyMessage, UserFacingError } from "@/lib/friendly-error";
+import { ErrorText } from "@/components/ui/error-ref";
 
 interface FeedbackStats {
   totalFeedback: number;
@@ -73,7 +74,7 @@ export default function AnalyticsDashboard() {
       <Card className="backdrop-blur-md bg-white/80 dark:bg-slate-900/80 border border-white/20 dark:border-slate-800/20 p-6">
         <div className="flex gap-3">
           <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0" />
-          <p className="text-red-900 dark:text-red-200">{error}</p>
+          <p className="text-red-900 dark:text-red-200"><ErrorText text={error} /></p>
         </div>
       </Card>
     );

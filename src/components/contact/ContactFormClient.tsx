@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { apiErrorMessage } from "@/lib/friendly-error";
+import { ErrorText } from "@/components/ui/error-ref";
 
 export default function ContactFormClient() {
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">(
@@ -33,7 +34,7 @@ export default function ContactFormClient() {
 
       if (!res.ok) {
         setStatus("error");
-        setErrorMessage(apiErrorMessage(json.error, "We couldn't send your message. Please try again."));
+        setErrorMessage(apiErrorMessage(json, "We couldn't send your message. Please try again."));
         return;
       }
       setStatus("success");
@@ -121,7 +122,7 @@ export default function ContactFormClient() {
         </p>
       )}
       {status === "error" && (
-        <p className="text-sm text-red-600 dark:text-red-400">{errorMessage}</p>
+        <p className="text-sm text-red-600 dark:text-red-400"><ErrorText text={errorMessage} /></p>
       )}
       <button
         type="submit"

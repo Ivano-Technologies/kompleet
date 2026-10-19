@@ -13,6 +13,9 @@ import {
   FileDigit,
 } from "lucide-react";
 import { generateCalculationPDF } from "@/lib/pdf-generator";
+import { useErrorRef } from "@/hooks/use-error-ref";
+import { withRef } from "@/lib/friendly-error";
+import { ErrorRef } from "@/components/ui/error-ref";
 
 interface StampDutyResult {
   transactionType: string;
@@ -49,6 +52,10 @@ export default function StampDutyCalculator() {
   );
   const rulesUnavailable =
     !rulesLoading && (!!rulesError || missingRuleKeys.length > 0);
+  const rulesRef = useErrorRef(rulesUnavailable, "calculators:stamp-duty", {
+    missingRuleKeys,
+    rulesError,
+  }, typeof rulesError === "string" ? rulesError : null);
 
   useEffect(() => {
     const fetchRules = async () => {
@@ -75,9 +82,7 @@ export default function StampDutyCalculator() {
 
   const calculateStampDuty = () => {
     if (rulesUnavailable) {
-      alert(
-        "Tax rules aren't available right now, so we can't calculate stamp duty. Please try again later or contact support.",
-      );
+      alert(withRef("Tax rules aren't available right now, so we can't calculate stamp duty. Please try again later or contact support.", rulesRef));
       return;
     }
 
@@ -211,6 +216,7 @@ export default function StampDutyCalculator() {
           <AlertDescription>
             Tax rules aren&apos;t available right now.{" "}
             Calculation is disabled until this is resolved.
+              <ErrorRef value={rulesRef} />
           </AlertDescription>
         </Alert>
       )}

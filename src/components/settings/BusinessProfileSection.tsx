@@ -62,7 +62,7 @@ export function BusinessProfileSection({
       });
       const body = (await res.json()) as { profile?: BusinessProfile; error?: string };
       if (!res.ok || !body.profile) {
-        throw userFacingError(body.error, "We couldn't save your changes. Please try again.");
+        throw userFacingError(body, "We couldn't save your changes. Please try again.");
       }
       setForm({ ...emptyBusinessProfile(), ...body.profile });
       emitBusinessProfileChanged();
