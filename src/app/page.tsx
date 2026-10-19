@@ -154,6 +154,13 @@ export default function HomePage() {
         <div className="mx-auto max-w-7xl">
           <picture>
             <source
+              media="(max-width: 767px)"
+              srcSet="/assets/illustrations/bookkeeping-flow-mobile.svg"
+              type="image/svg+xml"
+              width={684}
+              height={740}
+            />
+            <source
               srcSet="/assets/illustrations/bookkeeping-flow.svg"
               type="image/svg+xml"
             />
