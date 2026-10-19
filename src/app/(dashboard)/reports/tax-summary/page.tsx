@@ -17,7 +17,7 @@ export default function TaxSummaryPage() {
           Tax Summary Report
         </h1>
         <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mt-1">
-          Comprehensive overview of tax obligations — VAT, WHT, CIT. Ready for NRS/JTB submission.
+          Comprehensive overview of tax obligations: VAT, WHT, CIT. Export a summary to support your NRS and JTB filing.
         </p>
       </div>
 

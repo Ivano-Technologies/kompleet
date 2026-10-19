@@ -183,7 +183,7 @@ export default function BusinessTaxCalculatorPage() {
         effective_tax_rate: `${result.effectiveTaxRate.toFixed(2)}%`,
       },
       ruleVersion: "v1.0.0-2025-tax-act",
-      sources: ["Nigerian Revenue Service (NRS)"],
+      sources: ["Nigeria Revenue Service (NRS)"],
       confidenceLevel:
         rules?.corporate_tax_rate_other?.confidence || "unavailable",
     });
@@ -479,7 +479,7 @@ export default function BusinessTaxCalculatorPage() {
               dynamically from the KOMPLEET Tax Rules Engine.
             </p>
             <p>
-              <strong>Data Source:</strong> Nigerian Revenue Service (NRS),
+              <strong>Data Source:</strong> Nigeria Revenue Service (NRS),
               Confidence level:{" "}
               {rules?.corporate_tax_rate_other?.confidence || "unavailable"}.
             </p>

@@ -95,31 +95,34 @@ describe("IVA-86 §3 Documents vs Books", () => {
 });
 
 describe("IVA-86 §4 favicon HTML metadata", () => {
-  it("ships exact Wave 1 teal ₦ head links and theme-color", () => {
+  it("ships Ivano V mark head links (IVA-186) and theme-color", () => {
+    expect(layout).toMatch(/<link rel="icon" href="\/favicon\.ico" sizes="any" \/>/);
     expect(layout).toMatch(
       /<link rel="icon" href="\/favicon\.svg" type="image\/svg\+xml" \/>/,
     );
     expect(layout).toMatch(
-      /<link rel="icon" href="\/favicon-32\.png" sizes="32x32" type="image\/png" \/>/,
-    );
-    expect(layout).toMatch(
-      /<link rel="icon" href="\/favicon-16\.png" sizes="16x16" type="image\/png" \/>/,
-    );
-    expect(layout).toMatch(
-      /<link rel="apple-touch-icon" href="\/apple-touch-180\.png" \/>/,
+      /<link rel="apple-touch-icon" href="\/apple-touch-icon\.png" \/>/,
     );
     expect(layout).toMatch(/<meta name="theme-color" content="#0D9488" \/>/);
     expect(layout).toMatch(/themeColor: "#0D9488"/);
     expect(manifest).toMatch(/"theme_color": "#0D9488"/);
     for (const file of [
+      "public/favicon.ico",
       "public/favicon.svg",
+      "public/apple-touch-icon.png",
+      "public/icon-192.png",
+      "public/icon-512.png",
+    ]) {
+      expect(existsSync(resolve(process.cwd(), file))).toBe(true);
+    }
+    for (const stale of [
+      "public/favicon.png",
       "public/favicon-32.png",
       "public/favicon-16.png",
       "public/apple-touch-180.png",
     ]) {
-      expect(existsSync(resolve(process.cwd(), file))).toBe(true);
+      expect(existsSync(resolve(process.cwd(), stale))).toBe(false);
     }
-    expect(existsSync(resolve(process.cwd(), "public/favicon.png"))).toBe(false);
   });
 });
 
