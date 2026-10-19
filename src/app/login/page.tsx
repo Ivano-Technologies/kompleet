@@ -52,7 +52,7 @@ function LoginForm() {
           : null;
     if (copy) {
       const ref = generateRef();
-      console.error(`[friendly-error] ref=${ref} context=login:${err}`);
+      console.warn(`[friendly-error] ref=${ref} context=login:${err}`);
       setError(withRef(copy, ref));
     }
   }, [searchParams]);
