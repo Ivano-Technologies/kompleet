@@ -138,7 +138,7 @@ export default function ReportsClient({ stats }: ReportsClientProps) {
     },
     {
       title: "Tax Summary Report",
-      desc: "Comprehensive overview of tax obligations — VAT, WHT, and CIT. Ready for NRS/JTB submission.",
+      desc: "Comprehensive overview of tax obligations: VAT, WHT, and CIT. Export a summary to support your NRS and JTB filing.",
       href: "/reports/tax-summary",
       icon: Receipt,
       badge: "Tax Compliance",
