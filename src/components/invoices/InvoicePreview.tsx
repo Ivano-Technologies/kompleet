@@ -32,7 +32,12 @@ import {
   type InvoiceSenderParty,
 } from "@/lib/invoices/invoice-branding";
 import type { InvoiceView } from "@/lib/invoices/view-types";
-import { lineNetAmount } from "@/lib/invoices/line-amounts";
+import {
+  displayTotals,
+  hasLineDiscount,
+  lineDiscount,
+  lineNetAmount,
+} from "@/lib/invoices/line-amounts";
 
 /*
  * IVA-185: the invoice document is black and white only. The business logo is
@@ -246,7 +251,11 @@ export function InvoicePreview({
     ? invoice.notes.replace("Attached: ", "")
     : null;
   const lineItems = Array.isArray(invoice.line_items) ? invoice.line_items : [];
-  const subtotal = invoice.subtotal || invoice.total_amount || 0;
+  // Totals are rebuilt from the lines (Subtotal = sum of rounded line amounts,
+  // VAT on the Subtotal, Total = Subtotal + VAT). Stored values only when there are no lines.
+  const totals = displayTotals(invoice);
+  const subtotal = totals.subtotal || totals.total_amount || 0;
+  const showDiscount = hasLineDiscount(lineItems);
   const labelCls = "text-[10px] font-bold tracking-[0.08em] uppercase";
 
   return (
@@ -366,6 +375,9 @@ export function InvoicePreview({
                 <th className="py-2 pr-2 text-left text-[11px] font-bold">Description</th>
                 <th className="py-2 px-2 text-right text-[11px] font-bold">Qty</th>
                 <th className="py-2 px-2 text-right text-[11px] font-bold">Rate</th>
+                {showDiscount && (
+                  <th className="py-2 px-2 text-right text-[11px] font-bold">Discount</th>
+                )}
                 <th className="py-2 pl-2 text-right text-[11px] font-bold">Amount</th>
               </tr>
             </thead>
@@ -380,6 +392,11 @@ export function InvoicePreview({
                   <td className="py-2.5 px-2 text-right tabular-nums whitespace-nowrap">
                     {money(item.unit_price)}
                   </td>
+                  {showDiscount && (
+                    <td className="py-2.5 px-2 text-right tabular-nums whitespace-nowrap">
+                      {lineDiscount(item) > 0 ? money(lineDiscount(item)) : ""}
+                    </td>
+                  )}
                   <td className="py-2.5 pl-2 text-right tabular-nums whitespace-nowrap">
                     {money(lineNetAmount(item))}
                   </td>
@@ -396,16 +413,10 @@ export function InvoicePreview({
               <span style={{ color: BW.secondary }}>Subtotal</span>
               <span className="tabular-nums">{money(subtotal)}</span>
             </div>
-            {invoice.vat_amount > 0 && (
+            {totals.vat_amount > 0 && (
               <div className="flex justify-between">
                 <span style={{ color: BW.secondary }}>VAT</span>
-                <span className="tabular-nums">{money(invoice.vat_amount)}</span>
-              </div>
-            )}
-            {invoice.discount_amount > 0 && (
-              <div className="flex justify-between">
-                <span style={{ color: BW.secondary }}>Discount</span>
-                <span className="tabular-nums">-{money(invoice.discount_amount)}</span>
+                <span className="tabular-nums">{money(totals.vat_amount)}</span>
               </div>
             )}
             <div
@@ -414,7 +425,7 @@ export function InvoicePreview({
               data-testid="invoice-total"
             >
               <span>Total</span>
-              <span className="tabular-nums">{money(invoice.total_amount)}</span>
+              <span className="tabular-nums">{money(totals.total_amount)}</span>
             </div>
           </div>
         </div>

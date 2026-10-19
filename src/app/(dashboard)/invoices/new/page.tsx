@@ -1,7 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { lineNetAmount } from "@/lib/invoices/line-amounts";
+import {
+  DISCOUNT_TOO_BIG,
+  discountTooBig,
+  lineNetAmount,
+  totalsFromLines,
+} from "@/lib/invoices/line-amounts";
 import { useRouter } from "next/navigation";
 import { InvoiceLineItem, CustomerInfo } from "@/lib/invoice-service";
 import { FilePlus2, Loader2, Plus, Trash2 } from "lucide-react";
@@ -128,28 +133,14 @@ export default function NewInvoicePage() {
     }
   };
 
-  // Calculate totals
+  // Calculate totals: Subtotal is the sum of the rounded line amounts, VAT on the Subtotal (IVA-185)
   const calculateTotals = () => {
-    let subtotal = 0;
-    let vatAmount = 0;
-    let discountAmount = 0;
-
-    for (const item of lineItems) {
-      const baseAmount = item.quantity * item.unit_price;
-      const itemDiscount = item.discount || 0;
-      const itemSubtotal = baseAmount - itemDiscount;
-      const itemVat = (itemSubtotal * item.vat_rate) / 100;
-
-      subtotal += itemSubtotal;
-      vatAmount += itemVat;
-      discountAmount += itemDiscount;
-    }
-
+    const t = totalsFromLines(lineItems);
     return {
-      subtotal: Number(subtotal.toFixed(2)),
-      vatAmount: Number(vatAmount.toFixed(2)),
-      discountAmount: Number(discountAmount.toFixed(2)),
-      total: Number((subtotal + vatAmount).toFixed(2)),
+      subtotal: t.subtotal,
+      vatAmount: t.vat_amount,
+      discountAmount: t.discount_amount,
+      total: t.total_amount,
     };
   };
 
@@ -180,6 +171,9 @@ export default function NewInvoicePage() {
       }
       if (item.unit_price < 0) {
         errors.push(`Line item ${i + 1}: Unit price cannot be negative`);
+      }
+      if (discountTooBig(item)) {
+        errors.push(`Line item ${i + 1}: ${DISCOUNT_TOO_BIG}`);
       }
     }
 
@@ -562,7 +556,9 @@ export default function NewInvoicePage() {
                 </label>
                 <input
                   type="number"
+                  min={0}
                   value={item.discount}
+                  aria-invalid={discountTooBig(item) || undefined}
                   onChange={(e) =>
                     updateLineItem(
                       index,
@@ -572,6 +568,11 @@ export default function NewInvoicePage() {
                   }
                   className="w-full px-3 py-2 border border-light-border dark:border-dark-border rounded-lg bg-light-surface dark:bg-dark-surface focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
+                {discountTooBig(item) && (
+                  <p className="mt-1 text-xs text-red-600 dark:text-red-400" role="alert">
+                    {DISCOUNT_TOO_BIG}
+                  </p>
+                )}
               </div>
 
               <div className="col-span-10 md:col-span-2 min-w-[6rem]">

@@ -158,3 +158,42 @@ describe("IVA-185 PDF line amounts", () => {
   });
 });
 
+describe("IVA-185 PDF totals and discount", () => {
+  const lines = (discount?: number): InvoicePdfInput => ({
+    ...base({ name: "Ada Foods Ltd" }),
+    lineItems: [
+      { description: "Consulting", quantity: 1.5, unit_price: 33.33, vat_rate: 0, amount: 0 },
+      { description: "Consulting", quantity: 1.5, unit_price: 33.33, vat_rate: 0, amount: 0, discount },
+    ],
+    // Stale stored totals: the PDF must rebuild them from the lines.
+    subtotal: 99.99,
+    vatAmount: 0,
+    totalAmount: 99.99,
+    discountAmount: discount ?? 0,
+  });
+
+  it("Subtotal is the sum of the printed rows", () => {
+    const out = text(lines());
+    expect(out).toContain("NGN 49.99");
+    expect(out).toContain("NGN 99.98");
+    expect(out).not.toContain("99.99");
+  });
+
+  it("shows discounts only as a column, never as a totals row", () => {
+    const out = text(lines(9.99));
+    expect(out.match(/\(Discount\)/g)?.length).toBe(1);
+    expect(out).toContain("NGN 9.99");
+    expect(out).toContain("NGN 40.00");
+    expect(out).toContain("NGN 89.99");
+    expect(text(lines())).not.toContain("Discount");
+  });
+
+  it("clamps a discount larger than the line total", () => {
+    const out = text(lines(500));
+    // Line 2 is 49.99 gross, so the discount clamps to 49.99 and the line to 0.00.
+    expect(out).toContain("NGN 0.00");
+    expect(out).toContain("NGN 49.99");
+    expect(out).not.toContain("500.00");
+  });
+});
+
