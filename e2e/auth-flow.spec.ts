@@ -139,6 +139,13 @@ test.describe("Auth flow", () => {
     await expect(page.getByText(message)).toBeVisible();
   });
 
+  test("the login page shows the reclaim note", async ({ page }) => {
+    await page.goto("/login");
+    await expect(page.getByTestId("reclaim-note")).toHaveText(
+      "Existing Kompleet users: choose Get started and use this same email to reclaim your data.",
+    );
+  });
+
   for (const route of PROTECTED_ROUTES) {
     test(`unauthenticated visit to ${route} redirects to login`, async ({
       page,

@@ -28,7 +28,7 @@ import {
 import { ErrorText } from "@/components/ui/error-ref";
 
 const RECLAIM_NOTE =
-  "Existing Kompleet users: create an account on Sign up with this same email to reclaim your data.";
+  "Existing Kompleet users: choose Get started and use this same email to reclaim your data.";
 
 function LoginForm() {
   const [email, setEmail] = useState("");

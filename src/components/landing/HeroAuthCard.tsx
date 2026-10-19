@@ -210,8 +210,7 @@ export default function HeroAuthCard() {
         </button>
         {mode === "signin" ? (
           <p data-testid="reclaim-note" className="mt-2 text-center text-xs tracking-normal [word-spacing:0.12em] text-text-3">
-            Existing Kompleet users: create an account on Get started with this same email to
-            reclaim your data.
+            {"Existing Kompleet users: choose Get started and use this same email to reclaim your data."}
           </p>
         ) : null}
         <p className="mt-3 text-center text-sm text-text-2">
