@@ -5,7 +5,7 @@ import LandingFooter from "@/components/landing/LandingFooter";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/help" },
-  title: "Help Center | KOMPLEET",
+  title: "Kompleet: Help Center",
   description:
     "Find answers to common questions and learn how to get the most out of KOMPLEET.",
 };
@@ -17,9 +17,9 @@ const faqs = [
       "Sign up for a free account, complete your business profile, and start by uploading a Nigerian bank statement or creating your first invoice.",
   },
   {
-    question: "What tax types does KOMPLEET support?",
+    question: "What can I do with KOMPLEET today?",
     answer:
-      "VAT (Value Added Tax) and related calculators under the Nigeria Tax Act 2025 are live today, including CIT and personal income tax tools. Filing-ready NRS and LIRS forms can be generated for download. A dedicated WHT calculator is on the roadmap. There is no PAYE calculator and no automated deadline reminders yet.",
+      "Import bank statements, categorize transactions, track spending, send invoices, and export P&L and balance sheet reports, all from one web app.",
   },
   {
     question: "Can I file taxes directly through KOMPLEET?",
@@ -29,7 +29,7 @@ const faqs = [
   {
     question: "How does the invoicing feature work?",
     answer:
-      "Create invoices with VAT line items and NRS-compliant QR codes, then track payment status when your customer settles. Online checkout (Paystack/Flutterwave) is not live — payment recording is manual for now.",
+      "Create invoices with clear line items, send them to customers, then track payment status when your customer settles. Online checkout (Paystack/Flutterwave) is not live yet, so payment recording is manual for now.",
   },
   {
     question: "Is my financial data secure?",
@@ -44,7 +44,7 @@ const faqs = [
   {
     question: "Can I export my data?",
     answer:
-      "Yes. You can export transactions, invoices, tax reports, and financial statements in CSV and PDF formats at any time from the Export section of your dashboard.",
+      "Yes. You can export transactions, invoices, and financial statements in CSV and PDF formats at any time from the Export section of your dashboard.",
   },
   {
     question: "How do I import bank transactions?",
@@ -59,8 +59,8 @@ const topics = [
     body: "Create an account, add your business profile, then import a statement or issue an invoice.",
   },
   {
-    title: "Tax compliance",
-    body: "VAT, CIT, and filing-ready NRS and LIRS form generation.",
+    title: "Invoicing and reports",
+    body: "Send invoices, track payments, and export P&L and balance sheet reports.",
   },
   {
     title: "Contact support",

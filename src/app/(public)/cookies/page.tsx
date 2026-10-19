@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/cookies" },
-  title: "Cookie Policy | KOMPLEET",
+  title: "Kompleet: Cookie Policy",
   description:
     "Cookie Policy for KOMPLEET: how we use cookies and similar technologies.",
 };
