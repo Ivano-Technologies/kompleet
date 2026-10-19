@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="88" height="88" viewBox="0 0 88 88" fill="none" role="img" aria-label="Invoice and QR">
+<svg xmlns="http://www.w3.org/2000/svg" width="88" height="88" viewBox="0 0 88 88" fill="none" role="img" aria-label="Invoice">
   <!-- document -->
   <rect x="14" y="18" width="36" height="52" rx="6" fill="#FFFDF8" stroke="#0B3A5C" stroke-width="1.75"/>
   <rect x="14" y="18" width="36" height="10" rx="6" fill="#0B3A5C"/>
@@ -6,12 +6,11 @@
   <line x1="22" y1="40" x2="40" y2="40" stroke="#0B3A5C" stroke-width="1.75" stroke-linecap="round"/>
   <line x1="22" y1="48" x2="36" y2="48" stroke="#0B3A5C" stroke-width="1.75" stroke-linecap="round"/>
   <line x1="22" y1="56" x2="38" y2="56" stroke="#0B3A5C" stroke-width="1.75" stroke-linecap="round"/>
-  <!-- mini QR -->
+  <!-- invoice detail: three grey lines and a bold total -->
   <rect x="52" y="28" width="24" height="24" rx="3" fill="#FFFDF8" stroke="#0B3A5C" stroke-width="1.75"/>
-  <rect x="56" y="32" width="6" height="6" rx="0.5" fill="#0B3A5C"/>
-  <rect x="66" y="32" width="6" height="6" rx="0.5" fill="#0B3A5C"/>
-  <rect x="56" y="42" width="6" height="6" rx="0.5" fill="#0B3A5C"/>
-  <rect x="64" y="40" width="4" height="4" rx="0.5" fill="#0D9488"/>
-  <rect x="70" y="44" width="3" height="3" rx="0.5" fill="#0B3A5C"/>
-  <rect x="62" y="46" width="3" height="3" rx="0.5" fill="#0B3A5C"/>
+  <line x1="57" y1="33.5" x2="71" y2="33.5" stroke="#0B3A5C" stroke-opacity="0.35" stroke-width="1.75" stroke-linecap="round"/>
+  <line x1="57" y1="38" x2="68" y2="38" stroke="#0B3A5C" stroke-opacity="0.35" stroke-width="1.75" stroke-linecap="round"/>
+  <line x1="57" y1="42.5" x2="70" y2="42.5" stroke="#0B3A5C" stroke-opacity="0.35" stroke-width="1.75" stroke-linecap="round"/>
+  <line x1="57" y1="47.5" x2="66" y2="47.5" stroke="#0B3A5C" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="70.5" cy="47.5" r="1.75" fill="#0D9488"/>
 </svg>
