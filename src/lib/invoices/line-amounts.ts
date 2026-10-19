@@ -2,8 +2,10 @@
  * IVA-185: invoice line maths, shared by the create route, the full form,
  * the preview and the PDF. Pure, so it is safe in client components.
  *
- * A line amount is the pre-VAT net: quantity x rate minus any line discount.
- * Line amounts add up to the Subtotal, and Subtotal + VAT = Total.
+ * A line amount is the pre-VAT net: quantity x rate minus the line discount
+ * (clamped to 0..quantity x rate), rounded to 2dp. The Subtotal is the sum of
+ * those rounded amounts, VAT is computed on the Subtotal, and
+ * Total = Subtotal + VAT.
  *
  * Older full-form invoices stored `amount` including VAT, so the preview and
  * PDF always recompute the net from quantity, rate and discount instead of
@@ -17,34 +19,69 @@ export type LineInput = {
   discount?: number;
 };
 
-/** Same rounding the invoice totals have always used (2dp, naira). */
+/**
+ * Same rounding the invoice totals have always used (2dp, naira, Number#toFixed).
+ * Note toFixed works on the binary float, so 49.995 rounds to 49.99 while
+ * 2.475 rounds to 2.48. Rows and Subtotal always agree because the Subtotal
+ * is summed from the rounded rows.
+ */
 const round2 = (value: number) => Number(value.toFixed(2));
 
 function num(value: unknown): number {
   return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }
 
-/** Pre-VAT line amount: quantity x rate minus line discount. */
-export function lineNetAmount(item: LineInput): number {
-  return round2(num(item.quantity) * num(item.unit_price) - num(item.discount));
+/** Friendly form copy when a line discount is larger than the line total. */
+export const DISCOUNT_TOO_BIG = "Discount can't be more than the line total.";
+
+/** quantity x rate, before discount and VAT. */
+export function lineGrossAmount(item: LineInput): number {
+  return num(item.quantity) * num(item.unit_price);
 }
 
-export function totalsFromLines(items: LineInput[]): {
+/** The line discount clamped to 0..(quantity x rate). */
+export function lineDiscount(item: LineInput): number {
+  const gross = Math.max(0, lineGrossAmount(item));
+  return Math.min(Math.max(0, num(item.discount)), gross);
+}
+
+/** True when the entered discount is larger than quantity x rate. */
+export function discountTooBig(item: LineInput): boolean {
+  return num(item.discount) > Math.max(0, lineGrossAmount(item));
+}
+
+/** Pre-VAT line amount, rounded to 2dp: quantity x rate minus the clamped discount. */
+export function lineNetAmount(item: LineInput): number {
+  return round2(lineGrossAmount(item) - lineDiscount(item));
+}
+
+export type LineTotals = {
   subtotal: number;
   vat_amount: number;
   discount_amount: number;
   total_amount: number;
-} {
+};
+
+/**
+ * The one place invoice totals are built.
+ * Subtotal is the sum of the rounded line amounts, so the rows always add up.
+ * VAT is computed on the Subtotal (per VAT rate, from the same rounded line
+ * amounts) and Total = Subtotal + VAT.
+ */
+export function totalsFromLines(items: LineInput[]): LineTotals {
   let subtotal = 0;
-  let vat = 0;
   let discount = 0;
+  const byRate = new Map<number, number>();
   for (const item of items) {
-    const net = num(item.quantity) * num(item.unit_price) - num(item.discount);
+    const net = lineNetAmount(item);
     subtotal += net;
-    vat += (net * num(item.vat_rate)) / 100;
-    discount += num(item.discount);
+    discount += lineDiscount(item);
+    const rate = num(item.vat_rate);
+    byRate.set(rate, (byRate.get(rate) ?? 0) + net);
   }
   subtotal = round2(subtotal);
+  let vat = 0;
+  for (const [rate, base] of byRate) vat += (round2(base) * rate) / 100;
   vat = round2(vat);
   return {
     subtotal,
@@ -52,6 +89,11 @@ export function totalsFromLines(items: LineInput[]): {
     discount_amount: round2(discount),
     total_amount: round2(subtotal + vat),
   };
+}
+
+/** True when at least one line has a (clamped) discount, so a Discount column should show. */
+export function hasLineDiscount(items: LineInput[]): boolean {
+  return items.some((item) => lineDiscount(item) > 0);
 }
 
 /**
@@ -65,8 +107,15 @@ export function withNetLineAmounts<T>(lineItems: T): T {
   return lineItems.map((item) => {
     if (!item || typeof item !== "object") return item;
     const row = item as Record<string, unknown>;
+    const line = {
+      quantity: num(row.quantity),
+      unit_price: num(row.unit_price),
+      vat_rate: num(row.vat_rate),
+      discount: num(row.discount),
+    };
     return {
       ...row,
+      ...(line.discount ? { discount: lineDiscount(line) } : {}),
       amount: lineNetAmount({
         quantity: num(row.quantity),
         unit_price: num(row.unit_price),
@@ -77,8 +126,41 @@ export function withNetLineAmounts<T>(lineItems: T): T {
   }) as T;
 }
 
-/** Same as withNetLineAmounts, for a whole invoice API object. */
+/**
+ * Same as withNetLineAmounts, for a whole invoice API object. When it has
+ * lines, subtotal, vat_amount and total_amount are rebuilt with
+ * totalsFromLines so the rows always add up.
+ */
 export function invoiceWithNetLineAmounts<T extends { line_items?: unknown }>(invoice: T): T {
-  if (!invoice || !Array.isArray(invoice.line_items)) return invoice;
-  return { ...invoice, line_items: withNetLineAmounts(invoice.line_items) };
+  if (!invoice || !Array.isArray(invoice.line_items) || invoice.line_items.length === 0) {
+    return invoice;
+  }
+  const lines = withNetLineAmounts(invoice.line_items) as LineInput[];
+  const totals = totalsFromLines(lines);
+  const out: Record<string, unknown> = { ...invoice, line_items: lines };
+  for (const key of ["subtotal", "vat_amount", "total_amount"] as const) {
+    if (key in out) out[key] = totals[key];
+  }
+  if ("amount_due" in out && out.amount_due === (invoice as Record<string, unknown>).total_amount) {
+    out.amount_due = totals.total_amount;
+  }
+  return out as T;
+}
+
+/** Totals to display for an invoice: rebuilt from its lines when it has any, else the stored values. */
+export function displayTotals(invoice: {
+  line_items?: unknown;
+  subtotal?: number | null;
+  vat_amount?: number | null;
+  total_amount?: number | null;
+}): { subtotal: number; vat_amount: number; total_amount: number } {
+  if (Array.isArray(invoice.line_items) && invoice.line_items.length > 0) {
+    const t = totalsFromLines(withNetLineAmounts(invoice.line_items) as LineInput[]);
+    return { subtotal: t.subtotal, vat_amount: t.vat_amount, total_amount: t.total_amount };
+  }
+  return {
+    subtotal: num(invoice.subtotal),
+    vat_amount: num(invoice.vat_amount),
+    total_amount: num(invoice.total_amount),
+  };
 }

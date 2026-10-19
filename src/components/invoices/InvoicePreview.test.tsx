@@ -112,3 +112,36 @@ describe("IVA-185 InvoicePreview line amounts", () => {
   });
 });
 
+describe("IVA-185 InvoicePreview discount column and totals", () => {
+  const lines = (discount?: number) =>
+    invoice({
+      subtotal: 99.99,
+      vat_amount: 0,
+      total_amount: 99.99,
+      discount_amount: discount ?? 0,
+      line_items: [
+        { description: "Consulting", quantity: 1.5, unit_price: 33.33, vat_rate: 0, amount: 0 },
+        { description: "Consulting", quantity: 1.5, unit_price: 33.33, vat_rate: 0, amount: 0, discount },
+      ],
+    });
+
+  it("hides the Discount column with no discounts and builds the Subtotal from rows", () => {
+    render(<InvoicePreview invoice={lines()} profile={profile()} onOpenSettings={() => {}} />);
+    const table = screen.getByTestId("invoice-items");
+    expect(table.querySelectorAll("thead th")).toHaveLength(4);
+    expect(screen.queryByText("Discount")).toBeNull();
+    expect(screen.getByText("Subtotal").parentElement).toHaveTextContent("99.98");
+    expect(screen.getByTestId("invoice-total")).toHaveTextContent("99.98");
+  });
+
+  it("shows the Discount column when a line has a discount, and no Discount totals row", () => {
+    render(<InvoicePreview invoice={lines(9.99)} profile={profile()} onOpenSettings={() => {}} />);
+    const table = screen.getByTestId("invoice-items");
+    expect(table.querySelectorAll("thead th")).toHaveLength(5);
+    expect(screen.getAllByText("Discount")).toHaveLength(1);
+    expect(table.querySelectorAll("tbody tr")[1]).toHaveTextContent("9.99");
+    expect(table.querySelectorAll("tbody tr")[1]).toHaveTextContent("40.00");
+    expect(screen.getByTestId("invoice-total")).toHaveTextContent("89.99");
+  });
+});
+

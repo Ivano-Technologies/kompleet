@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { calculateInvoiceTotals } from "@/lib/invoice-service";
-import { lineNetAmount } from "@/lib/invoices/line-amounts";
+import { lineDiscount, lineNetAmount } from "@/lib/invoices/line-amounts";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { withAudit } from "@/lib/with-audit";
 import { createInvoiceSchema } from "@/lib/schemas/invoices";
@@ -40,7 +40,8 @@ async function handlePOST(request: NextRequest) {
       quantity: item.quantity,
       unit_price: item.unit_price,
       vat_rate: item.vat_rate,
-      discount: item.discount,
+      // Clamped to 0..(quantity x rate).
+      discount: lineDiscount(item),
       // Always the pre-VAT net, never a client supplied (possibly VAT inclusive) amount.
       amount: lineNetAmount(item),
     }));

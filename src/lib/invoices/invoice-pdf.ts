@@ -8,7 +8,7 @@
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { sniffImage } from "../../../convex/lib/imageMeta";
-import { lineNetAmount } from "./line-amounts";
+import { hasLineDiscount, lineDiscount, lineNetAmount, totalsFromLines } from "./line-amounts";
 import {
   INVOICE_BW,
   INVOICE_FOOTER_TEXT,
@@ -60,7 +60,8 @@ export type InvoicePdfInput = {
   lineItems: PdfLineItem[];
   subtotal: number;
   vatAmount: number;
-  discountAmount: number;
+  /** Ignored: discounts show per line in the Discount column, not as a totals row. */
+  discountAmount?: number;
   totalAmount: number;
   paymentTerms?: string;
   notes?: string | null;
@@ -249,7 +250,7 @@ export function renderInvoicePdf(input: InvoicePdfInput): jsPDF {
   // Amount is the pre-VAT net (quantity x rate minus discount), recomputed so
   // rows always add up to the Subtotal even for older VAT inclusive data.
   // The Discount column only shows when a line has a discount.
-  const showDiscount = input.lineItems.some((item) => (item.discount ?? 0) > 0);
+  const showDiscount = hasLineDiscount(input.lineItems);
   const columns: Array<{
     head: string;
     align: "left" | "center" | "right";
@@ -266,7 +267,7 @@ export function renderInvoicePdf(input: InvoicePdfInput): jsPDF {
             head: "Discount",
             align: "right" as const,
             width: 26,
-            cell: (item: PdfLineItem) => (item.discount ? money(item.discount) : ""),
+            cell: (item: PdfLineItem) => (lineDiscount(item) > 0 ? money(lineDiscount(item)) : ""),
           },
         ]
       : []),
@@ -318,16 +319,21 @@ export function renderInvoicePdf(input: InvoicePdfInput): jsPDF {
     doc.text(value, right, yPos, { align: "right" });
     yPos += 7;
   };
-  row("Subtotal", money(input.subtotal));
-  row("VAT", money(input.vatAmount));
-  if (input.discountAmount > 0) row("Discount", `-${money(input.discountAmount)}`);
+  // Rebuilt from the lines: Subtotal = sum of rounded line amounts, VAT on the
+  // Subtotal, Total = Subtotal + VAT. Stored values only when there are no lines.
+  const totals =
+    input.lineItems.length > 0
+      ? totalsFromLines(input.lineItems)
+      : { subtotal: input.subtotal, vat_amount: input.vatAmount, total_amount: input.totalAmount };
+  row("Subtotal", money(totals.subtotal));
+  row("VAT", money(totals.vat_amount));
 
   yPos += 3;
   doc.setFont("helvetica", "bold");
   doc.setFontSize(12);
   doc.setTextColor(...BLACK);
   doc.text("Total", totalsX, yPos, { align: "right" });
-  doc.text(money(input.totalAmount), right, yPos, { align: "right" });
+  doc.text(money(totals.total_amount), right, yPos, { align: "right" });
   yPos += 3;
   doc.setDrawColor(...BLACK);
   doc.setLineWidth(0.4);
