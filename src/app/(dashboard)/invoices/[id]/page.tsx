@@ -533,9 +533,6 @@ export default function InvoiceDetailPage() {
             {/* QR Code */}
             {qrCodeImage && (
               <div>
-                <h3 className="text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-3">
-                  NRS-Compliant QR Code
-                </h3>
                 <div className="bg-light-background dark:bg-dark-background rounded-lg p-4 flex flex-col items-center">
                   <img
                     src={qrCodeImage}

@@ -300,7 +300,7 @@ export default function NewInvoicePage() {
             Create New Invoice
           </h1>
           <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
-            Generate NRS-compliant e-invoices with digital signatures
+            Create and send professional invoices
           </p>
         </div>
       </div>
