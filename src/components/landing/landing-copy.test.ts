@@ -79,7 +79,8 @@ describe("IVA-72 landing copy", () => {
   });
 
   it("wires locked Design illustrations, not invented lifestyle art", () => {
-    expect(landing).toMatch(/tax-filing-flow\.svg/);
+    expect(landing).toMatch(/bookkeeping-flow\.svg/);
+    expect(landing).not.toMatch(/tax-filing-flow|spot-vat/);
     expect(authLayout).toMatch(/auth-panel\.svg/);
     expect(authLayout).toMatch(/auth-panel\.png/);
   });
@@ -131,7 +132,7 @@ describe("IVA-72 landing copy", () => {
     expect(heroAuthCard).not.toMatch(/h-\[52px\]/);
   });
 
-  it("uses Design spot icons, ledger hero illustration, and tax-filing-flow — no Demo chrome", () => {
+  it("uses Design spot icons, ledger hero illustration and bookkeeping flow with no Demo chrome", () => {
     expect(landing).toMatch(/hero-kompleet\.svg/);
     expect(landing).toMatch(/hero-kompleet\.png/);
     expect(landing).toMatch(/<picture>/);
@@ -170,7 +171,7 @@ describe("IVA-72 landing copy", () => {
     for (const spot of [
       "spot-banks",
       "spot-invoice",
-      "spot-vat",
+      "spot-expenses",
       "spot-filing",
       "spot-reports",
       "spot-security",
