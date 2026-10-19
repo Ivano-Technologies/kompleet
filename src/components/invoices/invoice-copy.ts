@@ -35,6 +35,9 @@ export const INV_COPY = {
   billtoRequired: "Select a client before issuing",
   fromLabel: "FROM",
   fromEdit: "Edit in Settings",
-  fromFallback: "KOMPLEET",
+  // IVA-185: never fall back to Kompleet as the sender.
+  fromFallback: "Your business name",
+  addLogo: "Add your logo",
+  notSet: "Not set",
   fromNoAddress: "No business address yet",
 } as const;

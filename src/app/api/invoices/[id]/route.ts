@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { withAudit } from "@/lib/with-audit";
 import { api } from "@/lib/convex/http";
+import { invoiceWithNetLineAmounts } from "@/lib/invoices/line-amounts";
 import {
   isUnauthorized,
   requireAuthedConvex,
@@ -30,7 +31,8 @@ async function handleGET(request: NextRequest, context: RouteContext) {
       return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, invoice });
+    // Stored line amounts are mixed (older full-form invoices include VAT); always send the pre-VAT net.
+    return NextResponse.json({ success: true, invoice: invoiceWithNetLineAmounts(invoice) });
   } catch (error) {
     if (isUnauthorized(error)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -100,7 +102,8 @@ async function handlePATCH(request: NextRequest, context: RouteContext) {
         notes: body.notes,
       },
     });
-    return NextResponse.json({ success: true, invoice });
+    // Stored line amounts are mixed (older full-form invoices include VAT); always send the pre-VAT net.
+    return NextResponse.json({ success: true, invoice: invoiceWithNetLineAmounts(invoice) });
   } catch (error) {
     if (isUnauthorized(error)) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
