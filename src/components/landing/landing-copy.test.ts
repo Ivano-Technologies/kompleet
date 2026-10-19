@@ -85,6 +85,24 @@ describe("IVA-72 landing copy", () => {
     expect(authLayout).toMatch(/auth-panel\.png/);
   });
 
+  it("serves the stacked mobile flow art below 768px and keeps the desktop art", () => {
+    expect(landing).toMatch(
+      /<source\s+media="\(max-width: 767px\)"\s+srcSet="\/assets\/illustrations\/bookkeeping-flow-mobile\.svg"\s+type="image\/svg\+xml"\s+width=\{684\}\s+height=\{740\}/,
+    );
+    expect(landing).toMatch(/src="\/assets\/illustrations\/bookkeeping-flow\.png"/);
+  });
+
+  it("ships the auth panel art without the baked-in caption", () => {
+    const panel = readFileSync(
+      resolve(process.cwd(), "public/assets/illustrations/auth-panel.svg"),
+      "utf8",
+    );
+    expect(panel).not.toMatch(/KOMPLEET/);
+    expect(
+      existsSync(resolve(process.cwd(), "public/assets/illustrations/bookkeeping-flow-mobile.svg")),
+    ).toBe(true);
+  });
+
   it("removes the Product Proof band from the homepage", () => {
     expect(landing).not.toMatch(/Product proof/i);
     expect(landing).not.toMatch(/Real tooling, labeled demo data/);

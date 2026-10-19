@@ -49,6 +49,4 @@
     <circle cx="640" cy="856" r="28" fill="#0D9488"/>
     <path d="M628 856 l8 8 16 -18" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
   </g>
-  <!-- wordmark hint (not logo redraw) -->
-  <text x="480" y="1100" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="600" letter-spacing="4" fill="#BAD8F5" fill-opacity="0.7">KOMPLEET</text>
 </svg>
