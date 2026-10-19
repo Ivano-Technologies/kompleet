@@ -27,6 +27,10 @@ const landingFooter = readFileSync(
   resolve(process.cwd(), "src/components/landing/LandingFooter.tsx"),
   "utf8",
 );
+const brandLockup = readFileSync(
+  resolve(process.cwd(), "src/components/brand/BrandLockup.tsx"),
+  "utf8",
+);
 const brandWordmark = readFileSync(
   resolve(process.cwd(), "src/components/brand/BrandWordmark.tsx"),
   "utf8",
@@ -182,7 +186,7 @@ describe("IVA-72 landing copy", () => {
     }
   });
 
-  it("ships wordmark-only branding with the locked ceoruse face", () => {
+  it("ships the Ivano V mark lockup with the locked ceoruse wordmark (IVA-186)", () => {
     expect(brandWordmark).toMatch(/font-ceoruse/);
     expect(brandWordmark).toMatch(/KOMPLEET/);
     expect(brandWordmark).not.toMatch(/font-display|font-sans|next\/image|logo-primary|logo-inverted|\/logo\.png/);
@@ -191,6 +195,19 @@ describe("IVA-72 landing copy", () => {
     expect(tokens).toMatch(/--font-ceoruse/);
     expect(tokens).toMatch(/\.font-ceoruse[\s\S]*var\(--font-ceoruse\)/);
 
+    // Lockup: V, 12px gap, 1px divider at 25% of the text colour, 12px gap, wordmark.
+    expect(brandLockup).toMatch(/BrandWordmark/);
+    expect(brandLockup).toMatch(/\/brand\/ivano-mark\.svg/);
+    expect(brandLockup).toMatch(/\/brand\/ivano-mark-reverse\.svg/);
+    expect(brandLockup).toMatch(/inline-flex items-center gap-3/);
+    expect(brandLockup).toMatch(/h-\[0\.72em\] w-px shrink-0 bg-current opacity-25/);
+    expect(brandLockup).toMatch(/COLLAPSED_MARK_HEIGHT = 24/);
+    expect(brandLockup).toMatch(/"Ivano Technologies"/);
+    expect(brandLockup).toMatch(/aria-hidden/);
+    for (const file of ["public/brand/ivano-mark.svg", "public/brand/ivano-mark-reverse.svg"]) {
+      expect(existsSync(resolve(process.cwd(), file))).toBe(true);
+    }
+
     for (const source of [
       landingNav,
       landingFooter,
@@ -198,11 +215,17 @@ describe("IVA-72 landing copy", () => {
       dashboardSidebar,
       appSidebar,
     ]) {
-      expect(source).toMatch(/BrandWordmark/);
+      expect(source).toMatch(/BrandLockup/);
+      expect(source).not.toMatch(/BrandWordmark/);
       expect(source).not.toMatch(
         /logo-primary|logo-inverted|\/logo\.png|logo\.png/,
       );
     }
+    // Navy panels use the reverse V; the auth card follows the theme.
+    expect(dashboardSidebar).toMatch(/tone="inverse"/);
+    expect(appSidebar).toMatch(/tone="inverse"/);
+    expect(authLayout).toMatch(/tone="auto"/);
+    expect(authLayout).toMatch(/markHeight=\{20\}/);
   });
 
   it("locks Ceoruse wordmark, Clash headlines, and Montserrat body", () => {
@@ -245,11 +268,11 @@ describe("IVA-72 landing copy", () => {
     expect(landingNav).toMatch(/#\$\{HERO_AUTH_ID\}/);
   });
 
-  it("ships Kezie locked teal naira favicon sitewide", () => {
+  it("ships the Ivano V mark favicon sitewide (IVA-186)", () => {
+    expect(rootLayout).toMatch(/url: "\/favicon\.ico", sizes: "any"/);
     expect(rootLayout).toMatch(/url: "\/favicon\.svg", type: "image\/svg\+xml"/);
-    expect(rootLayout).toMatch(/url: "\/favicon-32\.png", sizes: "32x32"/);
-    expect(rootLayout).toMatch(/url: "\/favicon-16\.png", sizes: "16x16"/);
-    expect(rootLayout).toMatch(/url: "\/apple-touch-180\.png"/);
+    expect(rootLayout).toMatch(/url: "\/apple-touch-icon\.png", sizes: "180x180"/);
+    expect(rootLayout).not.toMatch(/favicon-(16|32)\.png|apple-touch-180\.png/);
     expect(rootLayout).toMatch(/themeColor: "#0D9488"/);
     expect(rootLayout).toMatch(/<meta name="theme-color" content="#0D9488" \/>/);
     expect(rootLayout).toMatch(
@@ -263,20 +286,30 @@ describe("IVA-72 landing copy", () => {
       resolve(process.cwd(), "public/favicon.svg"),
       "utf8",
     );
-    expect(faviconSvg).toMatch(/#0D9488/);
-    expect(faviconSvg).toMatch(/#FFFFFF|#FFF\b/i);
-    expect(faviconSvg).not.toMatch(/#0B3A5C|#C8F000|#E8A317/);
+    // Ivano V mark: slate + ink, adapting to dark mode.
+    expect(faviconSvg).toMatch(/#5C6673/);
+    expect(faviconSvg).toMatch(/#141B26/);
+    expect(faviconSvg).toMatch(/prefers-color-scheme:\s*dark/);
+    expect(faviconSvg).not.toMatch(/#0D9488|#0B3A5C|#C8F000|#E8A317/);
     expect(faviconSvg).not.toMatch(/>\s*K\s*</);
 
     for (const file of [
+      "public/favicon.ico",
       "public/favicon.svg",
+      "public/apple-touch-icon.png",
+      "public/icon-192.png",
+      "public/icon-512.png",
+    ]) {
+      expect(existsSync(resolve(process.cwd(), file))).toBe(true);
+    }
+    for (const stale of [
+      "public/favicon.png",
       "public/favicon-32.png",
       "public/favicon-16.png",
       "public/apple-touch-180.png",
     ]) {
-      expect(existsSync(resolve(process.cwd(), file))).toBe(true);
+      expect(existsSync(resolve(process.cwd(), stale))).toBe(false);
     }
-    expect(existsSync(resolve(process.cwd(), "public/favicon.png"))).toBe(false);
   });
 
   it("locks Option C navy + teal and strips lime/amber accents", () => {

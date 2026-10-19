@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { BrandWordmark } from "@/components/brand/BrandWordmark";
+import { BrandLockup } from "@/components/brand/BrandLockup";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -116,7 +116,7 @@ export function Sidebar({
   const sidebarContent = (
     <div className="flex flex-col h-full bg-gradient-to-b from-primary-deep to-primary">
       <div className="flex items-center p-5 border-b border-white/10">
-        <BrandWordmark
+        <BrandLockup
           href="/dashboard"
           size="md"
           tone="inverse"
