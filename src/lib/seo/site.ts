@@ -25,7 +25,7 @@ export type PublicMarketingPath = (typeof PUBLIC_MARKETING_PATHS)[number];
 /**
  * App, auth, dashboard and API routes kept out of crawling. Prefixes are
  * chosen so no public page or public asset shares them (for example "/app/"
- * rather than "/app", which would also match "/apple-touch-180.png").
+ * rather than "/app", which would also match "/apple-touch-icon.png").
  */
 export const PRIVATE_ROUTE_PREFIXES = [
   "/api/",
