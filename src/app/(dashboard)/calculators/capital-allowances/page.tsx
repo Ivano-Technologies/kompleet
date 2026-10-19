@@ -16,6 +16,10 @@ import {
   Package,
 } from "lucide-react";
 import { generateCalculationPDF } from "@/lib/pdf-generator";
+import { useErrorRef } from "@/hooks/use-error-ref";
+import { withRef } from "@/lib/friendly-error";
+import { ErrorRef } from "@/components/ui/error-ref";
+import { notifyError } from "@/components/ui/error-toast";
 
 interface DepreciationSchedule {
   year: number;
@@ -79,6 +83,10 @@ export default function CapitalAllowancesCalculator() {
   );
   const rulesUnavailable =
     !rulesLoading && (!!rulesError || missingRuleKeys.length > 0);
+  const rulesRef = useErrorRef(rulesUnavailable, "calculators:capital-allowances", {
+    missingRuleKeys,
+    rulesError,
+  }, typeof rulesError === "string" ? rulesError : null);
 
   const getAssetRate = (type: string): number => {
     const rateMap: Record<string, number> = {
@@ -91,18 +99,12 @@ export default function CapitalAllowancesCalculator() {
 
   const calculateCapitalAllowance = () => {
     if (rulesUnavailable) {
-      alert(
-        `Tax rules unavailable — cannot calculate capital allowance. Missing rule(s): ${
-          missingRuleKeys.length > 0
-            ? missingRuleKeys.join(", ")
-            : "capital_allowance.*"
-        }.`,
-      );
+      notifyError(withRef("Tax rules aren't available right now, so we can't calculate capital allowance. Please try again later or contact support.", rulesRef));
       return;
     }
 
     if (!assetType || !assetCost || !acquisitionDate) {
-      alert("Please fill in all fields");
+      notifyError("Choose an asset type, enter the cost and pick the acquisition date.");
       return;
     }
 
@@ -157,7 +159,7 @@ export default function CapitalAllowancesCalculator() {
       logCalculation(calculationResult);
     } catch (error) {
       console.error("Calculation error:", error);
-      alert("Error calculating capital allowance");
+      notifyError("We couldn't calculate the capital allowance. Check the values and try again.");
     } finally {
       setLoading(false);
     }
@@ -233,10 +235,9 @@ export default function CapitalAllowancesCalculator() {
         >
           <InfoIcon className="h-4 w-4" />
           <AlertDescription>
-            {rulesError
-              ? `Failed to load tax rules: ${rulesError}.`
-              : `Required capital allowance rules are unavailable (${missingRuleKeys.join(", ") || "capital_allowance.*"}).`}{" "}
+            Tax rules aren&apos;t available right now.{" "}
             Calculation is disabled until this is resolved.
+              <ErrorRef value={rulesRef} />
           </AlertDescription>
         </Alert>
       )}

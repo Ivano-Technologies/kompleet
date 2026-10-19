@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { Users, Shield, ChevronDown, Check, AlertCircle } from "lucide-react";
+import { apiErrorMessage, toFriendlyMessage } from "@/lib/friendly-error";
+import { ErrorText } from "@/components/ui/error-ref";
 
 const ROLE_OPTIONS = [
   {
@@ -46,14 +48,14 @@ export default function TeamManagementPage() {
       const res = await fetch("/api/admin/users");
       if (!res.ok) {
         const data = await res.json();
-        setError(data.error || "Failed to load users");
+        setError(apiErrorMessage(data, "We couldn't load users. Please try again."));
         setLoading(false);
         return;
       }
       const data = await res.json();
       setUsers(data.users);
-    } catch {
-      setError("Failed to load users");
+    } catch (err) {
+      setError(toFriendlyMessage(err, "We couldn't load users. Please try again."));
     } finally {
       setLoading(false);
     }
@@ -74,7 +76,7 @@ export default function TeamManagementPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || "Failed to update role");
+        setError(apiErrorMessage(data, "We couldn't update this role. Please try again."));
         setUpdatingId(null);
         return;
       }
@@ -83,8 +85,8 @@ export default function TeamManagementPage() {
       );
       setSuccessId(userId);
       setTimeout(() => setSuccessId(null), 2000);
-    } catch {
-      setError("Failed to update role");
+    } catch (err) {
+      setError(toFriendlyMessage(err, "We couldn't update this role. Please try again."));
     } finally {
       setUpdatingId(null);
     }
@@ -143,7 +145,7 @@ export default function TeamManagementPage() {
       {error && (
         <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 rounded-lg flex items-center gap-2">
           <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 shrink-0" />
-          <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
+          <p className="text-red-600 dark:text-red-400 text-sm"><ErrorText text={error} /></p>
           <button
             onClick={() => setError(null)}
             className="ml-auto text-red-400 hover:text-red-600 text-sm"

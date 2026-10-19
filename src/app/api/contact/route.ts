@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { getEmailFrom } from "@/lib/email-from";
+import { apiErrorBody } from "@/lib/friendly-error";
 
 const CONTACT_EMAILS = {
   hi: "hi@ivanotechnologies.com",
@@ -28,8 +29,7 @@ async function handlePOST(request: NextRequest) {
     const { name, email, subject, message } = body;
 
     if (!name || !email || !message) {
-      return NextResponse.json(
-        { error: "Name, email, and message are required" },
+      return NextResponse.json({ ...apiErrorBody("Name, email, and message are required") },
         { status: 400 },
       );
     }
@@ -74,7 +74,7 @@ async function handlePOST(request: NextRequest) {
         from: getEmailFrom(),
         to: [recipient],
         replyTo: email,
-        subject: `[Contact] ${subjectLabel} — ${name}`,
+        subject: `[Contact] ${subjectLabel} from ${name}`,
         html,
       }),
     });
@@ -82,8 +82,7 @@ async function handlePOST(request: NextRequest) {
     if (!response.ok) {
       const err = await response.text();
       console.error("[Contact] Resend error:", err);
-      return NextResponse.json(
-        { error: "Failed to send message. Please try again later." },
+      return NextResponse.json({ ...apiErrorBody("We couldn't send your message. Please try again later.") },
         { status: 500 },
       );
     }
@@ -91,8 +90,7 @@ async function handlePOST(request: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("[Contact] Error:", error);
-    return NextResponse.json(
-      { error: "An unexpected error occurred." },
+    return NextResponse.json({ ...apiErrorBody("Something went wrong. Please try again.") },
       { status: 500 },
     );
   }

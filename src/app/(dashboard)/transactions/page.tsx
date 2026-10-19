@@ -21,6 +21,8 @@ import { ExceptionBanner, ImportToast } from "@/components/import/ImportToast";
 import { AddManualTransaction } from "@/components/import/AddManualTransaction";
 import { DROP_COPY } from "@/components/import/statement-copy";
 import { TriageSheet, useTriageCount } from "@/components/review/TriageSheet";
+import { apiErrorMessage, toFriendlyMessage } from "@/lib/friendly-error";
+import { ErrorText } from "@/components/ui/error-ref";
 
 interface Transaction {
   id: string;
@@ -92,11 +94,10 @@ export default function TransactionsPage() {
         setPagination(data.pagination);
         setError(null);
       } else {
-        setError(data.error || "Failed to load transactions");
+        setError(apiErrorMessage(data, "We couldn't load your transactions. Please try again."));
       }
     } catch (fetchError) {
-      console.error("Error fetching transactions:", fetchError);
-      setError("Failed to load transactions. Please try again.");
+      setError(toFriendlyMessage(fetchError, "We couldn't load your transactions. Please try again."));
     } finally {
       setLoading(false);
     }
@@ -157,11 +158,10 @@ export default function TransactionsPage() {
         fetchTransactions();
       } else {
         const data = await response.json().catch(() => ({}));
-        setError(data.error || "Failed to delete transactions");
+        setError(apiErrorMessage(data, "We couldn't delete these transactions. Please try again."));
       }
     } catch (deleteError) {
-      console.error("Error deleting transactions:", deleteError);
-      setError("Failed to delete transactions. Please try again.");
+      setError(toFriendlyMessage(deleteError, "We couldn't delete these transactions. Please try again."));
     }
   };
 
@@ -205,11 +205,10 @@ export default function TransactionsPage() {
         document.body.removeChild(a);
       } else {
         const data = await response.json().catch(() => ({}));
-        setError(data.error || "Export failed");
+        setError(apiErrorMessage(data, "Export failed. Please try again."));
       }
     } catch (exportError) {
-      console.error("Export error:", exportError);
-      setError("Export failed. Please try again.");
+      setError(toFriendlyMessage(exportError, "Export failed. Please try again."));
     } finally {
       setExporting(false);
     }
@@ -221,7 +220,7 @@ export default function TransactionsPage() {
     <div className="space-y-6">
       {error && (
         <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 rounded-lg flex justify-between items-center">
-          <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
+          <p className="text-red-600 dark:text-red-400 text-sm"><ErrorText text={error} /></p>
           <button
             onClick={() => setError(null)}
             className="text-red-400 hover:text-red-600 dark:hover:text-red-300 text-lg leading-none"

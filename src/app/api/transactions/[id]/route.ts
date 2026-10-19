@@ -5,6 +5,7 @@ import {
   isUnauthorized,
   requireAuthedConvex,
 } from "@/lib/convex/server";
+import { apiErrorBody } from "@/lib/friendly-error";
 
 export const runtime = "nodejs";
 
@@ -27,8 +28,7 @@ async function handleGET(
     });
 
     if (!transaction) {
-      return NextResponse.json(
-        { error: "Transaction not found" },
+      return NextResponse.json({ ...apiErrorBody("Transaction not found") },
         { status: 404 },
       );
     }
@@ -36,11 +36,10 @@ async function handleGET(
     return NextResponse.json({ transaction });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     console.error("API error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
+    return NextResponse.json({ ...apiErrorBody("Internal server error") },
       { status: 500 },
     );
   }
@@ -59,8 +58,7 @@ async function handlePUT(
       externalId: id,
     });
     if (!existing) {
-      return NextResponse.json(
-        { error: "Transaction not found" },
+      return NextResponse.json({ ...apiErrorBody("Transaction not found") },
         { status: 404 },
       );
     }
@@ -104,11 +102,10 @@ async function handlePUT(
     });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     console.error("Update error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
+    return NextResponse.json({ ...apiErrorBody("Internal server error") },
       { status: 500 },
     );
   }
@@ -126,8 +123,7 @@ async function handleDELETE(
       externalId: id,
     });
     if (!existing) {
-      return NextResponse.json(
-        { error: "Transaction not found" },
+      return NextResponse.json({ ...apiErrorBody("Transaction not found") },
         { status: 404 },
       );
     }
@@ -140,11 +136,10 @@ async function handleDELETE(
     });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     console.error("Delete error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
+    return NextResponse.json({ ...apiErrorBody("Internal server error") },
       { status: 500 },
     );
   }

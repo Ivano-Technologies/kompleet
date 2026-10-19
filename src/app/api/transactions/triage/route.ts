@@ -14,6 +14,7 @@ import {
   withConvexRetry,
 } from "@/lib/transactions/triage-fallback";
 import { z } from "zod";
+import { toFriendlyError, apiErrorBody } from "@/lib/friendly-error";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -96,11 +97,10 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
     }
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     console.error("Triage list error:", error);
-    return NextResponse.json(
-      { error: "Failed to load triage" },
+    return NextResponse.json({ ...apiErrorBody("Failed to load triage") },
       { status: 500 },
     );
   }
@@ -111,8 +111,7 @@ async function handlePOST(request: NextRequest): Promise<NextResponse> {
     const { convex } = await requireAuthedConvex(request);
     const parsed = actionSchema.safeParse(await request.json());
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Invalid request", details: parsed.error.flatten() },
+      return NextResponse.json({ ...apiErrorBody("Invalid request"), details: parsed.error.flatten() },
         { status: 400 },
       );
     }
@@ -161,11 +160,11 @@ async function handlePOST(request: NextRequest): Promise<NextResponse> {
     }
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
-    const message = error instanceof Error ? error.message : "Failed to apply triage";
+    const { message, ref } = toFriendlyError(error, "We couldn't apply this change. Please try again.");
     console.error("Triage action error:", error);
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: message, ref }, { status: 500 });
   }
 }
 

@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { FileText, Download } from "lucide-react";
+import { toFriendlyMessage, userFacingError } from "@/lib/friendly-error";
+import { notifyError } from "@/components/ui/error-toast";
 
 const DEFAULT_START = new Date(
   new Date().getFullYear(),
@@ -28,7 +30,7 @@ export default function ExpenseReportsPage() {
       const res = await fetch(`/api/expenses/export?${params}`);
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error ?? "Export failed");
+        throw userFacingError(data, "Export failed. Please try again.");
       }
       const blob = await res.blob();
       const url = window.URL.createObjectURL(blob);
@@ -45,7 +47,7 @@ export default function ExpenseReportsPage() {
       a.remove();
       window.URL.revokeObjectURL(url);
     } catch (e) {
-      alert(e instanceof Error ? e.message : "Export failed");
+      notifyError(toFriendlyMessage(e, "Export failed. Please try again."));
     } finally {
       setExporting(null);
     }

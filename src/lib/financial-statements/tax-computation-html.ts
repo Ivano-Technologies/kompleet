@@ -55,19 +55,19 @@ export function toTaxComputationData(
     result.businessClassification === "Individual Taxpayer"
       ? {
           "Tax Rates":
-            "Section 33 of Nigeria Tax Act 2025 - Personal Income Tax rates",
+            "Section 33 of Nigeria Tax Act 2025: Personal Income Tax rates",
           "Non-deductible Expenses":
-            "Section 45(2) of Nigeria Tax Act 2025 - Expenses not deductible for tax purposes",
+            "Section 45(2) of Nigeria Tax Act 2025: Expenses not deductible for tax purposes",
         }
       : {
           "Tax Rates":
-            "Section 40(1) of Nigeria Tax Act 2025 - Corporate Income Tax rates",
+            "Section 40(1) of Nigeria Tax Act 2025: Corporate Income Tax rates",
           "Capital Allowances":
-            "Section 44 of Nigeria Tax Act 2025 - Capital allowances on qualifying expenditure",
+            "Section 44 of Nigeria Tax Act 2025: Capital allowances on qualifying expenditure",
           "Non-deductible Expenses":
-            "Section 45(2) of Nigeria Tax Act 2025 - Expenses not deductible for tax purposes",
+            "Section 45(2) of Nigeria Tax Act 2025: Expenses not deductible for tax purposes",
           "Small Company Relief":
-            "Section 40(3) of Nigeria Tax Act 2025 - Small company tax relief",
+            "Section 40(3) of Nigeria Tax Act 2025: Small company tax relief",
         };
 
   return {

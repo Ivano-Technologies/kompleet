@@ -89,7 +89,7 @@ New `sb_secret_…` keys are not JWTs — do not send them on `Authorization: Be
   need the `individual_income_tax` rules readable through
   `GET /api/tax-rules?type=individual_income_tax`. Load `populate_tax_rules.sql`
   from the repository root into the test project. Without it the calculator
-  renders a "Failed to load tax rules" banner and refuses to compute; the spec
+  renders a "Tax rules aren't available right now" banner and refuses to compute; the spec
   fails fast with that message rather than on a confusing selector.
 - **Categories.** `expense-ocr.spec.ts` submits the receipt with no category on
   purpose (that is what puts it in the review queue), so an empty `categories`

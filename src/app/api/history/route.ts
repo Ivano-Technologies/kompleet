@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { api } from "@/lib/convex/http";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
+import { apiErrorBody } from "@/lib/friendly-error";
 
 async function handleGET(request: NextRequest) {
   try {
@@ -63,14 +64,12 @@ async function handleGET(request: NextRequest) {
     });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json(
-        { error: "Unauthorized", message: "Authentication required" },
+      return NextResponse.json({ ...apiErrorBody("Unauthorized"), message: "Authentication required" },
         { status: 401 },
       );
     }
     console.error("[history] Unexpected error:", error);
-    return NextResponse.json(
-      { error: "Internal server error", message: "Failed to fetch history" },
+    return NextResponse.json({ ...apiErrorBody("Internal server error"), message: "Failed to fetch history" },
       { status: 500 },
     );
   }

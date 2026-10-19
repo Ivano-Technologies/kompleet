@@ -12,6 +12,8 @@ import {
   type TaxEntity,
 } from "./tax-copy";
 import { fetchBooksSummary, formatNaira, type BooksSummary } from "./books-summary";
+import { toFriendlyMessage, userFacingError } from "@/lib/friendly-error";
+import { ErrorText } from "@/components/ui/error-ref";
 
 export function GenerateFromBooksCard({
   embedded = false,
@@ -89,11 +91,11 @@ export function GenerateFromBooksCard({
         error?: string;
       };
       if (!response.ok || !body.report?.id) {
-        throw new Error(body.error || "Failed to generate report");
+        throw userFacingError(body, "We couldn't generate the report. Please try again.");
       }
       router.push(`/tax-reports/${body.report.id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to generate report");
+      setError(toFriendlyMessage(err, "We couldn't generate the report. Please try again."));
     } finally {
       setGenerating(false);
     }
@@ -105,7 +107,7 @@ export function GenerateFromBooksCard({
         <div>
           <h2 className="font-semibold text-base text-text-1">{TAX_COPY.cardTitle}</h2>
           <p className="text-sm text-text-3 mt-1">
-            Period + entity only when books exist — no revenue/expense form wall.
+            Period and entity only when books exist. No revenue or expense form to fill in.
           </p>
         </div>
       )}
@@ -202,7 +204,7 @@ export function GenerateFromBooksCard({
         </>
       )}
 
-      {error && <p className="text-sm text-error">{error}</p>}
+      {error && <p className="text-sm text-error"><ErrorText text={error} /></p>}
     </div>
   );
 }

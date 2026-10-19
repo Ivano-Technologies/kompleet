@@ -8,6 +8,7 @@ import { withRateLimit } from "@/lib/with-rate-limit";
 import { saveCalculationSchema } from "@/lib/schemas/calculations";
 import { api } from "@/lib/convex/http";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
+import { apiErrorBody } from "@/lib/friendly-error";
 
 async function handlePOST(request: NextRequest) {
   try {
@@ -16,8 +17,7 @@ async function handlePOST(request: NextRequest) {
     const parsed = saveCalculationSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Validation error", details: parsed.error.flatten() },
+      return NextResponse.json({ ...apiErrorBody("Validation error"), details: parsed.error.flatten() },
         { status: 400 },
       );
     }
@@ -68,14 +68,12 @@ async function handlePOST(request: NextRequest) {
     });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json(
-        { error: "Unauthorized", message: "Authentication required" },
+      return NextResponse.json({ ...apiErrorBody("Unauthorized"), message: "Authentication required" },
         { status: 401 },
       );
     }
     console.error("[Save Calculation Error]", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
+    return NextResponse.json({ ...apiErrorBody("Internal server error") },
       { status: 500 },
     );
   }

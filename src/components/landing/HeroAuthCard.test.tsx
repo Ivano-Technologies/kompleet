@@ -62,5 +62,8 @@ describe("HeroAuthCard", () => {
         "submit",
       );
     });
+    expect(screen.getByTestId("reclaim-note").textContent).toBe(
+      "Existing Kompleet users: choose Get started and use this same email to reclaim your data.",
+    );
   });
 });

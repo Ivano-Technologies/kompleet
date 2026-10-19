@@ -13,7 +13,7 @@ export const INV_COPY = {
   dropSub: "We'll draft an invoice you can edit.",
   dropChoose: "Choose file",
   dropProgress: "Creating draft…",
-  dropToast: "Draft created — check details",
+  dropToast: "Draft created. Check the details.",
   quickCustomer: "Customer",
   quickAmount: "Amount (₦)",
   quickVat: "Add VAT 7.5%",
@@ -32,7 +32,7 @@ export const INV_COPY = {
   clientCity: "City",
   billtoLabel: "BILL TO",
   billtoEmpty: "Select or create a client",
-  billtoRequired: "Select a client before issuing",
+  billtoRequired: "Select a client before issuing.",
   fromLabel: "FROM",
   fromEdit: "Edit in Settings",
   // IVA-185: never fall back to Kompleet as the sender.

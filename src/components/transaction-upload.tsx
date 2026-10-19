@@ -7,6 +7,9 @@
 
 import { useState } from "react";
 import { SUPPORTED_BANKS } from "@/lib/transaction-import/bank-configs";
+import { toFriendlyMessage } from "@/lib/friendly-error";
+import { ErrorText } from "@/components/ui/error-ref";
+import { notifyError } from "@/components/ui/error-toast";
 
 interface UploadResult {
   success: boolean;
@@ -53,7 +56,7 @@ export function TransactionUpload() {
 
   const handleUpload = async () => {
     if (!file || !selectedBank) {
-      alert("Please select a bank and choose a file");
+      notifyError("Choose your bank and a statement file, then upload.");
       return;
     }
 
@@ -82,7 +85,7 @@ export function TransactionUpload() {
     } catch (error) {
       setResult({
         success: false,
-        error: error instanceof Error ? error.message : "Upload failed",
+        error: toFriendlyMessage(error, "Upload failed. Please try again."),
       });
     } finally {
       setUploading(false);
@@ -194,7 +197,7 @@ export function TransactionUpload() {
           ) : (
             <div>
               <h3 className="font-semibold text-error mb-2">Import Failed</h3>
-              <p className="text-sm text-muted">{result.error}</p>
+              <p className="text-sm text-muted"><ErrorText text={result.error} /></p>
             </div>
           )}
         </div>

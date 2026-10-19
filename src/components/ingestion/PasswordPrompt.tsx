@@ -10,6 +10,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { toFriendlyMessage } from "@/lib/friendly-error";
+import { ErrorText } from "@/components/ui/error-ref";
 
 interface PasswordPromptProps {
   fileName: string;
@@ -48,7 +50,7 @@ export default function PasswordPrompt({
     e.preventDefault();
 
     if (!password) {
-      setLocalError("Password is required");
+      setLocalError("Enter the file password.");
       return;
     }
 
@@ -57,7 +59,7 @@ export default function PasswordPrompt({
       await onSubmit(password);
     } catch (err) {
       setLocalError(
-        err instanceof Error ? err.message : "Failed to unlock file",
+        toFriendlyMessage(err, "We couldn't unlock this file. Please try again."),
       );
     } finally {
       setIsSubmitting(false);
@@ -158,7 +160,7 @@ export default function PasswordPrompt({
               <div className="p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg flex gap-2">
                 <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
                 <p className="text-sm text-red-900 dark:text-red-200">
-                  {localError || error}
+                  <ErrorText text={localError || error} />
                 </p>
               </div>
             )}
