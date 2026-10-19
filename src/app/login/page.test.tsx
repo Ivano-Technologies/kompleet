@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import LoginPage from "@/app/login/page";
 
 const signIn = vi.fn();
+let search = new URLSearchParams("");
 
 vi.mock("@sentry/nextjs", () => ({ captureException: vi.fn() }));
 vi.mock("@convex-dev/auth/react", () => ({
@@ -12,7 +13,7 @@ vi.mock("@convex-dev/auth/react", () => ({
 }));
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
-  useSearchParams: () => new URLSearchParams(""),
+  useSearchParams: () => search,
 }));
 vi.mock("next/link", () => ({
   default: ({ href, children }: { href: string; children: ReactNode }) => (
@@ -26,6 +27,7 @@ vi.mock("@/components/layout/AuthLayout", () => ({
 describe("LoginPage", () => {
   beforeEach(() => {
     signIn.mockReset();
+    search = new URLSearchParams("");
     vi.spyOn(console, "error").mockImplementation(() => {});
   });
 
@@ -54,6 +56,15 @@ describe("LoginPage", () => {
     const note = screen.getByTestId("reclaim-note");
     expect(note.tagName).toBe("P");
     expect(note.className).toMatch(/text-xs/);
-    expect(note.textContent).toMatch(/reclaim your data/);
+    expect(note.textContent).toBe(
+      "Existing Kompleet users: create an account on Sign up with this same email to reclaim your data.",
+    );
+  });
+
+  it("shows the exact expired-link copy with a ref", () => {
+    search = new URLSearchParams("error=expired_link");
+    render(<LoginPage />);
+    expect(screen.getByText("This link has expired. Request a new one.")).toBeTruthy();
+    expect(screen.getByTestId("error-ref").textContent).toMatch(/^Ref: [A-Z2-9]{8}$/);
   });
 });

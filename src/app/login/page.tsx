@@ -48,7 +48,7 @@ function LoginForm() {
       err === "auth_failed"
         ? "We couldn't sign you in. Please try again."
         : err === "expired_link"
-          ? "This link has expired. Please request a new one."
+          ? "This link has expired. Request a new one."
           : null;
     if (copy) {
       const ref = generateRef();
@@ -140,7 +140,7 @@ function LoginForm() {
       </form>
       <p
         data-testid="reclaim-note"
-        className="mt-2 text-center text-xs text-text-3 dark:text-dark-text-3"
+        className="mt-2 text-center text-xs tracking-normal [word-spacing:0.12em] text-text-3 dark:text-dark-text-3"
       >
         {RECLAIM_NOTE}
       </p>

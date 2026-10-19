@@ -131,7 +131,7 @@ test.describe("Auth flow", () => {
   test("an expired verification link surfaces an error on the login page", async ({
     page,
   }) => {
-    const message = "This link has expired. Please request a new one.";
+    const message = "This link has expired. Request a new one.";
     await page.goto(
       `/login?error=expired_link&message=${encodeURIComponent(message)}`,
     );
