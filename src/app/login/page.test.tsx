@@ -57,7 +57,7 @@ describe("LoginPage", () => {
     expect(note.tagName).toBe("P");
     expect(note.className).toMatch(/text-xs/);
     expect(note.textContent).toBe(
-      "Existing Kompleet users: create an account on Sign up with this same email to reclaim your data.",
+      "Existing Kompleet users: choose Get started and use this same email to reclaim your data.",
     );
   });
 
