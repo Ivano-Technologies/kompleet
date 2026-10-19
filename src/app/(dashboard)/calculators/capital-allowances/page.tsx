@@ -439,7 +439,7 @@ export default function CapitalAllowancesCalculator() {
                   years_to_full_depreciation: `${result.yearsToFullDepreciation} years`,
                 },
                 ruleVersion: "v1.0.0-2025-tax-act",
-                sources: ["Nigerian Revenue Service (NRS)"],
+                sources: ["Nigeria Revenue Service (NRS)"],
                 confidenceLevel:
                   rules.rate_10_percent?.confidence || "unavailable",
               });
@@ -464,7 +464,7 @@ export default function CapitalAllowancesCalculator() {
         </p>
         <div className="text-sm space-y-2 text-light-text-tertiary dark:text-dark-text-tertiary">
           <p>
-            <strong>Data Source:</strong> Nigerian Revenue Service (NRS),
+            <strong>Data Source:</strong> Nigeria Revenue Service (NRS),
             Confidence level:{" "}
             {rules.rate_10_percent?.confidence || "unavailable"}.
           </p>

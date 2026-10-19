@@ -401,7 +401,7 @@ export default function PropertyTaxCalculator() {
                   net_rent: result.netRent,
                 },
                 ruleVersion: "v1.0.0-2025-tax-act",
-                sources: ["Nigerian Revenue Service (NRS)"],
+                sources: ["Nigeria Revenue Service (NRS)"],
                 confidenceLevel:
                   rules.withholding_tax_on_rent?.confidence || "unavailable",
               });
@@ -442,7 +442,7 @@ export default function PropertyTaxCalculator() {
             21 days of the end of the month in which the rent was paid.
           </p>
           <p className="mt-4">
-            <strong>Data Source:</strong> Nigerian Revenue Service (NRS). Confidence level:{" "}
+            <strong>Data Source:</strong> Nigeria Revenue Service (NRS). Confidence level:{" "}
             {rules.withholding_tax_on_rent?.confidence || "unavailable"}.
           </p>
           <p>
