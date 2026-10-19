@@ -13,7 +13,9 @@ describe("auth dark mode contrast", () => {
     expect(authLayout).toMatch(/dark:bg-dark-bg/);
     expect(authLayout).toMatch(/dark:bg-dark-surface/);
     expect(authLayout).toMatch(/dark:border-dark-border/);
-    expect(authLayout).toMatch(/dark:text-dark-text-1/);
+    // Wordmark (and reverse V) switch for dark via the BrandLockup "auto" tone.
+    expect(authLayout).toMatch(/tone="auto"/);
+    expect(read("src/components/brand/BrandLockup.tsx")).toMatch(/dark:text-dark-text-1/);
   });
 
   it("keeps auth copy off the sub-4.5:1 text-4 tokens", () => {
