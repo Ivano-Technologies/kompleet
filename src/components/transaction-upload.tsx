@@ -9,6 +9,7 @@ import { useState } from "react";
 import { SUPPORTED_BANKS } from "@/lib/transaction-import/bank-configs";
 import { toFriendlyMessage } from "@/lib/friendly-error";
 import { ErrorText } from "@/components/ui/error-ref";
+import { notifyError } from "@/components/ui/error-toast";
 
 interface UploadResult {
   success: boolean;
@@ -55,7 +56,7 @@ export function TransactionUpload() {
 
   const handleUpload = async () => {
     if (!file || !selectedBank) {
-      alert("Please select a bank and choose a file");
+      notifyError("Choose your bank and a statement file, then upload.");
       return;
     }
 

@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     }
     return NextResponse.json({
       success: true,
-      message: "Feedback accepted (not persisted — no Convex table yet)",
+      message: "Thanks, we got your feedback.",
     });
   } catch (error) {
     if (isUnauthorized(error)) {

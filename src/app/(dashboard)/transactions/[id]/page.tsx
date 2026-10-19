@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { AttachFileButton } from "@/components/documents/AttachFileButton";
-import { apiErrorMessage } from "@/lib/friendly-error";
+import { apiErrorMessage, toFriendlyMessage } from "@/lib/friendly-error";
 import { ErrorText } from "@/components/ui/error-ref";
 
 interface Transaction {
@@ -74,10 +74,10 @@ export default function TransactionDetailsPage() {
           is_reconciled: data.transaction.is_reconciled,
         });
       } else {
-        setError("Transaction not found");
+        setError("We couldn't find this transaction. It may have been deleted.");
       }
     } catch (err) {
-      setError("Failed to load transaction");
+      setError(toFriendlyMessage(err, "We couldn't load this transaction. Please try again."));
       console.error(err);
     } finally {
       setLoading(false);
@@ -128,7 +128,7 @@ export default function TransactionDetailsPage() {
         setError(apiErrorMessage(data, "We couldn't save this transaction. Please try again."));
       }
     } catch (err) {
-      setError("Failed to save transaction");
+      setError(toFriendlyMessage(err, "We couldn't save this transaction. Please try again."));
       console.error(err);
     } finally {
       setSaving(false);
@@ -146,10 +146,10 @@ export default function TransactionDetailsPage() {
       if (response.ok) {
         router.push("/transactions");
       } else {
-        setError("Failed to delete transaction");
+        setError(apiErrorMessage(await response.json().catch(() => null), "We couldn't delete this transaction. Please try again."));
       }
     } catch (err) {
-      setError("Failed to delete transaction");
+      setError(toFriendlyMessage(err, "We couldn't delete this transaction. Please try again."));
       console.error(err);
     }
   };

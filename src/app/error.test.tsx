@@ -30,7 +30,15 @@ describe.each([
     expect(
       screen.queryByText(/Request ID|secret detail|Server Error/),
     ).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Go home/ })).toBeInTheDocument();
+    // One action only, plus a muted 8 character ref that is logged with the raw error.
+    expect(screen.getAllByRole("button")).toHaveLength(1);
+    expect(screen.queryAllByRole("link")).toHaveLength(0);
+    const ref = (await screen.findByTestId("error-ref")).textContent ?? "";
+    expect(ref).toMatch(/^Ref: [A-Z0-9]{8}$/);
+    expect(console.error).toHaveBeenCalledWith(
+      expect.stringContaining(`ref=${ref.slice(5)}`),
+      raw,
+    );
 
     await userEvent
       .setup()

@@ -87,17 +87,17 @@ export default function IndividualTaxCalculatorPage() {
     const interestNum = parseFloat(ownerOccupierInterest || "0");
 
     if (isNaN(grossIncomeNum) || grossIncomeNum < 0) {
-      setError("Please enter a valid gross income amount");
+      setError("Enter your gross income in naira, using numbers only.");
       return;
     }
 
     if (isNaN(rentPaidNum) || rentPaidNum < 0) {
-      setError("Please enter a valid rent amount");
+      setError("Enter the rent you paid in naira, using numbers only.");
       return;
     }
 
     if (isNaN(interestNum) || interestNum < 0) {
-      setError("Please enter a valid interest amount");
+      setError("Enter the interest amount in naira, using numbers only.");
       return;
     }
 

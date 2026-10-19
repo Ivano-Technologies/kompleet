@@ -58,7 +58,8 @@ describe("withRateLimit", () => {
     expect(response.status).toBe(429);
 
     const body = await response.json();
-    expect(body.error).toBe("Too many requests");
+    expect(body.error).toBe("Too many attempts. Please wait a moment and try again.");
+    expect(body.ref).toMatch(/^[A-Z0-9]{8}$/);
   });
 
   it("sets rate limit headers on successful responses", async () => {

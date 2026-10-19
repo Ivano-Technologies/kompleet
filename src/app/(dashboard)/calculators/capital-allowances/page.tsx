@@ -19,6 +19,7 @@ import { generateCalculationPDF } from "@/lib/pdf-generator";
 import { useErrorRef } from "@/hooks/use-error-ref";
 import { withRef } from "@/lib/friendly-error";
 import { ErrorRef } from "@/components/ui/error-ref";
+import { notifyError } from "@/components/ui/error-toast";
 
 interface DepreciationSchedule {
   year: number;
@@ -98,12 +99,12 @@ export default function CapitalAllowancesCalculator() {
 
   const calculateCapitalAllowance = () => {
     if (rulesUnavailable) {
-      alert(withRef("Tax rules aren't available right now, so we can't calculate capital allowance. Please try again later or contact support.", rulesRef));
+      notifyError(withRef("Tax rules aren't available right now, so we can't calculate capital allowance. Please try again later or contact support.", rulesRef));
       return;
     }
 
     if (!assetType || !assetCost || !acquisitionDate) {
-      alert("Please fill in all fields");
+      notifyError("Choose an asset type, enter the cost and pick the acquisition date.");
       return;
     }
 
@@ -158,7 +159,7 @@ export default function CapitalAllowancesCalculator() {
       logCalculation(calculationResult);
     } catch (error) {
       console.error("Calculation error:", error);
-      alert("Error calculating capital allowance");
+      notifyError("We couldn't calculate the capital allowance. Check the values and try again.");
     } finally {
       setLoading(false);
     }

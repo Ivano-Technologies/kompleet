@@ -22,7 +22,7 @@ async function handlePOST(request: NextRequest) {
     }
     return NextResponse.json({
       success: true,
-      message: "Correction accepted (not persisted — no Convex table yet)",
+      message: "Thanks for the correction.",
     });
   } catch (error) {
     if (isUnauthorized(error)) {

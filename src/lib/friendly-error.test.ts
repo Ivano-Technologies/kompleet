@@ -9,6 +9,11 @@ import {
   responseError,
   stripErrorWrappers,
   toFriendlyMessage,
+  toFriendlyError,
+  generateRef,
+  splitRef,
+  withRef,
+  friendlyErrorBody,
   userFacingError,
 } from "@/lib/friendly-error";
 
@@ -25,6 +30,9 @@ class FakeConvexError extends Error {
     this.data = data;
   }
 }
+
+const msg = (...args: Parameters<typeof toFriendlyError>) =>
+  toFriendlyError(...args).message;
 
 describe("friendly-error", () => {
   let errorSpy: ReturnType<typeof vi.spyOn>;
@@ -45,39 +53,35 @@ describe("friendly-error", () => {
 
   describe("toFriendlyMessage", () => {
     it("never returns raw Convex server errors", () => {
-      const msg = toFriendlyMessage(
-        new Error("[Request ID: abc123] Server Error"),
-      );
-      expect(msg).toBe(FRIENDLY_FALLBACK);
-      expect(msg).not.toMatch(/Request ID|Server Error/);
+      const out = msg(new Error("[Request ID: abc123] Server Error"));
+      expect(out).toBe(FRIENDLY_FALLBACK);
+      expect(out).not.toMatch(/Request ID|Server Error/);
     });
 
     it("uses the caller's fallback for unknown errors", () => {
       expect(
-        toFriendlyMessage(
+        msg(
           new Error("column foo does not exist"),
           "We couldn't load your invoices.",
         ),
       ).toBe("We couldn't load your invoices.");
-      expect(toFriendlyMessage({ weird: true })).toBe(FRIENDLY_FALLBACK);
-      expect(toFriendlyMessage(undefined)).toBe(FRIENDLY_FALLBACK);
+      expect(msg({ weird: true })).toBe(FRIENDLY_FALLBACK);
+      expect(msg(undefined)).toBe(FRIENDLY_FALLBACK);
     });
 
     it("maps unknown account and wrong password to one message", () => {
-      expect(toFriendlyMessage(new Error(convexWrap("InvalidAccountId")))).toBe(
+      expect(msg(new Error(convexWrap("InvalidAccountId")))).toBe(
         FRIENDLY_MESSAGES.invalidCredentials,
       );
-      expect(toFriendlyMessage(new Error(convexWrap("InvalidSecret")))).toBe(
+      expect(msg(new Error(convexWrap("InvalidSecret")))).toBe(
         FRIENDLY_MESSAGES.invalidCredentials,
       );
-      expect(FRIENDLY_MESSAGES.invalidCredentials).toBe(
-        "Email or password is incorrect.",
-      );
+
     });
 
     it("maps an existing account", () => {
       expect(
-        toFriendlyMessage(
+        msg(
           new Error(convexWrap("Account jane@example.com already exists")),
         ),
       ).toBe(
@@ -87,59 +91,59 @@ describe("friendly-error", () => {
 
     it("keeps our own password rule text", () => {
       expect(
-        toFriendlyMessage(
+        msg(
           new Error(convexWrap("Password must contain at least one number")),
         ),
       ).toBe("Password must contain at least one number.");
     });
 
     it("maps invalid or expired codes", () => {
-      expect(toFriendlyMessage(new Error(convexWrap("Invalid code")))).toBe(
+      expect(msg(new Error(convexWrap("Invalid code")))).toBe(
         FRIENDLY_MESSAGES.invalidCode,
       );
-      expect(toFriendlyMessage(new Error("Could not verify code"))).toBe(
+      expect(msg(new Error("Could not verify code"))).toBe(
         FRIENDLY_MESSAGES.invalidCode,
       );
     });
 
     it("maps network and offline errors", () => {
-      expect(toFriendlyMessage(new TypeError("Failed to fetch"))).toBe(
+      expect(msg(new TypeError("Failed to fetch"))).toBe(
         FRIENDLY_MESSAGES.network,
       );
-      expect(toFriendlyMessage(new Error("fetch failed"))).toBe(
+      expect(msg(new Error("fetch failed"))).toBe(
         FRIENDLY_MESSAGES.network,
       );
     });
 
     it("maps rate limits", () => {
-      expect(toFriendlyMessage(new Error("Rate limit exceeded"))).toBe(
+      expect(msg(new Error("Rate limit exceeded"))).toBe(
         FRIENDLY_MESSAGES.rateLimited,
       );
       expect(
-        toFriendlyMessage(new Error(convexWrap("TooManyFailedAttempts"))),
+        msg(new Error(convexWrap("TooManyFailedAttempts"))),
       ).toBe(FRIENDLY_MESSAGES.rateLimited);
     });
 
     it("passes through deliberate user-facing errors", () => {
       expect(
-        toFriendlyMessage(new UserFacingError("Pick a tax year first.")),
+        msg(new UserFacingError("Pick a tax year first.")),
       ).toBe("Pick a tax year first.");
       expect(
-        toFriendlyMessage(new FakeConvexError("Invoice already paid.")),
+        msg(new FakeConvexError("Invoice already paid.")),
       ).toBe("Invoice already paid.");
       expect(
-        toFriendlyMessage(new FakeConvexError({ message: "Pick a client." })),
+        msg(new FakeConvexError({ message: "Pick a client." })),
       ).toBe("Pick a client.");
     });
 
     it("maps allowlisted validation messages from our Convex functions", () => {
       expect(
-        toFriendlyMessage(
+        msg(
           new Error(convexWrap("Select a client before issuing")),
         ),
       ).toBe("Select a client before issuing.");
       expect(
-        toFriendlyMessage(new Error(convexWrap("Invoice not found"))),
+        msg(new Error(convexWrap("Invoice not found"))),
       ).toBe("We couldn't find this invoice.");
     });
 
@@ -148,23 +152,55 @@ describe("friendly-error", () => {
         'Missing tax rule "vat.standard_rate". Refusing to fall back',
       );
       err.name = "MissingTaxRuleError";
-      const msg = toFriendlyMessage(err);
-      expect(msg).toBe(FRIENDLY_MESSAGES.missingTaxRule);
-      expect(msg).not.toContain("vat.standard_rate");
+      const out = msg(err);
+      expect(out).toBe(FRIENDLY_MESSAGES.missingTaxRule);
+      expect(out).not.toContain("vat.standard_rate");
     });
 
-    it("logs the raw error", () => {
+    it("logs the raw error with the same 8 character ref", () => {
       const err = new Error("boom");
-      toFriendlyMessage(err);
+      const { ref } = toFriendlyError(err);
+      expect(ref).toMatch(/^[A-Z0-9]{8}$/);
       expect(errorSpy).toHaveBeenCalledWith(
-        expect.stringContaining("[friendly-error]"),
+        expect.stringContaining(`[friendly-error] ref=${ref}`),
         err,
+      );
+    });
+
+    it("reuses the ref an API route already issued", () => {
+      const { ref } = toFriendlyError(
+        userFacingError({ error: "Pick a client.", ref: "ABCD2345" }),
+      );
+      expect(ref).toBe("ABCD2345");
+    });
+
+    it("toFriendlyMessage appends a ref that splitRef reads back", () => {
+      const text = toFriendlyMessage(new Error("[Request ID: x] Server Error"));
+      const { message, ref } = splitRef(text);
+      expect(message).toBe(FRIENDLY_FALLBACK);
+      expect(ref).toMatch(/^[A-Z0-9]{8}$/);
+      expect(splitRef(withRef("Hi.", "ZZZZ2222"))).toEqual({
+        message: "Hi.",
+        ref: "ZZZZ2222",
+      });
+      expect(generateRef()).toMatch(/^[A-Z0-9]{8}$/);
+    });
+
+    it("friendlyErrorBody returns { error, ref } for API routes", () => {
+      const body = friendlyErrorBody(new Error("column x does not exist"));
+      expect(body.error).toBe(FRIENDLY_FALLBACK);
+      expect(body.ref).toMatch(/^[A-Z0-9]{8}$/);
+    });
+
+    it("uses the exact login mismatch copy", () => {
+      expect(FRIENDLY_MESSAGES.invalidCredentials).toBe(
+        "That email or password doesn't match. Check and try again.",
       );
     });
 
     it("never produces em dashes", () => {
       for (const m of Object.values(FRIENDLY_MESSAGES)) {
-        expect(m).not.toContain("\u2014");
+        expect(m).not.toMatch(/[\u2013\u2014]| - /);
       }
     });
   });
@@ -180,7 +216,7 @@ describe("friendly-error", () => {
       expect(userFacingError("TypeError: x is undefined", "fb").message).toBe(
         "fb",
       );
-      expect(apiErrorMessage(undefined, "fb")).toBe("fb");
+      expect(splitRef(apiErrorMessage(undefined, "fb")).message).toBe("fb");
     });
 
     it("responseError reads JSON errors and maps 429", async () => {

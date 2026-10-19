@@ -120,7 +120,7 @@ export async function login(page: Page): Promise<void> {
 
   await submit.click();
 
-  const invalid = page.getByText(/Email or password is incorrect/);
+  const invalid = page.getByText(/That email or password doesn't match/);
   const reachedDashboard = page
     .waitForURL(/\/dashboard(\?|$|\/)/, { timeout: 20_000 })
     .then(() => "dashboard" as const);

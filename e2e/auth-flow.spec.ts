@@ -70,7 +70,7 @@ test.describe("Auth flow", () => {
     await page.getByRole("button", { name: SIGNUP_SELECTORS.submit }).click();
 
     await expect(
-      page.getByText("Password must contain at least one number"),
+      page.getByText("Add at least one number to your password."),
     ).toBeVisible();
   });
 
@@ -178,7 +178,7 @@ test.describe("Auth flow", () => {
       .getByRole("button", { name: LOGIN_SELECTORS.submit, exact: true })
       .click();
 
-    await expect(page.getByText(/Email or password is incorrect\./)).toBeVisible();
+    await expect(page.getByText(/That email or password doesn't match\. Check and try again\./)).toBeVisible();
     await expect(page).toHaveURL(/\/login/);
   });
 

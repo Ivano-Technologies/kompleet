@@ -7,6 +7,7 @@ import { CANONICAL_ORIGIN } from "@/lib/seo/site";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { YearProvider } from "@/contexts/year-context";
 import { ConvexAuthClientProvider } from "@/components/providers/ConvexAuthClientProvider";
+import { ErrorToaster } from "@/components/ui/error-toast";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -79,6 +80,7 @@ export default function RootLayout({
           <ConvexAuthClientProvider>
             <ThemeProvider>
               <YearProvider>{children}</YearProvider>
+              <ErrorToaster />
             </ThemeProvider>
           </ConvexAuthClientProvider>
         </body>

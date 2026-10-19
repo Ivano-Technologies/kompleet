@@ -19,7 +19,7 @@ async function handleGET(request: NextRequest, context: RouteContext) {
       {},
     )) as BusinessProfile;
     if (!hasLegalName(profile)) {
-      return NextResponse.json({ ...apiErrorBody("Add your business name in Settings before issuing") },
+      return NextResponse.json({ ...apiErrorBody("Add your business name in Settings before issuing.") },
         { status: 400 },
       );
     }

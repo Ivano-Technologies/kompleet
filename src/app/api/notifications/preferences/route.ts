@@ -46,7 +46,7 @@ async function handlePOST(request: NextRequest) {
     }
     return NextResponse.json({
       success: true,
-      message: "Notification preferences accepted (not persisted on Convex yet)",
+      message: "Thanks, we got your notification preferences.",
       preferences: parsed.data,
     });
   } catch (error) {

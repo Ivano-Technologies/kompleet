@@ -41,11 +41,11 @@ export function InvoiceDropZone({
   const takeFile = async (file: File | undefined) => {
     if (!file || disabled || busy) return;
     if (!isSupportedInvoiceFile(file)) {
-      setError("Please select a PDF or image");
+      setError("Choose a PDF or an image file (JPG or PNG).");
       return;
     }
     if (file.size > MAX_BYTES) {
-      setError("File size must be less than 10MB");
+      setError("Choose a file smaller than 10MB.");
       return;
     }
     setError(null);

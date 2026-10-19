@@ -93,7 +93,7 @@ export function NewInvoiceSheet({
     if (forIssue && !customer) return INV_COPY.billtoRequired;
     if (forIssue && !hasBusinessName) return BIZ_COPY.blockLegalName;
     const value = Number(amount);
-    if (!Number.isFinite(value) || value <= 0) return "Amount must be greater than 0";
+    if (!Number.isFinite(value) || value <= 0) return "Enter an amount greater than 0.";
     return null;
   };
 

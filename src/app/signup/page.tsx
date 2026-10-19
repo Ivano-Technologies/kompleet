@@ -55,12 +55,12 @@ export default function SignUpPage() {
     setLoading(true);
 
     if (password.length < 8) {
-      setError('Password must be at least 8 characters long');
+      setError('Use a password with at least 8 characters.');
       setLoading(false);
       return;
     }
     if (!/\d/.test(password)) {
-      setError('Password must contain at least one number');
+      setError('Add at least one number to your password.');
       setLoading(false);
       return;
     }

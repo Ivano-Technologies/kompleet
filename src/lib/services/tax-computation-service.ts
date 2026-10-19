@@ -657,7 +657,7 @@ export class TaxComputationService {
         `Enjoy ${smallRate}% income tax rate and development levy exemption`,
       );
       steps.push(
-        "VAT registration/exemption threshold is unresolved for your turnover — verify manually via the VAT calculator before assuming exemption (see review_queue)",
+        "VAT registration/exemption threshold is unresolved for your turnover. Verify manually via the VAT calculator before assuming exemption (see review_queue)",
       );
     } else {
       const otherRate = requireRule(rules, "business_tax", "corporate_tax_rate_other")

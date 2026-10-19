@@ -264,7 +264,7 @@ export default function TaxReportsPage({
                         report.report_type}
                     </td>
                     <td className="px-4 py-3 text-light-text-secondary dark:text-dark-text-secondary whitespace-nowrap">
-                      {formatDate(report.period_start)} –{" "}
+                      {formatDate(report.period_start)} to{" "}
                       {formatDate(report.period_end)}
                     </td>
                     <td className="px-4 py-3 text-light-text-secondary dark:text-dark-text-secondary">

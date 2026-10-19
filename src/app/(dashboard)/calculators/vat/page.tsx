@@ -114,17 +114,17 @@ export default function VATCalculatorPage() {
     const assetsNum = parseFloat(totalAssets || "0");
 
     if (isNaN(amountNum) || amountNum < 0) {
-      setError("Please enter a valid amount");
+      setError("Enter an amount greater than 0, using numbers only.");
       return;
     }
 
     if (isNaN(turnoverNum) || turnoverNum < 0) {
-      setError("Please enter a valid turnover amount");
+      setError("Enter your annual turnover in naira, using numbers only.");
       return;
     }
 
     if (isNaN(assetsNum) || assetsNum < 0) {
-      setError("Please enter a valid total assets amount");
+      setError("Enter your total assets in naira, using numbers only.");
       return;
     }
 
@@ -421,7 +421,7 @@ export default function VATCalculatorPage() {
                         Registration / filing obligation
                       </p>
                       <p className="text-light-text-secondary dark:text-dark-text-secondary">
-                        Unverified — three mutually exclusive threshold
+                        Unverified. Three mutually exclusive threshold
                         candidates are under review. VAT amount calculation
                         still uses the 7.5% rate; this calculator will not
                         assert whether you must register or file.
@@ -476,7 +476,7 @@ export default function VATCalculatorPage() {
                               {c.assetsThresholdNgn != null
                                 ? ` / assets ₦${c.assetsThresholdNgn.toLocaleString("en-NG")}`
                                 : ""}{" "}
-                              — {c.resultUnderThisCandidate}
+                              : {c.resultUnderThisCandidate}
                             </li>
                           ))}
                         </ul>
@@ -606,7 +606,7 @@ export default function VATCalculatorPage() {
               This calculator applies the Nigeria Tax Act 2025 VAT{" "}
               <em>rate</em> from the rules engine. Registration and filing
               obligation thresholds are disputed across sources and are shown
-              as unverified candidates — they do not change the VAT amount.
+              as unverified candidates. They do not change the VAT amount.
             </p>
             <p>
               <strong>Data Source:</strong> Nigeria Revenue Service (NRS),

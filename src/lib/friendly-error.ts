@@ -348,8 +348,11 @@ export function userFacingError(
     ref = b.ref;
   }
   const text = typeof message === "string" ? message.trim() : "";
-  const safe =
-    text && !looksLikeRawError(text) ? text : fallback || FRIENDLY_FALLBACK;
+  const safe = /^(unauthori[sz]ed|unauthenticated|not authenticated)\.?$/i.test(text)
+    ? FRIENDLY_MESSAGES.unauthorized
+    : text && !looksLikeRawError(text)
+      ? text
+      : fallback || FRIENDLY_FALLBACK;
   return new UserFacingError(safe, {
     status,
     ref: isRef(ref) ? ref : undefined,

@@ -74,7 +74,7 @@ async function handlePOST(request: NextRequest) {
         from: getEmailFrom(),
         to: [recipient],
         replyTo: email,
-        subject: `[Contact] ${subjectLabel} — ${name}`,
+        subject: `[Contact] ${subjectLabel} from ${name}`,
         html,
       }),
     });
