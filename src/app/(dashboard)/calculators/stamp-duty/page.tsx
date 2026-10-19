@@ -427,7 +427,7 @@ export default function StampDutyCalculator() {
                   stamp_duty: result.stampDuty,
                 },
                 ruleVersion: "v1.0.0-2025-tax-act",
-                sources: ["Nigerian Revenue Service (NRS)"],
+                sources: ["Nigeria Revenue Service (NRS)"],
                 confidenceLevel:
                   rules.property_transfer_rate?.confidence || "unavailable",
               });
@@ -487,7 +487,7 @@ export default function StampDutyCalculator() {
             <strong className="text-light-text-primary dark:text-dark-text-primary">
               Data Source:
             </strong>{" "}
-            Nigerian Revenue Service (NRS), based on official NRS guidelines.
+            Nigeria Revenue Service (NRS), based on official NRS guidelines.
             Confidence level:{" "}
             {rules.property_transfer_rate?.confidence || "unavailable"}.
           </p>

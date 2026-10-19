@@ -9,6 +9,7 @@ import { useEffect, useState, useCallback } from "react";
 import type { TaxRule } from "@/types/tax";
 import { toFriendlyMessage, userFacingError } from "@/lib/friendly-error";
 import { ErrorText } from "@/components/ui/error-ref";
+import { sourceDisplayName } from "@/lib/tax/source-display-name";
 
 export default function AdminRulesPage() {
   const [rules, setRules] = useState<TaxRule[]>([]);
@@ -222,7 +223,7 @@ export default function AdminRulesPage() {
                       {rule.source && (
                         <div>
                           <span className="font-medium">Source:</span>{" "}
-                          {rule.source.name}
+                          {sourceDisplayName(rule.source.name)}
                         </div>
                       )}
                     </div>
