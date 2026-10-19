@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { UserCog, ChevronLeft, Loader2 } from "lucide-react";
+import { toFriendlyMessage } from "@/lib/friendly-error";
+import { ErrorText } from "@/components/ui/error-ref";
 
 export default function EditProfilePage() {
   const [loading, setLoading] = useState(false);
@@ -40,7 +42,7 @@ export default function EditProfilePage() {
       setMessage({
         type: "error",
         text:
-          error instanceof Error ? error.message : "Failed to update profile",
+          toFriendlyMessage(error, "We couldn't update your profile. Please try again."),
       });
     } finally {
       setLoading(false);
@@ -105,7 +107,7 @@ export default function EditProfilePage() {
                     : "bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700/50 text-red-700 dark:text-red-300"
                 }`}
               >
-                {message.text}
+                <ErrorText text={message.text} />
               </div>
             )}
 

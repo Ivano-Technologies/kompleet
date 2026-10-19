@@ -17,6 +17,7 @@ import {
 } from "@/lib/nrs-filing/form-generator";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 import { listStatementTransactions } from "@/lib/convex/statement-txns";
+import { friendlyErrorBody, apiErrorBody } from "@/lib/friendly-error";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -48,8 +49,7 @@ async function handlePOST(request: NextRequest) {
     };
 
     if (!formType || !taxYear || !startDate || !endDate || !taxpayerInfo) {
-      return NextResponse.json(
-        { error: "Missing required parameters" },
+      return NextResponse.json({ ...apiErrorBody("Missing required parameters") },
         { status: 400 },
       );
     }
@@ -59,8 +59,7 @@ async function handlePOST(request: NextRequest) {
       endDate,
     });
     if (transactions.length === 0) {
-      return NextResponse.json(
-        { error: "No transactions found for the specified period" },
+      return NextResponse.json({ ...apiErrorBody("No transactions found for the specified period") },
         { status: 404 },
       );
     }
@@ -121,20 +120,18 @@ async function handlePOST(request: NextRequest) {
       });
     }
 
-    return NextResponse.json(
-      { error: "Invalid form type. Must be PIT or CIT" },
+    return NextResponse.json({ ...apiErrorBody("Invalid form type. Must be PIT or CIT") },
       { status: 400 },
     );
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     console.error("Generate NRS form error:", error);
     if (error instanceof MissingTaxRuleError) {
-      return NextResponse.json({ error: error.message }, { status: 422 });
+      return NextResponse.json({ ...friendlyErrorBody(error) }, { status: 422 });
     }
-    return NextResponse.json(
-      { error: "Failed to generate NRS form" },
+    return NextResponse.json({ ...apiErrorBody("Failed to generate NRS form") },
       { status: 500 },
     );
   }

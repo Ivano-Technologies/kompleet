@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { FinancialStatementsService } from "@/lib/services/financial-statements-service";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 import { listStatementTransactions } from "@/lib/convex/statement-txns";
+import { friendlyErrorBody, apiErrorBody } from "@/lib/friendly-error";
 
 export const runtime = "nodejs";
 
@@ -14,8 +15,7 @@ async function handlePOST(request: NextRequest) {
     const { statementType, startDate, endDate, asOfDate } = body;
 
     if (!statementType) {
-      return NextResponse.json(
-        { error: "statementType is required" },
+      return NextResponse.json({ ...apiErrorBody("statementType is required") },
         { status: 400 },
       );
     }
@@ -29,8 +29,7 @@ async function handlePOST(request: NextRequest) {
 
     if (statementType === "profit_loss") {
       if (!startDate || !endDate) {
-        return NextResponse.json(
-          { error: "startDate and endDate are required for P&L" },
+        return NextResponse.json({ ...apiErrorBody("startDate and endDate are required for P&L") },
           { status: 400 },
         );
       }
@@ -42,8 +41,7 @@ async function handlePOST(request: NextRequest) {
       htmlContent = generateProfitLossHTML(statement);
     } else if (statementType === "balance_sheet") {
       if (!asOfDate) {
-        return NextResponse.json(
-          { error: "asOfDate is required for Balance Sheet" },
+        return NextResponse.json({ ...apiErrorBody("asOfDate is required for Balance Sheet") },
           { status: 400 },
         );
       }
@@ -53,8 +51,7 @@ async function handlePOST(request: NextRequest) {
       );
       htmlContent = generateBalanceSheetHTML(statement);
     } else {
-      return NextResponse.json(
-        { error: "Invalid statementType" },
+      return NextResponse.json({ ...apiErrorBody("Invalid statementType") },
         { status: 400 },
       );
     }
@@ -63,12 +60,12 @@ async function handlePOST(request: NextRequest) {
     return NextResponse.json({ html: htmlContent });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     console.error("Error in POST /api/reports/export-pdf:", error);
     return NextResponse.json(
       {
-        error: error instanceof Error ? error.message : "Internal server error",
+        ...friendlyErrorBody(error),
       },
       { status: 500 },
     );

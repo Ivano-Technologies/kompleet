@@ -10,6 +10,7 @@ import {
   isUnauthorized,
   requireAuthedConvex,
 } from "@/lib/convex/server";
+import { toFriendlyError, friendlyErrorBody, apiErrorBody } from "@/lib/friendly-error";
 
 const patchBodySchema = z.object({
   date: z
@@ -36,15 +37,15 @@ export async function GET(
 
     const data = await convex.query(api.expenses.getMine, { externalId: id });
     if (!data) {
-      return NextResponse.json({ error: "Not found" }, { status: 404 });
+      return NextResponse.json({ ...apiErrorBody("Not found") }, { status: 404 });
     }
     return NextResponse.json(data);
   } catch (err) {
     if (isUnauthorized(err)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Server error" },
+      { ...friendlyErrorBody(err) },
       { status: 500 },
     );
   }
@@ -61,8 +62,7 @@ export async function PATCH(
     const body = await request.json();
     const parsed = patchBodySchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Invalid body", details: parsed.error.flatten() },
+      return NextResponse.json({ ...apiErrorBody("Invalid body"), details: parsed.error.flatten() },
         { status: 400 },
       );
     }
@@ -84,11 +84,12 @@ export async function PATCH(
     return NextResponse.json(data);
   } catch (err) {
     if (isUnauthorized(err)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
-    const message = err instanceof Error ? err.message : "Server error";
-    const status = /not found/i.test(message) ? 404 : 500;
-    return NextResponse.json({ error: message }, { status });
+    const raw = err instanceof Error ? err.message : "";
+    const { message, ref } = toFriendlyError(err);
+    const status = /not found/i.test(raw) ? 404 : 500;
+    return NextResponse.json({ error: message, ref }, { status });
   }
 }
 
@@ -103,10 +104,10 @@ export async function DELETE(
     return new NextResponse(null, { status: 204 });
   } catch (err) {
     if (isUnauthorized(err)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Server error" },
+      { ...friendlyErrorBody(err) },
       { status: 500 },
     );
   }

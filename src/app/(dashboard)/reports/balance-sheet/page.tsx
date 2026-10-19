@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Printer, Download, BarChart3, Loader2 } from "lucide-react";
+import { notifyError } from "@/components/ui/error-toast";
+import { apiErrorMessage, toFriendlyMessage } from "@/lib/friendly-error";
 
 interface LineItem {
   category: string;
@@ -33,7 +35,7 @@ export default function BalanceSheetPage() {
 
   const handleGenerate = async () => {
     if (!asOfDate) {
-      alert("Please select a date");
+      notifyError("Pick an “as of” date, then generate the balance sheet.");
       return;
     }
     setLoading(true);
@@ -43,10 +45,9 @@ export default function BalanceSheetPage() {
       );
       const data = await response.json();
       if (response.ok) setStatement(data.statement);
-      else alert(data.error || "Failed to generate statement");
+      else notifyError(apiErrorMessage(data, "We couldn't generate the balance sheet. Please try again."));
     } catch (error) {
-      console.error("Error:", error);
-      alert("An error occurred");
+      notifyError(toFriendlyMessage(error, "We couldn't generate the balance sheet. Please try again.", { context: "reports:balance-sheet" }));
     } finally {
       setLoading(false);
     }
@@ -134,7 +135,7 @@ export default function BalanceSheetPage() {
           Balance Sheet
         </h1>
         <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mt-1">
-          Statement of Financial Position — Nigerian accounting standards
+          Statement of Financial Position, following Nigerian accounting standards
         </p>
       </div>
 

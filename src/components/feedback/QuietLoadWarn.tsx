@@ -1,12 +1,13 @@
 "use client";
 
 import { AlertTriangle } from "lucide-react";
+import { ErrorText } from "@/components/ui/error-ref";
 
 export const QUIET_500_COPY = {
-  duplicatesStrip: "Couldn’t load duplicates — try again",
-  duplicatesToast: "Couldn’t load duplicates — try again",
-  formsStrip: "Couldn’t load forms — try again",
-  formsToast: "Couldn’t load forms — try again",
+  duplicatesStrip: "Couldn’t load duplicates. Try again.",
+  duplicatesToast: "Couldn’t load duplicates. Try again.",
+  formsStrip: "Couldn’t load forms. Try again.",
+  formsToast: "Couldn’t load forms. Try again.",
   retry: "Retry",
   unavailable: "Unavailable right now",
 } as const;
@@ -25,7 +26,9 @@ export function QuietLoadWarn({
     >
       <p className="text-sm text-text-1 flex items-center gap-2">
         <AlertTriangle className="w-4 h-4 text-warning shrink-0" aria-hidden />
-        {message}
+        <span>
+          <ErrorText text={message} context="quiet-load" />
+        </span>
       </p>
       <button
         type="button"

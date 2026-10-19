@@ -254,7 +254,7 @@ function addReportFooter(doc: jsPDF, disclaimer?: string): void {
   doc.setFontSize(7);
   doc.setTextColor(149, 165, 166); // Light gray
   doc.text(
-    "© 2026 KOMPLEET - Nigerian Tax Platform",
+    "© 2026 KOMPLEET, Nigerian Tax Platform",
     pageWidth / 2,
     pageHeight - 5,
     { align: "center" },

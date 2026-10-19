@@ -7,6 +7,7 @@ import {
   getDocumentStatusControllerWithConvex,
   NotFoundError,
 } from "@/modules/document-intelligence";
+import { apiErrorBody } from "@/lib/friendly-error";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -18,8 +19,7 @@ interface RouteContext {
 }
 
 function unauthorized() {
-  return NextResponse.json(
-    { error: "Unauthorized", message: "Authentication required" },
+  return NextResponse.json({ ...apiErrorBody("Unauthorized"), message: "Authentication required" },
     { status: 401 },
   );
 }
@@ -35,8 +35,7 @@ async function handleGET(request: NextRequest, context?: RouteContext) {
     const controller = getDocumentStatusControllerWithConvex(authed.convex);
     const { id } = await (context?.params ?? Promise.resolve({ id: "" }));
     if (!id) {
-      return NextResponse.json(
-        { error: "Not found", message: "Document not found." },
+      return NextResponse.json({ ...apiErrorBody("Not found"), message: "Document not found." },
         { status: 404 },
       );
     }
@@ -52,14 +51,12 @@ async function handleGET(request: NextRequest, context?: RouteContext) {
       return unauthorized();
     }
     if (error instanceof NotFoundError) {
-      return NextResponse.json(
-        { error: "Not found", message: error.message },
+      return NextResponse.json({ ...apiErrorBody("Not found"), message: "We couldn't find this document." },
         { status: 404 },
       );
     }
 
-    return NextResponse.json(
-      { error: "Internal server error" },
+    return NextResponse.json({ ...apiErrorBody("Internal server error") },
       { status: 500 },
     );
   }
@@ -74,8 +71,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     if (isUnauthorized(error)) {
       return unauthorized();
     }
-    return NextResponse.json(
-      { error: "Internal server error" },
+    return NextResponse.json({ ...apiErrorBody("Internal server error") },
       { status: 500 },
     );
   }

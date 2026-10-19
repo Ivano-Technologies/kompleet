@@ -3,6 +3,8 @@
 import { useState, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import Image from "next/image";
+import { UserFacingError, toFriendlyMessage } from "@/lib/friendly-error";
+import { ErrorText } from "@/components/ui/error-ref";
 
 export function AvatarUpload() {
   const { user } = useAuth();
@@ -17,13 +19,13 @@ export function AvatarUpload() {
 
     // Validate file type
     if (!file.type.startsWith("image/")) {
-      setError("Please select an image file");
+      setError("Choose an image file (JPG, PNG or WebP).");
       return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      setError("Image size must be less than 5MB");
+      setError("Choose an image smaller than 5MB.");
       return;
     }
 
@@ -40,14 +42,14 @@ export function AvatarUpload() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to upload avatar");
+        throw new UserFacingError("We couldn't upload your avatar. Please try again.");
       }
 
       const data = await response.json();
       setAvatarUrl(data.url);
       setUploading(false);
-    } catch (err: any) {
-      setError(err.message || "Failed to upload avatar");
+    } catch (err: unknown) {
+      setError(toFriendlyMessage(err, "We couldn't upload your avatar. Please try again."));
       setUploading(false);
     }
   };
@@ -107,7 +109,7 @@ export function AvatarUpload() {
         {uploading ? "Uploading..." : "Change Avatar"}
       </button>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-red-600"><ErrorText text={error} /></p>}
 
       <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary text-center max-w-xs">
         Upload a profile picture. Max size 5MB. Supported formats: JPG, PNG, GIF

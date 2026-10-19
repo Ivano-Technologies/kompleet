@@ -163,7 +163,7 @@ describe("IVA-85 review triage UI", () => {
     render(<TriageSheet open onClose={() => undefined} />);
 
     expect(
-      await screen.findByText("Couldn’t load exceptions — try again"),
+      await screen.findByText("Couldn’t load exceptions. Try again."),
     ).toBeTruthy();
     expect(screen.getByRole("button", { name: "Retry" })).toBeTruthy();
     expect(screen.queryByText("You’re all caught up")).toBeNull();
@@ -202,7 +202,7 @@ describe("IVA-85 review triage UI", () => {
     });
     await userEvent.click(screen.getAllByRole("button", { name: "Confirm" })[0]);
     expect(
-      await screen.findByText("Couldn’t save that change — try again"),
+      await screen.findByText("Couldn’t save that change. Try again."),
     ).toBeTruthy();
     expect(screen.getByText("Flutterwave · Settlement")).toBeTruthy();
     expect(unhandled).not.toHaveBeenCalled();
@@ -260,7 +260,7 @@ describe("IVA-85 review triage UI", () => {
       expect(screen.getByRole("button", { name: "Undo" })).toBeTruthy();
     });
     await userEvent.click(screen.getByRole("button", { name: "Undo" }));
-    expect(await screen.findByText("Couldn’t undo — try again")).toBeTruthy();
+    expect(await screen.findByText("Couldn’t undo. Try again.")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Undo" })).toBeTruthy();
     expect(unhandled).not.toHaveBeenCalled();
     window.removeEventListener("unhandledrejection", unhandled);
@@ -299,7 +299,7 @@ describe("IVA-85 review triage UI", () => {
     const ignoreButtons = screen.getAllByRole("button", { name: "Ignore" });
     await userEvent.click(ignoreButtons[ignoreButtons.length - 1]);
     expect(
-      await screen.findByText("Couldn’t save that change — try again"),
+      await screen.findByText("Couldn’t save that change. Try again."),
     ).toBeTruthy();
     expect(unhandled).not.toHaveBeenCalled();
     window.removeEventListener("unhandledrejection", unhandled);

@@ -7,6 +7,7 @@ import { withRateLimit } from "@/lib/with-rate-limit";
 import { updateCalculationSchema } from "@/lib/schemas/calculations";
 import { api } from "@/lib/convex/http";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
+import { apiErrorBody } from "@/lib/friendly-error";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -20,9 +21,7 @@ async function handleGET(request: NextRequest, context: RouteContext) {
       externalId: id,
     });
     if (!calculation) {
-      return NextResponse.json(
-        {
-          error: "Not found",
+      return NextResponse.json({ ...apiErrorBody("Not found"),
           message: "Calculation not found or access denied",
         },
         { status: 404 },
@@ -31,14 +30,12 @@ async function handleGET(request: NextRequest, context: RouteContext) {
     return NextResponse.json({ success: true, calculation });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json(
-        { error: "Unauthorized", message: "Authentication required" },
+      return NextResponse.json({ ...apiErrorBody("Unauthorized"), message: "Authentication required" },
         { status: 401 },
       );
     }
     console.error("[Get Calculation Error]", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
+    return NextResponse.json({ ...apiErrorBody("Internal server error") },
       { status: 500 },
     );
   }
@@ -52,8 +49,7 @@ async function handlePATCH(request: NextRequest, context: RouteContext) {
     const parsed = updateCalculationSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Validation error", details: parsed.error.flatten() },
+      return NextResponse.json({ ...apiErrorBody("Validation error"), details: parsed.error.flatten() },
         { status: 400 },
       );
     }
@@ -86,18 +82,14 @@ async function handlePATCH(request: NextRequest, context: RouteContext) {
     } catch (err) {
       const message = err instanceof Error ? err.message : "";
       if (message.includes("finalized")) {
-        return NextResponse.json(
-          {
-            error: "Forbidden",
+        return NextResponse.json({ ...apiErrorBody("Forbidden"),
             message: "Cannot update finalized calculations",
           },
           { status: 403 },
         );
       }
       if (message.includes("not found")) {
-        return NextResponse.json(
-          {
-            error: "Not found",
+        return NextResponse.json({ ...apiErrorBody("Not found"),
             message: "Calculation not found or access denied",
           },
           { status: 404 },
@@ -107,14 +99,12 @@ async function handlePATCH(request: NextRequest, context: RouteContext) {
     }
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json(
-        { error: "Unauthorized", message: "Authentication required" },
+      return NextResponse.json({ ...apiErrorBody("Unauthorized"), message: "Authentication required" },
         { status: 401 },
       );
     }
     console.error("[Update Calculation Error]", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
+    return NextResponse.json({ ...apiErrorBody("Internal server error") },
       { status: 500 },
     );
   }
@@ -129,18 +119,14 @@ async function handleDELETE(request: NextRequest, context: RouteContext) {
     } catch (err) {
       const message = err instanceof Error ? err.message : "";
       if (message.includes("finalized")) {
-        return NextResponse.json(
-          {
-            error: "Forbidden",
+        return NextResponse.json({ ...apiErrorBody("Forbidden"),
             message: "Cannot delete finalized calculations",
           },
           { status: 403 },
         );
       }
       if (message.includes("not found")) {
-        return NextResponse.json(
-          {
-            error: "Not found",
+        return NextResponse.json({ ...apiErrorBody("Not found"),
             message: "Calculation not found or access denied",
           },
           { status: 404 },
@@ -163,14 +149,12 @@ async function handleDELETE(request: NextRequest, context: RouteContext) {
     });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json(
-        { error: "Unauthorized", message: "Authentication required" },
+      return NextResponse.json({ ...apiErrorBody("Unauthorized"), message: "Authentication required" },
         { status: 401 },
       );
     }
     console.error("[Delete Calculation Error]", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
+    return NextResponse.json({ ...apiErrorBody("Internal server error") },
       { status: 500 },
     );
   }

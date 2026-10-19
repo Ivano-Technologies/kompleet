@@ -50,7 +50,7 @@ describe("GET /api/tax-reports", () => {
     getConvexAccessToken.mockResolvedValue(null);
     const res = await GET(request());
     expect(res.status).toBe(401);
-    await expect(res.json()).resolves.toEqual({ error: "Unauthorized" });
+    await expect(res.json()).resolves.toMatchObject({ error: "Unauthorized" });
     expect(createConvexHttpClient).not.toHaveBeenCalled();
   });
 

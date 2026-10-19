@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Loader2, TrendingUp } from "lucide-react";
+import { notifyError } from "@/components/ui/error-toast";
+import { apiErrorMessage, toFriendlyMessage } from "@/lib/friendly-error";
 
 export default function CashFlowPage() {
   const [loading, setLoading] = useState(false);
@@ -11,7 +13,7 @@ export default function CashFlowPage() {
 
   const handleGenerate = async () => {
     if (!startDate || !endDate) {
-      alert("Please select both start and end dates");
+      notifyError("Pick a start date and an end date, then generate the report.");
       return;
     }
     setLoading(true);
@@ -24,10 +26,10 @@ export default function CashFlowPage() {
         // Cash flow uses same period data; in future a dedicated cash-flow API can return operating/investing/financing
         console.log("Period data:", data);
       } else {
-        alert(data.error || "Failed to generate report");
+        notifyError(apiErrorMessage(data, "We couldn't generate the report. Please try again."));
       }
-    } catch {
-      alert("An error occurred");
+    } catch (error) {
+      notifyError(toFriendlyMessage(error, "We couldn't generate the report. Please try again.", { context: "reports:cash-flow" }));
     } finally {
       setLoading(false);
     }
@@ -51,7 +53,7 @@ export default function CashFlowPage() {
           Cash Flow Statement
         </h1>
         <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mt-1">
-          Track how cash moves in and out of your business — operating, investing, and financing activities
+          Track how cash moves in and out of your business across operating, investing and financing activities
         </p>
       </div>
 

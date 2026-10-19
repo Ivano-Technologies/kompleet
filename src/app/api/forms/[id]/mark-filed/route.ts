@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { api } from "@/lib/convex/http";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
+import { apiErrorBody } from "@/lib/friendly-error";
 
 async function handlePOST(
   request: NextRequest,
@@ -18,14 +19,12 @@ async function handlePOST(
     };
 
     if (!formId) {
-      return NextResponse.json(
-        { error: "Form ID is required" },
+      return NextResponse.json({ ...apiErrorBody("Form ID is required") },
         { status: 400 },
       );
     }
     if (!confirmationNumber || confirmationNumber.trim() === "") {
-      return NextResponse.json(
-        { error: "Confirmation number is required" },
+      return NextResponse.json({ ...apiErrorBody("Confirmation number is required") },
         { status: 400 },
       );
     }
@@ -45,14 +44,12 @@ async function handlePOST(
     } catch (err) {
       const message = err instanceof Error ? err.message : "";
       if (message.includes("already marked")) {
-        return NextResponse.json(
-          { error: "Form is already marked as filed" },
+        return NextResponse.json({ ...apiErrorBody("Form is already marked as filed") },
           { status: 400 },
         );
       }
       if (message.includes("not found")) {
-        return NextResponse.json(
-          { error: "Form not found or access denied" },
+        return NextResponse.json({ ...apiErrorBody("Form not found or access denied") },
           { status: 404 },
         );
       }
@@ -60,11 +57,10 @@ async function handlePOST(
     }
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     console.error("Mark filed error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
+    return NextResponse.json({ ...apiErrorBody("Internal server error") },
       { status: 500 },
     );
   }
@@ -87,11 +83,10 @@ async function handleGET(
     });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     console.error("Get filing status error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
+    return NextResponse.json({ ...apiErrorBody("Internal server error") },
       { status: 500 },
     );
   }

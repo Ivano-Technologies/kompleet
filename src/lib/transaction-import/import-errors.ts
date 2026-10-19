@@ -97,8 +97,8 @@ export const IMPORT_ERROR_COPY = {
   },
   dismiss: "Dismiss",
   toast: {
-    network: "Upload didn’t finish — retry when you’re back online",
-    upload: "Upload didn’t finish — retry when you’re back online",
+    network: "Upload didn’t finish. Retry when you’re back online.",
+    upload: "Upload didn’t finish. Retry when you’re back online.",
   },
 } as const;
 

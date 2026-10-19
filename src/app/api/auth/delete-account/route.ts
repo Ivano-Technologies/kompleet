@@ -13,6 +13,7 @@ import {
   isUnauthorized,
   requireAuthedConvex,
 } from "@/lib/convex/server";
+import { apiErrorBody } from "@/lib/friendly-error";
 
 const deleteAccountSchema = z.object({
   confirmText: z.literal("DELETE", {
@@ -28,8 +29,7 @@ async function handlePOST(request: NextRequest) {
     const parsed = deleteAccountSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Invalid input", details: parsed.error.flatten() },
+      return NextResponse.json({ ...apiErrorBody("Invalid input"), details: parsed.error.flatten() },
         { status: 400 },
       );
     }
@@ -42,11 +42,10 @@ async function handlePOST(request: NextRequest) {
     });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     console.error("[Delete Account Error]", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
+    return NextResponse.json({ ...apiErrorBody("Internal server error") },
       { status: 500 },
     );
   }

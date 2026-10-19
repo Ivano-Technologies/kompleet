@@ -7,6 +7,7 @@ import {
   requireAuthedConvex,
 } from "@/lib/convex/server";
 import { z } from "zod";
+import { apiErrorBody } from "@/lib/friendly-error";
 
 export const runtime = "nodejs";
 
@@ -64,8 +65,7 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
     const parsed = getQuerySchema.safeParse(raw);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Invalid query parameters", details: parsed.error.flatten() },
+      return NextResponse.json({ ...apiErrorBody("Invalid query parameters"), details: parsed.error.flatten() },
         { status: 400 },
       );
     }
@@ -92,11 +92,10 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
     });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     console.error("API error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
+    return NextResponse.json({ ...apiErrorBody("Internal server error") },
       { status: 500 },
     );
   }
@@ -110,8 +109,7 @@ async function handleDELETE(request: NextRequest): Promise<NextResponse> {
     const parsed = deleteBodySchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Invalid request", details: parsed.error.flatten() },
+      return NextResponse.json({ ...apiErrorBody("Invalid request"), details: parsed.error.flatten() },
         { status: 400 },
       );
     }
@@ -126,11 +124,10 @@ async function handleDELETE(request: NextRequest): Promise<NextResponse> {
     });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     console.error("Delete error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
+    return NextResponse.json({ ...apiErrorBody("Internal server error") },
       { status: 500 },
     );
   }
@@ -144,8 +141,7 @@ async function handlePOST(request: NextRequest): Promise<NextResponse> {
     const parsed = createBodySchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Invalid request", details: parsed.error.flatten() },
+      return NextResponse.json({ ...apiErrorBody("Invalid request"), details: parsed.error.flatten() },
         { status: 400 },
       );
     }
@@ -179,11 +175,10 @@ async function handlePOST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ transaction }, { status: 201 });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     console.error("API error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
+    return NextResponse.json({ ...apiErrorBody("Internal server error") },
       { status: 500 },
     );
   }

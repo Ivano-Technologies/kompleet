@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { api } from "@/lib/convex/http";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
+import { apiErrorBody } from "@/lib/friendly-error";
 
 async function handlePOST(request: NextRequest) {
   try {
@@ -16,8 +17,7 @@ async function handlePOST(request: NextRequest) {
     };
 
     if (!action || !resource_type) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
+      return NextResponse.json({ ...apiErrorBody("Missing required fields") },
         { status: 400 },
       );
     }
@@ -40,7 +40,7 @@ async function handlePOST(request: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     console.error("Error in /api/audit/log:", error);
     return NextResponse.json({

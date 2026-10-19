@@ -202,7 +202,7 @@ function TaxOverview() {
         <FileText className="w-4 h-4 text-text-2 mt-0.5 shrink-0" />
         <p className="text-sm text-text-2">
           Filing packages and tax reports now live here. Bookmark{" "}
-          <span className="font-medium text-text-1">/tax</span> — older{" "}
+          <span className="font-medium text-text-1">/tax</span> is the older{" "}
           <span className="font-medium text-text-1">/filing</span> and{" "}
           <span className="font-medium text-text-1">/tax-reports</span> links
           still work.
