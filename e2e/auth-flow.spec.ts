@@ -70,7 +70,7 @@ test.describe("Auth flow", () => {
     await page.getByRole("button", { name: SIGNUP_SELECTORS.submit }).click();
 
     await expect(
-      page.getByText("Password must contain at least one number"),
+      page.getByText("Add at least one number to your password."),
     ).toBeVisible();
   });
 
@@ -131,12 +131,19 @@ test.describe("Auth flow", () => {
   test("an expired verification link surfaces an error on the login page", async ({
     page,
   }) => {
-    const message = "This link has expired. Please request a new one.";
+    const message = "This link has expired. Request a new one.";
     await page.goto(
       `/login?error=expired_link&message=${encodeURIComponent(message)}`,
     );
 
     await expect(page.getByText(message)).toBeVisible();
+  });
+
+  test("the login page shows the reclaim note", async ({ page }) => {
+    await page.goto("/login");
+    await expect(page.getByTestId("reclaim-note")).toHaveText(
+      "Existing Kompleet users: choose Get started and use this same email to reclaim your data.",
+    );
   });
 
   for (const route of PROTECTED_ROUTES) {
@@ -178,7 +185,7 @@ test.describe("Auth flow", () => {
       .getByRole("button", { name: LOGIN_SELECTORS.submit, exact: true })
       .click();
 
-    await expect(page.getByText(/Invalid email or password\./)).toBeVisible();
+    await expect(page.getByText(/That email or password doesn't match\. Check and try again\./)).toBeVisible();
     await expect(page).toHaveURL(/\/login/);
   });
 

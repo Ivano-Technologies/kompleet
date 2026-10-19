@@ -17,6 +17,8 @@ import {
 } from "./invoice-actions";
 import { useLibraryUpload } from "@/components/documents/use-library-upload";
 import { onBusinessProfileChanged } from "@/lib/invoices/profile-events";
+import { toFriendlyMessage } from "@/lib/friendly-error";
+import { ErrorText } from "@/components/ui/error-ref";
 
 export function NewInvoiceSheet({
   open,
@@ -91,7 +93,7 @@ export function NewInvoiceSheet({
     if (forIssue && !customer) return INV_COPY.billtoRequired;
     if (forIssue && !hasBusinessName) return BIZ_COPY.blockLegalName;
     const value = Number(amount);
-    if (!Number.isFinite(value) || value <= 0) return "Amount must be greater than 0";
+    if (!Number.isFinite(value) || value <= 0) return "Enter an amount greater than 0.";
     return null;
   };
 
@@ -114,7 +116,7 @@ export function NewInvoiceSheet({
       onCreated?.(created.invoice_id);
       close();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save draft");
+      setError(toFriendlyMessage(err, "We couldn't save the draft. Please try again."));
     } finally {
       setBusy(false);
     }
@@ -141,7 +143,7 @@ export function NewInvoiceSheet({
       close();
       router.push(`/invoices/${created.invoice_id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to issue invoice");
+      setError(toFriendlyMessage(err, "We couldn't issue this invoice. Please try again."));
     } finally {
       setBusy(false);
     }
@@ -169,7 +171,7 @@ export function NewInvoiceSheet({
       close();
       router.push(`/invoices/${created.invoice_id}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create draft");
+      setError(toFriendlyMessage(err, "We couldn't create the draft. Please try again."));
     } finally {
       setBusy(false);
     }
@@ -255,7 +257,7 @@ export function NewInvoiceSheet({
                 className="mt-1 w-full px-3 py-2 text-sm rounded-md border border-border bg-surface text-text-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               />
             </label>
-            {error && <p className="text-sm text-error">{error}</p>}
+            {error && <p className="text-sm text-error"><ErrorText text={error} /></p>}
             {notice && <p className="text-sm text-success">{notice}</p>}
             <div className="flex justify-end gap-2">
               <button

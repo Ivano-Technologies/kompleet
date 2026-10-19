@@ -4,6 +4,7 @@ import React from "react";
 import { AlertCircle, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { ErrorText } from "@/components/ui/error-ref";
 
 interface UploadErrorProps {
   error?: string;
@@ -71,7 +72,7 @@ export default function UploadError({ error, onRetry }: UploadErrorProps) {
           {/* Error message */}
           {error && (
             <p className="text-center text-slate-600 dark:text-slate-400 mb-6">
-              {error}
+              <ErrorText text={error} />
             </p>
           )}
 
@@ -116,7 +117,7 @@ export default function UploadError({ error, onRetry }: UploadErrorProps) {
           {error && (
             <div className="mt-6 p-3 bg-slate-100 dark:bg-slate-800 rounded text-xs text-slate-600 dark:text-slate-400 font-mono">
               <p className="font-semibold mb-1">Error details (for support):</p>
-              <p className="break-words">{error}</p>
+              <p className="break-words"><ErrorText text={error} /></p>
             </div>
           )}
         </div>

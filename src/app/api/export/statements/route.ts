@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { exportFinancialStatementWord } from "@/lib/export-service";
 import { api } from "@/lib/convex/http";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
+import { apiErrorBody } from "@/lib/friendly-error";
 
 async function handlePOST(request: NextRequest) {
   try {
@@ -17,18 +18,14 @@ async function handlePOST(request: NextRequest) {
       !statement_type ||
       !["balance_sheet", "pnl", "tax_summary"].includes(statement_type)
     ) {
-      return NextResponse.json(
-        {
-          error:
-            "Invalid statement_type. Must be balance_sheet, pnl, or tax_summary",
+      return NextResponse.json({ ...apiErrorBody("Invalid statement_type. Must be balance_sheet, pnl, or tax_summary"),
         },
         { status: 400 },
       );
     }
 
     if (!tax_year) {
-      return NextResponse.json(
-        { error: "tax_year is required for statement export" },
+      return NextResponse.json({ ...apiErrorBody("tax_year is required for statement export") },
         { status: 400 },
       );
     }
@@ -80,10 +77,10 @@ async function handlePOST(request: NextRequest) {
     });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     console.error("Error in /api/export/statements:", error);
-    return NextResponse.json({ error: "Export failed" }, { status: 500 });
+    return NextResponse.json({ ...apiErrorBody("Export failed") }, { status: 500 });
   }
 }
 

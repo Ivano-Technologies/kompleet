@@ -9,6 +9,7 @@ import {
   isUnauthorized,
   requireAuthedConvex,
 } from "@/lib/convex/server";
+import { apiErrorBody, friendlyErrorBody } from "@/lib/friendly-error";
 
 async function handlePOST(request: NextRequest) {
   try {
@@ -18,8 +19,7 @@ async function handlePOST(request: NextRequest) {
     const parsed = createInvoiceSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Invalid input", details: parsed.error.flatten() },
+      return NextResponse.json({ ...apiErrorBody("Invalid input"), details: parsed.error.flatten() },
         { status: 400 },
       );
     }
@@ -71,20 +71,12 @@ async function handlePOST(request: NextRequest) {
     );
   } catch (error: any) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
-    console.error("Error creating invoice:", error);
-    const message =
-      error?.message ||
-      error?.error_description ||
-      (typeof error === "string" ? error : "Failed to create invoice");
-    const code = error?.code;
     return NextResponse.json(
-      {
-        error: message,
-        details: error?.details,
-        ...(code ? { code } : {}),
-      },
+      friendlyErrorBody(error, "We couldn't create this invoice. Please try again.", {
+        context: "invoices:create",
+      }),
       { status: 500 },
     );
   }

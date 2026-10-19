@@ -11,6 +11,7 @@ import {
   isUnauthorized,
   requireAuthedConvex,
 } from "@/lib/convex/server";
+import { toFriendlyError, apiErrorBody } from "@/lib/friendly-error";
 
 const changePasswordSchema = z
   .object({
@@ -33,8 +34,7 @@ async function handlePOST(request: NextRequest) {
     const parsed = changePasswordSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Invalid input", details: parsed.error.flatten() },
+      return NextResponse.json({ ...apiErrorBody("Invalid input"), details: parsed.error.flatten() },
         { status: 400 },
       );
     }
@@ -50,12 +50,11 @@ async function handlePOST(request: NextRequest) {
     });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     console.error("[Change Password Error]", error);
-    const message =
-      error instanceof Error ? error.message : "Internal server error";
-    return NextResponse.json({ error: message }, { status: 400 });
+    const { message, ref } = toFriendlyError(error);
+    return NextResponse.json({ error: message, ref }, { status: 400 });
   }
 }
 

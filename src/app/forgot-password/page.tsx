@@ -16,6 +16,16 @@ import {
   AUTH_TITLE_BLOCK,
 } from '@/components/layout/auth-density';
 import { ArrowLeft, KeyRound, Mail } from 'lucide-react';
+import {
+  generateRef,
+  isNetworkError,
+  normalizeEmail,
+  withRef,
+} from '@/lib/friendly-error';
+import { ErrorText } from '@/components/ui/error-ref';
+
+const NETWORK_ERROR_MESSAGE =
+  "We couldn't send the code. Check your connection and try again.";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -29,12 +39,23 @@ export default function ForgotPasswordPage() {
     setLoading(true);
     setError(null);
 
+    const normalizedEmail = normalizeEmail(email);
+    setEmail(normalizedEmail);
+
     try {
-      await signIn('password', { email, flow: 'reset' });
+      await signIn('password', { email: normalizedEmail, flow: 'reset' });
       setSuccess(true);
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to send reset email';
-      setError(errorMessage);
+      // Log the raw error with a ref; never show raw error text.
+      const ref = generateRef();
+      console.error(`[friendly-error] ref=${ref} context=forgot-password`, err);
+      if (isNetworkError(err)) {
+        setError(withRef(NETWORK_ERROR_MESSAGE, ref));
+      } else {
+        // Unknown accounts (InvalidAccountId) and other server errors get the
+        // same neutral response so we never reveal whether an account exists.
+        setSuccess(true);
+      }
     } finally {
       setLoading(false);
     }
@@ -89,7 +110,7 @@ export default function ForgotPasswordPage() {
 
       {error && (
         <div className={AUTH_ERROR}>
-          {error}
+          <ErrorText text={error} />
         </div>
       )}
 

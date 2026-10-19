@@ -2,8 +2,16 @@ import Link from "next/link";
 import { Home } from "lucide-react";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
+import { getConvexAccessToken } from "@/lib/auth/session";
+import { ErrorRef } from "@/components/ui/error-ref";
+import { generateRef } from "@/lib/friendly-error";
 
-export default function NotFound() {
+export default async function NotFound() {
+  // One action only: dashboard when signed in, home otherwise.
+  const signedIn = Boolean(await getConvexAccessToken().catch(() => null));
+  const ref = generateRef();
+  console.warn(`[friendly-error] ref=${ref} context=page:404`);
+
   return (
     <div data-marketing className="flex min-h-screen flex-col bg-bg text-text-1">
       <LandingNav />
@@ -14,26 +22,21 @@ export default function NotFound() {
           </div>
           <div className="-mt-8 space-y-3">
             <h1 className="font-display text-3xl font-bold text-text-1 dark:text-dark-text-1">
-              Page Not Found
+              Page not found
             </h1>
             <p className="text-sm text-text-3 dark:text-dark-text-3 max-w-sm">
               The page you&apos;re looking for doesn&apos;t exist or has been
-              moved. Head back to the homepage or your dashboard.
+              moved.
             </p>
+            <ErrorRef value={ref} />
           </div>
           <div className="flex items-center gap-3 pt-2">
             <Link
-              href="/"
+              href={signedIn ? "/dashboard" : "/"}
               className="flex items-center gap-2 rounded-md bg-accent px-6 py-3 text-sm font-bold text-charcoal hover:bg-accent-hover"
             >
               <Home className="w-4 h-4" />
-              Back to Home
-            </Link>
-            <Link
-              href="/dashboard"
-              className="bg-transparent border-2 border-border dark:border-dark-border text-text-2 dark:text-dark-text-2 font-semibold text-sm px-6 py-3 rounded-md hover:border-primary hover:text-primary transition-all"
-            >
-              Go to Dashboard
+              {signedIn ? "Go to dashboard" : "Go home"}
             </Link>
           </div>
         </div>

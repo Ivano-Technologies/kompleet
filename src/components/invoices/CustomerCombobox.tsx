@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { INV_COPY } from "./invoice-copy";
 import type { ClientProfile } from "@/lib/invoices/profiles";
+import { toFriendlyMessage, userFacingError } from "@/lib/friendly-error";
+import { ErrorText } from "@/components/ui/error-ref";
 
 export type InvoiceClient = ClientProfile;
 
@@ -67,7 +69,7 @@ export function CustomerCombobox({
         error?: string;
       };
       if (!response.ok || !body.client) {
-        throw new Error(body.error || "Failed to create client");
+        throw userFacingError(body, "We couldn't create this client. Please try again.");
       }
       const created = body.client;
       onCreated(created);
@@ -79,7 +81,7 @@ export function CustomerCombobox({
       setNewAddress1("");
       setNewCity("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create client");
+      setError(toFriendlyMessage(err, "We couldn't create this client. Please try again."));
     } finally {
       setSaving(false);
     }
@@ -168,7 +170,7 @@ export function CustomerCombobox({
                   className="mt-1 w-full px-3 py-2 text-sm rounded-md border border-border bg-surface text-text-1"
                 />
               </label>
-              {error && <p className="text-xs text-error">{error}</p>}
+              {error && <p className="text-xs text-error"><ErrorText text={error} /></p>}
               <button
                 type="button"
                 className="btn-secondary text-sm px-3 py-1.5"

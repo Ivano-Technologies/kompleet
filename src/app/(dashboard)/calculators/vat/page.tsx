@@ -30,6 +30,9 @@ import {
   type VatObligationStatus,
 } from "@/lib/tax/rule-loader";
 import type { LoadedRule, RuleBundle } from "@/lib/tax/types";
+import { useErrorRef } from "@/hooks/use-error-ref";
+import { withRef, friendlyWithNewRef } from "@/lib/friendly-error";
+import { ErrorRef, ErrorText } from "@/components/ui/error-ref";
 
 interface VATResult {
   /** Rent-schedule exemption only — never SME registration/filing assertion. */
@@ -92,17 +95,17 @@ export default function VATCalculatorPage() {
     : [];
   const rulesUnavailable =
     !rulesLoading && (!!rulesError || !rules || missingRuleKeys.length > 0);
+  const rulesRef = useErrorRef(rulesUnavailable, "calculators:vat", {
+    missingRuleKeys,
+    rulesError,
+  }, typeof rulesError === "string" ? rulesError : null);
 
   const calculateVAT = () => {
     setError("");
     setResult(null);
 
     if (!rules || missingRuleKeys.length > 0) {
-      setError(
-        `Tax rules unavailable — cannot calculate VAT. Missing rule(s): ${
-          missingRuleKeys.length > 0 ? missingRuleKeys.join(", ") : "vat.*"
-        }. Please try again later or contact support.`,
-      );
+      setError(withRef("Tax rules aren't available right now, so we can't calculate VAT. Please try again later or contact support.", rulesRef));
       return;
     }
 
@@ -111,23 +114,23 @@ export default function VATCalculatorPage() {
     const assetsNum = parseFloat(totalAssets || "0");
 
     if (isNaN(amountNum) || amountNum < 0) {
-      setError("Please enter a valid amount");
+      setError("Enter an amount greater than 0, using numbers only.");
       return;
     }
 
     if (isNaN(turnoverNum) || turnoverNum < 0) {
-      setError("Please enter a valid turnover amount");
+      setError("Enter your annual turnover in naira, using numbers only.");
       return;
     }
 
     if (isNaN(assetsNum) || assetsNum < 0) {
-      setError("Please enter a valid total assets amount");
+      setError("Enter your total assets in naira, using numbers only.");
       return;
     }
 
     const ratePercent = rules.standard_rate.value.rate;
     if (typeof ratePercent !== "number") {
-      setError("VAT standard_rate rule is malformed — calculation blocked.");
+      setError(withRef("Tax rules aren't available right now, so we can't calculate VAT. Please try again later or contact support.", rulesRef));
       return;
     }
     const VAT_RATE = ratePercent / 100;
@@ -138,9 +141,7 @@ export default function VATCalculatorPage() {
     let exemptionReason: string | null = null;
     if (isRentTransaction) {
       if (!rules.rent_exemption?.value?.exempt) {
-        setError(
-          "Rent exemption rule unavailable — cannot treat this as exempt without a verified schedule entry.",
-        );
+        setError(friendlyWithNewRef("We can't treat this rent as VAT exempt yet because the exemption rule hasn't been verified. Please try again later or contact support.", "calculators:vat:rent-exemption"));
         return;
       }
       isRentExempt = true;
@@ -228,10 +229,9 @@ export default function VATCalculatorPage() {
           >
             <InfoIcon className="h-4 w-4" />
             <AlertDescription>
-              {rulesError
-                ? `Failed to load tax rules: ${rulesError}.`
-                : `Required VAT rules are unavailable (${missingRuleKeys.join(", ") || "vat.*"}).`}{" "}
+              Tax rules aren&apos;t available right now.{" "}
               Calculation is disabled until this is resolved.
+              <ErrorRef value={rulesRef} />
             </AlertDescription>
           </Alert>
         )}
@@ -384,7 +384,7 @@ export default function VATCalculatorPage() {
                   variant="destructive"
                   className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-900/30 text-red-700 dark:text-red-300"
                 >
-                  <AlertDescription>{error}</AlertDescription>
+                  <AlertDescription><ErrorText text={error} /></AlertDescription>
                 </Alert>
               )}
             </CardContent>
@@ -421,7 +421,7 @@ export default function VATCalculatorPage() {
                         Registration / filing obligation
                       </p>
                       <p className="text-light-text-secondary dark:text-dark-text-secondary">
-                        Unverified — three mutually exclusive threshold
+                        Unverified. Three mutually exclusive threshold
                         candidates are under review. VAT amount calculation
                         still uses the 7.5% rate; this calculator will not
                         assert whether you must register or file.
@@ -476,7 +476,7 @@ export default function VATCalculatorPage() {
                               {c.assetsThresholdNgn != null
                                 ? ` / assets ₦${c.assetsThresholdNgn.toLocaleString("en-NG")}`
                                 : ""}{" "}
-                              — {c.resultUnderThisCandidate}
+                              : {c.resultUnderThisCandidate}
                             </li>
                           ))}
                         </ul>
@@ -606,7 +606,7 @@ export default function VATCalculatorPage() {
               This calculator applies the Nigeria Tax Act 2025 VAT{" "}
               <em>rate</em> from the rules engine. Registration and filing
               obligation thresholds are disputed across sources and are shown
-              as unverified candidates — they do not change the VAT amount.
+              as unverified candidates. They do not change the VAT amount.
             </p>
             <p>
               <strong>Data Source:</strong> Nigeria Revenue Service (NRS),

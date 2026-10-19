@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { DocsEmptyHint } from "./DocsEmptyHint";
 import { DOCS_ACCEPT, DOCS_COPY } from "./docs-copy";
 import { rejectDocsFile } from "./file-kind";
+import { ErrorText } from "@/components/ui/error-ref";
 
 export type FileDropVariant = "hero" | "strip" | "compact";
 
@@ -171,7 +172,7 @@ export function FileDropZone({
         )}
       </div>
       {isHero && resolvedHint && <div className="mt-4">{resolvedHint}</div>}
-      {error && <p className="mt-2 text-sm text-error">{error}</p>}
+      {error && <p className="mt-2 text-sm text-error"><ErrorText text={error} /></p>}
     </div>
   );
 }

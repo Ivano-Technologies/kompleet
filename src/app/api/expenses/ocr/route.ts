@@ -9,6 +9,7 @@ import { logger } from "@/lib/logger";
 import { parseReceiptText } from "@/lib/expense-ocr/parse-receipt-text";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
+import { friendlyErrorBody, apiErrorBody } from "@/lib/friendly-error";
 
 async function handlePOST(request: NextRequest) {
   try {
@@ -17,8 +18,7 @@ async function handlePOST(request: NextRequest) {
     };
     const imageBase64 = body?.imageBase64;
     if (!imageBase64 || typeof imageBase64 !== "string") {
-      return NextResponse.json(
-        { error: "Missing or invalid imageBase64" },
+      return NextResponse.json({ ...apiErrorBody("Missing or invalid imageBase64") },
         { status: 400 },
       );
     }
@@ -27,8 +27,7 @@ async function handlePOST(request: NextRequest) {
 
     const buffer = Buffer.from(imageBase64, "base64");
     if (buffer.length === 0) {
-      return NextResponse.json(
-        { error: "Invalid base64 image" },
+      return NextResponse.json({ ...apiErrorBody("Invalid base64 image") },
         { status: 400 },
       );
     }
@@ -51,14 +50,14 @@ async function handlePOST(request: NextRequest) {
     });
   } catch (err) {
     if (isUnauthorized(err)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     logger.error("OCR error", {
       error: err instanceof Error ? err.message : String(err),
       operation: "expenses/ocr",
     });
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "OCR failed" },
+      { ...friendlyErrorBody(err, "We couldn't read this receipt. Please try again.") },
       { status: 500 },
     );
   }

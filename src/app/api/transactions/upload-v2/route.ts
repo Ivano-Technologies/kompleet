@@ -27,6 +27,7 @@ import {
   classifyImportFailure,
   type ImportErrorCode,
 } from "@/lib/transaction-import/import-errors";
+import { apiErrorBody, toFriendlyError, userFacingError } from "@/lib/friendly-error";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -59,9 +60,7 @@ async function handlePOST(request: NextRequest) {
     const password = (formData.get("password") as string)?.trim() || undefined;
 
     if (!file) {
-      return NextResponse.json(
-        {
-          error: "No file provided",
+      return NextResponse.json({ ...apiErrorBody("No file provided"),
           ...errorPayload({ errorCode: "ERR_UPLOAD", error: "No file provided" }),
         },
         { status: 400 },
@@ -69,9 +68,7 @@ async function handlePOST(request: NextRequest) {
     }
 
     if (!bankCode || !isValidBankCode(bankCode)) {
-      return NextResponse.json(
-        {
-          error: "Invalid bank code",
+      return NextResponse.json({ ...apiErrorBody("Invalid bank code"),
           ...errorPayload({
             errorCode: "ERR_BANK_UNKNOWN",
             requestedBankCode: bankCode,
@@ -83,9 +80,7 @@ async function handlePOST(request: NextRequest) {
     }
 
     if (file.size > MAX_FILE_SIZE) {
-      return NextResponse.json(
-        {
-          error: `File size exceeds maximum of ${MAX_FILE_SIZE / 1024 / 1024}MB`,
+      return NextResponse.json({ ...apiErrorBody(`File size exceeds maximum of ${MAX_FILE_SIZE / 1024 / 1024}MB`),
           ...errorPayload({
             clientKind: "size",
             requestedBankCode: bankCode,
@@ -100,10 +95,7 @@ async function handlePOST(request: NextRequest) {
     try {
       fileType = detectFileType(file.name, file.type);
     } catch {
-      return NextResponse.json(
-        {
-          error:
-            "Unsupported file type. Please upload CSV, Excel, or PDF files.",
+      return NextResponse.json({ ...apiErrorBody("Unsupported file type. Please upload CSV, Excel, or PDF files."),
           ...errorPayload({
             clientKind: "unsupported",
             requestedBankCode: bankCode,
@@ -155,10 +147,7 @@ async function handlePOST(request: NextRequest) {
             externalId: session.id,
             status: "failed",
           });
-          return NextResponse.json(
-            {
-              error:
-                "This file is password-protected. Please provide the password.",
+          return NextResponse.json({ ...apiErrorBody("This file is password-protected. Please provide the password."),
               requiresPassword: true,
               ...errorPayload({
                 errorCode: "ERR_PASSWORD",
@@ -196,7 +185,12 @@ async function handlePOST(request: NextRequest) {
         const detectedBankCode = parseResult.detectedBankCode ?? null;
         return NextResponse.json(
           {
-            error: firstError?.errorMessage || "No valid transactions found",
+            ...apiErrorBody(
+              userFacingError(
+                firstError?.errorMessage,
+                "We couldn't find any transactions in this file. Check it's a bank statement and try again.",
+              ).message,
+            ),
             errors: parseResult.errors,
             parseErrorType: firstError?.errorType,
             ...errorPayload({
@@ -316,14 +310,17 @@ async function handlePOST(request: NextRequest) {
         externalId: session.id,
         status: "failed",
       });
-      const errMsg = error instanceof Error ? error.message : "Unknown error";
+      // Raw text is only used to classify the failure, never returned.
+      const rawMsg = error instanceof Error ? error.message : "Unknown error";
+      const { message: errMsg, ref } = toFriendlyError(error, "Import didn't complete. Please try again.");
       return NextResponse.json(
         {
           error: errMsg,
+          ref,
           message: errMsg,
           ...errorPayload({
             status: 500,
-            error: errMsg,
+            error: rawMsg,
             requestedBankCode: bankCode,
             fileName: file.name,
           }),
@@ -333,9 +330,7 @@ async function handlePOST(request: NextRequest) {
     }
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json(
-        {
-          error: "Please sign in to upload bank statements",
+      return NextResponse.json({ ...apiErrorBody("Please sign in to upload bank statements"),
           message: "Unauthorized",
           ...errorPayload({ status: 401, error: "Unauthorized" }),
         },
@@ -343,10 +338,11 @@ async function handlePOST(request: NextRequest) {
       );
     }
     console.error("Upload error:", error);
-    const message = error instanceof Error ? error.message : "Import didn’t complete";
+    const { message, ref } = toFriendlyError(error, "Import didn't complete. Please try again.");
     return NextResponse.json(
       {
         error: message,
+        ref,
         message,
         ...errorPayload({ status: 500, error: message }),
       },

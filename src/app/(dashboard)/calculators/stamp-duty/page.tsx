@@ -13,6 +13,10 @@ import {
   FileDigit,
 } from "lucide-react";
 import { generateCalculationPDF } from "@/lib/pdf-generator";
+import { useErrorRef } from "@/hooks/use-error-ref";
+import { withRef } from "@/lib/friendly-error";
+import { ErrorRef } from "@/components/ui/error-ref";
+import { notifyError } from "@/components/ui/error-toast";
 
 interface StampDutyResult {
   transactionType: string;
@@ -49,6 +53,10 @@ export default function StampDutyCalculator() {
   );
   const rulesUnavailable =
     !rulesLoading && (!!rulesError || missingRuleKeys.length > 0);
+  const rulesRef = useErrorRef(rulesUnavailable, "calculators:stamp-duty", {
+    missingRuleKeys,
+    rulesError,
+  }, typeof rulesError === "string" ? rulesError : null);
 
   useEffect(() => {
     const fetchRules = async () => {
@@ -75,21 +83,17 @@ export default function StampDutyCalculator() {
 
   const calculateStampDuty = () => {
     if (rulesUnavailable) {
-      alert(
-        `Tax rules unavailable — cannot calculate stamp duty. Missing rule(s): ${
-          missingRuleKeys.length > 0 ? missingRuleKeys.join(", ") : "stamp_duty.*"
-        }.`,
-      );
+      notifyError(withRef("Tax rules aren't available right now, so we can't calculate stamp duty. Please try again later or contact support.", rulesRef));
       return;
     }
 
     if (!amount) {
-      alert("Please enter an amount");
+      notifyError("Enter the transaction amount in naira (for example 500000).");
       return;
     }
 
     if (transactionType === "lease" && !leaseDuration) {
-      alert("Please enter lease duration");
+      notifyError("Enter the lease duration in years (for example 2).");
       return;
     }
 
@@ -137,7 +141,7 @@ export default function StampDutyCalculator() {
       logCalculation(calculationResult);
     } catch (error) {
       console.error("Calculation error:", error);
-      alert("Error calculating stamp duty");
+      notifyError("We couldn't calculate stamp duty. Check the values and try again.");
     } finally {
       setLoading(false);
     }
@@ -211,10 +215,9 @@ export default function StampDutyCalculator() {
         >
           <InfoIcon className="h-4 w-4" />
           <AlertDescription>
-            {rulesError
-              ? `Failed to load tax rules: ${rulesError}.`
-              : `Required stamp duty rules are unavailable (${missingRuleKeys.join(", ") || "stamp_duty.*"}).`}{" "}
+            Tax rules aren&apos;t available right now.{" "}
             Calculation is disabled until this is resolved.
+              <ErrorRef value={rulesRef} />
           </AlertDescription>
         </Alert>
       )}
@@ -308,7 +311,7 @@ export default function StampDutyCalculator() {
                 {rules.lease_rate_short?.value?.rate != null &&
                 rules.lease_rate_long?.value?.rate != null
                   ? `≤7 years: ${rules.lease_rate_short.value.rate}% rate | >7 years: ${rules.lease_rate_long.value.rate}% rate`
-                  : "Lease rates unavailable — tax rules not loaded"}
+                  : "Lease rates aren't available right now"}
               </p>
             </div>
           )}

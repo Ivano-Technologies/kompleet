@@ -128,8 +128,8 @@ describe("IVA-86 §4 favicon HTML metadata", () => {
 
 describe("IVA-86 §5 quiet non-blocking 500s", () => {
   it("warns on duplicates and forms list without replacing the shell", () => {
-    expect(quiet).toMatch(/Couldn’t load duplicates — try again/);
-    expect(quiet).toMatch(/Couldn’t load forms — try again/);
+    expect(quiet).toMatch(/Couldn’t load duplicates. Try again./);
+    expect(quiet).toMatch(/Couldn’t load forms. Try again./);
     expect(quiet).toMatch(/Retry/);
     expect(quiet).toMatch(/Unavailable right now/);
     expect(quiet).toMatch(/AlertTriangle/);

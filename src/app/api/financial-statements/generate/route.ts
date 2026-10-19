@@ -16,6 +16,7 @@ import { MissingTaxRuleError } from "@/lib/tax/errors";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 import { listStatementTransactions } from "@/lib/convex/statement-txns";
+import { friendlyErrorBody, apiErrorBody } from "@/lib/friendly-error";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,8 +28,7 @@ async function handlePOST(request: NextRequest) {
     const { startDate, endDate, entityType, annualTurnover, format } = body;
 
     if (!startDate || !endDate) {
-      return NextResponse.json(
-        { error: "Missing startDate or endDate" },
+      return NextResponse.json({ ...apiErrorBody("Missing startDate or endDate") },
         { status: 400 },
       );
     }
@@ -39,8 +39,7 @@ async function handlePOST(request: NextRequest) {
     });
 
     if (transactions.length === 0) {
-      return NextResponse.json(
-        { error: "No transactions found for the specified period" },
+      return NextResponse.json({ ...apiErrorBody("No transactions found for the specified period") },
         { status: 404 },
       );
     }
@@ -77,14 +76,13 @@ async function handlePOST(request: NextRequest) {
     });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     console.error("Generate financial statements error:", error);
     if (error instanceof MissingTaxRuleError) {
-      return NextResponse.json({ error: error.message }, { status: 422 });
+      return NextResponse.json({ ...friendlyErrorBody(error) }, { status: 422 });
     }
-    return NextResponse.json(
-      { error: "Failed to generate financial statements" },
+    return NextResponse.json({ ...apiErrorBody("Failed to generate financial statements") },
       { status: 500 },
     );
   }

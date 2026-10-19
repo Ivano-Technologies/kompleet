@@ -8,6 +8,7 @@ import {
   exportTransactionsCSV,
   exportTransactionsExcel,
 } from "@/lib/export-service";
+import { apiErrorBody } from "@/lib/friendly-error";
 
 interface ExportBody {
   format?: string;
@@ -22,8 +23,7 @@ async function handlePOST(request: NextRequest) {
     const { format, tax_year } = body;
 
     if (!format || (format !== "csv" && format !== "excel")) {
-      return NextResponse.json(
-        { error: "Invalid format. Must be csv or excel" },
+      return NextResponse.json({ ...apiErrorBody("Invalid format. Must be csv or excel") },
         { status: 400 },
       );
     }
@@ -92,10 +92,10 @@ async function handlePOST(request: NextRequest) {
     });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     console.error("Error in /api/export/transactions:", error);
-    return NextResponse.json({ error: "Export failed" }, { status: 500 });
+    return NextResponse.json({ ...apiErrorBody("Export failed") }, { status: 500 });
   }
 }
 

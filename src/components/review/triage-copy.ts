@@ -22,8 +22,8 @@ export const TRIAGE_COPY = {
   pickerEmpty: "No categories match",
   pickerManage: "Manage categories…",
   loading: "Loading exceptions…",
-  loadError: "Couldn’t load exceptions — try again",
-  actionError: "Couldn’t save that change — try again",
-  undoError: "Couldn’t undo — try again",
+  loadError: "Couldn’t load exceptions. Try again.",
+  actionError: "Couldn’t save that change. Try again.",
+  undoError: "Couldn’t undo. Try again.",
   unavailable: "Unavailable right now",
 } as const;

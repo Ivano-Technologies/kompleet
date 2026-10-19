@@ -26,6 +26,13 @@ import { withRateLimit } from "@/lib/with-rate-limit";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 import { rethrowIfNextControlFlow } from "@/lib/next-control-flow";
 import { IngestionRequest } from "@/lib/ingestion/types";
+import { apiErrorBody, friendlyErrorBody } from "@/lib/friendly-error";
+
+/** `{ message, ref }` error body; logs the ref on the server. */
+function messageBody(text: string) {
+  const { error, ref } = apiErrorBody(text);
+  return { message: error, ref };
+}
 
 async function handlePOST(request: NextRequest) {
   try {
@@ -38,7 +45,7 @@ async function handlePOST(request: NextRequest) {
 
     if (!file) {
       return NextResponse.json(
-        { success: false, message: "No file provided" },
+        { success: false, ...messageBody("No file provided") },
         { status: 400 },
       );
     }
@@ -48,7 +55,7 @@ async function handlePOST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          message: `File size exceeds 100 MB limit (${(file.size / 1024 / 1024).toFixed(2)} MB)`,
+          ...messageBody(`File size exceeds 100 MB limit (${(file.size / 1024 / 1024).toFixed(2)} MB)`),
         },
         { status: 400 },
       );
@@ -76,8 +83,7 @@ async function handlePOST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          message:
-            "This file is password-protected. Please provide the password.",
+          ...messageBody("This file is password-protected. Please provide the password."),
           requiresPassword: true,
         },
         { status: 400 },
@@ -89,7 +95,7 @@ async function handlePOST(request: NextRequest) {
     rethrowIfNextControlFlow(error);
     if (isUnauthorized(error)) {
       return NextResponse.json(
-        { success: false, message: "Unauthorized" },
+        { success: false, ...messageBody("Unauthorized") },
         { status: 401 },
       );
     }
@@ -98,15 +104,14 @@ async function handlePOST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        message: `Ingestion failed: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`,
+        ...(({ error: message, ref }) => ({ message, ref }))(
+          friendlyErrorBody(error, "We couldn't process this file. Please try again."),
+        ),
         errors: [
           {
             rowNumber: 0,
             errorType: "SERVER_ERROR",
-            errorMessage:
-              error instanceof Error ? error.message : "Unknown error",
+            errorMessage: "We couldn't process this file. Please try again.",
           },
         ],
       },
@@ -123,16 +128,16 @@ export async function POST(request: NextRequest, context?: unknown) {
     rethrowIfNextControlFlow(error);
     if (isUnauthorized(error)) {
       return NextResponse.json(
-        { success: false, message: "Unauthorized" },
+        { success: false, ...messageBody("Unauthorized") },
         { status: 401 },
       );
     }
     return NextResponse.json(
       {
         success: false,
-        message: `Ingestion failed: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`,
+        ...(({ error: message, ref }) => ({ message, ref }))(
+          friendlyErrorBody(error, "We couldn't process this file. Please try again."),
+        ),
       },
       { status: 500 },
     );

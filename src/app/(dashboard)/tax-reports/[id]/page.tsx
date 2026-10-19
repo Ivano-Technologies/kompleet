@@ -10,6 +10,8 @@ import {
   AlertTriangle,
   Info,
 } from "lucide-react";
+import { notifyError } from "@/components/ui/error-toast";
+import { responseError, toFriendlyMessage } from "@/lib/friendly-error";
 
 interface TaxReport {
   id: string;
@@ -73,12 +75,11 @@ export default function TaxReportDetailPage() {
           paid_at: newStatus === "paid" ? new Date().toISOString() : undefined,
         }),
       });
-      if (!response.ok) throw new Error("Failed to update status");
+      if (!response.ok) throw await responseError(response, "We couldn't update the status. Please try again.");
       const data = await response.json();
       setReport(data.report);
     } catch (error) {
-      console.error("Error updating status:", error);
-      alert("Failed to update status");
+      notifyError(toFriendlyMessage(error, "We couldn't update the status. Please try again.", { context: "tax-reports:status" }));
     } finally {
       setUpdating(false);
     }
@@ -137,7 +138,7 @@ export default function TaxReportDetailPage() {
               Tax Report {report.tax_year}
             </h1>
             <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mt-1">
-              {formatDate(report.period_start)} –{" "}
+              {formatDate(report.period_start)} to{" "}
               {formatDate(report.period_end)}
             </p>
           </div>
@@ -177,7 +178,7 @@ export default function TaxReportDetailPage() {
           Nigeria Tax Act 2025
         </p>
         <p className="text-light-text-secondary dark:text-dark-text-secondary">
-          Tax Year {report.tax_year} | {formatDate(report.period_start)} –{" "}
+          Tax Year {report.tax_year} | {formatDate(report.period_start)} to{" "}
           {formatDate(report.period_end)}
         </p>
       </div>

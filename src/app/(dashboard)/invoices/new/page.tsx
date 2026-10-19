@@ -20,6 +20,8 @@ import { INV_COPY } from "@/components/invoices/invoice-copy";
 import { BIZ_COPY } from "@/components/settings/profile-copy";
 import { hasLegalName, type BusinessProfile } from "@/lib/invoices/profiles";
 import { onBusinessProfileChanged } from "@/lib/invoices/profile-events";
+import { UserFacingError, apiErrorMessage, toFriendlyMessage, userFacingError } from "@/lib/friendly-error";
+import { ErrorText } from "@/components/ui/error-ref";
 
 export default function NewInvoicePage() {
   const router = useRouter();
@@ -65,7 +67,7 @@ export default function NewInvoicePage() {
         if (cancelled) return;
         if (!response.ok) {
           const body = await response.json().catch(() => ({}));
-          setError(body?.error || "Failed to load clients");
+          setError(apiErrorMessage(body, "We couldn't load your clients. Please try again."));
           return;
         }
         const body = (await response.json()) as {
@@ -84,7 +86,7 @@ export default function NewInvoicePage() {
         }
       } catch (err: unknown) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : "Failed to load clients");
+          setError(toFriendlyMessage(err, "We couldn't load your clients. Please try again."));
         }
       }
     };
@@ -163,19 +165,19 @@ export default function NewInvoicePage() {
     }
 
     if (lineItems.length === 0) {
-      errors.push("At least one line item is required");
+      errors.push("Add at least one line item.");
     }
 
     for (let i = 0; i < lineItems.length; i++) {
       const item = lineItems[i];
       if (!item.description.trim()) {
-        errors.push(`Line item ${i + 1}: Description is required`);
+        errors.push(`Line item ${i + 1}: add a description`);
       }
       if (item.quantity <= 0) {
-        errors.push(`Line item ${i + 1}: Quantity must be greater than 0`);
+        errors.push(`Line item ${i + 1}: enter a quantity greater than 0`);
       }
       if (item.unit_price < 0) {
-        errors.push(`Line item ${i + 1}: Unit price cannot be negative`);
+        errors.push(`Line item ${i + 1}: enter a unit price of 0 or more`);
       }
       if (discountTooBig(item)) {
         errors.push(`Line item ${i + 1}: ${DISCOUNT_TOO_BIG}`);
@@ -189,7 +191,7 @@ export default function NewInvoicePage() {
   const saveDraft = async () => {
     const errors = validateForm(false);
     if (errors.length > 0) {
-      setError(errors.join(". "));
+      setError(errors.map((e) => e.replace(/\.?$/, ".")).join(" "));
       return;
     }
 
@@ -216,13 +218,13 @@ export default function NewInvoicePage() {
 
       if (!response.ok) {
         const body = await response.json().catch(() => ({}));
-        throw new Error(body?.error || "Failed to create invoice");
+        throw userFacingError(body, "We couldn't create this invoice. Please try again.");
       }
 
       const { invoice_id } = await response.json();
       router.push(`/invoices/${invoice_id}`);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(toFriendlyMessage(err, "We couldn't save this invoice. Please try again."));
     } finally {
       setLoading(false);
     }
@@ -232,7 +234,7 @@ export default function NewInvoicePage() {
   const issueInvoice = async () => {
     const errors = validateForm(true);
     if (errors.length > 0) {
-      setError(errors.join(". "));
+      setError(errors.map((e) => e.replace(/\.?$/, ".")).join(" "));
       return;
     }
 
@@ -260,7 +262,7 @@ export default function NewInvoicePage() {
 
       if (!createResponse.ok) {
         const body = await createResponse.json().catch(() => ({}));
-        throw new Error(body?.error || "Failed to create invoice");
+        throw userFacingError(body, "We couldn't create this invoice. Please try again.");
       }
 
       const { invoice_id } = await createResponse.json();
@@ -272,12 +274,12 @@ export default function NewInvoicePage() {
       });
 
       if (!issueResponse.ok) {
-        throw new Error("Failed to issue invoice");
+        throw new UserFacingError("We couldn't issue this invoice. Please try again.");
       }
 
       router.push(`/invoices/${invoice_id}`);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(toFriendlyMessage(err, "We couldn't save this invoice. Please try again."));
     } finally {
       setLoading(false);
     }
@@ -299,7 +301,7 @@ export default function NewInvoicePage() {
 
       {error && (
         <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/30 rounded-lg text-red-700 dark:text-red-400">
-          {error}
+          <ErrorText text={error} />
         </div>
       )}
 
