@@ -56,8 +56,9 @@ describe("IVA-80 app shell / nav IA", () => {
     }
   });
 
-  it("keeps wordmark-only branding and teal active tokens", () => {
-    expect(sidebar).toMatch(/BrandWordmark/);
+  it("keeps the V mark lockup branding and teal active tokens", () => {
+    expect(sidebar).toMatch(/BrandLockup/);
+    expect(sidebar).toMatch(/tone="inverse"/);
     expect(sidebar).not.toMatch(/logo\.png|next\/image/);
     expect(sidebar).toMatch(/bg-accent\/15 text-accent/);
     expect(sidebar).not.toMatch(/#C8F000|#E8A317|emoji/);

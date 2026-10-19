@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Terms of Service | KOMPLEET",
+  title: "Kompleet: Terms of Service",
   description:
-    "Terms of Service for KOMPLEET, the Nigerian tax compliance and financial management platform. Covers user responsibilities, disclaimers, and governing law.",
+    "Terms of Service for Kompleet, the bookkeeping and invoicing web app. Covers user responsibilities, disclaimers, and governing law.",
   alternates: { canonical: "/terms" },
 };
 
@@ -32,7 +32,7 @@ export default function TermsPage() {
               1. Agreement to Terms
             </h2>
             <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              Welcome to KOMPLEET, a Nigerian tax compliance platform operated
+              Welcome to KOMPLEET, a bookkeeping and invoicing platform operated
               by Ivano Technologies Ltd ("Company," "we," "us," or "our"). These
               Terms of Service ("Terms") govern your access to and use of our
               website, platform, and services (collectively, the "Services").
@@ -54,8 +54,8 @@ export default function TermsPage() {
               2. Description of Services
             </h2>
             <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              KOMPLEET provides tax compliance tools and calculators designed to
-              help individuals and businesses in Nigeria:
+              KOMPLEET provides bookkeeping, invoicing, and calculation tools
+              designed to help individuals and businesses in Nigeria:
             </p>
             <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
               <li>
@@ -68,7 +68,8 @@ export default function TermsPage() {
                 Access information about Nigerian tax laws and regulations
               </li>
               <li>
-                Comply with the Nigeria Tax Act 2025 and related legislation
+                Track income, expenses, and invoices, and export financial
+                reports
               </li>
             </ul>
             <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">

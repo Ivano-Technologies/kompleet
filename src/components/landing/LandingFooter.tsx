@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BrandWordmark } from "@/components/brand/BrandWordmark";
+import { BrandLockup } from "@/components/brand/BrandLockup";
 
 export default function LandingFooter() {
   return (
@@ -8,10 +8,10 @@ export default function LandingFooter() {
         <div className="mb-10 grid grid-cols-2 gap-8 md:grid-cols-5">
           <div className="col-span-2 md:col-span-1">
             <div className="mb-4">
-              <BrandWordmark size="sm" />
+              <BrandLockup size="sm" />
             </div>
             <p className="text-sm leading-relaxed text-text-2">
-              Tax compliance and financial management for Nigerian SMEs.
+              Simple bookkeeping and invoicing for Nigerian SMEs.
             </p>
           </div>
           <div>
