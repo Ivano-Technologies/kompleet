@@ -50,19 +50,19 @@ describe("IVA-185 subtotal is the sum of rounded line amounts", () => {
   const sumRows = (rows: Array<{ quantity: number; unit_price: number; vat_rate: number }>) =>
     Number(rows.reduce((acc, row) => acc + lineNetAmount(row), 0).toFixed(2));
 
-  it("1.5 x 33.33 twice: rows and Subtotal agree (99.98)", () => {
+  it("1.5 x 33.33 twice: rows and Subtotal agree, half-up (50.00 + 50.00 = 100.00)", () => {
     const rows = [
       { quantity: 1.5, unit_price: 33.33, vat_rate: 0 },
       { quantity: 1.5, unit_price: 33.33, vat_rate: 0 },
     ];
-    expect(rows.map(lineNetAmount)).toEqual([49.99, 49.99]);
+    expect(rows.map(lineNetAmount)).toEqual([50, 50]);
     const totals = totalsFromLines(rows);
-    expect(totals.subtotal).toBe(99.98);
+    expect(totals.subtotal).toBe(100);
     expect(sumRows(rows)).toBe(totals.subtotal);
-    expect(totals.total_amount).toBe(99.98);
+    expect(totals.total_amount).toBe(100);
   });
 
-  it("2.5 x 0.99 twice: rows and Subtotal agree (4.96)", () => {
+  it("2.5 x 0.99 twice: 2.475 rounds up to 2.48, Subtotal 4.96", () => {
     const rows = [
       { quantity: 2.5, unit_price: 0.99, vat_rate: 7.5 },
       { quantity: 2.5, unit_price: 0.99, vat_rate: 7.5 },
@@ -125,11 +125,11 @@ describe("IVA-185 displayTotals and API totals", () => {
         { quantity: 1.5, unit_price: 33.33, vat_rate: 0, amount: 49.995 },
       ],
     };
-    expect(displayTotals(invoice)).toEqual({ subtotal: 99.98, vat_amount: 0, total_amount: 99.98 });
+    expect(displayTotals(invoice)).toEqual({ subtotal: 100, vat_amount: 0, total_amount: 100 });
     const api = invoiceWithNetLineAmounts(invoice);
-    expect(api.subtotal).toBe(99.98);
-    expect(api.total_amount).toBe(99.98);
-    expect(api.amount_due).toBe(99.98);
+    expect(api.subtotal).toBe(100);
+    expect(api.total_amount).toBe(100);
+    expect(api.amount_due).toBe(100);
     expect(displayTotals({ subtotal: 10, vat_amount: 1, total_amount: 11, line_items: [] })).toEqual({
       subtotal: 10,
       vat_amount: 1,
@@ -137,3 +137,56 @@ describe("IVA-185 displayTotals and API totals", () => {
     });
   });
 });
+
+describe("IVA-185 half-up kobo rounding", () => {
+  it("rounds x.xx5 ties up, even where the float sits just below the tie", async () => {
+    const { halfUpUnits, roundMoney, toKobo } = await import("./line-amounts");
+    expect((1.5 * 33.33).toFixed(2)).toBe("49.99"); // the float noise toFixed used to trip on
+    expect(roundMoney(1.5 * 33.33)).toBe(50);
+    expect(roundMoney(2.5 * 0.99)).toBe(2.48);
+    expect(roundMoney(1.005)).toBe(1.01);
+    expect(roundMoney(1.015)).toBe(1.02);
+    expect(roundMoney(0.125)).toBe(0.13);
+    expect(roundMoney(10.235)).toBe(10.24);
+    expect(roundMoney(8.345)).toBe(8.35);
+    expect(roundMoney(1.0049)).toBe(1);
+    expect(roundMoney(0.004)).toBe(0);
+    expect(roundMoney(0.005)).toBe(0.01);
+    expect(roundMoney(-1.005)).toBe(-1.01);
+    expect(toKobo(49.995)).toBe(5000);
+    expect(halfUpUnits(37.5, 0)).toBe(38);
+    expect(halfUpUnits(37.49, 0)).toBe(37);
+  });
+
+  it("handles zero and empty input", async () => {
+    const { roundMoney, toKobo } = await import("./line-amounts");
+    expect(roundMoney(0)).toBe(0);
+    expect(toKobo(Number.NaN)).toBe(0);
+    expect(lineNetAmount({ quantity: 0, unit_price: 33.33, vat_rate: 7.5 })).toBe(0);
+    expect(lineNetAmount({ quantity: 3, unit_price: 0, vat_rate: 7.5 })).toBe(0);
+    expect(totalsFromLines([])).toEqual({ subtotal: 0, vat_amount: 0, discount_amount: 0, total_amount: 0 });
+  });
+
+  it("stays exact for large values", async () => {
+    const { roundMoney } = await import("./line-amounts");
+    expect(roundMoney(123456789.005)).toBe(123456789.01);
+    expect(roundMoney(999999999.995)).toBe(1000000000);
+    const rows = [
+      { quantity: 1000, unit_price: 9999999.99, vat_rate: 7.5 },
+      { quantity: 3.5, unit_price: 1234567.89, vat_rate: 7.5 },
+    ];
+    expect(rows.map(lineNetAmount)).toEqual([9999999990, 4320987.62]); // 4320987.615 rounds up
+    const totals = totalsFromLines(rows);
+    expect(totals.subtotal).toBe(10004320977.62);
+    // 7.5% of 1,000,432,097,762 kobo = 75,032,407,332.15 -> 75,032,407,332 kobo
+    expect(totals.vat_amount).toBe(750324073.32);
+    expect(totals.total_amount).toBe(10754645050.94);
+  });
+
+  it("VAT ties round up: 7.5% of 0.30 is 2.25 kobo -> 0.02, of 0.70 is 5.25 kobo -> 0.05, of 0.20 is 1.5 kobo -> 0.02", () => {
+    expect(totalsFromLines([{ quantity: 1, unit_price: 0.3, vat_rate: 7.5 }]).vat_amount).toBe(0.02);
+    expect(totalsFromLines([{ quantity: 1, unit_price: 0.7, vat_rate: 7.5 }]).vat_amount).toBe(0.05);
+    expect(totalsFromLines([{ quantity: 1, unit_price: 0.2, vat_rate: 7.5 }]).vat_amount).toBe(0.02);
+  });
+});
+

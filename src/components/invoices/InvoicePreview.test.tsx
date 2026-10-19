@@ -130,8 +130,8 @@ describe("IVA-185 InvoicePreview discount column and totals", () => {
     const table = screen.getByTestId("invoice-items");
     expect(table.querySelectorAll("thead th")).toHaveLength(4);
     expect(screen.queryByText("Discount")).toBeNull();
-    expect(screen.getByText("Subtotal").parentElement).toHaveTextContent("99.98");
-    expect(screen.getByTestId("invoice-total")).toHaveTextContent("99.98");
+    expect(screen.getByText("Subtotal").parentElement).toHaveTextContent("100.00");
+    expect(screen.getByTestId("invoice-total")).toHaveTextContent("100.00");
   });
 
   it("shows the Discount column when a line has a discount, and no Discount totals row", () => {
@@ -140,8 +140,8 @@ describe("IVA-185 InvoicePreview discount column and totals", () => {
     expect(table.querySelectorAll("thead th")).toHaveLength(5);
     expect(screen.getAllByText("Discount")).toHaveLength(1);
     expect(table.querySelectorAll("tbody tr")[1]).toHaveTextContent("9.99");
-    expect(table.querySelectorAll("tbody tr")[1]).toHaveTextContent("40.00");
-    expect(screen.getByTestId("invoice-total")).toHaveTextContent("89.99");
+    expect(table.querySelectorAll("tbody tr")[1]).toHaveTextContent("40.01");
+    expect(screen.getByTestId("invoice-total")).toHaveTextContent("90.01");
   });
 });
 
