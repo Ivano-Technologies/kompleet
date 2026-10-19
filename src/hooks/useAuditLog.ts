@@ -1,3 +1,4 @@
+import { toFriendlyMessage } from "@/lib/friendly-error";
 export async function logCalculation(
   calculationType: string,
   inputData: Record<string, any>,
@@ -37,7 +38,7 @@ export async function logCalculation(
     console.error("Error logging calculation:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: toFriendlyMessage(error),
     };
   }
 }

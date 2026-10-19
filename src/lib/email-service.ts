@@ -41,10 +41,10 @@ export function generate7DayReminderEmail(
   const formTypeNames = {
     PIT: "Personal Income Tax (PIT)",
     CIT: "Company Income Tax (CIT)",
-    VAT_Q1: "VAT Return - Q1",
-    VAT_Q2: "VAT Return - Q2",
-    VAT_Q3: "VAT Return - Q3",
-    VAT_Q4: "VAT Return - Q4",
+    VAT_Q1: "VAT Return Q1",
+    VAT_Q2: "VAT Return Q2",
+    VAT_Q3: "VAT Return Q3",
+    VAT_Q4: "VAT Return Q4",
   };
 
   const formName =
@@ -125,7 +125,7 @@ export function generate7DayReminderEmail(
   `;
 
   const text = `
-KOMPLEET - Filing Deadline Reminder
+KOMPLEET: Filing Deadline Reminder
 
 Dear ${userName},
 
@@ -167,10 +167,10 @@ export function generate3DayReminderEmail(
   const formTypeNames = {
     PIT: "Personal Income Tax (PIT)",
     CIT: "Company Income Tax (CIT)",
-    VAT_Q1: "VAT Return - Q1",
-    VAT_Q2: "VAT Return - Q2",
-    VAT_Q3: "VAT Return - Q3",
-    VAT_Q4: "VAT Return - Q4",
+    VAT_Q1: "VAT Return Q1",
+    VAT_Q2: "VAT Return Q2",
+    VAT_Q3: "VAT Return Q3",
+    VAT_Q4: "VAT Return Q4",
   };
 
   const formName =
@@ -199,7 +199,7 @@ export function generate3DayReminderEmail(
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
   <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
     <h1 style="color: white; margin: 0; font-size: 28px;">⚠️ URGENT REMINDER</h1>
-    <p style="color: white; margin: 10px 0 0 0; font-size: 14px;">KOMPLEET - Nigerian Tax Compliance Platform</p>
+    <p style="color: white; margin: 10px 0 0 0; font-size: 14px;">KOMPLEET, Nigerian Tax Compliance Platform</p>
   </div>
   
   <div style="background: #f9fafb; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 10px 10px;">
@@ -239,7 +239,7 @@ export function generate3DayReminderEmail(
   `;
 
   const text = `
-⚠️ URGENT REMINDER - KOMPLEET
+⚠️ URGENT REMINDER FROM KOMPLEET
 
 Dear ${userName},
 
@@ -275,10 +275,10 @@ export function generate1DayReminderEmail(
   const formTypeNames = {
     PIT: "Personal Income Tax (PIT)",
     CIT: "Company Income Tax (CIT)",
-    VAT_Q1: "VAT Return - Q1",
-    VAT_Q2: "VAT Return - Q2",
-    VAT_Q3: "VAT Return - Q3",
-    VAT_Q4: "VAT Return - Q4",
+    VAT_Q1: "VAT Return Q1",
+    VAT_Q2: "VAT Return Q2",
+    VAT_Q3: "VAT Return Q3",
+    VAT_Q4: "VAT Return Q4",
   };
 
   const formName =
@@ -329,7 +329,7 @@ export function generate1DayReminderEmail(
     </div>
     
     <div style="text-align: center; margin: 30px 0;">
-      <a href="${SITE_URL}/filing" style="display: inline-block; background: #dc2626; color: white; padding: 18px 50px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 20px; box-shadow: 0 6px 12px rgba(0,0,0,0.2); animation: pulse 2s infinite;">FILE NOW - DON'T DELAY →</a>
+      <a href="${SITE_URL}/filing" style="display: inline-block; background: #dc2626; color: white; padding: 18px 50px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 20px; box-shadow: 0 6px 12px rgba(0,0,0,0.2); animation: pulse 2s infinite;">FILE NOW. DON'T DELAY →</a>
     </div>
     
     <div style="background: #fef3c7; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #f59e0b;">
@@ -346,7 +346,7 @@ export function generate1DayReminderEmail(
   `;
 
   const text = `
-🚨 FINAL NOTICE - KOMPLEET
+🚨 FINAL NOTICE FROM KOMPLEET
 
 Dear ${userName},
 

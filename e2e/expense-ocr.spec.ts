@@ -203,7 +203,7 @@ test.describe("Receipt OCR", () => {
     });
 
     await expect(
-      page.getByText("Please select an image file (e.g. JPG, PNG)."),
+      page.getByText("Choose an image file (JPG or PNG)."),
     ).toBeVisible();
     expect(ocrCalled).toBe(false);
   });

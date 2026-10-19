@@ -11,6 +11,14 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     setupFiles: ["./src/test/setup.ts"],
+    server: {
+      deps: {
+        // `src/proxy.test.ts` runs the real Convex Auth Next.js middleware.
+        // Its ESM build imports `next/server` without an extension, which
+        // Node cannot resolve, so let Vite transform it.
+        inline: ["@convex-dev/auth"],
+      },
+    },
     testTimeout: process.env.CI ? 30_000 : 5_000,
     hookTimeout: process.env.CI ? 30_000 : 10_000,
     exclude: [

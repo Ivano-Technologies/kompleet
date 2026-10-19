@@ -17,6 +17,9 @@ import { useTaxRules } from "@/hooks/useTaxRules";
 import { logCalculation } from "@/hooks/useAuditLog";
 import { generateCalculationPDF } from "@/lib/pdf-generator";
 import { SaveCalculationButton } from "@/components/calculators/SaveCalculationButton";
+import { useErrorRef } from "@/hooks/use-error-ref";
+import { withRef } from "@/lib/friendly-error";
+import { ErrorRef, ErrorText } from "@/components/ui/error-ref";
 
 interface TaxBracket {
   from: number;
@@ -65,19 +68,17 @@ export default function IndividualTaxCalculatorPage() {
     : [];
   const rulesUnavailable =
     !rulesLoading && (!!rulesError || !rules || missingRuleKeys.length > 0);
+  const rulesRef = useErrorRef(rulesUnavailable, "calculators:individual-tax", {
+    missingRuleKeys,
+    rulesError,
+  }, typeof rulesError === "string" ? rulesError : null);
 
   const calculateIndividualTax = () => {
     setError("");
     setResult(null);
 
     if (!rules || missingRuleKeys.length > 0) {
-      setError(
-        `Tax rules unavailable — cannot calculate individual tax. Missing rule(s): ${
-          missingRuleKeys.length > 0
-            ? missingRuleKeys.join(", ")
-            : "individual_income_tax.*"
-        }. Please try again later or contact support.`,
-      );
+      setError(withRef("Tax rules aren't available right now, so we can't calculate individual tax. Please try again later or contact support.", rulesRef));
       return;
     }
 
@@ -86,17 +87,17 @@ export default function IndividualTaxCalculatorPage() {
     const interestNum = parseFloat(ownerOccupierInterest || "0");
 
     if (isNaN(grossIncomeNum) || grossIncomeNum < 0) {
-      setError("Please enter a valid gross income amount");
+      setError("Enter your gross income in naira, using numbers only.");
       return;
     }
 
     if (isNaN(rentPaidNum) || rentPaidNum < 0) {
-      setError("Please enter a valid rent amount");
+      setError("Enter the rent you paid in naira, using numbers only.");
       return;
     }
 
     if (isNaN(interestNum) || interestNum < 0) {
-      setError("Please enter a valid interest amount");
+      setError("Enter the interest amount in naira, using numbers only.");
       return;
     }
 
@@ -203,10 +204,9 @@ export default function IndividualTaxCalculatorPage() {
           >
             <InfoIcon className="h-4 w-4" />
             <AlertDescription>
-              {rulesError
-                ? `Failed to load tax rules: ${rulesError}.`
-                : `Required individual tax rules are unavailable (${missingRuleKeys.join(", ") || "individual_income_tax.*"}).`}{" "}
+              Tax rules aren&apos;t available right now.{" "}
               Calculation is disabled until this is resolved.
+              <ErrorRef value={rulesRef} />
             </AlertDescription>
           </Alert>
         )}
@@ -260,7 +260,7 @@ export default function IndividualTaxCalculatorPage() {
                   {rules?.rent_relief?.value?.cap != null &&
                   rules?.rent_relief?.value?.percentage != null
                     ? `Relief: ₦${rules.rent_relief.value.cap.toLocaleString()} or ${rules.rent_relief.value.percentage}% of rent (whichever is lower)`
-                    : "Relief amount unavailable — tax rules not loaded"}
+                    : "Relief amount isn't available right now"}
                 </p>
               </div>
 
@@ -313,7 +313,7 @@ export default function IndividualTaxCalculatorPage() {
                   variant="destructive"
                   className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-900/30 text-red-800 dark:text-red-200"
                 >
-                  <AlertDescription>{error}</AlertDescription>
+                  <AlertDescription><ErrorText text={error} /></AlertDescription>
                 </Alert>
               )}
             </CardContent>
@@ -472,8 +472,8 @@ export default function IndividualTaxCalculatorPage() {
                 <CardContent className="p-0">
                   {rulesUnavailable ? (
                     <p className="text-sm text-light-text-tertiary dark:text-dark-text-tertiary">
-                      Tax bracket rates are unavailable — tax rules failed to
-                      load.
+                      Tax bracket rates aren&apos;t available right now. Please
+                      try again later.
                     </p>
                   ) : (
                     <div className="space-y-2 text-sm text-light-text-secondary dark:text-dark-text-secondary">

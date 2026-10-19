@@ -15,6 +15,7 @@ import {
 } from "@/lib/nrs-filing/deadline-manager";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
+import { apiErrorBody } from "@/lib/friendly-error";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -57,11 +58,10 @@ async function handleGET(request: NextRequest) {
     });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     console.error("Get filing deadlines error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch filing deadlines" },
+    return NextResponse.json({ ...apiErrorBody("Failed to fetch filing deadlines") },
       { status: 500 },
     );
   }

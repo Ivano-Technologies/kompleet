@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { exportToExcel } from "@/lib/excel-exporter";
 import type { CalculationHistory } from "@/types/calculation-history";
+import { ErrorText } from "@/components/ui/error-ref";
 
 export default function HistoryPage() {
   const [filters, setFilters] = useState({
@@ -386,7 +387,7 @@ export default function HistoryPage() {
       )}
       {error && (
         <div className="p-4 mb-6 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/30">
-          <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+          <p className="text-sm text-red-700 dark:text-red-300"><ErrorText text={error} /></p>
         </div>
       )}
 

@@ -14,6 +14,10 @@ import {
   Building,
 } from "lucide-react";
 import { generateCalculationPDF } from "@/lib/pdf-generator";
+import { useErrorRef } from "@/hooks/use-error-ref";
+import { withRef } from "@/lib/friendly-error";
+import { ErrorRef } from "@/components/ui/error-ref";
+import { notifyError } from "@/components/ui/error-toast";
 
 interface MonthlyBreakdown {
   month: number;
@@ -72,17 +76,19 @@ export default function PropertyTaxCalculator() {
   });
   const rulesUnavailable =
     !rulesLoading && (!!rulesError || missingRuleKeys.length > 0);
+  const rulesRef = useErrorRef(rulesUnavailable, "calculators:property-tax", {
+    missingRuleKeys,
+    rulesError,
+  }, typeof rulesError === "string" ? rulesError : null);
 
   const calculatePropertyTax = () => {
     if (rulesUnavailable) {
-      alert(
-        "Tax rules unavailable — cannot calculate property tax WHT. The withholding_tax_on_rent rate has not been verified in the tax rules database.",
-      );
+      notifyError(withRef("Tax rules aren't available right now, so we can't calculate property tax WHT. Please try again later or contact support.", rulesRef));
       return;
     }
 
     if (!annualRent) {
-      alert("Please enter annual rent");
+      notifyError("Enter the annual rent in naira (for example 1200000).");
       return;
     }
 
@@ -120,7 +126,7 @@ export default function PropertyTaxCalculator() {
       logCalculation(calculationResult);
     } catch (error) {
       console.error("Calculation error:", error);
-      alert("Error calculating property tax");
+      notifyError("We couldn't calculate property tax. Check the values and try again.");
     } finally {
       setLoading(false);
     }
@@ -213,10 +219,9 @@ export default function PropertyTaxCalculator() {
         >
           <InfoIcon className="h-4 w-4" />
           <AlertDescription>
-            {rulesError
-              ? `Failed to load tax rules: ${rulesError}.`
-              : "The withholding tax rate on rent has not been verified in the tax rules database (withholding_tax_on_rent.rate is missing)."}{" "}
+            Tax rules aren&apos;t available right now.{" "}
             Calculation is disabled until this is resolved.
+              <ErrorRef value={rulesRef} />
           </AlertDescription>
         </Alert>
       )}
@@ -430,7 +435,7 @@ export default function PropertyTaxCalculator() {
             <strong>WHT on Rent:</strong>{" "}
             {rules.withholding_tax_on_rent?.value?.rate != null
               ? `${rules.withholding_tax_on_rent.value.rate}% of gross rent`
-              : "Rate unavailable — not yet verified in the tax rules database"}
+              : "Rate unavailable. It hasn't been verified yet."}
           </p>
           <p>
             <strong>Responsibility:</strong> The tenant must withhold the WHT

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toFriendlyMessage, UserFacingError } from "@/lib/friendly-error";
 
 interface TaxRule {
   value: any;
@@ -37,13 +38,13 @@ export function useTaxRules(ruleType: string) {
         const data: TaxRulesResponse = await response.json();
 
         if (!data.success) {
-          throw new Error("Failed to load tax rules");
+          throw new UserFacingError("We couldn't load tax rules. Please try again.");
         }
 
         setRules(data.rules);
       } catch (err) {
         console.error("Error fetching tax rules:", err);
-        setError(err instanceof Error ? err.message : "Unknown error");
+        setError(toFriendlyMessage(err));
       } finally {
         setLoading(false);
       }

@@ -19,6 +19,16 @@ import {
   AUTH_TITLE_BLOCK,
 } from "@/components/layout/auth-density";
 import { Eye, EyeOff } from "lucide-react";
+import {
+  FRIENDLY_MESSAGES,
+  generateRef,
+  toFriendlyError,
+  withRef,
+} from "@/lib/friendly-error";
+import { ErrorText } from "@/components/ui/error-ref";
+
+const RECLAIM_NOTE =
+  "Existing Kompleet users: choose Get started and use this same email to reclaim your data.";
 
 function LoginForm() {
   const [email, setEmail] = useState("");
@@ -33,9 +43,18 @@ function LoginForm() {
 
   useEffect(() => {
     const err = searchParams.get("error");
-    const msg = searchParams.get("message");
-    if (err === "auth_failed") setError(msg || "Authentication failed.");
-    if (err === "expired_link") setError(msg || "This link has expired.");
+    // Never render free text from the URL; map known codes to fixed copy.
+    const copy =
+      err === "auth_failed"
+        ? "We couldn't sign you in. Please try again."
+        : err === "expired_link"
+          ? "This link has expired. Request a new one."
+          : null;
+    if (copy) {
+      const ref = generateRef();
+      console.warn(`[friendly-error] ref=${ref} context=login:${err}`);
+      setError(withRef(copy, ref));
+    }
   }, [searchParams]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -47,9 +66,17 @@ function LoginForm() {
       await fetch("/api/auth/ensure-profile", { method: "POST" }).catch(() => {});
       router.push(redirectTo);
       router.refresh();
-    } catch {
+    } catch (err) {
+      const { message, ref } = toFriendlyError(err, FRIENDLY_MESSAGES.fallback, {
+        context: "login",
+      });
       setError(
-        "Invalid email or password. Existing Kompleet users: create an account on Sign up with this same email to reclaim your data.",
+        withRef(
+          message === FRIENDLY_MESSAGES.network || message === FRIENDLY_MESSAGES.rateLimited
+            ? message
+            : FRIENDLY_MESSAGES.invalidCredentials,
+          ref,
+        ),
       );
       setLoading(false);
     }
@@ -64,7 +91,7 @@ function LoginForm() {
           Access your business financial dashboard.
         </p>
       </div>
-      {error && <div className={AUTH_ERROR}>{error}</div>}
+      {error && <div className={AUTH_ERROR}><ErrorText text={error} /></div>}
       <form onSubmit={handleSubmit} className={AUTH_FORM}>
         <div>
           <label className={AUTH_LABEL}>Business Email</label>
@@ -111,6 +138,12 @@ function LoginForm() {
           {loading ? "Signing in…" : "Sign In →"}
         </button>
       </form>
+      <p
+        data-testid="reclaim-note"
+        className="mt-2 text-center text-xs tracking-normal [word-spacing:0.12em] text-text-3 dark:text-dark-text-3"
+      >
+        {RECLAIM_NOTE}
+      </p>
       <p className="mt-3 text-center text-xs text-text-3 dark:text-dark-text-3">
         New to Kompleet?{" "}
         <Link href="/signup" className={AUTH_LINK}>

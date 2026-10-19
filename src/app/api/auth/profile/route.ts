@@ -4,6 +4,7 @@ import {
   isUnauthorized,
   requireAuthedConvex,
 } from "@/lib/convex/server";
+import { apiErrorBody } from "@/lib/friendly-error";
 
 export async function PATCH(request: NextRequest) {
   try {
@@ -15,11 +16,10 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ profile });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     console.error("profile update:", error);
-    return NextResponse.json(
-      { error: "Failed to update profile" },
+    return NextResponse.json({ ...apiErrorBody("Failed to update profile") },
       { status: 500 },
     );
   }

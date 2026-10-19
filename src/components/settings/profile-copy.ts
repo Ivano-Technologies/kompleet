@@ -32,8 +32,8 @@ export const BIZ_COPY = {
   nudgeTitle: "Add your business details",
   nudgeSub: "Your name and address appear on PDFs you send.",
   nudgeCta: "Open Settings",
-  blockLegalName: "Add your business name in Settings before issuing",
-  toastSavedIncomplete: "Saved. Add your address to finish your invoice header",
+  blockLegalName: "Add your business name in Settings before issuing.",
+  toastSavedIncomplete: "Saved. Add your address to finish your invoice header.",
   toastSaved: "Business profile saved",
 } as const;
 

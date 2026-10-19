@@ -254,7 +254,7 @@ export default function FilingHistory() {
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="text-lg font-semibold text-light-text-primary dark:text-dark-text-primary">
-                        {getFormTypeName(filing.form_type)} – {filing.tax_year}
+                        {getFormTypeName(filing.form_type)}, {filing.tax_year}
                       </h3>
                       {getStatusBadge(filing.status)}
                     </div>

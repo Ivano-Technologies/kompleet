@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import { DROP_COPY } from "./statement-copy";
+import { toFriendlyMessage, userFacingError } from "@/lib/friendly-error";
+import { ErrorText } from "@/components/ui/error-ref";
 
 export function AddManualTransaction({
   open,
@@ -25,7 +27,7 @@ export function AddManualTransaction({
   const submit = async () => {
     const value = Number(amount);
     if (!description.trim() || !Number.isFinite(value) || value <= 0) {
-      setError("Description and a positive amount are required.");
+      setError("Enter a description and an amount greater than 0.");
       return;
     }
     setSaving(true);
@@ -46,14 +48,14 @@ export function AddManualTransaction({
         const body = (await response.json().catch(() => ({}))) as {
           error?: string;
         };
-        throw new Error(body.error || "Failed to add transaction");
+        throw userFacingError(body, "We couldn't add this transaction. Please try again.");
       }
       setDescription("");
       setAmount("");
       onCreated();
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to add transaction");
+      setError(toFriendlyMessage(err, "We couldn't add this transaction. Please try again."));
     } finally {
       setSaving(false);
     }
@@ -125,7 +127,7 @@ export function AddManualTransaction({
               />
             </label>
           </div>
-          {error && <p className="text-sm text-error">{error}</p>}
+          {error && <p className="text-sm text-error"><ErrorText text={error} /></p>}
           <div className="flex justify-end gap-2 pt-1">
             <button type="button" className="btn-secondary text-sm px-3 py-2" onClick={onClose}>
               Cancel

@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Info, Loader2 } from "lucide-react";
+import { notifyError } from "@/components/ui/error-toast";
+import { responseError, toFriendlyMessage } from "@/lib/friendly-error";
 
 export default function GenerateTaxReportPage() {
   const router = useRouter();
@@ -52,12 +54,11 @@ export default function GenerateTaxReportPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
-      if (!response.ok) throw new Error("Failed to generate tax report");
+      if (!response.ok) throw await responseError(response, "We couldn't generate the tax report. Please try again.");
       const data = await response.json();
       router.push(`/tax-reports/${data.report.id}`);
     } catch (error) {
-      console.error("Error generating tax report:", error);
-      alert("Failed to generate tax report. Please try again.");
+      notifyError(toFriendlyMessage(error, "We couldn't generate the tax report. Please try again.", { context: "tax-reports:generate" }));
     } finally {
       setLoading(false);
     }
@@ -85,7 +86,7 @@ export default function GenerateTaxReportPage() {
           Override figures
         </h1>
         <p className="text-sm text-text-2 mt-1">
-          Advanced generate — Nigeria Tax Act 2025. Happy path is Generate from books.
+          Advanced generate, based on the Nigeria Tax Act 2025. For most cases, use Generate from books.
         </p>
       </div>
 

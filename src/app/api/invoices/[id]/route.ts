@@ -13,6 +13,7 @@ import {
   isUnauthorized,
   requireAuthedConvex,
 } from "@/lib/convex/server";
+import { toFriendlyError, apiErrorBody } from "@/lib/friendly-error";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -28,18 +29,17 @@ async function handleGET(request: NextRequest, context: RouteContext) {
     });
 
     if (!invoice) {
-      return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
+      return NextResponse.json({ ...apiErrorBody("Invoice not found") }, { status: 404 });
     }
 
     // Stored line amounts are mixed (older full-form invoices include VAT); always send the pre-VAT net.
     return NextResponse.json({ success: true, invoice: invoiceWithNetLineAmounts(invoice) });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     console.error("[Get Invoice Error]", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
+    return NextResponse.json({ ...apiErrorBody("Internal server error") },
       { status: 500 },
     );
   }
@@ -55,13 +55,11 @@ async function handleDELETE(request: NextRequest, context: RouteContext) {
     });
 
     if (!invoice) {
-      return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
+      return NextResponse.json({ ...apiErrorBody("Invoice not found") }, { status: 404 });
     }
 
     if (invoice.status !== "draft") {
-      return NextResponse.json(
-        {
-          error: `Cannot delete ${invoice.status} invoices. Only draft invoices can be deleted.`,
+      return NextResponse.json({ ...apiErrorBody(`Cannot delete ${invoice.status} invoices. Only draft invoices can be deleted.`),
         },
         { status: 403 },
       );
@@ -75,11 +73,10 @@ async function handleDELETE(request: NextRequest, context: RouteContext) {
     });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     console.error("[Delete Invoice Error]", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
+    return NextResponse.json({ ...apiErrorBody("Internal server error") },
       { status: 500 },
     );
   }
@@ -106,11 +103,10 @@ async function handlePATCH(request: NextRequest, context: RouteContext) {
     return NextResponse.json({ success: true, invoice: invoiceWithNetLineAmounts(invoice) });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
-    const message =
-      error instanceof Error ? error.message : "Failed to update invoice";
-    return NextResponse.json({ error: message }, { status: 500 });
+    const { message, ref } = toFriendlyError(error, "We couldn't update this invoice. Please try again.");
+    return NextResponse.json({ error: message, ref }, { status: 500 });
   }
 }
 
