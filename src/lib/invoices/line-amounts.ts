@@ -76,9 +76,13 @@ export function lineDiscount(item: LineInput): number {
   return fromKobo(lineDiscountKobo(item));
 }
 
-/** True when the entered discount is larger than quantity x rate. */
+/**
+ * True when the entered discount is larger than the line total shown
+ * (quantity x rate, half-up to the kobo). Compared in whole kobo, so a 50.00
+ * discount on a 1.5 x 33.33 line (shown as 50.00) is allowed.
+ */
 export function discountTooBig(item: LineInput): boolean {
-  return num(item.discount) > Math.max(0, lineGrossAmount(item));
+  return toKobo(num(item.discount)) > Math.max(0, toKobo(lineGrossAmount(item)));
 }
 
 /** Pre-VAT line amount in kobo: quantity x rate (half-up to the kobo) minus the clamped discount. */
@@ -108,23 +112,45 @@ export function totalsFromLines(items: LineInput[]): LineTotals {
   // All in whole kobo, so sums are exact.
   let subtotalKobo = 0;
   let discountKobo = 0;
-  const byRate = new Map<number, number>();
   for (const item of items) {
-    const net = lineNetKobo(item);
-    subtotalKobo += net;
+    subtotalKobo += lineNetKobo(item);
     discountKobo += lineDiscountKobo(item);
-    const rate = num(item.vat_rate);
-    byRate.set(rate, (byRate.get(rate) ?? 0) + net);
   }
-  // VAT per rate group on its kobo base, each rounded half-up to the kobo.
-  let vatKobo = 0;
-  for (const [rate, baseKobo] of byRate) vatKobo += halfUpUnits((baseKobo * rate) / 100, 0);
+  const vatKobo = vatGroupsKobo(items).reduce((sum, group) => sum + group.vatKobo, 0);
   return {
     subtotal: fromKobo(subtotalKobo),
     vat_amount: fromKobo(vatKobo),
     discount_amount: fromKobo(discountKobo),
     total_amount: fromKobo(subtotalKobo + vatKobo),
   };
+}
+
+/** VAT per rate group, in kobo: each group's base is its rounded line amounts, VAT half-up to the kobo. */
+function vatGroupsKobo(items: LineInput[]): Array<{ rate: number; baseKobo: number; vatKobo: number }> {
+  const byRate = new Map<number, number>();
+  for (const item of items) {
+    const rate = num(item.vat_rate);
+    byRate.set(rate, (byRate.get(rate) ?? 0) + lineNetKobo(item));
+  }
+  return [...byRate].map(([rate, baseKobo]) => ({
+    rate,
+    baseKobo,
+    vatKobo: halfUpUnits((baseKobo * rate) / 100, 0),
+  }));
+}
+
+export type VatLine = { rate: number; base: number; vat: number };
+
+/**
+ * The VAT that makes up `totalsFromLines().vat_amount`, one entry per non-zero
+ * rate, highest rate first. The entries add up to vat_amount exactly, so a
+ * summary with one VAT row per rate matches the invoice totals.
+ */
+export function vatByRate(items: LineInput[]): VatLine[] {
+  return vatGroupsKobo(items)
+    .filter((group) => group.rate !== 0)
+    .sort((a, b) => b.rate - a.rate)
+    .map((group) => ({ rate: group.rate, base: fromKobo(group.baseKobo), vat: fromKobo(group.vatKobo) }));
 }
 
 /** True when at least one line has a (clamped) discount, so a Discount column should show. */
