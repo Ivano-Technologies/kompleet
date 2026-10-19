@@ -130,7 +130,7 @@ export default function UploadWidget({
           return;
         }
 
-        throw userFacingError(data.message, "Upload failed. Please try again.");
+        throw userFacingError({ ...data, error: data.message }, "Upload failed. Please try again.");
       }
 
       if (data.success) {
@@ -141,7 +141,7 @@ export default function UploadWidget({
         }));
         onSuccess?.(data.transactionCount);
       } else {
-        throw userFacingError(data.message, "Upload failed. Please try again.");
+        throw userFacingError({ ...data, error: data.message }, "Upload failed. Please try again.");
       }
     } catch (error) {
       const errorMessage =

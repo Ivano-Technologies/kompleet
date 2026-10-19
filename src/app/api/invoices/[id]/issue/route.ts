@@ -11,7 +11,7 @@ import {
   isUnauthorized,
   requireAuthedConvex,
 } from "@/lib/convex/server";
-import { toFriendlyMessage } from "@/lib/friendly-error";
+import { toFriendlyError, apiErrorBody } from "@/lib/friendly-error";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -26,15 +26,15 @@ async function handlePOST(request: NextRequest, context: RouteContext) {
     return NextResponse.json({ success: true });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     console.error("[Issue Invoice Error]", error);
     const raw = error instanceof Error ? error.message : "";
-    const message = toFriendlyMessage(error, "We couldn't issue this invoice. Please try again.");
+    const { message, ref } = toFriendlyError(error, "We couldn't issue this invoice. Please try again.");
     const gated =
       raw.includes("Select a client before issuing") ||
       raw.includes("Add your business name in Settings before issuing");
-    return NextResponse.json({ error: message }, { status: gated ? 400 : 500 });
+    return NextResponse.json({ error: message, ref }, { status: gated ? 400 : 500 });
   }
 }
 

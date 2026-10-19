@@ -4,7 +4,7 @@ import { withRateLimit } from "@/lib/with-rate-limit";
 import { api } from "@/lib/convex/http";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 import { listStatementTransactions } from "@/lib/convex/statement-txns";
-import { toFriendlyMessage } from "@/lib/friendly-error";
+import { friendlyErrorBody, apiErrorBody } from "@/lib/friendly-error";
 
 export const runtime = "nodejs";
 
@@ -14,8 +14,7 @@ async function handleGET(request: NextRequest) {
     const asOfDate = request.nextUrl.searchParams.get("asOfDate");
 
     if (!asOfDate) {
-      return NextResponse.json(
-        { error: "asOfDate is required" },
+      return NextResponse.json({ ...apiErrorBody("asOfDate is required") },
         { status: 400 },
       );
     }
@@ -45,11 +44,11 @@ async function handleGET(request: NextRequest) {
     return NextResponse.json({ statement });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     console.error("Error in GET /api/reports/balance-sheet:", error);
     return NextResponse.json(
-      { error: toFriendlyMessage(error) },
+      { ...friendlyErrorBody(error) },
       { status: 500 },
     );
   }

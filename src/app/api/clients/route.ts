@@ -5,7 +5,7 @@ import { api } from "@/lib/convex/http";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 import { isValidEmail, trimToEmpty } from "@/lib/invoices/profiles";
 import { z } from "zod";
-import { toFriendlyMessage } from "@/lib/friendly-error";
+import { toFriendlyError, apiErrorBody } from "@/lib/friendly-error";
 
 const createClientSchema = z.object({
   legal_name: z.string().trim().min(1).max(200),
@@ -25,10 +25,9 @@ async function handleGET(request: NextRequest) {
     return NextResponse.json({ clients });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
-    return NextResponse.json(
-      { error: "Failed to list clients" },
+    return NextResponse.json({ ...apiErrorBody("Failed to list clients") },
       { status: 500 },
     );
   }
@@ -40,14 +39,13 @@ async function handlePOST(request: NextRequest) {
     const body = await request.json();
     const parsed = createClientSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Invalid input", details: parsed.error.flatten() },
+      return NextResponse.json({ ...apiErrorBody("Invalid input"), details: parsed.error.flatten() },
         { status: 400 },
       );
     }
     const email = trimToEmpty(parsed.data.email);
     if (email && !isValidEmail(email)) {
-      return NextResponse.json({ error: "Invalid email address" }, { status: 400 });
+      return NextResponse.json({ ...apiErrorBody("Invalid email address") }, { status: 400 });
     }
 
     const client = await convex.mutation(api.tenancy.createClient, {
@@ -64,10 +62,10 @@ async function handlePOST(request: NextRequest) {
     return NextResponse.json({ client }, { status: 201 });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
-    const message = toFriendlyMessage(error, "We couldn't create this client. Please try again.");
-    return NextResponse.json({ error: message }, { status: 500 });
+    const { message, ref } = toFriendlyError(error, "We couldn't create this client. Please try again.");
+    return NextResponse.json({ error: message, ref }, { status: 500 });
   }
 }
 

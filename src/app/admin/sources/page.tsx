@@ -8,6 +8,7 @@
 import { useEffect, useState } from "react";
 import type { Source } from "@/types/tax";
 import { toFriendlyMessage, userFacingError } from "@/lib/friendly-error";
+import { ErrorText } from "@/components/ui/error-ref";
 
 export default function AdminSourcesPage() {
   const [sources, setSources] = useState<Source[]>([]);
@@ -28,7 +29,7 @@ export default function AdminSourcesPage() {
         body: JSON.stringify({ sourceId }),
       });
       const data = await res.json();
-      if (!res.ok) throw userFacingError(data.error, "Check failed. Please try again.");
+      if (!res.ok) throw userFacingError(data, "Check failed. Please try again.");
       await fetchSources();
     } catch (err) {
       setError(toFriendlyMessage(err, "Check failed. Please try again."));
@@ -44,7 +45,7 @@ export default function AdminSourcesPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw userFacingError(data.error, "We couldn't load sources. Please try again.");
+        throw userFacingError(data, "We couldn't load sources. Please try again.");
       }
 
       setSources(data.sources);
@@ -97,7 +98,7 @@ export default function AdminSourcesPage() {
         <div className="max-w-7xl mx-auto">
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
             <h3 className="text-red-800 font-semibold">Error</h3>
-            <p className="text-red-600">{error}</p>
+            <p className="text-red-600"><ErrorText text={error} /></p>
           </div>
         </div>
       </div>

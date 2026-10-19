@@ -8,6 +8,7 @@
 import { useEffect, useState, useCallback } from "react";
 import type { TaxRule } from "@/types/tax";
 import { toFriendlyMessage, userFacingError } from "@/lib/friendly-error";
+import { ErrorText } from "@/components/ui/error-ref";
 
 export default function AdminRulesPage() {
   const [rules, setRules] = useState<TaxRule[]>([]);
@@ -27,7 +28,7 @@ export default function AdminRulesPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw userFacingError(data.error, "We couldn't load rules. Please try again.");
+        throw userFacingError(data, "We couldn't load rules. Please try again.");
       }
 
       setRules(data.rules);
@@ -97,7 +98,7 @@ export default function AdminRulesPage() {
         <div className="max-w-7xl mx-auto">
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
             <h3 className="text-red-800 font-semibold">Error</h3>
-            <p className="text-red-600">{error}</p>
+            <p className="text-red-600"><ErrorText text={error} /></p>
           </div>
         </div>
       </div>

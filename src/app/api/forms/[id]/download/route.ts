@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { api } from "@/lib/convex/http";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
+import { apiErrorBody } from "@/lib/friendly-error";
 
 async function handleGET(
   request: NextRequest,
@@ -11,22 +12,19 @@ async function handleGET(
     const { convex } = await requireAuthedConvex(request);
     const { id: formId } = await params;
     if (!formId) {
-      return NextResponse.json(
-        { error: "Form ID is required" },
+      return NextResponse.json({ ...apiErrorBody("Form ID is required") },
         { status: 400 },
       );
     }
 
     const form = await convex.query(api.forms.getMine, { externalId: formId });
     if (!form) {
-      return NextResponse.json(
-        { error: "Form not found or access denied" },
+      return NextResponse.json({ ...apiErrorBody("Form not found or access denied") },
         { status: 404 },
       );
     }
     if (!form.pdf_url) {
-      return NextResponse.json(
-        { error: "PDF not available for this form" },
+      return NextResponse.json({ ...apiErrorBody("PDF not available for this form") },
         { status: 404 },
       );
     }
@@ -45,11 +43,10 @@ async function handleGET(
     });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     console.error("Form download error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
+    return NextResponse.json({ ...apiErrorBody("Internal server error") },
       { status: 500 },
     );
   }

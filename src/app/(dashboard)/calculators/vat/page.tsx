@@ -30,6 +30,9 @@ import {
   type VatObligationStatus,
 } from "@/lib/tax/rule-loader";
 import type { LoadedRule, RuleBundle } from "@/lib/tax/types";
+import { useErrorRef } from "@/hooks/use-error-ref";
+import { withRef, friendlyWithNewRef } from "@/lib/friendly-error";
+import { ErrorRef, ErrorText } from "@/components/ui/error-ref";
 
 interface VATResult {
   /** Rent-schedule exemption only — never SME registration/filing assertion. */
@@ -92,15 +95,17 @@ export default function VATCalculatorPage() {
     : [];
   const rulesUnavailable =
     !rulesLoading && (!!rulesError || !rules || missingRuleKeys.length > 0);
+  const rulesRef = useErrorRef(rulesUnavailable, "calculators:vat", {
+    missingRuleKeys,
+    rulesError,
+  }, typeof rulesError === "string" ? rulesError : null);
 
   const calculateVAT = () => {
     setError("");
     setResult(null);
 
     if (!rules || missingRuleKeys.length > 0) {
-      setError(
-        "Tax rules aren't available right now, so we can't calculate VAT. Please try again later or contact support.",
-      );
+      setError(withRef("Tax rules aren't available right now, so we can't calculate VAT. Please try again later or contact support.", rulesRef));
       return;
     }
 
@@ -125,7 +130,7 @@ export default function VATCalculatorPage() {
 
     const ratePercent = rules.standard_rate.value.rate;
     if (typeof ratePercent !== "number") {
-      setError("Tax rules aren't available right now, so we can't calculate VAT. Please try again later or contact support.");
+      setError(withRef("Tax rules aren't available right now, so we can't calculate VAT. Please try again later or contact support.", rulesRef));
       return;
     }
     const VAT_RATE = ratePercent / 100;
@@ -136,9 +141,7 @@ export default function VATCalculatorPage() {
     let exemptionReason: string | null = null;
     if (isRentTransaction) {
       if (!rules.rent_exemption?.value?.exempt) {
-        setError(
-          "We can't treat this rent as VAT exempt yet because the exemption rule hasn't been verified. Please try again later or contact support.",
-        );
+        setError(friendlyWithNewRef("We can't treat this rent as VAT exempt yet because the exemption rule hasn't been verified. Please try again later or contact support.", "calculators:vat:rent-exemption"));
         return;
       }
       isRentExempt = true;
@@ -228,6 +231,7 @@ export default function VATCalculatorPage() {
             <AlertDescription>
               Tax rules aren&apos;t available right now.{" "}
               Calculation is disabled until this is resolved.
+              <ErrorRef value={rulesRef} />
             </AlertDescription>
           </Alert>
         )}
@@ -380,7 +384,7 @@ export default function VATCalculatorPage() {
                   variant="destructive"
                   className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-900/30 text-red-700 dark:text-red-300"
                 >
-                  <AlertDescription>{error}</AlertDescription>
+                  <AlertDescription><ErrorText text={error} /></AlertDescription>
                 </Alert>
               )}
             </CardContent>

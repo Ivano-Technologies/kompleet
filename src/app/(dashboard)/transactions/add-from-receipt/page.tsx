@@ -11,6 +11,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { apiErrorMessage, toFriendlyMessage } from "@/lib/friendly-error";
+import { ErrorText } from "@/components/ui/error-ref";
 
 interface Category {
   id: string;
@@ -86,7 +87,7 @@ export default function AddFromReceiptPage() {
       const ocrData = await ocrRes.json();
 
       if (!ocrRes.ok) {
-        setError(apiErrorMessage(ocrData.error, "We couldn't read this receipt. Please try again."));
+        setError(apiErrorMessage(ocrData, "We couldn't read this receipt. Please try again."));
         setLoading(false);
         return;
       }
@@ -177,7 +178,7 @@ export default function AddFromReceiptPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(apiErrorMessage(data.error, "We couldn't create this transaction. Please try again."));
+        setError(apiErrorMessage(data, "We couldn't create this transaction. Please try again."));
         setLoading(false);
         return;
       }
@@ -224,7 +225,7 @@ export default function AddFromReceiptPage() {
       {error && (
         <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-start gap-2">
           <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
-          <p className="text-red-600 dark:text-red-400 text-sm flex-1">{error}</p>
+          <p className="text-red-600 dark:text-red-400 text-sm flex-1"><ErrorText text={error} /></p>
           <button
             type="button"
             onClick={() => setError(null)}

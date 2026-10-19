@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import Image from "next/image";
 import { UserFacingError, toFriendlyMessage } from "@/lib/friendly-error";
+import { ErrorText } from "@/components/ui/error-ref";
 
 export function AvatarUpload() {
   const { user } = useAuth();
@@ -108,7 +109,7 @@ export function AvatarUpload() {
         {uploading ? "Uploading..." : "Change Avatar"}
       </button>
 
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-red-600"><ErrorText text={error} /></p>}
 
       <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary text-center max-w-xs">
         Upload a profile picture. Max size 5MB. Supported formats: JPG, PNG, GIF

@@ -4,7 +4,7 @@ import { api } from "@/lib/convex/http";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 import { generateInvoicePDF } from "@/lib/invoice-service";
 import { hasLegalName, type BusinessProfile } from "@/lib/invoices/profiles";
-import { toFriendlyMessage } from "@/lib/friendly-error";
+import { toFriendlyError, apiErrorBody } from "@/lib/friendly-error";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -19,8 +19,7 @@ async function handleGET(request: NextRequest, context: RouteContext) {
       {},
     )) as BusinessProfile;
     if (!hasLegalName(profile)) {
-      return NextResponse.json(
-        { error: "Add your business name in Settings before issuing" },
+      return NextResponse.json({ ...apiErrorBody("Add your business name in Settings before issuing") },
         { status: 400 },
       );
     }
@@ -33,10 +32,10 @@ async function handleGET(request: NextRequest, context: RouteContext) {
     });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
-    const message = toFriendlyMessage(error, "We couldn't generate the PDF. Please try again.");
-    return NextResponse.json({ error: message }, { status: 500 });
+    const { message, ref } = toFriendlyError(error, "We couldn't generate the PDF. Please try again.");
+    return NextResponse.json({ error: message, ref }, { status: 500 });
   }
 }
 

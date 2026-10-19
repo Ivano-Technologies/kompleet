@@ -13,6 +13,7 @@ import { BIZ_COPY } from "@/components/settings/profile-copy";
 import { hasLegalName, type BusinessProfile } from "@/lib/invoices/profiles";
 import { onBusinessProfileChanged } from "@/lib/invoices/profile-events";
 import { UserFacingError, apiErrorMessage, toFriendlyMessage, userFacingError } from "@/lib/friendly-error";
+import { ErrorText } from "@/components/ui/error-ref";
 
 export default function NewInvoicePage() {
   const router = useRouter();
@@ -58,7 +59,7 @@ export default function NewInvoicePage() {
         if (cancelled) return;
         if (!response.ok) {
           const body = await response.json().catch(() => ({}));
-          setError(apiErrorMessage(body?.error, "We couldn't load your clients. Please try again."));
+          setError(apiErrorMessage(body, "We couldn't load your clients. Please try again."));
           return;
         }
         const body = (await response.json()) as {
@@ -223,7 +224,7 @@ export default function NewInvoicePage() {
 
       if (!response.ok) {
         const body = await response.json().catch(() => ({}));
-        throw userFacingError(body?.error, "We couldn't create this invoice. Please try again.");
+        throw userFacingError(body, "We couldn't create this invoice. Please try again.");
       }
 
       const { invoice_id } = await response.json();
@@ -267,7 +268,7 @@ export default function NewInvoicePage() {
 
       if (!createResponse.ok) {
         const body = await createResponse.json().catch(() => ({}));
-        throw userFacingError(body?.error, "We couldn't create this invoice. Please try again.");
+        throw userFacingError(body, "We couldn't create this invoice. Please try again.");
       }
 
       const { invoice_id } = await createResponse.json();
@@ -306,7 +307,7 @@ export default function NewInvoicePage() {
 
       {error && (
         <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/30 rounded-lg text-red-700 dark:text-red-400">
-          {error}
+          <ErrorText text={error} />
         </div>
       )}
 

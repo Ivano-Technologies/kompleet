@@ -9,7 +9,7 @@ import {
   isUnauthorized,
   requireAuthedConvex,
 } from "@/lib/convex/server";
-import { toFriendlyMessage } from "@/lib/friendly-error";
+import { friendlyErrorBody, apiErrorBody } from "@/lib/friendly-error";
 
 const querySchema = z.object({
   startDate: z
@@ -52,8 +52,7 @@ export async function GET(request: NextRequest) {
       limit: sp.get("limit") ?? undefined,
     });
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Invalid query", details: parsed.error.flatten() },
+      return NextResponse.json({ ...apiErrorBody("Invalid query"), details: parsed.error.flatten() },
         { status: 400 },
       );
     }
@@ -77,10 +76,10 @@ export async function GET(request: NextRequest) {
     });
   } catch (err) {
     if (isUnauthorized(err)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     return NextResponse.json(
-      { error: toFriendlyMessage(err) },
+      { ...friendlyErrorBody(err) },
       { status: 500 },
     );
   }
@@ -93,8 +92,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const parsed = postBodySchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Invalid body", details: parsed.error.flatten() },
+      return NextResponse.json({ ...apiErrorBody("Invalid body"), details: parsed.error.flatten() },
         { status: 400 },
       );
     }
@@ -114,10 +112,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(data);
   } catch (err) {
     if (isUnauthorized(err)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     return NextResponse.json(
-      { error: toFriendlyMessage(err) },
+      { ...friendlyErrorBody(err) },
       { status: 500 },
     );
   }

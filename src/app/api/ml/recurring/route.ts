@@ -4,6 +4,7 @@ import { withRateLimit } from "@/lib/with-rate-limit";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 import { listAllTransactionsMine } from "@/lib/convex/money-lists";
 import { detectRecurringPatternsFromTransactions } from "@/lib/services/recurring-detection";
+import { apiErrorBody } from "@/lib/friendly-error";
 
 async function detectFromConvex(request: NextRequest) {
   const { convex } = await requireAuthedConvex(request);
@@ -30,11 +31,10 @@ async function handlePOST(request: NextRequest) {
     });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     console.error("[Recurring Detection API Error]", error);
-    return NextResponse.json(
-      { error: "Failed to detect recurring patterns" },
+    return NextResponse.json({ ...apiErrorBody("Failed to detect recurring patterns") },
       { status: 500 },
     );
   }
@@ -49,11 +49,10 @@ async function handleGET(request: NextRequest) {
     });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     console.error("[Get Recurring Patterns API Error]", error);
-    return NextResponse.json(
-      { error: "Failed to get recurring patterns" },
+    return NextResponse.json({ ...apiErrorBody("Failed to get recurring patterns") },
       { status: 500 },
     );
   }

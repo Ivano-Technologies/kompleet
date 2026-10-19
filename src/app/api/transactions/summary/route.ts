@@ -7,6 +7,7 @@ import {
   summarizeBooksTransactions,
 } from "@/lib/transactions/summarize-books";
 import { z } from "zod";
+import { apiErrorBody } from "@/lib/friendly-error";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,8 +27,7 @@ async function handleGET(request: NextRequest) {
     const raw = Object.fromEntries(request.nextUrl.searchParams.entries());
     const parsed = querySchema.safeParse(raw);
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Invalid query parameters", details: parsed.error.flatten() },
+      return NextResponse.json({ ...apiErrorBody("Invalid query parameters"), details: parsed.error.flatten() },
         { status: 400 },
       );
     }
@@ -43,7 +43,7 @@ async function handleGET(request: NextRequest) {
     return NextResponse.json(summarizeBooksTransactions(transactions ?? []));
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     console.error("Books summary error:", error);
     // Authenticated soak must still get a usable payload — empty books, not 500.

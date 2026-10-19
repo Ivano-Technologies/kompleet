@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import type { Role } from "@/lib/auth/rbac";
 import { api } from "@/lib/convex/http";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
-import { toFriendlyMessage } from "@/lib/friendly-error";
+import { friendlyErrorBody, apiErrorBody } from "@/lib/friendly-error";
 
 const VALID_ROLES: Role[] = [
   "owner",
@@ -33,10 +33,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ users: mapped });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     return NextResponse.json(
-      { error: toFriendlyMessage(error) },
+      { ...friendlyErrorBody(error) },
       { status: 500 },
     );
   }
@@ -52,30 +52,25 @@ export async function PATCH(request: NextRequest) {
     const body = await request.json();
     const { userId, role } = body as { userId?: string; role?: string };
     if (!userId || !role) {
-      return NextResponse.json(
-        { error: "userId and role are required" },
+      return NextResponse.json({ ...apiErrorBody("userId and role are required") },
         { status: 400 },
       );
     }
     if (!VALID_ROLES.includes(role as Role)) {
-      return NextResponse.json(
-        { error: `Invalid role. Must be one of: ${VALID_ROLES.join(", ")}` },
+      return NextResponse.json({ ...apiErrorBody(`Invalid role. Must be one of: ${VALID_ROLES.join(", ")}`) },
         { status: 400 },
       );
     }
-    return NextResponse.json(
-      {
-        error:
-          "Role updates are not available: Convex users have no role field (Phase 3 OUT).",
+    return NextResponse.json({ ...apiErrorBody("Role updates are not available: Convex users have no role field (Phase 3 OUT)."),
       },
       { status: 501 },
     );
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     return NextResponse.json(
-      { error: toFriendlyMessage(error) },
+      { ...friendlyErrorBody(error) },
       { status: 500 },
     );
   }

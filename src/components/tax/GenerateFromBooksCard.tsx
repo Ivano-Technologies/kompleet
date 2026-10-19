@@ -13,6 +13,7 @@ import {
 } from "./tax-copy";
 import { fetchBooksSummary, formatNaira, type BooksSummary } from "./books-summary";
 import { toFriendlyMessage, userFacingError } from "@/lib/friendly-error";
+import { ErrorText } from "@/components/ui/error-ref";
 
 export function GenerateFromBooksCard({
   embedded = false,
@@ -90,7 +91,7 @@ export function GenerateFromBooksCard({
         error?: string;
       };
       if (!response.ok || !body.report?.id) {
-        throw userFacingError(body.error, "We couldn't generate the report. Please try again.");
+        throw userFacingError(body, "We couldn't generate the report. Please try again.");
       }
       router.push(`/tax-reports/${body.report.id}`);
     } catch (err) {
@@ -203,7 +204,7 @@ export function GenerateFromBooksCard({
         </>
       )}
 
-      {error && <p className="text-sm text-error">{error}</p>}
+      {error && <p className="text-sm text-error"><ErrorText text={error} /></p>}
     </div>
   );
 }

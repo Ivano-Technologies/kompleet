@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { toFriendlyMessage, userFacingError } from "@/lib/friendly-error";
+import { ErrorText } from "@/components/ui/error-ref";
 
 interface TaxCalculation {
   id: string;
@@ -67,7 +68,7 @@ export default function CalculationHistoryPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw userFacingError(data.message, "We couldn't load your calculations. Please try again.");
+        throw userFacingError({ ...data, error: data.message }, "We couldn't load your calculations. Please try again.");
       }
 
       setCalculations(data.calculations || []);
@@ -92,7 +93,7 @@ export default function CalculationHistoryPage() {
 
       if (!response.ok) {
         const data = await response.json();
-        throw userFacingError(data.message, "We couldn't delete this calculation. Please try again.");
+        throw userFacingError({ ...data, error: data.message }, "We couldn't delete this calculation. Please try again.");
       }
 
       // Refresh list
@@ -230,7 +231,7 @@ export default function CalculationHistoryPage() {
             className="bg-red-50 dark:bg-red-900/20 border-red-500 text-red-700 dark:text-red-400"
           >
             <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
+            <AlertDescription><ErrorText text={error} /></AlertDescription>
           </Alert>
         )}
 

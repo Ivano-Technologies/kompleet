@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toFriendlyMessage } from "@/lib/friendly-error";
+import { ErrorText } from "@/components/ui/error-ref";
 
 interface TransactionReviewCardProps {
   transactionId: string;
@@ -201,7 +202,7 @@ export default function TransactionReviewCard({
         {error && (
           <div className="mb-4 p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded flex gap-2">
             <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
-            <p className="text-sm text-red-900 dark:text-red-200">{error}</p>
+            <p className="text-sm text-red-900 dark:text-red-200"><ErrorText text={error} /></p>
           </div>
         )}
 

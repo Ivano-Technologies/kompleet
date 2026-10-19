@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
+import { apiErrorBody } from "@/lib/friendly-error";
 
 async function handlePOST(request: NextRequest) {
   try {
@@ -14,10 +15,7 @@ async function handlePOST(request: NextRequest) {
     const correctedCategory =
       body.corrected_category || body.correctedCategory;
     if (!transactionId || !predictedCategory || !correctedCategory) {
-      return NextResponse.json(
-        {
-          error:
-            "Missing required fields (transaction_id, predicted_category, corrected_category)",
+      return NextResponse.json({ ...apiErrorBody("Missing required fields (transaction_id, predicted_category, corrected_category)"),
         },
         { status: 400 },
       );
@@ -28,10 +26,9 @@ async function handlePOST(request: NextRequest) {
     });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
-    return NextResponse.json(
-      { error: "Failed to record correction" },
+    return NextResponse.json({ ...apiErrorBody("Failed to record correction") },
       { status: 500 },
     );
   }
@@ -49,10 +46,9 @@ async function handleGET(request: NextRequest) {
     });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
-    return NextResponse.json(
-      { error: "Failed to get correction stats" },
+    return NextResponse.json({ ...apiErrorBody("Failed to get correction stats") },
       { status: 500 },
     );
   }

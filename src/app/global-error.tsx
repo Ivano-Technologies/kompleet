@@ -1,19 +1,16 @@
 // src/app/global-error.tsx
 "use client";
 
-import * as Sentry from "@sentry/nextjs";
 import NextError from "next/error";
-import { useEffect } from "react";
+import { useBoundaryRef } from "@/hooks/use-error-ref";
 
 export default function GlobalError({
   error,
 }: {
   error: Error & { digest?: string };
 }) {
-  useEffect(() => {
-    console.error("[global-error]", error);
-    Sentry.captureException(error);
-  }, [error]);
+  // Reports and logs the raw error with the ref; never renders it.
+  const ref = useBoundaryRef(error, "error-boundary:global");
 
   return (
     <html>
@@ -33,9 +30,22 @@ export default function GlobalError({
           <h1 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>
             Something went wrong
           </h1>
-          <p style={{ color: "#666", marginBottom: "1.5rem" }}>
+          <p style={{ color: "#666", marginBottom: "0.5rem" }}>
             Please try again. We&apos;ve been notified and are looking into it.
           </p>
+          {ref ? (
+            <p
+              data-testid="error-ref"
+              style={{
+                color: "#6b7280",
+                fontFamily: "ui-monospace, monospace",
+                fontSize: "11px",
+                marginBottom: "1.5rem",
+              }}
+            >
+              Ref: {ref}
+            </p>
+          ) : null}
           <button
             onClick={() => window.location.reload()}
             style={{
@@ -50,20 +60,6 @@ export default function GlobalError({
           >
             Try again
           </button>
-          <a
-            href="/"
-            style={{
-              marginTop: "0.75rem",
-              padding: "0.75rem 1.5rem",
-              color: "#008751",
-              border: "1px solid #008751",
-              borderRadius: "0.5rem",
-              textDecoration: "none",
-              fontSize: "1rem",
-            }}
-          >
-            Go home
-          </a>
         </div>
         {/* NextError for fallback rendering */}
         <NextError statusCode={0} />

@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@/lib/auth/with-auth";
 import { api } from "@/lib/convex/http";
 import { requireAuthedConvex } from "@/lib/convex/server";
+import { apiErrorBody } from "@/lib/friendly-error";
 
 async function handlePOST(request: NextRequest) {
   try {
@@ -20,8 +21,7 @@ async function handlePOST(request: NextRequest) {
     return NextResponse.json(result);
   } catch (error) {
     console.error("Error in POST /api/tax/sources/check:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
+    return NextResponse.json({ ...apiErrorBody("Internal server error") },
       { status: 500 },
     );
   }

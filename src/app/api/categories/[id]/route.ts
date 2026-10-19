@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { api } from "@/lib/convex/http";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
-import { toFriendlyMessage } from "@/lib/friendly-error";
+import { friendlyErrorBody, apiErrorBody } from "@/lib/friendly-error";
 
 export const runtime = "nodejs";
 
@@ -32,16 +32,16 @@ async function handlePUT(
     });
 
     if (!category) {
-      return NextResponse.json({ error: "Category not found" }, { status: 404 });
+      return NextResponse.json({ ...apiErrorBody("Category not found") }, { status: 404 });
     }
     return NextResponse.json({ category });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     console.error("Error in PUT /api/categories/[id]:", error);
     return NextResponse.json(
-      { error: toFriendlyMessage(error) },
+      { ...friendlyErrorBody(error) },
       { status: 500 },
     );
   }
