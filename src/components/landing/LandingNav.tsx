@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { BrandWordmark } from "@/components/brand/BrandWordmark";
+import { BrandLockup } from "@/components/brand/BrandLockup";
 import { HERO_AUTH_ID, requestHeroAuth } from "@/components/landing/hero-auth";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Menu, Moon, Sun, X } from "lucide-react";
@@ -35,7 +35,7 @@ export default function LandingNav({ heroAuth = false }: LandingNavProps) {
   return (
     <nav className="sticky top-0 z-50 border-b border-border bg-bg/90 backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <BrandWordmark href="/" size="lg" />
+        <BrandLockup href="/" size="lg" />
 
         <div className="hidden flex-1 items-center justify-end gap-5 md:flex">
           {NAV_LINKS.map((link) => (
