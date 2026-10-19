@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@/lib/auth/with-auth";
 import { api } from "@/lib/convex/http";
 import { requireAuthedConvex } from "@/lib/convex/server";
+import { apiErrorBody } from "@/lib/friendly-error";
 
 async function handleGET(request: NextRequest) {
   try {
@@ -15,8 +16,7 @@ async function handleGET(request: NextRequest) {
     return NextResponse.json({ sources });
   } catch (error) {
     console.error("Error in GET /api/tax/sources:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
+    return NextResponse.json({ ...apiErrorBody("Internal server error") },
       { status: 500 },
     );
   }

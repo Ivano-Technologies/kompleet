@@ -6,6 +6,7 @@ import { withRateLimit } from "@/lib/with-rate-limit";
 import { z } from "zod";
 import { api } from "@/lib/convex/http";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
+import { friendlyErrorBody, apiErrorBody } from "@/lib/friendly-error";
 
 const taxReportSchema = z.object({
   reportType: z.string().min(1),
@@ -39,8 +40,7 @@ async function handlePOST(request: NextRequest) {
     const parsed = taxReportSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Invalid input", details: parsed.error.flatten() },
+      return NextResponse.json({ ...apiErrorBody("Invalid input"), details: parsed.error.flatten() },
         { status: 400 },
       );
     }
@@ -121,14 +121,14 @@ async function handlePOST(request: NextRequest) {
     return NextResponse.json({ report: taxReport, computation });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     console.error("Error in POST /api/tax-reports/generate:", error);
     if (error instanceof MissingTaxRuleError) {
-      return NextResponse.json({ error: error.message }, { status: 422 });
+      return NextResponse.json({ ...friendlyErrorBody(error) }, { status: 422 });
     }
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Internal server error" },
+      { ...friendlyErrorBody(error) },
       { status: 500 },
     );
   }

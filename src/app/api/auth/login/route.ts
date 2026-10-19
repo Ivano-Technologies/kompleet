@@ -4,12 +4,10 @@
  */
 
 import { NextResponse } from "next/server";
+import { apiErrorBody } from "@/lib/friendly-error";
 
 export async function POST() {
-  return NextResponse.json(
-    {
-      error:
-        "Login moved to Convex Auth. Use the Sign in form (email + password).",
+  return NextResponse.json({ ...apiErrorBody("Login moved to Convex Auth. Use the Sign in form (email + password)."),
     },
     { status: 410 },
   );

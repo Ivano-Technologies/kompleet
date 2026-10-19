@@ -36,7 +36,7 @@ export default function TaxCenterPage() {
       Icon: User,
       phase: 1,
       features: [
-        "Progressive bands (7–21%)",
+        "Progressive bands (7% to 21%)",
         "Personal relief (₦200k + 1%)",
         "Rent relief (₦500k max)",
         "Pension relief",

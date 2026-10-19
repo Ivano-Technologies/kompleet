@@ -5,6 +5,7 @@ import { api } from "@/lib/convex/http";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 import { isValidEmail, trimToEmpty } from "@/lib/invoices/profiles";
 import { z } from "zod";
+import { toFriendlyError, apiErrorBody } from "@/lib/friendly-error";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -28,14 +29,13 @@ async function handlePATCH(request: NextRequest, context: RouteContext) {
     const body = await request.json();
     const parsed = updateClientSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Invalid input", details: parsed.error.flatten() },
+      return NextResponse.json({ ...apiErrorBody("Invalid input"), details: parsed.error.flatten() },
         { status: 400 },
       );
     }
     const email = trimToEmpty(parsed.data.email);
     if (email && !isValidEmail(email)) {
-      return NextResponse.json({ error: "Invalid email address" }, { status: 400 });
+      return NextResponse.json({ ...apiErrorBody("Invalid email address") }, { status: 400 });
     }
     const client = await convex.mutation(api.tenancy.updateClient, {
       externalId: id,
@@ -51,12 +51,12 @@ async function handlePATCH(request: NextRequest, context: RouteContext) {
     return NextResponse.json({ client });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
-    const message =
-      error instanceof Error ? error.message : "Failed to update client";
-    const status = message === "Used on invoices" ? 409 : 500;
-    return NextResponse.json({ error: message }, { status });
+    const raw = error instanceof Error ? error.message : "";
+    const { message, ref } = toFriendlyError(error, "We couldn't update this client. Please try again.");
+    const status = /Used on invoices/.test(raw) ? 409 : 500;
+    return NextResponse.json({ error: message, ref }, { status });
   }
 }
 
@@ -79,11 +79,10 @@ async function handleDELETE(request: NextRequest, context: RouteContext) {
     }
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
-    const message =
-      error instanceof Error ? error.message : "Failed to hide client";
-    return NextResponse.json({ error: message }, { status: 500 });
+    const { message, ref } = toFriendlyError(error, "We couldn't hide this client. Please try again.");
+    return NextResponse.json({ error: message, ref }, { status: 500 });
   }
 }
 

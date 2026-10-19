@@ -10,6 +10,8 @@ import {
   CheckCircle2,
   AlertCircle,
 } from "lucide-react";
+import { apiErrorMessage, toFriendlyMessage } from "@/lib/friendly-error";
+import { ErrorText } from "@/components/ui/error-ref";
 
 interface Category {
   id: string;
@@ -63,11 +65,11 @@ export default function AddFromReceiptPage() {
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !file.type.startsWith("image/")) {
-      setError("Please select an image file (e.g. JPG, PNG).");
+      setError("Choose an image file (JPG or PNG).");
       return;
     }
     if (file.size > 8 * 1024 * 1024) {
-      setError("Image must be under 8MB.");
+      setError("Choose an image smaller than 8MB.");
       return;
     }
 
@@ -85,7 +87,7 @@ export default function AddFromReceiptPage() {
       const ocrData = await ocrRes.json();
 
       if (!ocrRes.ok) {
-        setError(ocrData.error || "Failed to read receipt.");
+        setError(apiErrorMessage(ocrData, "We couldn't read this receipt. Please try again."));
         setLoading(false);
         return;
       }
@@ -140,7 +142,7 @@ export default function AddFromReceiptPage() {
       setSuggestedCategory(categoryName ?? null);
       setStep("form");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong.");
+      setError(toFriendlyMessage(err));
     } finally {
       setLoading(false);
     }
@@ -149,12 +151,12 @@ export default function AddFromReceiptPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.description.trim() || !form.amount || !form.transaction_date) {
-      setError("Please fill in description, amount, and date.");
+      setError("Fill in the description, amount and date.");
       return;
     }
     const amount = parseFloat(form.amount);
     if (Number.isNaN(amount) || amount <= 0) {
-      setError("Please enter a valid amount.");
+      setError("Enter an amount greater than 0, using numbers only.");
       return;
     }
 
@@ -176,13 +178,13 @@ export default function AddFromReceiptPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Failed to create transaction.");
+        setError(apiErrorMessage(data, "We couldn't create this transaction. Please try again."));
         setLoading(false);
         return;
       }
       setStep("success");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong.");
+      setError(toFriendlyMessage(err));
     } finally {
       setLoading(false);
     }
@@ -223,7 +225,7 @@ export default function AddFromReceiptPage() {
       {error && (
         <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-start gap-2">
           <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
-          <p className="text-red-600 dark:text-red-400 text-sm flex-1">{error}</p>
+          <p className="text-red-600 dark:text-red-400 text-sm flex-1"><ErrorText text={error} /></p>
           <button
             type="button"
             onClick={() => setError(null)}
@@ -341,7 +343,7 @@ export default function AddFromReceiptPage() {
               }
               className="w-full rounded-lg border border-border bg-background px-3 py-2 text-foreground"
             >
-              <option value="">— Select category —</option>
+              <option value="">Select a category</option>
               {(expenseCategories.length ? expenseCategories : categories).map(
                 (c) => (
                   <option key={c.id} value={c.id}>

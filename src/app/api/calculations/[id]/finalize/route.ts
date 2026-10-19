@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { api } from "@/lib/convex/http";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
+import { apiErrorBody } from "@/lib/friendly-error";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -21,18 +22,14 @@ async function handlePOST(request: NextRequest, context: RouteContext) {
       externalId: id,
     });
     if (!existing) {
-      return NextResponse.json(
-        {
-          error: "Not found",
+      return NextResponse.json({ ...apiErrorBody("Not found"),
           message: "Calculation not found or access denied",
         },
         { status: 404 },
       );
     }
     if (existing.is_final) {
-      return NextResponse.json(
-        {
-          error: "Already finalized",
+      return NextResponse.json({ ...apiErrorBody("Already finalized"),
           message: "This calculation is already marked as final",
         },
         { status: 400 },
@@ -64,14 +61,12 @@ async function handlePOST(request: NextRequest, context: RouteContext) {
     });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json(
-        { error: "Unauthorized", message: "Authentication required" },
+      return NextResponse.json({ ...apiErrorBody("Unauthorized"), message: "Authentication required" },
         { status: 401 },
       );
     }
     console.error("[Finalize Calculation Error]", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
+    return NextResponse.json({ ...apiErrorBody("Internal server error") },
       { status: 500 },
     );
   }

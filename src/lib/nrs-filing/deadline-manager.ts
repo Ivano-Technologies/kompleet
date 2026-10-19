@@ -44,7 +44,7 @@ export function getFilingDeadlines(taxYear: number): FilingDeadline[] {
 
     deadlines.push({
       taxType: "VAT",
-      description: `VAT Return - ${getMonthName(month)} ${taxYear}`,
+      description: `VAT Return, ${getMonthName(month)} ${taxYear}`,
       dueDate: `${year}-${nextMonthStr}-21`, // 21st of following month
       frequency: "monthly",
       legalReference: "Section 15 of Value Added Tax Act",

@@ -11,12 +11,17 @@
  *
  * `convexAuthNextjsMiddleware` proxies POST `/api/auth` *before* this
  * handler runs. Do not add a catch-all under `/api/auth`.
+ *
+ * The library also exchanges any `?code=` itself. When that exchange fails
+ * it redirects to the same URL without the code, so we send that one case
+ * to `/login?error=expired_link` (see `failed-code-exchange.ts`).
  */
 
 import { convexAuthNextjsMiddleware } from "@convex-dev/auth/nextjs/server";
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
 import { addCorsHeaders } from "@/lib/cors";
 import { CONVEX_AUTH_API_ROUTE } from "@/lib/auth/convex-auth-api-route";
+import { redirectFailedCodeExchange } from "@/lib/auth/failed-code-exchange";
 
 const handleAuthProxy = convexAuthNextjsMiddleware(async (request) => {
   const origin = request.headers.get("origin") || "";
@@ -35,8 +40,9 @@ const handleAuthProxy = convexAuthNextjsMiddleware(async (request) => {
   apiRoute: CONVEX_AUTH_API_ROUTE,
 });
 
-export default function proxy(request: NextRequest, event: NextFetchEvent) {
-  return handleAuthProxy(request, event);
+export default async function proxy(request: NextRequest, event: NextFetchEvent) {
+  const response = await handleAuthProxy(request, event);
+  return redirectFailedCodeExchange(request, response);
 }
 
 export const config = {

@@ -7,7 +7,7 @@ export const DROP_COPY = {
   demoChip: "Demo data",
   heroWhy: "Why we need a statement",
   whyBody:
-    "Your statement is how books start. We read the file, detect the bank, and post income and expenses so dashboards, invoices, and tax have real numbers — not a form you retype.",
+    "Your statement is how books start. We read the file, detect the bank, and post income and expenses so dashboards, invoices, and tax have real numbers, not a form you retype.",
   stripTitle: "Drop another statement to update books",
   stripSub: "We'll detect the bank and update your books.",
   stripChoose: "Choose file",
@@ -32,7 +32,7 @@ export const DROP_COPY = {
   passwordHint: "Enter the PDF password to continue",
   emptyTaxNudge: "Drop a statement first",
   advancedTitle: "Advanced import",
-  advancedEyebrow: "Most imports work from Books — drop a statement there first.",
+  advancedEyebrow: "Most imports work from Books. Drop a statement there first.",
   advancedBack: "Back to Books",
   advancedTrouble: "Having trouble? Advanced import",
 } as const;

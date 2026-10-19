@@ -5,6 +5,7 @@ import {
   requireAuthedConvex,
 } from "@/lib/convex/server";
 import { uploadToConvexStorage } from "@/lib/convex/store-file";
+import { apiErrorBody } from "@/lib/friendly-error";
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,17 +13,15 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const file = formData.get("file");
     if (!(file instanceof File)) {
-      return NextResponse.json({ error: "No file provided" }, { status: 400 });
+      return NextResponse.json({ ...apiErrorBody("No file provided") }, { status: 400 });
     }
     if (!file.type.startsWith("image/")) {
-      return NextResponse.json(
-        { error: "Please select an image file" },
+      return NextResponse.json({ ...apiErrorBody("Please select an image file") },
         { status: 400 },
       );
     }
     if (file.size > 5 * 1024 * 1024) {
-      return NextResponse.json(
-        { error: "Image size must be less than 5MB" },
+      return NextResponse.json({ ...apiErrorBody("Image size must be less than 5MB") },
         { status: 400 },
       );
     }
@@ -33,9 +32,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ url, storageId });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     console.error("avatar upload:", error);
-    return NextResponse.json({ error: "Failed to upload avatar" }, { status: 500 });
+    return NextResponse.json({ ...apiErrorBody("Failed to upload avatar") }, { status: 500 });
   }
 }

@@ -3,6 +3,7 @@ import { withRateLimit } from "@/lib/with-rate-limit";
 import { api } from "@/lib/convex/http";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 import type { Id } from "../../../../../convex/_generated/dataModel";
+import { apiErrorBody } from "@/lib/friendly-error";
 
 async function handleDELETE(
   request: NextRequest,
@@ -12,8 +13,7 @@ async function handleDELETE(
     const { convex } = await requireAuthedConvex(request);
     const { id } = await params;
     if (!id) {
-      return NextResponse.json(
-        { error: "Calculation ID is required" },
+      return NextResponse.json({ ...apiErrorBody("Calculation ID is required") },
         { status: 400 },
       );
     }
@@ -25,15 +25,12 @@ async function handleDELETE(
     } catch (err) {
       const message = err instanceof Error ? err.message : "";
       if (message.includes("not found")) {
-        return NextResponse.json(
-          { error: "Calculation not found" },
+        return NextResponse.json({ ...apiErrorBody("Calculation not found") },
           { status: 404 },
         );
       }
       if (message.includes("Unauthorized")) {
-        return NextResponse.json(
-          {
-            error: "Forbidden",
+        return NextResponse.json({ ...apiErrorBody("Forbidden"),
             message: "You do not have permission to delete this calculation",
           },
           { status: 403 },
@@ -48,15 +45,12 @@ async function handleDELETE(
     });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json(
-        { error: "Unauthorized", message: "Authentication required" },
+      return NextResponse.json({ ...apiErrorBody("Unauthorized"), message: "Authentication required" },
         { status: 401 },
       );
     }
     console.error("[history/[id]] Unexpected error:", error);
-    return NextResponse.json(
-      {
-        error: "Internal server error",
+    return NextResponse.json({ ...apiErrorBody("Internal server error"),
         message: "Failed to delete calculation",
       },
       { status: 500 },

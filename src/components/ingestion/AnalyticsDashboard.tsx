@@ -3,6 +3,8 @@
 import React, { useEffect, useState } from "react";
 import { TrendingUp, AlertCircle, CheckCircle, BarChart3 } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { toFriendlyMessage, UserFacingError } from "@/lib/friendly-error";
+import { ErrorText } from "@/components/ui/error-ref";
 
 interface FeedbackStats {
   totalFeedback: number;
@@ -37,18 +39,18 @@ export default function AnalyticsDashboard() {
       try {
         // Fetch statistics
         const statsRes = await fetch("/api/feedback?type=statistics");
-        if (!statsRes.ok) throw new Error("Failed to fetch statistics");
+        if (!statsRes.ok) throw new UserFacingError("We couldn't load statistics. Please try again.");
         const statsData = await statsRes.json();
         setStats(statsData.data);
 
         // Fetch category accuracy
         const accuracyRes = await fetch("/api/feedback?type=accuracy");
-        if (!accuracyRes.ok) throw new Error("Failed to fetch accuracy");
+        if (!accuracyRes.ok) throw new UserFacingError("We couldn't load accuracy data. Please try again.");
         const accuracyData = await accuracyRes.json();
         setCategoryAccuracy(accuracyData.data);
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : "Failed to load analytics",
+          toFriendlyMessage(err, "We couldn't load analytics. Please try again."),
         );
       } finally {
         setIsLoading(false);
@@ -72,7 +74,7 @@ export default function AnalyticsDashboard() {
       <Card className="backdrop-blur-md bg-white/80 dark:bg-slate-900/80 border border-white/20 dark:border-slate-800/20 p-6">
         <div className="flex gap-3">
           <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0" />
-          <p className="text-red-900 dark:text-red-200">{error}</p>
+          <p className="text-red-900 dark:text-red-200"><ErrorText text={error} /></p>
         </div>
       </Card>
     );

@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { api } from "@/lib/convex/http";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
+import { apiErrorBody } from "@/lib/friendly-error";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -28,11 +29,10 @@ async function handleGET(request: NextRequest): Promise<Response> {
     });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     console.error("Get duplicates error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch duplicates" },
+    return NextResponse.json({ ...apiErrorBody("Failed to fetch duplicates") },
       { status: 500 },
     );
   }
@@ -49,14 +49,13 @@ async function handlePOST(request: NextRequest): Promise<Response> {
     const { duplicateId, action } = body;
 
     if (!duplicateId || !action) {
-      return NextResponse.json(
-        { error: "Missing duplicateId or action" },
+      return NextResponse.json({ ...apiErrorBody("Missing duplicateId or action") },
         { status: 400 },
       );
     }
 
     if (action !== "merged" && action !== "kept_both" && action !== "rejected") {
-      return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+      return NextResponse.json({ ...apiErrorBody("Invalid action") }, { status: 400 });
     }
 
     try {
@@ -68,8 +67,7 @@ async function handlePOST(request: NextRequest): Promise<Response> {
     } catch (error) {
       const message = error instanceof Error ? error.message : "";
       if (/not found/i.test(message)) {
-        return NextResponse.json(
-          { error: "Duplicate not found" },
+        return NextResponse.json({ ...apiErrorBody("Duplicate not found") },
           { status: 404 },
         );
       }
@@ -77,11 +75,10 @@ async function handlePOST(request: NextRequest): Promise<Response> {
     }
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     console.error("Resolve duplicate error:", error);
-    return NextResponse.json(
-      { error: "Failed to resolve duplicate" },
+    return NextResponse.json({ ...apiErrorBody("Failed to resolve duplicate") },
       { status: 500 },
     );
   }

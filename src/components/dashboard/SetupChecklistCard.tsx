@@ -35,7 +35,7 @@ export function SetupChecklistCard({
 
   return (
     <section
-      aria-label={complete ? `${SETUP_COPY.title} — complete` : SETUP_COPY.title}
+      aria-label={complete ? `${SETUP_COPY.title}, complete` : SETUP_COPY.title}
       className={cn(
         "bg-surface border rounded-lg px-[22px] py-5 shadow-[0_2px_8px_rgba(13,27,42,0.04)]",
         complete ? "border-success" : "border-border",

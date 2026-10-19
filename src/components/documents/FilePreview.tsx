@@ -8,6 +8,8 @@ import { api } from "@/lib/convex/browser";
 import { DOCS_COPY } from "./docs-copy";
 import { formatFileSize, formatUploadedDate } from "./docs-format";
 import { extensionOf, kindLabel, type LibraryFile } from "./file-kind";
+import { toFriendlyMessage, UserFacingError } from "@/lib/friendly-error";
+import { ErrorText } from "@/components/ui/error-ref";
 
 const CSV_PREVIEW_ROWS = 50;
 
@@ -142,7 +144,7 @@ function CsvTable({ url }: { url: string }) {
     (async () => {
       try {
         const response = await fetch(url);
-        if (!response.ok) throw new Error("Could not load CSV");
+        if (!response.ok) throw new UserFacingError("We couldn't load this CSV. Please try again.");
         const text = await response.text();
         const parsed = Papa.parse<string[]>(text, {
           skipEmptyLines: true,
@@ -152,7 +154,7 @@ function CsvTable({ url }: { url: string }) {
         setRows(data);
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : "Could not load CSV");
+          setError(toFriendlyMessage(err, "We couldn't load this CSV. Please try again."));
         }
       }
     })();
@@ -161,7 +163,7 @@ function CsvTable({ url }: { url: string }) {
     };
   }, [url]);
 
-  if (error) return <p className="text-sm text-error">{error}</p>;
+  if (error) return <p className="text-sm text-error"><ErrorText text={error} /></p>;
   if (!rows) return <p className="text-sm text-text-3">Loading table…</p>;
   if (rows.length === 0) {
     return <p className="text-sm text-text-3">This CSV is empty.</p>;

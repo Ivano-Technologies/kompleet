@@ -9,6 +9,7 @@ import { withRateLimit } from "@/lib/with-rate-limit";
 import { withAuth } from "@/lib/auth/with-auth";
 import { api } from "@/lib/convex/http";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
+import { apiErrorBody } from "@/lib/friendly-error";
 
 async function handlePOST(request: NextRequest) {
   try {
@@ -53,10 +54,10 @@ async function handlePOST(request: NextRequest) {
     });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     console.error("Error in /api/export/bulk:", error);
-    return NextResponse.json({ error: "Bulk export failed" }, { status: 500 });
+    return NextResponse.json({ ...apiErrorBody("Bulk export failed") }, { status: 500 });
   }
 }
 
