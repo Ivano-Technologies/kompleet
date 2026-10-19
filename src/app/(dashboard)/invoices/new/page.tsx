@@ -6,6 +6,7 @@ import {
   discountTooBig,
   lineNetAmount,
   totalsFromLines,
+  vatByRate,
 } from "@/lib/invoices/line-amounts";
 import { useRouter } from "next/navigation";
 import { InvoiceLineItem, CustomerInfo } from "@/lib/invoice-service";
@@ -133,12 +134,15 @@ export default function NewInvoicePage() {
     }
   };
 
-  // Calculate totals: Subtotal is the sum of the rounded line amounts, VAT on the Subtotal (IVA-185)
+  // Calculate totals with the invoice helper (IVA-185): Subtotal is the sum of the
+  // rounded line amounts (already net of line discounts), one VAT row per non-zero
+  // rate (the rows add up to the invoice VAT), and Total = Subtotal + VAT.
   const calculateTotals = () => {
     const t = totalsFromLines(lineItems);
     return {
       subtotal: t.subtotal,
       vatAmount: t.vat_amount,
+      vatLines: vatByRate(lineItems),
       discountAmount: t.discount_amount,
       total: t.total_amount,
     };
@@ -627,34 +631,28 @@ export default function NewInvoicePage() {
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-light-text-secondary dark:text-dark-text-secondary">
-                Subtotal (₦)
+                Subtotal
               </span>
-              <span className="font-medium text-light-text-primary dark:text-dark-text-primary tabular-nums">
+              <span data-testid="form-subtotal" className="font-medium text-light-text-primary dark:text-dark-text-primary tabular-nums">
                 ₦{totals.subtotal.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
               </span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-light-text-secondary dark:text-dark-text-secondary">
-                Discount (₦)
-              </span>
-              <span className="font-medium text-light-text-primary dark:text-dark-text-primary tabular-nums">
-                ₦{totals.discountAmount.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-light-text-secondary dark:text-dark-text-secondary">
-                VAT ({lineItems[0]?.vat_rate || 7.5}%)
-              </span>
-              <span className="font-medium text-light-text-primary dark:text-dark-text-primary tabular-nums">
-                ₦{totals.vatAmount.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
-              </span>
-            </div>
+            {totals.vatLines.map((line) => (
+              <div key={line.rate} className="flex justify-between" data-testid="form-vat-row">
+                <span className="text-light-text-secondary dark:text-dark-text-secondary">
+                  VAT ({line.rate}%)
+                </span>
+                <span className="font-medium text-light-text-primary dark:text-dark-text-primary tabular-nums">
+                  ₦{line.vat.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
+                </span>
+              </div>
+            ))}
             <div className="border-t border-light-border dark:border-dark-border my-2"></div>
             <div className="flex justify-between text-lg font-bold">
               <span className="text-light-text-primary dark:text-dark-text-primary">
-                Total (₦)
+                Total
               </span>
-              <span className="text-primary-600 tabular-nums">
+              <span data-testid="form-total" className="text-primary-600 tabular-nums">
                 ₦{totals.total.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
               </span>
             </div>

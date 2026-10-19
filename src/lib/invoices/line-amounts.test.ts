@@ -190,3 +190,38 @@ describe("IVA-185 half-up kobo rounding", () => {
   });
 });
 
+
+describe("IVA-185 discount limit compares the shown line total in kobo", () => {
+  it("allows a discount equal to the shown line total and refuses one kobo more", async () => {
+    const { discountTooBig, lineDiscount } = await import("./line-amounts");
+    const line = { quantity: 1.5, unit_price: 33.33, vat_rate: 7.5 }; // 49.995 shown as 50.00
+    expect(lineNetAmount(line)).toBe(50);
+    expect(discountTooBig({ ...line, discount: 50 })).toBe(false);
+    expect(lineNetAmount({ ...line, discount: 50 })).toBe(0);
+    expect(lineDiscount({ ...line, discount: 50 })).toBe(50);
+    expect(discountTooBig({ ...line, discount: 50.01 })).toBe(true);
+    expect(discountTooBig({ ...line, discount: 49.99 })).toBe(false);
+    // Float noise on the discount itself does not trip it either.
+    expect(discountTooBig({ quantity: 1, unit_price: 0.3, vat_rate: 0, discount: 0.1 + 0.2 })).toBe(false);
+  });
+});
+
+describe("IVA-185 vatByRate", () => {
+  it("gives one entry per non-zero rate that adds up to the invoice VAT", async () => {
+    const { vatByRate } = await import("./line-amounts");
+    const rows = [
+      { quantity: 1, unit_price: 1000, vat_rate: 7.5, discount: 100 },
+      { quantity: 1, unit_price: 333.33, vat_rate: 5 },
+      { quantity: 1.5, unit_price: 33.33, vat_rate: 5 },
+      { quantity: 2, unit_price: 100, vat_rate: 0 },
+    ];
+    const lines = vatByRate(rows);
+    expect(lines).toEqual([
+      { rate: 7.5, base: 900, vat: 67.5 },
+      { rate: 5, base: 383.33, vat: 19.17 }, // 19.1665 half-up
+    ]);
+    const totals = totalsFromLines(rows);
+    expect(Number(lines.reduce((s, l) => s + l.vat, 0).toFixed(2))).toBe(totals.vat_amount);
+    expect(vatByRate([{ quantity: 1, unit_price: 10, vat_rate: 0 }])).toEqual([]);
+  });
+});
