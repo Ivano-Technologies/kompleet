@@ -2,10 +2,12 @@
  * IVA-185: invoice line maths, shared by the create route, the full form,
  * the preview and the PDF. Pure, so it is safe in client components.
  *
- * A line amount is the pre-VAT net: quantity x rate minus the line discount
- * (clamped to 0..quantity x rate), rounded half-up to the kobo. The Subtotal is the sum of
- * those rounded amounts, VAT is computed on the Subtotal, and
- * Total = Subtotal + VAT.
+ * All money is worked in whole kobo with integer maths, rounded half-up
+ * (see halfUpUnits). A line amount is the pre-VAT net: quantity x rate,
+ * rounded half-up to the kobo, minus the line discount (clamped in kobo to
+ * 0..that amount). The Subtotal is the exact kobo sum of those line amounts.
+ * VAT is computed on the Subtotal per VAT rate group, each group rounded
+ * half-up to the kobo, and Total = Subtotal + VAT.
  *
  * Older full-form invoices stored `amount` including VAT, so the preview and
  * PDF always recompute the net from quantity, rate and discount instead of
