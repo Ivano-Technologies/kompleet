@@ -1,5 +1,8 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { internal } from "./_generated/api";
+import type { Id } from "./_generated/dataModel";
+import type { MutationCtx } from "./_generated/server";
+import { action, internalMutation, mutation, query } from "./_generated/server";
 import { getCurrentUser } from "./lib/auth";
 import { newExternalId } from "./lib/ids";
 import {
@@ -8,11 +11,12 @@ import {
   getOrCreateUserFirm,
   isValidEmail,
   loadBusinessProfile,
-  toBusinessApi,
+  logoUsedOnIssuedInvoice,
   toClientApi,
   trimToEmpty,
   trimToUndef,
 } from "./lib/profiles";
+import { sniffImage } from "./lib/imageMeta";
 
 const businessProfileApi = v.object({
   legalName: v.string(),
@@ -26,6 +30,10 @@ const businessProfileApi = v.object({
   tin: v.string(),
   vatNumber: v.string(),
   complete: v.boolean(),
+  logoStorageId: v.union(v.id("_storage"), v.null()),
+  logoUrl: v.union(v.string(), v.null()),
+  logoWidth: v.union(v.number(), v.null()),
+  logoHeight: v.union(v.number(), v.null()),
 });
 
 const clientApi = v.object({
@@ -120,7 +128,136 @@ export const upsertMyBusinessProfile = mutation({
       await ctx.db.patch(user._id, { companyName: legalName, updatedAt: now });
     }
 
-    return toBusinessApi(next);
+    return await loadBusinessProfile(ctx, user);
+  },
+});
+
+// ============================================
+// IVA-185: business logo for invoices
+// ============================================
+
+/** Logos are capped at 1MB and stored as PNG or JPEG (SVG is rasterised in the browser). */
+const LOGO_MAX_BYTES = 1024 * 1024;
+
+export const generateBusinessLogoUploadUrl = mutation({
+  args: {},
+  returns: v.string(),
+  handler: async (ctx) => {
+    await getCurrentUser(ctx);
+    return await ctx.storage.generateUploadUrl();
+  },
+});
+
+/**
+ * Validate an uploaded logo (real PNG or JPEG bytes, at most 1MB) and attach it
+ * to the caller's business profile. Invalid uploads are deleted.
+ */
+export const setMyBusinessLogo = action({
+  args: { storageId: v.id("_storage") },
+  returns: businessProfileApi,
+  handler: async (ctx, args): Promise<BusinessProfileApiShape> => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Not authenticated");
+    const blob = await ctx.storage.get(args.storageId);
+    if (!blob) throw new Error("Upload not found. Please try again.");
+    let problem: string | null = null;
+    let meta: ReturnType<typeof sniffImage> = null;
+    if (blob.size > LOGO_MAX_BYTES) {
+      problem = "Logo must be 1MB or smaller";
+    } else {
+      meta = sniffImage(new Uint8Array(await blob.arrayBuffer()));
+      if (!meta) problem = "Logo must be a PNG, JPG or SVG image";
+    }
+    if (problem || !meta) {
+      await ctx.storage.delete(args.storageId);
+      throw new Error(problem ?? "Logo must be a PNG, JPG or SVG image");
+    }
+    return await ctx.runMutation(internal.tenancy.saveMyBusinessLogo, {
+      storageId: args.storageId,
+      width: meta.width,
+      height: meta.height,
+    });
+  },
+});
+
+type BusinessProfileApiShape = Awaited<ReturnType<typeof loadBusinessProfile>>;
+
+async function deleteLogoIfUnused(
+  ctx: MutationCtx,
+  userId: Id<"users">,
+  storageId: Id<"_storage">,
+) {
+  // Issued invoices keep pointing at their logo, so never delete one they use.
+  if (await logoUsedOnIssuedInvoice(ctx, userId, storageId)) return;
+  await ctx.storage.delete(storageId);
+}
+
+export const saveMyBusinessLogo = internalMutation({
+  args: {
+    storageId: v.id("_storage"),
+    width: v.number(),
+    height: v.number(),
+  },
+  returns: businessProfileApi,
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
+    // Ownership: a storage id already attached to another business is never reused.
+    const holders = await ctx.db
+      .query("businessProfiles")
+      .withIndex("by_logoStorageId", (q) => q.eq("logoStorageId", args.storageId))
+      .collect();
+    if (holders.some((row) => row.userId !== user._id)) {
+      throw new Error("Unauthorized");
+    }
+    const existing = await ctx.db
+      .query("businessProfiles")
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .unique();
+    const now = Date.now();
+    const logo = {
+      logoStorageId: args.storageId,
+      logoWidth: args.width,
+      logoHeight: args.height,
+      updatedAt: now,
+    };
+    if (existing) {
+      const previous = existing.logoStorageId;
+      await ctx.db.patch(existing._id, logo);
+      if (previous && previous !== args.storageId) {
+        await deleteLogoIfUnused(ctx, user._id, previous);
+      }
+    } else {
+      await ctx.db.insert("businessProfiles", {
+        userId: user._id,
+        userExternalId: user.externalId,
+        ...logo,
+        createdAt: now,
+      });
+    }
+    return await loadBusinessProfile(ctx, user);
+  },
+});
+
+export const removeMyBusinessLogo = mutation({
+  args: {},
+  returns: businessProfileApi,
+  handler: async (ctx) => {
+    const user = await getCurrentUser(ctx);
+    const existing = await ctx.db
+      .query("businessProfiles")
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .unique();
+    if (existing?.logoStorageId) {
+      const previous = existing.logoStorageId;
+      await ctx.db.patch(existing._id, {
+        logoStorageId: undefined,
+        logoWidth: undefined,
+        logoHeight: undefined,
+        updatedAt: Date.now(),
+      });
+      await deleteLogoIfUnused(ctx, user._id, previous);
+    }
+    return await loadBusinessProfile(ctx, user);
   },
 });
 

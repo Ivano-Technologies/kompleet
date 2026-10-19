@@ -30,8 +30,8 @@ const capabilities = [
     desc: "Create professional invoices in minutes. Record payment when the customer settles.",
   },
   {
-    src: "/assets/illustrations/spot-vat.svg",
-    fallback: "/assets/illustrations/spot-vat.png",
+    src: "/assets/illustrations/spot-expenses.svg",
+    fallback: "/assets/illustrations/spot-expenses.png",
     title: "Expense tracking",
     desc: "Sort every naira you spend into clear categories so you always know where money goes.",
   },
@@ -154,13 +154,20 @@ export default function HomePage() {
         <div className="mx-auto max-w-7xl">
           <picture>
             <source
-              srcSet="/assets/illustrations/tax-filing-flow.svg"
+              media="(max-width: 767px)"
+              srcSet="/assets/illustrations/bookkeeping-flow-mobile.svg"
+              type="image/svg+xml"
+              width={684}
+              height={740}
+            />
+            <source
+              srcSet="/assets/illustrations/bookkeeping-flow.svg"
               type="image/svg+xml"
             />
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/assets/illustrations/tax-filing-flow.png"
-              alt=""
+              src="/assets/illustrations/bookkeeping-flow.png"
+              alt="Bookkeeping flow from bank import to sorted expenses, an invoice and a monthly report"
               width={1440}
               height={480}
               className="h-auto w-full rounded-xl border border-border"

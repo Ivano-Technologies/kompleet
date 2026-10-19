@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="88" height="88" viewBox="0 0 88 88" fill="none" role="img" aria-label="Expense receipt">
+  <!-- receipt with torn edge -->
+  <path d="M20 22 c0 -3.3 2.7 -6 6 -6 h24 c3.3 0 6 2.7 6 6 V72 l-6 -4 l-6 4 l-6 -4 l-6 4 l-6 -4 l-6 4 Z"
+        fill="#FFFDF8" stroke="#0B3A5C" stroke-width="1.75" stroke-linejoin="round"/>
+  <!-- line items -->
+  <line x1="27" y1="28" x2="41" y2="28" stroke="#0B3A5C" stroke-width="1.75" stroke-linecap="round"/>
+  <line x1="27" y1="37" x2="35" y2="37" stroke="#0B3A5C" stroke-width="1.75" stroke-linecap="round"/>
+  <line x1="43" y1="37" x2="49" y2="37" stroke="#0B3A5C" stroke-width="1.75" stroke-linecap="round"/>
+  <line x1="27" y1="45" x2="37" y2="45" stroke="#0B3A5C" stroke-width="1.75" stroke-linecap="round"/>
+  <line x1="43" y1="45" x2="49" y2="45" stroke="#0B3A5C" stroke-width="1.75" stroke-linecap="round"/>
+  <line x1="27" y1="55" x2="41" y2="55" stroke="#0B3A5C" stroke-width="1.75" stroke-linecap="round" stroke-dasharray="0.1 3.5"/>
+  <!-- category tag -->
+  <path d="M50 50 H62 l8 8 l-8 8 H50 c-2.2 0 -4 -1.8 -4 -4 V54 c0 -2.2 1.8 -4 4 -4 Z"
+        fill="#EBE6DC" stroke="#0B3A5C" stroke-width="1.75" stroke-linejoin="round"/>
+  <circle cx="61" cy="58" r="2.5" fill="#0D9488"/>
+</svg>

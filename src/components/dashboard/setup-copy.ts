@@ -2,7 +2,7 @@ export const SETUP_COPY = {
   title: "Set up your business",
   sub: "Add your details so invoices show the right sender.",
   subComplete:
-    "You\u2019re ready \u2014 sender details will appear on invoices. Tax IDs can wait.",
+    "You\u2019re ready. Sender details will appear on invoices. Tax IDs can wait.",
   progress: (n: number) => `${n} of 4 complete`,
   itemLegalName: "Legal name",
   itemAddress: "Business address",
@@ -12,10 +12,10 @@ export const SETUP_COPY = {
   itemDone: "Done",
   itemAdd: "Add",
   itemSkipped: "Skipped",
-  logoDeferred: "Logo upload coming later",
+  logoDeferred: "Add your logo in Settings",
   logoDeferredSub:
-    "invoices use your legal name only for now. Not a checklist step.",
-  logoDeferredComplete: "not required to finish setup.",
+    "Optional. It shows on invoices next to your business name. Not a checklist step.",
+  logoDeferredComplete: "Optional and not required to finish setup.",
   ctaPrimary: "Set up business",
   ctaLater: "I\u2019ll do this later",
   ctaDone: "Done",
@@ -24,5 +24,5 @@ export const SETUP_COPY = {
   bannerCta: "Open Settings",
   bannerDismiss: "Dismiss",
   toastComplete:
-    "Business profile ready \u2014 it\u2019ll show on invoices you send.",
+    "Business profile ready. It\u2019ll show on invoices you send.",
 } as const;

@@ -1,6 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import {
+  DISCOUNT_TOO_BIG,
+  discountTooBig,
+  lineNetAmount,
+  totalsFromLines,
+  vatByRate,
+  vatRowLabel,
+} from "@/lib/invoices/line-amounts";
 import { useRouter } from "next/navigation";
 import { InvoiceLineItem, CustomerInfo } from "@/lib/invoice-service";
 import { FilePlus2, Loader2, Plus, Trash2 } from "lucide-react";
@@ -92,14 +100,8 @@ export default function NewInvoicePage() {
     };
   }, []);
 
-  // Calculate line item amount
-  const calculateLineItemAmount = (item: InvoiceLineItem): number => {
-    const baseAmount = item.quantity * item.unit_price;
-    const discount = item.discount || 0;
-    const subtotal = baseAmount - discount;
-    const vatAmount = (subtotal * item.vat_rate) / 100;
-    return Number((subtotal + vatAmount).toFixed(2));
-  };
+  // Line amount is the pre-VAT net (quantity x rate minus discount), so rows add up to the Subtotal
+  const calculateLineItemAmount = (item: InvoiceLineItem): number => lineNetAmount(item);
 
   // Update line item
   const updateLineItem = (
@@ -135,28 +137,17 @@ export default function NewInvoicePage() {
     }
   };
 
-  // Calculate totals
+  // Calculate totals with the invoice helper (IVA-185): Subtotal is the sum of the
+  // rounded line amounts (already net of line discounts), one VAT row per non-zero
+  // rate (the rows add up to the invoice VAT), and Total = Subtotal + VAT.
   const calculateTotals = () => {
-    let subtotal = 0;
-    let vatAmount = 0;
-    let discountAmount = 0;
-
-    for (const item of lineItems) {
-      const baseAmount = item.quantity * item.unit_price;
-      const itemDiscount = item.discount || 0;
-      const itemSubtotal = baseAmount - itemDiscount;
-      const itemVat = (itemSubtotal * item.vat_rate) / 100;
-
-      subtotal += itemSubtotal;
-      vatAmount += itemVat;
-      discountAmount += itemDiscount;
-    }
-
+    const t = totalsFromLines(lineItems);
     return {
-      subtotal: Number(subtotal.toFixed(2)),
-      vatAmount: Number(vatAmount.toFixed(2)),
-      discountAmount: Number(discountAmount.toFixed(2)),
-      total: Number((subtotal + vatAmount).toFixed(2)),
+      subtotal: t.subtotal,
+      vatAmount: t.vat_amount,
+      vatLines: vatByRate(lineItems),
+      discountAmount: t.discount_amount,
+      total: t.total_amount,
     };
   };
 
@@ -187,6 +178,9 @@ export default function NewInvoicePage() {
       }
       if (item.unit_price < 0) {
         errors.push(`Line item ${i + 1}: enter a unit price of 0 or more`);
+      }
+      if (discountTooBig(item)) {
+        errors.push(`Line item ${i + 1}: ${DISCOUNT_TOO_BIG}`);
       }
     }
 
@@ -569,7 +563,9 @@ export default function NewInvoicePage() {
                 </label>
                 <input
                   type="number"
+                  min={0}
                   value={item.discount}
+                  aria-invalid={discountTooBig(item) || undefined}
                   onChange={(e) =>
                     updateLineItem(
                       index,
@@ -579,6 +575,11 @@ export default function NewInvoicePage() {
                   }
                   className="w-full px-3 py-2 border border-light-border dark:border-dark-border rounded-lg bg-light-surface dark:bg-dark-surface focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                 />
+                {discountTooBig(item) && (
+                  <p className="mt-1 text-xs text-red-600 dark:text-red-400" role="alert">
+                    {DISCOUNT_TOO_BIG}
+                  </p>
+                )}
               </div>
 
               <div className="col-span-10 md:col-span-2 min-w-[6rem]">
@@ -633,34 +634,28 @@ export default function NewInvoicePage() {
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-light-text-secondary dark:text-dark-text-secondary">
-                Subtotal (₦)
+                Subtotal
               </span>
-              <span className="font-medium text-light-text-primary dark:text-dark-text-primary tabular-nums">
+              <span data-testid="form-subtotal" className="font-medium text-light-text-primary dark:text-dark-text-primary tabular-nums">
                 ₦{totals.subtotal.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
               </span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-light-text-secondary dark:text-dark-text-secondary">
-                Discount (₦)
-              </span>
-              <span className="font-medium text-light-text-primary dark:text-dark-text-primary tabular-nums">
-                ₦{totals.discountAmount.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-light-text-secondary dark:text-dark-text-secondary">
-                VAT ({lineItems[0]?.vat_rate || 7.5}%)
-              </span>
-              <span className="font-medium text-light-text-primary dark:text-dark-text-primary tabular-nums">
-                ₦{totals.vatAmount.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
-              </span>
-            </div>
+            {totals.vatLines.map((line) => (
+              <div key={line.rate} className="flex justify-between" data-testid="form-vat-row">
+                <span className="text-light-text-secondary dark:text-dark-text-secondary">
+                  {vatRowLabel(line.rate)}
+                </span>
+                <span className="font-medium text-light-text-primary dark:text-dark-text-primary tabular-nums">
+                  ₦{line.vat.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
+                </span>
+              </div>
+            ))}
             <div className="border-t border-light-border dark:border-dark-border my-2"></div>
             <div className="flex justify-between text-lg font-bold">
               <span className="text-light-text-primary dark:text-dark-text-primary">
-                Total (₦)
+                Total
               </span>
-              <span className="text-primary-600 tabular-nums">
+              <span data-testid="form-total" className="text-primary-600 tabular-nums">
                 ₦{totals.total.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
               </span>
             </div>

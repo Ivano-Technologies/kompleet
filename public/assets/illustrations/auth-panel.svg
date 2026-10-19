@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="960" height="1200" viewBox="0 0 960 1200" fill="none" role="img" aria-label="Kompleet auth panel — geometric ledger stack">
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="1200" viewBox="0 0 960 1200" fill="none" role="img" aria-label="Kompleet auth panel, a geometric ledger stack">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="#072A45"/>
@@ -49,6 +49,4 @@
     <circle cx="640" cy="856" r="28" fill="#0D9488"/>
     <path d="M628 856 l8 8 16 -18" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
   </g>
-  <!-- wordmark hint (not logo redraw) -->
-  <text x="480" y="1100" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="600" letter-spacing="4" fill="#BAD8F5" fill-opacity="0.7">KOMPLEET</text>
 </svg>

@@ -144,7 +144,7 @@ export function SetupChecklistCard({
         </span>
         <p>
           <strong className="text-primary">{SETUP_COPY.logoDeferred}</strong>
-          {" \u2014 "}
+          {". "}
           {complete
             ? SETUP_COPY.logoDeferredComplete
             : SETUP_COPY.logoDeferredSub}

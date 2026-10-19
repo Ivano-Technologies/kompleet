@@ -39,11 +39,10 @@ export const metadata: Metadata = {
     "Bookkeeping made simple. Track spending, send invoices and export clean financial reports from one easy web app built for growing businesses.",
   icons: {
     icon: [
+      { url: "/favicon.ico", sizes: "any" },
       { url: "/favicon.svg", type: "image/svg+xml" },
-      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
-      { url: "/favicon-16.png", sizes: "16x16", type: "image/png" },
     ],
-    apple: { url: "/apple-touch-180.png", sizes: "180x180", type: "image/png" },
+    apple: { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
   },
   openGraph: {
     title: "Kompleet: Stress-Free Bookkeeping and Invoicing",
@@ -71,10 +70,9 @@ export default function RootLayout({
     <ConvexAuthNextjsServerProvider>
       <html lang="en" className={`${montserrat.variable} ${ceoruse.variable}`}>
         <head>
+          <link rel="icon" href="/favicon.ico" sizes="any" />
           <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-          <link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" />
-          <link rel="icon" href="/favicon-16.png" sizes="16x16" type="image/png" />
-          <link rel="apple-touch-icon" href="/apple-touch-180.png" />
+          <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
           <meta name="theme-color" content="#0D9488" />
         </head>
         <body className="font-body">
