@@ -10,6 +10,7 @@ import {
 } from "@/lib/convex/server";
 import { uploadToConvexStorage } from "@/lib/convex/store-file";
 import type { Id } from "../../../../../convex/_generated/dataModel";
+import { toFriendlyError, apiErrorBody } from "@/lib/friendly-error";
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,17 +18,15 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const file = formData.get("file");
     if (!(file instanceof File)) {
-      return NextResponse.json({ error: "No file provided" }, { status: 400 });
+      return NextResponse.json({ ...apiErrorBody("No file provided") }, { status: 400 });
     }
     if (!file.type.startsWith("image/")) {
-      return NextResponse.json(
-        { error: "Please select an image file" },
+      return NextResponse.json({ ...apiErrorBody("Please select an image file") },
         { status: 400 },
       );
     }
     if (file.size > 8 * 1024 * 1024) {
-      return NextResponse.json(
-        { error: "Image size must be less than 8MB" },
+      return NextResponse.json({ ...apiErrorBody("Image size must be less than 8MB") },
         { status: 400 },
       );
     }
@@ -47,10 +46,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ url, storageId });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
-    const message = error instanceof Error ? error.message : "Upload failed";
-    const status = /not found/i.test(message) ? 404 : 500;
-    return NextResponse.json({ error: message }, { status });
+    const raw = error instanceof Error ? error.message : "";
+    const { message, ref } = toFriendlyError(error, "Upload failed. Please try again.");
+    const status = /not found/i.test(raw) ? 404 : 500;
+    return NextResponse.json({ error: message, ref }, { status });
   }
 }

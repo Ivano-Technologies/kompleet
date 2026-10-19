@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { useRouter } from "next/navigation";
+import { FRIENDLY_MESSAGES, toFriendlyError, withRef } from "@/lib/friendly-error";
+import { ErrorText } from "@/components/ui/error-ref";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
@@ -22,7 +24,17 @@ export default function LoginForm() {
       router.push("/dashboard");
       router.refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed");
+      const { message, ref } = toFriendlyError(err, FRIENDLY_MESSAGES.fallback, {
+        context: "login-form",
+      });
+      setError(
+        withRef(
+          message === FRIENDLY_MESSAGES.network || message === FRIENDLY_MESSAGES.rateLimited
+            ? message
+            : FRIENDLY_MESSAGES.invalidCredentials,
+          ref,
+        ),
+      );
     }
 
     setLoading(false);
@@ -48,7 +60,7 @@ export default function LoginForm() {
         className="w-full rounded border px-3 py-2"
       />
 
-      {error && <p className="text-sm text-red-500">{error}</p>}
+      {error && <p className="text-sm text-red-500"><ErrorText text={error} /></p>}
 
       <button
         type="submit"

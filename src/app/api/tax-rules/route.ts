@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@/lib/auth/with-auth";
 import { loadRuleBundle } from "@/lib/tax/rule-loader";
 import { requireAuthedConvex } from "@/lib/convex/server";
+import { apiErrorBody } from "@/lib/friendly-error";
 
 async function handleGET(request: NextRequest) {
   try {
@@ -15,8 +16,7 @@ async function handleGET(request: NextRequest) {
     const ruleType = searchParams.get("type");
 
     if (!ruleType) {
-      return NextResponse.json(
-        { error: "Rule type is required" },
+      return NextResponse.json({ ...apiErrorBody("Rule type is required") },
         { status: 400 },
       );
     }
@@ -59,8 +59,7 @@ async function handleGET(request: NextRequest) {
     });
   } catch (error) {
     console.error("Unexpected error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
+    return NextResponse.json({ ...apiErrorBody("Internal server error") },
       { status: 500 },
     );
   }

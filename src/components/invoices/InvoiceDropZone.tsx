@@ -4,6 +4,8 @@ import { useRef, useState, type DragEvent } from "react";
 import { Loader2, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { INV_COPY } from "./invoice-copy";
+import { toFriendlyMessage } from "@/lib/friendly-error";
+import { ErrorText } from "@/components/ui/error-ref";
 
 const ACCEPT = ".pdf,.png,.jpg,.jpeg,.webp";
 const MAX_BYTES = 10 * 1024 * 1024;
@@ -39,11 +41,11 @@ export function InvoiceDropZone({
   const takeFile = async (file: File | undefined) => {
     if (!file || disabled || busy) return;
     if (!isSupportedInvoiceFile(file)) {
-      setError("Please select a PDF or image");
+      setError("Choose a PDF or an image file (JPG or PNG).");
       return;
     }
     if (file.size > MAX_BYTES) {
-      setError("File size must be less than 10MB");
+      setError("Choose a file smaller than 10MB.");
       return;
     }
     setError(null);
@@ -52,7 +54,7 @@ export function InvoiceDropZone({
     try {
       await onFile(file);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create draft");
+      setError(toFriendlyMessage(err, "We couldn't create the draft. Please try again."));
     } finally {
       setBusy(false);
       if (inputRef.current) inputRef.current.value = "";
@@ -123,7 +125,7 @@ export function InvoiceDropZone({
           {INV_COPY.dropChoose}
         </span>
       </div>
-      {error && <p className="mt-2 text-sm text-error">{error}</p>}
+      {error && <p className="mt-2 text-sm text-error"><ErrorText text={error} /></p>}
     </div>
   );
 }

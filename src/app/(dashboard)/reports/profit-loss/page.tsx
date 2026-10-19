@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Printer, Download, BarChart3, Loader2 } from "lucide-react";
+import { notifyError } from "@/components/ui/error-toast";
+import { apiErrorMessage, toFriendlyMessage } from "@/lib/friendly-error";
 
 interface LineItem {
   category: string;
@@ -27,7 +29,7 @@ export default function ProfitLossPage() {
 
   const handleGenerate = async () => {
     if (!startDate || !endDate) {
-      alert("Please select both start and end dates");
+      notifyError("Pick a start date and an end date, then generate the statement.");
       return;
     }
     setLoading(true);
@@ -37,10 +39,9 @@ export default function ProfitLossPage() {
       );
       const data = await response.json();
       if (response.ok) setStatement(data.statement);
-      else alert(data.error || "Failed to generate statement");
+      else notifyError(apiErrorMessage(data, "We couldn't generate the statement. Please try again."));
     } catch (error) {
-      console.error("Error generating statement:", error);
-      alert("An error occurred");
+      notifyError(toFriendlyMessage(error, "We couldn't generate the statement. Please try again.", { context: "reports:profit-loss" }));
     } finally {
       setLoading(false);
     }

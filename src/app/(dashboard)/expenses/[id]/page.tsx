@@ -5,6 +5,8 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Save, Trash2 } from "lucide-react";
 import { AttachFileButton } from "@/components/documents/AttachFileButton";
+import { notifyError } from "@/components/ui/error-toast";
+import { apiErrorMessage } from "@/lib/friendly-error";
 
 interface Expense {
   id: string;
@@ -78,7 +80,7 @@ export default function ExpenseDetailPage() {
     if (!id) return;
     const amount = parseFloat(form.amount);
     if (Number.isNaN(amount) || amount < 0) {
-      alert("Enter a valid amount.");
+      notifyError("Enter an amount of 0 or more, using numbers only (for example 2500).");
       return;
     }
     setSaving(true);
@@ -101,7 +103,7 @@ export default function ExpenseDetailPage() {
         setExpense(data);
       } else {
         const err = await res.json().catch(() => ({}));
-        alert(err.error ?? "Update failed");
+        notifyError(apiErrorMessage(err, "We couldn't save this expense. Please try again."));
       }
     } finally {
       setSaving(false);
@@ -115,7 +117,7 @@ export default function ExpenseDetailPage() {
       router.push("/expenses");
     } else {
       const err = await res.json().catch(() => ({}));
-      alert(err.error ?? "Delete failed");
+      notifyError(apiErrorMessage(err, "We couldn't delete this expense. Please try again."));
     }
   };
 

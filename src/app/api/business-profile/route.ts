@@ -9,6 +9,7 @@ import {
   trimToEmpty,
 } from "@/lib/invoices/profiles";
 import { z } from "zod";
+import { toFriendlyError, apiErrorBody } from "@/lib/friendly-error";
 
 const upsertSchema = z.object({
   legalName: z.string().max(200).optional(),
@@ -32,10 +33,9 @@ async function handleGET(request: NextRequest) {
     });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
-    return NextResponse.json(
-      { error: "Failed to load business profile" },
+    return NextResponse.json({ ...apiErrorBody("Failed to load business profile") },
       { status: 500 },
     );
   }
@@ -47,14 +47,13 @@ async function handlePATCH(request: NextRequest) {
     const body = await request.json();
     const parsed = upsertSchema.safeParse(body);
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Invalid input", details: parsed.error.flatten() },
+      return NextResponse.json({ ...apiErrorBody("Invalid input"), details: parsed.error.flatten() },
         { status: 400 },
       );
     }
     const email = trimToEmpty(parsed.data.email);
     if (email && !isValidEmail(email)) {
-      return NextResponse.json({ error: "Invalid email address" }, { status: 400 });
+      return NextResponse.json({ ...apiErrorBody("Invalid email address") }, { status: 400 });
     }
     const profile = await convex.mutation(api.tenancy.upsertMyBusinessProfile, {
       legalName: parsed.data.legalName,
@@ -73,11 +72,10 @@ async function handlePATCH(request: NextRequest) {
     });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
-    const message =
-      error instanceof Error ? error.message : "Failed to save business profile";
-    return NextResponse.json({ error: message }, { status: 500 });
+    const { message, ref } = toFriendlyError(error, "We couldn't save your business profile. Please try again.");
+    return NextResponse.json({ error: message, ref }, { status: 500 });
   }
 }
 

@@ -4,6 +4,7 @@ import { withRateLimit } from "@/lib/with-rate-limit";
 import { api } from "@/lib/convex/http";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 import { listStatementTransactions } from "@/lib/convex/statement-txns";
+import { friendlyErrorBody, apiErrorBody } from "@/lib/friendly-error";
 
 export const runtime = "nodejs";
 
@@ -15,8 +16,7 @@ async function handleGET(request: NextRequest) {
     const endDate = searchParams.get("endDate");
 
     if (!startDate || !endDate) {
-      return NextResponse.json(
-        { error: "startDate and endDate are required" },
+      return NextResponse.json({ ...apiErrorBody("startDate and endDate are required") },
         { status: 400 },
       );
     }
@@ -47,11 +47,11 @@ async function handleGET(request: NextRequest) {
     return NextResponse.json({ statement });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     console.error("Error in GET /api/reports/profit-loss:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Internal server error" },
+      { ...friendlyErrorBody(error) },
       { status: 500 },
     );
   }

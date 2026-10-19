@@ -156,7 +156,7 @@ export function generateCalculationPDF(data: CalculationPDFData) {
   // Footer
   doc.setFontSize(8);
   doc.setFont("helvetica", "normal");
-  doc.text("KOMPLEET - Nigerian Tax Platform", pageWidth / 2, pageHeight - 10, {
+  doc.text("KOMPLEET, Nigerian Tax Platform", pageWidth / 2, pageHeight - 10, {
     align: "center",
   });
 

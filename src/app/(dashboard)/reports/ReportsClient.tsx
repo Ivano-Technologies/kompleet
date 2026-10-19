@@ -108,7 +108,7 @@ export default function ReportsClient({ stats }: ReportsClientProps) {
     },
     {
       title: "Balance Sheet",
-      desc: "Snapshot of your financial position — assets, liabilities, and equity at a point in time.",
+      desc: "Snapshot of your financial position: assets, liabilities and equity at a point in time.",
       href: "/reports/balance-sheet",
       icon: Wallet,
       badge: "Financial Position",
@@ -162,7 +162,7 @@ export default function ReportsClient({ stats }: ReportsClientProps) {
             Financial Reports
           </h1>
           <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mt-1">
-            {dateRange.start} — {dateRange.end}
+            {dateRange.start} to {dateRange.end}
           </p>
         </div>
         <button className="btn-secondary text-sm px-3 py-2 flex items-center gap-1.5 self-start">

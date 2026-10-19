@@ -16,6 +16,8 @@ import {
   type LinkType,
 } from "./file-kind";
 import { useLibraryUpload } from "./use-library-upload";
+import { toFriendlyMessage } from "@/lib/friendly-error";
+import { ErrorText } from "@/components/ui/error-ref";
 
 export interface LockedLink {
   type: LinkType;
@@ -139,7 +141,7 @@ export function AttachFileSheet({
       onAttached?.(targetLabel);
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not attach file");
+      setError(toFriendlyMessage(err, "We couldn't attach this file. Please try again."));
     } finally {
       setBusy(false);
     }
@@ -335,7 +337,7 @@ export function AttachFileSheet({
           />
         </div>
 
-        {error && <p className="mt-3 text-sm text-error">{error}</p>}
+        {error && <p className="mt-3 text-sm text-error"><ErrorText text={error} /></p>}
 
         <div className="mt-6 flex justify-end gap-2">
           <button

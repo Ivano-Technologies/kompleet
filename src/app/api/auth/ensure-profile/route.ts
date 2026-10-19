@@ -4,6 +4,7 @@ import {
   isUnauthorized,
   requireAuthedConvex,
 } from "@/lib/convex/server";
+import { apiErrorBody } from "@/lib/friendly-error";
 
 /**
  * Bootstrap / refresh the Convex users row after Convex Auth login/signup.
@@ -29,11 +30,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ profile });
   } catch (error) {
     if (isUnauthorized(error)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     console.error("ensure-profile:", error);
-    return NextResponse.json(
-      { error: "Failed to ensure profile" },
+    return NextResponse.json({ ...apiErrorBody("Failed to ensure profile") },
       { status: 500 },
     );
   }

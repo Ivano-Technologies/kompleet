@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { rateLimit, getIdentifier } from "./rate-limit";
+import { apiErrorBody } from "./friendly-error";
 
 interface RateLimitOptions {
   limit?: number; // requests per window
@@ -45,7 +46,7 @@ export function withRateLimit<T extends Request | NextRequest = Request>(
 
       return NextResponse.json(
         {
-          error: "Too many requests",
+          ...apiErrorBody("Too many attempts. Please wait a moment and try again."),
           message: `Rate limit exceeded. Please try again in ${retryAfter} seconds.`,
           retryAfter,
         },

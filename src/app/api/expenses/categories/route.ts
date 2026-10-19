@@ -7,6 +7,7 @@ import {
   isUnauthorized,
   requireAuthedConvex,
 } from "@/lib/convex/server";
+import { friendlyErrorBody, apiErrorBody } from "@/lib/friendly-error";
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,10 +16,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ categories });
   } catch (err) {
     if (isUnauthorized(err)) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Server error" },
+      { ...friendlyErrorBody(err) },
       { status: 500 },
     );
   }

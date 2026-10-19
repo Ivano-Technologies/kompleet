@@ -73,7 +73,7 @@ describe("Wave 3 money-path UI", () => {
       expect(screen.getByRole("button", { name: "Generate report" })).toBeTruthy();
     });
     expect(
-      screen.getByText("3 uncategorized — totals may be incomplete"),
+      screen.getByText("3 uncategorized, so totals may be incomplete"),
     ).toBeTruthy();
     expect(screen.getByRole("link", { name: "Advanced · override figures" })).toBeTruthy();
     expect(
@@ -129,7 +129,7 @@ describe("Wave 3 money-path UI", () => {
     expect(screen.getByRole("button", { name: "Generate PDF" })).toBeTruthy();
     await waitFor(() => {
       expect(
-        screen.getByText("1 uncategorized — totals may be incomplete"),
+        screen.getByText("1 uncategorized, so totals may be incomplete"),
       ).toBeTruthy();
     });
     await userEvent.click(screen.getByRole("button", { name: "Generate PDF" }));
