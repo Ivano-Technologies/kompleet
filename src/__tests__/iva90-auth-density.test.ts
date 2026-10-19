@@ -17,7 +17,7 @@ const heroAuth = read("src/components/landing/HeroAuthCard.tsx");
 const authPages = [signup, login, forgot, reset, verify];
 
 describe("IVA-90 AUTH-DENSITY lock", () => {
-  it("locks AuthLayout card, page gutter, and wordmark", () => {
+  it("locks AuthLayout card, page gutter, and V mark lockup", () => {
     expect(authLayout).toMatch(/min-h-dvh/);
     expect(authLayout).toMatch(/max-w-\[440px\]/);
     expect(authLayout).toMatch(/p-5 shadow-1 md:p-6/);
@@ -26,7 +26,8 @@ describe("IVA-90 AUTH-DENSITY lock", () => {
     expect(authLayout).toMatch(/size="md"/);
     expect(authLayout).not.toMatch(/md:p-12/);
     expect(authLayout).not.toMatch(/size="lg"/);
-    expect(authLayout).toMatch(/BrandWordmark/);
+    expect(authLayout).toMatch(/BrandLockup/);
+    expect(authLayout).toMatch(/markHeight=\{20\}/);
   });
 
   it("locks shared field tokens to h-11, space-y-3, Clash 26", () => {

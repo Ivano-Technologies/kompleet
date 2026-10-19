@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
-const SIZE_CLASS = {
+export const WORDMARK_SIZE_CLASS = {
   sm: "text-sm",
   md: "text-base",
   lg: "text-lg",
@@ -14,7 +14,7 @@ const TONE_CLASS = {
 
 type BrandWordmarkProps = {
   href?: string;
-  size?: keyof typeof SIZE_CLASS;
+  size?: keyof typeof WORDMARK_SIZE_CLASS;
   tone?: keyof typeof TONE_CLASS;
   className?: string;
   onClick?: () => void;
@@ -22,7 +22,8 @@ type BrandWordmarkProps = {
 
 /**
  * Shared KOMPLEET wordmark (Kezie lock, 26 Sep 2026 WAT).
- * Face is Ceoruse via font-ceoruse. No logo mark.
+ * Face is Ceoruse via font-ceoruse. Text only; brand slots pair it with the
+ * Ivano V mark through BrandLockup (IVA-186).
  */
 export function BrandWordmark({
   href,
@@ -35,7 +36,7 @@ export function BrandWordmark({
     <span
       className={cn(
         "font-ceoruse font-bold uppercase",
-        SIZE_CLASS[size],
+        WORDMARK_SIZE_CLASS[size],
         TONE_CLASS[tone],
         className,
       )}
