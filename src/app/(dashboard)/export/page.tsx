@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { useYear } from "@/contexts/year-context";
 import { YearSelector } from "@/components/year-selector";
+import { notifyError } from "@/components/ui/error-toast";
+import { apiErrorMessage, toFriendlyMessage } from "@/lib/friendly-error";
 
 interface ExportHistory {
   id: string;
@@ -42,9 +44,7 @@ export default function ExportCenterPage() {
     statementType?: string,
   ) {
     if (!consentGiven) {
-      alert(
-        "Please review and accept the data export consent before proceeding.",
-      );
+      notifyError("Tick the data export consent box, then choose an export.");
       return;
     }
 
@@ -87,11 +87,10 @@ export default function ExportCenterPage() {
         // Refresh history
         fetchExportHistory();
       } else {
-        alert("Export failed. Please try again.");
+        notifyError(apiErrorMessage(await response.json().catch(() => null), "Export failed. Please try again."));
       }
     } catch (error) {
-      console.error("Export error:", error);
-      alert("Export failed. Please try again.");
+      notifyError(toFriendlyMessage(error, "Export failed. Please try again.", { context: "export" }));
     } finally {
       setIsExporting(false);
     }

@@ -289,7 +289,7 @@ export function MarkFiledSheet({
 
   const submit = async () => {
     if (!confirmation.trim()) {
-      setError("Confirmation number is required");
+      setError("Enter the confirmation number from your NRS receipt.");
       return;
     }
     setBusy(true);

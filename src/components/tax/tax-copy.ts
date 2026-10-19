@@ -10,7 +10,7 @@ export const TAX_COPY = {
   cta: "Generate report",
   advanced: "Advanced · override figures",
   toast: "Report ready",
-  warnUncat: (n: number) => `${n} uncategorized — totals may be incomplete`,
+  warnUncat: (n: number) => `${n} uncategorized, so totals may be incomplete`,
   warnReview: "Review",
   overrideTitle: "Override figures",
   overrideEyebrow:
@@ -42,16 +42,16 @@ export function periodBounds(periodKey: string): {
     `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 
   if (part === "Q1") {
-    return { startDate: pad(1, 1), endDate: pad(3, 31), taxYear: year, label: `Q1 ${year} (Jan–Mar)` };
+    return { startDate: pad(1, 1), endDate: pad(3, 31), taxYear: year, label: `Q1 ${year} (Jan to Mar)` };
   }
   if (part === "Q2") {
-    return { startDate: pad(4, 1), endDate: pad(6, 30), taxYear: year, label: `Q2 ${year} (Apr–Jun)` };
+    return { startDate: pad(4, 1), endDate: pad(6, 30), taxYear: year, label: `Q2 ${year} (Apr to Jun)` };
   }
   if (part === "Q3") {
-    return { startDate: pad(7, 1), endDate: pad(9, 30), taxYear: year, label: `Q3 ${year} (Jul–Sep)` };
+    return { startDate: pad(7, 1), endDate: pad(9, 30), taxYear: year, label: `Q3 ${year} (Jul to Sep)` };
   }
   if (part === "Q4") {
-    return { startDate: pad(10, 1), endDate: pad(12, 31), taxYear: year, label: `Q4 ${year} (Oct–Dec)` };
+    return { startDate: pad(10, 1), endDate: pad(12, 31), taxYear: year, label: `Q4 ${year} (Oct to Dec)` };
   }
   return {
     startDate: pad(1, 1),

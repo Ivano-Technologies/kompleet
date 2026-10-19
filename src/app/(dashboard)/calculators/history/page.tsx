@@ -23,6 +23,7 @@ import {
 import Link from "next/link";
 import { toFriendlyMessage, userFacingError } from "@/lib/friendly-error";
 import { ErrorText } from "@/components/ui/error-ref";
+import { notifyError } from "@/components/ui/error-toast";
 
 interface TaxCalculation {
   id: string;
@@ -99,7 +100,7 @@ export default function CalculationHistoryPage() {
       // Refresh list
       fetchCalculations();
     } catch (err: unknown) {
-      alert(toFriendlyMessage(err, "We couldn't delete this calculation. Please try again."));
+      notifyError(toFriendlyMessage(err, "We couldn't delete this calculation. Please try again."));
     }
   };
 

@@ -66,7 +66,7 @@ describe("IVA-85 review triage lock", () => {
     expect(copy).toMatch(/Duplicate suspect/);
     expect(copy).toMatch(/Low confidence/);
     expect(copy).toMatch(/Ignore all low-confidence/);
-    expect(copy).toMatch(/Couldn’t load exceptions — try again/);
+    expect(copy).toMatch(/Couldn’t load exceptions. Try again./);
     expect(copy).not.toMatch(/JUO|AI-powered|Inbox zero/);
     expect(sheet).toMatch(/text-success/);
     expect(sheet).not.toMatch(/#C8F000|#E8A317/);

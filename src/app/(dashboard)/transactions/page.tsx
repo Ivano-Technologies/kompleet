@@ -21,7 +21,7 @@ import { ExceptionBanner, ImportToast } from "@/components/import/ImportToast";
 import { AddManualTransaction } from "@/components/import/AddManualTransaction";
 import { DROP_COPY } from "@/components/import/statement-copy";
 import { TriageSheet, useTriageCount } from "@/components/review/TriageSheet";
-import { apiErrorMessage } from "@/lib/friendly-error";
+import { apiErrorMessage, toFriendlyMessage } from "@/lib/friendly-error";
 import { ErrorText } from "@/components/ui/error-ref";
 
 interface Transaction {
@@ -97,8 +97,7 @@ export default function TransactionsPage() {
         setError(apiErrorMessage(data, "We couldn't load your transactions. Please try again."));
       }
     } catch (fetchError) {
-      console.error("Error fetching transactions:", fetchError);
-      setError("Failed to load transactions. Please try again.");
+      setError(toFriendlyMessage(fetchError, "We couldn't load your transactions. Please try again."));
     } finally {
       setLoading(false);
     }
@@ -162,8 +161,7 @@ export default function TransactionsPage() {
         setError(apiErrorMessage(data, "We couldn't delete these transactions. Please try again."));
       }
     } catch (deleteError) {
-      console.error("Error deleting transactions:", deleteError);
-      setError("Failed to delete transactions. Please try again.");
+      setError(toFriendlyMessage(deleteError, "We couldn't delete these transactions. Please try again."));
     }
   };
 
@@ -210,8 +208,7 @@ export default function TransactionsPage() {
         setError(apiErrorMessage(data, "Export failed. Please try again."));
       }
     } catch (exportError) {
-      console.error("Export error:", exportError);
-      setError("Export failed. Please try again.");
+      setError(toFriendlyMessage(exportError, "Export failed. Please try again."));
     } finally {
       setExporting(false);
     }

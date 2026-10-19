@@ -24,10 +24,10 @@ const inputClassName =
 
 function validateSignupPassword(password: string): string | null {
   if (password.length < 8) {
-    return "Password must be at least 8 characters long";
+    return "Use a password with at least 8 characters.";
   }
   if (!/\d/.test(password)) {
-    return "Password must contain at least one number";
+    return "Add at least one number to your password.";
   }
   return null;
 }

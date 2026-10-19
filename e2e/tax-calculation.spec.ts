@@ -192,7 +192,7 @@ test.describe("Tax calculation", () => {
     await calculateButton.click();
 
     await expect(
-      page.getByText("Please enter a valid gross income amount"),
+      page.getByText("Enter your gross income in naira, using numbers only."),
     ).toBeVisible();
     await expect(page.getByText("Tax Summary")).toHaveCount(0);
   });

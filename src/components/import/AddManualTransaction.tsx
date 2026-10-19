@@ -27,7 +27,7 @@ export function AddManualTransaction({
   const submit = async () => {
     const value = Number(amount);
     if (!description.trim() || !Number.isFinite(value) || value <= 0) {
-      setError("Description and a positive amount are required.");
+      setError("Enter a description and an amount greater than 0.");
       return;
     }
     setSaving(true);

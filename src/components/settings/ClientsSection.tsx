@@ -199,8 +199,8 @@ export function ClientsSection({
               className="w-full grid grid-cols-[1fr_1fr_7rem] gap-2 px-3 py-2.5 text-left text-sm border-t border-border hover:bg-surface-2"
             >
               <span className="truncate text-text-1 font-medium">{client.legal_name}</span>
-              <span className="truncate text-text-2">{client.email || "—"}</span>
-              <span className="truncate text-text-2">{client.city || "—"}</span>
+              <span className="truncate text-text-2">{client.email || "No email"}</span>
+              <span className="truncate text-text-2">{client.city || "No city"}</span>
             </button>
           ))}
         </div>

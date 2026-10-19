@@ -134,7 +134,7 @@ export class VATService {
     }
 
     throw new Error(
-      `VAT category schedule unavailable — exempt/zero-rated lists not verified. ` +
+      `VAT category schedule unavailable. Exempt and zero rated lists are not verified yet. ` +
         `Category "${category}" cannot be classified beyond the rent exemption. ` +
         "See docs/TAX_RULE_PROVENANCE.md.",
     );
@@ -404,7 +404,7 @@ export class VATService {
       );
       if (obligation.status === "unresolved") {
         warnings.push(
-          `VAT registration/exemption threshold is unresolved (${obligation.candidates.length} conflicting unverified candidates — see review_queue). ` +
+          `VAT registration/exemption threshold is unresolved (${obligation.candidates.length} conflicting unverified candidates; see review_queue). ` +
             `Verify turnover of ₦${summary.totalSalesGross.toLocaleString()} manually before assuming no obligation to register.`,
         );
       }

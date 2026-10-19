@@ -19,13 +19,13 @@ export function AvatarUpload() {
 
     // Validate file type
     if (!file.type.startsWith("image/")) {
-      setError("Please select an image file");
+      setError("Choose an image file (JPG, PNG or WebP).");
       return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      setError("Image size must be less than 5MB");
+      setError("Choose an image smaller than 5MB.");
       return;
     }
 

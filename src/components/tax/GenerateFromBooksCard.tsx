@@ -107,7 +107,7 @@ export function GenerateFromBooksCard({
         <div>
           <h2 className="font-semibold text-base text-text-1">{TAX_COPY.cardTitle}</h2>
           <p className="text-sm text-text-3 mt-1">
-            Period + entity only when books exist — no revenue/expense form wall.
+            Period and entity only when books exist. No revenue or expense form to fill in.
           </p>
         </div>
       )}

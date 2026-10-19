@@ -6,28 +6,37 @@ import { generateRef, refFromEventId, splitRef } from "@/lib/friendly-error";
 
 /**
  * Stable support ref for an error banner. Reuses a ref already embedded in
- * `source` (e.g. from toFriendlyMessage), otherwise generates one. Logs the
- * ref with `detail` once each time `active` becomes true.
+ * `source` (e.g. from toFriendlyMessage), otherwise generates one. A new ref
+ * is issued when `key` changes (e.g. a different message). Logs the ref with
+ * `detail` once per ref while `active` is true.
  */
 export function useErrorRef(
   active: boolean,
   context: string,
   detail?: unknown,
   source?: string | null,
+  key?: string,
 ): string {
-  const [generated] = useState(generateRef);
+  const [state, setState] = useState(() => ({ key, ref: generateRef() }));
+  let generated = state.ref;
+  if (state.key !== key) {
+    generated = generateRef();
+    setState({ key, ref: generated });
+  }
   const embedded = source ? splitRef(source).ref : null;
   const ref = embedded ?? generated;
-  const logged = useRef(false);
+  const lastLogged = useRef<string | null>(null);
   const detailRef = useRef(detail);
-  detailRef.current = detail;
+  useEffect(() => {
+    detailRef.current = detail;
+  });
 
   useEffect(() => {
-    if (active && !logged.current) {
-      logged.current = true;
+    if (active && lastLogged.current !== ref) {
+      lastLogged.current = ref;
       console.error(`[friendly-error] ref=${ref} context=${context}`, detailRef.current);
     }
-    if (!active) logged.current = false;
+    if (!active) lastLogged.current = null;
   }, [active, context, ref]);
 
   return ref;

@@ -12,7 +12,7 @@ import {
   ArrowRight,
   Lightbulb,
 } from "lucide-react";
-import { apiErrorMessage } from "@/lib/friendly-error";
+import { apiErrorMessage, toFriendlyMessage } from "@/lib/friendly-error";
 import { ErrorText } from "@/components/ui/error-ref";
 
 interface Category {
@@ -50,8 +50,7 @@ export default function CategoriesPage() {
         setError(apiErrorMessage(data, "We couldn't load your categories. Please try again."));
       }
     } catch (error) {
-      console.error("Error fetching categories:", error);
-      setError("Failed to load categories. Please try again.");
+      setError(toFriendlyMessage(error, "We couldn't load your categories. Please try again."));
     } finally {
       setLoading(false);
     }
@@ -85,8 +84,7 @@ export default function CategoriesPage() {
         setError(apiErrorMessage(data, "We couldn't save this category. Please try again."));
       }
     } catch (error) {
-      console.error("Error saving category:", error);
-      setError("Failed to save category. Please try again.");
+      setError(toFriendlyMessage(error, "We couldn't save this category. Please try again."));
     }
   };
 

@@ -258,7 +258,7 @@ export function InvoicePreview({
                     month: "short",
                     year: "numeric",
                   })
-                : "—"}
+                : "Not set"}
             </p>
           </div>
           <div>
@@ -272,7 +272,7 @@ export function InvoicePreview({
                     month: "short",
                     year: "numeric",
                   })
-                : "—"}
+                : "Not set"}
             </p>
           </div>
           <div>

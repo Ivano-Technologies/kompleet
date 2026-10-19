@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { FileText, Download } from "lucide-react";
 import { toFriendlyMessage, userFacingError } from "@/lib/friendly-error";
+import { notifyError } from "@/components/ui/error-toast";
 
 const DEFAULT_START = new Date(
   new Date().getFullYear(),
@@ -46,7 +47,7 @@ export default function ExpenseReportsPage() {
       a.remove();
       window.URL.revokeObjectURL(url);
     } catch (e) {
-      alert(toFriendlyMessage(e, "Export failed. Please try again."));
+      notifyError(toFriendlyMessage(e, "Export failed. Please try again."));
     } finally {
       setExporting(null);
     }

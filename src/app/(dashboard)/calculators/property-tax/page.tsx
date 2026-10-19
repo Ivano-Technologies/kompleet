@@ -17,6 +17,7 @@ import { generateCalculationPDF } from "@/lib/pdf-generator";
 import { useErrorRef } from "@/hooks/use-error-ref";
 import { withRef } from "@/lib/friendly-error";
 import { ErrorRef } from "@/components/ui/error-ref";
+import { notifyError } from "@/components/ui/error-toast";
 
 interface MonthlyBreakdown {
   month: number;
@@ -82,12 +83,12 @@ export default function PropertyTaxCalculator() {
 
   const calculatePropertyTax = () => {
     if (rulesUnavailable) {
-      alert(withRef("Tax rules aren't available right now, so we can't calculate property tax WHT. Please try again later or contact support.", rulesRef));
+      notifyError(withRef("Tax rules aren't available right now, so we can't calculate property tax WHT. Please try again later or contact support.", rulesRef));
       return;
     }
 
     if (!annualRent) {
-      alert("Please enter annual rent");
+      notifyError("Enter the annual rent in naira (for example 1200000).");
       return;
     }
 
@@ -125,7 +126,7 @@ export default function PropertyTaxCalculator() {
       logCalculation(calculationResult);
     } catch (error) {
       console.error("Calculation error:", error);
-      alert("Error calculating property tax");
+      notifyError("We couldn't calculate property tax. Check the values and try again.");
     } finally {
       setLoading(false);
     }
@@ -434,7 +435,7 @@ export default function PropertyTaxCalculator() {
             <strong>WHT on Rent:</strong>{" "}
             {rules.withholding_tax_on_rent?.value?.rate != null
               ? `${rules.withholding_tax_on_rent.value.rate}% of gross rent`
-              : "Rate unavailable — not yet verified in the tax rules database"}
+              : "Rate unavailable. It hasn't been verified yet."}
           </p>
           <p>
             <strong>Responsibility:</strong> The tenant must withhold the WHT

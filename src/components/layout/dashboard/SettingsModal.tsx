@@ -101,7 +101,7 @@ export function SettingsModal({
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [language, setLanguage] = useState("English (US)");
-  const [currency, setCurrency] = useState("NGN - Nigerian Naira");
+  const [currency, setCurrency] = useState("NGN (Nigerian Naira)");
   const [timezone, setTimezone] = useState("GMT+01:00, West Africa Time");
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [marketingEmails, setMarketingEmails] = useState(false);
@@ -185,8 +185,8 @@ export function SettingsModal({
         setPasswordForm({ current: "", new: "", confirm: "" });
         setTimeout(() => setSuccess(""), 3000);
       }
-    } catch {
-      setError("An unexpected error occurred");
+    } catch (err) {
+      setError(toFriendlyMessage(err, "Something went wrong. Please try again."));
     } finally {
       setPasswordLoading(false);
     }
@@ -212,8 +212,8 @@ export function SettingsModal({
         onOpenChange(false);
         router.push("/login");
       }
-    } catch {
-      setError("An unexpected error occurred");
+    } catch (err) {
+      setError(toFriendlyMessage(err, "Something went wrong. Please try again."));
     } finally {
       setDeleteLoading(false);
     }
@@ -601,9 +601,9 @@ export function SettingsModal({
                     onChange={(e) => setCurrency(e.target.value)}
                     className={inputCls}
                   >
-                    <option>NGN - Nigerian Naira</option>
-                    <option>USD - US Dollar</option>
-                    <option>GBP - British Pound</option>
+                    <option>NGN (Nigerian Naira)</option>
+                    <option>USD (US Dollar)</option>
+                    <option>GBP (British Pound)</option>
                   </select>
                 </div>
                 <div className="p-4 rounded-xl border border-light-border dark:border-dark-border bg-light-background dark:bg-dark-background">

@@ -174,19 +174,19 @@ export default function NewInvoicePage() {
     }
 
     if (lineItems.length === 0) {
-      errors.push("At least one line item is required");
+      errors.push("Add at least one line item.");
     }
 
     for (let i = 0; i < lineItems.length; i++) {
       const item = lineItems[i];
       if (!item.description.trim()) {
-        errors.push(`Line item ${i + 1}: Description is required`);
+        errors.push(`Line item ${i + 1}: add a description`);
       }
       if (item.quantity <= 0) {
-        errors.push(`Line item ${i + 1}: Quantity must be greater than 0`);
+        errors.push(`Line item ${i + 1}: enter a quantity greater than 0`);
       }
       if (item.unit_price < 0) {
-        errors.push(`Line item ${i + 1}: Unit price cannot be negative`);
+        errors.push(`Line item ${i + 1}: enter a unit price of 0 or more`);
       }
     }
 
@@ -197,7 +197,7 @@ export default function NewInvoicePage() {
   const saveDraft = async () => {
     const errors = validateForm(false);
     if (errors.length > 0) {
-      setError(errors.join(". "));
+      setError(errors.map((e) => e.replace(/\.?$/, ".")).join(" "));
       return;
     }
 
@@ -240,7 +240,7 @@ export default function NewInvoicePage() {
   const issueInvoice = async () => {
     const errors = validateForm(true);
     if (errors.length > 0) {
-      setError(errors.join(". "));
+      setError(errors.map((e) => e.replace(/\.?$/, ".")).join(" "));
       return;
     }
 

@@ -54,13 +54,13 @@ export default function ResetPasswordClient() {
     setLoading(true);
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError('Make sure both passwords match.');
       setLoading(false);
       return;
     }
 
     if (password.length < 8 || !/\d/.test(password)) {
-      setError('Password must be at least 8 characters and include a number.');
+      setError('Use at least 8 characters, including a number.');
       setLoading(false);
       return;
     }

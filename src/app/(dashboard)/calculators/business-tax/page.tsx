@@ -77,17 +77,17 @@ export default function BusinessTaxCalculatorPage() {
     const profitNum = parseFloat(assessableProfit);
 
     if (isNaN(turnoverNum) || turnoverNum < 0) {
-      setError("Please enter a valid turnover amount");
+      setError("Enter your annual turnover in naira, using numbers only.");
       return;
     }
 
     if (isNaN(assetsNum) || assetsNum < 0) {
-      setError("Please enter a valid total assets amount");
+      setError("Enter your total assets in naira, using numbers only.");
       return;
     }
 
     if (isNaN(profitNum) || profitNum < 0) {
-      setError("Please enter a valid assessable profit amount");
+      setError("Enter your assessable profit in naira, using numbers only.");
       return;
     }
 

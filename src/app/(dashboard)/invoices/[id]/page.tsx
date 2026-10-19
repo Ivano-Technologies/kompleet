@@ -28,6 +28,7 @@ import {
 } from "@/lib/invoices/profiles";
 import { onBusinessProfileChanged } from "@/lib/invoices/profile-events";
 import { UserFacingError, toFriendlyMessage, userFacingError } from "@/lib/friendly-error";
+import { notifyError } from "@/components/ui/error-toast";
 
 type Invoice = InvoiceView;
 
@@ -141,7 +142,7 @@ export default function InvoiceDetailPage() {
       await fetchInvoice();
       alert("Invoice cancelled successfully");
     } catch (err: unknown) {
-      alert(toFriendlyMessage(err, "We couldn't cancel this invoice. Please try again."));
+      notifyError(toFriendlyMessage(err, "We couldn't cancel this invoice. Please try again."));
     }
   };
 
@@ -233,7 +234,7 @@ export default function InvoiceDetailPage() {
                   await issueInvoice(invoice.id);
                   await fetchInvoice();
                 } catch (err) {
-                  alert(toFriendlyMessage(err, "We couldn't issue this invoice. Please try again."));
+                  notifyError(toFriendlyMessage(err, "We couldn't issue this invoice. Please try again."));
                 } finally {
                   setIssuing(false);
                 }

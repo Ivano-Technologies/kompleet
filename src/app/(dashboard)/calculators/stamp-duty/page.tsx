@@ -16,6 +16,7 @@ import { generateCalculationPDF } from "@/lib/pdf-generator";
 import { useErrorRef } from "@/hooks/use-error-ref";
 import { withRef } from "@/lib/friendly-error";
 import { ErrorRef } from "@/components/ui/error-ref";
+import { notifyError } from "@/components/ui/error-toast";
 
 interface StampDutyResult {
   transactionType: string;
@@ -82,17 +83,17 @@ export default function StampDutyCalculator() {
 
   const calculateStampDuty = () => {
     if (rulesUnavailable) {
-      alert(withRef("Tax rules aren't available right now, so we can't calculate stamp duty. Please try again later or contact support.", rulesRef));
+      notifyError(withRef("Tax rules aren't available right now, so we can't calculate stamp duty. Please try again later or contact support.", rulesRef));
       return;
     }
 
     if (!amount) {
-      alert("Please enter an amount");
+      notifyError("Enter the transaction amount in naira (for example 500000).");
       return;
     }
 
     if (transactionType === "lease" && !leaseDuration) {
-      alert("Please enter lease duration");
+      notifyError("Enter the lease duration in years (for example 2).");
       return;
     }
 
@@ -140,7 +141,7 @@ export default function StampDutyCalculator() {
       logCalculation(calculationResult);
     } catch (error) {
       console.error("Calculation error:", error);
-      alert("Error calculating stamp duty");
+      notifyError("We couldn't calculate stamp duty. Check the values and try again.");
     } finally {
       setLoading(false);
     }
