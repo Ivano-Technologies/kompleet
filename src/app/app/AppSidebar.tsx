@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BrandWordmark } from "@/components/brand/BrandWordmark";
+import { BrandLockup } from "@/components/brand/BrandLockup";
 
 const sidebarLinks = [
   { name: "Dashboard", icon: "📊", href: "/app/dashboard" },
@@ -23,7 +23,7 @@ export function AppSidebar() {
   return (
     <aside className="w-60 bg-gradient-to-b from-primary-deep to-primary text-white flex flex-col sticky top-0 h-screen shrink-0">
       <div className="flex items-center p-5 border-b border-white/10">
-        <BrandWordmark size="md" tone="inverse" />
+        <BrandLockup size="md" tone="inverse" />
       </div>
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
         <div className="text-xs font-bold text-white/30 uppercase tracking-widest px-4 pt-4 pb-2">
