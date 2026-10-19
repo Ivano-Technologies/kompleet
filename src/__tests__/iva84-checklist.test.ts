@@ -25,7 +25,7 @@ describe("IVA-84 post-signup business checklist", () => {
     expect(copy).toMatch(/itemAddress: "Business address"/);
     expect(copy).toMatch(/itemContact: "Contact \(email or phone\)"/);
     expect(copy).toMatch(/itemTax: "Tax IDs \(TIN \/ VAT\)"/);
-    expect(copy).toMatch(/logoDeferred: "Logo upload coming later"/);
+    expect(copy).toMatch(/logoDeferred: "Add your logo in Settings"/);
     expect(logic).toMatch(/CHECKLIST_ITEM_COUNT = 4/);
     expect(logic).toMatch(/id: "legalName"/);
     expect(logic).toMatch(/id: "address"/);

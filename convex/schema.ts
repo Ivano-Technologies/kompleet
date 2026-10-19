@@ -107,9 +107,15 @@ export default defineSchema({
     phone: v.optional(v.string()),
     tin: v.optional(v.string()),
     vatNumber: v.optional(v.string()),
+    // IVA-185: the business's own logo for invoices. Optional and additive.
+    logoStorageId: v.optional(v.id("_storage")),
+    logoWidth: v.optional(v.number()),
+    logoHeight: v.optional(v.number()),
     createdAt: v.number(),
     updatedAt: v.number(),
-  }).index("by_user", ["userId"]),
+  })
+    .index("by_user", ["userId"])
+    .index("by_logoStorageId", ["logoStorageId"]),
 
   categories: defineTable({
     externalId: v.string(),
