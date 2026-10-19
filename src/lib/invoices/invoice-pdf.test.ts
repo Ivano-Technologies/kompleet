@@ -174,8 +174,8 @@ describe("IVA-185 PDF totals and discount", () => {
 
   it("Subtotal is the sum of the printed rows", () => {
     const out = text(lines());
-    expect(out).toContain("NGN 49.99");
-    expect(out).toContain("NGN 99.98");
+    expect(out).toContain("NGN 50.00");
+    expect(out).toContain("NGN 100.00");
     expect(out).not.toContain("99.99");
   });
 
@@ -183,16 +183,16 @@ describe("IVA-185 PDF totals and discount", () => {
     const out = text(lines(9.99));
     expect(out.match(/\(Discount\)/g)?.length).toBe(1);
     expect(out).toContain("NGN 9.99");
-    expect(out).toContain("NGN 40.00");
-    expect(out).toContain("NGN 89.99");
+    expect(out).toContain("NGN 40.01");
+    expect(out).toContain("NGN 90.01");
     expect(text(lines())).not.toContain("Discount");
   });
 
   it("clamps a discount larger than the line total", () => {
     const out = text(lines(500));
-    // Line 2 is 49.99 gross, so the discount clamps to 49.99 and the line to 0.00.
+    // Line 2 is 50.00 gross (49.995 half-up), so the discount clamps to 50.00 and the line to 0.00.
     expect(out).toContain("NGN 0.00");
-    expect(out).toContain("NGN 49.99");
+    expect(out).toContain("NGN 50.00");
     expect(out).not.toContain("500.00");
   });
 });

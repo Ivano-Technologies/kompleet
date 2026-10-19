@@ -3,7 +3,7 @@
  * the preview and the PDF. Pure, so it is safe in client components.
  *
  * A line amount is the pre-VAT net: quantity x rate minus the line discount
- * (clamped to 0..quantity x rate), rounded to 2dp. The Subtotal is the sum of
+ * (clamped to 0..quantity x rate), rounded half-up to the kobo. The Subtotal is the sum of
  * those rounded amounts, VAT is computed on the Subtotal, and
  * Total = Subtotal + VAT.
  *
@@ -20,12 +20,38 @@ export type LineInput = {
 };
 
 /**
- * Same rounding the invoice totals have always used (2dp, naira, Number#toFixed).
- * Note toFixed works on the binary float, so 49.995 rounds to 49.99 while
- * 2.475 rounds to 2.48. Rows and Subtotal always agree because the Subtotal
- * is summed from the rounded rows.
+ * Money rounding: half-up to the kobo, with integer maths.
+ *
+ * `halfUpUnits(value, decimals)` returns value x 10^decimals rounded half-up
+ * (away from zero for negatives) as an integer. It reads the value through a
+ * 15 significant digit decimal string first, so binary float noise cannot flip
+ * a tie: 1.5 x 33.33 is 49.99499999999999 as a float but 49.995 as a decimal,
+ * and rounds up to 50.00. All sums are then done in whole kobo.
  */
-const round2 = (value: number) => Number(value.toFixed(2));
+export function halfUpUnits(value: number, decimals: number): number {
+  if (!Number.isFinite(value) || value === 0) return 0;
+  const sign = value < 0 ? -1 : 1;
+  const [mantissa, expPart] = Math.abs(value).toPrecision(15).split("e");
+  const exp = Number(expPart ?? 0);
+  const dot = mantissa.indexOf(".");
+  const digits = mantissa.replace(".", "");
+  // Position of the decimal point within `digits`, after scaling by 10^decimals.
+  const point = (dot === -1 ? mantissa.length : dot) + exp + decimals;
+  if (point < 0) return 0;
+  const whole = point === 0 ? "0" : digits.slice(0, point).padEnd(point, "0");
+  const next = digits.charAt(point);
+  let units = Number(whole);
+  if (next !== "" && next >= "5") units += 1;
+  return sign * units === 0 ? 0 : sign * units;
+}
+
+/** Naira to whole kobo, half-up. */
+export const toKobo = (naira: number) => halfUpUnits(naira, 2);
+/** Whole kobo back to naira. */
+const fromKobo = (kobo: number) => kobo / 100;
+
+/** Money rounded half-up to 2dp (the kobo). */
+export const roundMoney = (naira: number) => fromKobo(toKobo(naira));
 
 function num(value: unknown): number {
   return typeof value === "number" && Number.isFinite(value) ? value : 0;
@@ -39,10 +65,15 @@ export function lineGrossAmount(item: LineInput): number {
   return num(item.quantity) * num(item.unit_price);
 }
 
-/** The line discount clamped to 0..(quantity x rate). */
+/** The line discount in kobo, clamped to 0..(quantity x rate). */
+function lineDiscountKobo(item: LineInput): number {
+  const grossKobo = Math.max(0, toKobo(lineGrossAmount(item)));
+  return Math.min(Math.max(0, toKobo(num(item.discount))), grossKobo);
+}
+
+/** The line discount clamped to 0..(quantity x rate), to the kobo. */
 export function lineDiscount(item: LineInput): number {
-  const gross = Math.max(0, lineGrossAmount(item));
-  return Math.min(Math.max(0, num(item.discount)), gross);
+  return fromKobo(lineDiscountKobo(item));
 }
 
 /** True when the entered discount is larger than quantity x rate. */
@@ -50,9 +81,14 @@ export function discountTooBig(item: LineInput): boolean {
   return num(item.discount) > Math.max(0, lineGrossAmount(item));
 }
 
-/** Pre-VAT line amount, rounded to 2dp: quantity x rate minus the clamped discount. */
+/** Pre-VAT line amount in kobo: quantity x rate (half-up to the kobo) minus the clamped discount. */
+function lineNetKobo(item: LineInput): number {
+  return toKobo(lineGrossAmount(item)) - lineDiscountKobo(item);
+}
+
+/** Pre-VAT line amount, half-up to the kobo: quantity x rate minus the clamped discount. */
 export function lineNetAmount(item: LineInput): number {
-  return round2(lineGrossAmount(item) - lineDiscount(item));
+  return fromKobo(lineNetKobo(item));
 }
 
 export type LineTotals = {
@@ -69,25 +105,25 @@ export type LineTotals = {
  * amounts) and Total = Subtotal + VAT.
  */
 export function totalsFromLines(items: LineInput[]): LineTotals {
-  let subtotal = 0;
-  let discount = 0;
+  // All in whole kobo, so sums are exact.
+  let subtotalKobo = 0;
+  let discountKobo = 0;
   const byRate = new Map<number, number>();
   for (const item of items) {
-    const net = lineNetAmount(item);
-    subtotal += net;
-    discount += lineDiscount(item);
+    const net = lineNetKobo(item);
+    subtotalKobo += net;
+    discountKobo += lineDiscountKobo(item);
     const rate = num(item.vat_rate);
     byRate.set(rate, (byRate.get(rate) ?? 0) + net);
   }
-  subtotal = round2(subtotal);
-  let vat = 0;
-  for (const [rate, base] of byRate) vat += (round2(base) * rate) / 100;
-  vat = round2(vat);
+  // VAT per rate group on its kobo base, each rounded half-up to the kobo.
+  let vatKobo = 0;
+  for (const [rate, baseKobo] of byRate) vatKobo += halfUpUnits((baseKobo * rate) / 100, 0);
   return {
-    subtotal,
-    vat_amount: vat,
-    discount_amount: round2(discount),
-    total_amount: round2(subtotal + vat),
+    subtotal: fromKobo(subtotalKobo),
+    vat_amount: fromKobo(vatKobo),
+    discount_amount: fromKobo(discountKobo),
+    total_amount: fromKobo(subtotalKobo + vatKobo),
   };
 }
 
