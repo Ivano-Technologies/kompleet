@@ -257,7 +257,7 @@ export function renderInvoicePdf(input: InvoicePdfInput): jsPDF {
     width: number;
     cell: (item: PdfLineItem) => string;
   }> = [
-    { head: "Description", align: "left", width: showDiscount ? 62 : 88, cell: (item) => item.description },
+    { head: "Description", align: "left", width: showDiscount ? 56 : 88, cell: (item) => item.description },
     { head: "Qty", align: "center", width: 14, cell: (item) => String(item.quantity) },
     { head: "Unit price", align: "right", width: 32, cell: (item) => money(item.unit_price) },
     { head: "VAT", align: "center", width: 14, cell: (item) => `${item.vat_rate}%` },
@@ -266,7 +266,7 @@ export function renderInvoicePdf(input: InvoicePdfInput): jsPDF {
           {
             head: "Discount",
             align: "right" as const,
-            width: 26,
+            width: 32,
             cell: (item: PdfLineItem) => (lineDiscount(item) > 0 ? money(lineDiscount(item)) : ""),
           },
         ]
