@@ -26,9 +26,11 @@ vi.mock("@/components/layout/AuthLayout", () => ({
 
 describe("LoginPage", () => {
   beforeEach(() => {
+    vi.restoreAllMocks();
     signIn.mockReset();
     search = new URLSearchParams("");
     vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.spyOn(console, "warn").mockImplementation(() => {});
   });
 
   it("shows the exact mismatch copy, a logged ref and the reclaim note on its own line", async () => {
@@ -61,10 +63,33 @@ describe("LoginPage", () => {
     );
   });
 
-  it("shows the exact expired-link copy with a ref", () => {
+  it("shows the exact expired-link copy with a ref logged as a warning", () => {
     search = new URLSearchParams("error=expired_link");
     render(<LoginPage />);
     expect(screen.getByText("This link has expired. Request a new one.")).toBeTruthy();
-    expect(screen.getByTestId("error-ref").textContent).toMatch(/^Ref: [A-Z2-9]{8}$/);
+    const ref = screen.getByTestId("error-ref").textContent ?? "";
+    expect(ref).toMatch(/^Ref: [A-Z2-9]{8}$/);
+    expect(console.warn).toHaveBeenCalledWith(
+      `[friendly-error] ref=${ref.slice(5)} context=login:expired_link`,
+    );
+    expect(console.error).not.toHaveBeenCalled();
+  });
+
+  it("shows the auth_failed copy with a ref logged as a warning", () => {
+    search = new URLSearchParams("error=auth_failed");
+    render(<LoginPage />);
+    expect(screen.getByText("We couldn't sign you in. Please try again.")).toBeTruthy();
+    const ref = screen.getByTestId("error-ref").textContent ?? "";
+    expect(console.warn).toHaveBeenCalledWith(
+      `[friendly-error] ref=${ref.slice(5)} context=login:auth_failed`,
+    );
+    expect(console.error).not.toHaveBeenCalled();
+  });
+
+  it("never renders free text from the error param", () => {
+    search = new URLSearchParams("error=Database+exploded");
+    render(<LoginPage />);
+    expect(screen.queryByText(/Database exploded/)).not.toBeInTheDocument();
+    expect(screen.queryByTestId("error-ref")).not.toBeInTheDocument();
   });
 });
