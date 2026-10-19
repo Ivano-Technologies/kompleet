@@ -7,6 +7,7 @@ import {
   lineNetAmount,
   totalsFromLines,
   vatByRate,
+  vatRowLabel,
 } from "@/lib/invoices/line-amounts";
 import { useRouter } from "next/navigation";
 import { InvoiceLineItem, CustomerInfo } from "@/lib/invoice-service";
@@ -640,7 +641,7 @@ export default function NewInvoicePage() {
             {totals.vatLines.map((line) => (
               <div key={line.rate} className="flex justify-between" data-testid="form-vat-row">
                 <span className="text-light-text-secondary dark:text-dark-text-secondary">
-                  VAT ({line.rate}%)
+                  {vatRowLabel(line.rate)}
                 </span>
                 <span className="font-medium text-light-text-primary dark:text-dark-text-primary tabular-nums">
                   ₦{line.vat.toLocaleString("en-NG", { minimumFractionDigits: 2 })}
