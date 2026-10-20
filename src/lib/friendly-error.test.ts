@@ -147,6 +147,18 @@ describe("friendly-error", () => {
       ).toBe("We couldn't find this invoice.");
     });
 
+    it("passes IVA-190 invoice amount ConvexError copy through and maps wrapped Errors", () => {
+      expect(
+        msg(new FakeConvexError("Line item 1: Quantity can't be negative.")),
+      ).toBe("Line item 1: Quantity can't be negative.");
+      expect(
+        msg(new Error(convexWrap("Line item 2: Unit price can't be negative."))),
+      ).toBe("Unit price can't be negative.");
+      expect(
+        msg(new Error(convexWrap("Line item 1: Discount can't be more than the line total."))),
+      ).toBe("Discount can't be more than the line total.");
+    });
+
     it("maps missing tax rules without leaking rule keys", () => {
       const err = new Error(
         'Missing tax rule "vat.standard_rate". Refusing to fall back',

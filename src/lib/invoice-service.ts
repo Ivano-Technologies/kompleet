@@ -76,33 +76,6 @@ export async function getNextInvoiceNumber(
 }
 
 // ============================================
-// Invoice Creation Service
-// ============================================
-
-export async function createInvoice(
-  invoiceData: InvoiceData,
-): Promise<{ id: string; invoice_number: string }> {
-  const { convex } = await requireAuthedConvex();
-  const totals = calculateInvoiceTotals(invoiceData.line_items);
-  const invoiceDate =
-    invoiceData.invoice_date || new Date().toISOString().split("T")[0];
-  const created = await convex.mutation(api.invoices.createMine, {
-    invoiceDate,
-    dueDate: invoiceData.due_date,
-    taxYear: invoiceData.tax_year,
-    clientExternalId: invoiceData.client_id,
-    customerInfo: invoiceData.customer_info,
-    lineItems: invoiceData.line_items,
-    subtotal: totals.subtotal,
-    vatAmount: totals.vat_amount,
-    totalAmount: totals.total_amount,
-    status: "draft",
-    notes: invoiceData.notes,
-  });
-  return { id: created.id, invoice_number: created.invoice_number };
-}
-
-// ============================================
 // Invoice Issuance (Make Immutable)
 // ============================================
 

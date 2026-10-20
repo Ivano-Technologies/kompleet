@@ -1,6 +1,7 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, type MutationCtx } from "./_generated/server";
 import { getCurrentUser, userCanAccessClient } from "./lib/auth";
+import { lineItemsFromPatch, priceInvoiceLines } from "./lib/invoice-amounts";
 import { newExternalId } from "./lib/ids";
 import {
   customerInfoFromParty,
@@ -197,6 +198,105 @@ export const nextNumber = mutation({
   },
 });
 
+type CreateMineArgs = {
+  invoiceNumber?: string;
+  invoiceDate?: string;
+  dueDate?: string;
+  taxYear?: number;
+  clientExternalId?: string;
+  title?: string;
+  customerInfo?: unknown;
+  lineItems?: unknown;
+  subtotal?: number;
+  vatAmount?: number;
+  totalAmount?: number;
+  status?: string;
+  notes?: string;
+};
+
+export async function createMineHandler(ctx: MutationCtx, args: CreateMineArgs) {
+  const user = await getCurrentUser(ctx);
+  // IVA-190: ignore client-sent line amounts and totals.
+  const priced = priceInvoiceLines(args.lineItems);
+  let clientId;
+  if (args.clientExternalId) {
+    const client = await ctx.db
+      .query("clients")
+      .withIndex("by_externalId", (q) =>
+        q.eq("externalId", args.clientExternalId!),
+      )
+      .unique();
+    if (client) {
+      const ok = await userCanAccessClient(ctx, client._id);
+      if (!ok) throw new Error("Unauthorized");
+      clientId = client._id;
+    }
+  }
+  const year = args.taxYear ?? new Date().getFullYear();
+  const invoiceNumber =
+    args.invoiceNumber ??
+    (await (async () => {
+      const existing = await ctx.db
+        .query("invoiceSequences")
+        .withIndex("by_client_and_year", (q) =>
+          q
+            .eq("clientExternalId", args.clientExternalId)
+            .eq("taxYear", year),
+        )
+        .unique();
+      const next = existing?.nextNumber ?? 1;
+      if (existing) {
+        await ctx.db.patch(existing._id, { nextNumber: next + 1 });
+      } else {
+        await ctx.db.insert("invoiceSequences", {
+          clientExternalId: args.clientExternalId,
+          taxYear: year,
+          nextNumber: next + 1,
+        });
+      }
+      return `INV-${year}-${String(next).padStart(4, "0")}`;
+    })());
+  const now = Date.now();
+  const externalId = newExternalId();
+  await ctx.db.insert("invoices", {
+    externalId,
+    userId: user._id,
+    userExternalId: user.externalId,
+    clientId,
+    clientExternalId: args.clientExternalId,
+    invoiceNumber,
+    title: args.title,
+    invoiceDate: args.invoiceDate,
+    dueDate: args.dueDate,
+    taxYear: year,
+    customerInfo: args.customerInfo,
+    lineItems: priced.lineItems,
+    subtotal: priced.subtotal,
+    vatAmount: priced.vatAmount,
+    discountAmount: priced.discountAmount,
+    totalAmount: priced.totalAmount,
+    amountDue: priced.totalAmount,
+    status: args.status ?? "draft",
+    notes: args.notes,
+    isImmutable: false,
+    createdAt: now,
+    updatedAt: now,
+  });
+  const row = await ctx.db
+    .query("invoices")
+    .withIndex("by_externalId", (q) => q.eq("externalId", externalId))
+    .unique();
+  if (!row) throw new Error("Invoice not found");
+  await ctx.db.insert("invoiceAuditLogs", {
+    invoiceId: row._id,
+    clientId,
+    userId: user._id,
+    action: "create",
+    createdAt: now,
+  });
+  return await hydrateInvoice(ctx, row, user);
+}
+
 export const createMine = mutation({
   args: {
     invoiceNumber: v.optional(v.string()),
@@ -214,86 +314,67 @@ export const createMine = mutation({
     notes: v.optional(v.string()),
   },
   returns: invoiceApi,
-  handler: async (ctx, args) => {
-    const user = await getCurrentUser(ctx);
-    let clientId;
-    if (args.clientExternalId) {
-      const client = await ctx.db
-        .query("clients")
-        .withIndex("by_externalId", (q) =>
-          q.eq("externalId", args.clientExternalId!),
-        )
-        .unique();
-      if (client) {
-        const ok = await userCanAccessClient(ctx, client._id);
-        if (!ok) throw new Error("Unauthorized");
-        clientId = client._id;
-      }
-    }
-    const year = args.taxYear ?? new Date().getFullYear();
-    const invoiceNumber =
-      args.invoiceNumber ??
-      (await (async () => {
-        const existing = await ctx.db
-          .query("invoiceSequences")
-          .withIndex("by_client_and_year", (q) =>
-            q
-              .eq("clientExternalId", args.clientExternalId)
-              .eq("taxYear", year),
-          )
-          .unique();
-        const next = existing?.nextNumber ?? 1;
-        if (existing) {
-          await ctx.db.patch(existing._id, { nextNumber: next + 1 });
-        } else {
-          await ctx.db.insert("invoiceSequences", {
-            clientExternalId: args.clientExternalId,
-            taxYear: year,
-            nextNumber: next + 1,
-          });
-        }
-        return `INV-${year}-${String(next).padStart(4, "0")}`;
-      })());
-    const now = Date.now();
-    const externalId = newExternalId();
-    await ctx.db.insert("invoices", {
-      externalId,
-      userId: user._id,
-      userExternalId: user.externalId,
-      clientId,
-      clientExternalId: args.clientExternalId,
-      invoiceNumber,
-      title: args.title,
-      invoiceDate: args.invoiceDate,
-      dueDate: args.dueDate,
-      taxYear: year,
-      customerInfo: args.customerInfo,
-      lineItems: args.lineItems,
-      subtotal: args.subtotal,
-      vatAmount: args.vatAmount,
-      totalAmount: args.totalAmount,
-      amountDue: args.totalAmount,
-      status: args.status ?? "draft",
-      notes: args.notes,
-      isImmutable: false,
-      createdAt: now,
-      updatedAt: now,
-    });
-    const row = await ctx.db
-      .query("invoices")
-      .withIndex("by_externalId", (q) => q.eq("externalId", externalId))
-      .unique();
-    if (!row) throw new Error("Invoice not found");
-    await ctx.db.insert("invoiceAuditLogs", {
-      invoiceId: row._id,
-      clientId,
-      userId: user._id,
-      action: "create",
-      createdAt: now,
-    });
-    return await hydrateInvoice(ctx, row, user);
-  },
+  handler: createMineHandler,
 });
+
+type UpdateMineArgs = {
+  externalId: string;
+  patch: unknown;
+};
+
+export async function updateMineHandler(ctx: MutationCtx, args: UpdateMineArgs) {
+  const user = await getCurrentUser(ctx);
+  const row = await ctx.db
+    .query("invoices")
+    .withIndex("by_externalId", (q) => q.eq("externalId", args.externalId))
+    .unique();
+  if (!row || row.userId !== user._id) throw new Error("Invoice not found");
+  if (row.isImmutable) throw new Error("Invoice is immutable");
+  const patch = (args.patch ?? {}) as Record<string, unknown>;
+  // IVA-190: recompute from qty/rate/discount; ignore client-sent totals.
+  const priced = priceInvoiceLines(lineItemsFromPatch(patch, row.lineItems));
+
+  let clientId = row.clientId;
+  let clientExternalId = row.clientExternalId;
+  let customerInfo = row.customerInfo;
+  if (typeof patch.clientExternalId === "string" && patch.clientExternalId) {
+    const client = await ctx.db
+      .query("clients")
+      .withIndex("by_externalId", (q) =>
+        q.eq("externalId", patch.clientExternalId as string),
+      )
+      .unique();
+    if (!client) throw new Error("Client not found");
+    const ok = await userCanAccessClient(ctx, client._id);
+    if (!ok) throw new Error("Unauthorized");
+    clientId = client._id;
+    clientExternalId = client.externalId;
+    customerInfo = customerInfoFromParty(partyFromClient(client));
+  } else if (patch.clientExternalId === null) {
+    clientId = undefined;
+    clientExternalId = undefined;
+    customerInfo = undefined;
+  }
+
+  await ctx.db.patch(row._id, {
+    status: typeof patch.status === "string" ? patch.status : row.status,
+    notes: typeof patch.notes === "string" ? patch.notes : row.notes,
+    title: typeof patch.title === "string" ? patch.title : row.title,
+    clientId,
+    clientExternalId,
+    customerInfo,
+    lineItems: priced.lineItems,
+    subtotal: priced.subtotal,
+    vatAmount: priced.vatAmount,
+    discountAmount: priced.discountAmount,
+    totalAmount: priced.totalAmount,
+    amountDue: priced.totalAmount,
+    updatedAt: Date.now(),
+  });
+  const updated = await ctx.db.get(row._id);
+  if (!updated) throw new Error("Invoice not found");
+  return await hydrateInvoice(ctx, updated, user);
+}
 
 export const updateMine = mutation({
   args: {
@@ -301,51 +382,7 @@ export const updateMine = mutation({
     patch: v.any(),
   },
   returns: invoiceApi,
-  handler: async (ctx, args) => {
-    const user = await getCurrentUser(ctx);
-    const row = await ctx.db
-      .query("invoices")
-      .withIndex("by_externalId", (q) => q.eq("externalId", args.externalId))
-      .unique();
-    if (!row || row.userId !== user._id) throw new Error("Invoice not found");
-    if (row.isImmutable) throw new Error("Invoice is immutable");
-    const patch = args.patch as Record<string, unknown>;
-
-    let clientId = row.clientId;
-    let clientExternalId = row.clientExternalId;
-    let customerInfo = row.customerInfo;
-    if (typeof patch.clientExternalId === "string" && patch.clientExternalId) {
-      const client = await ctx.db
-        .query("clients")
-        .withIndex("by_externalId", (q) =>
-          q.eq("externalId", patch.clientExternalId as string),
-        )
-        .unique();
-      if (!client) throw new Error("Client not found");
-      const ok = await userCanAccessClient(ctx, client._id);
-      if (!ok) throw new Error("Unauthorized");
-      clientId = client._id;
-      clientExternalId = client.externalId;
-      customerInfo = customerInfoFromParty(partyFromClient(client));
-    } else if (patch.clientExternalId === null) {
-      clientId = undefined;
-      clientExternalId = undefined;
-      customerInfo = undefined;
-    }
-
-    await ctx.db.patch(row._id, {
-      status: typeof patch.status === "string" ? patch.status : row.status,
-      notes: typeof patch.notes === "string" ? patch.notes : row.notes,
-      title: typeof patch.title === "string" ? patch.title : row.title,
-      clientId,
-      clientExternalId,
-      customerInfo,
-      updatedAt: Date.now(),
-    });
-    const updated = await ctx.db.get(row._id);
-    if (!updated) throw new Error("Invoice not found");
-    return await hydrateInvoice(ctx, updated, user);
-  },
+  handler: updateMineHandler,
 });
 
 export const issueMine = mutation({
@@ -374,6 +411,7 @@ export const issueMine = mutation({
 
     const senderSnapshot = partyFromBusiness(profile);
     const customerInfo = customerInfoFromParty(partyFromClient(client));
+    const priced = priceInvoiceLines(row.lineItems);
     const now = Date.now();
     await ctx.db.patch(row._id, {
       status: "issued",
@@ -382,6 +420,12 @@ export const issueMine = mutation({
       updatedAt: now,
       senderSnapshot,
       customerInfo,
+      lineItems: priced.lineItems,
+      subtotal: priced.subtotal,
+      vatAmount: priced.vatAmount,
+      discountAmount: priced.discountAmount,
+      totalAmount: priced.totalAmount,
+      amountDue: priced.totalAmount,
     });
     await ctx.db.insert("invoiceAuditLogs", {
       invoiceId: row._id,
