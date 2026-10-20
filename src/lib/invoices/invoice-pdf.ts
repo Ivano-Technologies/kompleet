@@ -85,12 +85,18 @@ function money(value: number): string {
 }
 
 
+const EMPTY_DUE_DATE = "\u2014";
+
 function formatDate(value: string | null): string {
   if (!value) return "Not set";
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime())
     ? value
     : parsed.toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" });
+}
+
+function dueDateText(value: string | null): string {
+  return value ? formatDate(value) : EMPTY_DUE_DATE;
 }
 
 function senderLines(sender: InvoiceSenderParty): string[] {
@@ -231,7 +237,7 @@ export function renderInvoicePdf(input: InvoicePdfInput): jsPDF {
 
   const dates: Array<[string, string]> = [
     ["Invoice date", formatDate(input.invoiceDate)],
-    ...(input.dueDate ? ([["Due date", formatDate(input.dueDate)]] as Array<[string, string]>) : []),
+    ["Due date", dueDateText(input.dueDate)],
     ...(input.taxYear ? ([["Tax year", String(input.taxYear)]] as Array<[string, string]>) : []),
   ];
   let dateY = blockTop;
@@ -240,7 +246,7 @@ export function renderInvoicePdf(input: InvoicePdfInput): jsPDF {
     doc.setFontSize(9);
     doc.setTextColor(...GREY);
     doc.text(label, right - 40, dateY, { align: "right" });
-    doc.setTextColor(...BLACK);
+    doc.setTextColor(...(value === EMPTY_DUE_DATE ? GREY : BLACK));
     doc.text(value, right, dateY, { align: "right" });
     dateY += 5.5;
   }

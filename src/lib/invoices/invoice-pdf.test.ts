@@ -205,6 +205,15 @@ describe("IVA-185 PDF VAT rate format", () => {
   });
 });
 
+describe("IVA-191 PDF due date", () => {
+  it("prints an em dash when the due date is missing", () => {
+    const out = text({ ...base({ name: "Ada Foods Ltd" }), dueDate: null });
+    expect(out).toContain("Due date");
+    expect(out).toContain("\x97"); // WinAnsi em dash
+    expect(out).not.toContain("Not set");
+  });
+});
+
 describe("IVA-191 PDF VAT totals rows", () => {
   it("hides a ₦0.00 VAT totals row", () => {
     const out = text(base({ name: "Ada Foods Ltd" }));

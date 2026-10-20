@@ -79,7 +79,7 @@ describe("IVA-185 InvoicePreview sender", () => {
     expect(screen.queryByText("Renamed Co")).toBeNull();
   });
 
-  it("shows Not set in muted grey when a date is missing", () => {
+  it("shows an em dash in muted grey when the due date is missing", () => {
     render(
       <InvoicePreview
         invoice={invoice({ due_date: null })}
@@ -87,9 +87,10 @@ describe("IVA-185 InvoicePreview sender", () => {
         onOpenSettings={() => {}}
       />,
     );
-    const empty = screen.getByText("Not set");
+    const empty = screen.getByText("—");
     expect(empty.className).toMatch(/font-normal/);
     expect(empty.style.color).toBe("rgb(85, 85, 85)");
+    expect(screen.queryByText("Not set")).toBeNull();
   });
 
   it("shows the Ivano mark top right, an outline status badge and the footer", () => {

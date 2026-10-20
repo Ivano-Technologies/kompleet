@@ -93,17 +93,25 @@ function money(value: number | null | undefined): string {
   })}`;
 }
 
-function formatDate(value: string | null | undefined): string {
-  if (!value) return INV_COPY.notSet;
+const EMPTY_DUE_DATE = "\u2014";
+
+function formatDate(value: string | null | undefined, emptyText: string): string {
+  if (!value) return emptyText;
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime())
     ? value
     : parsed.toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" });
 }
 
-function DateValue({ value }: { value: string | null | undefined }) {
-  const text = formatDate(value);
-  const empty = text === INV_COPY.notSet;
+function DateValue({
+  value,
+  emptyText = INV_COPY.notSet,
+}: {
+  value: string | null | undefined;
+  emptyText?: string;
+}) {
+  const text = formatDate(value, emptyText);
+  const empty = text === emptyText;
   return (
     <dd
       className={`text-right ${empty ? "font-normal" : "font-semibold"}`}
@@ -387,7 +395,7 @@ export function InvoicePreview({
             <dt style={{ color: BW.secondary }}>Issue date</dt>
             <DateValue value={invoice.invoice_date} />
             <dt style={{ color: BW.secondary }}>Due date</dt>
-            <DateValue value={invoice.due_date} />
+            <DateValue value={invoice.due_date} emptyText={EMPTY_DUE_DATE} />
             <dt style={{ color: BW.secondary }}>{attachmentNote ? "Attachment" : "Currency"}</dt>
             <dd className="text-right font-semibold break-all">{attachmentNote ?? "NGN (₦)"}</dd>
           </dl>
