@@ -41,7 +41,7 @@ describe("LoginPage", () => {
     const inputs = document.querySelectorAll("input");
     await user.type(inputs[0] as HTMLInputElement, "nobody@example.com");
     await user.type(inputs[1] as HTMLInputElement, "wrongpass1");
-    await user.click(screen.getByRole("button", { name: /Sign In/ }));
+    await user.click(screen.getByRole("button", { name: "Sign in" }));
 
     expect(
       await screen.findByText("That email or password doesn't match. Check and try again."),
@@ -50,10 +50,11 @@ describe("LoginPage", () => {
 
     const ref = screen.getByTestId("error-ref").textContent ?? "";
     expect(ref).toMatch(/^Ref: [A-Z0-9]{8}$/);
-    expect(console.error).toHaveBeenCalledWith(
+    expect(console.warn).toHaveBeenCalledWith(
       expect.stringContaining(`ref=${ref.slice(5)}`),
       raw,
     );
+    expect(console.error).not.toHaveBeenCalled();
 
     const note = screen.getByTestId("reclaim-note");
     expect(note.tagName).toBe("P");

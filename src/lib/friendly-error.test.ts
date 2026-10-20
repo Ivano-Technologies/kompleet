@@ -36,11 +36,14 @@ const msg = (...args: Parameters<typeof toFriendlyError>) =>
 
 describe("friendly-error", () => {
   let errorSpy: ReturnType<typeof vi.spyOn>;
+  let warnSpy: ReturnType<typeof vi.spyOn>;
   beforeEach(() => {
     errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
   });
   afterEach(() => {
     errorSpy.mockRestore();
+    warnSpy.mockRestore();
   });
 
   describe("stripErrorWrappers", () => {
@@ -188,10 +191,11 @@ describe("friendly-error", () => {
       const err = new Error("boom");
       const { ref } = toFriendlyError(err);
       expect(ref).toMatch(/^[A-Z0-9]{8}$/);
-      expect(errorSpy).toHaveBeenCalledWith(
+      expect(warnSpy).toHaveBeenCalledWith(
         expect.stringContaining(`[friendly-error] ref=${ref}`),
         err,
       );
+      expect(errorSpy).not.toHaveBeenCalled();
     });
 
     it("reuses the ref an API route already issued", () => {

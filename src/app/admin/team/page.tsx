@@ -194,7 +194,7 @@ export default function TeamManagementPage() {
                 Role
               </th>
               <th className="text-left text-xs font-medium text-[rgb(var(--text-secondary))] uppercase tracking-wider px-4 py-3">
-                Last Sign In
+                Last sign in
               </th>
             </tr>
           </thead>

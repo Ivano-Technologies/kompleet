@@ -483,7 +483,7 @@ export const searchLinkTargets = query({
         : rows;
       return matched.slice(0, limit).map((row) => ({
         id: row.externalId,
-        label: `${row.invoiceNumber} — ${readCustomerName(row.customerInfo)}`,
+        label: `${row.invoiceNumber} · ${readCustomerName(row.customerInfo)}`,
         amount: row.totalAmount ?? row.amountDue ?? null,
         date: row.invoiceDate ?? null,
         href: hrefFor("invoice", row.externalId),

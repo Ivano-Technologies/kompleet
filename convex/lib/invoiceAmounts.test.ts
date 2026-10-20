@@ -95,6 +95,15 @@ describe("IVA-190 priceInvoiceLines", () => {
     expect(priceInvoiceLines(null).hasLines).toBe(false);
   });
 
+  it("stores unit price rounded to 2 decimals", () => {
+    const priced = priceInvoiceLines([{ quantity: 3, unit_price: 33.335, vat_rate: 0 }]);
+    expect((priced.lineItems as Array<{ unit_price: number; amount: number }>)[0]).toMatchObject({
+      unit_price: 33.34,
+      amount: 100.02,
+    });
+    expect(priced.subtotal).toBe(100.02);
+  });
+
   it("strips client-sent amount fields and keeps the server net", () => {
     const priced = priceInvoiceLines([
       {

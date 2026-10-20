@@ -13,6 +13,7 @@ import {
   discountTooBig,
   lineDiscount,
   lineNetAmount,
+  roundMoney,
   totalsFromLines,
   type LineInput,
 } from "./lineAmounts";
@@ -68,13 +69,14 @@ function priceOneLine(item: unknown): Record<string, unknown> & LineInput {
   }
   const row = item as Record<string, unknown>;
   const quantity = requireFinite(row.quantity, INVALID_QUANTITY);
-  const unit_price = requireFinite(row.unit_price, INVALID_UNIT_PRICE);
+  const unitPriceRaw = requireFinite(row.unit_price, INVALID_UNIT_PRICE);
   if (quantity < 0) {
     throw new ConvexError(NEGATIVE_QUANTITY);
   }
-  if (unit_price < 0) {
+  if (unitPriceRaw < 0) {
     throw new ConvexError(NEGATIVE_UNIT_PRICE);
   }
+  const unit_price = roundMoney(unitPriceRaw);
 
   let vat_rate = 0;
   if (row.vat_rate !== undefined) {

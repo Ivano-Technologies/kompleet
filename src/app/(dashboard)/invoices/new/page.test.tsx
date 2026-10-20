@@ -64,6 +64,23 @@ describe("IVA-185 /invoices/new summary matches the invoice totals", () => {
     expect(screen.queryByText(/VAT \(/)).toBeNull();
   });
 
+  it("shows VAT 7.5% when every line uses the same rate", async () => {
+    render(<NewInvoicePage />);
+    await waitFor(() => expect(fetch).toHaveBeenCalled());
+    fillLines([{ quantity: 1, unit_price: 1000, vat_rate: 7.5 }]);
+    expect(screen.getAllByTestId("form-vat-row").map((row) => row.textContent)).toEqual([
+      `VAT 7.5%${naira(75)}`,
+    ]);
+  });
+
+  it("limits unit price to 2 decimals", async () => {
+    render(<NewInvoicePage />);
+    await waitFor(() => expect(fetch).toHaveBeenCalled());
+    fillLines([{ quantity: 3, unit_price: 33.335, vat_rate: 0 }]);
+    expect(screen.getByTestId("form-subtotal")).toHaveTextContent(naira(100.02));
+    expect(screen.getAllByRole("spinbutton")[1]).toHaveValue(33.34);
+  });
+
   it("accepts a discount equal to the shown line total and refuses one kobo more", async () => {
     render(<NewInvoicePage />);
     await waitFor(() => expect(fetch).toHaveBeenCalled());

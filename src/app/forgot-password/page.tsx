@@ -48,7 +48,7 @@ export default function ForgotPasswordPage() {
     } catch (err: unknown) {
       // Log the raw error with a ref; never show raw error text.
       const ref = generateRef();
-      console.error(`[friendly-error] ref=${ref} context=forgot-password`, err);
+      console.warn(`[friendly-error] ref=${ref} context=forgot-password`, err);
       if (isNetworkError(err)) {
         setError(withRef(NETWORK_ERROR_MESSAGE, ref));
       } else {

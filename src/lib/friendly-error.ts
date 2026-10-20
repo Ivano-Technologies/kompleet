@@ -10,8 +10,9 @@
  * - `ConvexError` whose data is a string (or `{ message: string }`)
  * - our own password rule validation text
  * Known auth, network and rate limit cases map to plain text. Everything else
- * becomes the fallback. The raw error is always logged (console.error, plus
- * Sentry for unexpected errors).
+ * becomes the fallback. The raw error is always logged (console.warn, plus
+ * Sentry for unexpected errors). console.error would open the Next.js overlay
+ * and flake e2e on expected user errors.
  */
 import * as Sentry from "@sentry/nextjs";
 
@@ -316,7 +317,7 @@ export function toFriendlyError(
   ref = ref ?? generateRef();
 
   if (!options.silent) {
-    console.error(
+    console.warn(
       `[friendly-error] ref=${ref}${options.context ? ` context=${options.context}` : ""}`,
       err,
     );
@@ -445,6 +446,6 @@ export function friendlyWithNewRef(
   detail?: unknown,
 ): string {
   const ref = generateRef();
-  console.error(`[friendly-error] ref=${ref} context=${context}`, detail ?? message);
+  console.warn(`[friendly-error] ref=${ref} context=${context}`, detail ?? message);
   return withRef(message, ref);
 }

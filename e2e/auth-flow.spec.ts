@@ -29,7 +29,7 @@ const SIGNUP_SELECTORS = {
 const LOGIN_SELECTORS = {
   email: "you@company.ng",
   password: "Enter your password",
-  submit: "Sign In →",
+  submit: "Sign in",
 };
 
 /** Routes rendered under src/app/(dashboard)/layout.tsx, which calls requireAuth(). */

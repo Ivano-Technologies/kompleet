@@ -15,7 +15,7 @@ describe("ErrorText", () => {
   });
 
   it("issues and logs a ref for plain input errors", () => {
-    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
     render(<ErrorText text="Enter an amount greater than 0." />);
     const ref = (screen.getByTestId("error-ref").textContent ?? "").slice(5);
     expect(ref).toMatch(/^[A-Z0-9]{8}$/);
