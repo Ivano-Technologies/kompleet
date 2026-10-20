@@ -101,6 +101,20 @@ describe("IVA-185 line discount clamp", () => {
     expect(hasLineDiscount([line, { ...line, discount: 0 }])).toBe(false);
     expect(hasLineDiscount([line, { ...line, discount: 1 }])).toBe(true);
     expect(DISCOUNT_TOO_BIG).toBe("Discount can't be more than the line total.");
+    const {
+      VAT_RATE_RANGE,
+      INVALID_QUANTITY,
+      INVALID_UNIT_PRICE,
+      ALREADY_ISSUED,
+      ADD_ITEM_BEFORE_ISSUE,
+      STATUS_VIA_UPDATE,
+    } = await import("./line-amounts");
+    expect(VAT_RATE_RANGE).toBe("VAT rate must be between 0% and 100%.");
+    expect(INVALID_QUANTITY).toBe("Enter a number for quantity.");
+    expect(INVALID_UNIT_PRICE).toBe("Enter a number for unit price.");
+    expect(ALREADY_ISSUED).toBe("This invoice has already been issued.");
+    expect(ADD_ITEM_BEFORE_ISSUE).toBe("Add at least one item before issuing this invoice.");
+    expect(STATUS_VIA_UPDATE).toBe("This update can't change the invoice status.");
   });
 
   it("the full form shows the friendly discount copy", async () => {
@@ -108,6 +122,9 @@ describe("IVA-185 line discount clamp", () => {
     const form = readFileSync("src/app/(dashboard)/invoices/new/page.tsx", "utf8");
     expect(form).toMatch(/discountTooBig\(item\)/);
     expect(form).toMatch(/DISCOUNT_TOO_BIG/);
+    expect(form).toMatch(/VAT_RATE_RANGE/);
+    expect(form).toMatch(/INVALID_QUANTITY/);
+    expect(form).toMatch(/INVALID_UNIT_PRICE/);
     expect(form).toMatch(/totalsFromLines\(lineItems\)/);
   });
 });
