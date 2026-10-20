@@ -177,6 +177,14 @@ export const USER_MESSAGE_ALLOWLIST: Record<string, string> = {
   "Unit price can't be negative.": "Unit price can't be negative.",
   "Discount can't be more than the line total.":
     "Discount can't be more than the line total.",
+  "VAT rate must be between 0% and 100%.":
+    "VAT rate must be between 0% and 100%.",
+  "Enter a number for quantity.": "Enter a number for quantity.",
+  "Enter a number for unit price.": "Enter a number for unit price.",
+  "This invoice has already been issued.":
+    "This invoice has already been issued.",
+  "Add at least one item before issuing this invoice.":
+    "Add at least one item before issuing this invoice.",
   "Use PDF, image, or CSV.": "Use a PDF, image or CSV file.",
   "File size must be less than 10MB": "File size must be less than 10MB.",
   "Expense already exists": "This expense already exists.",

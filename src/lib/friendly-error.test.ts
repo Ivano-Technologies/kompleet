@@ -157,6 +157,18 @@ describe("friendly-error", () => {
       expect(
         msg(new Error(convexWrap("Line item 1: Discount can't be more than the line total."))),
       ).toBe("Discount can't be more than the line total.");
+      expect(msg(new FakeConvexError("VAT rate must be between 0% and 100%."))).toBe(
+        "VAT rate must be between 0% and 100%.",
+      );
+      expect(msg(new Error(convexWrap("Enter a number for quantity.")))).toBe(
+        "Enter a number for quantity.",
+      );
+      expect(msg(new FakeConvexError("This invoice has already been issued."))).toBe(
+        "This invoice has already been issued.",
+      );
+      expect(
+        msg(new FakeConvexError("Add at least one item before issuing this invoice.")),
+      ).toBe("Add at least one item before issuing this invoice.");
     });
 
     it("maps missing tax rules without leaking rule keys", () => {

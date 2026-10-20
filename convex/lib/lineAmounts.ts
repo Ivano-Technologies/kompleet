@@ -69,6 +69,21 @@ export const NEGATIVE_QUANTITY = "Quantity can't be negative.";
 /** Friendly copy when unit price (rate) is negative. */
 export const NEGATIVE_UNIT_PRICE = "Unit price can't be negative.";
 
+/** Friendly copy when VAT rate is outside 0..100 inclusive. */
+export const VAT_RATE_RANGE = "VAT rate must be between 0% and 100%.";
+
+/** Friendly copy when quantity is not a finite number. */
+export const INVALID_QUANTITY = "Enter a number for quantity.";
+
+/** Friendly copy when unit price is not a finite number. */
+export const INVALID_UNIT_PRICE = "Enter a number for unit price.";
+
+/** Friendly copy when issue is attempted twice. */
+export const ALREADY_ISSUED = "This invoice has already been issued.";
+
+/** Friendly copy when issue is attempted with no line items. */
+export const ADD_ITEM_BEFORE_ISSUE = "Add at least one item before issuing this invoice.";
+
 /** quantity x rate, before discount and VAT. */
 export function lineGrossAmount(item: LineInput): number {
   return num(item.quantity) * num(item.unit_price);

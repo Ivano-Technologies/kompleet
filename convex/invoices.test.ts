@@ -5,9 +5,14 @@ import { resolve } from "node:path";
 import { ConvexError } from "convex/values";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  ADD_ITEM_BEFORE_ISSUE,
+  ALREADY_ISSUED,
   DISCOUNT_TOO_BIG,
+  INVALID_QUANTITY,
+  INVALID_UNIT_PRICE,
   NEGATIVE_QUANTITY,
   NEGATIVE_UNIT_PRICE,
+  VAT_RATE_RANGE,
 } from "./lib/lineAmounts";
 
 const getCurrentUser = vi.fn();
@@ -27,7 +32,7 @@ vi.mock("./lib/profiles", async (importOriginal) => {
   };
 });
 
-import { createMineHandler, updateMineHandler } from "./invoices";
+import { createMineHandler, issueMineHandler, updateMineHandler } from "./invoices";
 
 const USER = {
   _id: "users:1",
@@ -174,7 +179,7 @@ describe("IVA-190 createMine / updateMine server amounts", () => {
       }),
     ).rejects.toMatchObject({
       name: "ConvexError",
-      data: `Line item 1: ${NEGATIVE_QUANTITY}`,
+      data: NEGATIVE_QUANTITY,
     });
   });
 
@@ -186,7 +191,7 @@ describe("IVA-190 createMine / updateMine server amounts", () => {
       }),
     ).rejects.toMatchObject({
       name: "ConvexError",
-      data: `Line item 1: ${NEGATIVE_UNIT_PRICE}`,
+      data: NEGATIVE_UNIT_PRICE,
     });
   });
 
@@ -200,8 +205,71 @@ describe("IVA-190 createMine / updateMine server amounts", () => {
       }),
     ).rejects.toMatchObject({
       name: "ConvexError",
-      data: `Line item 1: ${DISCOUNT_TOO_BIG}`,
+      data: DISCOUNT_TOO_BIG,
     });
+  });
+
+  it("createMine rejects a VAT rate outside 0 to 100", async () => {
+    const { db } = fakeDb();
+    await expect(
+      createMineHandler(ctxOf(db), {
+        lineItems: [{ description: "Bad", quantity: 1, unit_price: 10, vat_rate: 500 }],
+      }),
+    ).rejects.toMatchObject({ name: "ConvexError", data: VAT_RATE_RANGE });
+    await expect(
+      createMineHandler(ctxOf(db), {
+        lineItems: [{ description: "Bad", quantity: 1, unit_price: 10, vat_rate: -100 }],
+      }),
+    ).rejects.toMatchObject({ name: "ConvexError", data: VAT_RATE_RANGE });
+  });
+
+  it("createMine rejects a non-finite quantity or unit price", async () => {
+    const { db } = fakeDb();
+    await expect(
+      createMineHandler(ctxOf(db), {
+        lineItems: [{ description: "Bad", quantity: Number.NaN, unit_price: 10, vat_rate: 0 }],
+      }),
+    ).rejects.toMatchObject({ name: "ConvexError", data: INVALID_QUANTITY });
+    await expect(
+      createMineHandler(ctxOf(db), {
+        lineItems: [{ description: "Bad", quantity: 1, unit_price: "10", vat_rate: 0 }],
+      }),
+    ).rejects.toMatchObject({ name: "ConvexError", data: INVALID_UNIT_PRICE });
+    await expect(
+      createMineHandler(ctxOf(db), {
+        lineItems: [{ description: "Bad", quantity: 1, unit_price: null, vat_rate: 0 }],
+      }),
+    ).rejects.toMatchObject({ name: "ConvexError", data: INVALID_UNIT_PRICE });
+    await expect(
+      createMineHandler(ctxOf(db), {
+        lineItems: [{ description: "Bad", quantity: Number.POSITIVE_INFINITY, unit_price: 10, vat_rate: 0 }],
+      }),
+    ).rejects.toMatchObject({ name: "ConvexError", data: INVALID_QUANTITY });
+  });
+
+  it("createMine strips client-sent amount fields from stored lines", async () => {
+    const { db, tables } = fakeDb();
+    await createMineHandler(ctxOf(db), {
+      lineItems: [
+        {
+          description: "Catering",
+          quantity: 1,
+          unit_price: 100,
+          vat_rate: 0,
+          amount: 1,
+          lineTotal: 9,
+          vatAmount: 8,
+          subtotal: 7,
+          total: 6,
+        },
+      ],
+    });
+    const stored = (tables.invoices[0]!.lineItems as Array<Record<string, unknown>>)[0]!;
+    expect(stored.amount).toBe(100);
+    expect(stored).not.toHaveProperty("lineTotal");
+    expect(stored).not.toHaveProperty("vatAmount");
+    expect(stored).not.toHaveProperty("subtotal");
+    expect(stored).not.toHaveProperty("total");
   });
 
   it("updateMine recomputes from patched lines and ignores client totals", async () => {
@@ -266,8 +334,130 @@ describe("IVA-190 createMine / updateMine server amounts", () => {
       }),
     ).rejects.toMatchObject({
       name: "ConvexError",
-      data: `Line item 1: ${NEGATIVE_UNIT_PRICE}`,
+      data: NEGATIVE_UNIT_PRICE,
     });
+  });
+
+  it("updateMine leaves stored totals when there are no line items", async () => {
+    const { db, tables } = fakeDb();
+    await createMineHandler(ctxOf(db), {
+      invoiceNumber: "INV-2026-0003",
+      title: "Empty draft",
+    });
+    tables.invoices[0]!.subtotal = 250;
+    tables.invoices[0]!.vatAmount = 18.75;
+    tables.invoices[0]!.totalAmount = 268.75;
+    tables.invoices[0]!.amountDue = 268.75;
+    const externalId = tables.invoices[0]!.externalId as string;
+
+    const updated = await updateMineHandler(ctxOf(db), {
+      externalId,
+      patch: { title: "Still empty", lineItems: [] },
+    });
+    expect(updated.title).toBe("Still empty");
+    expect(updated.subtotal).toBe(250);
+    expect(updated.vat_amount).toBe(18.75);
+    expect(updated.total_amount).toBe(268.75);
+    expect(tables.invoices[0]!.subtotal).toBe(250);
+  });
+
+  it("updateMine does not reprice when only title, notes or client change", async () => {
+    const { db, tables } = fakeDb();
+    await createMineHandler(ctxOf(db), {
+      invoiceNumber: "INV-2026-0004",
+      lineItems: [{ description: "Draft", quantity: 1, unit_price: 10, vat_rate: 0 }],
+    });
+    tables.invoices[0]!.lineItems = [
+      { description: "Bad stored line", quantity: -2, unit_price: 10, vat_rate: 0, amount: 1 },
+    ];
+    tables.invoices[0]!.subtotal = 99;
+    tables.invoices[0]!.totalAmount = 99;
+    const externalId = tables.invoices[0]!.externalId as string;
+
+    const updated = await updateMineHandler(ctxOf(db), {
+      externalId,
+      patch: { title: "Keep the bad line", notes: "edit only" },
+    });
+    expect(updated.title).toBe("Keep the bad line");
+    expect(updated.subtotal).toBe(99);
+    expect(updated.total_amount).toBe(99);
+    expect((tables.invoices[0]!.lineItems as Array<{ quantity: number }>)[0]!.quantity).toBe(-2);
+  });
+});
+
+describe("IVA-190 issueMine", () => {
+  beforeEach(() => {
+    getCurrentUser.mockReset().mockResolvedValue(USER);
+    userCanAccessClient.mockReset().mockResolvedValue(true);
+    loadBusinessProfile.mockReset().mockResolvedValue(PROFILE);
+  });
+
+  async function seedDraftWithClient(
+    db: ReturnType<typeof fakeDb>["db"],
+    tables: ReturnType<typeof fakeDb>["tables"],
+    lineItems?: unknown,
+  ) {
+    tables.clients.push({
+      _id: "clients:1",
+      externalId: "c1",
+      legalName: "Acme Ltd",
+      addressLine1: "1 Marina",
+      city: "Lagos",
+      country: "NG",
+    });
+    await createMineHandler(ctxOf(db), {
+      invoiceNumber: "INV-2026-0099",
+      clientExternalId: "c1",
+      lineItems,
+    });
+    return tables.invoices[0]!;
+  }
+
+  it("reprices from lines before issuing so tampered stored totals are corrected", async () => {
+    const { db, tables } = fakeDb();
+    const row = await seedDraftWithClient(db, tables, [
+      { description: "Catering", quantity: 1, unit_price: 850000, vat_rate: 7.5 },
+      { description: "Delivery", quantity: 2, unit_price: 25000, vat_rate: 0 },
+    ]);
+    row.subtotal = 1;
+    row.vatAmount = 0;
+    row.totalAmount = 1;
+    row.amountDue = 1;
+    (row.lineItems as Array<Record<string, unknown>>)[0]!.amount = 9;
+
+    const issued = await issueMineHandler(ctxOf(db), { externalId: row.externalId as string });
+    expect(issued.status).toBe("issued");
+    expect(issued.subtotal).toBe(900000);
+    expect(issued.vat_amount).toBe(63750);
+    expect(issued.total_amount).toBe(963750);
+    expect(tables.invoices[0]!.totalAmount).toBe(963750);
+    expect(
+      (tables.invoices[0]!.lineItems as Array<{ amount: number }>).map((line) => line.amount),
+    ).toEqual([850000, 50000]);
+  });
+
+  it("rejects an invoice that is already issued", async () => {
+    const { db, tables } = fakeDb();
+    const row = await seedDraftWithClient(db, tables, [
+      { description: "Done", quantity: 1, unit_price: 10, vat_rate: 0 },
+    ]);
+    row.status = "issued";
+    row.isImmutable = true;
+    await expect(
+      issueMineHandler(ctxOf(db), { externalId: row.externalId as string }),
+    ).rejects.toMatchObject({ name: "ConvexError", data: ALREADY_ISSUED });
+  });
+
+  it("rejects issuing when there are no line items", async () => {
+    const { db, tables } = fakeDb();
+    const row = await seedDraftWithClient(db, tables, []);
+    row.subtotal = 250;
+    row.totalAmount = 250;
+    await expect(
+      issueMineHandler(ctxOf(db), { externalId: row.externalId as string }),
+    ).rejects.toMatchObject({ name: "ConvexError", data: ADD_ITEM_BEFORE_ISSUE });
+    expect(tables.invoices[0]!.subtotal).toBe(250);
+    expect(tables.invoices[0]!.status).toBe("draft");
   });
 });
 
@@ -282,7 +472,7 @@ describe("IVA-190 dead invoice helpers", () => {
   it("createMine and updateMine share line-amounts via priceInvoiceLines", () => {
     const source = readFileSync(resolve(process.cwd(), "convex/invoices.ts"), "utf8");
     expect(source).toMatch(/priceInvoiceLines\(args\.lineItems\)/);
-    expect(source).toMatch(/priceInvoiceLines\(lineItemsFromPatch/);
+    expect(source).toMatch(/patchIncludesLines\(patch\)/);
     expect(source).not.toMatch(/subtotal: args\.subtotal/);
     expect(source).not.toMatch(/totalAmount: args\.totalAmount/);
   });

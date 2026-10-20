@@ -58,4 +58,62 @@ describe("IVA-190 priceInvoiceLines", () => {
       priceInvoiceLines([{ quantity: 1, unit_price: 10, vat_rate: 0, discount: 10.01 }]),
     ).toThrow(ConvexError);
   });
+
+  it("rejects VAT rates outside 0 to 100 inclusive", () => {
+    expect(() =>
+      priceInvoiceLines([{ quantity: 1, unit_price: 10, vat_rate: -100 }]),
+    ).toThrow(ConvexError);
+    expect(() =>
+      priceInvoiceLines([{ quantity: 1, unit_price: 10, vat_rate: 500 }]),
+    ).toThrow(ConvexError);
+    expect(
+      priceInvoiceLines([{ quantity: 1, unit_price: 10, vat_rate: 0 }]).hasLines,
+    ).toBe(true);
+    expect(
+      priceInvoiceLines([{ quantity: 1, unit_price: 10, vat_rate: 100 }]).totalAmount,
+    ).toBe(20);
+  });
+
+  it("rejects a quantity or unit price that is not a finite number", () => {
+    expect(() =>
+      priceInvoiceLines([{ quantity: Number.NaN, unit_price: 10, vat_rate: 0 }]),
+    ).toThrow(ConvexError);
+    expect(() =>
+      priceInvoiceLines([{ quantity: "2", unit_price: 10, vat_rate: 0 }]),
+    ).toThrow(ConvexError);
+    expect(() =>
+      priceInvoiceLines([{ quantity: 1, unit_price: null, vat_rate: 0 }]),
+    ).toThrow(ConvexError);
+    expect(() =>
+      priceInvoiceLines([{ quantity: 1, unit_price: Number.POSITIVE_INFINITY, vat_rate: 0 }]),
+    ).toThrow(ConvexError);
+  });
+
+  it("does not treat missing or empty lines as zero totals for callers", () => {
+    expect(priceInvoiceLines(undefined).hasLines).toBe(false);
+    expect(priceInvoiceLines([]).hasLines).toBe(false);
+    expect(priceInvoiceLines(null).hasLines).toBe(false);
+  });
+
+  it("strips client-sent amount fields and keeps the server net", () => {
+    const priced = priceInvoiceLines([
+      {
+        description: "A",
+        quantity: 2,
+        unit_price: 50,
+        vat_rate: 0,
+        amount: 1,
+        lineTotal: 9,
+        vatAmount: 8,
+        subtotal: 7,
+        total: 6,
+      },
+    ]);
+    const line = (priced.lineItems as Array<Record<string, unknown>>)[0]!;
+    expect(line.amount).toBe(100);
+    expect(line).not.toHaveProperty("lineTotal");
+    expect(line).not.toHaveProperty("vatAmount");
+    expect(line).not.toHaveProperty("subtotal");
+    expect(line).not.toHaveProperty("total");
+  });
 });
