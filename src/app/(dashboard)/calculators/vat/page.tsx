@@ -313,9 +313,6 @@ export default function VATCalculatorPage() {
                   disabled={rulesLoading || rulesUnavailable}
                   className="rounded-lg bg-light-background dark:bg-dark-background border-light-border dark:border-dark-border"
                 />
-                <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
-                  For small business exemption check
-                </p>
               </div>
 
               <div className="space-y-2">
@@ -334,9 +331,6 @@ export default function VATCalculatorPage() {
                   disabled={rulesLoading || rulesUnavailable}
                   className="rounded-lg bg-light-background dark:bg-dark-background border-light-border dark:border-dark-border"
                 />
-                <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
-                  For small business exemption check
-                </p>
               </div>
 
               <div className="flex items-center space-x-2">
@@ -408,8 +402,7 @@ export default function VATCalculatorPage() {
                       <p className="text-light-text-secondary dark:text-dark-text-secondary">
                         {rules?.standard_rate?.value?.rate != null
                           ? `${rules.standard_rate.value.rate}%`
-                          : "Unavailable"}{" "}
-                        (unchanged from previous law)
+                          : "Unavailable"}
                       </p>
                     </div>
                   </div>
@@ -417,14 +410,10 @@ export default function VATCalculatorPage() {
                   <div className="flex items-start">
                     <InfoIcon className="h-4 w-4 mr-2 mt-0.5 text-amber-500 dark:text-amber-400" />
                     <div>
-                      <p className="font-medium text-light-text-primary dark:text-dark-text-primary">
-                        Registration / filing obligation
-                      </p>
                       <p className="text-light-text-secondary dark:text-dark-text-secondary">
-                        Unverified. Three mutually exclusive threshold
-                        candidates are under review. VAT amount calculation
-                        still uses the 7.5% rate; this calculator will not
-                        assert whether you must register or file.
+                        Registration threshold: we don&apos;t show one yet.
+                        Check with your tax adviser whether you need to
+                        register.
                       </p>
                     </div>
                   </div>
@@ -455,31 +444,6 @@ export default function VATCalculatorPage() {
                       <CheckCircle2 className="h-4 w-4" />
                       <AlertDescription>
                         {result.exemptionReason}
-                      </AlertDescription>
-                    </Alert>
-                  )}
-                  {result.obligation.status === "unresolved" && (
-                    <Alert className="mt-2 bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-900/30 text-amber-900 dark:text-amber-200">
-                      <InfoIcon className="h-4 w-4" />
-                      <AlertDescription className="space-y-2">
-                        <p className="font-medium">
-                          Registration/filing threshold unverified
-                        </p>
-                        <p className="text-sm">{result.obligation.reason}</p>
-                        <ul className="text-sm list-disc pl-4 space-y-1">
-                          {result.obligation.candidates.map((c) => (
-                            <li key={c.ruleKey}>
-                              <span className="font-mono text-xs">
-                                {c.ruleKey}
-                              </span>
-                              : ₦{c.thresholdNgn.toLocaleString("en-NG")}
-                              {c.assetsThresholdNgn != null
-                                ? ` / assets ₦${c.assetsThresholdNgn.toLocaleString("en-NG")}`
-                                : ""}{" "}
-                              : {c.resultUnderThisCandidate}
-                            </li>
-                          ))}
-                        </ul>
                       </AlertDescription>
                     </Alert>
                   )}
@@ -551,10 +515,10 @@ export default function VATCalculatorPage() {
                       if (!result) return;
                       generateCalculationPDF({
                         calculatorType: "VAT Calculator",
-                        date: new Date().toLocaleDateString("en-NG", {
-                          year: "numeric",
-                          month: "long",
+                        date: new Date().toLocaleDateString("en-GB", {
                           day: "numeric",
+                          month: "short",
+                          year: "numeric",
                         }),
                         inputs: {
                           amount: parseFloat(amount),
@@ -571,16 +535,11 @@ export default function VATCalculatorPage() {
                             ? "Rent exempt"
                             : "Rate applied",
                           exemption_reason: result.exemptionReason || "N/A",
-                          obligation: result.obligation.status,
                           net_amount: result.netAmount,
                           vat_amount: result.vatAmount,
                           gross_amount: result.grossAmount,
                           vat_rate: `${result.vatRate}%`,
                         },
-                        ruleVersion: "v1.0.0-2025-tax-act",
-                        sources: ["Nigeria Revenue Service (NRS)"],
-                        confidenceLevel:
-                          rules?.standard_rate?.confidence || "unavailable",
                       });
                     }}
                     variant="outline"
@@ -603,19 +562,12 @@ export default function VATCalculatorPage() {
           </CardHeader>
           <CardContent className="text-sm text-light-text-secondary dark:text-dark-text-secondary space-y-2">
             <p>
-              This calculator applies the VAT{" "}
-              <em>rate</em> from the rules engine. Registration and filing
-              obligation thresholds are disputed across sources and are shown
-              as unverified candidates. They do not change the VAT amount.
+              This calculator applies the standard 7.5% VAT rate to the amount
+              you enter. It&apos;s an estimate to help you plan, not tax
+              advice.
             </p>
             <p>
-              <strong>Data Source:</strong> Nigeria Revenue Service (NRS),
-              Confidence level:{" "}
-              {rules?.standard_rate?.confidence || "unavailable"}.
-            </p>
-            <p>
-              <strong>Disclaimer:</strong> This is an estimate. Consult a
-              qualified Nigerian tax professional for personalized advice.
+              For decisions, talk to a qualified tax professional.
             </p>
           </CardContent>
         </Card>

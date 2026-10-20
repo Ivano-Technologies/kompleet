@@ -1,6 +1,6 @@
 /**
  * VAT (Value Added Tax) Service
- * Implements Nigeria VAT calculations per the Nigeria Tax Act 2025.
+ * Implements Nigeria VAT calculations from the loaded rule bundle.
  *
  * All rates, thresholds, and category treatments are sourced from a
  * `RuleBundle` (see src/lib/tax) — nothing here is hardcoded. Category-based
@@ -95,7 +95,7 @@ export interface VATFormData {
 const RENT_CATEGORY_PATTERN = /rent/i;
 
 /**
- * VAT Service - Handles all VAT calculations and compliance.
+ * VAT Service - Handles VAT calculations from the loaded rule bundle.
  * Every method requires a `RuleBundle` (or an explicit rate) — there are no
  * static hardcoded rate/threshold/category constants on this class.
  */
@@ -376,7 +376,7 @@ export class VATService {
   }
 
   /**
-   * Validate VAT compliance. Registration/exemption obligation is surfaced
+   * Validate a VAT summary. Registration/exemption obligation is surfaced
    * as a warning (never a hard "must register" issue) while the threshold
    * conflict remains unresolved.
    */

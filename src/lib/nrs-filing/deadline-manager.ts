@@ -1,6 +1,6 @@
 /**
  * Filing Deadline Manager
- * Manages tax filing deadlines per 2026 Tax Act
+ * Manages tax filing deadlines for NRS returns
  */
 
 export interface FilingDeadline {

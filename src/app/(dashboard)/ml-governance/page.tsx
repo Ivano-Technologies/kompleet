@@ -99,7 +99,7 @@ export default function MLGovernanceDashboard() {
               ML Governance Dashboard
             </h1>
             <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
-              Monitor models, approvals, drift, and compliance
+              Monitor models, approvals, and drift
             </p>
           </div>
         </div>

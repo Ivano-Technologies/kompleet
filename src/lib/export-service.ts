@@ -112,18 +112,19 @@ export async function exportTransactionsExcel(
     { header: "Type", key: "type", width: 10 },
     { header: "Category", key: "category", width: 20 },
     { header: "Description", key: "description", width: 30 },
-    { header: "Amount (₦)", key: "amount", width: 15 },
+    { header: "Amount (NGN)", key: "amount", width: 15 },
     { header: "Tax Year", key: "tax_year", width: 10 },
   ];
 
   // Style header row
-  worksheet.getRow(1).font = { bold: true, color: { argb: "FFFFFFFF" } };
+  worksheet.getRow(1).font = { bold: true, color: { argb: "FF141413" } };
   worksheet.getRow(1).fill = {
     type: "pattern",
     pattern: "solid",
-    fgColor: { argb: "FF0A6847" }, // Nigerian green
+    fgColor: { argb: "FFF2F2F2" },
   };
   worksheet.getRow(1).alignment = { vertical: "middle", horizontal: "center" };
+  worksheet.getCell("E1").alignment = { vertical: "middle", horizontal: "right" };
 
   // Add data rows
   transactions.forEach((t) => {
@@ -138,7 +139,8 @@ export async function exportTransactionsExcel(
   });
 
   // Format amount column as currency
-  worksheet.getColumn("amount").numFmt = "₦#,##0.00";
+  worksheet.getColumn("amount").numFmt = '"NGN" #,##0.00';
+  worksheet.getColumn("amount").alignment = { horizontal: "right" };
 
   // Add filters
   worksheet.autoFilter = {
@@ -224,7 +226,7 @@ export async function exportFinancialStatementWord(
                       children: [
                         new Paragraph({
                           children: [
-                            new TextRun({ text: "Amount (₦)", bold: true }),
+                            new TextRun({ text: "Amount (NGN)", bold: true }),
                           ],
                           alignment: AlignmentType.RIGHT,
                         }),
@@ -409,7 +411,7 @@ export async function exportFinancialStatementWord(
                       children: [
                         new Paragraph({
                           children: [
-                            new TextRun({ text: "Amount (₦)", bold: true }),
+                            new TextRun({ text: "Amount (NGN)", bold: true }),
                           ],
                           alignment: AlignmentType.RIGHT,
                         }),
@@ -564,7 +566,7 @@ export async function exportFinancialStatementWord(
                       children: [
                         new Paragraph({
                           children: [
-                            new TextRun({ text: "Amount (₦)", bold: true }),
+                            new TextRun({ text: "Amount (NGN)", bold: true }),
                           ],
                           alignment: AlignmentType.RIGHT,
                         }),

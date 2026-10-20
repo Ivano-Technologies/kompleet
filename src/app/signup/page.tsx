@@ -256,7 +256,7 @@ export default function SignUpPage() {
       <div className={AUTH_TRUST}>
         <span className="inline-flex items-center gap-1.5">
           <Shield className="h-3 w-3" />
-          NDPR Compliant
+          NDPR
         </span>
         <span aria-hidden="true">·</span>
         <span className="inline-flex items-center gap-1.5">

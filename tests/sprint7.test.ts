@@ -21,6 +21,33 @@ vi.mock("jspdf", () => {
       setTextColor() {
         return this;
       }
+      setFillColor() {
+        return this;
+      }
+      setDrawColor() {
+        return this;
+      }
+      setLineWidth() {
+        return this;
+      }
+      getNumberOfPages() {
+        return 1;
+      }
+      setPage() {
+        return this;
+      }
+      moveTo() {
+        return this;
+      }
+      lineTo() {
+        return this;
+      }
+      close() {
+        return this;
+      }
+      fill() {
+        return this;
+      }
       text() {
         return this;
       }
@@ -340,21 +367,19 @@ describe("Sprint 7: Filing Deadline Management", () => {
 
       const email = generate7DayReminderEmail("Test User", deadline);
 
-      expect(email.subject).toContain("7 Days");
-      expect(email.subject).toContain("Personal Income Tax");
-      expect(email.html).toContain("Test User");
-      expect(email.html).toContain("7 days");
-      expect(email.html).toContain(REMINDER_HEADER);
-      expect(email.html).toContain("your Kompleet account");
-      expect(email.html).toContain("automated reminder from Kompleet");
+      expect(email.subject).toBe("Your PIT filing deadline is in 7 days");
+      expect(email.html).toContain("Hi Test,");
+      expect(email.html).toContain("Due in 7 days");
+      expect(email.html).toContain("Open Kompleet");
       expect(email.html).toContain("Ivano Technologies Ltd");
-      expect(email.html).toContain("Late filing may attract penalties.");
+      expect(email.html).toContain("Filing late can attract penalties, so it's worth getting it done early.");
       expect(email.html).not.toMatch(/⚠️/);
       expect(email.html).not.toMatch(/Nigeria Tax Act/);
+      expect(email.html).not.toMatch(/Urgent/);
       expect(email.html).not.toMatch(/Nigerian Tax Compliance/);
       expect(email.html).not.toMatch(/Tax Compliance Platform/);
-      expect(email.text).toContain("Test User");
-      expect(email.text).toContain("Late filing may attract penalties.");
+      expect(email.text).toContain("Hi Test,");
+      expect(email.text).toContain("Filing late can attract penalties, so it's worth getting it done early.");
       expect(email.text).not.toMatch(/Nigerian Tax Compliance/);
     });
 
@@ -369,11 +394,11 @@ describe("Sprint 7: Filing Deadline Management", () => {
 
       const email = generate3DayReminderEmail("Test Company", deadline);
 
-      expect(email.subject).toContain("3 Days");
-      expect(email.subject).toContain("Company Income Tax");
-      expect(email.html).toContain("Test Company");
-      expect(email.html).toContain("3 days");
-      expect(email.html).toContain(REMINDER_HEADER);
+      expect(email.subject).toBe("Your CIT filing deadline is in 3 days");
+      expect(email.html).toContain("Hi Test,");
+      expect(email.html).toContain("Due in 3 days");
+      expect(email.html).toContain("30 Jun 2027");
+      expect(email.html).not.toMatch(/Urgent/);
       expect(email.html).not.toMatch(/Tax Compliance Platform/);
     });
 
@@ -392,10 +417,13 @@ describe("Sprint 7: Filing Deadline Management", () => {
 
       const email = generate1DayReminderEmail("Test Business", deadline);
 
-      expect(email.subject).toContain("Final notice");
-      expect(email.subject).toContain("Tomorrow");
-      expect(email.html).toContain("Test Business");
-      expect(email.html).toContain("24 HOURS");
+      expect(email.subject).toBe("Your Q1 VAT return is due tomorrow");
+      expect(email.html).toContain("Hi Test,");
+      expect(email.html).toContain("Due tomorrow");
+      expect(email.html).toContain("21 Apr 2026");
+      expect(email.html).not.toMatch(/Final notice/);
+      expect(email.html).not.toMatch(/24 HOURS/);
+      expect(email.html).not.toMatch(/TOMORROW!/);
     });
   });
 });

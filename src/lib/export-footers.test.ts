@@ -47,15 +47,17 @@ describe("IVA-191 export footers", () => {
       "src/lib/nrs-forms.ts",
     ]) {
       const text = readFileSync(resolve(process.cwd(), rel), "utf8");
-      expect(text, rel).toMatch(/INVOICE_FOOTER_TEXT/);
+      expect(text, rel).toMatch(/INVOICE_FOOTER_TEXT|exportHtmlChrome|addPoweredByFooter/);
       expect(text, rel).not.toMatch(/Kompleet records\. Kompleet filings/);
     }
   });
 
-  it("uses a comma in the PIT subtitle", () => {
+  it("titles PIT as a summary with no NRS banner or form code", () => {
     const text = readFileSync(resolve(process.cwd(), "src/lib/nrs-filing/form-generator.ts"), "utf8");
-    expect(text).toContain("Nigeria Revenue Service (NRS), Form PIT-001");
-    expect(text).not.toContain("Nigeria Revenue Service (NRS) - Form PIT-001");
+    expect(text).toContain("Personal income tax summary");
+    expect(text).not.toContain("Nigeria Revenue Service (NRS), Form PIT-001");
+    expect(text).not.toContain("Form PIT-001");
+    expect(text).not.toContain("NIGERIA REVENUE SERVICE");
   });
 
   it("prints tax computation section headers in dark ink on grey", () => {
@@ -88,7 +90,7 @@ describe("IVA-191 export footers", () => {
     expect(html).not.toMatch(/Legal References/);
     expect(html).not.toMatch(/Nigeria Tax Act/);
     expect(html).not.toMatch(/#1a5f3a|#e8f5e9|#10b981/i);
-    expect(html).toMatch(/color:\s*#000000/);
+    expect(html).toMatch(/color:\s*#141413/);
     expect(html).toMatch(/background:\s*#ffffff/);
   });
 
@@ -104,13 +106,14 @@ describe("IVA-191 export footers", () => {
       taxPaid: 50_000,
       taxDue: 362_500,
     });
-    const pitCss = html.slice(0, html.indexOf("</style>"));
-    expect(pitCss).toMatch(/h1\s*\{[^}]*color:\s*#000000/);
-    expect(pitCss).toMatch(/background-color:\s*#F3F3F3/);
-    expect(pitCss).not.toMatch(/#1a5f3a|#e8f5e9|#10b981/i);
-    expect(html).toContain("Nigeria Revenue Service (NRS), Form PIT-001");
-    expect(pitCss).toMatch(/\.form-value\s*\{[^}]*white-space:\s*nowrap/);
-    expect(pitCss).toMatch(/\.form-label\s*\{[^}]*padding-right:\s*12px/);
+    expect(html).toMatch(/color:\s*#141413/);
+    expect(html).toMatch(/background-color:\s*#F2F2F2/);
+    expect(html).not.toMatch(/#1a5f3a|#e8f5e9|#10b981/i);
+    expect(html).toContain("Personal income tax summary");
+    expect(html).not.toContain("Nigeria Revenue Service");
+    expect(html).not.toContain("PIT-001");
+    expect(html).toMatch(/\.form-value\s*\{[^}]*white-space:\s*nowrap/);
+    expect(html).toMatch(/\.form-label\s*\{[^}]*padding-right:\s*12px/);
     expect(html).toMatch(/class="keep">\(1&nbsp;−&nbsp;2\)/);
     expect(html).toMatch(/class="keep">\(4&nbsp;−&nbsp;5\)/);
   });

@@ -45,7 +45,7 @@ export default function TaxCenterPage() {
     },
     {
       id: "vat",
-      title: "VAT Compliance",
+      title: "VAT calculator",
       description: "Check VAT obligations and calculate at 7.5%.",
       href: "/calculators/vat",
       Icon: BarChart3,
@@ -56,7 +56,7 @@ export default function TaxCenterPage() {
         "VAT at 7.5%",
         "Exemption check",
       ],
-      tags: ["VAT", "Compliance"],
+      tags: ["VAT"],
     },
     {
       id: "stamp-duty",

@@ -82,8 +82,7 @@ export default function TermsPage() {
               Features such as transaction categorization may use automated or
               AI-assisted tools. These are for convenience only and are not
               legal or tax advice; you remain responsible for verifying
-              categorizations and accuracy before relying on them for compliance
-              or filing.
+              categorizations and accuracy before relying on them for filing.
             </p>
           </section>
 
@@ -152,9 +151,9 @@ export default function TermsPage() {
             </p>
             <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
               <li>
-                In compliance with all applicable Nigerian laws and regulations
+                In line with all applicable Nigerian laws and regulations
               </li>
-              <li>For legitimate tax calculation and compliance purposes</li>
+              <li>For legitimate tax calculation and record-keeping purposes</li>
               <li>In a manner that does not infringe the rights of others</li>
             </ul>
 
@@ -312,7 +311,7 @@ export default function TermsPage() {
               </li>
               <li>
                 We are not liable for any errors in tax calculations or
-                compliance issues
+                filing issues
               </li>
               <li>
                 We are not liable for any penalties, fines, or interest imposed
@@ -325,7 +324,7 @@ export default function TermsPage() {
             </ul>
             <p className="text-light-text-secondary dark:text-dark-text-secondary">
               You acknowledge that you use KOMPLEET at your own risk and are
-              solely responsible for your tax compliance obligations.
+              solely responsible for your tax obligations.
             </p>
           </section>
 
@@ -437,7 +436,7 @@ export default function TermsPage() {
               Policy, which is incorporated into these Terms by reference.
             </p>
             <p className="text-light-text-secondary dark:text-dark-text-secondary">
-              We comply with the Nigeria Data Protection Act 2023 and
+              We follow the Nigeria Data Protection Act 2023 and
               regulations issued by the Nigeria Data Protection Commission
               (NDPC).
             </p>

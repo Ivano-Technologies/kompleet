@@ -124,7 +124,7 @@ export default function ExportCenterPage() {
       {/* NDPR Consent */}
       <div className="mb-8 rounded-lg bg-blue-50 p-6">
         <h2 className="text-lg font-semibold text-blue-900">
-          Data Export Consent (NDPR Compliance)
+          Data export consent (NDPR)
         </h2>
         <p className="mt-2 text-sm text-blue-800">
           By exporting your data, you acknowledge that:
