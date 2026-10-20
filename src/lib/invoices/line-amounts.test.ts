@@ -278,3 +278,28 @@ describe("IVA-191 vatSummaryRows and 2-decimal unit price", () => {
   });
 });
 
+describe("IVA-190 / IVA-191 client-server parity", () => {
+  it("client and server totals match for a mixed-rate invoice totalling NGN 997,750.00", async () => {
+    const mixed = [
+      { quantity: 1, unit_price: 850000, vat_rate: 7.5 },
+      { quantity: 2, unit_price: 40000, vat_rate: 5 },
+    ];
+    const { totalsFromLines: clientTotals, vatSummaryRows } = await import("./line-amounts");
+    const { totalsFromLines: serverTotals } = await import("../../../convex/lib/lineAmounts");
+    const { priceInvoiceLines } = await import("../../../convex/lib/invoiceAmounts");
+
+    expect(clientTotals(mixed)).toEqual(serverTotals(mixed));
+    expect(clientTotals(mixed)).toMatchObject({
+      subtotal: 930000,
+      vat_amount: 67750,
+      total_amount: 997750,
+    });
+    expect(priceInvoiceLines(mixed).totalAmount).toBe(997750);
+    expect(vatSummaryRows(mixed)).toEqual([
+      { label: "VAT 7.5%", vat: 63750 },
+      { label: "VAT 5%", vat: 4000 },
+    ]);
+  });
+});
+
+
