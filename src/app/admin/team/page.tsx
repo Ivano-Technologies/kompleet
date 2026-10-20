@@ -123,23 +123,21 @@ export default function TeamManagementPage() {
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-1">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-[rgba(var(--primary-rgb),0.1)] rounded-lg flex items-center justify-center">
             <Users className="w-5 h-5 text-[rgb(var(--primary))]" />
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-[rgb(var(--text-primary))]">
-              Team Management
-            </h1>
-            <p className="text-sm text-[rgb(var(--text-secondary))]">
-              Manage user roles and access rights
-            </p>
-          </div>
+          <h1 className="text-2xl font-bold text-[rgb(var(--text-primary))]">
+            Team management
+          </h1>
         </div>
-        <span className="text-sm text-[rgb(var(--text-secondary))]">
+        <p className="text-sm text-[rgb(var(--text-secondary))]">
+          Manage user roles and access rights
+        </p>
+        <p className="text-sm text-[rgb(var(--text-tertiary))]">
           {users.length} users
-        </span>
+        </p>
       </div>
 
       {error && (
@@ -160,7 +158,7 @@ export default function TeamManagementPage() {
         <div className="flex items-center gap-2 mb-3">
           <Shield className="w-4 h-4 text-[rgb(var(--text-secondary))]" />
           <span className="text-sm font-medium text-[rgb(var(--text-primary))]">
-            Role Permissions
+            Role permissions
           </span>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
@@ -179,8 +177,46 @@ export default function TeamManagementPage() {
         </div>
       </div>
 
-      {/* User list */}
-      <div className="solid-card rounded-xl overflow-hidden">
+      <div className="space-y-3 sm:hidden">
+        {users.map((u) => (
+          <div
+            key={u.id}
+            className="solid-card rounded-xl p-4 space-y-3"
+          >
+            <div>
+              <p className="text-sm font-medium text-[rgb(var(--text-primary))]">
+                {u.full_name}
+              </p>
+              <p className="text-xs text-[rgb(var(--text-secondary))]">
+                {u.email}
+              </p>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <span
+                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${
+                  u.email_confirmed
+                    ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
+                    : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300"
+                }`}
+              >
+                {u.email_confirmed ? "Verified" : "Pending"}
+              </span>
+              <TeamRoleSelect
+                user={u}
+                updatingId={updatingId}
+                successId={successId}
+                openDropdown={openDropdown}
+                setOpenDropdown={setOpenDropdown}
+                updateRole={updateRole}
+                getRoleBadgeColor={getRoleBadgeColor}
+                getRoleLabel={getRoleLabel}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="solid-card rounded-xl overflow-hidden hidden sm:block">
         <table className="w-full">
           <thead>
             <tr className="border-b border-[rgb(var(--border))]">
@@ -226,64 +262,16 @@ export default function TeamManagementPage() {
                   </span>
                 </td>
                 <td className="px-4 py-3">
-                  <div className="relative">
-                    <button
-                      onClick={() =>
-                        setOpenDropdown(openDropdown === u.id ? null : u.id)
-                      }
-                      disabled={updatingId === u.id}
-                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[rgb(var(--border))] text-sm transition-colors hover:bg-[rgb(var(--surface))] disabled:opacity-50 ${
-                        successId === u.id ? "border-green-500" : ""
-                      }`}
-                    >
-                      <span
-                        className={`px-1.5 py-0.5 rounded text-xs font-medium ${getRoleBadgeColor(u.role)}`}
-                      >
-                        {getRoleLabel(u.role)}
-                      </span>
-                      {successId === u.id ? (
-                        <Check className="w-3.5 h-3.5 text-green-500" />
-                      ) : updatingId === u.id ? (
-                        <div className="w-3.5 h-3.5 border-2 border-[rgb(var(--primary))] border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        <ChevronDown className="w-3.5 h-3.5 text-[rgb(var(--text-tertiary))]" />
-                      )}
-                    </button>
-
-                    {openDropdown === u.id && (
-                      <>
-                        <div
-                          className="fixed inset-0 z-10"
-                          onClick={() => setOpenDropdown(null)}
-                        />
-                        <div className="absolute left-0 top-full mt-1 z-20 w-64 bg-[rgb(var(--background))] border border-[rgb(var(--border))] rounded-lg shadow-lg py-1">
-                          {ROLE_OPTIONS.map((r) => (
-                            <button
-                              key={r.value}
-                              onClick={() => updateRole(u.id, r.value)}
-                              className={`w-full text-left px-3 py-2 text-sm hover:bg-[rgb(var(--surface))] transition-colors flex items-center justify-between ${
-                                u.role === r.value
-                                  ? "bg-[rgb(var(--surface))]"
-                                  : ""
-                              }`}
-                            >
-                              <div>
-                                <span className="font-medium text-[rgb(var(--text-primary))]">
-                                  {r.label}
-                                </span>
-                                <p className="text-xs text-[rgb(var(--text-tertiary))]">
-                                  {r.description}
-                                </p>
-                              </div>
-                              {u.role === r.value && (
-                                <Check className="w-4 h-4 text-[rgb(var(--primary))]" />
-                              )}
-                            </button>
-                          ))}
-                        </div>
-                      </>
-                    )}
-                  </div>
+                  <TeamRoleSelect
+                    user={u}
+                    updatingId={updatingId}
+                    successId={successId}
+                    openDropdown={openDropdown}
+                    setOpenDropdown={setOpenDropdown}
+                    updateRole={updateRole}
+                    getRoleBadgeColor={getRoleBadgeColor}
+                    getRoleLabel={getRoleLabel}
+                  />
                 </td>
                 <td className="px-4 py-3 text-xs text-[rgb(var(--text-secondary))]">
                   {u.last_sign_in_at
@@ -299,6 +287,85 @@ export default function TeamManagementPage() {
           </tbody>
         </table>
       </div>
+    </div>
+  );
+}
+
+function TeamRoleSelect({
+  user,
+  updatingId,
+  successId,
+  openDropdown,
+  setOpenDropdown,
+  updateRole,
+  getRoleBadgeColor,
+  getRoleLabel,
+}: {
+  user: TeamUser;
+  updatingId: string | null;
+  successId: string | null;
+  openDropdown: string | null;
+  setOpenDropdown: (id: string | null) => void;
+  updateRole: (userId: string, role: string) => void;
+  getRoleBadgeColor: (role: string) => string;
+  getRoleLabel: (role: string) => string;
+}) {
+  return (
+    <div className="relative">
+      <button
+        onClick={() =>
+          setOpenDropdown(openDropdown === user.id ? null : user.id)
+        }
+        disabled={updatingId === user.id}
+        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[rgb(var(--border))] text-sm transition-colors hover:bg-[rgb(var(--surface))] disabled:opacity-50 ${
+          successId === user.id ? "border-green-500" : ""
+        }`}
+      >
+        <span
+          className={`px-1.5 py-0.5 rounded text-xs font-medium ${getRoleBadgeColor(user.role)}`}
+        >
+          {getRoleLabel(user.role)}
+        </span>
+        {successId === user.id ? (
+          <Check className="w-3.5 h-3.5 text-green-500" />
+        ) : updatingId === user.id ? (
+          <div className="w-3.5 h-3.5 border-2 border-[rgb(var(--primary))] border-t-transparent rounded-full animate-spin" />
+        ) : (
+          <ChevronDown className="w-3.5 h-3.5 text-[rgb(var(--text-tertiary))]" />
+        )}
+      </button>
+
+      {openDropdown === user.id && (
+        <>
+          <div
+            className="fixed inset-0 z-10"
+            onClick={() => setOpenDropdown(null)}
+          />
+          <div className="absolute right-0 top-full mt-1 z-20 w-64 max-w-[calc(100vw-2rem)] bg-[rgb(var(--background))] border border-[rgb(var(--border))] rounded-lg shadow-lg py-1">
+            {ROLE_OPTIONS.map((r) => (
+              <button
+                key={r.value}
+                onClick={() => updateRole(user.id, r.value)}
+                className={`w-full text-left px-3 py-2 text-sm hover:bg-[rgb(var(--surface))] transition-colors flex items-center justify-between ${
+                  user.role === r.value ? "bg-[rgb(var(--surface))]" : ""
+                }`}
+              >
+                <div>
+                  <span className="font-medium text-[rgb(var(--text-primary))]">
+                    {r.label}
+                  </span>
+                  <p className="text-xs text-[rgb(var(--text-tertiary))]">
+                    {r.description}
+                  </p>
+                </div>
+                {user.role === r.value && (
+                  <Check className="w-4 h-4 text-[rgb(var(--primary))]" />
+                )}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }

@@ -103,12 +103,15 @@ describe("IVA-208 leftovers", () => {
       taxDue: 1_310_000,
     });
     const css = html.slice(0, html.indexOf("</style>"));
-    expect(css).toMatch(/h1\s*\{[^}]*color:\s*#000000/);
-    expect(css).toMatch(/background-color:\s*#F3F3F3/);
+    expect(css).toMatch(/color:\s*#141413/);
+    expect(css).toMatch(/background-color:\s*#F2F2F2/);
     expect(css).not.toMatch(GREEN);
-    expect(html).toContain("Nigeria Revenue Service (NRS)\u2003Form CIT-001");
+    expect(html).toContain("Company income tax summary");
+    expect(html).not.toMatch(/NIGERIA REVENUE SERVICE/);
+    expect(html).not.toContain("CIT-001");
     expect(html).not.toMatch(/NRS\s-\sForm/);
     expect(html).toContain("Powered by Kompleet");
+    expect(html).toContain("Prepared with Kompleet for your records.");
   });
 
   it("3-day and 1-day reminder subjects and bodies have no emoji", () => {
@@ -123,8 +126,8 @@ describe("IVA-208 leftovers", () => {
       expect(email.html).not.toMatch(EMOJI);
       expect(email.text).not.toMatch(EMOJI);
     }
-    expect(three.subject).toBe("Urgent: Personal Income Tax (PIT) Filing Deadline in 3 Days");
-    expect(one.subject).toMatch(/^Final notice:/);
+    expect(three.subject).toBe("Your PIT filing deadline is in 3 days");
+    expect(one.subject).toBe("Your Q1 VAT return is due tomorrow");
   });
 
   it("user-facing UI, email templates and PDF generators have no FIRS or Tax Act copy", () => {

@@ -405,10 +405,6 @@ export default function PropertyTaxCalculator() {
                   wht_amount: result.whtAmount,
                   net_rent: result.netRent,
                 },
-                ruleVersion: "v1.0.0-2025-tax-act",
-                sources: ["Nigeria Revenue Service (NRS)"],
-                confidenceLevel:
-                  rules.withholding_tax_on_rent?.confidence || "unavailable",
               });
             }}
             variant="outline"
@@ -426,8 +422,8 @@ export default function PropertyTaxCalculator() {
           About This Calculator
         </h3>
         <p className="text-sm text-blue-700 dark:text-blue-300/80 mb-4">
-          This calculator estimates withholding tax on rent. The rate comes from
-          the Kompleet tax rules engine.
+          This calculator estimates withholding tax on rent from the amount you
+          enter. It&apos;s an estimate to help you plan, not tax advice.
         </p>
         <div className="text-sm space-y-2 text-blue-700/90 dark:text-blue-300/70">
           <p>
@@ -437,21 +433,7 @@ export default function PropertyTaxCalculator() {
               : "Rate unavailable. It hasn't been verified yet."}
           </p>
           <p>
-            <strong>Responsibility:</strong> The tenant must withhold the WHT
-            from rent payments and remit it to NRS using the appropriate
-            remittance form.
-          </p>
-          <p>
-            <strong>Remittance:</strong> WHT should be remitted to NRS within
-            21 days of the end of the month in which the rent was paid.
-          </p>
-          <p className="mt-4">
-            <strong>Data Source:</strong> Nigeria Revenue Service (NRS). Confidence level:{" "}
-            {rules.withholding_tax_on_rent?.confidence || "unavailable"}.
-          </p>
-          <p>
-            <strong>Disclaimer:</strong> This is an estimate. Consult a
-            qualified Nigerian tax professional for personalized advice.
+            For decisions, talk to a qualified tax professional.
           </p>
         </div>
       </Card>

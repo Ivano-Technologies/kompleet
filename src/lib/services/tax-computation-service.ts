@@ -1,6 +1,6 @@
 /**
  * Tax Computation Service
- * Implements Nigeria Tax Act 2025 tax calculations.
+ * Implements Nigerian tax calculations from the loaded rule bundle.
  * Effective Date: January 1, 2026
  *
  * Every rate, threshold, and band used here is loaded from a `RuleBundle`
@@ -84,7 +84,7 @@ interface ExemptionItem {
 
 export class TaxComputationService {
   /**
-   * Compute tax liability based on Nigeria Tax Act 2025.
+   * Compute tax liability from the loaded rule bundle.
    *
    * `rules` must already be loaded (see src/lib/tax/rule-loader.ts). This
    * method is synchronous — all async rule loading happens before calling it.
@@ -212,7 +212,7 @@ export class TaxComputationService {
   }
 
   /**
-   * Classify business based on Nigeria Tax Act 2025 (display string).
+   * Classify business from the loaded rule bundle (display string).
    */
   private static classifyBusiness(
     input: TaxComputationInput,
@@ -243,10 +243,9 @@ export class TaxComputationService {
   }
 
   /**
-   * Calculate assessable profit. Nigeria Tax Act 2025 integrates capital
-   * gains into income tax (no separate CGT) — this is confirmed by the
-   * business_tax.capital_gains_integration rule, which is required here so
-   * that assumption is never silently applied without a backing rule.
+   * Calculate assessable profit. Capital gains are treated as income when
+   * the business_tax.capital_gains_integration rule is present, so that
+   * assumption is never silently applied without a backing rule.
    */
   private static calculateAssessableProfit(
     input: TaxComputationInput,
@@ -309,7 +308,7 @@ export class TaxComputationService {
   }
 
   /**
-   * Calculate individual income tax (Nigeria Tax Act 2025).
+   * Calculate individual income tax from loaded brackets.
    *
    * Progressive tax bands are loaded dynamically from every
    * `individual_income_tax.tax_bracket_*` rule rather than hardcoded, so

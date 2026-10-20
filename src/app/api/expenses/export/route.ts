@@ -9,6 +9,12 @@ import ExcelJS from "exceljs";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 import { listAllExpensesMine } from "@/lib/convex/money-lists";
 import { friendlyErrorBody, apiErrorBody } from "@/lib/friendly-error";
+import {
+  AMOUNT_NGN_HEADER,
+  addPoweredByFooter,
+  drawExportMark,
+  EXPORT_HEADER_GREY_RGB,
+} from "@/lib/export-chrome";
 
 const FORMATS = ["csv", "pdf", "excel"] as const;
 type ExportFormat = (typeof FORMATS)[number];
@@ -86,13 +92,15 @@ export async function GET(request: NextRequest) {
 
     if (format === "pdf") {
       const doc = new jsPDF();
+      drawExportMark(doc);
       doc.setFontSize(16);
-      doc.text("Expense Report", 14, 20);
+      doc.setTextColor(20, 20, 19);
+      doc.text("Expense report", 14, 20);
       doc.setFontSize(10);
       doc.text(`${startDate} to ${endDate}`, 14, 28);
       autoTable(doc, {
         startY: 36,
-        head: [["Date", "Vendor", "Amount", "Currency", "VAT", "Notes"]],
+        head: [["Date", "Vendor", AMOUNT_NGN_HEADER, "Currency", "VAT", "Notes"]],
         body: rows.map((r) => [
           String(r.date),
           String(r.vendor).slice(0, 30),
@@ -101,7 +109,21 @@ export async function GET(request: NextRequest) {
           String(r.vat_amount),
           String(r.notes).slice(0, 40),
         ]),
+        headStyles: {
+          fillColor: [...EXPORT_HEADER_GREY_RGB],
+          textColor: 0,
+          fontStyle: "bold",
+        },
+        columnStyles: {
+          2: { halign: "right" },
+        },
+        didParseCell: (data) => {
+          if (data.section === "head" && data.column.index === 2) {
+            data.cell.styles.halign = "right";
+          }
+        },
       });
+      addPoweredByFooter(doc);
       const buf = doc.output("arraybuffer");
       return new NextResponse(buf, {
         headers: {

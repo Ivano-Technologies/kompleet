@@ -3,6 +3,11 @@
  * Generates Profit & Loss statements from transaction data
  */
 
+import {
+  AMOUNT_NGN_HEADER,
+  exportHtmlChrome,
+} from "@/lib/export-chrome";
+
 export interface Transaction {
   id: string;
   transaction_date: string;
@@ -118,38 +123,34 @@ export function generateIncomeStatementHTML(data: IncomeStatementData): string {
   const { period, revenue, expenses, grossProfit, netProfit, profitMargin } =
     data;
 
-  return `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>Income Statement</title>
-</head>
-<body>
-  <h1>Income Statement (Profit & Loss)</h1>
-  <p>
-    Period: ${new Date(period.startDate).toLocaleDateString("en-NG")} 
-    to ${new Date(period.endDate).toLocaleDateString("en-NG")}
+  return exportHtmlChrome({
+    title: "Income Statement",
+    body: `
+  <h1>Income Statement</h1>
+  <p style="text-align:center;">
+    Period: ${new Date(period.startDate).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+    to ${new Date(period.endDate).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
   </p>
-
   <h2>Revenue</h2>
-  <ul>
+  <table>
+    <tr><th>Description</th><th class="amount">${AMOUNT_NGN_HEADER}</th></tr>
     ${Object.entries(revenue.breakdown)
-      .map(([k, v]) => `<li>${k}: ${formatCurrency(v)}</li>`)
+      .map(([k, v]) => `<tr><td>${k}</td><td class="amount">${formatCurrency(v)}</td></tr>`)
       .join("")}
-  </ul>
-
+    <tr><td>Total revenue</td><td class="amount">${formatCurrency(revenue.total)}</td></tr>
+  </table>
   <h2>Expenses</h2>
-  <ul>
+  <table>
+    <tr><th>Description</th><th class="amount">${AMOUNT_NGN_HEADER}</th></tr>
     ${Object.entries(expenses.breakdown)
-      .map(([k, v]) => `<li>${k}: ${formatCurrency(v)}</li>`)
+      .map(([k, v]) => `<tr><td>${k}</td><td class="amount">${formatCurrency(v)}</td></tr>`)
       .join("")}
-  </ul>
-
-  <h3>Gross Profit: ${formatCurrency(grossProfit)}</h3>
-  <h3>Net Profit: ${formatCurrency(netProfit)}</h3>
-  <p>Profit Margin: ${profitMargin}%</p>
-</body>
-</html>
-  `;
+    <tr><td>Total expenses</td><td class="amount">${formatCurrency(expenses.total)}</td></tr>
+  </table>
+  <table>
+    <tr><td>Gross Profit</td><td class="amount">${formatCurrency(grossProfit)}</td></tr>
+    <tr><td>Net Profit</td><td class="amount">${formatCurrency(netProfit)}</td></tr>
+    <tr><td>Profit Margin</td><td class="amount">${profitMargin}%</td></tr>
+  </table>`,
+  });
 }

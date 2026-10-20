@@ -1,11 +1,13 @@
 /**
- * NRS Form Generator
- * Generates NRS-compliant tax forms (PIT, CIT, VAT)
+ * Tax form HTML summaries (PIT, CIT, VAT)
  */
 
 import { TaxComputationData } from "../financial-statements/tax-computation-html";
 import { IncomeStatementData } from "../financial-statements/income-statement";
-import { INVOICE_FOOTER_TEXT } from "@/lib/invoices/invoice-branding";
+import {
+  AMOUNT_NGN_HEADER,
+  exportHtmlChrome,
+} from "@/lib/export-chrome";
 
 export interface PITFormData {
   taxpayerName: string;
@@ -141,32 +143,12 @@ function formatCurrency(amount: number): string {
  * Generate PIT Form as HTML
  */
 export function generatePITFormHTML(data: PITFormData): string {
-  return `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>Personal Income Tax (PIT) Return</title>
+  return exportHtmlChrome({
+    title: "Personal income tax summary",
+    recordsFooter: true,
+    body: `
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 40px;
-      color: #333;
-      background: #ffffff;
-    }
-    h1 {
-      text-align: center;
-      color: #000000;
-      margin-bottom: 10px;
-    }
-    .subtitle {
-      text-align: center;
-      color: #666;
-      margin-bottom: 30px;
-    }
-    .form-section {
-      margin-bottom: 30px;
-    }
+    .form-section { margin-bottom: 30px; }
     .form-row {
       display: flex;
       justify-content: space-between;
@@ -185,27 +167,20 @@ export function generatePITFormHTML(data: PITFormData): string {
       white-space: nowrap;
       flex-shrink: 0;
     }
-    .keep {
-      white-space: nowrap;
-    }
+    .keep { white-space: nowrap; }
     .highlight {
-      background-color: #F3F3F3;
-      color: #000000;
+      background-color: #F2F2F2;
+      color: #141413;
       font-weight: bold;
       font-size: 1.1em;
     }
     .header-section {
-      background-color: #f5f5f5;
+      background-color: #F2F2F2;
       padding: 15px;
       margin-bottom: 20px;
-      border-radius: 5px;
     }
   </style>
-</head>
-<body>
-  <h1>PERSONAL INCOME TAX (PIT) RETURN</h1>
-  <div class="subtitle">Nigeria Revenue Service (NRS), Form PIT-001</div>
-
+  <h1>Personal income tax summary</h1>
   <div class="header-section">
     <div class="form-row">
       <span class="form-label">Taxpayer Name:</span>
@@ -220,7 +195,6 @@ export function generatePITFormHTML(data: PITFormData): string {
       <span class="form-value">${data.taxYear}</span>
     </div>
   </div>
-
   <div class="form-section">
     <div class="form-row">
       <span class="form-label">1. Gross Income</span>
@@ -247,8 +221,7 @@ export function generatePITFormHTML(data: PITFormData): string {
       <span class="form-value">${formatCurrency(data.taxDue)}</span>
     </div>
   </div>
-
-  <div style="margin-top: 60px;">
+  <div style="margin-top: 40px;">
     <p>I declare that the information provided in this return is true and correct to the best of my knowledge.</p>
     <div style="margin-top: 40px;">
       <div style="display: inline-block; width: 45%;">
@@ -258,76 +231,41 @@ export function generatePITFormHTML(data: PITFormData): string {
         <div style="border-top: 1px solid #333; padding-top: 5px;">Date</div>
       </div>
     </div>
-  </div>
-
-  <div style="margin-top: 60px; text-align: center; color: #666; font-size: 0.9em;">
-    <p>${INVOICE_FOOTER_TEXT}</p>
-  </div>
-</body>
-</html>
-  `;
+  </div>`,
+  });
 }
 
 /**
  * Generate CIT Form as HTML
  */
 export function generateCITFormHTML(data: CITFormData): string {
-  return `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>Corporate Income Tax (CIT) Return</title>
+  return exportHtmlChrome({
+    title: "Company income tax summary",
+    recordsFooter: true,
+    body: `
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 40px;
-      color: #333;
-      background: #ffffff;
-    }
-    h1 {
-      text-align: center;
-      color: #000000;
-      margin-bottom: 10px;
-    }
-    .subtitle {
-      text-align: center;
-      color: #666;
-      margin-bottom: 30px;
-    }
-    .form-section {
-      margin-bottom: 30px;
-    }
+    .form-section { margin-bottom: 30px; }
     .form-row {
       display: flex;
       justify-content: space-between;
       padding: 10px;
       border-bottom: 1px solid #ddd;
     }
-    .form-label {
-      font-weight: bold;
-    }
-    .form-value {
-      text-align: right;
-    }
+    .form-label { font-weight: bold; }
+    .form-value { text-align: right; }
     .highlight {
-      background-color: #F3F3F3;
-      color: #000000;
+      background-color: #F2F2F2;
+      color: #141413;
       font-weight: bold;
       font-size: 1.1em;
     }
     .header-section {
-      background-color: #f5f5f5;
+      background-color: #F2F2F2;
       padding: 15px;
       margin-bottom: 20px;
-      border-radius: 5px;
     }
   </style>
-</head>
-<body>
-  <h1>CORPORATE INCOME TAX (CIT) RETURN</h1>
-  <div class="subtitle">Nigeria Revenue Service (NRS)\u2003Form CIT-001</div>
-
+  <h1>Company income tax summary</h1>
   <div class="header-section">
     <div class="form-row">
       <span class="form-label">Company Name:</span>
@@ -342,7 +280,6 @@ export function generateCITFormHTML(data: CITFormData): string {
       <span class="form-value">${data.taxYear}</span>
     </div>
   </div>
-
   <div class="form-section">
     <div class="form-row">
       <span class="form-label">1. Annual Turnover</span>
@@ -377,8 +314,7 @@ export function generateCITFormHTML(data: CITFormData): string {
       <span class="form-value">${formatCurrency(data.taxDue)}</span>
     </div>
   </div>
-
-  <div style="margin-top: 60px;">
+  <div style="margin-top: 40px;">
     <p>I declare that the information provided in this return is true and correct to the best of my knowledge.</p>
     <div style="margin-top: 40px;">
       <div style="display: inline-block; width: 30%;">
@@ -391,12 +327,67 @@ export function generateCITFormHTML(data: CITFormData): string {
         <div style="border-top: 1px solid #333; padding-top: 5px;">Date</div>
       </div>
     </div>
-  </div>
+  </div>`,
+  });
+}
 
-  <div style="margin-top: 60px; text-align: center; color: #666; font-size: 0.9em;">
-    <p>${INVOICE_FOOTER_TEXT}</p>
+export function generateVATFormHTML(data: VATFormData): string {
+  return exportHtmlChrome({
+    title: "VAT return summary",
+    recordsFooter: true,
+    body: `
+  <style>
+    .form-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+    }
+    .form-label { font-weight: bold; }
+    .form-value { text-align: right; }
+    .highlight {
+      background-color: #F2F2F2;
+      color: #141413;
+      font-weight: bold;
+    }
+    .header-section {
+      background-color: #F2F2F2;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+  </style>
+  <h1>VAT return summary</h1>
+  <div class="header-section">
+    <div class="form-row">
+      <span class="form-label">Business Name:</span>
+      <span class="form-value">${data.businessName}</span>
+    </div>
+    <div class="form-row">
+      <span class="form-label">Tax Identification Number (TIN):</span>
+      <span class="form-value">${data.tin}</span>
+    </div>
+    <div class="form-row">
+      <span class="form-label">Period:</span>
+      <span class="form-value">${data.period}</span>
+    </div>
   </div>
-</body>
-</html>
-  `;
+  <table>
+    <tr>
+      <th>Description</th>
+      <th class="amount">${AMOUNT_NGN_HEADER}</th>
+    </tr>
+    <tr>
+      <td>Output VAT</td>
+      <td class="amount">${formatCurrency(data.outputVAT)}</td>
+    </tr>
+    <tr>
+      <td>Input VAT</td>
+      <td class="amount">${formatCurrency(data.inputVAT)}</td>
+    </tr>
+    <tr class="highlight">
+      <td>Net VAT</td>
+      <td class="amount">${formatCurrency(data.netVAT)}</td>
+    </tr>
+  </table>`,
+  });
 }
