@@ -216,7 +216,7 @@ test.describe("Tax calculation", () => {
       page.getByRole("link", { name: /Individual Tax \(PIT\)/ }),
     ).toBeVisible();
     await expect(
-      page.getByRole("link", { name: /VAT Compliance/ }),
+      page.getByRole("link", { name: /VAT calculator/ }),
     ).toBeVisible();
   });
 });

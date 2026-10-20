@@ -426,10 +426,6 @@ export default function StampDutyCalculator() {
                   applicable_rate: `${result.applicableRate}%`,
                   stamp_duty: result.stampDuty,
                 },
-                ruleVersion: "v1.0.0-2025-tax-act",
-                sources: ["Nigeria Revenue Service (NRS)"],
-                confidenceLevel:
-                  rules.property_transfer_rate?.confidence || "unavailable",
               });
             }}
             variant="outline"
@@ -448,7 +444,7 @@ export default function StampDutyCalculator() {
         </h3>
         <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-4">
           This calculator estimates stamp duty on property transactions and
-          leases. Rates come from the Kompleet tax rules engine.
+          leases. It&apos;s an estimate to help you plan, not tax advice.
         </p>
         <div className="text-sm space-y-2 text-light-text-secondary dark:text-dark-text-secondary">
           <p>
@@ -483,19 +479,7 @@ export default function StampDutyCalculator() {
             </li>
           </ul>
           <p className="mt-4">
-            <strong className="text-light-text-primary dark:text-dark-text-primary">
-              Data Source:
-            </strong>{" "}
-            Nigeria Revenue Service (NRS), based on official NRS guidelines.
-            Confidence level:{" "}
-            {rules.property_transfer_rate?.confidence || "unavailable"}.
-          </p>
-          <p>
-            <strong className="text-light-text-primary dark:text-dark-text-primary">
-              Disclaimer:
-            </strong>{" "}
-            This is an estimate. Consult a qualified Nigerian tax professional
-            for personalized advice.
+            For decisions, talk to a qualified tax professional.
           </p>
         </div>
       </div>

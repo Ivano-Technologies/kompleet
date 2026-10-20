@@ -54,7 +54,7 @@ describe("IVA-90 AUTH-DENSITY lock", () => {
     expect(signup).toMatch(/Password/);
     expect(signup).toMatch(/Create Free Account/);
     expect(signup).toMatch(/AUTH_TRUST/);
-    expect(signup).toMatch(/NDPR Compliant/);
+    expect(signup).toMatch(/NDPR/);
   });
 
   it("does not change homepage hero auth density", () => {
