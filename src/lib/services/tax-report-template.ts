@@ -116,7 +116,10 @@ function addCalculationSection(
     const body = section.rows.map((row) => {
       const valueText =
         typeof row.value === "number"
-          ? `NGN ${row.value.toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+          ? row.value.toLocaleString("en-NG", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })
           : String(row.value);
       return [row.label, valueText];
     });

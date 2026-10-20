@@ -33,6 +33,12 @@ export function generateCalculationPDF(
   };
 
   const formatLabel = (key: string) => {
+    const special: Record<string, string> = {
+      vat_amount: "VAT amount",
+      vat_rate: "VAT rate",
+      vat_status: "VAT status",
+    };
+    if (special[key]) return special[key];
     return key
       .split("_")
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))

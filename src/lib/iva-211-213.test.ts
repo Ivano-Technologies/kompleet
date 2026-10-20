@@ -133,6 +133,15 @@ describe("IVA-213 reminder emails", () => {
     expect(three.html).toContain("Due in 3 days");
     expect(one.html).toContain("Due tomorrow");
     expect(three.html).toContain("Hi Ada,");
+    expect(three.html).toContain(
+      "Your personal income tax for 2026 is due on 31 Mar 2027.",
+    );
+    expect(three.html).not.toMatch(/personal income tax for personal/i);
+    expect(one.html).toContain(
+      "Your VAT return for Q1 2026 is due on 21 Apr 2026.",
+    );
+    expect(one.html).not.toContain("Q1 VAT return for Q1");
+    expect(one.html).toContain(">VAT return<");
     expect(three.html).toContain("31 Mar 2027");
     expect(three.html).toContain("Open Kompleet");
     expect(three.html).toContain("You're getting this because reminders are on in Kompleet. Change them in Settings.");
@@ -296,6 +305,34 @@ describe("IVA-213 export house style", () => {
       profitMargin: 80,
     });
     expect(income).toContain(AMOUNT_NGN_HEADER);
+
+    const calc = generateCalculationPDF(
+      {
+        calculatorType: "VAT Calculator",
+        date: "20 Oct 2026",
+        inputs: { amount: 100000 },
+        results: { vat_amount: 7500 },
+      },
+      { download: false },
+    )
+      .output()
+      .replace(/\\([()])/g, "$1");
+    expect(calc).toContain("VAT amount");
+    expect(calc).not.toContain("Vat Amount");
+
+    const pitReport = generateProfessionalTaxReport({
+      reportType: "PIT",
+      taxpayerName: "Ada Okonkwo",
+      tin: "12345678-0001",
+      taxYear: 2026,
+      generatedDate: new Date("2026-10-20"),
+      sections: [{ title: "SUMMARY", rows: [{ label: "Tax", value: 412500 }] }],
+    })
+      .output()
+      .replace(/\\([()])/g, "$1");
+    expect(pitReport).toContain(AMOUNT_NGN_HEADER);
+    expect(pitReport).toContain("412,500.00");
+    expect(pitReport).not.toMatch(/NGN 412/);
 
     const taxHtml = generateTaxComputationHTML({
       accountingProfit: 4_500_000,
