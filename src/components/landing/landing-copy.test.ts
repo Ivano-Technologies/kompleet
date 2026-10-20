@@ -101,6 +101,9 @@ describe("IVA-72 landing copy", () => {
     expect(
       existsSync(resolve(process.cwd(), "public/assets/illustrations/bookkeeping-flow-mobile.svg")),
     ).toBe(true);
+    expect(
+      existsSync(resolve(process.cwd(), "public/assets/illustrations/bookkeeping-flow-mobile.png")),
+    ).toBe(false);
   });
 
   it("removes the Product Proof band from the homepage", () => {
