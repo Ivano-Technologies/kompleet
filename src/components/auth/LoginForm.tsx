@@ -67,7 +67,7 @@ export default function LoginForm() {
         disabled={loading}
         className="w-full rounded bg-black py-2 text-white"
       >
-        {loading ? "Signing in..." : "Sign In"}
+        {loading ? "Signing in..." : "Sign in"}
       </button>
     </form>
   );

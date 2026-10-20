@@ -41,7 +41,7 @@ describe("LoginPage", () => {
     const inputs = document.querySelectorAll("input");
     await user.type(inputs[0] as HTMLInputElement, "nobody@example.com");
     await user.type(inputs[1] as HTMLInputElement, "wrongpass1");
-    await user.click(screen.getByRole("button", { name: /Sign In/ }));
+    await user.click(screen.getByRole("button", { name: "Sign in" }));
 
     expect(
       await screen.findByText("That email or password doesn't match. Check and try again."),
