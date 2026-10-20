@@ -39,7 +39,7 @@ async function handleGET(request: NextRequest) {
     return NextResponse.json({
       rules: filtered,
       version,
-      source: "Nigeria Tax Act 2025",
+      source: "NRS",
     });
   } catch (error) {
     console.error("Error in GET /api/tax/rules:", error);

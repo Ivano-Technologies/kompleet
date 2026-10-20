@@ -100,6 +100,26 @@ describe("IVA-185 InvoicePreview sender", () => {
     expect(screen.getByTestId("invoice-status").style.background).toBe("transparent");
     expect(screen.getByText("Powered by Kompleet")).toBeInTheDocument();
   });
+
+  it("keeps the seller phone on one line, same nowrap as TIN", () => {
+    render(
+      <InvoicePreview
+        invoice={invoice()}
+        profile={profile({
+          email: "ada@adafoods.ng",
+          phone: "+234 801 234 5678",
+          tin: "12345678-0001",
+        })}
+        onOpenSettings={() => {}}
+      />,
+    );
+    const phone = screen.getByTestId("invoice-party-phone");
+    expect(phone).toHaveTextContent("+234 801 234 5678");
+    expect(phone.className).toMatch(/whitespace-nowrap/);
+    const tin = screen.getByTestId("invoice-party-tin");
+    expect(tin).toHaveTextContent("TIN 12345678-0001");
+    expect(tin.className).toMatch(/whitespace-nowrap/);
+  });
 });
 
 describe("IVA-185 InvoicePreview line amounts", () => {

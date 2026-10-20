@@ -23,7 +23,7 @@ export function getFilingDeadlines(taxYear: number): FilingDeadline[] {
     description: "Personal Income Tax Return",
     dueDate: `${taxYear + 1}-03-31`, // March 31 of following year
     frequency: "annual",
-    legalReference: "Section 81(1) of Nigeria Tax Act 2025",
+    legalReference: "NRS PIT return",
   });
 
   // Corporate Income Tax (CIT) - Annual
@@ -32,7 +32,7 @@ export function getFilingDeadlines(taxYear: number): FilingDeadline[] {
     description: "Corporate Income Tax Return",
     dueDate: `${taxYear + 1}-06-30`, // June 30 of following year
     frequency: "annual",
-    legalReference: "Section 82(1) of Nigeria Tax Act 2025",
+    legalReference: "NRS CIT return",
   });
 
   // VAT - Monthly
@@ -47,7 +47,7 @@ export function getFilingDeadlines(taxYear: number): FilingDeadline[] {
       description: `VAT Return, ${getMonthName(month)} ${taxYear}`,
       dueDate: `${year}-${nextMonthStr}-21`, // 21st of following month
       frequency: "monthly",
-      legalReference: "Section 15 of Value Added Tax Act",
+      legalReference: "NRS VAT return",
     });
   }
 

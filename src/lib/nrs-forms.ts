@@ -128,7 +128,7 @@ export function generatePITForm(data: PITFormData): jsPDF {
 
   doc.autoTable({
     startY: incomeStartY + 5,
-    head: [["Description", "Amount (₦)"]],
+    head: [["Description", "Amount (NGN)"]],
     body: [
       ["Gross Income", formatCurrency(data.grossIncome)],
       [
@@ -140,8 +140,8 @@ export function generatePITForm(data: PITFormData): jsPDF {
     ],
     theme: "striped",
     headStyles: {
-      fillColor: [16, 185, 129],
-      textColor: 255,
+      fillColor: [243, 243, 243],
+      textColor: 0,
       fontStyle: "bold",
     },
     styles: { fontSize: 10, cellPadding: 4 },
@@ -159,7 +159,7 @@ export function generatePITForm(data: PITFormData): jsPDF {
 
   doc.autoTable({
     startY: taxStartY + 5,
-    head: [["Description", "Amount (₦)"]],
+    head: [["Description", "Amount (NGN)"]],
     body: [
       ["Tax Payable (Based on Tax Table)", formatCurrency(data.taxPayable)],
       [
@@ -170,8 +170,8 @@ export function generatePITForm(data: PITFormData): jsPDF {
     ],
     theme: "striped",
     headStyles: {
-      fillColor: [16, 185, 129],
-      textColor: 255,
+      fillColor: [243, 243, 243],
+      textColor: 0,
       fontStyle: "bold",
     },
     styles: { fontSize: 10, cellPadding: 4 },
@@ -266,7 +266,7 @@ export function generateCITForm(data: CITFormData): jsPDF {
 
   doc.autoTable({
     startY: plStartY + 5,
-    head: [["Description", "Amount (₦)"]],
+    head: [["Description", "Amount (NGN)"]],
     body: [
       ["Turnover / Revenue", formatCurrency(data.turnover)],
       ["Less: Cost of Sales", `(${formatCurrency(data.costOfSales)})`],
@@ -279,8 +279,8 @@ export function generateCITForm(data: CITFormData): jsPDF {
     ],
     theme: "striped",
     headStyles: {
-      fillColor: [16, 185, 129],
-      textColor: 255,
+      fillColor: [243, 243, 243],
+      textColor: 0,
       fontStyle: "bold",
     },
     styles: { fontSize: 10, cellPadding: 4 },
@@ -298,7 +298,7 @@ export function generateCITForm(data: CITFormData): jsPDF {
 
   doc.autoTable({
     startY: taxStartY + 5,
-    head: [["Description", "Amount (₦)"]],
+    head: [["Description", "Amount (NGN)"]],
     body: [
       ["Profit Before Tax", formatCurrency(data.profitBeforeTax)],
       [
@@ -312,8 +312,8 @@ export function generateCITForm(data: CITFormData): jsPDF {
     ],
     theme: "striped",
     headStyles: {
-      fillColor: [16, 185, 129],
-      textColor: 255,
+      fillColor: [243, 243, 243],
+      textColor: 0,
       fontStyle: "bold",
     },
     styles: { fontSize: 10, cellPadding: 4 },
@@ -414,7 +414,7 @@ export function generateVATForm(data: VATFormData): jsPDF {
 
   doc.autoTable({
     startY: vatStartY + 5,
-    head: [["Description", "Amount (₦)"]],
+    head: [["Description", "Amount (NGN)"]],
     body: [
       ["Output VAT (VAT on Sales @ 7.5%)", formatCurrency(data.outputVAT)],
       [
@@ -427,8 +427,8 @@ export function generateVATForm(data: VATFormData): jsPDF {
     ],
     theme: "striped",
     headStyles: {
-      fillColor: [16, 185, 129],
-      textColor: 255,
+      fillColor: [243, 243, 243],
+      textColor: 0,
       fontStyle: "bold",
     },
     styles: { fontSize: 10, cellPadding: 4 },

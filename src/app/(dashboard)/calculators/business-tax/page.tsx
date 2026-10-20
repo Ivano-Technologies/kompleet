@@ -202,8 +202,7 @@ export default function BusinessTaxCalculatorPage() {
               Business Tax Calculator
             </h1>
             <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
-              Calculate corporate income tax and development levy under Nigeria
-              Tax Act 2025
+              Calculate corporate income tax and development levy
             </p>
           </div>
         </div>
@@ -476,9 +475,8 @@ export default function BusinessTaxCalculatorPage() {
           </h2>
           <div className="text-sm text-light-text-secondary dark:text-dark-text-secondary space-y-2">
             <p>
-              This calculator implements the Nigeria Tax Act 2025 provisions for
-              business taxation. Tax rates and thresholds are fetched
-              dynamically from the KOMPLEET Tax Rules Engine.
+              This calculator estimates business tax. Rates and thresholds come
+              from the Kompleet tax rules engine.
             </p>
             <p>
               <strong>Data Source:</strong> Nigeria Revenue Service (NRS),

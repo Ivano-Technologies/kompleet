@@ -392,7 +392,7 @@ describe("Sprint 7: Filing Deadline Management", () => {
 
       const email = generate1DayReminderEmail("Test Business", deadline);
 
-      expect(email.subject).toContain("FINAL NOTICE");
+      expect(email.subject).toContain("Final notice");
       expect(email.subject).toContain("Tomorrow");
       expect(email.html).toContain("Test Business");
       expect(email.html).toContain("24 HOURS");

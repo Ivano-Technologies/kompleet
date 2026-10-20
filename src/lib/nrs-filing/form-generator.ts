@@ -131,7 +131,7 @@ export function generateVATForm(
  * Format currency
  */
 function formatCurrency(amount: number): string {
-  return `₦${amount.toLocaleString("en-NG", {
+  return `NGN ${amount.toLocaleString("en-NG", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;
@@ -283,10 +283,11 @@ export function generateCITFormHTML(data: CITFormData): string {
       font-family: Arial, sans-serif;
       margin: 40px;
       color: #333;
+      background: #ffffff;
     }
     h1 {
       text-align: center;
-      color: #1a5f3a;
+      color: #000000;
       margin-bottom: 10px;
     }
     .subtitle {
@@ -310,7 +311,8 @@ export function generateCITFormHTML(data: CITFormData): string {
       text-align: right;
     }
     .highlight {
-      background-color: #e8f5e9;
+      background-color: #F3F3F3;
+      color: #000000;
       font-weight: bold;
       font-size: 1.1em;
     }
@@ -324,7 +326,7 @@ export function generateCITFormHTML(data: CITFormData): string {
 </head>
 <body>
   <h1>CORPORATE INCOME TAX (CIT) RETURN</h1>
-  <div class="subtitle">Nigeria Revenue Service (NRS) - Form CIT-001</div>
+  <div class="subtitle">Nigeria Revenue Service (NRS)\u2003Form CIT-001</div>
 
   <div class="header-section">
     <div class="form-row">
@@ -371,7 +373,7 @@ export function generateCITFormHTML(data: CITFormData): string {
       <span class="form-value">${formatCurrency(data.taxPaid)}</span>
     </div>
     <div class="form-row highlight">
-      <span class="form-label">8. Tax Due (6 - 7)</span>
+      <span class="form-label">8. Tax Due after tax paid</span>
       <span class="form-value">${formatCurrency(data.taxDue)}</span>
     </div>
   </div>
