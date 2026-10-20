@@ -98,9 +98,7 @@ export default function ScanScreen() {
           currency: "NGN",
           notes: "OCR failed. Please enter manually",
         });
-        setMessage(
-          `OCR failed: ${ocrResult.error}. Opening form to enter manually.`,
-        );
+        setMessage("OCR failed. Opening the form so you can enter the receipt manually.");
         setPendingReceiptUri(uri);
         router.push(`/receipt-edit/${draft.id}`);
         setLoading(false);

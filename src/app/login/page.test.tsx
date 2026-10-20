@@ -50,10 +50,11 @@ describe("LoginPage", () => {
 
     const ref = screen.getByTestId("error-ref").textContent ?? "";
     expect(ref).toMatch(/^Ref: [A-Z0-9]{8}$/);
-    expect(console.error).toHaveBeenCalledWith(
+    expect(console.warn).toHaveBeenCalledWith(
       expect.stringContaining(`ref=${ref.slice(5)}`),
       raw,
     );
+    expect(console.error).not.toHaveBeenCalled();
 
     const note = screen.getByTestId("reclaim-note");
     expect(note.tagName).toBe("P");
