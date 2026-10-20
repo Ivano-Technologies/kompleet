@@ -217,7 +217,7 @@ export default function VATCalculatorPage() {
               VAT Calculator
             </h1>
             <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
-              Calculate Value Added Tax under Nigeria Tax Act 2025
+              Calculate Value Added Tax
             </p>
           </div>
         </div>
@@ -603,7 +603,7 @@ export default function VATCalculatorPage() {
           </CardHeader>
           <CardContent className="text-sm text-light-text-secondary dark:text-dark-text-secondary space-y-2">
             <p>
-              This calculator applies the Nigeria Tax Act 2025 VAT{" "}
+              This calculator applies the VAT{" "}
               <em>rate</em> from the rules engine. Registration and filing
               obligation thresholds are disputed across sources and are shown
               as unverified candidates. They do not change the VAT amount.

@@ -104,7 +104,7 @@ export function generate7DayReminderEmail(
     </div>
     
     <div style="background: #fef3c7; padding: 15px; border-radius: 5px; margin: 20px 0;">
-      <p style="margin: 0; color: #92400e;"><strong>⚠️ Important:</strong> Late filing may result in penalties as prescribed by the Nigeria Tax Act 2025.</p>
+      <p style="margin: 0; color: #92400e;"><strong>Important:</strong> Late filing may attract penalties.</p>
     </div>
     
     <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
@@ -114,7 +114,7 @@ export function generate7DayReminderEmail(
   
   <div style="text-align: center; padding: 20px; color: #9ca3af; font-size: 12px;">
     <p>This is an automated reminder from KOMPLEET Platform</p>
-    <p>Ivano Technologies Ltd | Nigerian Tax Compliance</p>
+    <p>Ivano Technologies Ltd</p>
     <p>
       <a href="${SITE_URL}/notifications" style="color: #10b981; text-decoration: none;">Manage Notifications</a> |
       <a href="${SITE_URL}/privacy" style="color: #10b981; text-decoration: none;">Privacy Policy</a>
@@ -145,13 +145,13 @@ What You Need to Do:
 
 Go to Filing Center: ${SITE_URL}/filing
 
-⚠️ Important: Late filing may result in penalties as prescribed by the Nigeria Tax Act 2025.
+Important: Late filing may attract penalties.
 
 Need help? Contact our support team at support@ivanotechnologies.com
 
 ---
 This is an automated reminder from KOMPLEET Platform
-Ivano Technologies Ltd | Nigerian Tax Compliance
+Ivano Technologies Ltd
   `;
 
   return { subject, html, text };
@@ -186,7 +186,7 @@ export function generate3DayReminderEmail(
     },
   );
 
-  const subject = `⚠️ Urgent: ${formName} Filing Deadline in 3 Days`;
+  const subject = `Urgent: ${formName} Filing Deadline in 3 Days`;
 
   const html = `
 <!DOCTYPE html>
@@ -198,8 +198,8 @@ export function generate3DayReminderEmail(
 </head>
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
   <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-    <h1 style="color: white; margin: 0; font-size: 28px;">⚠️ URGENT REMINDER</h1>
-    <p style="color: white; margin: 10px 0 0 0; font-size: 14px;">KOMPLEET, Nigerian Tax Compliance Platform</p>
+    <h1 style="color: white; margin: 0; font-size: 28px;">Urgent reminder</h1>
+    <p style="color: white; margin: 10px 0 0 0; font-size: 14px;">KOMPLEET</p>
   </div>
   
   <div style="background: #f9fafb; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 10px 10px;">
@@ -217,12 +217,12 @@ export function generate3DayReminderEmail(
     </div>
     
     <div style="background: #fee2e2; padding: 20px; border-radius: 5px; margin: 20px 0;">
-      <h3 style="color: #991b1b; margin-top: 0; font-size: 18px;">🚨 Action Required Now</h3>
-      <p style="margin: 0; color: #7f1d1d;">Don't wait until the last minute! Generate and submit your tax form today to avoid late filing penalties.</p>
+      <h3 style="color: #991b1b; margin-top: 0; font-size: 18px;">Action required now</h3>
+      <p style="margin: 0; color: #7f1d1d;">Generate and submit your tax form today. Late filing may attract penalties.</p>
     </div>
     
     <div style="text-align: center; margin: 30px 0;">
-      <a href="${SITE_URL}/filing" style="display: inline-block; background: #ef4444; color: white; padding: 16px 40px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 18px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">File Now →</a>
+      <a href="${SITE_URL}/filing" style="display: inline-block; background: #ef4444; color: white; padding: 16px 40px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 18px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">File now</a>
     </div>
     
     <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
@@ -232,34 +232,34 @@ export function generate3DayReminderEmail(
   
   <div style="text-align: center; padding: 20px; color: #9ca3af; font-size: 12px;">
     <p>This is an automated urgent reminder from KOMPLEET Platform</p>
-    <p>Ivano Technologies Ltd | Nigerian Tax Compliance</p>
+    <p>Ivano Technologies Ltd</p>
   </div>
 </body>
 </html>
   `;
 
   const text = `
-⚠️ URGENT REMINDER FROM KOMPLEET
+Urgent reminder from KOMPLEET
 
 Dear ${userName},
 
-Your ${formName} filing deadline is only 3 days away. Please take action immediately to avoid penalties.
+Your ${formName} filing deadline is only 3 days away. Please file now. Late filing may attract penalties.
 
 Form Type: ${formName}
 Tax Year: ${deadline.taxYear}
 Deadline: ${deadlineFormatted}
 Days Remaining: ${deadline.daysRemaining} days
 
-🚨 ACTION REQUIRED NOW
-Don't wait until the last minute! Generate and submit your tax form today to avoid late filing penalties.
+Action required now
+Generate and submit your tax form today. Late filing may attract penalties.
 
-File Now: ${SITE_URL}/filing
+File now: ${SITE_URL}/filing
 
 Need urgent assistance? Contact us at support@ivanotechnologies.com
 
 ---
 This is an automated urgent reminder from KOMPLEET Platform
-Ivano Technologies Ltd | Nigerian Tax Compliance
+Ivano Technologies Ltd
   `;
 
   return { subject, html, text };
@@ -294,7 +294,7 @@ export function generate1DayReminderEmail(
     },
   );
 
-  const subject = `🚨 FINAL NOTICE: ${formName} Filing Deadline Tomorrow!`;
+  const subject = `Final notice: ${formName} Filing Deadline Tomorrow`;
 
   const html = `
 <!DOCTYPE html>
@@ -306,7 +306,7 @@ export function generate1DayReminderEmail(
 </head>
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
   <div style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-    <h1 style="color: white; margin: 0; font-size: 32px;">🚨 FINAL NOTICE</h1>
+    <h1 style="color: white; margin: 0; font-size: 32px;">Final notice</h1>
     <p style="color: white; margin: 10px 0 0 0; font-size: 16px; font-weight: bold;">DEADLINE TOMORROW!</p>
   </div>
   
@@ -324,12 +324,12 @@ export function generate1DayReminderEmail(
     </div>
     
     <div style="background: #7f1d1d; color: white; padding: 20px; border-radius: 5px; margin: 20px 0;">
-      <h3 style="margin-top: 0; font-size: 20px;">⏰ File Immediately</h3>
-      <p style="margin: 0;">Late filing will result in penalties and interest charges. Don't risk it - file your ${formName} return now!</p>
+      <h3 style="margin-top: 0; font-size: 20px;">File immediately</h3>
+      <p style="margin: 0;">Late filing may attract penalties and interest. File your ${formName} return now.</p>
     </div>
     
     <div style="text-align: center; margin: 30px 0;">
-      <a href="${SITE_URL}/filing" style="display: inline-block; background: #dc2626; color: white; padding: 18px 50px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 20px; box-shadow: 0 6px 12px rgba(0,0,0,0.2); animation: pulse 2s infinite;">FILE NOW. DON'T DELAY →</a>
+      <a href="${SITE_URL}/filing" style="display: inline-block; background: #dc2626; color: white; padding: 18px 50px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 20px; box-shadow: 0 6px 12px rgba(0,0,0,0.2);">File now. Do not delay</a>
     </div>
     
     <div style="background: #fef3c7; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #f59e0b;">
@@ -339,33 +339,33 @@ export function generate1DayReminderEmail(
   
   <div style="text-align: center; padding: 20px; color: #9ca3af; font-size: 12px;">
     <p style="color: #dc2626; font-weight: bold;">This is your FINAL automated reminder from KOMPLEET Platform</p>
-    <p>Ivano Technologies Ltd | Nigerian Tax Compliance</p>
+    <p>Ivano Technologies Ltd</p>
   </div>
 </body>
 </html>
   `;
 
   const text = `
-🚨 FINAL NOTICE FROM KOMPLEET
+Final notice from KOMPLEET
 
 Dear ${userName},
 
-This is your final reminder. Your ${formName} filing deadline is TOMORROW!
+This is your final reminder. Your ${formName} filing deadline is tomorrow.
 
 FILING DEADLINE: ${deadlineFormatted}
 TIME REMAINING: 24 HOURS
 
-⏰ FILE IMMEDIATELY
-Late filing will result in penalties and interest charges. Don't risk it - file your ${formName} return now!
+File immediately
+Late filing may attract penalties and interest. File your ${formName} return now.
 
-FILE NOW: ${SITE_URL}/filing
+File now: ${SITE_URL}/filing
 
-Need Help? Our support team is standing by.
+Need help? Our support team is standing by.
 Email: support@ivanotechnologies.com
 
 ---
-This is your FINAL automated reminder from KOMPLEET Platform
-Ivano Technologies Ltd | Nigerian Tax Compliance
+This is your final automated reminder from KOMPLEET Platform
+Ivano Technologies Ltd
   `;
 
   return { subject, html, text };
@@ -383,7 +383,7 @@ export async function sendEmail(
     const resendApiKey = process.env.RESEND_API_KEY;
 
     if (!resendApiKey) {
-      console.log("⚠️ RESEND_API_KEY not configured. Email would be sent:");
+      console.log("RESEND_API_KEY not configured. Email would be sent:");
       console.log(`To: ${to}`);
       console.log(`Subject: ${template.subject}`);
       console.log(`Text: ${template.text.substring(0, 200)}...`);

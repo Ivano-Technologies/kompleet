@@ -203,7 +203,6 @@ export default function StampDutyCalculator() {
           </h1>
           <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
             Calculate stamp duty on property transactions and lease agreements
-            under Nigeria Tax Act 2025
           </p>
         </div>
       </div>
@@ -448,9 +447,8 @@ export default function StampDutyCalculator() {
           About This Calculator
         </h3>
         <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-4">
-          This calculator implements the Nigeria Tax Act 2025 provisions for
-          stamp duty on property transactions and leases. Tax rates are fetched
-          dynamically from the KOMPLEET Tax Rules Engine.
+          This calculator estimates stamp duty on property transactions and
+          leases. Rates come from the Kompleet tax rules engine.
         </p>
         <div className="text-sm space-y-2 text-light-text-secondary dark:text-dark-text-secondary">
           <p>
