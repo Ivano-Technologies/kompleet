@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { INVOICE_FOOTER_TEXT } from "@/lib/invoices/invoice-branding";
 import { generateTaxComputationHTML } from "@/lib/financial-statements/tax-computation-html";
+import { generatePITFormHTML } from "@/lib/nrs-filing/form-generator";
 
 const files = [
   "src/lib/export-service.ts",
@@ -76,5 +77,24 @@ describe("IVA-191 export footers", () => {
     expect(html).not.toMatch(/#1a5f3a|#e8f5e9|#10b981/i);
     expect(html).toMatch(/color:\s*#000000/);
     expect(html).toMatch(/background:\s*#ffffff/);
+  });
+
+  it("prints the PIT form with a dark ink title and grey highlights, no green", () => {
+    const html = generatePITFormHTML({
+      taxpayerName: "Ada Okonkwo",
+      tin: "12345678-0001",
+      taxYear: 2026,
+      grossIncome: 4_500_000,
+      allowableDeductions: 500_000,
+      taxableIncome: 4_000_000,
+      taxLiability: 412_500,
+      taxPaid: 50_000,
+      taxDue: 362_500,
+    });
+    const pitCss = html.slice(0, html.indexOf("</style>"));
+    expect(pitCss).toMatch(/h1\s*\{[^}]*color:\s*#000000/);
+    expect(pitCss).toMatch(/background-color:\s*#F3F3F3/);
+    expect(pitCss).not.toMatch(/#1a5f3a|#e8f5e9|#10b981/i);
+    expect(html).toContain("Nigeria Revenue Service (NRS), Form PIT-001");
   });
 });

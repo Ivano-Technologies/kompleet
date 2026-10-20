@@ -152,10 +152,11 @@ export function generatePITFormHTML(data: PITFormData): string {
       font-family: Arial, sans-serif;
       margin: 40px;
       color: #333;
+      background: #ffffff;
     }
     h1 {
       text-align: center;
-      color: #1a5f3a;
+      color: #000000;
       margin-bottom: 10px;
     }
     .subtitle {
@@ -179,7 +180,8 @@ export function generatePITFormHTML(data: PITFormData): string {
       text-align: right;
     }
     .highlight {
-      background-color: #e8f5e9;
+      background-color: #F3F3F3;
+      color: #000000;
       font-weight: bold;
       font-size: 1.1em;
     }
