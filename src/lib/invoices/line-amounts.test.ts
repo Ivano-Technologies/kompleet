@@ -252,3 +252,54 @@ describe("IVA-185 VAT row label matches the invoice", () => {
   });
 });
 
+describe("IVA-191 vatSummaryRows and 2-decimal unit price", () => {
+  it("hides a ₦0.00 VAT row and always labels the rate, single or mixed", async () => {
+    const { vatSummaryRows } = await import("./line-amounts");
+    expect(vatSummaryRows([{ quantity: 1, unit_price: 10, vat_rate: 0 }])).toEqual([]);
+    expect(vatSummaryRows([{ quantity: 1, unit_price: 1000, vat_rate: 7.5 }])).toEqual([
+      { label: "VAT 7.5%", vat: 75 },
+    ]);
+    expect(
+      vatSummaryRows([
+        { quantity: 1, unit_price: 1000, vat_rate: 7.5 },
+        { quantity: 1, unit_price: 200, vat_rate: 5 },
+      ]),
+    ).toEqual([
+      { label: "VAT 7.5%", vat: 75 },
+      { label: "VAT 5%", vat: 10 },
+    ]);
+  });
+
+  it("limits unit price to 2 decimals so the printed rate matches the line total", async () => {
+    const { lineNetAmount, roundMoney, totalsFromLines } = await import("./line-amounts");
+    expect(roundMoney(33.335)).toBe(33.34);
+    expect(lineNetAmount({ quantity: 3, unit_price: 33.335, vat_rate: 0 })).toBe(100.02);
+    expect(totalsFromLines([{ quantity: 3, unit_price: 33.335, vat_rate: 0 }]).subtotal).toBe(100.02);
+  });
+});
+
+describe("IVA-190 / IVA-191 client-server parity", () => {
+  it("client and server totals match for a mixed-rate invoice totalling NGN 997,750.00", async () => {
+    const mixed = [
+      { quantity: 1, unit_price: 850000, vat_rate: 7.5 },
+      { quantity: 2, unit_price: 40000, vat_rate: 5 },
+    ];
+    const { totalsFromLines: clientTotals, vatSummaryRows } = await import("./line-amounts");
+    const { totalsFromLines: serverTotals } = await import("../../../convex/lib/lineAmounts");
+    const { priceInvoiceLines } = await import("../../../convex/lib/invoiceAmounts");
+
+    expect(clientTotals(mixed)).toEqual(serverTotals(mixed));
+    expect(clientTotals(mixed)).toMatchObject({
+      subtotal: 930000,
+      vat_amount: 67750,
+      total_amount: 997750,
+    });
+    expect(priceInvoiceLines(mixed).totalAmount).toBe(997750);
+    expect(vatSummaryRows(mixed)).toEqual([
+      { label: "VAT 7.5%", vat: 63750 },
+      { label: "VAT 5%", vat: 4000 },
+    ]);
+  });
+});
+
+

@@ -25,6 +25,7 @@ import type * as imports from "../imports.js";
 import type * as invoices from "../invoices.js";
 import type * as lib_auth from "../lib/auth.js";
 import type * as lib_ids from "../lib/ids.js";
+import type * as lib_imageMeta from "../lib/imageMeta.js";
 import type * as lib_profiles from "../lib/profiles.js";
 import type * as lib_triage from "../lib/triage.js";
 import type * as lib_workerAuth from "../lib/workerAuth.js";
@@ -60,6 +61,7 @@ declare const fullApi: ApiFromModules<{
   invoices: typeof invoices;
   "lib/auth": typeof lib_auth;
   "lib/ids": typeof lib_ids;
+  "lib/imageMeta": typeof lib_imageMeta;
   "lib/profiles": typeof lib_profiles;
   "lib/triage": typeof lib_triage;
   "lib/workerAuth": typeof lib_workerAuth;

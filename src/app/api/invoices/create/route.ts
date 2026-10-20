@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { calculateInvoiceTotals } from "@/lib/invoice-service";
-import { lineDiscount, lineNetAmount } from "@/lib/invoices/line-amounts";
+import { lineDiscount, lineNetAmount, roundMoney } from "@/lib/invoices/line-amounts";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { withAudit } from "@/lib/with-audit";
 import { createInvoiceSchema } from "@/lib/schemas/invoices";
@@ -38,7 +38,7 @@ async function handlePOST(request: NextRequest) {
     const items = line_items.map((item) => ({
       description: item.description,
       quantity: item.quantity,
-      unit_price: item.unit_price,
+      unit_price: roundMoney(item.unit_price),
       vat_rate: item.vat_rate,
       // Clamped to 0..(quantity x rate).
       discount: lineDiscount(item),

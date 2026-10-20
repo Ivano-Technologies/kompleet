@@ -108,7 +108,7 @@ function LoginForm() {
           <div className="mb-1 flex items-center justify-between">
             <label className={AUTH_LABEL}>Password</label>
             <Link href="/forgot-password" className={`text-xs ${AUTH_LINK}`}>
-              Forgot Password?
+              Forgot password?
             </Link>
           </div>
           <div className="relative">
@@ -135,7 +135,7 @@ function LoginForm() {
           </div>
         </div>
         <button type="submit" disabled={loading} className={AUTH_SUBMIT}>
-          {loading ? "Signing in…" : "Sign In →"}
+          {loading ? "Signing in…" : "Sign in"}
         </button>
       </form>
       <p

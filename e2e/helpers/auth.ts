@@ -123,7 +123,7 @@ export async function login(page: Page): Promise<void> {
   await page.goto("/login");
   const email = page.getByPlaceholder("you@company.ng", { exact: true });
   const password = page.getByPlaceholder("Enter your password", { exact: true });
-  const submit = page.getByRole("button", { name: "Sign In →" });
+  const submit = page.getByRole("button", { name: "Sign in" });
 
   await fillHydrated(email, E2E_USER_EMAIL);
   await fillHydrated(password, E2E_USER_PASSWORD);
@@ -153,7 +153,7 @@ export async function login(page: Page): Promise<void> {
         page.getByPlaceholder("Enter your password", { exact: true }),
         E2E_USER_PASSWORD,
       );
-      await page.getByRole("button", { name: "Sign In →" }).click();
+      await page.getByRole("button", { name: "Sign in" }).click();
       await page.waitForURL(/\/dashboard(\?|$|\/)/, { timeout: 20_000 });
     }
   }

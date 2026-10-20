@@ -2,7 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 
 const AUTH_ROUTES = [
   { path: "/signup", cta: /Create Free Account/ },
-  { path: "/login", cta: /Sign In/ },
+  { path: "/login", cta: /Sign in/ },
   { path: "/forgot-password", cta: /Send Reset Code/ },
   { path: "/reset-password", cta: /Update Password/ },
   { path: "/verify-email", cta: /Go to Login/ },

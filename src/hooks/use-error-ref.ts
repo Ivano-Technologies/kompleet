@@ -34,7 +34,7 @@ export function useErrorRef(
   useEffect(() => {
     if (active && lastLogged.current !== ref) {
       lastLogged.current = ref;
-      console.error(`[friendly-error] ref=${ref} context=${context}`, detailRef.current);
+      console.warn(`[friendly-error] ref=${ref} context=${context}`, detailRef.current);
     }
     if (!active) lastLogged.current = null;
   }, [active, context, ref]);
@@ -56,7 +56,7 @@ export function useBoundaryRef(error: unknown, context: string): string | null {
       // Sentry not configured.
     }
     const next = refFromEventId(eventId) ?? generateRef();
-    console.error(`[friendly-error] ref=${next} context=${context}`, error);
+    console.warn(`[friendly-error] ref=${next} context=${context}`, error);
     setRef(next);
   }, [error, context]);
   return ref;
