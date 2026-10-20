@@ -165,14 +165,13 @@ export type VatSummaryRow = { label: string; vat: number };
 
 /**
  * Totals rows for the form, preview and PDF.
- * Zero-naira VAT is hidden. One rate stays a plain "VAT" row. Mixed rates
- * are labelled "VAT 7.5%", "VAT 5%", matching Coco's invoice rule.
+ * Zero-naira VAT is hidden. Every remaining row shows its rate the same
+ * way, single or mixed: "VAT 7.5%", "VAT 5%".
  */
 export function vatSummaryRows(items: LineInput[]): VatSummaryRow[] {
-  const lines = vatByRate(items).filter((line) => line.vat !== 0);
-  if (lines.length === 0) return [];
-  if (lines.length === 1) return [{ label: "VAT", vat: lines[0]!.vat }];
-  return lines.map((line) => ({ label: vatRowLabel(line.rate), vat: line.vat }));
+  return vatByRate(items)
+    .filter((line) => line.vat !== 0)
+    .map((line) => ({ label: vatRowLabel(line.rate), vat: line.vat }));
 }
 
 /** True when at least one line has a (clamped) discount, so a Discount column should show. */

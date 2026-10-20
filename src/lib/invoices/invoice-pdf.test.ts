@@ -211,6 +211,18 @@ describe("IVA-191 PDF VAT totals rows", () => {
     expect(out).not.toContain("NGN 0.00");
   });
 
+  it("prints VAT 7.5% when every line uses the same rate", () => {
+    const out = text({
+      ...base({ name: "Ada Foods Ltd" }),
+      lineItems: [{ description: "A", quantity: 1, unit_price: 1000, vat_rate: 7.5, amount: 1000 }],
+      subtotal: 1000,
+      vatAmount: 75,
+      totalAmount: 1075,
+    });
+    expect(out).toContain("(VAT 7.5%)");
+    expect(out).toContain("NGN 75.00");
+  });
+
   it("prints one VAT row per rate when rates are mixed", () => {
     const out = text({
       ...base({ name: "Ada Foods Ltd" }),

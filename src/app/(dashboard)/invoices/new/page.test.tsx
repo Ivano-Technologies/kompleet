@@ -64,14 +64,13 @@ describe("IVA-185 /invoices/new summary matches the invoice totals", () => {
     expect(screen.queryByText(/VAT \(/)).toBeNull();
   });
 
-  it("shows a plain VAT row when every line uses the same rate", async () => {
+  it("shows VAT 7.5% when every line uses the same rate", async () => {
     render(<NewInvoicePage />);
     await waitFor(() => expect(fetch).toHaveBeenCalled());
     fillLines([{ quantity: 1, unit_price: 1000, vat_rate: 7.5 }]);
     expect(screen.getAllByTestId("form-vat-row").map((row) => row.textContent)).toEqual([
-      `VAT${naira(75)}`,
+      `VAT 7.5%${naira(75)}`,
     ]);
-    expect(screen.queryByText("VAT 7.5%")).toBeNull();
   });
 
   it("limits unit price to 2 decimals", async () => {

@@ -148,6 +148,24 @@ describe("IVA-185 InvoicePreview discount column and totals", () => {
     expect(screen.queryByTestId("invoice-vat-row")).toBeNull();
   });
 
+  it("shows VAT 7.5% when every line uses the same rate", () => {
+    render(
+      <InvoicePreview
+        invoice={invoice({
+          line_items: [{ description: "A", quantity: 1, unit_price: 1000, vat_rate: 7.5, amount: 1000 }],
+          subtotal: 1000,
+          vat_amount: 75,
+          total_amount: 1075,
+        })}
+        profile={profile()}
+        onOpenSettings={() => {}}
+      />,
+    );
+    expect(screen.getAllByTestId("invoice-vat-row").map((row) => row.textContent)).toEqual([
+      "VAT 7.5%₦75.00",
+    ]);
+  });
+
   it("shows one VAT row per rate when rates are mixed", () => {
     render(
       <InvoicePreview
@@ -166,6 +184,32 @@ describe("IVA-185 InvoicePreview discount column and totals", () => {
     );
     const rows = screen.getAllByTestId("invoice-vat-row");
     expect(rows.map((row) => row.textContent)).toEqual(["VAT 7.5%₦75.00", "VAT 5%₦10.00"]);
+  });
+
+  it("fits Amount at 390 with a compact black and white table", () => {
+    const { container } = render(
+      <InvoicePreview
+        invoice={invoice({
+          line_items: [
+            { description: "Catering for staff offsite", quantity: 1, unit_price: 850000, vat_rate: 7.5, amount: 850000 },
+          ],
+        })}
+        profile={profile()}
+        onOpenSettings={() => {}}
+      />,
+    );
+    const table = screen.getByTestId("invoice-items");
+    expect(table.className).toMatch(/table-fixed/);
+    expect(table.className).toMatch(/text-\[10px\]/);
+    expect(table.parentElement?.className).not.toMatch(/overflow-x-auto/);
+    expect(table).toHaveTextContent("Amount");
+    expect(table).toHaveTextContent("₦850,000.00");
+    const doc = container.querySelector("[data-testid='invoice-document']");
+    expect(doc?.getAttribute("style")).toMatch(/background:\s*rgb\(255,\s*255,\s*255\)/);
+    expect(doc?.getAttribute("style")).toMatch(/color:\s*rgb\(0,\s*0,\s*0\)/);
+    expect(doc?.getAttribute("style")).toMatch(/rgb\(221,\s*221,\s*221\)/);
+    expect(doc?.innerHTML ?? "").not.toMatch(/bg-(?:primary|emerald|green|red|blue|amber)/);
+    expect(table.className).not.toMatch(/text-(?:primary|emerald|green|red|blue)/);
   });
 
   it("shows the Discount column when a line has a discount, and no Discount totals row", () => {

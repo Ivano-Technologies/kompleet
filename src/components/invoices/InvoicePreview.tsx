@@ -286,7 +286,7 @@ export function InvoicePreview({
 
       <article
         data-testid="invoice-document"
-        className="rounded-xl p-5 sm:p-7 space-y-5"
+        className="rounded-xl p-4 sm:p-7 space-y-5 min-w-0"
         style={{ background: BW.background, color: BW.text, border: `1px solid ${BW.hairline}` }}
       >
         {/* Header: business on the left, Ivano V mark on the right */}
@@ -387,18 +387,30 @@ export function InvoicePreview({
           </dl>
         </div>
 
-        {/* Line Items: no fills, black header rule, grey hairlines. Amount is the pre-VAT net. */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm" data-testid="invoice-items">
+        {/* Line items: black/grey ink on white only. Tighter Qty/Rate and a
+            smaller mobile font so every column, including Amount, fits at 390.
+            PDF layout is separate and stays as it is. */}
+        <div className="min-w-0">
+          <table
+            className="w-full table-fixed text-[10px] leading-snug sm:text-sm sm:leading-normal"
+            data-testid="invoice-items"
+          >
+            <colgroup>
+              <col />
+              <col className="w-8 sm:w-12" />
+              <col className="w-[5.25rem] sm:w-24" />
+              {showDiscount && <col className="w-[5.25rem] sm:w-24" />}
+              <col className="w-[5.5rem] sm:w-28" />
+            </colgroup>
             <thead>
               <tr style={{ borderBottom: `1px solid ${BW.rule}` }}>
-                <th className="py-2 pr-2 text-left text-[11px] font-bold">Description</th>
-                <th className="py-2 px-2 text-right text-[11px] font-bold">Qty</th>
-                <th className="py-2 px-2 text-right text-[11px] font-bold">Rate</th>
+                <th className="py-2 pr-1 sm:pr-2 text-left font-bold">Description</th>
+                <th className="py-2 px-0.5 sm:px-2 text-right font-bold">Qty</th>
+                <th className="py-2 px-0.5 sm:px-2 text-right font-bold">Rate</th>
                 {showDiscount && (
-                  <th className="py-2 px-2 text-right text-[11px] font-bold">Discount</th>
+                  <th className="py-2 px-0.5 sm:px-2 text-right font-bold">Discount</th>
                 )}
-                <th className="py-2 pl-2 text-right text-[11px] font-bold">Amount</th>
+                <th className="py-2 pl-0.5 sm:pl-2 text-right font-bold">Amount</th>
               </tr>
             </thead>
             <tbody>
@@ -407,17 +419,17 @@ export function InvoicePreview({
                 : [{ description: invoice.title || "Services", quantity: 1, unit_price: subtotal, vat_rate: 0, amount: subtotal }]
               ).map((item, index) => (
                 <tr key={index} style={{ borderBottom: `1px solid ${BW.hairline}` }}>
-                  <td className="py-2.5 pr-2 break-words">{item.description}</td>
-                  <td className="py-2.5 px-2 text-right tabular-nums">{item.quantity}</td>
-                  <td className="py-2.5 px-2 text-right tabular-nums whitespace-nowrap">
+                  <td className="py-2 sm:py-2.5 pr-1 sm:pr-2 min-w-0 break-words">{item.description}</td>
+                  <td className="py-2 sm:py-2.5 px-0.5 sm:px-2 text-right tabular-nums">{item.quantity}</td>
+                  <td className="py-2 sm:py-2.5 px-0.5 sm:px-2 text-right tabular-nums whitespace-nowrap">
                     {money(item.unit_price)}
                   </td>
                   {showDiscount && (
-                    <td className="py-2.5 px-2 text-right tabular-nums whitespace-nowrap">
+                    <td className="py-2 sm:py-2.5 px-0.5 sm:px-2 text-right tabular-nums whitespace-nowrap">
                       {lineDiscount(item) > 0 ? money(lineDiscount(item)) : ""}
                     </td>
                   )}
-                  <td className="py-2.5 pl-2 text-right tabular-nums whitespace-nowrap">
+                  <td className="py-2 sm:py-2.5 pl-0.5 sm:pl-2 text-right tabular-nums whitespace-nowrap">
                     {money(lineNetAmount(item))}
                   </td>
                 </tr>
