@@ -99,6 +99,19 @@ function formatDate(value: string | null | undefined): string {
     : parsed.toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" });
 }
 
+function DateValue({ value }: { value: string | null | undefined }) {
+  const text = formatDate(value);
+  const empty = text === INV_COPY.notSet;
+  return (
+    <dd
+      className={`text-right ${empty ? "font-normal" : "font-semibold"}`}
+      style={empty ? { color: BW.secondary } : undefined}
+    >
+      {text}
+    </dd>
+  );
+}
+
 /** Left side of the header: logo plus name, name only, or the neutral placeholder. */
 export function InvoiceSenderMark({
   sender,
@@ -359,9 +372,9 @@ export function InvoicePreview({
 
           <dl className="grid grid-cols-[auto_auto] gap-x-4 gap-y-1.5 text-xs self-start">
             <dt style={{ color: BW.secondary }}>Issue date</dt>
-            <dd className="text-right font-semibold">{formatDate(invoice.invoice_date)}</dd>
+            <DateValue value={invoice.invoice_date} />
             <dt style={{ color: BW.secondary }}>Due date</dt>
-            <dd className="text-right font-semibold">{formatDate(invoice.due_date)}</dd>
+            <DateValue value={invoice.due_date} />
             <dt style={{ color: BW.secondary }}>{attachmentNote ? "Attachment" : "Currency"}</dt>
             <dd className="text-right font-semibold break-all">{attachmentNote ?? "NGN (₦)"}</dd>
           </dl>

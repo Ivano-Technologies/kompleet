@@ -79,6 +79,19 @@ describe("IVA-185 InvoicePreview sender", () => {
     expect(screen.queryByText("Renamed Co")).toBeNull();
   });
 
+  it("shows Not set in muted grey when a date is missing", () => {
+    render(
+      <InvoicePreview
+        invoice={invoice({ due_date: null })}
+        profile={profile()}
+        onOpenSettings={() => {}}
+      />,
+    );
+    const empty = screen.getByText("Not set");
+    expect(empty.className).toMatch(/font-normal/);
+    expect(empty.style.color).toBe("rgb(85, 85, 85)");
+  });
+
   it("shows the Ivano mark top right, an outline status badge and the footer", () => {
     render(<InvoicePreview invoice={invoice({ status: "paid", is_immutable: true, sender: { name: "Ada" } })} profile={profile()} onOpenSettings={() => {}} />);
     expect(screen.getByTestId("ivano-mark")).toHaveAttribute("src", "/brand/ivano-mark-invoice.svg");

@@ -86,9 +86,11 @@ function money(value: number): string {
 
 
 function formatDate(value: string | null): string {
-  if (!value) return "";
+  if (!value) return "Not set";
   const parsed = new Date(value);
-  return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleDateString("en-NG");
+  return Number.isNaN(parsed.getTime())
+    ? value
+    : parsed.toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" });
 }
 
 function senderLines(sender: InvoiceSenderParty): string[] {

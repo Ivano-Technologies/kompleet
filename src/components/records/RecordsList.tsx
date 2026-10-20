@@ -128,7 +128,9 @@ export function RecordsList({ records, onEdit, onDelete }: RecordsListProps) {
                     {record.category}
                   </td>
                   <td className="px-6 py-4 text-sm text-light-text-secondary dark:text-dark-text-secondary max-w-xs truncate">
-                    {record.description || "-"}
+                    {record.description || (
+                      <span className="text-text-3">Not set</span>
+                    )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium text-light-text-primary dark:text-dark-text-primary">
                     {formatCurrency(record.amount, record.currency)}
