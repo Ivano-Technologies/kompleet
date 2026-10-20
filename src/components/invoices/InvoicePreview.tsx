@@ -11,7 +11,6 @@ import {
 } from "@/components/invoices/CustomerCombobox";
 import {
   formatCityLine,
-  formatContactLine,
   hasLegalName,
   isBusinessProfileComplete,
   trimToEmpty,
@@ -66,22 +65,43 @@ function billToFromInvoice(invoice: InvoiceView): PartySnapshot | null {
 
 function PartyLines({ party }: { party: PartySnapshot | InvoiceSenderParty }) {
   const cityLine = formatCityLine(party);
-  const contact = formatContactLine(party);
-  const lines = [
-    party.addressLine1,
-    party.addressLine2,
-    cityLine,
-    contact,
-    party.tin ? `TIN ${party.tin}` : null,
-    party.vatNumber ? `VAT ${party.vatNumber}` : null,
-  ].filter(Boolean) as string[];
+  const email = trimToEmpty(party.email);
+  const phone = trimToEmpty(party.phone);
+  const wrapping = [party.addressLine1, party.addressLine2, cityLine].filter(Boolean) as string[];
+  const tin = party.tin ? `TIN ${party.tin}` : null;
+  const vat = party.vatNumber ? `VAT ${party.vatNumber}` : null;
   return (
     <>
-      {lines.map((line) => (
+      {wrapping.map((line) => (
         <p key={line} className="text-xs leading-snug" style={{ color: BW.secondary }}>
           {line}
         </p>
       ))}
+      {(email || phone) && (
+        <p className="text-xs leading-snug" style={{ color: BW.secondary }}>
+          {email}
+          {email && phone ? "  ·  " : null}
+          {phone ? (
+            <span className="whitespace-nowrap" data-testid="invoice-party-phone">
+              {phone}
+            </span>
+          ) : null}
+        </p>
+      )}
+      {tin ? (
+        <p
+          className="text-xs leading-snug whitespace-nowrap"
+          data-testid="invoice-party-tin"
+          style={{ color: BW.secondary }}
+        >
+          {tin}
+        </p>
+      ) : null}
+      {vat ? (
+        <p className="text-xs leading-snug" style={{ color: BW.secondary }}>
+          {vat}
+        </p>
+      ) : null}
     </>
   );
 }

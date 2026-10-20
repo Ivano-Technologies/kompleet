@@ -86,7 +86,7 @@ export default function GenerateTaxReportPage() {
           Override figures
         </h1>
         <p className="text-sm text-text-2 mt-1">
-          Advanced generate, based on the Nigeria Tax Act 2025. For most cases, use Generate from books.
+          Advanced generate. For most cases, use Generate from books.
         </p>
       </div>
 

@@ -99,9 +99,15 @@ function dueDateText(value: string | null): string {
   return value ? formatDate(value) : EMPTY_DUE_DATE;
 }
 
+/** Keep spaced phone numbers on one line, matching TIN's nowrap treatment. */
+function unbreakablePhone(phone: string): string {
+  return phone.replace(/ /g, "\u00A0");
+}
+
 function senderLines(sender: InvoiceSenderParty): string[] {
   const cityLine = [sender.city, sender.state, sender.country].filter(Boolean).join(", ");
-  const contact = [sender.email, sender.phone].filter(Boolean).join("  ·  ");
+  const phone = sender.phone ? unbreakablePhone(sender.phone) : "";
+  const contact = [sender.email, phone].filter(Boolean).join("  ·  ");
   return [
     sender.addressLine1,
     sender.addressLine2,
@@ -227,7 +233,7 @@ export function renderInvoicePdf(input: InvoicePdfInput): jsPDF {
   doc.setTextColor(...GREY);
   const customerLines = [
     ...(input.customer.address ? doc.splitTextToSize(input.customer.address, 90) : []),
-    [input.customer.email, input.customer.phone].filter(Boolean).join("  ·  "),
+    [input.customer.email, input.customer.phone ? unbreakablePhone(input.customer.phone) : ""].filter(Boolean).join("  ·  "),
     input.customer.tin ? `TIN ${input.customer.tin}` : "",
   ].filter(Boolean) as string[];
   for (const line of customerLines) {
