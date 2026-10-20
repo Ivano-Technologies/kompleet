@@ -17,6 +17,10 @@ const SITE_URL = (
   process.env.NEXT_PUBLIC_SITE_URL || "https://kompleet.techivano.com"
 ).replace(/\/+$/, "");
 
+/** Reminder email header. Neutral; no compliance claim until e-invoicing is live. */
+export const REMINDER_HEADER =
+  "KOMPLEET, bookkeeping and invoicing for Nigerian businesses";
+
 export interface EmailTemplate {
   subject: string;
   html: string;
@@ -73,7 +77,7 @@ export function generate7DayReminderEmail(
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
   <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
     <h1 style="color: white; margin: 0; font-size: 28px;">KOMPLEET</h1>
-    <p style="color: white; margin: 10px 0 0 0; font-size: 14px;">Nigerian Tax Compliance Platform</p>
+    <p style="color: white; margin: 10px 0 0 0; font-size: 14px;">${REMINDER_HEADER}</p>
   </div>
   
   <div style="background: #f9fafb; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 10px 10px;">
@@ -199,7 +203,7 @@ export function generate3DayReminderEmail(
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
   <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
     <h1 style="color: white; margin: 0; font-size: 28px;">⚠️ URGENT REMINDER</h1>
-    <p style="color: white; margin: 10px 0 0 0; font-size: 14px;">KOMPLEET, Nigerian Tax Compliance Platform</p>
+    <p style="color: white; margin: 10px 0 0 0; font-size: 14px;">${REMINDER_HEADER}</p>
   </div>
   
   <div style="background: #f9fafb; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 10px 10px;">

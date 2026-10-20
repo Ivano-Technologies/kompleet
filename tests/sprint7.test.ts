@@ -55,6 +55,7 @@ import {
   generate7DayReminderEmail,
   generate3DayReminderEmail,
   generate1DayReminderEmail,
+  REMINDER_HEADER,
 } from "../src/lib/email-service";
 
 // Mock data for testing
@@ -343,6 +344,8 @@ describe("Sprint 7: Filing Deadline Management", () => {
       expect(email.subject).toContain("Personal Income Tax");
       expect(email.html).toContain("Test User");
       expect(email.html).toContain("7 days");
+      expect(email.html).toContain(REMINDER_HEADER);
+      expect(email.html).not.toMatch(/Tax Compliance Platform/);
       expect(email.text).toContain("Test User");
     });
 
@@ -361,6 +364,14 @@ describe("Sprint 7: Filing Deadline Management", () => {
       expect(email.subject).toContain("Company Income Tax");
       expect(email.html).toContain("Test Company");
       expect(email.html).toContain("3 days");
+      expect(email.html).toContain(REMINDER_HEADER);
+      expect(email.html).not.toMatch(/Tax Compliance Platform/);
+    });
+
+    it("locks the reminder header to Coco's company-profile line", () => {
+      expect(REMINDER_HEADER).toBe(
+        "KOMPLEET, bookkeeping and invoicing for Nigerian businesses",
+      );
     });
 
     it("should generate 1-day reminder email", () => {
