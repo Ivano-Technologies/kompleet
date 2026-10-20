@@ -170,14 +170,23 @@ export function generatePITFormHTML(data: PITFormData): string {
     .form-row {
       display: flex;
       justify-content: space-between;
+      align-items: flex-start;
       padding: 10px;
       border-bottom: 1px solid #ddd;
     }
     .form-label {
       font-weight: bold;
+      padding-right: 12px;
+      min-width: 0;
+      flex: 1;
     }
     .form-value {
       text-align: right;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .keep {
+      white-space: nowrap;
     }
     .highlight {
       background-color: #F3F3F3;
@@ -222,7 +231,7 @@ export function generatePITFormHTML(data: PITFormData): string {
       <span class="form-value">${formatCurrency(data.allowableDeductions)}</span>
     </div>
     <div class="form-row highlight">
-      <span class="form-label">3. Taxable Income (1 - 2)</span>
+      <span class="form-label">3. Taxable Income <span class="keep">(1&nbsp;−&nbsp;2)</span></span>
       <span class="form-value">${formatCurrency(data.taxableIncome)}</span>
     </div>
     <div class="form-row highlight">
@@ -234,7 +243,7 @@ export function generatePITFormHTML(data: PITFormData): string {
       <span class="form-value">${formatCurrency(data.taxPaid)}</span>
     </div>
     <div class="form-row highlight">
-      <span class="form-label">6. Tax Due (4 - 5)</span>
+      <span class="form-label">6. Tax Due <span class="keep">(4&nbsp;−&nbsp;5)</span></span>
       <span class="form-value">${formatCurrency(data.taxDue)}</span>
     </div>
   </div>

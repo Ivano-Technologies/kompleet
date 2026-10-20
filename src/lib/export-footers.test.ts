@@ -96,5 +96,9 @@ describe("IVA-191 export footers", () => {
     expect(pitCss).toMatch(/background-color:\s*#F3F3F3/);
     expect(pitCss).not.toMatch(/#1a5f3a|#e8f5e9|#10b981/i);
     expect(html).toContain("Nigeria Revenue Service (NRS), Form PIT-001");
+    expect(pitCss).toMatch(/\.form-value\s*\{[^}]*white-space:\s*nowrap/);
+    expect(pitCss).toMatch(/\.form-label\s*\{[^}]*padding-right:\s*12px/);
+    expect(html).toMatch(/class="keep">\(1&nbsp;−&nbsp;2\)/);
+    expect(html).toMatch(/class="keep">\(4&nbsp;−&nbsp;5\)/);
   });
 });
