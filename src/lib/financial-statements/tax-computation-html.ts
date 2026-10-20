@@ -153,9 +153,13 @@ export function generateTaxComputationHTML(data: TaxComputationData): string {
       background-color: #e8f5e9;
     }
     .section-header {
-      background-color: #1a5f3a;
-      color: white;
+      background-color: #f5f5f5;
+      color: #333;
       font-weight: bold;
+    }
+    .section-header th {
+      background-color: #f5f5f5;
+      color: #333;
     }
     .legal-ref {
       font-size: 0.85em;

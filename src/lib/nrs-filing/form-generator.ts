@@ -193,7 +193,7 @@ export function generatePITFormHTML(data: PITFormData): string {
 </head>
 <body>
   <h1>PERSONAL INCOME TAX (PIT) RETURN</h1>
-  <div class="subtitle">Nigeria Revenue Service (NRS) - Form PIT-001</div>
+  <div class="subtitle">Nigeria Revenue Service (NRS), Form PIT-001</div>
 
   <div class="header-section">
     <div class="form-row">

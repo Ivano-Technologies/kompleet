@@ -36,4 +36,21 @@ describe("IVA-191 export footers", () => {
       expect(text, rel).not.toMatch(/Kompleet records\. Kompleet filings/);
     }
   });
+
+  it("uses a comma in the PIT subtitle", () => {
+    const text = readFileSync(resolve(process.cwd(), "src/lib/nrs-filing/form-generator.ts"), "utf8");
+    expect(text).toContain("Nigeria Revenue Service (NRS), Form PIT-001");
+    expect(text).not.toContain("Nigeria Revenue Service (NRS) - Form PIT-001");
+  });
+
+  it("prints tax computation section headers in dark ink on grey", () => {
+    const text = readFileSync(
+      resolve(process.cwd(), "src/lib/financial-statements/tax-computation-html.ts"),
+      "utf8",
+    );
+    const block = text.match(/\.section-header\s*\{[^}]+\}/);
+    expect(block?.[0]).toMatch(/color:\s*#333/);
+    expect(block?.[0]).not.toMatch(/color:\s*white/);
+    expect(text).toContain("Legal References (Nigeria Tax Act 2025)");
+  });
 });
