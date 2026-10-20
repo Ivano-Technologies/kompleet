@@ -17,9 +17,9 @@ const SITE_URL = (
   process.env.NEXT_PUBLIC_SITE_URL || "https://kompleet.techivano.com"
 ).replace(/\/+$/, "");
 
-/** Reminder email header. Neutral; no compliance claim until e-invoicing is live. */
+/** Reminder email subtitle. The header already says KOMPLEET. */
 export const REMINDER_HEADER =
-  "KOMPLEET, bookkeeping and invoicing for Nigerian businesses";
+  "Bookkeeping and invoicing for Nigerian businesses";
 
 export interface EmailTemplate {
   subject: string;
@@ -96,7 +96,7 @@ export function generate7DayReminderEmail(
     
     <h3 style="color: #374151; font-size: 18px;">What You Need to Do:</h3>
     <ol style="color: #4b5563;">
-      <li>Log in to your KOMPLEET account</li>
+      <li>Log in to your Kompleet account</li>
       <li>Go to the Filing Center</li>
       <li>Generate your ${formName} form</li>
       <li>Review and download the PDF</li>
@@ -108,7 +108,7 @@ export function generate7DayReminderEmail(
     </div>
     
     <div style="background: #fef3c7; padding: 15px; border-radius: 5px; margin: 20px 0;">
-      <p style="margin: 0; color: #92400e;"><strong>⚠️ Important:</strong> Late filing may result in penalties as prescribed by the Nigeria Tax Act 2025.</p>
+      <p style="margin: 0; color: #92400e;">Late filing may attract penalties.</p>
     </div>
     
     <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
@@ -117,8 +117,8 @@ export function generate7DayReminderEmail(
   </div>
   
   <div style="text-align: center; padding: 20px; color: #9ca3af; font-size: 12px;">
-    <p>This is an automated reminder from KOMPLEET Platform</p>
-    <p>Ivano Technologies Ltd | Nigerian Tax Compliance</p>
+    <p>This is an automated reminder from Kompleet</p>
+    <p>Ivano Technologies Ltd</p>
     <p>
       <a href="${SITE_URL}/notifications" style="color: #10b981; text-decoration: none;">Manage Notifications</a> |
       <a href="${SITE_URL}/privacy" style="color: #10b981; text-decoration: none;">Privacy Policy</a>
@@ -141,7 +141,7 @@ Deadline: ${deadlineFormatted}
 Days Remaining: ${deadline.daysRemaining} days
 
 What You Need to Do:
-1. Log in to your KOMPLEET account
+1. Log in to your Kompleet account
 2. Go to the Filing Center
 3. Generate your ${formName} form
 4. Review and download the PDF
@@ -149,13 +149,13 @@ What You Need to Do:
 
 Go to Filing Center: ${SITE_URL}/filing
 
-⚠️ Important: Late filing may result in penalties as prescribed by the Nigeria Tax Act 2025.
+Late filing may attract penalties.
 
 Need help? Contact our support team at support@ivanotechnologies.com
 
 ---
-This is an automated reminder from KOMPLEET Platform
-Ivano Technologies Ltd | Nigerian Tax Compliance
+This is an automated reminder from Kompleet
+Ivano Technologies Ltd
   `;
 
   return { subject, html, text };
@@ -235,8 +235,8 @@ export function generate3DayReminderEmail(
   </div>
   
   <div style="text-align: center; padding: 20px; color: #9ca3af; font-size: 12px;">
-    <p>This is an automated urgent reminder from KOMPLEET Platform</p>
-    <p>Ivano Technologies Ltd | Nigerian Tax Compliance</p>
+    <p>This is an automated urgent reminder from Kompleet</p>
+    <p>Ivano Technologies Ltd</p>
   </div>
 </body>
 </html>
@@ -262,8 +262,8 @@ File Now: ${SITE_URL}/filing
 Need urgent assistance? Contact us at support@ivanotechnologies.com
 
 ---
-This is an automated urgent reminder from KOMPLEET Platform
-Ivano Technologies Ltd | Nigerian Tax Compliance
+This is an automated urgent reminder from Kompleet
+Ivano Technologies Ltd
   `;
 
   return { subject, html, text };
@@ -329,7 +329,7 @@ export function generate1DayReminderEmail(
     
     <div style="background: #7f1d1d; color: white; padding: 20px; border-radius: 5px; margin: 20px 0;">
       <h3 style="margin-top: 0; font-size: 20px;">⏰ File Immediately</h3>
-      <p style="margin: 0;">Late filing will result in penalties and interest charges. Don't risk it - file your ${formName} return now!</p>
+      <p style="margin: 0;">Late filing may attract penalties. File your ${formName} return now.</p>
     </div>
     
     <div style="text-align: center; margin: 30px 0;">
@@ -342,8 +342,8 @@ export function generate1DayReminderEmail(
   </div>
   
   <div style="text-align: center; padding: 20px; color: #9ca3af; font-size: 12px;">
-    <p style="color: #dc2626; font-weight: bold;">This is your FINAL automated reminder from KOMPLEET Platform</p>
-    <p>Ivano Technologies Ltd | Nigerian Tax Compliance</p>
+    <p style="color: #dc2626; font-weight: bold;">This is your FINAL automated reminder from Kompleet</p>
+    <p>Ivano Technologies Ltd</p>
   </div>
 </body>
 </html>
@@ -360,7 +360,7 @@ FILING DEADLINE: ${deadlineFormatted}
 TIME REMAINING: 24 HOURS
 
 ⏰ FILE IMMEDIATELY
-Late filing will result in penalties and interest charges. Don't risk it - file your ${formName} return now!
+Late filing may attract penalties. File your ${formName} return now.
 
 FILE NOW: ${SITE_URL}/filing
 
@@ -368,8 +368,8 @@ Need Help? Our support team is standing by.
 Email: support@ivanotechnologies.com
 
 ---
-This is your FINAL automated reminder from KOMPLEET Platform
-Ivano Technologies Ltd | Nigerian Tax Compliance
+This is your FINAL automated reminder from Kompleet
+Ivano Technologies Ltd
   `;
 
   return { subject, html, text };
