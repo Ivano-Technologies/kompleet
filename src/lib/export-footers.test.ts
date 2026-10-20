@@ -1,9 +1,22 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import { INVOICE_FOOTER_TEXT } from "@/lib/invoices/invoice-branding";
 import { generateTaxComputationHTML } from "@/lib/financial-statements/tax-computation-html";
 import { generatePITFormHTML } from "@/lib/nrs-filing/form-generator";
+import { generateVATForm } from "@/lib/nrs-forms";
+
+const jsPdfApi = jsPDF as unknown as {
+  API: { autoTable?: (options: unknown) => jsPDF };
+};
+if (!jsPdfApi.API.autoTable) {
+  jsPdfApi.API.autoTable = function (this: jsPDF, options: unknown) {
+    autoTable(this, options as Parameters<typeof autoTable>[1]);
+    return this;
+  };
+}
 
 const files = [
   "src/lib/export-service.ts",
@@ -100,5 +113,27 @@ describe("IVA-191 export footers", () => {
     expect(pitCss).toMatch(/\.form-label\s*\{[^}]*padding-right:\s*12px/);
     expect(html).toMatch(/class="keep">\(1&nbsp;−&nbsp;2\)/);
     expect(html).toMatch(/class="keep">\(4&nbsp;−&nbsp;5\)/);
+  });
+
+  it("VAT return PDF contains no Tax Act wording", () => {
+    const pdf = generateVATForm({
+      businessName: "Ada Foods Ltd",
+      tin: "12345678-0001",
+      address: "14 Marina Road, Lagos",
+      phone: "+234 801 234 5678",
+      email: "ada@adafoods.ng",
+      period: "October 2026",
+      taxYear: 2026,
+      outputVAT: 75_000,
+      inputVAT: 15_000,
+      netVAT: 60_000,
+      penaltyIfAny: 0,
+      totalDue: 60_000,
+    });
+    const out = pdf.output();
+    expect(out).toContain("VAT returns must be filed within 21 days");
+    expect(out).not.toMatch(/Tax Act/i);
+    expect(out).not.toContain("Late filing attracts penalties");
+    expect(out).not.toContain("Late filing may attract penalties");
   });
 });

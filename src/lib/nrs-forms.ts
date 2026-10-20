@@ -451,11 +451,6 @@ export function generateVATForm(data: VATFormData): jsPDF {
     14,
     noteStartY + 6,
   );
-  doc.text(
-    "Late filing attracts penalties as prescribed by the Nigeria Tax Act 2025.",
-    14,
-    noteStartY + 11,
-  );
 
   // Declaration
   const declStartY = noteStartY + 20;
