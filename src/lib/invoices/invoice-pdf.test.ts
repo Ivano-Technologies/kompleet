@@ -112,6 +112,20 @@ describe("IVA-185 invoice PDF", () => {
     // #0A6847 as PDF rgb fill: 0.039 0.408 0.278
     expect(out).not.toMatch(/0\.039\d* 0\.408\d* 0\.278\d* rg/);
   });
+
+  it("prints the seller phone as one header string, not split across lines", () => {
+    const out = text(
+      base({
+        name: "Ada Foods Ltd",
+        email: "ada@adafoods.ng",
+        phone: "+234 801 234 5678",
+        tin: "12345678-0001",
+      }),
+    );
+    expect(out).toMatch(/\(ada@adafoods\.ng {2}· {2}\+234[\s\u00a0]801[\s\u00a0]234[\s\u00a0]5678\)/);
+    expect(out).toContain("TIN 12345678-0001");
+    expect(out).not.toContain("(+234 801 234)");
+  });
 });
 
 describe("IVA-185 logo bytes", () => {

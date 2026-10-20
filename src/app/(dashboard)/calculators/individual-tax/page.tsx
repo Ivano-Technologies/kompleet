@@ -192,7 +192,7 @@ export default function IndividualTaxCalculatorPage() {
               Individual Tax Calculator
             </h1>
             <p className="text-sm text-light-text-tertiary dark:text-dark-text-tertiary">
-              Calculate personal income tax under Nigeria Tax Act 2025
+              Calculate personal income tax
             </p>
           </div>
         </div>
@@ -518,9 +518,8 @@ export default function IndividualTaxCalculatorPage() {
           </CardHeader>
           <CardContent className="p-0 text-sm text-light-text-tertiary dark:text-dark-text-tertiary space-y-2">
             <p>
-              This calculator implements the Nigeria Tax Act 2025 progressive
-              tax rates for individuals. Tax rates and deduction limits are
-              fetched dynamically from the KOMPLEET Tax Rules Engine.
+              This calculator uses progressive tax rates for individuals. Tax
+              rates and deduction limits come from the Kompleet tax rules engine.
             </p>
             <p>
               <strong>Data Source:</strong> Nigeria Revenue Service (NRS),

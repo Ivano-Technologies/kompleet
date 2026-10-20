@@ -202,7 +202,7 @@ function addCalculationSection(
       // Value (right-aligned)
       const valueText =
         typeof row.value === "number"
-          ? `₦${row.value.toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+          ? `NGN ${row.value.toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
           : String(row.value);
 
       doc.text(valueText, pageWidth - 20, yPosition, { align: "right" });

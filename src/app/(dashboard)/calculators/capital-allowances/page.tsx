@@ -222,8 +222,7 @@ export default function CapitalAllowancesCalculator() {
             Capital Allowances Calculator
           </h1>
           <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
-            Calculate annual depreciation allowances for business assets under
-            Nigeria Tax Act 2025
+            Calculate annual depreciation allowances for business assets
           </p>
         </div>
       </div>
@@ -459,9 +458,8 @@ export default function CapitalAllowancesCalculator() {
           About This Calculator
         </h3>
         <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-4">
-          This calculator implements the Nigeria Tax Act 2025 provisions for
-          capital allowances. Allowance rates are fetched dynamically from the
-          KOMPLEET Tax Rules Engine.
+          This calculator estimates capital allowances. Allowance rates come
+          from the Kompleet tax rules engine.
         </p>
         <div className="text-sm space-y-2 text-light-text-tertiary dark:text-dark-text-tertiary">
           <p>
