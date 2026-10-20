@@ -37,6 +37,8 @@ import {
   hasLineDiscount,
   lineDiscount,
   lineNetAmount,
+  vatRateText,
+  vatSummaryRows,
 } from "@/lib/invoices/line-amounts";
 
 /*
@@ -91,12 +93,33 @@ function money(value: number | null | undefined): string {
   })}`;
 }
 
-function formatDate(value: string | null | undefined): string {
-  if (!value) return INV_COPY.notSet;
+const EMPTY_DUE_DATE = "\u2014";
+
+function formatDate(value: string | null | undefined, emptyText: string): string {
+  if (!value) return emptyText;
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime())
     ? value
     : parsed.toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" });
+}
+
+function DateValue({
+  value,
+  emptyText = INV_COPY.notSet,
+}: {
+  value: string | null | undefined;
+  emptyText?: string;
+}) {
+  const text = formatDate(value, emptyText);
+  const empty = text === emptyText;
+  return (
+    <dd
+      className={`text-right ${empty ? "font-normal" : "font-semibold"}`}
+      style={empty ? { color: BW.secondary } : undefined}
+    >
+      {text}
+    </dd>
+  );
 }
 
 /** Left side of the header: logo plus name, name only, or the neutral placeholder. */
@@ -256,6 +279,17 @@ export function InvoicePreview({
   const totals = displayTotals(invoice);
   const subtotal = totals.subtotal || totals.total_amount || 0;
   const showDiscount = hasLineDiscount(lineItems);
+  const vatRows =
+    lineItems.length > 0
+      ? vatSummaryRows(lineItems)
+      : totals.vat_amount > 0
+        ? [{ label: "VAT", vat: totals.vat_amount }]
+        : [];
+  const mixedVat = vatRows.length > 1;
+  const displayItems =
+    lineItems.length > 0
+      ? lineItems
+      : [{ description: invoice.title || "Services", quantity: 1, unit_price: subtotal, vat_rate: 0, amount: subtotal }];
   const labelCls = "text-[10px] font-bold tracking-[0.08em] uppercase";
 
   return (
@@ -266,7 +300,7 @@ export function InvoicePreview({
 
       <article
         data-testid="invoice-document"
-        className="rounded-xl p-5 sm:p-7 space-y-5"
+        className="rounded-xl p-4 sm:p-7 space-y-5 min-w-0"
         style={{ background: BW.background, color: BW.text, border: `1px solid ${BW.hairline}` }}
       >
         {/* Header: business on the left, Ivano V mark on the right */}
@@ -359,17 +393,51 @@ export function InvoicePreview({
 
           <dl className="grid grid-cols-[auto_auto] gap-x-4 gap-y-1.5 text-xs self-start">
             <dt style={{ color: BW.secondary }}>Issue date</dt>
-            <dd className="text-right font-semibold">{formatDate(invoice.invoice_date)}</dd>
+            <DateValue value={invoice.invoice_date} />
             <dt style={{ color: BW.secondary }}>Due date</dt>
-            <dd className="text-right font-semibold">{formatDate(invoice.due_date)}</dd>
+            <DateValue value={invoice.due_date} emptyText={EMPTY_DUE_DATE} />
             <dt style={{ color: BW.secondary }}>{attachmentNote ? "Attachment" : "Currency"}</dt>
             <dd className="text-right font-semibold break-all">{attachmentNote ?? "NGN (₦)"}</dd>
           </dl>
         </div>
 
-        {/* Line Items: no fills, black header rule, grey hairlines. Amount is the pre-VAT net. */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm" data-testid="invoice-items">
+        {/* Line items: black/grey ink on white only. Below 480px each line
+            stacks at body size (same as Subtotal). From 480px the table is
+            unchanged. PDF layout is separate and stays as it is. */}
+        <div
+          className="max-[479px]:block min-[480px]:hidden text-sm"
+          data-testid="invoice-items-stack"
+        >
+          {displayItems.map((item, index) => {
+            const meta = mixedVat
+              ? `${item.quantity} × ${money(item.unit_price)} · ${vatRateText(item.vat_rate)}`
+              : `${item.quantity} × ${money(item.unit_price)}`;
+            return (
+              <div
+                key={index}
+                className="py-2.5"
+                style={{ borderBottom: `1px solid ${BW.hairline}` }}
+              >
+                <p className="break-words">{item.description}</p>
+                <div className="mt-1 flex items-baseline justify-between gap-3">
+                  <span className="tabular-nums" style={{ color: BW.secondary }}>
+                    {meta}
+                  </span>
+                  <span className="tabular-nums font-bold whitespace-nowrap">{money(lineNetAmount(item))}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <div className="min-w-0 max-[479px]:hidden">
+          <table className="w-full table-fixed text-sm" data-testid="invoice-items">
+            <colgroup>
+              <col />
+              <col className="w-12" />
+              <col className="w-24" />
+              {showDiscount && <col className="w-24" />}
+              <col className="w-28" />
+            </colgroup>
             <thead>
               <tr style={{ borderBottom: `1px solid ${BW.rule}` }}>
                 <th className="py-2 pr-2 text-left text-[11px] font-bold">Description</th>
@@ -382,12 +450,9 @@ export function InvoicePreview({
               </tr>
             </thead>
             <tbody>
-              {(lineItems.length > 0
-                ? lineItems
-                : [{ description: invoice.title || "Services", quantity: 1, unit_price: subtotal, vat_rate: 0, amount: subtotal }]
-              ).map((item, index) => (
+              {displayItems.map((item, index) => (
                 <tr key={index} style={{ borderBottom: `1px solid ${BW.hairline}` }}>
-                  <td className="py-2.5 pr-2 break-words">{item.description}</td>
+                  <td className="py-2.5 pr-2 min-w-0 break-words">{item.description}</td>
                   <td className="py-2.5 px-2 text-right tabular-nums">{item.quantity}</td>
                   <td className="py-2.5 px-2 text-right tabular-nums whitespace-nowrap">
                     {money(item.unit_price)}
@@ -413,12 +478,12 @@ export function InvoicePreview({
               <span style={{ color: BW.secondary }}>Subtotal</span>
               <span className="tabular-nums">{money(subtotal)}</span>
             </div>
-            {totals.vat_amount > 0 && (
-              <div className="flex justify-between">
-                <span style={{ color: BW.secondary }}>VAT</span>
-                <span className="tabular-nums">{money(totals.vat_amount)}</span>
+            {vatRows.map((row) => (
+              <div key={row.label} className="flex justify-between" data-testid="invoice-vat-row">
+                <span style={{ color: BW.secondary }}>{row.label}</span>
+                <span className="tabular-nums">{money(row.vat)}</span>
               </div>
-            )}
+            ))}
             <div
               className="flex justify-between pt-2 pb-1.5 font-bold text-base"
               style={{ borderBottom: `2px solid ${BW.rule}` }}

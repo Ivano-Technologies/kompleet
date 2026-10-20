@@ -87,9 +87,9 @@ export const ADD_ITEM_BEFORE_ISSUE = "Add at least one item before issuing this 
 /** Friendly copy when updateMine is asked to change status. */
 export const STATUS_VIA_UPDATE = "This update can't change the invoice status.";
 
-/** quantity x rate, before discount and VAT. */
+/** quantity x rate, before discount and VAT. Rate is limited to 2 decimals. */
 export function lineGrossAmount(item: LineInput): number {
-  return num(item.quantity) * num(item.unit_price);
+  return num(item.quantity) * roundMoney(num(item.unit_price));
 }
 
 /** The line discount in kobo, clamped to 0..(quantity x rate). */
@@ -184,6 +184,19 @@ export function vatByRate(items: LineInput[]): VatLine[] {
     .filter((group) => group.rate !== 0)
     .sort((a, b) => b.rate - a.rate)
     .map((group) => ({ rate: group.rate, base: fromKobo(group.baseKobo), vat: fromKobo(group.vatKobo) }));
+}
+
+export type VatSummaryRow = { label: string; vat: number };
+
+/**
+ * Totals rows for the form, preview and PDF.
+ * Zero-naira VAT is hidden. Every remaining row shows its rate the same
+ * way, single or mixed: "VAT 7.5%", "VAT 5%".
+ */
+export function vatSummaryRows(items: LineInput[]): VatSummaryRow[] {
+  return vatByRate(items)
+    .filter((line) => line.vat !== 0)
+    .map((line) => ({ label: vatRowLabel(line.rate), vat: line.vat }));
 }
 
 /** True when at least one line has a (clamped) discount, so a Discount column should show. */

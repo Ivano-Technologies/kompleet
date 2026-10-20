@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 const trustBarItems = [
   "11 bank parsers",
-  "Easy invoicing",
+  "Simple invoicing",
   "Clean reports",
 ];
 
@@ -26,7 +26,7 @@ const capabilities = [
   {
     src: "/assets/illustrations/spot-invoice.svg",
     fallback: "/assets/illustrations/spot-invoice.png",
-    title: "Easy invoicing",
+    title: "Simple invoicing",
     desc: "Create professional invoices in minutes. Record payment when the customer settles.",
   },
   {
@@ -74,7 +74,7 @@ export default function HomePage() {
                 Grow Your Business.
               </h1>
               <p className="max-w-md text-sm text-text-2">
-                Nigerian bank imports, easy invoicing and clean financial reports.
+                Nigerian bank imports, simple invoicing and clean financial reports.
               </p>
               <HeroAuthCard />
             </div>

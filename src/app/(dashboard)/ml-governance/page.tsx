@@ -226,7 +226,7 @@ export default function MLGovernanceDashboard() {
                           Created:{" "}
                           {new Date(model.createdAt).toLocaleDateString()}
                           {model.deployedAt &&
-                            ` - Deployed: ${new Date(model.deployedAt).toLocaleDateString()}`}
+                            ` · Deployed: ${new Date(model.deployedAt).toLocaleDateString()}`}
                         </p>
                       </div>
                       <Button variant="ghost" size="sm" className="rounded-lg">
