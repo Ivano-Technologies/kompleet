@@ -195,32 +195,36 @@ export function generatePITFormHTML(data: PITFormData): string {
       <span class="form-value">${data.taxYear}</span>
     </div>
   </div>
-  <div class="form-section">
-    <div class="form-row">
-      <span class="form-label">1. Gross Income</span>
-      <span class="form-value">${formatCurrency(data.grossIncome)}</span>
-    </div>
-    <div class="form-row">
-      <span class="form-label">2. Less: Allowable Deductions</span>
-      <span class="form-value">${formatCurrency(data.allowableDeductions)}</span>
-    </div>
-    <div class="form-row highlight">
-      <span class="form-label">3. Taxable Income <span class="keep">(1&nbsp;−&nbsp;2)</span></span>
-      <span class="form-value">${formatCurrency(data.taxableIncome)}</span>
-    </div>
-    <div class="form-row highlight">
-      <span class="form-label">4. Tax Liability</span>
-      <span class="form-value">${formatCurrency(data.taxLiability)}</span>
-    </div>
-    <div class="form-row">
-      <span class="form-label">5. Less: Tax Paid</span>
-      <span class="form-value">${formatCurrency(data.taxPaid)}</span>
-    </div>
-    <div class="form-row highlight">
-      <span class="form-label">6. Tax Due <span class="keep">(4&nbsp;−&nbsp;5)</span></span>
-      <span class="form-value">${formatCurrency(data.taxDue)}</span>
-    </div>
-  </div>
+  <table>
+    <tr>
+      <th>Description</th>
+      <th class="amount">${AMOUNT_NGN_HEADER}</th>
+    </tr>
+    <tr>
+      <td>1. Gross Income</td>
+      <td class="amount">${formatCurrency(data.grossIncome)}</td>
+    </tr>
+    <tr>
+      <td>2. Less: Allowable Deductions</td>
+      <td class="amount">${formatCurrency(data.allowableDeductions)}</td>
+    </tr>
+    <tr>
+      <td>3. Taxable Income <span class="keep">(1&nbsp;−&nbsp;2)</span></td>
+      <td class="amount">${formatCurrency(data.taxableIncome)}</td>
+    </tr>
+    <tr>
+      <td>4. Tax Liability</td>
+      <td class="amount">${formatCurrency(data.taxLiability)}</td>
+    </tr>
+    <tr>
+      <td>5. Less: Tax Paid</td>
+      <td class="amount">${formatCurrency(data.taxPaid)}</td>
+    </tr>
+    <tr>
+      <td>6. Tax Due <span class="keep">(4&nbsp;−&nbsp;5)</span></td>
+      <td class="amount">${formatCurrency(data.taxDue)}</td>
+    </tr>
+  </table>
   <div style="margin-top: 40px;">
     <p>I declare that the information provided in this return is true and correct to the best of my knowledge.</p>
     <div style="margin-top: 40px;">
@@ -280,40 +284,44 @@ export function generateCITFormHTML(data: CITFormData): string {
       <span class="form-value">${data.taxYear}</span>
     </div>
   </div>
-  <div class="form-section">
-    <div class="form-row">
-      <span class="form-label">1. Annual Turnover</span>
-      <span class="form-value">${formatCurrency(data.turnover)}</span>
-    </div>
-    <div class="form-row">
-      <span class="form-label">2. Accounting Profit</span>
-      <span class="form-value">${formatCurrency(data.accountingProfit)}</span>
-    </div>
-    <div class="form-row">
-      <span class="form-label">3. Tax Adjustments (Add-backs less Deductions)</span>
-      <span class="form-value">${formatCurrency(data.taxAdjustments)}</span>
-    </div>
-    <div class="form-row highlight">
-      <span class="form-label">4. Taxable Income (2 + 3)</span>
-      <span class="form-value">${formatCurrency(data.taxableIncome)}</span>
-    </div>
-    <div class="form-row">
-      <span class="form-label">5. Applicable Tax Rate</span>
-      <span class="form-value">${data.taxRate}%</span>
-    </div>
-    <div class="form-row highlight">
-      <span class="form-label">6. Tax Liability (4 × 5)</span>
-      <span class="form-value">${formatCurrency(data.taxLiability)}</span>
-    </div>
-    <div class="form-row">
-      <span class="form-label">7. Less: Tax Paid</span>
-      <span class="form-value">${formatCurrency(data.taxPaid)}</span>
-    </div>
-    <div class="form-row highlight">
-      <span class="form-label">8. Tax Due after tax paid</span>
-      <span class="form-value">${formatCurrency(data.taxDue)}</span>
-    </div>
-  </div>
+  <table>
+    <tr>
+      <th>Description</th>
+      <th class="amount">${AMOUNT_NGN_HEADER}</th>
+    </tr>
+    <tr>
+      <td>1. Annual Turnover</td>
+      <td class="amount">${formatCurrency(data.turnover)}</td>
+    </tr>
+    <tr>
+      <td>2. Accounting Profit</td>
+      <td class="amount">${formatCurrency(data.accountingProfit)}</td>
+    </tr>
+    <tr>
+      <td>3. Tax Adjustments (Add-backs less Deductions)</td>
+      <td class="amount">${formatCurrency(data.taxAdjustments)}</td>
+    </tr>
+    <tr>
+      <td>4. Taxable Income (2 + 3)</td>
+      <td class="amount">${formatCurrency(data.taxableIncome)}</td>
+    </tr>
+    <tr>
+      <td>5. Applicable Tax Rate</td>
+      <td class="amount">${data.taxRate}%</td>
+    </tr>
+    <tr>
+      <td>6. Tax Liability (4 × 5)</td>
+      <td class="amount">${formatCurrency(data.taxLiability)}</td>
+    </tr>
+    <tr>
+      <td>7. Less: Tax Paid</td>
+      <td class="amount">${formatCurrency(data.taxPaid)}</td>
+    </tr>
+    <tr>
+      <td>8. Tax Due after tax paid</td>
+      <td class="amount">${formatCurrency(data.taxDue)}</td>
+    </tr>
+  </table>
   <div style="margin-top: 40px;">
     <p>I declare that the information provided in this return is true and correct to the best of my knowledge.</p>
     <div style="margin-top: 40px;">

@@ -1,6 +1,7 @@
 import {
   AMOUNT_NGN_HEADER,
   exportHtmlChrome,
+  formatHouseDate,
 } from "@/lib/export-chrome";
 
 function formatCurrency(amount: number) {
@@ -11,11 +12,7 @@ function formatCurrency(amount: number) {
 }
 
 function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
+  return formatHouseDate(dateStr);
 }
 
 type LineItem = { category: string; amount: number };

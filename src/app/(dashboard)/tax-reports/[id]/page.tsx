@@ -178,6 +178,9 @@ export default function TaxReportDetailPage() {
           Tax Year {report.tax_year} | {formatDate(report.period_start)} to{" "}
           {formatDate(report.period_end)}
         </p>
+        <p className="text-light-text-secondary dark:text-dark-text-secondary">
+          Prepared with Kompleet
+        </p>
       </div>
 
       {/* Business Classification */}

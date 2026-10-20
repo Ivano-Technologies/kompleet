@@ -229,6 +229,36 @@ describe("IVA-213 export house style", () => {
     expect(vatHtml).toContain('class="amount"');
     expect(vatHtml).toContain(PREPARED_FOR_RECORDS);
 
+    const pitHtml = generatePITFormHTML({
+      taxpayerName: "Ada Okonkwo",
+      tin: "12345678-0001",
+      taxYear: 2026,
+      grossIncome: 4_500_000,
+      allowableDeductions: 500_000,
+      taxableIncome: 4_000_000,
+      taxLiability: 412_500,
+      taxPaid: 50_000,
+      taxDue: 362_500,
+    });
+    expect(pitHtml).toContain("Personal income tax summary");
+    expect(pitHtml).toContain(AMOUNT_NGN_HEADER);
+
+    const citHtml = generateCITFormHTML({
+      companyName: "Ada Foods Ltd",
+      tin: "12345678-0001",
+      taxYear: 2026,
+      turnover: 10_000_000,
+      accountingProfit: 4_500_000,
+      taxAdjustments: 200_000,
+      taxableIncome: 4_700_000,
+      taxRate: 30,
+      taxLiability: 1_410_000,
+      taxPaid: 100_000,
+      taxDue: 1_310_000,
+    });
+    expect(citHtml).toContain("Company income tax summary");
+    expect(citHtml).toContain(AMOUNT_NGN_HEADER);
+
     const pnl = generateProfitLossHTML({
       period: { start: "2026-01-01", end: "2026-03-31" },
       revenue: { items: [{ category: "Sales", amount: 100000 }], total: 100000 },
@@ -295,5 +325,17 @@ describe("IVA-213 admin team at 390", () => {
     expect(text).toContain("flex flex-col gap-1");
     expect(text).toContain("sm:hidden");
     expect(text).toContain("hidden sm:block");
+  });
+});
+
+describe("IVA-211 tax report print tagline", () => {
+  it("uses Prepared with Kompleet instead of a Tax Platform claim", () => {
+    const text = readFileSync(
+      resolve("src/app/(dashboard)/tax-reports/[id]/page.tsx"),
+      "utf8",
+    );
+    expect(text).toContain("Prepared with Kompleet");
+    expect(text).not.toMatch(/Nigerian Tax Platform/i);
+    expect(text).not.toMatch(/Tax Act/i);
   });
 });

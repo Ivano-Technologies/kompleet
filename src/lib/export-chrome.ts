@@ -21,6 +21,20 @@ export const AMOUNT_NGN_HEADER = "Amount (NGN)";
 export const PREPARED_FOR_RECORDS = "Prepared with Kompleet for your records.";
 export const PREPARED_WITH_KOMPLEET = "Prepared with Kompleet";
 
+/** House date: 31 Mar 2027. No weekday. Parsed as a UTC calendar date. */
+export function formatHouseDate(isoDate: string): string {
+  const datePart = isoDate.split("T")[0];
+  const [year, month, day] = datePart.split("-").map(Number);
+  if (!year || !month || !day) return isoDate;
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return date.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
+
 export { INVOICE_FOOTER_TEXT };
 
 /** Draw the grey Ivano V mark, right aligned at `right`, top at `top`. Height in mm. */

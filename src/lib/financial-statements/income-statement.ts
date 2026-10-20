@@ -6,6 +6,7 @@
 import {
   AMOUNT_NGN_HEADER,
   exportHtmlChrome,
+  formatHouseDate,
 } from "@/lib/export-chrome";
 
 export interface Transaction {
@@ -128,8 +129,8 @@ export function generateIncomeStatementHTML(data: IncomeStatementData): string {
     body: `
   <h1>Income Statement</h1>
   <p style="text-align:center;">
-    Period: ${new Date(period.startDate).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
-    to ${new Date(period.endDate).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+    Period: ${formatHouseDate(period.startDate)}
+    to ${formatHouseDate(period.endDate)}
   </p>
   <h2>Revenue</h2>
   <table>
