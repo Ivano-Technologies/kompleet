@@ -206,8 +206,7 @@ export default function PropertyTaxCalculator() {
             Property Tax Calculator
           </h1>
           <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
-            Calculate withholding tax (WHT) on rental income under Nigeria Tax
-            Act 2025
+            Calculate withholding tax (WHT) on rental income
           </p>
         </div>
       </div>

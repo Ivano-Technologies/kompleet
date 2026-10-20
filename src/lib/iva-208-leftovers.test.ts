@@ -10,7 +10,7 @@ import { generateCITFormHTML } from "@/lib/nrs-filing/form-generator";
 import { renderInvoicePdf, type InvoicePdfInput } from "@/lib/invoices/invoice-pdf";
 
 const EMOJI = /\p{Extended_Pictographic}/u;
-const TAX_ACT = /Nigeria Tax Act|Tax Act/i;
+const TAX_ACT = /Nigeria\s+Tax\s+Act|Tax\s+Act/i;
 const FIRS = /\bFIRS\b/;
 const GREEN = /#1a5f3a|#e8f5e9|#10b981|#0A6847/i;
 

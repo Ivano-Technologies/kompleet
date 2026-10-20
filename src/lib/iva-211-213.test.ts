@@ -29,7 +29,8 @@ if (!jsPdfApi.API.autoTable) {
   };
 }
 
-const TAX_ACT = /Tax Act/i;
+const TAX_ACT = /Tax\s+Act/i;
+const NIGERIA_TAX_ACT = /Nigeria\s+Tax\s+Act/i;
 const COMPLIANT = /\bcompliant\b/i;
 const BANNED_REMINDER = /Urgent|Final notice|Last Day to File|TOMORROW!|24 HOURS|File now\. Do not delay|standing by|call our hotline|FINAL automated/i;
 
@@ -55,11 +56,23 @@ describe("IVA-211 copy: no Tax Act or compliant claims", () => {
     const hits: string[] = [];
     for (const file of files) {
       const text = readFileSync(file, "utf8");
-      if (TAX_ACT.test(text) || COMPLIANT.test(text)) {
+      if (TAX_ACT.test(text) || NIGERIA_TAX_ACT.test(text) || COMPLIANT.test(text)) {
         hits.push(relative(process.cwd(), file));
       }
     }
     expect(hits).toEqual([]);
+    const propertyTax = files.find((file) =>
+      file.replace(/\\/g, "/").endsWith("calculators/property-tax/page.tsx"),
+    );
+    expect(propertyTax).toBeDefined();
+    expect(readFileSync(propertyTax!, "utf8")).not.toMatch(TAX_ACT);
+    expect(readFileSync(propertyTax!, "utf8")).not.toMatch(NIGERIA_TAX_ACT);
+  });
+
+  it("treats a line-broken Tax Act subtitle as a hit", () => {
+    const split = "under Nigeria Tax\n            Act 2025";
+    expect(TAX_ACT.test(split)).toBe(true);
+    expect(NIGERIA_TAX_ACT.test(split)).toBe(true);
   });
 
   it("fails if Tax Act or compliant appears in export output", () => {
