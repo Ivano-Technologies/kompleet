@@ -6,6 +6,7 @@
 
 import jsPDF from "jspdf";
 import "jspdf-autotable";
+import { INVOICE_FOOTER_TEXT } from "@/lib/invoices/invoice-branding";
 
 // Extend jsPDF type for autoTable
 declare module "jspdf" {
@@ -450,11 +451,6 @@ export function generateVATForm(data: VATFormData): jsPDF {
     14,
     noteStartY + 6,
   );
-  doc.text(
-    "Late filing may attract penalties.",
-    14,
-    noteStartY + 11,
-  );
 
   // Declaration
   const declStartY = noteStartY + 20;
@@ -492,7 +488,7 @@ function addFooter(doc: jsPDF): void {
   doc.setFont("helvetica", "normal");
   doc.setTextColor(128, 128, 128);
 
-  doc.text("Powered by Kompleet", pageWidth / 2, pageHeight - 15, {
+  doc.text(INVOICE_FOOTER_TEXT, pageWidth / 2, pageHeight - 15, {
     align: "center",
   });
   doc.text(
