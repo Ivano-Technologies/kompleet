@@ -145,6 +145,27 @@ describe("IVA-185 InvoicePreview discount column and totals", () => {
     expect(screen.queryByText("Discount")).toBeNull();
     expect(screen.getByText("Subtotal").parentElement).toHaveTextContent("100.00");
     expect(screen.getByTestId("invoice-total")).toHaveTextContent("100.00");
+    expect(screen.queryByTestId("invoice-vat-row")).toBeNull();
+  });
+
+  it("shows one VAT row per rate when rates are mixed", () => {
+    render(
+      <InvoicePreview
+        invoice={invoice({
+          line_items: [
+            { description: "A", quantity: 1, unit_price: 1000, vat_rate: 7.5, amount: 1000 },
+            { description: "B", quantity: 1, unit_price: 200, vat_rate: 5, amount: 200 },
+          ],
+          subtotal: 1200,
+          vat_amount: 85,
+          total_amount: 1285,
+        })}
+        profile={profile()}
+        onOpenSettings={() => {}}
+      />,
+    );
+    const rows = screen.getAllByTestId("invoice-vat-row");
+    expect(rows.map((row) => row.textContent)).toEqual(["VAT 7.5%₦75.00", "VAT 5%₦10.00"]);
   });
 
   it("shows the Discount column when a line has a discount, and no Discount totals row", () => {

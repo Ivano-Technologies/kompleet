@@ -62,9 +62,9 @@ function num(value: unknown): number {
 /** Friendly form copy when a line discount is larger than the line total. */
 export const DISCOUNT_TOO_BIG = "Discount can't be more than the line total.";
 
-/** quantity x rate, before discount and VAT. */
+/** quantity x rate, before discount and VAT. Rate is limited to 2 decimals. */
 export function lineGrossAmount(item: LineInput): number {
-  return num(item.quantity) * num(item.unit_price);
+  return num(item.quantity) * roundMoney(num(item.unit_price));
 }
 
 /** The line discount in kobo, clamped to 0..(quantity x rate). */
@@ -159,6 +159,20 @@ export function vatByRate(items: LineInput[]): VatLine[] {
     .filter((group) => group.rate !== 0)
     .sort((a, b) => b.rate - a.rate)
     .map((group) => ({ rate: group.rate, base: fromKobo(group.baseKobo), vat: fromKobo(group.vatKobo) }));
+}
+
+export type VatSummaryRow = { label: string; vat: number };
+
+/**
+ * Totals rows for the form, preview and PDF.
+ * Zero-naira VAT is hidden. One rate stays a plain "VAT" row. Mixed rates
+ * are labelled "VAT 7.5%", "VAT 5%", matching Coco's invoice rule.
+ */
+export function vatSummaryRows(items: LineInput[]): VatSummaryRow[] {
+  const lines = vatByRate(items).filter((line) => line.vat !== 0);
+  if (lines.length === 0) return [];
+  if (lines.length === 1) return [{ label: "VAT", vat: lines[0]!.vat }];
+  return lines.map((line) => ({ label: vatRowLabel(line.rate), vat: line.vat }));
 }
 
 /** True when at least one line has a (clamped) discount, so a Discount column should show. */

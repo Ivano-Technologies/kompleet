@@ -235,3 +235,29 @@ describe("IVA-185 VAT row label matches the invoice", () => {
   });
 });
 
+describe("IVA-191 vatSummaryRows and 2-decimal unit price", () => {
+  it("hides a ₦0.00 VAT row, uses VAT for one rate, and labels mixed rates", async () => {
+    const { vatSummaryRows } = await import("./line-amounts");
+    expect(vatSummaryRows([{ quantity: 1, unit_price: 10, vat_rate: 0 }])).toEqual([]);
+    expect(vatSummaryRows([{ quantity: 1, unit_price: 1000, vat_rate: 7.5 }])).toEqual([
+      { label: "VAT", vat: 75 },
+    ]);
+    expect(
+      vatSummaryRows([
+        { quantity: 1, unit_price: 1000, vat_rate: 7.5 },
+        { quantity: 1, unit_price: 200, vat_rate: 5 },
+      ]),
+    ).toEqual([
+      { label: "VAT 7.5%", vat: 75 },
+      { label: "VAT 5%", vat: 10 },
+    ]);
+  });
+
+  it("limits unit price to 2 decimals so the printed rate matches the line total", async () => {
+    const { lineNetAmount, roundMoney, totalsFromLines } = await import("./line-amounts");
+    expect(roundMoney(33.335)).toBe(33.34);
+    expect(lineNetAmount({ quantity: 3, unit_price: 33.335, vat_rate: 0 })).toBe(100.02);
+    expect(totalsFromLines([{ quantity: 3, unit_price: 33.335, vat_rate: 0 }]).subtotal).toBe(100.02);
+  });
+});
+

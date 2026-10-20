@@ -37,6 +37,7 @@ import {
   hasLineDiscount,
   lineDiscount,
   lineNetAmount,
+  vatSummaryRows,
 } from "@/lib/invoices/line-amounts";
 
 /*
@@ -269,6 +270,12 @@ export function InvoicePreview({
   const totals = displayTotals(invoice);
   const subtotal = totals.subtotal || totals.total_amount || 0;
   const showDiscount = hasLineDiscount(lineItems);
+  const vatRows =
+    lineItems.length > 0
+      ? vatSummaryRows(lineItems)
+      : totals.vat_amount > 0
+        ? [{ label: "VAT", vat: totals.vat_amount }]
+        : [];
   const labelCls = "text-[10px] font-bold tracking-[0.08em] uppercase";
 
   return (
@@ -426,12 +433,12 @@ export function InvoicePreview({
               <span style={{ color: BW.secondary }}>Subtotal</span>
               <span className="tabular-nums">{money(subtotal)}</span>
             </div>
-            {totals.vat_amount > 0 && (
-              <div className="flex justify-between">
-                <span style={{ color: BW.secondary }}>VAT</span>
-                <span className="tabular-nums">{money(totals.vat_amount)}</span>
+            {vatRows.map((row) => (
+              <div key={row.label} className="flex justify-between" data-testid="invoice-vat-row">
+                <span style={{ color: BW.secondary }}>{row.label}</span>
+                <span className="tabular-nums">{money(row.vat)}</span>
               </div>
-            )}
+            ))}
             <div
               className="flex justify-between pt-2 pb-1.5 font-bold text-base"
               style={{ borderBottom: `2px solid ${BW.rule}` }}

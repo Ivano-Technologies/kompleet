@@ -8,7 +8,7 @@
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { sniffImage } from "../../../convex/lib/imageMeta";
-import { hasLineDiscount, lineDiscount, lineNetAmount, totalsFromLines, vatRateText } from "./line-amounts";
+import { hasLineDiscount, lineDiscount, lineNetAmount, totalsFromLines, vatRateText, vatSummaryRows } from "./line-amounts";
 import {
   INVOICE_BW,
   INVOICE_FOOTER_TEXT,
@@ -328,7 +328,13 @@ export function renderInvoicePdf(input: InvoicePdfInput): jsPDF {
       ? totalsFromLines(input.lineItems)
       : { subtotal: input.subtotal, vat_amount: input.vatAmount, total_amount: input.totalAmount };
   row("Subtotal", money(totals.subtotal));
-  row("VAT", money(totals.vat_amount));
+  if (input.lineItems.length > 0) {
+    for (const vatRow of vatSummaryRows(input.lineItems)) {
+      row(vatRow.label, money(vatRow.vat));
+    }
+  } else if (totals.vat_amount > 0) {
+    row("VAT", money(totals.vat_amount));
+  }
 
   yPos += 3;
   doc.setFont("helvetica", "bold");
