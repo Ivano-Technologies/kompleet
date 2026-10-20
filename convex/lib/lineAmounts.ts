@@ -84,6 +84,9 @@ export const ALREADY_ISSUED = "This invoice has already been issued.";
 /** Friendly copy when issue is attempted with no line items. */
 export const ADD_ITEM_BEFORE_ISSUE = "Add at least one item before issuing this invoice.";
 
+/** Friendly copy when updateMine is asked to change status. */
+export const STATUS_VIA_UPDATE = "This update can't change the invoice status.";
+
 /** quantity x rate, before discount and VAT. */
 export function lineGrossAmount(item: LineInput): number {
   return num(item.quantity) * num(item.unit_price);

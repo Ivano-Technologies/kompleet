@@ -7,7 +7,11 @@ import {
   patchIncludesLines,
   priceInvoiceLines,
 } from "./lib/invoiceAmounts";
-import { ADD_ITEM_BEFORE_ISSUE, ALREADY_ISSUED } from "./lib/lineAmounts";
+import {
+  ADD_ITEM_BEFORE_ISSUE,
+  ALREADY_ISSUED,
+  STATUS_VIA_UPDATE,
+} from "./lib/lineAmounts";
 import { newExternalId } from "./lib/ids";
 import {
   customerInfoFromParty,
@@ -349,6 +353,10 @@ export async function updateMineHandler(ctx: MutationCtx, args: UpdateMineArgs) 
   if (!row || row.userId !== user._id) throw new Error("Invoice not found");
   if (row.isImmutable) throw new Error("Invoice is immutable");
   const patch = (args.patch ?? {}) as Record<string, unknown>;
+  // Status transitions to issued (or any other status) only go through issueMine.
+  if ("status" in patch) {
+    throw new ConvexError(STATUS_VIA_UPDATE);
+  }
   // IVA-190: only reprice when the patch includes lines. Title, notes and
   // client edits leave stored totals alone, including empty-line drafts.
   const priced = patchIncludesLines(patch)
@@ -392,7 +400,6 @@ export async function updateMineHandler(ctx: MutationCtx, args: UpdateMineArgs) 
         : { lineItems: priced.lineItems };
 
   await ctx.db.patch(row._id, {
-    status: typeof patch.status === "string" ? patch.status : row.status,
     notes: typeof patch.notes === "string" ? patch.notes : row.notes,
     title: typeof patch.title === "string" ? patch.title : row.title,
     clientId,
@@ -409,7 +416,13 @@ export async function updateMineHandler(ctx: MutationCtx, args: UpdateMineArgs) 
 export const updateMine = mutation({
   args: {
     externalId: v.string(),
-    patch: v.any(),
+    patch: v.object({
+      title: v.optional(v.string()),
+      notes: v.optional(v.string()),
+      clientExternalId: v.optional(v.union(v.string(), v.null())),
+      lineItems: v.optional(v.any()),
+      line_items: v.optional(v.any()),
+    }),
   },
   returns: invoiceApi,
   handler: updateMineHandler,

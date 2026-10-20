@@ -8,6 +8,7 @@ import {
   ADD_ITEM_BEFORE_ISSUE,
   ALREADY_ISSUED,
   DISCOUNT_TOO_BIG,
+  STATUS_VIA_UPDATE,
   INVALID_QUANTITY,
   INVALID_UNIT_PRICE,
   NEGATIVE_QUANTITY,
@@ -383,6 +384,41 @@ describe("IVA-190 createMine / updateMine server amounts", () => {
     expect(updated.total_amount).toBe(99);
     expect((tables.invoices[0]!.lineItems as Array<{ quantity: number }>)[0]!.quantity).toBe(-2);
   });
+
+  it("updateMine rejects status issued or any other status on an empty draft", async () => {
+    const { db, tables } = fakeDb();
+    await createMineHandler(ctxOf(db), {
+      invoiceNumber: "INV-2026-0005",
+      title: "Empty draft",
+    });
+    tables.invoices[0]!.subtotal = 250;
+    tables.invoices[0]!.totalAmount = 250;
+    const externalId = tables.invoices[0]!.externalId as string;
+
+    await expect(
+      updateMineHandler(ctxOf(db), {
+        externalId,
+        patch: { status: "issued" },
+      }),
+    ).rejects.toMatchObject({ name: "ConvexError", data: STATUS_VIA_UPDATE });
+    await expect(
+      updateMineHandler(ctxOf(db), {
+        externalId,
+        patch: { status: "paid" },
+      }),
+    ).rejects.toMatchObject({ name: "ConvexError", data: STATUS_VIA_UPDATE });
+    await expect(
+      updateMineHandler(ctxOf(db), {
+        externalId,
+        patch: { status: "cancelled" },
+      }),
+    ).rejects.toMatchObject({ name: "ConvexError", data: STATUS_VIA_UPDATE });
+
+    expect(tables.invoices[0]!.status).toBe("draft");
+    expect(tables.invoices[0]!.isImmutable).toBe(false);
+    expect(tables.invoices[0]!.subtotal).toBe(250);
+    expect(tables.invoices[0]!.totalAmount).toBe(250);
+  });
 });
 
 describe("IVA-190 issueMine", () => {
@@ -475,5 +511,20 @@ describe("IVA-190 dead invoice helpers", () => {
     expect(source).toMatch(/patchIncludesLines\(patch\)/);
     expect(source).not.toMatch(/subtotal: args\.subtotal/);
     expect(source).not.toMatch(/totalAmount: args\.totalAmount/);
+    expect(source).not.toMatch(/status: typeof patch\.status/);
+    expect(source).toMatch(/STATUS_VIA_UPDATE/);
+    expect(source).toMatch(/patch: v\.object\(\{/);
+    expect(source).not.toMatch(/patch: v\.any\(\)/);
+  });
+
+  it("invoice updateMine callers do not send status", () => {
+    const route = readFileSync(
+      resolve(process.cwd(), "src/app/api/invoices/[id]/route.ts"),
+      "utf8",
+    );
+    const start = route.indexOf("api.invoices.updateMine");
+    expect(start).toBeGreaterThan(-1);
+    const call = route.slice(start, route.indexOf("});", start));
+    expect(call).not.toMatch(/\bstatus\b/);
   });
 });

@@ -185,6 +185,8 @@ export const USER_MESSAGE_ALLOWLIST: Record<string, string> = {
     "This invoice has already been issued.",
   "Add at least one item before issuing this invoice.":
     "Add at least one item before issuing this invoice.",
+  "This update can't change the invoice status.":
+    "This update can't change the invoice status.",
   "Use PDF, image, or CSV.": "Use a PDF, image or CSV file.",
   "File size must be less than 10MB": "File size must be less than 10MB.",
   "Expense already exists": "This expense already exists.",

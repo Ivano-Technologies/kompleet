@@ -169,6 +169,9 @@ describe("friendly-error", () => {
       expect(
         msg(new FakeConvexError("Add at least one item before issuing this invoice.")),
       ).toBe("Add at least one item before issuing this invoice.");
+      expect(
+        msg(new FakeConvexError("This update can't change the invoice status.")),
+      ).toBe("This update can't change the invoice status.");
     });
 
     it("maps missing tax rules without leaking rule keys", () => {
