@@ -2,7 +2,7 @@
 
 /**
  * Admin: Manage Regulatory Sources
- * Allows compliance team to view and manage tax law sources
+ * Allows the admin team to view and manage tax law sources
  */
 
 import { useEffect, useState } from "react";

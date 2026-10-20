@@ -447,10 +447,6 @@ export default function IndividualTaxCalculatorPage() {
                         net_income: result.netIncome,
                         effective_tax_rate: `${result.effectiveTaxRate.toFixed(2)}%`,
                       },
-                      ruleVersion: "v1.0.0-2025-tax-act",
-                      sources: ["Nigeria Revenue Service (NRS)"],
-                      confidenceLevel:
-                        rules?.tax_bracket_1?.confidence || "unavailable",
                     });
                   }}
                   variant="outline"
@@ -518,17 +514,11 @@ export default function IndividualTaxCalculatorPage() {
           </CardHeader>
           <CardContent className="p-0 text-sm text-light-text-tertiary dark:text-dark-text-tertiary space-y-2">
             <p>
-              This calculator uses progressive tax rates for individuals. Tax
-              rates and deduction limits come from the Kompleet tax rules engine.
+              This calculator estimates individual income tax from the figures
+              you enter. It&apos;s an estimate to help you plan, not tax advice.
             </p>
             <p>
-              <strong>Data Source:</strong> Nigeria Revenue Service (NRS),
-              Confidence level:{" "}
-              {rules?.tax_bracket_1?.confidence || "unavailable"}.
-            </p>
-            <p>
-              <strong>Disclaimer:</strong> This is an estimate. Consult a
-              qualified Nigerian tax professional for personalized advice.
+              For decisions, talk to a qualified tax professional.
             </p>
           </CardContent>
         </div>

@@ -438,10 +438,6 @@ export default function CapitalAllowancesCalculator() {
                   first_year_allowance: result.firstYearAllowance,
                   years_to_full_depreciation: `${result.yearsToFullDepreciation} years`,
                 },
-                ruleVersion: "v1.0.0-2025-tax-act",
-                sources: ["Nigeria Revenue Service (NRS)"],
-                confidenceLevel:
-                  rules.rate_10_percent?.confidence || "unavailable",
               });
             }}
             className="w-full mt-4 btn-secondary rounded-lg"
@@ -458,18 +454,12 @@ export default function CapitalAllowancesCalculator() {
           About This Calculator
         </h3>
         <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-4">
-          This calculator estimates capital allowances. Allowance rates come
-          from the Kompleet tax rules engine.
+          This calculator estimates capital allowances from the figures you
+          enter. It&apos;s an estimate to help you plan, not tax advice.
         </p>
         <div className="text-sm space-y-2 text-light-text-tertiary dark:text-dark-text-tertiary">
           <p>
-            <strong>Data Source:</strong> Nigeria Revenue Service (NRS),
-            Confidence level:{" "}
-            {rules.rate_10_percent?.confidence || "unavailable"}.
-          </p>
-          <p>
-            <strong>Disclaimer:</strong> This is an estimate. Consult a
-            qualified Nigerian tax professional for personalized advice.
+            For decisions, talk to a qualified tax professional.
           </p>
         </div>
       </Card>

@@ -141,7 +141,7 @@ export default function ReportsClient({ stats }: ReportsClientProps) {
       desc: "Comprehensive overview of tax obligations: VAT, WHT, and CIT. Export a summary to support your NRS and JTB filing.",
       href: "/reports/tax-summary",
       icon: Receipt,
-      badge: "Tax Compliance",
+      badge: "Tax reports",
       badgeColor:
         "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
       items: [

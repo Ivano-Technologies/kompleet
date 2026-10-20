@@ -12,7 +12,10 @@
  * names these renderers expect. See docs/TAX_RULE_PROVENANCE.md.
  */
 import type { TaxComputationResult } from "@/lib/services/tax-computation-service";
-import { INVOICE_FOOTER_TEXT } from "@/lib/invoices/invoice-branding";
+import {
+  AMOUNT_NGN_HEADER,
+  exportHtmlChrome,
+} from "@/lib/export-chrome";
 
 export interface TaxComputationData {
   accountingProfit: number;
@@ -88,76 +91,31 @@ export function generateTaxComputationHTML(data: TaxComputationData): string {
     0,
   );
 
-  return `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>Tax Computation Schedule</title>
+  return exportHtmlChrome({
+    title: "Tax Computation Schedule",
+    body: `
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 40px;
-      color: #333;
-      background: #ffffff;
-    }
-    h1 {
-      text-align: center;
-      color: #000000;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 20px;
-    }
-    th, td {
-      padding: 12px;
-      text-align: left;
-      border-bottom: 1px solid #ddd;
-    }
-    th {
-      background-color: #f5f5f5;
-      color: #333;
-      font-weight: bold;
-    }
-    .amount {
-      text-align: right;
-    }
-    .total-row {
-      font-weight: bold;
-      background-color: #f9f9f9;
-    }
+    .total-row { font-weight: bold; background-color: #f9f9f9; }
     .highlight-row {
       font-weight: bold;
       font-size: 1.1em;
-      background-color: #f5f5f5;
-      color: #000000;
+      background-color: #F2F2F2;
+      color: #141413;
     }
-    .section-header {
-      background-color: #f5f5f5;
-      color: #333;
-      font-weight: bold;
-    }
-    .section-header th {
-      background-color: #f5f5f5;
-      color: #333;
-    }
+    .section-header { background-color: #F2F2F2; color: #333; font-weight: bold; }
+    .section-header th { background-color: #F2F2F2; color: #333; }
   </style>
-</head>
-<body>
   <h1>Tax Computation Schedule</h1>
-
   <table>
     <tr>
       <td>Accounting Profit (from Income Statement)</td>
       <td class="amount">${formatCurrency(accountingProfit)}</td>
     </tr>
   </table>
-
   <table>
     <tr class="section-header">
       <th>ADD BACK: Non-Deductible Expenses</th>
-      <th class="amount">Amount (NGN)</th>
+      <th class="amount">${AMOUNT_NGN_HEADER}</th>
     </tr>
     ${Object.entries(taxAdjustments.addBack)
       .map(
@@ -174,11 +132,10 @@ export function generateTaxComputationHTML(data: TaxComputationData): string {
       <td class="amount">${formatCurrency(totalAddBack)}</td>
     </tr>
   </table>
-
   <table>
     <tr class="section-header">
       <th>LESS: Allowable Deductions</th>
-      <th class="amount">Amount (NGN)</th>
+      <th class="amount">${AMOUNT_NGN_HEADER}</th>
     </tr>
     ${Object.entries(taxAdjustments.deductions)
       .map(
@@ -195,7 +152,6 @@ export function generateTaxComputationHTML(data: TaxComputationData): string {
       <td class="amount">${formatCurrency(totalDeductions)}</td>
     </tr>
   </table>
-
   <table>
     <tr class="highlight-row">
       <td>Taxable Income</td>
@@ -209,12 +165,6 @@ export function generateTaxComputationHTML(data: TaxComputationData): string {
       <td>Tax Liability</td>
       <td class="amount">${formatCurrency(taxLiability)}</td>
     </tr>
-  </table>
-
-  <div style="margin-top: 40px; text-align: center; color: #666; font-size: 0.9em;">
-    <p>${INVOICE_FOOTER_TEXT}</p>
-  </div>
-</body>
-</html>
-  `;
+  </table>`,
+  });
 }

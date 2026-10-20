@@ -1,6 +1,5 @@
 /**
  * Email Notification Service
- * Sprint 7: Phase 2 Enhancement
  * Sends deadline reminder emails using Resend API
  */
 
@@ -17,7 +16,7 @@ const SITE_URL = (
   process.env.NEXT_PUBLIC_SITE_URL || "https://kompleet.techivano.com"
 ).replace(/\/+$/, "");
 
-/** Reminder email subtitle. The header already says KOMPLEET. */
+/** Kept for callers that still read the old header line. Not used in the calm layout. */
 export const REMINDER_HEADER =
   "Bookkeeping and invoicing for Nigerian businesses";
 
@@ -35,344 +34,186 @@ export interface DeadlineInfo {
   description: string;
 }
 
-/**
- * Generate 7-day reminder email template
- */
+type FormCopy = {
+  shortName: string;
+  formLabel: string;
+  periodLabel: (taxYear: number) => string;
+  subjectVerb: "filing deadline is" | "is due";
+};
+
+const FORM_COPY: Record<string, FormCopy> = {
+  PIT: {
+    shortName: "PIT",
+    formLabel: "personal income tax",
+    periodLabel: (year) => String(year),
+    subjectVerb: "filing deadline is",
+  },
+  CIT: {
+    shortName: "CIT",
+    formLabel: "company income tax",
+    periodLabel: (year) => String(year),
+    subjectVerb: "filing deadline is",
+  },
+  VAT_Q1: {
+    shortName: "Q1 VAT return",
+    formLabel: "VAT return",
+    periodLabel: (year) => `Q1 ${year}`,
+    subjectVerb: "is due",
+  },
+  VAT_Q2: {
+    shortName: "Q2 VAT return",
+    formLabel: "VAT return",
+    periodLabel: (year) => `Q2 ${year}`,
+    subjectVerb: "is due",
+  },
+  VAT_Q3: {
+    shortName: "Q3 VAT return",
+    formLabel: "VAT return",
+    periodLabel: (year) => `Q3 ${year}`,
+    subjectVerb: "is due",
+  },
+  VAT_Q4: {
+    shortName: "Q4 VAT return",
+    formLabel: "VAT return",
+    periodLabel: (year) => `Q4 ${year}`,
+    subjectVerb: "is due",
+  },
+};
+
+function formCopy(formType: string): FormCopy {
+  return (
+    FORM_COPY[formType] || {
+      shortName: formType,
+      formLabel: formType,
+      periodLabel: (year) => String(year),
+      subjectVerb: "is due",
+    }
+  );
+}
+
+function firstName(userName: string): string {
+  const trimmed = userName.trim();
+  if (!trimmed) return "there";
+  return trimmed.split(/\s+/)[0];
+}
+
+/** House date: 31 Mar 2027. No weekday. Parsed as a calendar date, not local midnight. */
+export function formatReminderDate(isoDate: string): string {
+  const datePart = isoDate.split("T")[0];
+  const [year, month, day] = datePart.split("-").map(Number);
+  if (!year || !month || !day) return isoDate;
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return date.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
+
+function whenPhrase(daysRemaining: number): string {
+  return daysRemaining === 1 ? "tomorrow" : `in ${daysRemaining} days`;
+}
+
+function headingFor(daysRemaining: number): string {
+  return daysRemaining === 1 ? "Due tomorrow" : `Due in ${daysRemaining} days`;
+}
+
+function reminderSubject(deadline: DeadlineInfo): string {
+  const copy = formCopy(deadline.formType);
+  return `Your ${copy.shortName} ${copy.subjectVerb} ${whenPhrase(deadline.daysRemaining)}`;
+}
+
+function buildCalmReminder(userName: string, deadline: DeadlineInfo): EmailTemplate {
+  const copy = formCopy(deadline.formType);
+  const name = firstName(userName);
+  const due = formatReminderDate(deadline.deadlineDate);
+  const period = copy.periodLabel(deadline.taxYear);
+  const heading = headingFor(deadline.daysRemaining);
+  const subject = reminderSubject(deadline);
+  const body =
+    `Your ${copy.formLabel} for ${period} is due on ${due}. You can prepare it in Kompleet now.`;
+  const note =
+    "Filing late can attract penalties, so it's worth getting it done early.";
+  const footer =
+    "You're getting this because reminders are on in Kompleet. Change them in Settings.";
+
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+</head>
+<body style="margin:0;padding:24px;background:#f5f5f5;font-family:Arial,Helvetica,sans-serif;color:#141413;">
+  <div style="max-width:560px;margin:0 auto;background:#ffffff;padding:32px;">
+    <h1 style="margin:0 0 20px 0;font-size:24px;line-height:1.3;font-weight:700;color:#141413;">${heading}</h1>
+    <p style="margin:0 0 12px 0;font-size:16px;line-height:1.5;color:#141413;">Hi ${name},</p>
+    <p style="margin:0 0 24px 0;font-size:16px;line-height:1.5;color:#141413;">${body}</p>
+    <table role="presentation" style="width:100%;border-collapse:collapse;margin:0 0 24px 0;font-size:15px;color:#141413;">
+      <tr>
+        <td style="padding:8px 0;border-bottom:1px solid #eeeeee;color:#555555;">Form</td>
+        <td style="padding:8px 0;border-bottom:1px solid #eeeeee;text-align:right;">${copy.formLabel}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px 0;border-bottom:1px solid #eeeeee;color:#555555;">Period</td>
+        <td style="padding:8px 0;border-bottom:1px solid #eeeeee;text-align:right;">${period}</td>
+      </tr>
+      <tr>
+        <td style="padding:8px 0;color:#555555;">Due date</td>
+        <td style="padding:8px 0;text-align:right;">${due}</td>
+      </tr>
+    </table>
+    <p style="margin:0 0 28px 0;font-size:14px;line-height:1.5;color:#6b6b6b;">${note}</p>
+    <p style="margin:0 0 32px 0;">
+      <a href="${SITE_URL}" style="display:inline-block;background:#141413;color:#ffffff;padding:12px 24px;text-decoration:none;font-size:15px;font-weight:600;">Open Kompleet</a>
+    </p>
+    <p style="margin:0 0 8px 0;font-size:12px;line-height:1.5;color:#6b6b6b;">${footer}</p>
+    <p style="margin:0;font-size:12px;line-height:1.5;color:#6b6b6b;">Ivano Technologies Ltd</p>
+  </div>
+</body>
+</html>`;
+
+  const text = `${heading}
+
+Hi ${name},
+
+${body}
+
+Form: ${copy.formLabel}
+Period: ${period}
+Due date: ${due}
+
+${note}
+
+Open Kompleet: ${SITE_URL}
+
+${footer}
+Ivano Technologies Ltd
+`;
+
+  return { subject, html, text };
+}
+
 export function generate7DayReminderEmail(
   userName: string,
   deadline: DeadlineInfo,
 ): EmailTemplate {
-  const formTypeNames = {
-    PIT: "Personal Income Tax (PIT)",
-    CIT: "Company Income Tax (CIT)",
-    VAT_Q1: "VAT Return Q1",
-    VAT_Q2: "VAT Return Q2",
-    VAT_Q3: "VAT Return Q3",
-    VAT_Q4: "VAT Return Q4",
-  };
-
-  const formName =
-    formTypeNames[deadline.formType as keyof typeof formTypeNames] ||
-    deadline.formType;
-  const deadlineFormatted = new Date(deadline.deadlineDate).toLocaleDateString(
-    "en-NG",
-    {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    },
-  );
-
-  const subject = `Reminder: ${formName} Filing Deadline in 7 Days`;
-
-  const html = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${subject}</title>
-</head>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-    <h1 style="color: white; margin: 0; font-size: 28px;">KOMPLEET</h1>
-    <p style="color: white; margin: 10px 0 0 0; font-size: 14px;">${REMINDER_HEADER}</p>
-  </div>
-  
-  <div style="background: #f9fafb; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 10px 10px;">
-    <h2 style="color: #10b981; margin-top: 0;">Filing Deadline Reminder</h2>
-    
-    <p>Dear ${userName},</p>
-    
-    <p>This is a friendly reminder that your <strong>${formName}</strong> filing deadline is approaching.</p>
-    
-    <div style="background: white; padding: 20px; border-left: 4px solid #fbbf24; margin: 20px 0; border-radius: 5px;">
-      <p style="margin: 0 0 10px 0;"><strong>Form Type:</strong> ${formName}</p>
-      <p style="margin: 0 0 10px 0;"><strong>Tax Year:</strong> ${deadline.taxYear}</p>
-      <p style="margin: 0 0 10px 0;"><strong>Deadline:</strong> ${deadlineFormatted}</p>
-      <p style="margin: 0;"><strong>Days Remaining:</strong> <span style="color: #f59e0b; font-weight: bold;">${deadline.daysRemaining} days</span></p>
-    </div>
-    
-    <h3 style="color: #374151; font-size: 18px;">What You Need to Do:</h3>
-    <ol style="color: #4b5563;">
-      <li>Log in to your Kompleet account</li>
-      <li>Go to the Filing Center</li>
-      <li>Generate your ${formName} form</li>
-      <li>Review and download the PDF</li>
-      <li>Submit to the Nigeria Revenue Service</li>
-    </ol>
-    
-    <div style="text-align: center; margin: 30px 0;">
-      <a href="${SITE_URL}/filing" style="display: inline-block; background: #10b981; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">Go to Filing Center</a>
-    </div>
-    
-    <div style="background: #fef3c7; padding: 15px; border-radius: 5px; margin: 20px 0;">
-      <p style="margin: 0; color: #92400e;">Late filing may attract penalties.</p>
-    </div>
-    
-    <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
-      Need help? Contact our support team at <a href="mailto:support@ivanotechnologies.com" style="color: #10b981;">support@ivanotechnologies.com</a>
-    </p>
-  </div>
-  
-  <div style="text-align: center; padding: 20px; color: #9ca3af; font-size: 12px;">
-    <p>This is an automated reminder from Kompleet</p>
-    <p>Ivano Technologies Ltd</p>
-    <p>
-      <a href="${SITE_URL}/notifications" style="color: #10b981; text-decoration: none;">Manage Notifications</a> |
-      <a href="${SITE_URL}/privacy" style="color: #10b981; text-decoration: none;">Privacy Policy</a>
-    </p>
-  </div>
-</body>
-</html>
-  `;
-
-  const text = `
-KOMPLEET: Filing Deadline Reminder
-
-Dear ${userName},
-
-This is a friendly reminder that your ${formName} filing deadline is approaching.
-
-Form Type: ${formName}
-Tax Year: ${deadline.taxYear}
-Deadline: ${deadlineFormatted}
-Days Remaining: ${deadline.daysRemaining} days
-
-What You Need to Do:
-1. Log in to your Kompleet account
-2. Go to the Filing Center
-3. Generate your ${formName} form
-4. Review and download the PDF
-5. Submit to the Nigeria Revenue Service
-
-Go to Filing Center: ${SITE_URL}/filing
-
-Late filing may attract penalties.
-
-Need help? Contact our support team at support@ivanotechnologies.com
-
----
-This is an automated reminder from Kompleet
-Ivano Technologies Ltd
-  `;
-
-  return { subject, html, text };
+  return buildCalmReminder(userName, { ...deadline, daysRemaining: 7 });
 }
 
-/**
- * Generate 3-day reminder email template
- */
 export function generate3DayReminderEmail(
   userName: string,
   deadline: DeadlineInfo,
 ): EmailTemplate {
-  const formTypeNames = {
-    PIT: "Personal Income Tax (PIT)",
-    CIT: "Company Income Tax (CIT)",
-    VAT_Q1: "VAT Return Q1",
-    VAT_Q2: "VAT Return Q2",
-    VAT_Q3: "VAT Return Q3",
-    VAT_Q4: "VAT Return Q4",
-  };
-
-  const formName =
-    formTypeNames[deadline.formType as keyof typeof formTypeNames] ||
-    deadline.formType;
-  const deadlineFormatted = new Date(deadline.deadlineDate).toLocaleDateString(
-    "en-NG",
-    {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    },
-  );
-
-  const subject = `Urgent: ${formName} Filing Deadline in 3 Days`;
-
-  const html = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${subject}</title>
-</head>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-    <h1 style="color: white; margin: 0; font-size: 28px;">Urgent reminder</h1>
-    <p style="color: white; margin: 10px 0 0 0; font-size: 14px;">${REMINDER_HEADER}</p>
-  </div>
-  
-  <div style="background: #f9fafb; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 10px 10px;">
-    <h2 style="color: #f59e0b; margin-top: 0;">Filing Deadline in 3 Days!</h2>
-    
-    <p>Dear ${userName},</p>
-    
-    <p><strong>Your ${formName} filing deadline is only 3 days away.</strong> Please take action immediately to avoid penalties.</p>
-    
-    <div style="background: white; padding: 20px; border-left: 4px solid #ef4444; margin: 20px 0; border-radius: 5px;">
-      <p style="margin: 0 0 10px 0;"><strong>Form Type:</strong> ${formName}</p>
-      <p style="margin: 0 0 10px 0;"><strong>Tax Year:</strong> ${deadline.taxYear}</p>
-      <p style="margin: 0 0 10px 0;"><strong>Deadline:</strong> ${deadlineFormatted}</p>
-      <p style="margin: 0;"><strong>Days Remaining:</strong> <span style="color: #ef4444; font-weight: bold; font-size: 20px;">${deadline.daysRemaining} days</span></p>
-    </div>
-    
-    <div style="background: #fee2e2; padding: 20px; border-radius: 5px; margin: 20px 0;">
-      <h3 style="color: #991b1b; margin-top: 0; font-size: 18px;">Action required now</h3>
-      <p style="margin: 0; color: #7f1d1d;">Generate and submit your tax form today. Late filing may attract penalties.</p>
-    </div>
-    
-    <div style="text-align: center; margin: 30px 0;">
-      <a href="${SITE_URL}/filing" style="display: inline-block; background: #ef4444; color: white; padding: 16px 40px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 18px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">File now</a>
-    </div>
-    
-    <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
-      Need urgent assistance? Contact us at <a href="mailto:support@ivanotechnologies.com" style="color: #ef4444;">support@ivanotechnologies.com</a>
-    </p>
-  </div>
-  
-  <div style="text-align: center; padding: 20px; color: #9ca3af; font-size: 12px;">
-    <p>This is an automated urgent reminder from Kompleet</p>
-    <p>Ivano Technologies Ltd</p>
-  </div>
-</body>
-</html>
-  `;
-
-  const text = `
-Urgent reminder from KOMPLEET
-
-Dear ${userName},
-
-Your ${formName} filing deadline is only 3 days away. Please file now. Late filing may attract penalties.
-
-Form Type: ${formName}
-Tax Year: ${deadline.taxYear}
-Deadline: ${deadlineFormatted}
-Days Remaining: ${deadline.daysRemaining} days
-
-Action required now
-Generate and submit your tax form today. Late filing may attract penalties.
-
-File now: ${SITE_URL}/filing
-
-Need urgent assistance? Contact us at support@ivanotechnologies.com
-
----
-This is an automated urgent reminder from Kompleet
-Ivano Technologies Ltd
-  `;
-
-  return { subject, html, text };
+  return buildCalmReminder(userName, { ...deadline, daysRemaining: 3 });
 }
 
-/**
- * Generate 1-day reminder email template
- */
 export function generate1DayReminderEmail(
   userName: string,
   deadline: DeadlineInfo,
 ): EmailTemplate {
-  const formTypeNames = {
-    PIT: "Personal Income Tax (PIT)",
-    CIT: "Company Income Tax (CIT)",
-    VAT_Q1: "VAT Return Q1",
-    VAT_Q2: "VAT Return Q2",
-    VAT_Q3: "VAT Return Q3",
-    VAT_Q4: "VAT Return Q4",
-  };
-
-  const formName =
-    formTypeNames[deadline.formType as keyof typeof formTypeNames] ||
-    deadline.formType;
-  const deadlineFormatted = new Date(deadline.deadlineDate).toLocaleDateString(
-    "en-NG",
-    {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    },
-  );
-
-  const subject = `Final notice: ${formName} Filing Deadline Tomorrow`;
-
-  const html = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${subject}</title>
-</head>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-  <div style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); padding: 30px; text-align: center; border-radius: 10px 10px 0 0;">
-    <h1 style="color: white; margin: 0; font-size: 32px;">Final notice</h1>
-    <p style="color: white; margin: 10px 0 0 0; font-size: 16px; font-weight: bold;">DEADLINE TOMORROW!</p>
-  </div>
-  
-  <div style="background: #f9fafb; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 10px 10px;">
-    <h2 style="color: #dc2626; margin-top: 0;">Last Day to File!</h2>
-    
-    <p>Dear ${userName},</p>
-    
-    <p><strong style="color: #dc2626; font-size: 18px;">This is your final reminder. Your ${formName} filing deadline is TOMORROW!</strong></p>
-    
-    <div style="background: #fef2f2; padding: 25px; border: 3px solid #dc2626; margin: 20px 0; border-radius: 8px; text-align: center;">
-      <p style="margin: 0 0 10px 0; font-size: 14px; color: #7f1d1d;">FILING DEADLINE</p>
-      <p style="margin: 0 0 10px 0; font-size: 28px; font-weight: bold; color: #dc2626;">${deadlineFormatted}</p>
-      <p style="margin: 0; font-size: 36px; font-weight: bold; color: #dc2626;">24 HOURS</p>
-    </div>
-    
-    <div style="background: #7f1d1d; color: white; padding: 20px; border-radius: 5px; margin: 20px 0;">
-      <h3 style="margin-top: 0; font-size: 20px;">File immediately</h3>
-      <p style="margin: 0;">Late filing may attract penalties and interest. File your ${formName} return now.</p>
-    </div>
-    
-    <div style="text-align: center; margin: 30px 0;">
-      <a href="${SITE_URL}/filing" style="display: inline-block; background: #dc2626; color: white; padding: 18px 50px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 20px; box-shadow: 0 6px 12px rgba(0,0,0,0.2);">File now. Do not delay</a>
-    </div>
-    
-    <div style="background: #fef3c7; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #f59e0b;">
-      <p style="margin: 0; color: #78350f;"><strong>Need Help?</strong> Our support team is standing by. Email <a href="mailto:support@ivanotechnologies.com" style="color: #dc2626;">support@ivanotechnologies.com</a> or call our hotline.</p>
-    </div>
-  </div>
-  
-  <div style="text-align: center; padding: 20px; color: #9ca3af; font-size: 12px;">
-    <p style="color: #dc2626; font-weight: bold;">This is your FINAL automated reminder from Kompleet</p>
-    <p>Ivano Technologies Ltd</p>
-  </div>
-</body>
-</html>
-  `;
-
-  const text = `
-Final notice from KOMPLEET
-
-Dear ${userName},
-
-This is your final reminder. Your ${formName} filing deadline is tomorrow.
-
-FILING DEADLINE: ${deadlineFormatted}
-TIME REMAINING: 24 HOURS
-
-File immediately
-Late filing may attract penalties and interest. File your ${formName} return now.
-
-File now: ${SITE_URL}/filing
-
-Need help? Our support team is standing by.
-Email: support@ivanotechnologies.com
-
----
-This is your FINAL automated reminder from Kompleet
-Ivano Technologies Ltd
-  `;
-
-  return { subject, html, text };
+  return buildCalmReminder(userName, { ...deadline, daysRemaining: 1 });
 }
 
 /**
@@ -383,7 +224,6 @@ export async function sendEmail(
   template: EmailTemplate,
 ): Promise<boolean> {
   try {
-    // Check if Resend API key is configured
     const resendApiKey = process.env.RESEND_API_KEY;
 
     if (!resendApiKey) {
@@ -391,10 +231,9 @@ export async function sendEmail(
       console.log(`To: ${to}`);
       console.log(`Subject: ${template.subject}`);
       console.log(`Text: ${template.text.substring(0, 200)}...`);
-      return true; // Return true for testing without actual email service
+      return true;
     }
 
-    // Send email via Resend API
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {

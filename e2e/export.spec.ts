@@ -46,7 +46,7 @@ test.describe("Export centre", () => {
     await gotoExportCentre(page);
 
     await expect(
-      page.getByText("Data Export Consent (NDPR Compliance)"),
+      page.getByText("Data export consent (NDPR)"),
     ).toBeVisible();
 
     const csvButton = page.getByRole("button", {

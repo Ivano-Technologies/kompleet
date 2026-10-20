@@ -2,7 +2,7 @@
 
 /**
  * Admin: Manage Tax Rules
- * Allows compliance team to view and manage tax rule versions
+ * Allows the admin team to view and manage tax rule versions
  */
 
 import { useEffect, useState, useCallback } from "react";

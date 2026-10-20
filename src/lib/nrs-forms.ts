@@ -1,12 +1,16 @@
 /**
- * NRS Form Generation Service
- * Sprint 7: Phase 2 Enhancement
- * Generates NRS-compliant PDF forms for PIT, CIT, and VAT
+ * Tax form PDF summaries (PIT, CIT, VAT)
  */
 
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-import { INVOICE_FOOTER_TEXT } from "@/lib/invoices/invoice-branding";
+import {
+  AMOUNT_NGN_HEADER,
+  PREPARED_FOR_RECORDS,
+  addPoweredByFooter,
+  amountHeaderStyles,
+  drawExportMark,
+} from "@/lib/export-chrome";
 
 // Extend jsPDF type for autoTable
 declare module "jspdf" {
@@ -74,26 +78,22 @@ export function generatePITForm(data: PITFormData): jsPDF {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
 
-  // Header
+  drawExportMark(doc);
   doc.setFontSize(16);
   doc.setFont("helvetica", "bold");
-  doc.text("NIGERIA REVENUE SERVICE", pageWidth / 2, 20, { align: "center" });
-
-  doc.setFontSize(14);
-  doc.text("PERSONAL INCOME TAX RETURN", pageWidth / 2, 28, {
+  doc.setTextColor(20, 20, 19);
+  doc.text("Personal income tax summary", pageWidth / 2, 24, {
     align: "center",
   });
 
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
-  doc.text(`Tax Year: ${data.taxYear}`, pageWidth / 2, 35, { align: "center" });
+  doc.text(`Tax Year: ${data.taxYear}`, pageWidth / 2, 32, { align: "center" });
 
-  // Form number and date
   doc.setFontSize(9);
-  doc.text("Form: PIT-01", 14, 45);
   doc.text(
-    `Date: ${new Date().toLocaleDateString("en-NG")}`,
-    pageWidth - 50,
+    `Date: ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}`,
+    14,
     45,
   );
 
@@ -128,7 +128,7 @@ export function generatePITForm(data: PITFormData): jsPDF {
 
   doc.autoTable({
     startY: incomeStartY + 5,
-    head: [["Description", "Amount (NGN)"]],
+    head: [["Description", AMOUNT_NGN_HEADER]],
     body: [
       ["Gross Income", formatCurrency(data.grossIncome)],
       [
@@ -139,16 +139,7 @@ export function generatePITForm(data: PITFormData): jsPDF {
       ["Taxable Income", formatCurrency(data.taxableIncome)],
     ],
     theme: "striped",
-    headStyles: {
-      fillColor: [243, 243, 243],
-      textColor: 0,
-      fontStyle: "bold",
-    },
-    styles: { fontSize: 10, cellPadding: 4 },
-    columnStyles: {
-      0: { cellWidth: 120 },
-      1: { cellWidth: 60, halign: "right" },
-    },
+    ...amountHeaderStyles(),
   });
 
   // Section C: Tax Computation
@@ -159,7 +150,7 @@ export function generatePITForm(data: PITFormData): jsPDF {
 
   doc.autoTable({
     startY: taxStartY + 5,
-    head: [["Description", "Amount (NGN)"]],
+    head: [["Description", AMOUNT_NGN_HEADER]],
     body: [
       ["Tax Payable (Based on Tax Table)", formatCurrency(data.taxPayable)],
       [
@@ -169,16 +160,7 @@ export function generatePITForm(data: PITFormData): jsPDF {
       ["Balance Due / (Refund)", formatCurrency(data.balanceDue)],
     ],
     theme: "striped",
-    headStyles: {
-      fillColor: [243, 243, 243],
-      textColor: 0,
-      fontStyle: "bold",
-    },
-    styles: { fontSize: 10, cellPadding: 4 },
-    columnStyles: {
-      0: { cellWidth: 120 },
-      1: { cellWidth: 60, halign: "right", fontStyle: "bold" },
-    },
+    ...amountHeaderStyles(),
   });
 
   // Declaration
@@ -213,24 +195,20 @@ export function generateCITForm(data: CITFormData): jsPDF {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
 
-  // Header
+  drawExportMark(doc);
   doc.setFontSize(16);
   doc.setFont("helvetica", "bold");
-  doc.text("NIGERIA REVENUE SERVICE", pageWidth / 2, 20, { align: "center" });
-
-  doc.setFontSize(14);
-  doc.text("COMPANY INCOME TAX RETURN", pageWidth / 2, 28, { align: "center" });
+  doc.setTextColor(20, 20, 19);
+  doc.text("Company income tax summary", pageWidth / 2, 24, { align: "center" });
 
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
-  doc.text(`Tax Year: ${data.taxYear}`, pageWidth / 2, 35, { align: "center" });
+  doc.text(`Tax Year: ${data.taxYear}`, pageWidth / 2, 32, { align: "center" });
 
-  // Form number and date
   doc.setFontSize(9);
-  doc.text("Form: CIT-01", 14, 45);
   doc.text(
-    `Date: ${new Date().toLocaleDateString("en-NG")}`,
-    pageWidth - 50,
+    `Date: ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}`,
+    14,
     45,
   );
 
@@ -266,7 +244,7 @@ export function generateCITForm(data: CITFormData): jsPDF {
 
   doc.autoTable({
     startY: plStartY + 5,
-    head: [["Description", "Amount (NGN)"]],
+    head: [["Description", AMOUNT_NGN_HEADER]],
     body: [
       ["Turnover / Revenue", formatCurrency(data.turnover)],
       ["Less: Cost of Sales", `(${formatCurrency(data.costOfSales)})`],
@@ -278,16 +256,7 @@ export function generateCITForm(data: CITFormData): jsPDF {
       ["Profit Before Tax", formatCurrency(data.profitBeforeTax)],
     ],
     theme: "striped",
-    headStyles: {
-      fillColor: [243, 243, 243],
-      textColor: 0,
-      fontStyle: "bold",
-    },
-    styles: { fontSize: 10, cellPadding: 4 },
-    columnStyles: {
-      0: { cellWidth: 120 },
-      1: { cellWidth: 60, halign: "right" },
-    },
+    ...amountHeaderStyles(),
   });
 
   // Section C: Tax Computation
@@ -298,7 +267,7 @@ export function generateCITForm(data: CITFormData): jsPDF {
 
   doc.autoTable({
     startY: taxStartY + 5,
-    head: [["Description", "Amount (NGN)"]],
+    head: [["Description", AMOUNT_NGN_HEADER]],
     body: [
       ["Profit Before Tax", formatCurrency(data.profitBeforeTax)],
       [
@@ -311,16 +280,7 @@ export function generateCITForm(data: CITFormData): jsPDF {
       ["Balance Due / (Refund)", formatCurrency(data.balanceDue)],
     ],
     theme: "striped",
-    headStyles: {
-      fillColor: [243, 243, 243],
-      textColor: 0,
-      fontStyle: "bold",
-    },
-    styles: { fontSize: 10, cellPadding: 4 },
-    columnStyles: {
-      0: { cellWidth: 120 },
-      1: { cellWidth: 60, halign: "right", fontStyle: "bold" },
-    },
+    ...amountHeaderStyles(),
   });
 
   // Declaration
@@ -355,13 +315,11 @@ export function generateVATForm(data: VATFormData): jsPDF {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
 
-  // Header
+  drawExportMark(doc);
   doc.setFontSize(16);
   doc.setFont("helvetica", "bold");
-  doc.text("NIGERIA REVENUE SERVICE", pageWidth / 2, 20, { align: "center" });
-
-  doc.setFontSize(14);
-  doc.text("VALUE ADDED TAX (VAT) RETURN", pageWidth / 2, 28, {
+  doc.setTextColor(20, 20, 19);
+  doc.text("VAT return summary", pageWidth / 2, 24, {
     align: "center",
   });
 
@@ -370,16 +328,14 @@ export function generateVATForm(data: VATFormData): jsPDF {
   doc.text(
     `Period: ${data.period} | Tax Year: ${data.taxYear}`,
     pageWidth / 2,
-    35,
+    32,
     { align: "center" },
   );
 
-  // Form number and date
   doc.setFontSize(9);
-  doc.text("Form: VAT-01", 14, 45);
   doc.text(
-    `Date: ${new Date().toLocaleDateString("en-NG")}`,
-    pageWidth - 50,
+    `Date: ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}`,
+    14,
     45,
   );
 
@@ -414,11 +370,11 @@ export function generateVATForm(data: VATFormData): jsPDF {
 
   doc.autoTable({
     startY: vatStartY + 5,
-    head: [["Description", "Amount (NGN)"]],
+    head: [["Description", AMOUNT_NGN_HEADER]],
     body: [
-      ["Output VAT (VAT on Sales @ 7.5%)", formatCurrency(data.outputVAT)],
+      ["Output VAT (VAT on Sales)", formatCurrency(data.outputVAT)],
       [
-        "Less: Input VAT (VAT on Purchases @ 7.5%)",
+        "Less: Input VAT (VAT on Purchases)",
         `(${formatCurrency(data.inputVAT)})`,
       ],
       ["Net VAT Payable / (Refundable)", formatCurrency(data.netVAT)],
@@ -426,16 +382,7 @@ export function generateVATForm(data: VATFormData): jsPDF {
       ["Total Amount Due", formatCurrency(data.totalDue)],
     ],
     theme: "striped",
-    headStyles: {
-      fillColor: [243, 243, 243],
-      textColor: 0,
-      fontStyle: "bold",
-    },
-    styles: { fontSize: 10, cellPadding: 4 },
-    columnStyles: {
-      0: { cellWidth: 120 },
-      1: { cellWidth: 60, halign: "right", fontStyle: "bold" },
-    },
+    ...amountHeaderStyles(),
   });
 
   // Important Note
@@ -481,28 +428,7 @@ export function generateVATForm(data: VATFormData): jsPDF {
  * Add footer to PDF
  */
 function addFooter(doc: jsPDF): void {
-  const pageHeight = doc.internal.pageSize.getHeight();
-  const pageWidth = doc.internal.pageSize.getWidth();
-
-  doc.setFontSize(8);
-  doc.setFont("helvetica", "normal");
-  doc.setTextColor(128, 128, 128);
-
-  doc.text(INVOICE_FOOTER_TEXT, pageWidth / 2, pageHeight - 15, {
-    align: "center",
-  });
-  doc.text(
-    "For official use only. Submit to Nigeria Revenue Service.",
-    pageWidth / 2,
-    pageHeight - 10,
-    { align: "center" },
-  );
-  doc.text(
-    `Generated on: ${new Date().toLocaleString("en-NG")}`,
-    pageWidth / 2,
-    pageHeight - 5,
-    { align: "center" },
-  );
+  addPoweredByFooter(doc, PREPARED_FOR_RECORDS);
 }
 
 /**

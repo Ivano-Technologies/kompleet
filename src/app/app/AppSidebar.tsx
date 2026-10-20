@@ -12,7 +12,7 @@ const sidebarLinks = [
   { name: "Reports", icon: "📈", href: "#" },
 ];
 
-const complianceLinks = [
+const taxLinks = [
   { name: "Tax Centre", icon: "🏛️", href: "#", badge: 2 },
   { name: "Filings", icon: "📋", href: "#" },
 ];
@@ -59,9 +59,9 @@ export function AppSidebar() {
           );
         })}
         <div className="text-xs font-bold text-white/30 uppercase tracking-widest px-4 pt-6 pb-2">
-          Compliance
+          Tax
         </div>
-        {complianceLinks.map((link) => (
+        {taxLinks.map((link) => (
           <Link
             key={link.name}
             href={link.href}
