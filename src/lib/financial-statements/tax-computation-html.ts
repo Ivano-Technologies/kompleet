@@ -23,7 +23,6 @@ export interface TaxComputationData {
   taxableIncome: number;
   taxRate: number;
   taxLiability: number;
-  legalReferences: Record<string, string>;
 }
 
 /**
@@ -52,32 +51,12 @@ export function toTaxComputationData(
     (item) => item.description === "Income Tax",
   );
 
-  const legalReferences: Record<string, string> =
-    result.businessClassification === "Individual Taxpayer"
-      ? {
-          "Tax Rates":
-            "Section 33 of Nigeria Tax Act 2025: Personal Income Tax rates",
-          "Non-deductible Expenses":
-            "Section 45(2) of Nigeria Tax Act 2025: Expenses not deductible for tax purposes",
-        }
-      : {
-          "Tax Rates":
-            "Section 40(1) of Nigeria Tax Act 2025: Corporate Income Tax rates",
-          "Capital Allowances":
-            "Section 44 of Nigeria Tax Act 2025: Capital allowances on qualifying expenditure",
-          "Non-deductible Expenses":
-            "Section 45(2) of Nigeria Tax Act 2025: Expenses not deductible for tax purposes",
-          "Small Company Relief":
-            "Section 40(3) of Nigeria Tax Act 2025: Small company tax relief",
-        };
-
   return {
     accountingProfit: result.grossIncome - result.deductibleExpenses,
     taxAdjustments: { addBack, deductions },
     taxableIncome: result.taxableIncome,
     taxRate: incomeTaxBreakdownItem?.rate ?? 0,
     taxLiability: result.incomeTax,
-    legalReferences,
   };
 }
 
@@ -98,7 +77,6 @@ export function generateTaxComputationHTML(data: TaxComputationData): string {
     taxableIncome,
     taxRate,
     taxLiability,
-    legalReferences,
   } = data;
 
   const totalAddBack = Object.values(taxAdjustments.addBack).reduce(
@@ -121,10 +99,11 @@ export function generateTaxComputationHTML(data: TaxComputationData): string {
       font-family: Arial, sans-serif;
       margin: 40px;
       color: #333;
+      background: #ffffff;
     }
     h1 {
       text-align: center;
-      color: #1a5f3a;
+      color: #000000;
     }
     table {
       width: 100%;
@@ -138,6 +117,7 @@ export function generateTaxComputationHTML(data: TaxComputationData): string {
     }
     th {
       background-color: #f5f5f5;
+      color: #333;
       font-weight: bold;
     }
     .amount {
@@ -150,7 +130,8 @@ export function generateTaxComputationHTML(data: TaxComputationData): string {
     .highlight-row {
       font-weight: bold;
       font-size: 1.1em;
-      background-color: #e8f5e9;
+      background-color: #f5f5f5;
+      color: #000000;
     }
     .section-header {
       background-color: #f5f5f5;
@@ -160,12 +141,6 @@ export function generateTaxComputationHTML(data: TaxComputationData): string {
     .section-header th {
       background-color: #f5f5f5;
       color: #333;
-    }
-    .legal-ref {
-      font-size: 0.85em;
-      color: #666;
-      font-style: italic;
-      margin-top: 30px;
     }
   </style>
 </head>
@@ -235,17 +210,6 @@ export function generateTaxComputationHTML(data: TaxComputationData): string {
       <td class="amount">${formatCurrency(taxLiability)}</td>
     </tr>
   </table>
-
-  <div class="legal-ref">
-    <h3>Legal References (Nigeria Tax Act 2025)</h3>
-    ${Object.entries(legalReferences)
-      .map(
-        ([title, reference]) => `
-      <p><strong>${title}:</strong> ${reference}</p>
-    `,
-      )
-      .join("")}
-  </div>
 
   <div style="margin-top: 40px; text-align: center; color: #666; font-size: 0.9em;">
     <p>${INVOICE_FOOTER_TEXT}</p>

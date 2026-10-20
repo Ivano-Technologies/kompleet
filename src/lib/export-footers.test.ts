@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { INVOICE_FOOTER_TEXT } from "@/lib/invoices/invoice-branding";
+import { generateTaxComputationHTML } from "@/lib/financial-statements/tax-computation-html";
 
 const files = [
   "src/lib/export-service.ts",
@@ -51,6 +52,29 @@ describe("IVA-191 export footers", () => {
     const block = text.match(/\.section-header\s*\{[^}]+\}/);
     expect(block?.[0]).toMatch(/color:\s*#333/);
     expect(block?.[0]).not.toMatch(/color:\s*white/);
-    expect(text).toContain("Legal References (Nigeria Tax Act 2025)");
+  });
+
+  it("drops Legal References and keeps the tax computation schedule black and grey", () => {
+    const html = generateTaxComputationHTML({
+      accountingProfit: 4_500_000,
+      taxAdjustments: {
+        addBack: { "Disallowed expenses": 120_000 },
+        deductions: { "Capital allowances": 80_000 },
+      },
+      taxableIncome: 4_540_000,
+      taxRate: 30,
+      taxLiability: 1_362_000,
+    });
+    expect(html).toContain("Tax Computation Schedule");
+    expect(html).toContain("ADD BACK: Non-Deductible Expenses");
+    expect(html).toContain("LESS: Allowable Deductions");
+    expect(html).toContain("Taxable Income");
+    expect(html).toContain("Tax Liability");
+    expect(html).toContain(INVOICE_FOOTER_TEXT);
+    expect(html).not.toMatch(/Legal References/);
+    expect(html).not.toMatch(/Nigeria Tax Act/);
+    expect(html).not.toMatch(/#1a5f3a|#e8f5e9|#10b981/i);
+    expect(html).toMatch(/color:\s*#000000/);
+    expect(html).toMatch(/background:\s*#ffffff/);
   });
 });
