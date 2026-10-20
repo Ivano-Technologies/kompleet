@@ -128,7 +128,7 @@ export function generatePITForm(data: PITFormData): jsPDF {
 
   doc.autoTable({
     startY: incomeStartY + 5,
-    head: [["Description", "Amount (₦)"]],
+    head: [["Description", "Amount (NGN)"]],
     body: [
       ["Gross Income", formatCurrency(data.grossIncome)],
       [
@@ -159,7 +159,7 @@ export function generatePITForm(data: PITFormData): jsPDF {
 
   doc.autoTable({
     startY: taxStartY + 5,
-    head: [["Description", "Amount (₦)"]],
+    head: [["Description", "Amount (NGN)"]],
     body: [
       ["Tax Payable (Based on Tax Table)", formatCurrency(data.taxPayable)],
       [
@@ -266,7 +266,7 @@ export function generateCITForm(data: CITFormData): jsPDF {
 
   doc.autoTable({
     startY: plStartY + 5,
-    head: [["Description", "Amount (₦)"]],
+    head: [["Description", "Amount (NGN)"]],
     body: [
       ["Turnover / Revenue", formatCurrency(data.turnover)],
       ["Less: Cost of Sales", `(${formatCurrency(data.costOfSales)})`],
@@ -298,7 +298,7 @@ export function generateCITForm(data: CITFormData): jsPDF {
 
   doc.autoTable({
     startY: taxStartY + 5,
-    head: [["Description", "Amount (₦)"]],
+    head: [["Description", "Amount (NGN)"]],
     body: [
       ["Profit Before Tax", formatCurrency(data.profitBeforeTax)],
       [
@@ -414,7 +414,7 @@ export function generateVATForm(data: VATFormData): jsPDF {
 
   doc.autoTable({
     startY: vatStartY + 5,
-    head: [["Description", "Amount (₦)"]],
+    head: [["Description", "Amount (NGN)"]],
     body: [
       ["Output VAT (VAT on Sales @ 7.5%)", formatCurrency(data.outputVAT)],
       [

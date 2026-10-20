@@ -136,4 +136,26 @@ describe("IVA-191 export footers", () => {
     expect(out).not.toContain("Late filing attracts penalties");
     expect(out).not.toContain("Late filing may attract penalties");
   });
+
+  it("VAT return PDF table header uses Amount (NGN) and no naira glyph", () => {
+    const pdf = generateVATForm({
+      businessName: "Ada Foods Ltd",
+      tin: "12345678-0001",
+      address: "14 Marina Road, Lagos",
+      phone: "+234 801 234 5678",
+      email: "ada@adafoods.ng",
+      period: "October 2026",
+      taxYear: 2026,
+      outputVAT: 75_000,
+      inputVAT: 15_000,
+      netVAT: 60_000,
+      penaltyIfAny: 0,
+      totalDue: 60_000,
+    });
+    const out = pdf.output();
+    const text = out.replace(/\\([()])/g, "$1");
+    expect(text).toContain("Amount (NGN)");
+    expect(text).not.toContain("₦");
+    expect(text).not.toContain("¦");
+  });
 });
