@@ -186,7 +186,7 @@ describe("IVA-185 InvoicePreview discount column and totals", () => {
     expect(rows.map((row) => row.textContent)).toEqual(["VAT 7.5%₦75.00", "VAT 5%₦10.00"]);
   });
 
-  it("fits Amount at 390 with a compact black and white table", () => {
+  it("stacks line items below 480 at body size and keeps the table from 480 up", () => {
     const { container } = render(
       <InvoicePreview
         invoice={invoice({
@@ -198,18 +198,42 @@ describe("IVA-185 InvoicePreview discount column and totals", () => {
         onOpenSettings={() => {}}
       />,
     );
+    const stack = screen.getByTestId("invoice-items-stack");
+    expect(stack.className).toMatch(/text-sm/);
+    expect(stack.className).toMatch(/max-\[479px\]:block/);
+    expect(stack.className).toMatch(/min-\[480px\]:hidden/);
+    expect(stack).toHaveTextContent("Catering for staff offsite");
+    expect(stack).toHaveTextContent("1 × ₦850,000.00");
+    expect(stack.textContent).not.toMatch(/7\.5%/);
+    expect(stack.querySelector("span.font-bold")).toHaveTextContent("₦850,000.00");
     const table = screen.getByTestId("invoice-items");
     expect(table.className).toMatch(/table-fixed/);
-    expect(table.className).toMatch(/text-\[10px\]/);
-    expect(table.parentElement?.className).not.toMatch(/overflow-x-auto/);
-    expect(table).toHaveTextContent("Amount");
-    expect(table).toHaveTextContent("₦850,000.00");
+    expect(table.className).toMatch(/text-sm/);
+    expect(table.className).not.toMatch(/text-\[10px\]/);
+    expect(table.parentElement?.className).toMatch(/max-\[479px\]:hidden/);
+    expect(table.querySelector("thead")).toHaveTextContent("Amount");
     const doc = container.querySelector("[data-testid='invoice-document']");
     expect(doc?.getAttribute("style")).toMatch(/background:\s*rgb\(255,\s*255,\s*255\)/);
     expect(doc?.getAttribute("style")).toMatch(/color:\s*rgb\(0,\s*0,\s*0\)/);
-    expect(doc?.getAttribute("style")).toMatch(/rgb\(221,\s*221,\s*221\)/);
-    expect(doc?.innerHTML ?? "").not.toMatch(/bg-(?:primary|emerald|green|red|blue|amber)/);
-    expect(table.className).not.toMatch(/text-(?:primary|emerald|green|red|blue)/);
+    expect(stack.innerHTML).not.toMatch(/bg-(?:primary|emerald|green|red|blue|amber)/);
+  });
+
+  it("puts the VAT rate on the stacked meta line only when rates are mixed", () => {
+    render(
+      <InvoicePreview
+        invoice={invoice({
+          line_items: [
+            { description: "Catering for staff offsite", quantity: 1, unit_price: 850000, vat_rate: 7.5, amount: 850000 },
+            { description: "Staff meals", quantity: 2, unit_price: 40000, vat_rate: 5, amount: 80000 },
+          ],
+        })}
+        profile={profile()}
+        onOpenSettings={() => {}}
+      />,
+    );
+    const stack = screen.getByTestId("invoice-items-stack");
+    expect(stack).toHaveTextContent("1 × ₦850,000.00 · 7.5%");
+    expect(stack).toHaveTextContent("2 × ₦40,000.00 · 5%");
   });
 
   it("shows the Discount column when a line has a discount, and no Discount totals row", () => {

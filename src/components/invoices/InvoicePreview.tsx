@@ -37,6 +37,7 @@ import {
   hasLineDiscount,
   lineDiscount,
   lineNetAmount,
+  vatRateText,
   vatSummaryRows,
 } from "@/lib/invoices/line-amounts";
 
@@ -276,6 +277,11 @@ export function InvoicePreview({
       : totals.vat_amount > 0
         ? [{ label: "VAT", vat: totals.vat_amount }]
         : [];
+  const mixedVat = vatRows.length > 1;
+  const displayItems =
+    lineItems.length > 0
+      ? lineItems
+      : [{ description: invoice.title || "Services", quantity: 1, unit_price: subtotal, vat_rate: 0, amount: subtotal }];
   const labelCls = "text-[10px] font-bold tracking-[0.08em] uppercase";
 
   return (
@@ -387,49 +393,68 @@ export function InvoicePreview({
           </dl>
         </div>
 
-        {/* Line items: black/grey ink on white only. Tighter Qty/Rate and a
-            smaller mobile font so every column, including Amount, fits at 390.
-            PDF layout is separate and stays as it is. */}
-        <div className="min-w-0">
-          <table
-            className="w-full table-fixed text-[10px] leading-snug sm:text-sm sm:leading-normal"
-            data-testid="invoice-items"
-          >
+        {/* Line items: black/grey ink on white only. Below 480px each line
+            stacks at body size (same as Subtotal). From 480px the table is
+            unchanged. PDF layout is separate and stays as it is. */}
+        <div
+          className="max-[479px]:block min-[480px]:hidden text-sm"
+          data-testid="invoice-items-stack"
+        >
+          {displayItems.map((item, index) => {
+            const meta = mixedVat
+              ? `${item.quantity} × ${money(item.unit_price)} · ${vatRateText(item.vat_rate)}`
+              : `${item.quantity} × ${money(item.unit_price)}`;
+            return (
+              <div
+                key={index}
+                className="py-2.5"
+                style={{ borderBottom: `1px solid ${BW.hairline}` }}
+              >
+                <p className="break-words">{item.description}</p>
+                <div className="mt-1 flex items-baseline justify-between gap-3">
+                  <span className="tabular-nums" style={{ color: BW.secondary }}>
+                    {meta}
+                  </span>
+                  <span className="tabular-nums font-bold whitespace-nowrap">{money(lineNetAmount(item))}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <div className="min-w-0 max-[479px]:hidden">
+          <table className="w-full table-fixed text-sm" data-testid="invoice-items">
             <colgroup>
               <col />
-              <col className="w-8 sm:w-12" />
-              <col className="w-[5.25rem] sm:w-24" />
-              {showDiscount && <col className="w-[5.25rem] sm:w-24" />}
-              <col className="w-[5.5rem] sm:w-28" />
+              <col className="w-12" />
+              <col className="w-24" />
+              {showDiscount && <col className="w-24" />}
+              <col className="w-28" />
             </colgroup>
             <thead>
               <tr style={{ borderBottom: `1px solid ${BW.rule}` }}>
-                <th className="py-2 pr-1 sm:pr-2 text-left font-bold">Description</th>
-                <th className="py-2 px-0.5 sm:px-2 text-right font-bold">Qty</th>
-                <th className="py-2 px-0.5 sm:px-2 text-right font-bold">Rate</th>
+                <th className="py-2 pr-2 text-left text-[11px] font-bold">Description</th>
+                <th className="py-2 px-2 text-right text-[11px] font-bold">Qty</th>
+                <th className="py-2 px-2 text-right text-[11px] font-bold">Rate</th>
                 {showDiscount && (
-                  <th className="py-2 px-0.5 sm:px-2 text-right font-bold">Discount</th>
+                  <th className="py-2 px-2 text-right text-[11px] font-bold">Discount</th>
                 )}
-                <th className="py-2 pl-0.5 sm:pl-2 text-right font-bold">Amount</th>
+                <th className="py-2 pl-2 text-right text-[11px] font-bold">Amount</th>
               </tr>
             </thead>
             <tbody>
-              {(lineItems.length > 0
-                ? lineItems
-                : [{ description: invoice.title || "Services", quantity: 1, unit_price: subtotal, vat_rate: 0, amount: subtotal }]
-              ).map((item, index) => (
+              {displayItems.map((item, index) => (
                 <tr key={index} style={{ borderBottom: `1px solid ${BW.hairline}` }}>
-                  <td className="py-2 sm:py-2.5 pr-1 sm:pr-2 min-w-0 break-words">{item.description}</td>
-                  <td className="py-2 sm:py-2.5 px-0.5 sm:px-2 text-right tabular-nums">{item.quantity}</td>
-                  <td className="py-2 sm:py-2.5 px-0.5 sm:px-2 text-right tabular-nums whitespace-nowrap">
+                  <td className="py-2.5 pr-2 min-w-0 break-words">{item.description}</td>
+                  <td className="py-2.5 px-2 text-right tabular-nums">{item.quantity}</td>
+                  <td className="py-2.5 px-2 text-right tabular-nums whitespace-nowrap">
                     {money(item.unit_price)}
                   </td>
                   {showDiscount && (
-                    <td className="py-2 sm:py-2.5 px-0.5 sm:px-2 text-right tabular-nums whitespace-nowrap">
+                    <td className="py-2.5 px-2 text-right tabular-nums whitespace-nowrap">
                       {lineDiscount(item) > 0 ? money(lineDiscount(item)) : ""}
                     </td>
                   )}
-                  <td className="py-2 sm:py-2.5 pl-0.5 sm:pl-2 text-right tabular-nums whitespace-nowrap">
+                  <td className="py-2.5 pl-2 text-right tabular-nums whitespace-nowrap">
                     {money(lineNetAmount(item))}
                   </td>
                 </tr>
