@@ -10,6 +10,7 @@
 import { test, expect } from "@playwright/test";
 import {
   fillHydrated,
+  inPageError,
   login,
   requireTestCredentials,
   runId,
@@ -70,7 +71,7 @@ test.describe("Auth flow", () => {
     await page.getByRole("button", { name: SIGNUP_SELECTORS.submit }).click();
 
     await expect(
-      page.getByText("Add at least one number to your password."),
+      inPageError(page, "Add at least one number to your password."),
     ).toBeVisible();
   });
 
@@ -136,7 +137,7 @@ test.describe("Auth flow", () => {
       `/login?error=expired_link&message=${encodeURIComponent(message)}`,
     );
 
-    await expect(page.getByText(message)).toBeVisible();
+    await expect(inPageError(page, message)).toBeVisible();
   });
 
   test("the login page shows the reclaim note", async ({ page }) => {
@@ -185,7 +186,12 @@ test.describe("Auth flow", () => {
       .getByRole("button", { name: LOGIN_SELECTORS.submit, exact: true })
       .click();
 
-    await expect(page.getByText(/That email or password doesn't match\. Check and try again\./)).toBeVisible();
+    await expect(
+      inPageError(
+        page,
+        /That email or password doesn't match\. Check and try again\./,
+      ),
+    ).toBeVisible();
     await expect(page).toHaveURL(/\/login/);
   });
 

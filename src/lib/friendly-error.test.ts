@@ -150,6 +150,33 @@ describe("friendly-error", () => {
       ).toBe("We couldn't find this invoice.");
     });
 
+    it("passes IVA-190 invoice amount ConvexError copy through and maps wrapped Errors", () => {
+      expect(
+        msg(new FakeConvexError("Line item 1: Quantity can't be negative.")),
+      ).toBe("Line item 1: Quantity can't be negative.");
+      expect(
+        msg(new Error(convexWrap("Line item 2: Unit price can't be negative."))),
+      ).toBe("Unit price can't be negative.");
+      expect(
+        msg(new Error(convexWrap("Line item 1: Discount can't be more than the line total."))),
+      ).toBe("Discount can't be more than the line total.");
+      expect(msg(new FakeConvexError("VAT rate must be between 0% and 100%."))).toBe(
+        "VAT rate must be between 0% and 100%.",
+      );
+      expect(msg(new Error(convexWrap("Enter a number for quantity.")))).toBe(
+        "Enter a number for quantity.",
+      );
+      expect(msg(new FakeConvexError("This invoice has already been issued."))).toBe(
+        "This invoice has already been issued.",
+      );
+      expect(
+        msg(new FakeConvexError("Add at least one item before issuing this invoice.")),
+      ).toBe("Add at least one item before issuing this invoice.");
+      expect(
+        msg(new FakeConvexError("This update can't change the invoice status.")),
+      ).toBe("This update can't change the invoice status.");
+    });
+
     it("maps missing tax rules without leaking rule keys", () => {
       const err = new Error(
         'Missing tax rule "vat.standard_rate". Refusing to fall back',

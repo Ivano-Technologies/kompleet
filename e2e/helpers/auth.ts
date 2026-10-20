@@ -14,6 +14,17 @@
 
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
+/**
+ * In-page friendly error copy. `useErrorRef` console.errors the same string,
+ * and Next.js's dev overlay then also contains it, so a page-wide getByText
+ * is a strict-mode miss. Scope to the banner (alert or AUTH_ERROR).
+ */
+export function inPageError(page: Page, text: string | RegExp): Locator {
+  return page
+    .locator('[role="alert"], .bg-error-bg')
+    .filter({ hasText: text });
+}
+
 export const E2E_USER_EMAIL = process.env.E2E_USER_EMAIL ?? "";
 export const E2E_USER_PASSWORD = process.env.E2E_USER_PASSWORD ?? "";
 

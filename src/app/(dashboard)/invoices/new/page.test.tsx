@@ -3,7 +3,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import NewInvoicePage from "./page";
-import { DISCOUNT_TOO_BIG, totalsFromLines } from "@/lib/invoices/line-amounts";
+import { DISCOUNT_TOO_BIG, VAT_RATE_RANGE, totalsFromLines } from "@/lib/invoices/line-amounts";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
@@ -90,5 +90,13 @@ describe("IVA-185 /invoices/new summary matches the invoice totals", () => {
 
     fireEvent.change(screen.getAllByRole("spinbutton")[3], { target: { value: "50.01" } });
     expect(screen.getByRole("alert")).toHaveTextContent(DISCOUNT_TOO_BIG);
+  });
+
+  it("shows Coco's VAT range copy when the rate is 500", async () => {
+    render(<NewInvoicePage />);
+    await waitFor(() => expect(fetch).toHaveBeenCalled());
+    fillLines([{ quantity: 1, unit_price: 100, vat_rate: 500 }]);
+    fireEvent.click(screen.getByRole("button", { name: "Save as Draft" }));
+    expect(screen.getByRole("alert")).toHaveTextContent(VAT_RATE_RANGE);
   });
 });

@@ -174,6 +174,20 @@ export const USER_MESSAGE_ALLOWLIST: Record<string, string> = {
   "Email is required": "Email is required.",
   "Only draft invoices can be deleted": "Only draft invoices can be deleted.",
   "Invoice is immutable": "Issued invoices can't be changed.",
+  "Quantity can't be negative.": "Quantity can't be negative.",
+  "Unit price can't be negative.": "Unit price can't be negative.",
+  "Discount can't be more than the line total.":
+    "Discount can't be more than the line total.",
+  "VAT rate must be between 0% and 100%.":
+    "VAT rate must be between 0% and 100%.",
+  "Enter a number for quantity.": "Enter a number for quantity.",
+  "Enter a number for unit price.": "Enter a number for unit price.",
+  "This invoice has already been issued.":
+    "This invoice has already been issued.",
+  "Add at least one item before issuing this invoice.":
+    "Add at least one item before issuing this invoice.",
+  "This update can't change the invoice status.":
+    "This update can't change the invoice status.",
   "Use PDF, image, or CSV.": "Use a PDF, image or CSV file.",
   "File size must be less than 10MB": "File size must be less than 10MB.",
   "Expense already exists": "This expense already exists.",
@@ -192,6 +206,10 @@ function allowlisted(text: string): string | null {
   if (USER_MESSAGE_ALLOWLIST[key]) return USER_MESSAGE_ALLOWLIST[key];
   const noDot = key.replace(/\.$/, "");
   if (USER_MESSAGE_ALLOWLIST[noDot]) return USER_MESSAGE_ALLOWLIST[noDot];
+  const withoutLine = key.replace(/^Line item \d+:\s*/, "");
+  if (withoutLine !== key && USER_MESSAGE_ALLOWLIST[withoutLine]) {
+    return USER_MESSAGE_ALLOWLIST[withoutLine];
+  }
   const nf = NOT_FOUND_PATTERN.exec(key);
   if (nf) return `We couldn't find this ${nf[1].toLowerCase()}.`;
   return null;

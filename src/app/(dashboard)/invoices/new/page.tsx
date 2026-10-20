@@ -2,7 +2,11 @@
 
 import { useState, useEffect } from "react";
 import {
+  ADD_ITEM_BEFORE_ISSUE,
   DISCOUNT_TOO_BIG,
+  INVALID_QUANTITY,
+  INVALID_UNIT_PRICE,
+  VAT_RATE_RANGE,
   discountTooBig,
   lineNetAmount,
   roundMoney,
@@ -166,7 +170,7 @@ export default function NewInvoicePage() {
     }
 
     if (lineItems.length === 0) {
-      errors.push("Add at least one line item.");
+      errors.push(forIssue ? ADD_ITEM_BEFORE_ISSUE : "Add at least one line item.");
     }
 
     for (let i = 0; i < lineItems.length; i++) {
@@ -174,11 +178,18 @@ export default function NewInvoicePage() {
       if (!item.description.trim()) {
         errors.push(`Line item ${i + 1}: add a description`);
       }
-      if (item.quantity <= 0) {
+      if (!Number.isFinite(item.quantity)) {
+        errors.push(INVALID_QUANTITY);
+      } else if (item.quantity <= 0) {
         errors.push(`Line item ${i + 1}: enter a quantity greater than 0`);
       }
-      if (item.unit_price < 0) {
+      if (!Number.isFinite(item.unit_price)) {
+        errors.push(INVALID_UNIT_PRICE);
+      } else if (item.unit_price < 0) {
         errors.push(`Line item ${i + 1}: enter a unit price of 0 or more`);
+      }
+      if (!Number.isFinite(item.vat_rate) || item.vat_rate < 0 || item.vat_rate > 100) {
+        errors.push(VAT_RATE_RANGE);
       }
       if (discountTooBig(item)) {
         errors.push(`Line item ${i + 1}: ${DISCOUNT_TOO_BIG}`);
@@ -301,7 +312,10 @@ export default function NewInvoicePage() {
       </div>
 
       {error && (
-        <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/30 rounded-lg text-red-700 dark:text-red-400">
+        <div
+          role="alert"
+          className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/30 rounded-lg text-red-700 dark:text-red-400"
+        >
           <ErrorText text={error} />
         </div>
       )}
