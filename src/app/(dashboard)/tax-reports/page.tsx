@@ -108,7 +108,7 @@ export default function TaxReportsPage({
             </h1>
           )}
           <p className={`text-sm text-light-text-secondary dark:text-dark-text-secondary ${embedded ? "" : "mt-1"}`}>
-            Generate and manage reports based on Nigeria Tax Act 2025
+            Generate and manage tax reports
           </p>
         </div>
         <button
@@ -158,9 +158,8 @@ export default function TaxReportsPage({
       <div className="flex items-start gap-3 p-4 rounded-lg border border-blue-200 dark:border-blue-800/40 bg-blue-50 dark:bg-blue-900/10">
         <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
         <p className="text-sm text-blue-800 dark:text-blue-300 leading-relaxed">
-          Tax reports comply with the Nigeria Tax Act 2025 and include income
-          tax, development levy, and VAT calculations. Use these reports for
-          filing with the Nigeria Revenue Service (NRS).
+          Tax reports include income tax, development levy, and VAT. Use them
+          when you file with the Nigeria Revenue Service (NRS).
         </p>
       </div>
 

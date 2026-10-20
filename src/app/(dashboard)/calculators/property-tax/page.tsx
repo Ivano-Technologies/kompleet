@@ -426,9 +426,8 @@ export default function PropertyTaxCalculator() {
           About This Calculator
         </h3>
         <p className="text-sm text-blue-700 dark:text-blue-300/80 mb-4">
-          This calculator implements the Nigeria Tax Act 2025 provisions for
-          withholding tax on rent. The WHT rate is fetched dynamically from the
-          KOMPLEET Tax Rules Engine.
+          This calculator estimates withholding tax on rent. The rate comes from
+          the Kompleet tax rules engine.
         </p>
         <div className="text-sm space-y-2 text-blue-700/90 dark:text-blue-300/70">
           <p>

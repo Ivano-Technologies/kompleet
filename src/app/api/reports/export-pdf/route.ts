@@ -74,11 +74,10 @@ async function handlePOST(request: NextRequest) {
 
 function generateProfitLossHTML(statement: any): string {
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-NG", {
-      style: "currency",
-      currency: "NGN",
+    return `NGN ${amount.toLocaleString("en-NG", {
       minimumFractionDigits: 2,
-    }).format(amount);
+      maximumFractionDigits: 2,
+    })}`;
   };
 
   const formatDate = (dateStr: string) => {
@@ -164,11 +163,10 @@ function generateProfitLossHTML(statement: any): string {
 
 function generateBalanceSheetHTML(statement: any): string {
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-NG", {
-      style: "currency",
-      currency: "NGN",
+    return `NGN ${amount.toLocaleString("en-NG", {
       minimumFractionDigits: 2,
-    }).format(amount);
+      maximumFractionDigits: 2,
+    })}`;
   };
 
   const formatDate = (dateStr: string) => {

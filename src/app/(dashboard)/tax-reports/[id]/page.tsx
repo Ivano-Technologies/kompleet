@@ -175,9 +175,6 @@ export default function TaxReportDetailPage() {
       <div className="hidden print:block mb-8 text-center">
         <h1 className="text-2xl font-bold">TAX COMPUTATION REPORT</h1>
         <p className="text-light-text-secondary dark:text-dark-text-secondary">
-          Nigeria Tax Act 2025
-        </p>
-        <p className="text-light-text-secondary dark:text-dark-text-secondary">
           Tax Year {report.tax_year} | {formatDate(report.period_start)} to{" "}
           {formatDate(report.period_end)}
         </p>
@@ -418,11 +415,8 @@ export default function TaxReportDetailPage() {
           </p>
         </div>
         <p className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">
-          This tax report is generated based on the Nigeria Tax Act 2025 and
-          related acts effective January 1, 2026. Tax laws are subject to
-          interpretation and may be updated through circulars from the Nigeria
-          Revenue Service. For complex matters, consult a qualified Nigerian tax
-          professional.
+          This tax report is an estimate. Tax rules can change. For complex
+          matters, consult a qualified Nigerian tax professional.
         </p>
       </div>
 
