@@ -46,7 +46,7 @@ export default function UploadSuccess({
                 Date range
               </p>
               <p className="text-sm font-semibold text-slate-900 dark:text-white">
-                Feb 1 - Feb 18, 2026
+                Feb 1 to Feb 18, 2026
               </p>
             </div>
             <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">

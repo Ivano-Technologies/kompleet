@@ -191,8 +191,15 @@ test.describe("Tax calculation", () => {
     await page.locator(CALCULATOR_SELECTORS.grossIncome).fill("-1");
     await calculateButton.click();
 
+    // Scope to the in-page alert. `useErrorRef` console.errors the same
+    // copy, and Next.js's dev overlay then also contains the string, which
+    // makes a page-wide getByText a strict-mode miss.
     await expect(
-      page.getByText("Enter your gross income in naira, using numbers only."),
+      page
+        .getByRole("alert")
+        .filter({
+          hasText: "Enter your gross income in naira, using numbers only.",
+        }),
     ).toBeVisible();
     await expect(page.getByText("Tax Summary")).toHaveCount(0);
   });

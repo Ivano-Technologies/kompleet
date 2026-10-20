@@ -89,7 +89,10 @@ describe("IVA-185 logo snapshot on issue", () => {
 
   it("issueMine snapshots via partyFromBusiness and blocks issuing without a name", () => {
     const source = readFileSync(resolve(process.cwd(), "convex/invoices.ts"), "utf8");
-    const issue = source.slice(source.indexOf("export const issueMine"), source.indexOf("export const removeMine"));
+    const issueStart = source.includes("export async function issueMineHandler")
+      ? source.indexOf("export async function issueMineHandler")
+      : source.indexOf("export const issueMine");
+    const issue = source.slice(issueStart, source.indexOf("export const removeMine"));
     expect(issue).toMatch(/if \(!profile\.legalName\.trim\(\)\)/);
     expect(issue).toMatch(/const senderSnapshot = partyFromBusiness\(profile\)/);
     expect(issue).toMatch(/senderSnapshot,/);

@@ -8,6 +8,7 @@ import { useAction, useMutation } from "convex/react";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { api } from "@/lib/convex/browser";
 import { BIZ_COPY } from "./profile-copy";
+import { toFriendlyMessage } from "@/lib/friendly-error";
 import { checkLogoFile, logoFileType, svgToPng } from "@/lib/invoices/logo-upload";
 import type { BusinessProfile } from "@/lib/invoices/profiles";
 
@@ -53,7 +54,7 @@ export function BusinessLogoControl({
       onChange(profile as BusinessProfile);
       onStatus("success", BIZ_COPY.logoSaved);
     } catch (err) {
-      onStatus("error", err instanceof Error && err.message ? err.message : BIZ_COPY.logoFailed);
+      onStatus("error", toFriendlyMessage(err, BIZ_COPY.logoFailed));
     } finally {
       setBusy(false);
       if (inputRef.current) inputRef.current.value = "";
@@ -67,7 +68,7 @@ export function BusinessLogoControl({
       onChange(profile as BusinessProfile);
       onStatus("success", BIZ_COPY.logoRemoved);
     } catch (err) {
-      onStatus("error", err instanceof Error && err.message ? err.message : BIZ_COPY.logoFailed);
+      onStatus("error", toFriendlyMessage(err, BIZ_COPY.logoFailed));
     } finally {
       setBusy(false);
     }

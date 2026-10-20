@@ -55,6 +55,7 @@ import {
   generate7DayReminderEmail,
   generate3DayReminderEmail,
   generate1DayReminderEmail,
+  REMINDER_HEADER,
 } from "../src/lib/email-service";
 
 // Mock data for testing
@@ -343,7 +344,18 @@ describe("Sprint 7: Filing Deadline Management", () => {
       expect(email.subject).toContain("Personal Income Tax");
       expect(email.html).toContain("Test User");
       expect(email.html).toContain("7 days");
+      expect(email.html).toContain(REMINDER_HEADER);
+      expect(email.html).toContain("your Kompleet account");
+      expect(email.html).toContain("automated reminder from Kompleet");
+      expect(email.html).toContain("Ivano Technologies Ltd");
+      expect(email.html).toContain("Late filing may attract penalties.");
+      expect(email.html).not.toMatch(/⚠️/);
+      expect(email.html).not.toMatch(/Nigeria Tax Act/);
+      expect(email.html).not.toMatch(/Nigerian Tax Compliance/);
+      expect(email.html).not.toMatch(/Tax Compliance Platform/);
       expect(email.text).toContain("Test User");
+      expect(email.text).toContain("Late filing may attract penalties.");
+      expect(email.text).not.toMatch(/Nigerian Tax Compliance/);
     });
 
     it("should generate 3-day reminder email", () => {
@@ -361,6 +373,12 @@ describe("Sprint 7: Filing Deadline Management", () => {
       expect(email.subject).toContain("Company Income Tax");
       expect(email.html).toContain("Test Company");
       expect(email.html).toContain("3 days");
+      expect(email.html).toContain(REMINDER_HEADER);
+      expect(email.html).not.toMatch(/Tax Compliance Platform/);
+    });
+
+    it("locks the reminder subtitle under the KOMPLEET header", () => {
+      expect(REMINDER_HEADER).toBe("Bookkeeping and invoicing for Nigerian businesses");
     });
 
     it("should generate 1-day reminder email", () => {

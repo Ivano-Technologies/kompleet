@@ -14,6 +14,17 @@
 
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
+/**
+ * In-page friendly error copy. `useErrorRef` console.errors the same string,
+ * and Next.js's dev overlay then also contains it, so a page-wide getByText
+ * is a strict-mode miss. Scope to the banner (alert or AUTH_ERROR).
+ */
+export function inPageError(page: Page, text: string | RegExp): Locator {
+  return page
+    .locator('[role="alert"], .bg-error-bg')
+    .filter({ hasText: text });
+}
+
 export const E2E_USER_EMAIL = process.env.E2E_USER_EMAIL ?? "";
 export const E2E_USER_PASSWORD = process.env.E2E_USER_PASSWORD ?? "";
 
@@ -112,7 +123,7 @@ export async function login(page: Page): Promise<void> {
   await page.goto("/login");
   const email = page.getByPlaceholder("you@company.ng", { exact: true });
   const password = page.getByPlaceholder("Enter your password", { exact: true });
-  const submit = page.getByRole("button", { name: "Sign In →" });
+  const submit = page.getByRole("button", { name: "Sign in" });
 
   await fillHydrated(email, E2E_USER_EMAIL);
   await fillHydrated(password, E2E_USER_PASSWORD);
@@ -142,7 +153,7 @@ export async function login(page: Page): Promise<void> {
         page.getByPlaceholder("Enter your password", { exact: true }),
         E2E_USER_PASSWORD,
       );
-      await page.getByRole("button", { name: "Sign In →" }).click();
+      await page.getByRole("button", { name: "Sign in" }).click();
       await page.waitForURL(/\/dashboard(\?|$|\/)/, { timeout: 20_000 });
     }
   }
