@@ -16,12 +16,12 @@ export function generateCalculationPDF(data: CalculationPDFData) {
   const pageWidth = doc.internal.pageSize.getWidth();
   let yPosition = 20;
 
-  // Helper function to format currency
+  // Built-in PDF fonts have no naira glyph, so the PDF writes NGN.
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("en-NG", {
-      style: "currency",
-      currency: "NGN",
-    }).format(value);
+    return `NGN ${value.toLocaleString("en-NG", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
   };
 
   // Helper function to format label

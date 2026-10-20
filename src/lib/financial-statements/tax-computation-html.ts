@@ -61,7 +61,7 @@ export function toTaxComputationData(
 }
 
 function formatCurrency(amount: number): string {
-  return `₦${amount.toLocaleString("en-NG", {
+  return `NGN ${amount.toLocaleString("en-NG", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;
@@ -157,7 +157,7 @@ export function generateTaxComputationHTML(data: TaxComputationData): string {
   <table>
     <tr class="section-header">
       <th>ADD BACK: Non-Deductible Expenses</th>
-      <th class="amount">Amount (₦)</th>
+      <th class="amount">Amount (NGN)</th>
     </tr>
     ${Object.entries(taxAdjustments.addBack)
       .map(
@@ -178,7 +178,7 @@ export function generateTaxComputationHTML(data: TaxComputationData): string {
   <table>
     <tr class="section-header">
       <th>LESS: Allowable Deductions</th>
-      <th class="amount">Amount (₦)</th>
+      <th class="amount">Amount (NGN)</th>
     </tr>
     ${Object.entries(taxAdjustments.deductions)
       .map(
