@@ -8,7 +8,7 @@ import {
   DISCOUNT_TOO_BIG,
   NEGATIVE_QUANTITY,
   NEGATIVE_UNIT_PRICE,
-} from "./lib/line-amounts";
+} from "./lib/lineAmounts";
 
 const getCurrentUser = vi.fn();
 const userCanAccessClient = vi.fn();

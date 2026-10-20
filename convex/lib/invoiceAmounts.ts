@@ -12,7 +12,7 @@ import {
   lineNetAmount,
   totalsFromLines,
   type LineInput,
-} from "./line-amounts";
+} from "./lineAmounts";
 
 export type PricedInvoiceAmounts = {
   lineItems: unknown;

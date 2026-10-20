@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { mutation, query, type MutationCtx } from "./_generated/server";
 import { getCurrentUser, userCanAccessClient } from "./lib/auth";
-import { lineItemsFromPatch, priceInvoiceLines } from "./lib/invoice-amounts";
+import { lineItemsFromPatch, priceInvoiceLines } from "./lib/invoiceAmounts";
 import { newExternalId } from "./lib/ids";
 import {
   customerInfoFromParty,

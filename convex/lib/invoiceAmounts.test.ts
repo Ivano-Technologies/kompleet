@@ -1,7 +1,7 @@
 import { ConvexError } from "convex/values";
 import { describe, expect, it } from "vitest";
-import { totalsFromLines } from "./line-amounts";
-import { priceInvoiceLines } from "./invoice-amounts";
+import { totalsFromLines } from "./lineAmounts";
+import { priceInvoiceLines } from "./invoiceAmounts";
 
 describe("IVA-190 priceInvoiceLines", () => {
   it("rebuilds net amounts and per-rate VAT and ignores client-sent figures", () => {
