@@ -493,7 +493,7 @@ export default function IndividualTaxCalculatorPage() {
                           <p key={key} className="flex justify-between">
                             <span>
                               {bracket.to
-                                ? `₦${bracket.from.toLocaleString()} - ₦${bracket.to.toLocaleString()}`
+                                ? `₦${bracket.from.toLocaleString()} to ₦${bracket.to.toLocaleString()}`
                                 : `Above ₦${bracket.from.toLocaleString()}`}
                             </span>
                             <span className="font-medium">

@@ -23,6 +23,7 @@ describe.each([
 ])("%s error boundary", (_name, Boundary) => {
   it("shows a friendly page and never the raw error", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.spyOn(console, "warn").mockImplementation(() => {});
     const reset = vi.fn();
     render(<Boundary error={raw} reset={reset} />);
 
@@ -35,10 +36,11 @@ describe.each([
     expect(screen.queryAllByRole("link")).toHaveLength(0);
     const ref = (await screen.findByTestId("error-ref")).textContent ?? "";
     expect(ref).toMatch(/^Ref: [A-Z0-9]{8}$/);
-    expect(console.error).toHaveBeenCalledWith(
+    expect(console.warn).toHaveBeenCalledWith(
       expect.stringContaining(`ref=${ref.slice(5)}`),
       raw,
     );
+    expect(console.error).not.toHaveBeenCalled();
 
     await userEvent
       .setup()

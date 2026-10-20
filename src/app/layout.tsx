@@ -36,7 +36,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(CANONICAL_ORIGIN),
   title: "Kompleet: Stress-Free Bookkeeping and Invoicing",
   description:
-    "Bookkeeping made simple. Track spending, send invoices and export clean financial reports from one easy web app built for growing businesses.",
+    "Bookkeeping made simple. Track spending, send invoices and export clean financial reports from one simple web app built for growing businesses.",
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Kompleet: Stress-Free Bookkeeping and Invoicing",
     description:
-      "Bookkeeping made simple. Track spending, send invoices and export clean financial reports from one easy web app built for growing businesses.",
+      "Bookkeeping made simple. Track spending, send invoices and export clean financial reports from one simple web app built for growing businesses.",
     url: siteUrl,
     siteName: "Kompleet",
     locale: "en_NG",
@@ -57,7 +57,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Kompleet: Stress-Free Bookkeeping and Invoicing",
     description:
-      "Bookkeeping made simple. Track spending, send invoices and export clean financial reports from one easy web app built for growing businesses.",
+      "Bookkeeping made simple. Track spending, send invoices and export clean financial reports from one simple web app built for growing businesses.",
   },
 };
 

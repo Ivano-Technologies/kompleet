@@ -12,6 +12,7 @@
  * names these renderers expect. See docs/TAX_RULE_PROVENANCE.md.
  */
 import type { TaxComputationResult } from "@/lib/services/tax-computation-service";
+import { INVOICE_FOOTER_TEXT } from "@/lib/invoices/invoice-branding";
 
 export interface TaxComputationData {
   accountingProfit: number;
@@ -22,7 +23,6 @@ export interface TaxComputationData {
   taxableIncome: number;
   taxRate: number;
   taxLiability: number;
-  legalReferences: Record<string, string>;
 }
 
 /**
@@ -57,7 +57,6 @@ export function toTaxComputationData(
     taxableIncome: result.taxableIncome,
     taxRate: incomeTaxBreakdownItem?.rate ?? 0,
     taxLiability: result.incomeTax,
-    legalReferences: {},
   };
 }
 
@@ -100,6 +99,7 @@ export function generateTaxComputationHTML(data: TaxComputationData): string {
       font-family: Arial, sans-serif;
       margin: 40px;
       color: #333;
+      background: #ffffff;
     }
     h1 {
       text-align: center;
@@ -117,6 +117,7 @@ export function generateTaxComputationHTML(data: TaxComputationData): string {
     }
     th {
       background-color: #f5f5f5;
+      color: #333;
       font-weight: bold;
     }
     .amount {
@@ -129,13 +130,17 @@ export function generateTaxComputationHTML(data: TaxComputationData): string {
     .highlight-row {
       font-weight: bold;
       font-size: 1.1em;
-      background-color: #F3F3F3;
+      background-color: #f5f5f5;
       color: #000000;
     }
     .section-header {
       background-color: #f5f5f5;
-      color: #000000;
+      color: #333;
       font-weight: bold;
+    }
+    .section-header th {
+      background-color: #f5f5f5;
+      color: #333;
     }
   </style>
 </head>
@@ -207,7 +212,7 @@ export function generateTaxComputationHTML(data: TaxComputationData): string {
   </table>
 
   <div style="margin-top: 40px; text-align: center; color: #666; font-size: 0.9em;">
-    <p>Powered by Kompleet</p>
+    <p>${INVOICE_FOOTER_TEXT}</p>
   </div>
 </body>
 </html>
