@@ -42,7 +42,7 @@ interface TaxCalculation {
 const TAX_TYPE_LABELS = {
   pit: "Personal Income Tax",
   cit: "Company Income Tax",
-  vat: "VAT Compliance",
+  vat: "VAT calculator",
   wht: "Withholding Tax",
 };
 

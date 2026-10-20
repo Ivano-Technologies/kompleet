@@ -32,6 +32,7 @@ if (!jsPdfApi.API.autoTable) {
 const TAX_ACT = /Tax\s+Act/i;
 const NIGERIA_TAX_ACT = /Nigeria\s+Tax\s+Act/i;
 const COMPLIANT = /\bcompliant\b/i;
+const COMPLIANCE_LABEL = /VAT Compliance|Tax Compliance|"Compliance"/;
 const BANNED_REMINDER = /Urgent|Final notice|Last Day to File|TOMORROW!|24 HOURS|File now\. Do not delay|standing by|call our hotline|FINAL automated/i;
 
 function walk(dir: string, acc: string[] = []): string[] {
@@ -56,7 +57,12 @@ describe("IVA-211 copy: no Tax Act or compliant claims", () => {
     const hits: string[] = [];
     for (const file of files) {
       const text = readFileSync(file, "utf8");
-      if (TAX_ACT.test(text) || NIGERIA_TAX_ACT.test(text) || COMPLIANT.test(text)) {
+      if (
+        TAX_ACT.test(text) ||
+        NIGERIA_TAX_ACT.test(text) ||
+        COMPLIANT.test(text) ||
+        COMPLIANCE_LABEL.test(text)
+      ) {
         hits.push(relative(process.cwd(), file));
       }
     }
@@ -67,6 +73,14 @@ describe("IVA-211 copy: no Tax Act or compliant claims", () => {
     expect(propertyTax).toBeDefined();
     expect(readFileSync(propertyTax!, "utf8")).not.toMatch(TAX_ACT);
     expect(readFileSync(propertyTax!, "utf8")).not.toMatch(NIGERIA_TAX_ACT);
+  });
+
+  it("fails if VAT Compliance or Tax Compliance labels return", () => {
+    expect(COMPLIANCE_LABEL.test('title: "VAT Compliance"')).toBe(true);
+    expect(COMPLIANCE_LABEL.test('tags: ["VAT", "Compliance"]')).toBe(true);
+    expect(COMPLIANCE_LABEL.test('badge: "Tax Compliance"')).toBe(true);
+    expect(COMPLIANCE_LABEL.test('title: "VAT calculator"')).toBe(false);
+    expect(COMPLIANCE_LABEL.test('badge: "Tax reports"')).toBe(false);
   });
 
   it("treats a line-broken Tax Act subtitle as a hit", () => {
