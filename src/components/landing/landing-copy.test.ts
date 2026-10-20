@@ -101,6 +101,9 @@ describe("IVA-72 landing copy", () => {
     expect(
       existsSync(resolve(process.cwd(), "public/assets/illustrations/bookkeeping-flow-mobile.svg")),
     ).toBe(true);
+    expect(
+      existsSync(resolve(process.cwd(), "public/assets/illustrations/bookkeeping-flow-mobile.png")),
+    ).toBe(false);
   });
 
   it("removes the Product Proof band from the homepage", () => {
@@ -144,7 +147,10 @@ describe("IVA-72 landing copy", () => {
     expect(hero).toMatch(/xl:text-\[40px\]/);
     expect(hero).not.toMatch(/text-5xl/);
     expect(hero).not.toMatch(/py-16|lg:py-24|lg:min-h-\[640px\]/);
-    expect(hero).toMatch(/Nigerian bank imports, easy invoicing and clean financial reports/);
+    expect(hero).toMatch(/Nigerian bank imports, simple invoicing and clean financial reports/);
+    expect(landing).toMatch(/Simple invoicing/);
+    expect(landing).not.toMatch(/\beasy invoicing\b/i);
+    expect(landing).not.toMatch(/\bEasy invoicing\b/);
     expect(heroAuthCard).toMatch(/p-4 shadow-2/);
     expect(heroAuthCard).toMatch(/h-11/);
     expect(heroAuthCard).not.toMatch(/h-\[52px\]/);

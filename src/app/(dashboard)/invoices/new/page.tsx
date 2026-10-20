@@ -2,12 +2,16 @@
 
 import { useState, useEffect } from "react";
 import {
+  ADD_ITEM_BEFORE_ISSUE,
   DISCOUNT_TOO_BIG,
+  INVALID_QUANTITY,
+  INVALID_UNIT_PRICE,
+  VAT_RATE_RANGE,
   discountTooBig,
   lineNetAmount,
+  roundMoney,
   totalsFromLines,
-  vatByRate,
-  vatRowLabel,
+  vatSummaryRows,
 } from "@/lib/invoices/line-amounts";
 import { useRouter } from "next/navigation";
 import { InvoiceLineItem, CustomerInfo } from "@/lib/invoice-service";
@@ -110,7 +114,8 @@ export default function NewInvoicePage() {
     value: any,
   ) => {
     const updated = [...lineItems];
-    updated[index] = { ...updated[index], [field]: value };
+    const next = field === "unit_price" && Number.isFinite(value) ? roundMoney(value) : value;
+    updated[index] = { ...updated[index], [field]: next };
     updated[index].amount = calculateLineItemAmount(updated[index]);
     setLineItems(updated);
   };
@@ -145,7 +150,7 @@ export default function NewInvoicePage() {
     return {
       subtotal: t.subtotal,
       vatAmount: t.vat_amount,
-      vatLines: vatByRate(lineItems),
+      vatLines: vatSummaryRows(lineItems),
       discountAmount: t.discount_amount,
       total: t.total_amount,
     };
@@ -165,7 +170,7 @@ export default function NewInvoicePage() {
     }
 
     if (lineItems.length === 0) {
-      errors.push("Add at least one line item.");
+      errors.push(forIssue ? ADD_ITEM_BEFORE_ISSUE : "Add at least one line item.");
     }
 
     for (let i = 0; i < lineItems.length; i++) {
@@ -173,11 +178,18 @@ export default function NewInvoicePage() {
       if (!item.description.trim()) {
         errors.push(`Line item ${i + 1}: add a description`);
       }
-      if (item.quantity <= 0) {
+      if (!Number.isFinite(item.quantity)) {
+        errors.push(INVALID_QUANTITY);
+      } else if (item.quantity <= 0) {
         errors.push(`Line item ${i + 1}: enter a quantity greater than 0`);
       }
-      if (item.unit_price < 0) {
+      if (!Number.isFinite(item.unit_price)) {
+        errors.push(INVALID_UNIT_PRICE);
+      } else if (item.unit_price < 0) {
         errors.push(`Line item ${i + 1}: enter a unit price of 0 or more`);
+      }
+      if (!Number.isFinite(item.vat_rate) || item.vat_rate < 0 || item.vat_rate > 100) {
+        errors.push(VAT_RATE_RANGE);
       }
       if (discountTooBig(item)) {
         errors.push(`Line item ${i + 1}: ${DISCOUNT_TOO_BIG}`);
@@ -300,7 +312,10 @@ export default function NewInvoicePage() {
       </div>
 
       {error && (
-        <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/30 rounded-lg text-red-700 dark:text-red-400">
+        <div
+          role="alert"
+          className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900/30 rounded-lg text-red-700 dark:text-red-400"
+        >
           <ErrorText text={error} />
         </div>
       )}
@@ -524,6 +539,8 @@ export default function NewInvoicePage() {
                 </label>
                 <input
                   type="number"
+                  min={0}
+                  step={0.01}
                   value={item.unit_price}
                   onChange={(e) =>
                     updateLineItem(
@@ -641,9 +658,9 @@ export default function NewInvoicePage() {
               </span>
             </div>
             {totals.vatLines.map((line) => (
-              <div key={line.rate} className="flex justify-between" data-testid="form-vat-row">
+              <div key={line.label} className="flex justify-between" data-testid="form-vat-row">
                 <span className="text-light-text-secondary dark:text-dark-text-secondary">
-                  {vatRowLabel(line.rate)}
+                  {line.label}
                 </span>
                 <span className="font-medium text-light-text-primary dark:text-dark-text-primary tabular-nums">
                   ₦{line.vat.toLocaleString("en-NG", { minimumFractionDigits: 2 })}

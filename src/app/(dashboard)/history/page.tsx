@@ -464,7 +464,9 @@ export default function HistoryPage() {
                     {getCalculatorName(calc.calculation_type)}
                   </td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm text-light-text-secondary dark:text-dark-text-secondary">
-                    {calc.calculation_type || "-"}
+                    {calc.calculation_type || (
+                      <span className="text-text-3">Not set</span>
+                    )}
                   </td>
                   <td className="whitespace-nowrap px-3 py-4 text-sm font-semibold text-light-text-primary dark:text-dark-text-primary">
                     {formatCurrency(getTotalTax(calc.results))}

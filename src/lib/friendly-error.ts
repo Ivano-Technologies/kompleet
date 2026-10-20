@@ -10,8 +10,9 @@
  * - `ConvexError` whose data is a string (or `{ message: string }`)
  * - our own password rule validation text
  * Known auth, network and rate limit cases map to plain text. Everything else
- * becomes the fallback. The raw error is always logged (console.error, plus
- * Sentry for unexpected errors).
+ * becomes the fallback. The raw error is always logged (console.warn, plus
+ * Sentry for unexpected errors). console.error would open the Next.js overlay
+ * and flake e2e on expected user errors.
  */
 import * as Sentry from "@sentry/nextjs";
 
@@ -173,6 +174,20 @@ export const USER_MESSAGE_ALLOWLIST: Record<string, string> = {
   "Email is required": "Email is required.",
   "Only draft invoices can be deleted": "Only draft invoices can be deleted.",
   "Invoice is immutable": "Issued invoices can't be changed.",
+  "Quantity can't be negative.": "Quantity can't be negative.",
+  "Unit price can't be negative.": "Unit price can't be negative.",
+  "Discount can't be more than the line total.":
+    "Discount can't be more than the line total.",
+  "VAT rate must be between 0% and 100%.":
+    "VAT rate must be between 0% and 100%.",
+  "Enter a number for quantity.": "Enter a number for quantity.",
+  "Enter a number for unit price.": "Enter a number for unit price.",
+  "This invoice has already been issued.":
+    "This invoice has already been issued.",
+  "Add at least one item before issuing this invoice.":
+    "Add at least one item before issuing this invoice.",
+  "This update can't change the invoice status.":
+    "This update can't change the invoice status.",
   "Use PDF, image, or CSV.": "Use a PDF, image or CSV file.",
   "File size must be less than 10MB": "File size must be less than 10MB.",
   "Expense already exists": "This expense already exists.",
@@ -191,6 +206,10 @@ function allowlisted(text: string): string | null {
   if (USER_MESSAGE_ALLOWLIST[key]) return USER_MESSAGE_ALLOWLIST[key];
   const noDot = key.replace(/\.$/, "");
   if (USER_MESSAGE_ALLOWLIST[noDot]) return USER_MESSAGE_ALLOWLIST[noDot];
+  const withoutLine = key.replace(/^Line item \d+:\s*/, "");
+  if (withoutLine !== key && USER_MESSAGE_ALLOWLIST[withoutLine]) {
+    return USER_MESSAGE_ALLOWLIST[withoutLine];
+  }
   const nf = NOT_FOUND_PATTERN.exec(key);
   if (nf) return `We couldn't find this ${nf[1].toLowerCase()}.`;
   return null;
@@ -298,7 +317,7 @@ export function toFriendlyError(
   ref = ref ?? generateRef();
 
   if (!options.silent) {
-    console.error(
+    console.warn(
       `[friendly-error] ref=${ref}${options.context ? ` context=${options.context}` : ""}`,
       err,
     );
@@ -427,6 +446,6 @@ export function friendlyWithNewRef(
   detail?: unknown,
 ): string {
   const ref = generateRef();
-  console.error(`[friendly-error] ref=${ref} context=${context}`, detail ?? message);
+  console.warn(`[friendly-error] ref=${ref} context=${context}`, detail ?? message);
   return withRef(message, ref);
 }
