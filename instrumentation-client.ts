@@ -6,16 +6,16 @@ Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
 
   // --- Error Monitoring ---
-  // Send request headers and IP for user context
-  sendDefaultPii: true,
+  // Do not send request headers, cookies or IP addresses (NDPR privacy)
+  sendDefaultPii: false,
 
   // --- Performance Monitoring ---
   // 100% in dev, 10% in production (adjust based on traffic)
   tracesSampleRate: process.env.NODE_ENV === "development" ? 1.0 : 0.1,
 
   // --- Session Replay ---
-  // Capture 10% of all sessions, 100% of sessions with errors
-  replaysSessionSampleRate: 0.1,
+  // No routine session recording; capture replays only for sessions with errors
+  replaysSessionSampleRate: 0,
   replaysOnErrorSampleRate: 1.0,
 
   // --- Logs ---
