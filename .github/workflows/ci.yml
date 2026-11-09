@@ -6,14 +6,19 @@ on:
   push:
     branches: [main, dev]
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 env:
   NODE_OPTIONS: --max-old-space-size=4096
 
 jobs:
-  # This repository is PUBLIC by deliberate choice. Any credential that reaches
-  # a commit is world-readable within seconds, so secret scanning blocks the
-  # pipeline ahead of every other job.
-  secrets:
+  # Job id must not be `secrets` — that name is reserved (same as the secrets
+  # context) and GitHub can skip the job entirely. `build` used to `needs:
+  # secrets`, so when secret-scan never started, build never started either.
+  # Jobs are independent so a scheduler drop of one does not skip the rest.
+  secret_scan:
     name: secret-scan
     runs-on: ubuntu-latest
     steps:
@@ -76,7 +81,6 @@ jobs:
 
   build:
     name: build
-    needs: secrets
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
