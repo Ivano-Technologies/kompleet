@@ -199,12 +199,8 @@ jobs:
 
   e2e:
     name: e2e
-    # Advisory only. A red Playwright job was blocking the keep-alive
-    # production fix (two free-tier pauses). The unit suite is the gate
-    # (RLS-negative retired with the supabase/ tree in IVA-64 Phase 5).
-    # Revisit when there is a stable seeded test environment. Do not
-    # delete specs — the passing tests still cover route protection.
-    continue-on-error: true
+    # IVA-235: Node 22 is required so isolated Convex can deploy "use node"
+    # actions. This job is a required gate (not advisory).
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
