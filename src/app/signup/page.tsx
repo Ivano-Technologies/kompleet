@@ -101,7 +101,7 @@ export default function SignUpPage() {
           </div>
           <h1 className={AUTH_TITLE}>Account Created!</h1>
           <p className={AUTH_SUBTITLE}>
-            Already used Kompleet with this email? Sign up with the same address to keep your books.
+            Your account is ready.
           </p>
           <Link href="/dashboard" className="bg-primary text-white font-bold text-sm py-2.5 px-6 rounded-md block w-full text-center hover:bg-primary-deep transition-colors">
             Go to Dashboard

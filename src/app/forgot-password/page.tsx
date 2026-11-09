@@ -139,7 +139,7 @@ export default function ForgotPasswordPage() {
       </form>
 
       <p className="mt-3 text-center text-xs text-text-3 dark:text-dark-text-3">
-        The code expires in 15 minutes. Already used Kompleet with this email? Sign up with the same address to keep your books.
+        The code expires in 15 minutes.
       </p>
     </AuthLayout>
   );

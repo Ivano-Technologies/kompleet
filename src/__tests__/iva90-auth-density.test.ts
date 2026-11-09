@@ -55,6 +55,8 @@ describe("IVA-90 AUTH-DENSITY lock", () => {
     expect(signup).toMatch(/Create account/);
     expect(signup).toMatch(/AUTH_TRUST/);
     expect(signup).toMatch(/Encrypted at rest/);
+    expect(signup).toMatch(/Your account is ready\./);
+    expect(signup).not.toMatch(/Already used Kompleet with this email/);
   });
 
   it("does not change homepage hero auth density", () => {
