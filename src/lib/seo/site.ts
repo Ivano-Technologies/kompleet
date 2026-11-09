@@ -8,7 +8,6 @@ export const CANONICAL_ORIGIN = "https://kompleet.techivano.com";
 /** Public marketing pages that exist under src/app (home + src/app/(public)). */
 export const PUBLIC_MARKETING_PATHS = [
   "/",
-  "/pricing",
   "/about",
   "/contact",
   "/help",

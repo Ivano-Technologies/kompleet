@@ -52,9 +52,9 @@ describe("IVA-90 AUTH-DENSITY lock", () => {
     expect(signup).toMatch(/Business Name/);
     expect(signup).toMatch(/Business Email/);
     expect(signup).toMatch(/Password/);
-    expect(signup).toMatch(/Create Free Account/);
+    expect(signup).toMatch(/Create account/);
     expect(signup).toMatch(/AUTH_TRUST/);
-    expect(signup).toMatch(/NDPR/);
+    expect(signup).toMatch(/Encrypted at rest/);
   });
 
   it("does not change homepage hero auth density", () => {

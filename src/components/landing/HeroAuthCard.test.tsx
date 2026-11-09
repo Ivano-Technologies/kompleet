@@ -35,8 +35,8 @@ describe("HeroAuthCard", () => {
     ).toBeInTheDocument();
     expect(screen.queryByText(/google/i)).not.toBeInTheDocument();
     expect(
-      screen.getByText("Free during beta. No credit card required."),
-    ).toBeInTheDocument();
+      screen.queryByText("Free during beta. No credit card required."),
+    ).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Sign in" }));
 
@@ -63,7 +63,7 @@ describe("HeroAuthCard", () => {
       );
     });
     expect(screen.getByTestId("reclaim-note").textContent).toBe(
-      "Existing Kompleet users: choose Get started and use this same email to reclaim your data.",
+      "Already used Kompleet with this email? Sign up with the same address to keep your books.",
     );
   });
 });

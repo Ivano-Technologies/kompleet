@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/api-docs" },
   title: "Kompleet: Developer API",
   description:
-    "KOMPLEET API documentation for developers integrating with the platform.",
+    "Kompleet API documentation for developers integrating with the platform.",
 };
 
 /**
@@ -61,7 +61,7 @@ export default function ApiDocsPage() {
             Developer API
           </h1>
           <p className="text-lg text-light-text-secondary dark:text-dark-text-secondary leading-relaxed">
-            Integrate KOMPLEET into your applications with our REST API. Access
+            Integrate Kompleet into your applications with our REST API. Access
             transactions, invoicing, calculations, and reporting
             programmatically.
           </p>
@@ -73,7 +73,7 @@ export default function ApiDocsPage() {
           </h2>
           <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
             All API requests require authentication via a Bearer token. Obtain
-            your token by authenticating through Convex Auth.
+            a Bearer token from your Kompleet account.
           </p>
           <div className="bg-dark-background rounded-lg p-4 text-sm font-mono">
             <p className="text-dark-text-tertiary mb-1">

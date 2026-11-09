@@ -10,51 +10,6 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
-const trustBarItems = [
-  "11 bank parsers",
-  "Simple invoicing",
-  "Clean reports",
-];
-
-const capabilities = [
-  {
-    src: "/assets/illustrations/spot-banks.svg",
-    fallback: "/assets/illustrations/spot-banks.png",
-    title: "11 Nigerian bank parsers",
-    desc: "Upload statements. Parsers extract transactions and validate running balances.",
-  },
-  {
-    src: "/assets/illustrations/spot-invoice.svg",
-    fallback: "/assets/illustrations/spot-invoice.png",
-    title: "Simple invoicing",
-    desc: "Create professional invoices in minutes. Record payment when the customer settles.",
-  },
-  {
-    src: "/assets/illustrations/spot-expenses.svg",
-    fallback: "/assets/illustrations/spot-expenses.png",
-    title: "Expense tracking",
-    desc: "Sort every naira you spend into clear categories so you always know where money goes.",
-  },
-  {
-    src: "/assets/illustrations/spot-filing.svg",
-    fallback: "/assets/illustrations/spot-filing.png",
-    title: "Clean exports",
-    desc: "Export transactions, invoices and reports as CSV or PDF whenever you need them.",
-  },
-  {
-    src: "/assets/illustrations/spot-reports.svg",
-    fallback: "/assets/illustrations/spot-reports.png",
-    title: "P&L and balance sheet",
-    desc: "Reports from your books, ready to share with an accountant.",
-  },
-  {
-    src: "/assets/illustrations/spot-security.svg",
-    fallback: "/assets/illustrations/spot-security.png",
-    title: "NDPR-minded hosting",
-    desc: "Encrypted in transit and at rest. Hosted on Convex. We do not claim Nigerian data residency.",
-  },
-];
-
 export default function HomePage() {
   return (
     <div data-marketing className="bg-bg text-text-1">
@@ -98,59 +53,7 @@ export default function HomePage() {
         </div>
       </header>
 
-      <div className="bg-charcoal-dk px-6 py-4 md:px-12">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-6 md:gap-10">
-          {trustBarItems.map((item) => (
-            <div
-              key={item}
-              className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-white/70"
-            >
-              <span className="h-1 w-1 rounded-full bg-white/40" />
-              {item}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <section id="features" className="px-6 py-20 md:px-12 md:py-24">
-        <div className="mx-auto mb-12 max-w-7xl text-center">
-          <p className="mb-3 text-xs font-bold uppercase tracking-widest text-primary">
-            What ships today
-          </p>
-          <h2 className="font-display text-[32px] font-bold tracking-tight md:text-4xl">
-            Capability, not a wish list
-          </h2>
-        </div>
-        <div className="mx-auto grid max-w-7xl gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {capabilities.map((item) => (
-            <article
-              key={item.title}
-              id={item.title === "NDPR-minded hosting" ? "security" : undefined}
-              className="rounded-xl border border-border bg-surface p-6"
-            >
-              <picture>
-                <source srcSet={item.src} type="image/svg+xml" />
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={item.fallback}
-                  alt=""
-                  width={44}
-                  height={44}
-                  className="mb-4 h-11 w-11"
-                />
-              </picture>
-              <h3 className="font-display text-xl font-bold text-text-1">
-                {item.title}
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed text-text-3">
-                {item.desc}
-              </p>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="px-6 py-16 md:px-12">
+      <section className="px-6 py-16 md:px-12 md:pt-20">
         <div className="mx-auto max-w-7xl">
           <picture>
             <source
@@ -184,12 +87,9 @@ export default function HomePage() {
           <h2 className="font-display text-[32px] font-bold leading-tight tracking-tight text-white md:text-4xl">
             Ready to take control of your business finances?
           </h2>
-          <p className="mx-auto mt-4 mb-8 max-w-md text-base text-white/70">
-            Free during beta. No credit card required.
-          </p>
           <Link
             href="/signup"
-            className="inline-block rounded-md bg-accent px-8 py-4 text-base font-bold text-charcoal hover:bg-accent-hover"
+            className="mt-8 inline-block rounded-md bg-accent px-8 py-4 text-base font-bold text-charcoal hover:bg-accent-hover"
           >
             Get started
           </Link>

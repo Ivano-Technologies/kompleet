@@ -23,14 +23,14 @@ export default function AboutPage() {
         </h1>
         <div className="space-y-6 rounded-xl border border-border bg-surface p-8">
           <p className="text-base leading-relaxed text-text-2">
-            KOMPLEET is bookkeeping and invoicing software for Nigerian small
+            Kompleet is bookkeeping and invoicing software for Nigerian small
             and medium enterprises. Import statements from 11 local banks,
             track spending, send invoices, and export P&amp;L and balance
             sheets.
           </p>
           <p className="leading-relaxed text-text-2">
-            Checkout integrations are not live yet, so invoice payment is
-            recorded manually.
+            Record invoice payments when customers settle, so your books stay
+            current.
           </p>
         </div>
 
@@ -40,9 +40,8 @@ export default function AboutPage() {
               Why Nigeria
             </h2>
             <p className="leading-relaxed text-text-2">
-              Naira amounts, local bank statement formats and the way Nigerian
-              businesses invoice are the product, not a localisation layer on
-              a generic ledger.
+              Naira amounts, local bank statement formats, and the way Nigerian
+              businesses invoice are built into the product.
             </p>
           </div>
           <div className="rounded-xl border border-border bg-surface p-8">
@@ -58,10 +57,10 @@ export default function AboutPage() {
 
         <div className="mt-8 rounded-xl border border-border bg-surface p-8 text-center">
           <h3 className="font-display mb-2 text-lg font-semibold">
-            Free during beta
+            Start with your books
           </h3>
           <p className="mb-4 text-text-2">
-            Create an account and import a statement. No invented user counts.
+            Create an account and import a statement.
           </p>
           <Link
             href="/signup"

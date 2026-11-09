@@ -101,7 +101,7 @@ export default function SignUpPage() {
           </div>
           <h1 className={AUTH_TITLE}>Account Created!</h1>
           <p className={AUTH_SUBTITLE}>
-            Your account is ready. Existing Kompleet data for this email stays attached.
+            Already used Kompleet with this email? Sign up with the same address to keep your books.
           </p>
           <Link href="/dashboard" className="bg-primary text-white font-bold text-sm py-2.5 px-6 rounded-md block w-full text-center hover:bg-primary-deep transition-colors">
             Go to Dashboard
@@ -241,7 +241,7 @@ export default function SignUpPage() {
           disabled={loading}
           className={AUTH_SUBMIT}
         >
-          {loading ? 'Creating account…' : 'Create Free Account'}
+          {loading ? 'Creating account…' : 'Create account'}
           {!loading && <ArrowRight className="w-4 h-4" />}
         </button>
       </form>
@@ -256,7 +256,7 @@ export default function SignUpPage() {
       <div className={AUTH_TRUST}>
         <span className="inline-flex items-center gap-1.5">
           <Shield className="h-3 w-3" />
-          NDPR
+          Encrypted at rest
         </span>
         <span aria-hidden="true">·</span>
         <span className="inline-flex items-center gap-1.5">

@@ -210,7 +210,7 @@ export default function HeroAuthCard() {
         </button>
         {mode === "signin" ? (
           <p data-testid="reclaim-note" className="mt-2 text-center text-xs tracking-normal [word-spacing:0.12em] text-text-3">
-            {"Existing Kompleet users: choose Get started and use this same email to reclaim your data."}
+            {"Already used Kompleet with this email? Sign up with the same address to keep your books."}
           </p>
         ) : null}
         <p className="mt-3 text-center text-sm text-text-2">
@@ -242,9 +242,6 @@ export default function HeroAuthCard() {
           )}
         </p>
       </form>
-      <p className="pt-2 text-center text-xs font-medium text-text-3">
-        Free during beta. No credit card required.
-      </p>
     </div>
   );
 }

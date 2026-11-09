@@ -7,39 +7,34 @@ export const metadata: Metadata = {
   alternates: { canonical: "/help" },
   title: "Kompleet: Help Center",
   description:
-    "Find answers to common questions and learn how to get the most out of KOMPLEET.",
+    "Find answers to common questions and learn how to get the most out of Kompleet.",
 };
 
 const faqs = [
   {
-    question: "How do I get started with KOMPLEET?",
+    question: "How do I get started with Kompleet?",
     answer:
-      "Sign up for a free account, complete your business profile, and start by uploading a Nigerian bank statement or creating your first invoice.",
+      "Create an account, complete your business profile, and start by uploading a Nigerian bank statement or creating your first invoice.",
   },
   {
-    question: "What can I do with KOMPLEET today?",
+    question: "What can I do with Kompleet?",
     answer:
       "Import bank statements, categorize transactions, track spending, send invoices, and export P&L and balance sheet reports, all from one web app.",
   },
   {
-    question: "Can I file taxes directly through KOMPLEET?",
+    question: "Can I file taxes directly through Kompleet?",
     answer:
-      "No. KOMPLEET generates filing-ready forms and reports for NRS and LIRS. You download them and submit through the official portals yourself. Direct portal submission is not available.",
+      "Kompleet generates filing-ready forms and reports for NRS and LIRS that you download and submit through the official portals yourself.",
   },
   {
     question: "How does the invoicing feature work?",
     answer:
-      "Create invoices with clear line items, send them to customers, then track payment status when your customer settles. Online checkout (Paystack/Flutterwave) is not live yet, so payment recording is manual for now.",
+      "Create invoices, send them to customers, and record payment when they settle.",
   },
   {
     question: "Is my financial data secure?",
     answer:
-      "Yes. Data is encrypted in transit and at rest. The app is hosted on Convex. We do not claim Nigerian data residency.",
-  },
-  {
-    question: "What happens after the beta period?",
-    answer:
-      "We will publish paid tiers for Nigerian SMEs before charging anyone. Beta users get advance notice and a stated early-tester discount.",
+      "Yes. Your data is encrypted in transit and at rest, and access is limited to your account.",
   },
   {
     question: "Can I export my data?",
@@ -49,7 +44,7 @@ const faqs = [
   {
     question: "How do I import bank transactions?",
     answer:
-      "Upload statements from any of 11 supported Nigerian banks. Parsers extract transactions and validate running balances before they enter your books. Open-banking account linking is not available.",
+      "Upload statements from 11 supported Nigerian banks. Transactions are checked against running balances before they enter your books.",
   },
 ];
 
@@ -64,7 +59,7 @@ const topics = [
   },
   {
     title: "Contact support",
-    body: "Need more help? Reach out and we will reply on a business day.",
+    body: "Need more help? Reach out from the contact page on a business day.",
   },
 ];
 
@@ -76,7 +71,7 @@ export default function HelpPage() {
         <div className="mb-12 text-center">
           <h1 className="font-display mb-4 text-4xl font-bold">Help Center</h1>
           <p className="text-lg text-text-2">
-            Answers about using KOMPLEET today.
+            Answers for using Kompleet.
           </p>
         </div>
 
@@ -120,7 +115,7 @@ export default function HelpPage() {
 
         <div className="mt-8 rounded-xl border border-border bg-surface p-8 text-center">
           <h3 className="mb-2 text-lg font-semibold">Still need help?</h3>
-          <p className="mb-4 text-text-2">Write to support and we will reply.</p>
+          <p className="mb-4 text-text-2">Write to support from the contact page.</p>
           <Link
             href="/contact"
             className="inline-block rounded-md bg-accent px-6 py-3 text-sm font-bold text-charcoal hover:bg-accent-hover"

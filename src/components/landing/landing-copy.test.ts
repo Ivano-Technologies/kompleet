@@ -57,11 +57,11 @@ const rootLayout = readFileSync(
 );
 
 describe("IVA-72 landing copy", () => {
-  it("does not claim Supabase hosting on marketing pages", () => {
-    expect(landing).not.toMatch(/Supabase/i);
-    expect(help).not.toMatch(/Supabase/i);
-    expect(about).not.toMatch(/Supabase/i);
-    expect(landing).toMatch(/Hosted on Convex/);
+  it("does not name Convex or Supabase on marketing pages", () => {
+    expect(landing).not.toMatch(/Supabase|Convex/i);
+    expect(help).not.toMatch(/Supabase|Convex/i);
+    expect(about).not.toMatch(/Supabase|Convex/i);
+    expect(landing).not.toMatch(/Hosted on Convex/);
   });
 
   it("keeps of and your as separate words in the final CTA", () => {
@@ -148,7 +148,7 @@ describe("IVA-72 landing copy", () => {
     expect(hero).not.toMatch(/text-5xl/);
     expect(hero).not.toMatch(/py-16|lg:py-24|lg:min-h-\[640px\]/);
     expect(hero).toMatch(/Nigerian bank imports, simple invoicing and clean financial reports/);
-    expect(landing).toMatch(/Simple invoicing/);
+    expect(landing).toMatch(/simple invoicing/);
     expect(landing).not.toMatch(/\beasy invoicing\b/i);
     expect(landing).not.toMatch(/\bEasy invoicing\b/);
     expect(heroAuthCard).toMatch(/p-4 shadow-2/);
@@ -156,7 +156,7 @@ describe("IVA-72 landing copy", () => {
     expect(heroAuthCard).not.toMatch(/h-\[52px\]/);
   });
 
-  it("uses Design spot icons, ledger hero illustration and bookkeeping flow with no Demo chrome", () => {
+  it("uses the ledger hero illustration and bookkeeping flow with no Demo chrome", () => {
     expect(landing).toMatch(/hero-kompleet\.svg/);
     expect(landing).toMatch(/hero-kompleet\.png/);
     expect(landing).toMatch(/<picture>/);
@@ -200,8 +200,7 @@ describe("IVA-72 landing copy", () => {
       "spot-reports",
       "spot-security",
     ]) {
-      expect(landing).toMatch(new RegExp(`${spot}\\.svg`));
-      expect(landing).toMatch(new RegExp(`${spot}\\.png`));
+      expect(landing).not.toMatch(new RegExp(`${spot}\\.(svg|png)`));
       expect(
         existsSync(resolve(process.cwd(), `public/assets/illustrations/${spot}.svg`)),
       ).toBe(true);
@@ -337,18 +336,49 @@ describe("IVA-72 landing copy", () => {
     }
   });
 
-  it("keeps /pricing copy free during beta without a card promise or a live price", () => {
-    const pricing = readFileSync(
-      resolve(process.cwd(), "src/app/(public)/pricing/page.tsx"),
+  it("redirects /pricing to /signup and keeps the page file in place", () => {
+    const nextConfig = readFileSync(
+      resolve(process.cwd(), "next.config.mjs"),
       "utf8",
     );
-    expect(pricing).toMatch(/Free during beta/);
-    expect(pricing).toMatch(/A one-off lifetime plan is coming soon/);
-    expect(pricing).not.toMatch(/No card/i);
-    expect(pricing).not.toMatch(/credit card/i);
-    expect(pricing).not.toMatch(/₦5,?000/);
-    expect(pricing).toMatch(/No price is published yet/);
-    expect(pricing).toMatch(/CompanyLegalLinks/);
+    expect(nextConfig).toMatch(
+      /source:\s*"\/pricing"[\s\S]*destination:\s*"\/signup"[\s\S]*permanent:\s*false/,
+    );
+    expect(
+      existsSync(resolve(process.cwd(), "src/app/(public)/pricing/page.tsx")),
+    ).toBe(true);
+    expect(landingNav).not.toMatch(/\/pricing/);
+    expect(landingFooter).not.toMatch(/\/pricing/);
+    expect(landingNav).not.toMatch(/Features/);
+    expect(landingFooter).not.toMatch(/>\s*Features\s*</);
+    expect(landingFooter).not.toMatch(/>\s*Pricing\s*</);
+  });
+
+  it("cuts the home capability section and dark trust bar", () => {
+    expect(landing).not.toMatch(/id="features"/);
+    expect(landing).not.toMatch(/trustBarItems|capabilities/);
+    expect(landing).not.toMatch(/What ships today|Capability, not a wish list/);
+    expect(landing).not.toMatch(/Free during beta/);
+    expect(heroAuthCard).not.toMatch(/Free during beta/);
+    expect(landing).toMatch(/md:pt-20/);
+  });
+
+  it("evenly spaces the footer and points Security at /privacy", () => {
+    expect(landingFooter).toMatch(/grid-cols-2 gap-8 md:grid-cols-5/);
+    expect(landingFooter).toMatch(/col-span-2 md:col-span-1/);
+    expect(landingFooter).toMatch(/space-y-3/);
+    expect(landingFooter).toMatch(/href="\/privacy"/);
+    expect(landingFooter).toMatch(/>\s*Security\s*</);
+    expect(landingFooter).not.toMatch(/\/#features|\/#security/);
+    expect(landingFooter).not.toMatch(/>\s*Guides\s*</);
+    expect(landingFooter).toMatch(/Help Center/);
+    expect(landingFooter).not.toMatch(/>\s*Help\s*</);
+    expect(landingFooter).toMatch(/Terms of Service/);
+    expect(landingFooter).toMatch(/Privacy Policy/);
+    expect(landingFooter).toMatch(
+      /Kompleet by Ivano Technologies Ltd\. All rights reserved\./,
+    );
+    expect(landingFooter).toMatch(/flex flex-wrap items-center gap-6/);
   });
 
   it("does not ship legacy /api/kompleet HTML legal duplicates", () => {

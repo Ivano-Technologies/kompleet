@@ -92,7 +92,7 @@ describe("ForgotPasswordPage", () => {
     render(<ForgotPasswordPage />);
     expect(
       screen.getByText(
-        /Existing users can also reclaim by signing up with the same email\./,
+        /Already used Kompleet with this email\? Sign up with the same address to keep your books\./,
       ),
     ).toBeInTheDocument();
   });
