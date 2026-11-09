@@ -1,0 +1,48 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { describe, expect, it } from "vitest";
+
+function read(rel: string): string {
+  return readFileSync(path.join(process.cwd(), rel), "utf8");
+}
+
+describe("IVA-289 hardening", () => {
+  it("ships CSP as Report-Only and names GA, Sentry, Convex", () => {
+    const config = read("next.config.mjs");
+    expect(config).toContain('key: "Content-Security-Policy-Report-Only"');
+    expect(config).not.toContain('key: "Content-Security-Policy"');
+    expect(config).toMatch(/content-security-policy\.mjs/);
+  });
+
+  it("does not read NEXT_PUBLIC_OPEN_AI_API_KEY in categorize or parsers", () => {
+    expect(read("src/app/api/ai/categorize/route.ts")).not.toMatch(
+      /NEXT_PUBLIC_OPEN_AI_API_KEY/,
+    );
+    expect(read("src/app/api/ai/batch-categorize/route.ts")).not.toMatch(
+      /NEXT_PUBLIC_OPEN_AI_API_KEY/,
+    );
+    expect(read("src/lib/transaction-import/pdf-parser.ts")).not.toMatch(
+      /NEXT_PUBLIC_OPEN_AI_API_KEY/,
+    );
+  });
+
+  it("rate-limits public and auth-adjacent routes", () => {
+    expect(read("src/app/api/auth/route.ts")).toMatch(/withRateLimit/);
+    expect(read("src/app/api/auth/login/route.ts")).toMatch(/withRateLimit/);
+    expect(read("src/app/api/auth/ensure-profile/route.ts")).toMatch(
+      /withRateLimit/,
+    );
+    expect(read("src/app/api/auth/profile/route.ts")).toMatch(/withRateLimit/);
+    expect(read("src/app/api/contact/route.ts")).toMatch(/withRateLimit/);
+    expect(read("src/app/api/feedback/route.ts")).toMatch(/withRateLimit/);
+  });
+
+  it("uses EmptyState on list tables that were a blank tbody", () => {
+    expect(read("src/components/records/RecordsList.tsx")).toMatch(/EmptyState/);
+    expect(read("src/app/admin/team/page.tsx")).toMatch(/EmptyState/);
+    expect(read("src/app/(dashboard)/export/page.tsx")).toMatch(/EmptyState/);
+    expect(read("src/app/(dashboard)/transactions/page.tsx")).toMatch(
+      /EmptyState/,
+    );
+  });
+});

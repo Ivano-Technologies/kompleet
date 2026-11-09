@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 import { apiErrorBody } from "@/lib/friendly-error";
+import { withRateLimit } from "@/lib/with-rate-limit";
 
 /** `{ message, ref }` error body; logs the ref on the server. */
 function messageBody(text: string) {
@@ -9,7 +10,7 @@ function messageBody(text: string) {
   return { message: error, ref };
 }
 
-export async function POST(request: NextRequest) {
+async function handlePOST(request: NextRequest) {
   try {
     await requireAuthedConvex(request);
     const body = await request.json();
@@ -42,7 +43,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET(request: NextRequest) {
+async function handleGET(request: NextRequest) {
   try {
     await requireAuthedConvex(request);
     return NextResponse.json({
@@ -66,3 +67,6 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+export const POST = withRateLimit(handlePOST, { limit: 20, window: 60_000 });
+export const GET = withRateLimit(handleGET, { limit: 60, window: 60_000 });

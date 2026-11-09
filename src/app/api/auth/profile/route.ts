@@ -5,8 +5,9 @@ import {
   requireAuthedConvex,
 } from "@/lib/convex/server";
 import { apiErrorBody } from "@/lib/friendly-error";
+import { withRateLimit } from "@/lib/with-rate-limit";
 
-export async function PATCH(request: NextRequest) {
+async function handlePATCH(request: NextRequest) {
   try {
     const { convex } = await requireAuthedConvex(request);
     const body = (await request.json()) as { fullName?: string };
@@ -24,3 +25,5 @@ export async function PATCH(request: NextRequest) {
     );
   }
 }
+
+export const PATCH = withRateLimit(handlePATCH, { limit: 30, window: 60_000 });

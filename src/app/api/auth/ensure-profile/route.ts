@@ -5,12 +5,13 @@ import {
   requireAuthedConvex,
 } from "@/lib/convex/server";
 import { apiErrorBody } from "@/lib/friendly-error";
+import { withRateLimit } from "@/lib/with-rate-limit";
 
 /**
  * Bootstrap / refresh the Convex users row after Convex Auth login/signup.
  * Idempotent. Remaps existing profiles by email.
  */
-export async function POST(request: NextRequest) {
+async function handlePOST(request: NextRequest) {
   try {
     const { convex, user } = await requireAuthedConvex(request);
     let body: { email?: string; fullName?: string } = {};
@@ -38,3 +39,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const POST = withRateLimit(handlePOST, { limit: 20, window: 60_000 });

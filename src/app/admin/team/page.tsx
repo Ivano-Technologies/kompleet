@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Users, Shield, ChevronDown, Check, AlertCircle } from "lucide-react";
 import { apiErrorMessage, toFriendlyMessage } from "@/lib/friendly-error";
 import { ErrorText } from "@/components/ui/error-ref";
+import { EmptyState } from "@/components/ui/empty-state";
 
 const ROLE_OPTIONS = [
   {
@@ -177,6 +178,14 @@ export default function TeamManagementPage() {
         </div>
       </div>
 
+      {users.length === 0 ? (
+        <EmptyState
+          icon={Users}
+          title="No team members yet"
+          description="When people sign up they will appear here so you can set their role."
+        />
+      ) : (
+      <>
       <div className="space-y-3 sm:hidden">
         {users.map((u) => (
           <div
@@ -287,6 +296,8 @@ export default function TeamManagementPage() {
           </tbody>
         </table>
       </div>
+      </>
+      )}
     </div>
   );
 }
