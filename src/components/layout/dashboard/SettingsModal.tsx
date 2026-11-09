@@ -250,8 +250,21 @@ export function SettingsModal({
           "max-sm:inset-0 max-sm:left-0 max-sm:top-0 max-sm:translate-x-0 max-sm:translate-y-0 max-sm:w-full max-sm:h-full max-sm:max-h-none max-sm:rounded-none",
           "sm:w-[calc(100%-2rem)] sm:min-w-[min(calc(100%-2rem),28rem)] sm:max-w-4xl sm:h-[85vh] sm:max-h-[85vh] sm:rounded-lg md:min-w-[32rem]"
         )}
-        onPointerDownOutside={(e) => onOpenChange(false)}
-        onEscapeKeyDown={() => onOpenChange(false)}
+        onPointerDownOutside={(e) => {
+          if (deleteDialogOpen) {
+            e.preventDefault();
+            return;
+          }
+          onOpenChange(false);
+        }}
+        onEscapeKeyDown={(e) => {
+          if (deleteDialogOpen) {
+            e.preventDefault();
+            setDeleteDialogOpen(false);
+            return;
+          }
+          onOpenChange(false);
+        }}
       >
         <div className="flex flex-col md:flex-row h-full sm:min-h-[85vh] max-h-[90vh] sm:max-h-[85vh]">
           {/* Left: section nav — opaque background for visibility in light and dark theme */}
@@ -765,16 +778,16 @@ export function SettingsModal({
         >
           <X className="w-5 h-5 stroke-[2.5]" />
         </button>
+        {deleteDialogOpen ? (
+          <DeleteAccountDialog
+            error={deleteError}
+            busy={deleteLoading}
+            onClose={() => setDeleteDialogOpen(false)}
+            onConfirm={(text) => void handleDeleteAccount(text)}
+          />
+        ) : null}
       </DialogContent>
     </Dialog>
-    {deleteDialogOpen ? (
-      <DeleteAccountDialog
-        error={deleteError}
-        busy={deleteLoading}
-        onClose={() => setDeleteDialogOpen(false)}
-        onConfirm={(text) => void handleDeleteAccount(text)}
-      />
-    ) : null}
     </>
   );
 }

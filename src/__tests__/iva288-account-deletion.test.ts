@@ -21,4 +21,17 @@ describe("IVA-288 account deletion", () => {
     expect(api).toMatch(/accountDeletion\.eraseMine/);
     expect(api).toMatch(/DELETE_ACCOUNT_PHRASE/);
   });
+
+  it("nests the confirm in the settings portal and traps focus", () => {
+    const modal = read("src/components/layout/dashboard/SettingsModal.tsx");
+    const dialog = read("src/components/settings/DeleteAccountDialog.tsx");
+    const confirmAt = modal.indexOf("<DeleteAccountDialog");
+    const contentEnd = modal.indexOf("</DialogContent>");
+    expect(confirmAt).toBeGreaterThan(-1);
+    expect(confirmAt).toBeLessThan(contentEnd);
+    expect(dialog).toMatch(/absolute inset-0 z-30/);
+    expect(dialog).toMatch(/aria-modal="true"/);
+    expect(dialog).toMatch(/addEventListener\("keydown"/);
+    expect(dialog).toMatch(/addEventListener\("focusin"/);
+  });
 });

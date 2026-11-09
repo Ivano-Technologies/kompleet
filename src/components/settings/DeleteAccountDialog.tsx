@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Loader2, X } from "lucide-react";
 import {
   DELETE_ACCOUNT_PHRASE,
@@ -9,6 +9,9 @@ import {
 
 const inputCls =
   "mt-1 w-full px-3 py-2 text-sm rounded-lg border border-light-border dark:border-dark-border bg-light-background dark:bg-dark-background text-light-text-primary dark:text-dark-text-primary placeholder-light-text-tertiary dark:placeholder-dark-text-tertiary focus:outline-none focus:border-primary-500";
+
+const FOCUSABLE =
+  'button:not([disabled]), input:not([disabled]), [href], select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 export function DeleteAccountDialog({
   error,
@@ -22,18 +25,78 @@ export function DeleteAccountDialog({
   onConfirm: (confirmText: string) => void;
 }) {
   const [confirmText, setConfirmText] = useState("");
+  const rootRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const matches = confirmText.trim() === DELETE_ACCOUNT_PHRASE;
 
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+
+    const focusables = () =>
+      Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE)).filter(
+        (el) => !el.hasAttribute("disabled") && el.getAttribute("aria-hidden") !== "true",
+      );
+
+    const frame = window.requestAnimationFrame(() => {
+      (inputRef.current ?? focusables()[0])?.focus();
+    });
+
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopPropagation();
+        onClose();
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const items = focusables();
+      if (items.length === 0) {
+        event.preventDefault();
+        return;
+      }
+      const first = items[0]!;
+      const last = items[items.length - 1]!;
+      const active = document.activeElement;
+      if (event.shiftKey && (active === first || !root?.contains(active))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (active === last || !root?.contains(active))) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+
+    function onFocusIn(event: FocusEvent) {
+      if (root?.contains(event.target as Node)) return;
+      event.preventDefault();
+      (inputRef.current ?? focusables()[0])?.focus();
+    }
+
+    document.addEventListener("keydown", onKeyDown, true);
+    document.addEventListener("focusin", onFocusIn);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      document.removeEventListener("keydown", onKeyDown, true);
+      document.removeEventListener("focusin", onFocusIn);
+    };
+  }, [onClose, busy]);
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div
+      ref={rootRef}
+      className="absolute inset-0 z-30 flex items-center justify-center p-4"
+    >
       <button
         type="button"
         className="absolute inset-0 bg-black/50"
         aria-label="Close"
+        tabIndex={-1}
         onClick={onClose}
       />
       <div
         role="dialog"
+        aria-modal="true"
         aria-labelledby="delete-account-title"
         className="relative z-10 w-full max-w-md rounded-xl border border-light-border dark:border-dark-border bg-white dark:bg-dark-surface p-5 shadow-xl"
       >
@@ -64,6 +127,7 @@ export function DeleteAccountDialog({
         <label className="block text-sm font-medium text-light-text-primary dark:text-dark-text-primary mt-4">
           Type {DELETE_ACCOUNT_PHRASE} to confirm.
           <input
+            ref={inputRef}
             type="text"
             value={confirmText}
             onChange={(e) => setConfirmText(e.target.value)}
