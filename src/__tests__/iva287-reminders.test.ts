@@ -31,4 +31,12 @@ describe("IVA-287 reminder emails and year migration", () => {
     expect(send).toMatch(/AUTH_RESEND_KEY/);
     expect(send).toMatch(/RESEND_API_KEY/);
   });
+
+  it("keeps the deadline emails toggle on the label row with a 44px target", () => {
+    const modal = read("src/components/layout/dashboard/SettingsModal.tsx");
+    expect(modal).toMatch(/flex items-center justify-between gap-2 min-h-11/);
+    expect(modal).toMatch(/inline-flex h-11 w-11 shrink-0 items-center justify-center/);
+    expect(modal).toMatch(/pr-14 md:pr-2/);
+    expect(modal).toMatch(/flex flex-wrap gap-2/);
+  });
 });

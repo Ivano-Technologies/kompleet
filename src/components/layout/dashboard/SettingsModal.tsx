@@ -53,18 +53,22 @@ function Toggle({ on, onToggle }: { on: boolean; onToggle: () => void }) {
     <button
       type="button"
       onClick={onToggle}
-      className={cn(
-        "relative inline-flex h-5 w-9 items-center rounded-full transition-colors",
-        on ? "bg-accent" : "bg-light-border dark:bg-dark-border"
-      )}
+      className="relative inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg"
       aria-pressed={on}
     >
       <span
         className={cn(
-          "inline-block h-3.5 w-3.5 rounded-full bg-white transition-transform",
-          on ? "translate-x-[18px]" : "translate-x-[3px]"
+          "relative inline-flex h-5 w-9 items-center rounded-full transition-colors",
+          on ? "bg-accent" : "bg-light-border dark:bg-dark-border"
         )}
-      />
+      >
+        <span
+          className={cn(
+            "inline-block h-3.5 w-3.5 rounded-full bg-white transition-transform",
+            on ? "translate-x-[18px]" : "translate-x-[3px]"
+          )}
+        />
+      </span>
     </button>
   );
 }
@@ -287,7 +291,7 @@ export function SettingsModal({
         <div className="flex flex-col md:flex-row h-full sm:min-h-[85vh] max-h-[90vh] sm:max-h-[85vh]">
           {/* Left: section nav — opaque background for visibility in light and dark theme */}
           <nav
-            className="flex md:flex-col md:w-52 shrink-0 border-b md:border-b-0 md:border-r border-light-border dark:border-dark-border bg-white dark:bg-dark-background p-2 gap-0.5 overflow-x-auto md:overflow-y-auto"
+            className="flex md:flex-col md:w-52 shrink-0 border-b md:border-b-0 md:border-r border-light-border dark:border-dark-border bg-white dark:bg-dark-background p-2 pr-14 md:pr-2 gap-0.5 overflow-x-auto md:overflow-y-auto scroll-pr-14 md:scroll-pr-0"
             aria-label="Settings sections"
           >
             {navSections.map(({ id, label, icon: Icon }) => (
@@ -306,6 +310,7 @@ export function SettingsModal({
                 {label}
               </button>
             ))}
+            <span className="w-10 shrink-0 md:hidden" aria-hidden="true" />
           </nav>
 
           {/* Right: content — fixed min height so modal size stays consistent when switching tabs */}
@@ -564,21 +569,21 @@ export function SettingsModal({
                 <h2 className="text-sm font-semibold text-light-text-primary dark:text-dark-text-primary">
                   Notifications
                 </h2>
-                <div className="flex items-center justify-between gap-4">
-                  <div>
+                <div>
+                  <div className="flex items-center justify-between gap-2 min-h-11">
                     <h3 className="text-sm font-medium text-light-text-primary dark:text-dark-text-primary">
                       Deadline emails
                     </h3>
-                    <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
-                      Email me 7, 3 and 1 days before a filing deadline.
-                    </p>
+                    <Toggle
+                      on={reminderEmails}
+                      onToggle={() => {
+                        if (!reminderEmailsLoading) void handleReminderEmailsToggle();
+                      }}
+                    />
                   </div>
-                  <Toggle
-                    on={reminderEmails}
-                    onToggle={() => {
-                      if (!reminderEmailsLoading) void handleReminderEmailsToggle();
-                    }}
-                  />
+                  <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
+                    Email me 7, 3 and 1 days before a filing deadline.
+                  </p>
                 </div>
               </div>
             )}
@@ -639,7 +644,7 @@ export function SettingsModal({
                   <label className="block text-sm font-semibold text-light-text-primary dark:text-dark-text-primary mb-2">
                     Theme
                   </label>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="flex flex-wrap gap-2">
                     {[
                       {
                         value: "light" as const,
@@ -666,7 +671,7 @@ export function SettingsModal({
                         type="button"
                         onClick={() => setTheme(t.value)}
                         className={cn(
-                          "py-2.5 rounded-lg border-2 transition-all flex items-center justify-center gap-2 text-sm",
+                          "py-2.5 px-2 rounded-lg border-2 transition-all flex items-center justify-center gap-2 text-sm flex-1 basis-[7rem] min-w-[7rem]",
                           theme === t.value
                             ? "border-accent bg-accent/10 dark:bg-accent/10"
                             : "border-light-border dark:border-dark-border bg-light-background dark:bg-dark-background hover:border-accent/30"
