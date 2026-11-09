@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { SkipToContent } from "@/components/a11y/SkipToContent";
 import { CompanyLegalNotice } from "@/components/legal/CompanyLegalNotice";
+
+const PRIVACY_LINK = "text-primary underline underline-offset-2";
 
 export const metadata: Metadata = {
   title: "Kompleet: Privacy Policy",
@@ -12,10 +15,11 @@ export const metadata: Metadata = {
 export default function PrivacyPage() {
   return (
     <div data-marketing className="min-h-screen bg-bg dark:bg-dark-bg py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
+      <SkipToContent />
+      <main id="main-content" className="max-w-4xl mx-auto">
         <Link
           href="/"
-          className="text-sm text-primary hover:underline dark:text-dark-text-2 mb-6 inline-block"
+          className={`mb-6 inline-flex min-h-11 items-center text-sm ${PRIVACY_LINK} dark:text-dark-text-2`}
         >
           &larr; Back to Home
         </Link>
@@ -235,7 +239,7 @@ export default function PrivacyPage() {
               To exercise any of these rights, please contact us at{" "}
               <a
                 href="mailto:support@ivanotechnologies.com"
-                className="text-primary hover:underline"
+                className={`inline-flex min-h-11 items-center ${PRIVACY_LINK}`}
               >
                 support@ivanotechnologies.com
               </a>
@@ -364,17 +368,17 @@ export default function PrivacyPage() {
                 Email:{" "}
                 <a
                   href="mailto:support@ivanotechnologies.com"
-                  className="text-primary hover:underline"
-                >
-                  support@ivanotechnologies.com
-                </a>
-              </p>
-              <p className="text-light-text-secondary dark:text-dark-text-secondary mb-2">
-                Website:{" "}
-                <a
-                  href="https://techivano.com"
-                  className="text-primary hover:underline"
-                >
+                className={`inline-flex min-h-11 items-center ${PRIVACY_LINK}`}
+              >
+                support@ivanotechnologies.com
+              </a>
+            </p>
+            <p className="text-light-text-secondary dark:text-dark-text-secondary mb-2">
+              Website:{" "}
+              <a
+                href="https://techivano.com"
+                className={`inline-flex min-h-11 items-center ${PRIVACY_LINK}`}
+              >
                   https://techivano.com
                 </a>
               </p>
@@ -403,7 +407,7 @@ export default function PrivacyPage() {
             </p>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

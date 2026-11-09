@@ -9,7 +9,7 @@ const LINKS = [
 
 export function CompanyLegalLinks({
   className = "flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-sm text-text-2",
-  linkClassName = "hover:text-text-1",
+  linkClassName = "inline-flex min-h-11 min-w-11 items-center underline underline-offset-2 hover:text-text-1",
 }: {
   className?: string;
   linkClassName?: string;

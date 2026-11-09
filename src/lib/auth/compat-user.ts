@@ -15,20 +15,36 @@ export interface CompatUser {
   };
 }
 
-export function profileToCompatUser(profile: {
-  id: string;
-  email: string;
-  full_name: string | null;
-  company_name: string | null;
-  created_at?: string;
-}): CompatUser {
+export function profileToCompatUser(
+  profile: {
+    id: string;
+    email: string;
+    full_name: string | null;
+    company_name: string | null;
+    created_at?: string;
+  },
+  verification?: {
+    verified: boolean;
+    emailVerificationTime: number | null;
+  } | null,
+): CompatUser {
   const fullName = profile.full_name ?? "";
   const [firstName, ...rest] = fullName.split(" ").filter(Boolean);
+  const createdAt = profile.created_at ?? new Date(0).toISOString();
+  let emailConfirmedAt = createdAt;
+  if (verification) {
+    emailConfirmedAt = verification.verified
+      ? new Date(
+          verification.emailVerificationTime ??
+            (Date.parse(createdAt) || Date.now()),
+        ).toISOString()
+      : "";
+  }
   return {
     id: profile.id,
     email: profile.email,
-    email_confirmed_at: new Date(0).toISOString(),
-    created_at: profile.created_at ?? new Date(0).toISOString(),
+    email_confirmed_at: emailConfirmedAt,
+    created_at: createdAt,
     aud: "authenticated",
     role: "authenticated",
     app_metadata: { role: "user", provider: "convex" },
