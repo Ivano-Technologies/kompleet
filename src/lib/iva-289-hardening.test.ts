@@ -60,4 +60,18 @@ describe("IVA-289 hardening", () => {
       /EmptyState/,
     );
   });
+
+  it("uses Coco empty copy without We'll contractions or dashes", () => {
+    const invoices = read("src/components/invoices/invoice-copy.ts");
+    const statements = read("src/components/import/statement-copy.ts");
+    const team = read("src/app/admin/team/page.tsx");
+    expect(invoices).toContain('emptyDropSub: "Draft an invoice you can edit."');
+    expect(invoices).not.toMatch(/We'll draft an invoice/);
+    expect(statements).toContain(
+      'heroSub: "Detects the bank and updates your books."',
+    );
+    expect(statements).not.toMatch(/We'll detect the bank/);
+    expect(team).toContain('label: "Invite member"');
+    expect(team).toContain('href: "/signup"');
+  });
 });

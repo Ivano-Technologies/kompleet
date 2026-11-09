@@ -183,6 +183,7 @@ export default function TeamManagementPage() {
           icon={Users}
           title="No team members yet"
           description="When people sign up they will appear here so you can set their role."
+          action={{ label: "Invite member", href: "/signup" }}
         />
       ) : (
       <>
