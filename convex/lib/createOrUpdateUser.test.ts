@@ -69,7 +69,7 @@ describe("profileEmailIsVerified", () => {
 });
 
 describe("createOrUpdateAuthUser", () => {
-  it("does not set emailVerificationTime when reclaiming on unverified signup", async () => {
+  it("inserts a temp user on unverified signup instead of attaching to the existing row", async () => {
     const { ctx, rows } = fakeCtx([OLD_USER]);
     const now = 1_700_000_000_000;
     const id = await createOrUpdateAuthUser(
@@ -81,9 +81,17 @@ describe("createOrUpdateAuthUser", () => {
       },
       now,
     );
-    expect(id).toBe(OLD_USER._id);
+    expect(id).not.toBe(OLD_USER._id);
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toMatchObject({
+      _id: OLD_USER._id,
+      email: "ada@example.com",
+      name: "Ada",
+    });
     expect(rows[0]?.emailVerificationTime).toBeUndefined();
-    expect(rows[0]?.name).toBe("Ada Okonkwo");
+    expect(rows[1]?.email).toMatch(/^unverified\+/);
+    expect(rows[1]?.emailVerificationTime).toBeUndefined();
+    expect(rows[1]?.name).toBe("Ada Okonkwo");
   });
 
   it("sets emailVerificationTime only after the email OTP succeeds", async () => {

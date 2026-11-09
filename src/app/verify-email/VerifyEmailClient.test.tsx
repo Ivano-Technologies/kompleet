@@ -62,6 +62,17 @@ describe("VerifyEmailClient", () => {
     expect(push).toHaveBeenCalledWith("/dashboard");
   });
 
+  it("treats a missing account on resend like a sent code", async () => {
+    signIn.mockRejectedValueOnce(new Error("InvalidAccountId"));
+    const user = userEvent.setup();
+    render(<VerifyEmailClient />);
+    await user.click(screen.getByRole("button", { name: "Resend code" }));
+    expect(await screen.findByRole("button", { name: /Resend code in \d+s/ })).toBeInTheDocument();
+    expect(
+      screen.queryByText(/doesn't match|invalid or has expired/i),
+    ).not.toBeInTheDocument();
+  });
+
   it("maps an invalid code to friendly text", async () => {
     signIn.mockRejectedValueOnce(
       new Error("[Request ID: abc] Server Error\nUncaught Error: Invalid code"),

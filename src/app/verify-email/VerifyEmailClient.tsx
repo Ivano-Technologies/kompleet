@@ -110,6 +110,10 @@ export default function VerifyEmailClient() {
       });
       setCooldown(RESEND_COOLDOWN_SECONDS);
     } catch (err) {
+      if (/InvalidAccountId/i.test(err instanceof Error ? err.message : String(err))) {
+        setCooldown(RESEND_COOLDOWN_SECONDS);
+        return;
+      }
       const { message, ref } = toFriendlyError(err, FRIENDLY_MESSAGES.fallback, {
         context: "verify-email-resend",
       });

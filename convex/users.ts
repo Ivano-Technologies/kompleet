@@ -109,6 +109,7 @@ export async function ensureCurrentHandler(
     throw new Error("Not authenticated");
   }
   const now = Date.now();
+  // Client-supplied args.email is untrusted (ensure-profile body). Ignore it.
   const verifiedEmail = verifiedIdentityEmail(identity);
   const existing = await getCurrentUserOrNull(ctx);
   if (existing) {

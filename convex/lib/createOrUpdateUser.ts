@@ -90,13 +90,44 @@ function displayName(
   return existing?.name ?? existing?.fullName;
 }
 
+export function pendingSignupEmail(): string {
+  return `unverified+${newExternalId()}@invalid.local`;
+}
+
+async function insertSignupUser(
+  ctx: CreateOrUpdateUserCtx,
+  args: {
+    email: string;
+    name: string;
+    companyName: string;
+    verified: boolean;
+    now: number;
+  },
+): Promise<Id<"users">> {
+  return await ctx.db.insert("users", {
+    externalId: newExternalId(),
+    email: args.email,
+    ...(args.name ? { name: args.name, fullName: args.name } : {}),
+    ...(args.companyName ? { companyName: args.companyName } : {}),
+    ...(args.verified ? { emailVerificationTime: args.now } : {}),
+    phone: "",
+    entityType: "individual",
+    defaultCurrency: "NGN",
+    fiscalYearStart: 1,
+    onboardingCompleted: false,
+    lastLoginAt: args.now,
+    createdAt: args.now,
+    updatedAt: args.now,
+  });
+}
+
 /**
  * Create or reuse a `users` row for Convex Auth.
  *
- * Reclaim (same email, no login) stays available, but
- * `emailVerificationTime` is only written after the email OTP succeeds.
- * Binding the password account on signup is required so the OTP can be
- * sent; Convex Auth withholds the session until verification.
+ * Unverified sign-up never attaches to an existing row. A temporary user
+ * is inserted (placeholder email if the address is taken) so the password
+ * account can receive an OTP. Reclaim (lines below) moves that login onto
+ * the real user only after verification.
  */
 export async function createOrUpdateAuthUser(
   ctx: CreateOrUpdateUserCtx,
@@ -140,9 +171,12 @@ export async function createOrUpdateAuthUser(
         }
       }
 
+      const byEmail = email ? await findUserByEmail(ctx, email) : null;
+      const emailTakenByOther =
+        !!byEmail && !byEmail.deletedAt && byEmail._id !== existing._id;
       const nextName = displayName(name, existing);
       await ctx.db.patch(existing._id, {
-        email: email || existing.email,
+        email: emailTakenByOther ? existing.email : email || existing.email,
         name: nextName,
         fullName: existing.fullName ?? nextName,
         companyName: companyName || existing.companyName,
@@ -155,32 +189,33 @@ export async function createOrUpdateAuthUser(
 
   const existing = email ? await findUserByEmail(ctx, email) : null;
   if (existing && !existing.deletedAt) {
-    const nextName = displayName(name, existing);
-    await ctx.db.patch(existing._id, {
-      email: email || existing.email,
-      name: nextName,
-      fullName: existing.fullName ?? nextName,
-      supabaseUserId: existing.supabaseUserId ?? existing.externalId,
-      ...(companyName ? { companyName } : {}),
-      ...(verified ? { emailVerificationTime: now } : {}),
-      updatedAt: now,
+    if (verified) {
+      const nextName = displayName(name, existing);
+      await ctx.db.patch(existing._id, {
+        email: email || existing.email,
+        name: nextName,
+        fullName: existing.fullName ?? nextName,
+        supabaseUserId: existing.supabaseUserId ?? existing.externalId,
+        ...(companyName ? { companyName } : {}),
+        emailVerificationTime: now,
+        updatedAt: now,
+      });
+      return existing._id;
+    }
+    return await insertSignupUser(ctx, {
+      email: pendingSignupEmail(),
+      name,
+      companyName,
+      verified: false,
+      now,
     });
-    return existing._id;
   }
 
-  return await ctx.db.insert("users", {
-    externalId: newExternalId(),
+  return await insertSignupUser(ctx, {
     email,
-    ...(name ? { name, fullName: name } : {}),
-    ...(companyName ? { companyName } : {}),
-    ...(verified ? { emailVerificationTime: now } : {}),
-    phone: "",
-    entityType: "individual",
-    defaultCurrency: "NGN",
-    fiscalYearStart: 1,
-    onboardingCompleted: false,
-    lastLoginAt: now,
-    createdAt: now,
-    updatedAt: now,
+    name,
+    companyName,
+    verified,
+    now,
   });
 }

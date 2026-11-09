@@ -1,7 +1,14 @@
 import { Password } from "@convex-dev/auth/providers/Password";
 import { convexAuth } from "@convex-dev/auth/server";
 import { internal } from "./_generated/api";
+import {
+  assertEmailSendAllowed,
+  consumeAuthEmailSend,
+} from "./authResend";
 import { EmailVerificationOtp } from "./emailVerification";
+import {
+  isMissingAuthAccountError,
+} from "./lib/authResendLimit";
 import { PasswordResetEmail } from "./passwordReset";
 import {
   createOrUpdateAuthUser,
@@ -12,7 +19,7 @@ import {
 
 type PasswordProvider = ReturnType<typeof Password>;
 
-function withLegacyEmailTrust(provider: PasswordProvider): PasswordProvider {
+function withPasswordAuthGuards(provider: PasswordProvider): PasswordProvider {
   const withOptions = provider as PasswordProvider & {
     options?: {
       authorize?: (
@@ -33,12 +40,30 @@ function withLegacyEmailTrust(provider: PasswordProvider): PasswordProvider {
   withOptions.options = {
     ...withOptions.options,
     authorize: async (params, ctx) => {
-      if (params.flow === "signIn") {
-        const email = normalizeAuthEmail(params.email);
-        if (email) {
-          await ctx.runMutation(internal.authLegacy.trustLegacyPasswordAccount, {
-            email,
-          });
+      const email = normalizeAuthEmail(params.email);
+      if (params.flow === "signIn" && email) {
+        await ctx.runMutation(internal.authLegacy.trustLegacyPasswordAccount, {
+          email,
+        });
+      }
+      const resendWithoutCode =
+        params.flow === "email-verification" &&
+        (params.code === undefined ||
+          params.code === null ||
+          params.code === "");
+      if (resendWithoutCode && email) {
+        const allowed = await consumeAuthEmailSend(ctx, {
+          email,
+          purpose: "email-verification",
+        });
+        assertEmailSendAllowed(allowed);
+        try {
+          return await inner(params, ctx);
+        } catch (error) {
+          if (isMissingAuthAccountError(error)) {
+            return null;
+          }
+          throw error;
         }
       }
       return inner(params, ctx);
@@ -49,7 +74,7 @@ function withLegacyEmailTrust(provider: PasswordProvider): PasswordProvider {
 
 export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
   providers: [
-    withLegacyEmailTrust(
+    withPasswordAuthGuards(
       Password({
         verify: EmailVerificationOtp,
         reset: PasswordResetEmail,

@@ -146,6 +146,21 @@ describe("ensureCurrentHandler", () => {
     expect(result.email).toBe("");
   });
 
+  it("never copies args.email onto a row when the identity has no verified email", async () => {
+    const { db, tables } = fakeDb([]);
+    const result = await ensureCurrentHandler(
+      ctxOf(db, {
+        tokenIdentifier: "iss|attacker",
+        subject: "attacker",
+      }),
+      { email: "victim@example.com", fullName: "Attacker" },
+    );
+
+    expect(tables.users).toHaveLength(1);
+    expect(tables.users[0]?.email).toBe("");
+    expect(result.email).toBe("");
+  });
+
   it("does not overwrite an existing session email from unverified args", async () => {
     const sessionUser = {
       ...VICTIM,
