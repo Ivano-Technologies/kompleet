@@ -2,7 +2,11 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import type { Role } from "@/lib/auth/rbac";
 import { api } from "@/lib/convex/http";
-import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
+import {
+  isForbidden,
+  isUnauthorized,
+  requireAuthedConvex,
+} from "@/lib/convex/server";
 import { friendlyErrorBody, apiErrorBody } from "@/lib/friendly-error";
 
 const VALID_ROLES: Role[] = [
@@ -13,9 +17,13 @@ const VALID_ROLES: Role[] = [
   "viewer",
 ];
 
+function forbiddenResponse() {
+  return NextResponse.json({ ...apiErrorBody("Forbidden") }, { status: 403 });
+}
+
 /**
  * GET /api/admin/users — List Convex app users.
- * Roles are not stored on the Convex users table; listed role is "user".
+ * Server-side admin check lives in `users:listAll` (owner/admin).
  */
 export async function GET(request: NextRequest) {
   try {
@@ -25,7 +33,7 @@ export async function GET(request: NextRequest) {
       id: u.id,
       email: u.email,
       full_name: u.full_name || u.email,
-      role: "user",
+      role: u.platform_role,
       email_confirmed: true,
       created_at: u.created_at,
       last_sign_in_at: u.last_login_at,
@@ -35,6 +43,9 @@ export async function GET(request: NextRequest) {
     if (isUnauthorized(error)) {
       return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
     }
+    if (isForbidden(error)) {
+      return forbiddenResponse();
+    }
     return NextResponse.json(
       { ...friendlyErrorBody(error) },
       { status: 500 },
@@ -43,12 +54,13 @@ export async function GET(request: NextRequest) {
 }
 
 /**
- * PATCH /api/admin/users — role writes are OUT of Phase 3.
- * Convex users schema has no role field; do not invent one.
+ * PATCH /api/admin/users — role writes stay 501 for clients.
+ * Grant roles with Convex internal `users:setPlatformRole` after deploy.
  */
 export async function PATCH(request: NextRequest) {
   try {
-    await requireAuthedConvex(request);
+    const { convex } = await requireAuthedConvex(request);
+    await convex.query(api.users.listAll, {});
     const body = await request.json();
     const { userId, role } = body as { userId?: string; role?: string };
     if (!userId || !role) {
@@ -61,13 +73,15 @@ export async function PATCH(request: NextRequest) {
         { status: 400 },
       );
     }
-    return NextResponse.json({ ...apiErrorBody("Role updates are not available: Convex users have no role field (Phase 3 OUT)."),
-      },
+    return NextResponse.json({ ...apiErrorBody("Role updates from this API are not available. Use Convex internal users:setPlatformRole.") },
       { status: 501 },
     );
   } catch (error) {
     if (isUnauthorized(error)) {
       return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
+    }
+    if (isForbidden(error)) {
+      return forbiddenResponse();
     }
     return NextResponse.json(
       { ...friendlyErrorBody(error) },

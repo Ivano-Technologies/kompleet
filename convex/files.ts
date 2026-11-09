@@ -1,9 +1,13 @@
 import { v } from "convex/values";
-import type { Doc } from "./_generated/dataModel";
+import type { Doc, Id } from "./_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { mutation, query } from "./_generated/server";
 import { getCurrentUser } from "./lib/auth";
 import { newExternalId } from "./lib/ids";
+import {
+  assertStorageAssignableToUser,
+  userCanAccessStorageId,
+} from "./lib/storageAccess";
 
 const MAX_BYTES = 10 * 1024 * 1024;
 const LIBRARY_TAKE = 300;
@@ -233,13 +237,20 @@ export const generateUploadUrl = mutation({
   },
 });
 
+export async function getUrlHandler(
+  ctx: QueryCtx,
+  args: { storageId: Id<"_storage"> },
+) {
+  const user = await getCurrentUser(ctx);
+  const allowed = await userCanAccessStorageId(ctx, user, args.storageId);
+  if (!allowed) return null;
+  return await ctx.storage.getUrl(args.storageId);
+}
+
 export const getUrl = query({
   args: { storageId: v.id("_storage") },
   returns: v.union(v.string(), v.null()),
-  handler: async (ctx, args) => {
-    await getCurrentUser(ctx);
-    return await ctx.storage.getUrl(args.storageId);
-  },
+  handler: getUrlHandler,
 });
 
 export const saveFileMetadata = mutation({
@@ -255,6 +266,7 @@ export const saveFileMetadata = mutation({
   returns: fileApi,
   handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx);
+    await assertStorageAssignableToUser(ctx, user, args.storageId);
     assertAllowedUpload(args.filename, args.size);
 
     let linkType = args.linkType;

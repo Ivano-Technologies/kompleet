@@ -37,6 +37,16 @@ export default defineSchema({
     fiscalYearStart: v.number(),
     onboardingCompleted: v.boolean(),
     avatarStorageId: v.optional(v.id("_storage")),
+    // Existing RBAC model (src/lib/auth/rbac.ts). Missing means "user".
+    platformRole: v.optional(
+      v.union(
+        v.literal("owner"),
+        v.literal("admin"),
+        v.literal("tax_consultant"),
+        v.literal("user"),
+        v.literal("viewer"),
+      ),
+    ),
     deletedAt: v.optional(v.number()),
     lastLoginAt: v.optional(v.number()),
     createdAt: v.number(),
@@ -46,7 +56,9 @@ export default defineSchema({
     .index("phone", ["phone"])
     .index("by_externalId", ["externalId"])
     .index("by_tokenIdentifier", ["tokenIdentifier"])
-    .index("by_supabaseUserId", ["supabaseUserId"]),
+    .index("by_supabaseUserId", ["supabaseUserId"])
+    .index("by_avatarStorageId", ["avatarStorageId"])
+    .index("by_platformRole", ["platformRole"]),
 
   firms: defineTable({
     externalId: v.string(),
@@ -172,7 +184,8 @@ export default defineSchema({
     createdAt: v.number(),
   })
     .index("by_externalId", ["externalId"])
-    .index("by_user", ["userId"]),
+    .index("by_user", ["userId"])
+    .index("by_storageId", ["storageId"]),
 
   importErrors: defineTable({
     externalId: v.string(),
@@ -215,7 +228,8 @@ export default defineSchema({
     createdAt: v.number(),
   })
     .index("by_externalId", ["externalId"])
-    .index("by_user", ["userId"]),
+    .index("by_user", ["userId"])
+    .index("by_storageId", ["storageId"]),
 
   expenseCategories: defineTable({
     externalId: v.string(),
@@ -249,7 +263,8 @@ export default defineSchema({
   })
     .index("by_externalId", ["externalId"])
     .index("by_user", ["userId"])
-    .index("by_user_and_date", ["userId", "date"]),
+    .index("by_user_and_date", ["userId", "date"])
+    .index("by_receiptStorageId", ["receiptStorageId"]),
 
   invoices: defineTable({
     externalId: v.string(),
@@ -400,7 +415,8 @@ export default defineSchema({
     .index("by_status_and_processingStartedAt", [
       "status",
       "processingStartedAt",
-    ]),
+    ])
+    .index("by_storageId", ["storageId"]),
 
   /**
    * Wave 4 Documents library (IVA-75). Distinct from `documents`
@@ -436,7 +452,8 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_user_and_uploadedAt", ["userId", "uploadedAt"])
     .index("by_user_and_linkType", ["userId", "linkType"])
-    .index("by_link", ["linkType", "linkId"]),
+    .index("by_link", ["linkType", "linkId"])
+    .index("by_storageId", ["storageId"]),
 
   auditLogs: defineTable({
     userId: v.optional(v.id("users")),

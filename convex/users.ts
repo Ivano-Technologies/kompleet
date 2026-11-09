@@ -4,8 +4,17 @@ import {
   internalQuery,
   mutation,
   query,
+  type QueryCtx,
 } from "./_generated/server";
-import { getCurrentUser, getCurrentUserOrNull, supabaseSubject } from "./lib/auth";
+import {
+  getCurrentUser,
+  getCurrentUserOrNull,
+  isPlatformAdmin,
+  platformRoleOf,
+  supabaseSubject,
+} from "./lib/auth";
+import { throwForbidden } from "./lib/errors";
+import { assertStorageAssignableToUser } from "./lib/storageAccess";
 import type { Id } from "./_generated/dataModel";
 import { toMs } from "./lib/ids";
 
@@ -28,6 +37,13 @@ const userApi = v.object({
   last_login_at: v.union(v.string(), v.null()),
   created_at: v.string(),
   updated_at: v.string(),
+  platform_role: v.union(
+    v.literal("owner"),
+    v.literal("admin"),
+    v.literal("tax_consultant"),
+    v.literal("user"),
+    v.literal("viewer"),
+  ),
 });
 
 function toApi(user: {
@@ -49,6 +65,7 @@ function toApi(user: {
   lastLoginAt?: number;
   createdAt: number;
   updatedAt: number;
+  platformRole?: "owner" | "admin" | "tax_consultant" | "user" | "viewer";
 }) {
   return {
     id: user.externalId,
@@ -75,6 +92,7 @@ function toApi(user: {
       : null,
     created_at: new Date(user.createdAt).toISOString(),
     updated_at: new Date(user.updatedAt).toISOString(),
+    platform_role: platformRoleOf(user),
   };
 }
 
@@ -103,14 +121,14 @@ export const ensureCurrent = mutation({
       if (!updated) throw new Error("User not found");
       return toApi(updated);
     }
-    const email =
-      args.email ??
-      (typeof identity.email === "string" ? identity.email : "") ??
-      "";
+    const identityEmail =
+      typeof identity.email === "string" ? identity.email.trim().toLowerCase() : "";
+    // Never attach this session to a different user's row via a spoofed email.
+    const email = identityEmail || (args.email ?? "").trim().toLowerCase();
     const byEmail = email
       ? await ctx.db
           .query("users")
-          .withIndex("email", (q) => q.eq("email", email.toLowerCase()))
+          .withIndex("email", (q) => q.eq("email", email))
           .unique()
       : null;
     if (byEmail && !byEmail.deletedAt) {
@@ -179,6 +197,7 @@ export const updateMine = mutation({
   returns: userApi,
   handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx);
+    await assertStorageAssignableToUser(ctx, user, args.avatarStorageId);
     await ctx.db.patch(user._id, {
       fullName: args.fullName ?? user.fullName,
       name: args.fullName ?? user.name,
@@ -211,14 +230,17 @@ export const softDeleteMine = mutation({
   },
 });
 
+export async function listAllHandler(ctx: QueryCtx) {
+  const me = await getCurrentUser(ctx);
+  if (!isPlatformAdmin(me)) throwForbidden();
+  const rows = await ctx.db.query("users").take(200);
+  return rows.filter((user) => !user.deletedAt).map(toApi);
+}
+
 export const listAll = query({
   args: {},
   returns: v.array(userApi),
-  handler: async (ctx) => {
-    await getCurrentUser(ctx);
-    const rows = await ctx.db.query("users").take(200);
-    return rows.filter((user) => !user.deletedAt).map(toApi);
-  },
+  handler: listAllHandler,
 });
 
 export const getEmailInternal = internalQuery({
@@ -261,6 +283,15 @@ export const upsertFromBackfill = internalMutation({
     rcNumber: v.optional(v.string()),
     companyAddress: v.optional(v.string()),
     subscriptionTier: v.optional(v.string()),
+    platformRole: v.optional(
+      v.union(
+        v.literal("owner"),
+        v.literal("admin"),
+        v.literal("tax_consultant"),
+        v.literal("user"),
+        v.literal("viewer"),
+      ),
+    ),
     subscriptionExpiresAt: v.optional(v.string()),
     defaultCurrency: v.optional(v.string()),
     fiscalYearStart: v.optional(v.number()),
@@ -287,6 +318,7 @@ export const upsertFromBackfill = internalMutation({
       rcNumber: args.rcNumber,
       companyAddress: args.companyAddress,
       subscriptionTier: args.subscriptionTier,
+      platformRole: args.platformRole,
       subscriptionExpiresAt: toMs(args.subscriptionExpiresAt),
       defaultCurrency: args.defaultCurrency ?? "NGN",
       fiscalYearStart: args.fiscalYearStart ?? 1,
@@ -305,5 +337,34 @@ export const upsertFromBackfill = internalMutation({
       ...fields,
     });
     return args.externalId;
+  },
+});
+
+/** Dashboard / ops: grant owner or admin after deploy. Not callable from the client. */
+export const setPlatformRole = internalMutation({
+  args: {
+    userExternalId: v.string(),
+    platformRole: v.union(
+      v.literal("owner"),
+      v.literal("admin"),
+      v.literal("tax_consultant"),
+      v.literal("user"),
+      v.literal("viewer"),
+    ),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_externalId", (q) =>
+        q.eq("externalId", args.userExternalId),
+      )
+      .unique();
+    if (!user || user.deletedAt) throw new Error("User not found");
+    await ctx.db.patch(user._id, {
+      platformRole: args.platformRole,
+      updatedAt: Date.now(),
+    });
+    return null;
   },
 });

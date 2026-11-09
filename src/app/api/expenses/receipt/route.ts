@@ -32,6 +32,15 @@ export async function POST(request: NextRequest) {
     }
 
     const storageId = await uploadToConvexStorage(convex, file, file.type);
+    const filename =
+      file.name && file.name.includes(".") ? file.name : "receipt.jpg";
+    await convex.mutation(api.files.saveFileMetadata, {
+      storageId,
+      filename,
+      contentType: file.type || "image/jpeg",
+      size: file.size,
+      source: "expense_attach",
+    });
     const url = await convex.query(api.files.getUrl, { storageId });
 
     const expenseId = formData.get("expenseId");
