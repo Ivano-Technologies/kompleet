@@ -59,11 +59,15 @@ export async function fillHydrated(
   }).toPass({ timeout: 30_000 });
 }
 
+/** 8 digit OTP used on isolated Convex when AUTH_RESEND_KEY is unset. */
+export const E2E_VERIFICATION_CODE = process.env.AUTH_E2E_OTP?.trim() || "42424242";
+
 /**
  * Isolated CI Convex (`convex dev --once` / anonymous) starts empty. GitHub
  * secrets still supply E2E_USER_* so specs do not skip — but that account is
  * not in the local backend (`InvalidAccountId`). Waiting 45s for /dashboard
- * then retrying twice blew the 45-minute e2e job. Seed via signup, then sign in.
+ * then retrying twice blew the 45-minute e2e job. Seed via signup, verify
+ * the email OTP, then sign in.
  */
 async function seedE2eUserViaSignup(page: Page): Promise<void> {
   if (E2E_USER_PASSWORD.length < 8 || !/\d/.test(E2E_USER_PASSWORD)) {
@@ -89,11 +93,11 @@ async function seedE2eUserViaSignup(page: Page): Promise<void> {
   );
   await page.getByRole("button", { name: /Create Free Account/ }).click();
 
-  const created = page.getByRole("heading", { name: "Account Created!" });
+  const verifyHeading = page.getByRole("heading", { name: "Check your email" });
   const already = page.getByText(/already exists/i);
   const jwtMissing = page.getByText(/JWT_PRIVATE_KEY|Missing environment variable/i);
   const outcome = await Promise.race([
-    created.waitFor({ state: "visible", timeout: 20_000 }).then(() => "created" as const),
+    verifyHeading.waitFor({ state: "visible", timeout: 20_000 }).then(() => "verify" as const),
     already.waitFor({ state: "visible", timeout: 20_000 }).then(() => "already" as const),
     jwtMissing
       .waitFor({ state: "visible", timeout: 20_000 })
@@ -110,7 +114,8 @@ async function seedE2eUserViaSignup(page: Page): Promise<void> {
     return;
   }
 
-  await page.getByRole("link", { name: "Go to Dashboard" }).click();
+  await fillHydrated(page.getByLabel("Verification code"), E2E_VERIFICATION_CODE);
+  await page.getByRole("button", { name: "Verify email" }).click();
   await page.waitForURL(/\/dashboard(\?|$|\/)/, { timeout: 20_000 });
 }
 

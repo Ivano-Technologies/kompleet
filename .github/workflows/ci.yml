@@ -278,6 +278,8 @@ jobs:
           NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000' }}
           # Set by the provision step (GITHUB_ENV) or the repo variable.
           NEXT_PUBLIC_CONVEX_URL: ${{ env.NEXT_PUBLIC_CONVEX_URL || vars.NEXT_PUBLIC_CONVEX_URL }}
+          # Isolated Convex has no Resend key. Must match scripts/ci-provision-convex.sh.
+          AUTH_E2E_OTP: "42424242"
 
       - name: Prune old Playwright report artifacts
         if: always()

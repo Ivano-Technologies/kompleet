@@ -55,7 +55,9 @@ If the cloud agent cannot log in, CoS/Shipping: `npx convex login`, select team 
 1. Open `/signup`.
 2. Enter the **same email** already on the Convex `users` row.
 3. Choose a new password (min 8 characters, one number).
-4. `createOrUpdateUser` links the new Convex Auth account to that profile. Transactions stay attached via `userId`.
+4. Enter the 8 digit email code. `createOrUpdateUser` links the new Convex Auth account to that profile only after the code succeeds. Transactions stay attached via `userId`.
+
+Accounts that already had a password before email verification shipped are treated as verified (no one time prompt). New signups must verify.
 
 Do **not** invent credentials. After reclaim, `/forgot-password` works if `AUTH_RESEND_KEY` is set (8-digit code → `/reset-password`). If Resend is unset, the reset code is written to Convex logs for a one-time CoS handoff.
 

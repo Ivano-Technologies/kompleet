@@ -14,8 +14,10 @@
  *   npx convex env set JWKS "..."
  *   npx convex env set SITE_URL https://kompleet-git-dev-techivano.vercel.app
  *
- * Optional password-reset email:
+ * Optional password-reset and signup verification email:
  *   npx convex env set AUTH_RESEND_KEY "re_..."
+ * Isolated CI only (never production): AUTH_E2E_OTP, an 8 digit code used
+ * when AUTH_RESEND_KEY is unset.
  */
 import { spawnSync } from "node:child_process";
 import { generateKeyPairSync } from "node:crypto";

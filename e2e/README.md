@@ -12,7 +12,7 @@ tax calculation, receipt OCR, and data export.
 | Spec | Money path | External calls stubbed? |
 | --- | --- | --- |
 | ~~`auth-layout.spec.ts`~~ | Deleted — asserted header/nav/theme toggle `AuthLayout` does not render | — |
-| `auth-flow.spec.ts` | signup → verify prompt → login → protected-route redirects | Supabase `POST /auth/v1/signup` is intercepted so runs never create real accounts |
+| `auth-flow.spec.ts` | signup → verify email → login → protected-route redirects | Isolated Convex; AUTH_E2E_OTP completes verification when Resend is unset |
 | `statement-upload.spec.ts` | CSV bank statement → parse → transactions in the ledger | No — hits `POST /api/transactions/upload-v2` and the real GTBank adapter |
 | `tax-calculation.spec.ts` | PIT calculation → save → calculation history | No — hits `/api/tax-rules`, `/api/calculations/save`, `/api/calculations` |
 | `expense-ocr.spec.ts` | receipt → OCR → prefilled expense → review queue | `POST /api/expenses/ocr` and `POST /api/ai/categorize` are intercepted (Tesseract output is slow and non-deterministic) |
@@ -55,6 +55,7 @@ shell. Never add them to a file that is tracked by git.
 The account must be **email-confirmed** — `requireAuth()` in
 `src/app/(dashboard)/layout.tsx` bounces unverified users to `/verify-email`, so
 an unconfirmed user makes every authenticated spec fail on the login step.
+Isolated CI Convex uses `AUTH_E2E_OTP` (8 digits) because Resend is unset.
 
 `login()` also waits for `POST /api/auth/ensure-profile` so Convex has a
 `users` row (`externalId` = Supabase auth id) before money-path specs hit
