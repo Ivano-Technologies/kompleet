@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useAuthActions } from "@convex-dev/auth/react";
 import Link from "next/link";
 import {
   Dialog,
@@ -35,6 +36,8 @@ import { cn } from "@/lib/utils";
 import type { SettingsSection } from "./settings-types";
 import { BusinessProfileSection } from "@/components/settings/BusinessProfileSection";
 import { ClientsSection } from "@/components/settings/ClientsSection";
+import { DeleteAccountDialog } from "@/components/settings/DeleteAccountDialog";
+import { DELETE_ACCOUNT_PHRASE } from "@/lib/account-deletion";
 import { apiErrorMessage, toFriendlyMessage, userFacingError } from "@/lib/friendly-error";
 import { ErrorText } from "@/components/ui/error-ref";
 
@@ -76,6 +79,7 @@ export function SettingsModal({
   initialSection = "general",
 }: SettingsModalProps) {
   const router = useRouter();
+  const { signOut } = useAuthActions();
   const { theme, setTheme } = useTheme();
   const [section, setSection] = useState<SettingsSection>(initialSection);
   const [loading, setLoading] = useState(false);
@@ -100,6 +104,8 @@ export function SettingsModal({
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
   const [language, setLanguage] = useState("English (US)");
   const [currency, setCurrency] = useState("NGN (Nigerian Naira)");
   const [timezone, setTimezone] = useState("GMT+01:00, West Africa Time");
@@ -192,28 +198,33 @@ export function SettingsModal({
     }
   };
 
-  const handleDeleteAccount = async () => {
-    const confirmText = prompt(
-      "Type DELETE to permanently delete your account. This action cannot be undone."
-    );
-    if (confirmText !== "DELETE") return;
+  const handleDeleteAccount = async (confirmText: string) => {
+    if (confirmText !== DELETE_ACCOUNT_PHRASE) {
+      setDeleteError("Type delete my account to confirm.");
+      return;
+    }
     setDeleteLoading(true);
+    setDeleteError("");
     setError("");
     try {
       const res = await fetch("/api/auth/delete-account", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ confirmText: "DELETE" }),
+        body: JSON.stringify({ confirmText: DELETE_ACCOUNT_PHRASE }),
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(apiErrorMessage(data, "We couldn't delete your account. Please try again."));
-      } else {
-        onOpenChange(false);
-        router.push("/login");
+        setDeleteError(
+          apiErrorMessage(data, "We couldn't delete your account. Please try again."),
+        );
+        return;
       }
+      setDeleteDialogOpen(false);
+      onOpenChange(false);
+      await signOut();
+      router.push("/login");
     } catch (err) {
-      setError(toFriendlyMessage(err, "Something went wrong. Please try again."));
+      setDeleteError(toFriendlyMessage(err, "Something went wrong. Please try again."));
     } finally {
       setDeleteLoading(false);
     }
@@ -230,6 +241,7 @@ export function SettingsModal({
   ];
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className={cn(
@@ -494,12 +506,15 @@ export function SettingsModal({
                         Delete account
                       </h3>
                       <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
-                        Permanently remove your account and all data
+                        Remove your profile and files. Issued invoices stay as tax records.
                       </p>
                     </div>
                     <button
                       type="button"
-                      onClick={handleDeleteAccount}
+                      onClick={() => {
+                        setDeleteError("");
+                        setDeleteDialogOpen(true);
+                      }}
                       disabled={deleteLoading}
                       className="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1.5 rounded-lg font-medium flex items-center gap-1 disabled:opacity-50"
                     >
@@ -752,5 +767,14 @@ export function SettingsModal({
         </button>
       </DialogContent>
     </Dialog>
+    {deleteDialogOpen ? (
+      <DeleteAccountDialog
+        error={deleteError}
+        busy={deleteLoading}
+        onClose={() => setDeleteDialogOpen(false)}
+        onConfirm={(text) => void handleDeleteAccount(text)}
+      />
+    ) : null}
+    </>
   );
 }

@@ -6,6 +6,7 @@ import {
   query,
 } from "./_generated/server";
 import { getCurrentUser, getCurrentUserOrNull, supabaseSubject } from "./lib/auth";
+import { eraseMineHandler } from "./lib/eraseAccount";
 import type { Id } from "./_generated/dataModel";
 import { toMs } from "./lib/ids";
 
@@ -205,8 +206,7 @@ export const softDeleteMine = mutation({
   returns: v.null(),
   handler: async (ctx) => {
     const user = await getCurrentUser(ctx);
-    const now = Date.now();
-    await ctx.db.patch(user._id, { deletedAt: now, updatedAt: now });
+    await eraseMineHandler(ctx, user);
     return null;
   },
 });

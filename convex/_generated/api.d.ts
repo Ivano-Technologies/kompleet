@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as accountDeletion from "../accountDeletion.js";
 import type * as accounts from "../accounts.js";
 import type * as audit from "../audit.js";
 import type * as auth from "../auth.js";
@@ -24,6 +25,7 @@ import type * as http from "../http.js";
 import type * as imports from "../imports.js";
 import type * as invoices from "../invoices.js";
 import type * as lib_auth from "../lib/auth.js";
+import type * as lib_eraseAccount from "../lib/eraseAccount.js";
 import type * as lib_ids from "../lib/ids.js";
 import type * as lib_imageMeta from "../lib/imageMeta.js";
 import type * as lib_profiles from "../lib/profiles.js";
@@ -44,6 +46,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  accountDeletion: typeof accountDeletion;
   accounts: typeof accounts;
   audit: typeof audit;
   auth: typeof auth;
@@ -60,6 +63,7 @@ declare const fullApi: ApiFromModules<{
   imports: typeof imports;
   invoices: typeof invoices;
   "lib/auth": typeof lib_auth;
+  "lib/eraseAccount": typeof lib_eraseAccount;
   "lib/ids": typeof lib_ids;
   "lib/imageMeta": typeof lib_imageMeta;
   "lib/profiles": typeof lib_profiles;
