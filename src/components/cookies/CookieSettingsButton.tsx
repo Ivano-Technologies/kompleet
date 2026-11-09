@@ -10,7 +10,11 @@ export function CookieSettingsButton({
   const { openSettings } = useCookieConsent();
 
   return (
-    <button type="button" onClick={openSettings} className={className}>
+    <button
+      type="button"
+      onClick={openSettings}
+      className={`inline-flex min-h-11 items-center ${className}`}
+    >
       Cookie settings
     </button>
   );
