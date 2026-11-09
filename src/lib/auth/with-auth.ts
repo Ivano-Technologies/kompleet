@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getCompatUser } from "@/lib/auth/session";
+import { isCompatEmailVerified } from "@/lib/auth/email-verified";
 import { hasPermission, type Permission, type Role } from "./rbac";
 
 interface AuthOptions {
@@ -47,6 +48,13 @@ export function withAuth<T extends Request | NextRequest = Request>(
       if (!user) {
         return NextResponse.json(
           { error: "Unauthorized", message: "Authentication required" },
+          { status: 401 },
+        );
+      }
+
+      if (!isCompatEmailVerified(user)) {
+        return NextResponse.json(
+          { error: "Unauthorized", message: "Email is not verified" },
           { status: 401 },
         );
       }

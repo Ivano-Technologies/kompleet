@@ -55,7 +55,7 @@ export default function PricingPage() {
     >
       <LandingNav />
 
-      <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-16 sm:px-12">
+      <main id="main-content" className="mx-auto w-full max-w-7xl flex-1 px-6 py-16 sm:px-12">
         <div className="mb-16 text-center">
           <p className="mb-3 text-xs font-bold uppercase tracking-widest text-primary">
             Pricing
@@ -84,7 +84,7 @@ export default function PricingPage() {
 
             <Link
               href="/signup"
-              className="mt-auto block rounded-md bg-accent py-3.5 text-center text-sm font-bold text-charcoal hover:bg-accent-hover"
+              className="mt-auto flex min-h-11 items-center justify-center rounded-md bg-accent-hover py-3.5 text-center text-sm font-bold text-charcoal hover:bg-[#115E59]"
             >
               Get started
             </Link>
@@ -108,7 +108,7 @@ export default function PricingPage() {
             <button
               type="button"
               disabled
-              className="mt-auto block w-full cursor-not-allowed rounded-md border border-border bg-surface-2 py-3.5 text-center text-sm font-bold text-text-2 dark:border-dark-border dark:bg-dark-surface-2 dark:text-dark-text-2"
+              className="mt-auto block min-h-11 w-full cursor-not-allowed rounded-md border border-border bg-surface-2 py-3.5 text-center text-sm font-bold text-text-2 dark:border-dark-border dark:bg-dark-surface-2 dark:text-dark-text-2"
             >
               Coming soon
             </button>

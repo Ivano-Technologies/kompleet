@@ -83,7 +83,7 @@ test.describe("Cookie consent", () => {
     expect(Math.abs(declineBox!.width - acceptBox!.width)).toBeLessThan(2);
     expect(acceptBox!.x).toBeGreaterThan(declineBox!.x);
 
-    const submit = page.getByRole("button", { name: /Create Free Account/ });
+    const submit = page.getByRole("button", { name: /Create account/ });
     await submit.scrollIntoViewIfNeeded();
     const submitBox = await submit.boundingBox();
     expect(submitBox).not.toBeNull();
