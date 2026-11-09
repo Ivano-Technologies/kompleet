@@ -106,6 +106,19 @@ describe("IVA-72 landing copy", () => {
     ).toBe(false);
   });
 
+  it("drops naira demo amounts from the landing workflow illustrations", () => {
+    const flow = readFileSync(
+      resolve(process.cwd(), "public/assets/illustrations/bookkeeping-flow.svg"),
+      "utf8",
+    );
+    const flowMobile = readFileSync(
+      resolve(process.cwd(), "public/assets/illustrations/bookkeeping-flow-mobile.svg"),
+      "utf8",
+    );
+    expect(flow).not.toMatch(/₦\d/);
+    expect(flowMobile).not.toMatch(/₦\d/);
+  });
+
   it("removes the Product Proof band from the homepage", () => {
     expect(landing).not.toMatch(/Product proof/i);
     expect(landing).not.toMatch(/Real tooling, labeled demo data/);
