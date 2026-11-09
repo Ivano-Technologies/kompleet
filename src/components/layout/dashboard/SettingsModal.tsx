@@ -513,7 +513,7 @@ export function SettingsModal({
                   <h2 className="text-sm font-semibold text-red-600 dark:text-red-400 mb-1">
                     Danger zone
                   </h2>
-                  <div className="flex items-center justify-between gap-4 flex-wrap">
+                  <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
                     <div>
                       <h3 className="text-sm font-medium text-light-text-primary dark:text-dark-text-primary">
                         Delete account
@@ -529,7 +529,7 @@ export function SettingsModal({
                         setDeleteDialogOpen(true);
                       }}
                       disabled={deleteLoading}
-                      className="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1.5 rounded-lg font-medium flex items-center gap-1 disabled:opacity-50"
+                      className="self-start bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1.5 rounded-lg font-medium flex items-center gap-1 disabled:opacity-50"
                     >
                       {deleteLoading ? (
                         <Loader2 className="w-3 h-3 animate-spin" />

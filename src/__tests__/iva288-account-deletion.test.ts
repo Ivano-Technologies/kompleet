@@ -34,4 +34,11 @@ describe("IVA-288 account deletion", () => {
     expect(dialog).toMatch(/addEventListener\("keydown"/);
     expect(dialog).toMatch(/addEventListener\("focusin"/);
   });
+
+  it("stacks the Delete button under danger zone copy on narrow screens", () => {
+    const modal = read("src/components/layout/dashboard/SettingsModal.tsx");
+    expect(modal).toMatch(
+      /flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between/,
+    );
+  });
 });
