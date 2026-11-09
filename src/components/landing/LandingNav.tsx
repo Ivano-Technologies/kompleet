@@ -90,7 +90,7 @@ export default function LandingNav({ heroAuth = false }: LandingNavProps) {
 
         <button
           type="button"
-          className="inline-flex min-h-11 min-w-11 items-center justify-center md:hidden"
+          className="inline-flex h-11 w-11 shrink-0 items-center justify-center md:hidden"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           aria-expanded={mobileMenuOpen}
           aria-controls="landing-mobile-nav"

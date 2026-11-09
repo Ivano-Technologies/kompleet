@@ -1,10 +1,27 @@
 import { createRequire } from "node:module";
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 
 const require = createRequire(import.meta.url);
 const axePath = require.resolve("axe-core/axe.min.js");
 
 const PAGES = ["/", "/pricing", "/signup", "/privacy"] as const;
+
+/** sticky/fixed controls can make Playwright boundingBox() return null. */
+async function expectTapTarget(locator: Locator, minPx: number): Promise<void> {
+  await expect(async () => {
+    const metrics = await locator.evaluate((el) => {
+      const rect = el.getBoundingClientRect();
+      return {
+        display: getComputedStyle(el).display,
+        width: rect.width,
+        height: rect.height,
+      };
+    });
+    expect(metrics.display).not.toBe("none");
+    expect(metrics.width).toBeGreaterThanOrEqual(minPx);
+    expect(metrics.height).toBeGreaterThanOrEqual(minPx);
+  }).toPass({ timeout: 10_000 });
+}
 
 async function axeViolations(page: Page) {
   await page.addScriptTag({ path: axePath });
@@ -36,11 +53,12 @@ async function axeViolations(page: Page) {
 }
 
 test.describe("IVA-290 marketing accessibility", () => {
+  test.use({ viewport: { width: 390, height: 844 } });
+
   for (const path of PAGES) {
     test(`${path} has no WCAG 2.1 AA axe violations at 390`, async ({
       page,
     }) => {
-      await page.setViewportSize({ width: 390, height: 844 });
       await page.goto(path);
       const violations = await axeViolations(page);
       expect(violations, JSON.stringify(violations)).toEqual([]);
@@ -50,7 +68,6 @@ test.describe("IVA-290 marketing accessibility", () => {
   test("signup labels, errors and password toggle are named", async ({
     page,
   }) => {
-    await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/signup");
 
     await expect(page.getByLabel("First Name")).toBeVisible();
@@ -61,10 +78,7 @@ test.describe("IVA-290 marketing accessibility", () => {
 
     const toggle = page.getByRole("button", { name: "Show password" });
     await expect(toggle).toBeVisible();
-    const box = await toggle.boundingBox();
-    expect(box).not.toBeNull();
-    expect(box!.width).toBeGreaterThanOrEqual(44);
-    expect(box!.height).toBeGreaterThanOrEqual(44);
+    await expectTapTarget(toggle, 44);
   });
 
   test("landing, pricing, signup and privacy expose a main landmark", async ({
@@ -77,13 +91,9 @@ test.describe("IVA-290 marketing accessibility", () => {
   });
 
   test("open menu control is at least 44px at 390", async ({ page }) => {
-    await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/");
     const menu = page.getByRole("button", { name: "Open menu" });
     await expect(menu).toBeVisible();
-    const box = await menu.boundingBox();
-    expect(box).not.toBeNull();
-    expect(box!.width).toBeGreaterThanOrEqual(44);
-    expect(box!.height).toBeGreaterThanOrEqual(44);
+    await expectTapTarget(menu, 44);
   });
 });
