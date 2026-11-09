@@ -1,7 +1,7 @@
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
-import type { MutationCtx, QueryCtx } from "./_generated/server";
+import type { ActionCtx, MutationCtx, QueryCtx } from "./_generated/server";
 import {
   action,
   internalMutation,
@@ -175,13 +175,7 @@ export const assertLogoStorageAssignable = internalQuery({
 });
 
 export async function discardInvalidLogoUpload(
-  ctx: {
-    runQuery: (
-      ref: unknown,
-      args: { storageId: Id<"_storage"> },
-    ) => Promise<unknown>;
-    storage: { delete: (id: Id<"_storage">) => Promise<void> };
-  },
+  ctx: Pick<ActionCtx, "runQuery" | "storage">,
   storageId: Id<"_storage">,
 ): Promise<void> {
   await ctx.runQuery(internal.tenancy.assertLogoStorageAssignable, {
