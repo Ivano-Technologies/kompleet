@@ -1,9 +1,16 @@
 import { v } from "convex/values";
 import { internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
-import type { MutationCtx } from "./_generated/server";
-import { action, internalMutation, mutation, query } from "./_generated/server";
+import type { MutationCtx, QueryCtx } from "./_generated/server";
+import {
+  action,
+  internalMutation,
+  internalQuery,
+  mutation,
+  query,
+} from "./_generated/server";
 import { getCurrentUser } from "./lib/auth";
+import { assertStorageAssignableToUser } from "./lib/storageAccess";
 import { newExternalId } from "./lib/ids";
 import {
   DEFAULT_COUNTRY,
@@ -149,6 +156,41 @@ export const generateBusinessLogoUploadUrl = mutation({
 });
 
 /**
+ * Refuse to delete (or later adopt) a blob another tenant already owns.
+ * Actions have no `ctx.db`, so ownership is checked via this query first.
+ */
+export async function assertLogoStorageAssignableHandler(
+  ctx: QueryCtx | MutationCtx,
+  args: { storageId: Id<"_storage"> },
+): Promise<null> {
+  const user = await getCurrentUser(ctx);
+  await assertStorageAssignableToUser(ctx, user, args.storageId);
+  return null;
+}
+
+export const assertLogoStorageAssignable = internalQuery({
+  args: { storageId: v.id("_storage") },
+  returns: v.null(),
+  handler: assertLogoStorageAssignableHandler,
+});
+
+export async function discardInvalidLogoUpload(
+  ctx: {
+    runQuery: (
+      ref: unknown,
+      args: { storageId: Id<"_storage"> },
+    ) => Promise<unknown>;
+    storage: { delete: (id: Id<"_storage">) => Promise<void> };
+  },
+  storageId: Id<"_storage">,
+): Promise<void> {
+  await ctx.runQuery(internal.tenancy.assertLogoStorageAssignable, {
+    storageId,
+  });
+  await ctx.storage.delete(storageId);
+}
+
+/**
  * Validate an uploaded logo (real PNG or JPEG bytes, at most 1MB) and attach it
  * to the caller's business profile. Invalid uploads are deleted.
  */
@@ -158,6 +200,9 @@ export const setMyBusinessLogo = action({
   handler: async (ctx, args): Promise<BusinessProfileApiShape> => {
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) throw new Error("Not authenticated");
+    await ctx.runQuery(internal.tenancy.assertLogoStorageAssignable, {
+      storageId: args.storageId,
+    });
     const blob = await ctx.storage.get(args.storageId);
     if (!blob) throw new Error("Upload not found. Please try again.");
     let problem: string | null = null;
@@ -169,7 +214,7 @@ export const setMyBusinessLogo = action({
       if (!meta) problem = "Logo must be a PNG, JPG or SVG image";
     }
     if (problem || !meta) {
-      await ctx.storage.delete(args.storageId);
+      await discardInvalidLogoUpload(ctx, args.storageId);
       throw new Error(problem ?? "Logo must be a PNG, JPG or SVG image");
     }
     return await ctx.runMutation(internal.tenancy.saveMyBusinessLogo, {
@@ -192,6 +237,40 @@ async function deleteLogoIfUnused(
   await ctx.storage.delete(storageId);
 }
 
+export async function saveMyBusinessLogoHandler(
+  ctx: MutationCtx,
+  args: { storageId: Id<"_storage">; width: number; height: number },
+) {
+  const user = await getCurrentUser(ctx);
+  await assertStorageAssignableToUser(ctx, user, args.storageId);
+  const existing = await ctx.db
+    .query("businessProfiles")
+    .withIndex("by_user", (q) => q.eq("userId", user._id))
+    .unique();
+  const now = Date.now();
+  const logo = {
+    logoStorageId: args.storageId,
+    logoWidth: args.width,
+    logoHeight: args.height,
+    updatedAt: now,
+  };
+  if (existing) {
+    const previous = existing.logoStorageId;
+    await ctx.db.patch(existing._id, logo);
+    if (previous && previous !== args.storageId) {
+      await deleteLogoIfUnused(ctx, user._id, previous);
+    }
+  } else {
+    await ctx.db.insert("businessProfiles", {
+      userId: user._id,
+      userExternalId: user.externalId,
+      ...logo,
+      createdAt: now,
+    });
+  }
+  return await loadBusinessProfile(ctx, user);
+}
+
 export const saveMyBusinessLogo = internalMutation({
   args: {
     storageId: v.id("_storage"),
@@ -199,43 +278,7 @@ export const saveMyBusinessLogo = internalMutation({
     height: v.number(),
   },
   returns: businessProfileApi,
-  handler: async (ctx, args) => {
-    const user = await getCurrentUser(ctx);
-    // Ownership: a storage id already attached to another business is never reused.
-    const holders = await ctx.db
-      .query("businessProfiles")
-      .withIndex("by_logoStorageId", (q) => q.eq("logoStorageId", args.storageId))
-      .collect();
-    if (holders.some((row) => row.userId !== user._id)) {
-      throw new Error("Unauthorized");
-    }
-    const existing = await ctx.db
-      .query("businessProfiles")
-      .withIndex("by_user", (q) => q.eq("userId", user._id))
-      .unique();
-    const now = Date.now();
-    const logo = {
-      logoStorageId: args.storageId,
-      logoWidth: args.width,
-      logoHeight: args.height,
-      updatedAt: now,
-    };
-    if (existing) {
-      const previous = existing.logoStorageId;
-      await ctx.db.patch(existing._id, logo);
-      if (previous && previous !== args.storageId) {
-        await deleteLogoIfUnused(ctx, user._id, previous);
-      }
-    } else {
-      await ctx.db.insert("businessProfiles", {
-        userId: user._id,
-        userExternalId: user.externalId,
-        ...logo,
-        createdAt: now,
-      });
-    }
-    return await loadBusinessProfile(ctx, user);
-  },
+  handler: saveMyBusinessLogoHandler,
 });
 
 export const removeMyBusinessLogo = mutation({
