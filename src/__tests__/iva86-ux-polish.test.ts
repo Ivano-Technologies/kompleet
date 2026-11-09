@@ -53,7 +53,10 @@ describe("IVA-86 §2 mobile dual scrollbars", () => {
     expect(shell).toMatch(/h-dvh/);
     expect(shell).toMatch(/dashboard-shell-scroll-lock/);
     expect(shell).toMatch(/flex-1 min-h-0 overflow-y-auto/);
-    expect(shell).toMatch(/pb-\[calc\(4\.25rem\+env\(safe-area-inset-bottom\)\)\]/);
+    expect(shell).toMatch(
+      /pb-\[calc\(4\.25rem\+env\(safe-area-inset-bottom\)\+var\(--cookie-banner-height,0px\)\)\]/,
+    );
+    expect(shell).toMatch(/lg:pb-\[var\(--cookie-banner-height,0px\)\]/);
     expect(shell).not.toMatch(/h-screen/);
     expect(shell).not.toMatch(/overflow-auto pb-20/);
     expect(globals).toMatch(/html\.dashboard-shell-scroll-lock/);

@@ -17,6 +17,7 @@ tax calculation, receipt OCR, and data export.
 | `tax-calculation.spec.ts` | PIT calculation → save → calculation history | No — hits `/api/tax-rules`, `/api/calculations/save`, `/api/calculations` |
 | `expense-ocr.spec.ts` | receipt → OCR → prefilled expense → review queue | `POST /api/expenses/ocr` and `POST /api/ai/categorize` are intercepted (Tesseract output is slow and non-deterministic) |
 | `export.spec.ts` | transactions/reports → CSV, XLSX, PDF downloads | No — asserts the real `Content-Disposition` and file magic bytes |
+| `cookie-consent.spec.ts` | cookie banner, stored Decline/Accept, company legal URLs | Opts out of the default stored Decline; asserts gtag.js is never injected without a measurement id |
 
 Fixtures live in `e2e/fixtures/`:
 
@@ -126,6 +127,13 @@ pnpm exec playwright show-report          # open the last HTML report
 
 The `e2e` job in `.github/workflows/ci.yml` installs Chromium and runs
 `pnpm test:e2e` on pushes and pull requests targeting `main` and `dev`.
+It uses Node 22 so the isolated Convex backend can deploy `"use node"`
+actions (IVA-235) and is a required CI gate. Playwright reports are
+retained for 3 days.
+
+Money-path specs seed `kompleet.cookie-consent.v1=denied` in Playwright
+storage so the cookie banner does not intercept bottom-of-page clicks.
+`cookie-consent.spec.ts` uses empty storage to assert first-visit behaviour.
 
 Configure it in **Settings → Secrets and variables → Actions**:
 

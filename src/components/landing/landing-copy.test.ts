@@ -337,6 +337,40 @@ describe("IVA-72 landing copy", () => {
     }
   });
 
+  it("keeps /pricing copy free during beta without a card promise or a live price", () => {
+    const pricing = readFileSync(
+      resolve(process.cwd(), "src/app/(public)/pricing/page.tsx"),
+      "utf8",
+    );
+    expect(pricing).toMatch(/Free during beta/);
+    expect(pricing).toMatch(/A one-off lifetime plan is coming soon/);
+    expect(pricing).not.toMatch(/No card/i);
+    expect(pricing).not.toMatch(/credit card/i);
+    expect(pricing).not.toMatch(/₦5,?000/);
+    expect(pricing).toMatch(/No price is published yet/);
+    expect(pricing).toMatch(/CompanyLegalLinks/);
+  });
+
+  it("does not ship legacy /api/kompleet HTML legal duplicates", () => {
+    for (const file of [
+      "src/app/api/kompleet/route.ts",
+      "src/app/api/kompleet-privacy/route.ts",
+      "src/app/api/kompleet-terms/route.ts",
+      "public/kompleet.html",
+      "public/kompleet-privacy.html",
+      "public/kompleet-terms.html",
+    ]) {
+      expect(existsSync(resolve(process.cwd(), file))).toBe(false);
+    }
+    expect(landingFooter).toMatch(
+      /href=\{COMPANY_LEGAL\.privacy\}/,
+    );
+    expect(landingFooter).toMatch(/href=\{COMPANY_LEGAL\.terms\}/);
+    expect(landingFooter).toMatch(/href=\{COMPANY_LEGAL\.refunds\}/);
+    expect(landingFooter).toMatch(/CookieSettingsButton/);
+    expect(landingFooter).not.toMatch(/\/api\/kompleet/);
+  });
+
   it("locks Option C navy + teal and strips lime/amber accents", () => {
     expect(tokens).toMatch(/#0B3A5C/);
     expect(tokens).toMatch(/#0D9488/);
