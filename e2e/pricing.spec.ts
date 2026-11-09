@@ -19,9 +19,25 @@ test.describe("pricing founding lifetime card", () => {
     ).toBeVisible();
     await expect(
       page.getByText(
-        "For founding users: one payment, lifetime access for one user, and it is coming soon.",
+        "One payment for lifetime access. Opening soon to founding users.",
       ),
     ).toBeVisible();
+
+    const lifetimeCard = page.locator('[data-plan="lifetime"]');
+    await expect(
+      lifetimeCard.getByText("Everything in Beta access"),
+    ).toBeVisible();
+    await expect(
+      lifetimeCard.getByText("One payment, no monthly or annual fees"),
+    ).toBeVisible();
+    await expect(
+      lifetimeCard.getByText("Lifetime access for one named user"),
+    ).toBeVisible();
+    await expect(
+      lifetimeCard.getByText("Future improvements to the core features"),
+    ).toBeVisible();
+    await expect(lifetimeCard.getByText(/₦/)).toHaveCount(0);
+    await expect(lifetimeCard.getByText(/5,?000/)).toHaveCount(0);
 
     const comingSoon = page.getByRole("button", { name: "Coming soon" });
     await expect(comingSoon).toBeDisabled();

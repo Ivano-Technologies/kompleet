@@ -354,15 +354,22 @@ describe("IVA-72 landing copy", () => {
 
     const lifetimeHeadline = "Lifetime access";
     const lifetimeBody =
-      "For founding users: one payment, lifetime access for one user, and it is coming soon.";
+      "One payment for lifetime access. Opening soon to founding users.";
     const lifetimeCta = "Coming soon";
+    const lifetimeFeatures = [
+      "Everything in Beta access",
+      "One payment, no monthly or annual fees",
+      "Lifetime access for one named user",
+      "Future improvements to the core features",
+    ];
     expect(lifetimeHeadline).not.toMatch(/[-–—]/);
     expect(lifetimeBody).not.toMatch(/[-–—]/);
     expect(lifetimeCta).not.toMatch(/[-–—]/);
+    for (const feature of lifetimeFeatures) {
+      expect(feature).not.toMatch(/[-–—]/);
+    }
     expect(pricing).toContain(lifetimeHeadline);
-    expect(pricing).toMatch(
-      /For founding users:\s+one payment, lifetime access for one user,\s+and it is coming soon\./,
-    );
+    expect(pricing).toContain(lifetimeBody);
     expect(pricing).toContain(lifetimeCta);
     expect(pricing).toMatch(/Founding users/);
     expect(pricing).toMatch(/md:grid-cols-2/);
@@ -376,6 +383,17 @@ describe("IVA-72 landing copy", () => {
     const lifetimeBlock = pricing.slice(lifetimeStart, lifetimeEnd);
     expect(lifetimeBlock).not.toMatch(/₦/);
     expect(lifetimeBlock).not.toMatch(/href=/);
+    expect(lifetimeBlock).not.toMatch(/5,?000/);
+    expect(lifetimeBlock).not.toMatch(/price/i);
+    expect(lifetimeBlock).toMatch(
+      /<PlanFeatureList features=\{lifetimeIncluded\} \/>/,
+    );
+    let featureCursor = 0;
+    for (const feature of lifetimeFeatures) {
+      const at = pricing.indexOf(feature, featureCursor);
+      expect(at, feature).toBeGreaterThan(-1);
+      featureCursor = at + feature.length;
+    }
   });
 
   it("does not ship legacy /api/kompleet HTML legal duplicates", () => {

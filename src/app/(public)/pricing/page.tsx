@@ -21,8 +21,30 @@ const included = [
   "Email support during beta",
 ];
 
+const lifetimeIncluded = [
+  "Everything in Beta access",
+  "One payment, no monthly or annual fees",
+  "Lifetime access for one named user",
+  "Future improvements to the core features",
+];
+
 const PLAN_CARD =
   "flex h-full flex-col rounded-xl border border-border bg-surface p-8 shadow-1 dark:border-dark-border dark:bg-dark-surface";
+
+function PlanFeatureList({ features }: { features: readonly string[] }) {
+  return (
+    <ul className="mb-8 space-y-4">
+      {features.map((feature) => (
+        <li key={feature} className="flex items-start gap-3">
+          <Check className="mt-0.5 h-5 w-5 shrink-0 text-primary dark:text-accent" />
+          <span className="text-sm text-text-2 dark:text-dark-text-2">
+            {feature}
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 export default function PricingPage() {
   return (
@@ -57,16 +79,7 @@ export default function PricingPage() {
               </p>
             </div>
 
-            <ul className="mb-8 space-y-4">
-              {included.map((feature) => (
-                <li key={feature} className="flex items-start gap-3">
-                  <Check className="mt-0.5 h-5 w-5 shrink-0 text-primary dark:text-accent" />
-                  <span className="text-sm text-text-2 dark:text-dark-text-2">
-                    {feature}
-                  </span>
-                </li>
-              ))}
-            </ul>
+            <PlanFeatureList features={included} />
 
             <Link
               href="/signup"
@@ -85,9 +98,11 @@ export default function PricingPage() {
                 Lifetime access
               </h2>
               <p className="mb-8 text-sm text-text-2 dark:text-dark-text-2">
-                For founding users: one payment, lifetime access for one user, and it is coming soon.
+                One payment for lifetime access. Opening soon to founding users.
               </p>
             </div>
+
+            <PlanFeatureList features={lifetimeIncluded} />
 
             <button
               type="button"
