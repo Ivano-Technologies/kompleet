@@ -4,7 +4,12 @@ import type { MutationCtx } from "../_generated/server";
 import {
   DUPLICATE_INVOICE_NUMBER,
   EMPTY_INVOICE_NUMBER,
+  INVALID_INVOICE_NUMBER,
 } from "./lineAmounts";
+
+/** Letters, digits, then hyphens, dots, underscores or slashes. Max 64 chars. */
+const IRN_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._/-]{0,63}$/;
+const IRN_MAX_LENGTH = 64;
 
 export function formatInvoiceNumber(taxYear: number, n: number): string {
   return `INV-${taxYear}-${String(n).padStart(4, "0")}`;
@@ -15,12 +20,12 @@ export async function findInvoicesByNumber(
   userId: Id<"users">,
   invoiceNumber: string,
 ): Promise<Doc<"invoices">[]> {
-  return await ctx.db
+  const needle = invoiceNumber.trim().toLowerCase();
+  const rows = await ctx.db
     .query("invoices")
-    .withIndex("by_user_and_invoiceNumber", (q) =>
-      q.eq("userId", userId).eq("invoiceNumber", invoiceNumber),
-    )
+    .withIndex("by_user", (q) => q.eq("userId", userId))
     .collect();
+  return rows.filter((row) => row.invoiceNumber.toLowerCase() === needle);
 }
 
 /**
@@ -37,6 +42,9 @@ export async function assertInvoiceNumberAvailable(
   const trimmed = invoiceNumber.trim();
   if (!trimmed) {
     throw new ConvexError(EMPTY_INVOICE_NUMBER);
+  }
+  if (trimmed.length > IRN_MAX_LENGTH || !IRN_PATTERN.test(trimmed)) {
+    throw new ConvexError(INVALID_INVOICE_NUMBER);
   }
   const matches = await findInvoicesByNumber(ctx, userId, trimmed);
   if (matches.some((row) => row._id !== exceptInvoiceId)) {

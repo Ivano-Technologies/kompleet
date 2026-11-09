@@ -121,6 +121,14 @@ export const INVALID_PAID_ON = "Enter the paid date as YYYY-MM-DD.";
 /** Empty caller-supplied invoice number. */
 export const EMPTY_INVOICE_NUMBER = "Enter an invoice number.";
 
+/** Caller-supplied invoice number failed charset or length checks. */
+export const INVALID_INVOICE_NUMBER =
+  "Enter an invoice number using letters, numbers, hyphens or slashes only.";
+
+/** Paid and cancelled invoices stay in those statuses. */
+export const CANNOT_ARCHIVE_PAID_OR_CANCELLED =
+  "Paid and cancelled invoices can't be archived.";
+
 /** quantity x rate, before discount and VAT. Rate is limited to 2 decimals. */
 export function lineGrossAmount(item: LineInput): number {
   return num(item.quantity) * roundMoney(num(item.unit_price));

@@ -2,6 +2,7 @@ import { ConvexError } from "convex/values";
 import {
   ALREADY_CANCELLED,
   ALREADY_PAID,
+  CANNOT_ARCHIVE_PAID_OR_CANCELLED,
   INVOICE_LOCKED,
   INVALID_PAID_ON,
   ONLY_ISSUED_CAN_BE_CANCELLED,
@@ -75,6 +76,25 @@ export function assertCanMarkPaid(row: { status: string }): void {
     case "draft":
     case "archived":
       throw new ConvexError(ONLY_ISSUED_CAN_BE_PAID);
+    default: {
+      const _exhaustive: never = row.status;
+      throw new ConvexError(_exhaustive);
+    }
+  }
+}
+
+export function assertCanArchive(row: { status: string }): void {
+  if (!isInvoiceStatus(row.status)) {
+    throw new ConvexError(CANNOT_ARCHIVE_PAID_OR_CANCELLED);
+  }
+  switch (row.status) {
+    case "paid":
+    case "cancelled":
+      throw new ConvexError(CANNOT_ARCHIVE_PAID_OR_CANCELLED);
+    case "draft":
+    case "issued":
+    case "archived":
+      return;
     default: {
       const _exhaustive: never = row.status;
       throw new ConvexError(_exhaustive);

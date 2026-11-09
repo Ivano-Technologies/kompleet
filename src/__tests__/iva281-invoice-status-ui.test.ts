@@ -22,6 +22,12 @@ describe("IVA-281 invoice status UI", () => {
     expect(list).toMatch(/w-full md:w-80/);
   });
 
+  it("closes the status dialog on Escape", () => {
+    const dialogs = read("src/components/invoices/InvoiceStatusDialogs.tsx");
+    expect(dialogs).toMatch(/event\.key !== "Escape"/);
+    expect(dialogs).toMatch(/addEventListener\("keydown"/);
+  });
+
   it("tints the cancel trigger on the issued invoice", () => {
     const detail = read("src/app/(dashboard)/invoices/[id]/page.tsx");
     expect(detail).toMatch(/btn-secondary text-error bg-red-50/);

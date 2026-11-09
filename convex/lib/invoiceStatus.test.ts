@@ -2,11 +2,13 @@ import { ConvexError } from "convex/values";
 import { describe, expect, it } from "vitest";
 import {
   ALREADY_PAID,
+  CANNOT_ARCHIVE_PAID_OR_CANCELLED,
   INVOICE_LOCKED,
   INVALID_PAID_ON,
   ONLY_ISSUED_CAN_BE_PAID,
 } from "./lineAmounts";
 import {
+  assertCanArchive,
   assertCanMarkPaid,
   assertNotLocked,
   isTerminalStatus,
@@ -47,6 +49,27 @@ describe("invoiceStatus", () => {
       assertCanMarkPaid({ status: "paid" });
     } catch (err) {
       expect(err).toMatchObject({ name: "ConvexError", data: ALREADY_PAID });
+    }
+  });
+
+  it("refuses to archive paid or cancelled invoices", () => {
+    expect(() => assertCanArchive({ status: "issued" })).not.toThrow();
+    expect(() => assertCanArchive({ status: "draft" })).not.toThrow();
+    try {
+      assertCanArchive({ status: "paid" });
+    } catch (err) {
+      expect(err).toMatchObject({
+        name: "ConvexError",
+        data: CANNOT_ARCHIVE_PAID_OR_CANCELLED,
+      });
+    }
+    try {
+      assertCanArchive({ status: "cancelled" });
+    } catch (err) {
+      expect(err).toMatchObject({
+        name: "ConvexError",
+        data: CANNOT_ARCHIVE_PAID_OR_CANCELLED,
+      });
     }
   });
 

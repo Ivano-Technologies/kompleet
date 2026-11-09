@@ -13,6 +13,7 @@ import {
   assertInvoiceNumberAvailable,
 } from "./lib/invoiceNumbers";
 import {
+  assertCanArchive,
   assertCanCancel,
   assertCanMarkPaid,
   assertNotLocked,
@@ -716,6 +717,54 @@ export const getSigningKeys = query({
   },
 });
 
+type ArchiveMineArgs = {
+  externalId: string;
+  reason?: string;
+};
+
+export async function archiveMineHandler(
+  ctx: MutationCtx,
+  args: ArchiveMineArgs,
+) {
+  const user = await getCurrentUser(ctx);
+  const row = await loadOwnedInvoice(ctx, args.externalId, user);
+  assertCanArchive(row);
+  const existing = await ctx.db
+    .query("invoiceArchives")
+    .withIndex("by_invoice", (q) => q.eq("invoiceId", row._id))
+    .first();
+  if (existing) {
+    return { success: true, archive_id: existing.externalId };
+  }
+  const now = Date.now();
+  const externalId = newExternalId();
+  await ctx.db.insert("invoiceArchives", {
+    externalId,
+    invoiceId: row._id,
+    clientId: row.clientId,
+    snapshot: {
+      invoice: toApi(row),
+      reason: args.reason ?? "Manual archive",
+      archivedAt: now,
+    },
+    createdAt: now,
+  });
+  await ctx.db.patch(row._id, {
+    status: "archived",
+    isImmutable: true,
+    updatedAt: now,
+  });
+  await ctx.db.insert("invoiceAuditLogs", {
+    invoiceId: row._id,
+    clientId: row.clientId,
+    userId: user._id,
+    action: "archived",
+    details: { reason: args.reason ?? "Manual archive" },
+    createdAt: now,
+  });
+  return { success: true, archive_id: externalId };
+}
+
 export const archiveMine = mutation({
   args: {
     externalId: v.string(),
@@ -725,44 +774,7 @@ export const archiveMine = mutation({
     success: v.boolean(),
     archive_id: v.union(v.string(), v.null()),
   }),
-  handler: async (ctx, args) => {
-    const user = await getCurrentUser(ctx);
-    const row = await loadOwnedInvoice(ctx, args.externalId, user);
-    const existing = await ctx.db
-      .query("invoiceArchives")
-      .withIndex("by_invoice", (q) => q.eq("invoiceId", row._id))
-      .first();
-    if (existing) {
-      return { success: true, archive_id: existing.externalId };
-    }
-    const now = Date.now();
-    const externalId = newExternalId();
-    await ctx.db.insert("invoiceArchives", {
-      externalId,
-      invoiceId: row._id,
-      clientId: row.clientId,
-      snapshot: {
-        invoice: toApi(row),
-        reason: args.reason ?? "Manual archive",
-        archivedAt: now,
-      },
-      createdAt: now,
-    });
-    await ctx.db.patch(row._id, {
-      status: "archived",
-      isImmutable: true,
-      updatedAt: now,
-    });
-    await ctx.db.insert("invoiceAuditLogs", {
-      invoiceId: row._id,
-      clientId: row.clientId,
-      userId: user._id,
-      action: "archived",
-      details: { reason: args.reason ?? "Manual archive" },
-      createdAt: now,
-    });
-    return { success: true, archive_id: externalId };
-  },
+  handler: archiveMineHandler,
 });
 
 export const getArchiveMine = query({

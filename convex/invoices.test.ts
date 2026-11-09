@@ -9,12 +9,14 @@ import {
   ALREADY_CANCELLED,
   ALREADY_ISSUED,
   ALREADY_PAID,
+  CANNOT_ARCHIVE_PAID_OR_CANCELLED,
   CANCEL_REASON_REQUIRED,
   DISCOUNT_TOO_BIG,
   DUPLICATE_INVOICE_NUMBER,
   FORBIDDEN,
   FORBIDDEN_MESSAGE,
   INVOICE_LOCKED,
+  INVALID_INVOICE_NUMBER,
   INVALID_PAID_ON,
   ONLY_ISSUED_CAN_BE_CANCELLED,
   ONLY_ISSUED_CAN_BE_PAID,
@@ -44,6 +46,7 @@ vi.mock("./lib/profiles", async (importOriginal) => {
 });
 
 import {
+  archiveMineHandler,
   cancelMineHandler,
   createMineHandler,
   issueMineHandler,
@@ -87,6 +90,7 @@ function fakeDb() {
     invoices: [],
     invoiceSequences: [],
     invoiceAuditLogs: [],
+    invoiceArchives: [],
     clients: [],
   };
   let nextId = 1;
@@ -764,6 +768,39 @@ describe("invoice paid, cancelled, uniqueness and nextNumber", () => {
     expect(tables.invoices[0]!.status).toBe("issued");
   });
 
+  it("rejects a duplicate invoice number regardless of case", async () => {
+    const { db } = fakeDb();
+    await createMineHandler(ctxOf(db), { invoiceNumber: "INV-2026-0400" });
+    await expect(
+      createMineHandler(ctxOf(db), { invoiceNumber: "inv-2026-0400" }),
+    ).rejects.toMatchObject({
+      name: "ConvexError",
+      data: DUPLICATE_INVOICE_NUMBER,
+    });
+  });
+
+  it("rejects a caller-supplied number that fails IRN charset or length", async () => {
+    const { db } = fakeDb();
+    await expect(
+      createMineHandler(ctxOf(db), { invoiceNumber: "INV 2026 0400" }),
+    ).rejects.toMatchObject({
+      name: "ConvexError",
+      data: INVALID_INVOICE_NUMBER,
+    });
+    await expect(
+      createMineHandler(ctxOf(db), { invoiceNumber: "#INV-1" }),
+    ).rejects.toMatchObject({
+      name: "ConvexError",
+      data: INVALID_INVOICE_NUMBER,
+    });
+    await expect(
+      createMineHandler(ctxOf(db), { invoiceNumber: `INV-${"A".repeat(62)}` }),
+    ).rejects.toMatchObject({
+      name: "ConvexError",
+      data: INVALID_INVOICE_NUMBER,
+    });
+  });
+
   it("rejects a duplicate invoice number for the same seller on create, update and issue", async () => {
     const { db, tables } = fakeDb();
     await createMineHandler(ctxOf(db), { invoiceNumber: "INV-2026-0400" });
@@ -857,6 +894,62 @@ describe("invoice paid, cancelled, uniqueness and nextNumber", () => {
     await createMineHandler(ctxOf(db), { invoiceNumber: "INV-2026-0001", taxYear: 2026 });
     const next = await nextNumberHandler(ctxOf(db), { taxYear: 2026 });
     expect(next).toBe("INV-2026-0002");
+  });
+
+  it("nextNumber does not hand the same number to two sequential callers", async () => {
+    const { db } = fakeDb();
+    const first = await nextNumberHandler(ctxOf(db), { taxYear: 2026 });
+    const second = await nextNumberHandler(ctxOf(db), { taxYear: 2026 });
+    expect(first).toBe("INV-2026-0001");
+    expect(second).toBe("INV-2026-0002");
+    expect(first).not.toBe(second);
+  });
+
+  it("occupies the sequence row so concurrent nextNumber retries", () => {
+    const source = readFileSync(
+      resolve(process.cwd(), "convex/lib/invoiceNumbers.ts"),
+      "utf8",
+    );
+    expect(source).toMatch(
+      /await ctx\.db\.patch\(existing\._id, \{ nextNumber: next \}\)/,
+    );
+    expect(source).toMatch(
+      /await ctx\.db\.patch\(sequenceId, \{ nextNumber: next \+ 1 \}\)/,
+    );
+  });
+
+  it("refuses to archive paid or cancelled invoices", async () => {
+    const { db, tables } = fakeDb();
+    const paidRow = await seedIssued(db, tables, "INV-2026-0600");
+    await markPaidMineHandler(ctxOf(db), {
+      externalId: paidRow.externalId as string,
+      paidOn: "2026-11-01",
+    });
+    await expect(
+      archiveMineHandler(ctxOf(db), {
+        externalId: paidRow.externalId as string,
+      }),
+    ).rejects.toMatchObject({
+      name: "ConvexError",
+      data: CANNOT_ARCHIVE_PAID_OR_CANCELLED,
+    });
+    expect(tables.invoices[0]!.status).toBe("paid");
+
+    const { db: db2, tables: tables2 } = fakeDb();
+    const cancelledRow = await seedIssued(db2, tables2, "INV-2026-0601");
+    await cancelMineHandler(ctxOf(db2), {
+      externalId: cancelledRow.externalId as string,
+      reason: "Wrong client",
+    });
+    await expect(
+      archiveMineHandler(ctxOf(db2), {
+        externalId: cancelledRow.externalId as string,
+      }),
+    ).rejects.toMatchObject({
+      name: "ConvexError",
+      data: CANNOT_ARCHIVE_PAID_OR_CANCELLED,
+    });
+    expect(tables2.invoices[0]!.status).toBe("cancelled");
   });
 
   it("uses sentence case copy for paid and cancelled actions", () => {
