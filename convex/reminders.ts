@@ -9,6 +9,7 @@ import {
   mutation,
   query,
   type MutationCtx,
+  type QueryCtx,
 } from "./_generated/server";
 import { getCurrentUser } from "./lib/auth";
 import {
@@ -97,27 +98,32 @@ export async function sendReminderEmail(
     return false;
   }
 
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: reminderEmailFrom(),
-      to: [to],
-      subject: template.subject,
-      html: template.html,
-      text: template.text,
-    }),
-  });
+  try {
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: reminderEmailFrom(),
+        to: [to],
+        subject: template.subject,
+        html: template.html,
+        text: template.text,
+      }),
+    });
 
-  if (!response.ok) {
-    const detail = await response.text();
-    console.error("[reminders] Resend failed", detail);
+    if (!response.ok) {
+      const detail = await response.text();
+      console.error("[reminders] Resend failed", detail);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error("[reminders] Resend threw", err);
     return false;
   }
-  return true;
 }
 
 export async function claimSendHandler(
@@ -233,6 +239,39 @@ export const claimSend = internalMutation({
   handler: async (ctx, args) => claimSendHandler(ctx, args),
 });
 
+export async function wasSentHandler(
+  ctx: QueryCtx,
+  args: {
+    userId: Id<"users">;
+    formType: string;
+    taxYear: number;
+    daysRemaining: number;
+  },
+): Promise<boolean> {
+  const existing = await ctx.db
+    .query("deadlineReminders")
+    .withIndex("by_user_and_key", (q) =>
+      q
+        .eq("userId", args.userId)
+        .eq("formType", args.formType)
+        .eq("taxYear", args.taxYear)
+        .eq("daysRemaining", args.daysRemaining),
+    )
+    .unique();
+  return existing !== null;
+}
+
+export const wasSent = internalQuery({
+  args: {
+    userId: v.id("users"),
+    formType: v.string(),
+    taxYear: v.number(),
+    daysRemaining: v.number(),
+  },
+  returns: v.boolean(),
+  handler: async (ctx, args) => wasSentHandler(ctx, args),
+});
+
 export async function releaseSendHandler(
   ctx: MutationCtx,
   args: {
@@ -267,6 +306,88 @@ export const releaseSend = internalMutation({
   handler: async (ctx, args) => releaseSendHandler(ctx, args),
 });
 
+export type SendDueRemindersDeps = {
+  now: number;
+  listPage: (cursor: string | null) => Promise<CandidatePage>;
+  wasSent: (args: {
+    userId: Id<"users">;
+    formType: string;
+    taxYear: number;
+    daysRemaining: number;
+  }) => Promise<boolean>;
+  recordSend: (args: {
+    userId: Id<"users">;
+    formType: string;
+    taxYear: number;
+    daysRemaining: number;
+    deadlineDate: string;
+    now: number;
+  }) => Promise<boolean>;
+  sendEmail: (to: string, template: EmailTemplate) => Promise<boolean>;
+  due?: ReturnType<typeof dueRemindersAt>;
+};
+
+export async function sendDueRemindersHandler(
+  deps: SendDueRemindersDeps,
+): Promise<{ due: number; claimed: number }> {
+  const due = deps.due ?? dueRemindersAt(deps.now);
+  if (due.length === 0) {
+    return { due: 0, claimed: 0 };
+  }
+
+  let cursor: string | null = null;
+  let claimed = 0;
+  for (;;) {
+    const page = await deps.listPage(cursor);
+    for (const user of page.page) {
+      try {
+        for (const reminder of due) {
+          if (!reminderAppliesToEntity(reminder.formType, user.entityType)) {
+            continue;
+          }
+          const already = await deps.wasSent({
+            userId: user.userId,
+            formType: reminder.formType,
+            taxYear: reminder.taxYear,
+            daysRemaining: reminder.daysRemaining,
+          });
+          if (already) continue;
+          const template = reminderTemplate(reminder.daysRemaining, user.name, {
+            formType: reminder.formType,
+            taxYear: reminder.taxYear,
+            deadlineDate: reminder.deadlineDate,
+            daysRemaining: reminder.daysRemaining,
+            description: reminder.description,
+          });
+          let sent = false;
+          try {
+            sent = await deps.sendEmail(user.email, template);
+          } catch (err) {
+            console.error("[reminders] send threw", err);
+            continue;
+          }
+          if (!sent) continue;
+          const recorded = await deps.recordSend({
+            userId: user.userId,
+            formType: reminder.formType,
+            taxYear: reminder.taxYear,
+            daysRemaining: reminder.daysRemaining,
+            deadlineDate: reminder.deadlineDate,
+            now: deps.now,
+          });
+          if (recorded) claimed += 1;
+        }
+      } catch (err) {
+        console.error("[reminders] user failed", err);
+      }
+    }
+    if (page.isDone) break;
+    cursor = page.continueCursor;
+  }
+
+  return { due: due.length, claimed };
+}
+
 export const sendDueReminders = internalAction({
   args: {},
   returns: v.object({
@@ -275,62 +396,15 @@ export const sendDueReminders = internalAction({
   }),
   handler: async (ctx) => {
     const now = Date.now();
-    const due = dueRemindersAt(now);
-    if (due.length === 0) {
-      return { due: 0, claimed: 0 };
-    }
-
-    let cursor: string | null = null;
-    let claimed = 0;
-    for (;;) {
-      const page: CandidatePage = await ctx.runQuery(
-        internal.reminders.listCandidates,
-        {
+    return await sendDueRemindersHandler({
+      now,
+      listPage: (cursor) =>
+        ctx.runQuery(internal.reminders.listCandidates, {
           paginationOpts: { numItems: 50, cursor },
-        },
-      );
-      for (const user of page.page) {
-        for (const reminder of due) {
-          if (!reminderAppliesToEntity(reminder.formType, user.entityType)) {
-            continue;
-          }
-          const won = await ctx.runMutation(internal.reminders.claimSend, {
-            userId: user.userId,
-            formType: reminder.formType,
-            taxYear: reminder.taxYear,
-            daysRemaining: reminder.daysRemaining,
-            deadlineDate: reminder.deadlineDate,
-            now,
-          });
-          if (!won) continue;
-          const template = reminderTemplate(
-            reminder.daysRemaining,
-            user.name,
-            {
-              formType: reminder.formType,
-              taxYear: reminder.taxYear,
-              deadlineDate: reminder.deadlineDate,
-              daysRemaining: reminder.daysRemaining,
-              description: reminder.description,
-            },
-          );
-          const sent = await sendReminderEmail(user.email, template);
-          if (!sent) {
-            await ctx.runMutation(internal.reminders.releaseSend, {
-              userId: user.userId,
-              formType: reminder.formType,
-              taxYear: reminder.taxYear,
-              daysRemaining: reminder.daysRemaining,
-            });
-            continue;
-          }
-          claimed += 1;
-        }
-      }
-      if (page.isDone) break;
-      cursor = page.continueCursor;
-    }
-
-    return { due: due.length, claimed };
+        }),
+      wasSent: (args) => ctx.runQuery(internal.reminders.wasSent, args),
+      recordSend: (args) => ctx.runMutation(internal.reminders.claimSend, args),
+      sendEmail: sendReminderEmail,
+    });
   },
 });

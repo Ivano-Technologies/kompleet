@@ -7,6 +7,7 @@ import {
   dueRemindersAt,
   filingDeadlinesForTaxYear,
   isReminderEmailEnabled,
+  lowestDueTier,
   reminderAppliesToEntity,
   utcTodayIso,
 } from "./deadlineCalendar";
@@ -88,7 +89,30 @@ describe("dueRemindersAt", () => {
     expect(one.map((d) => d.daysRemaining)).toEqual([1]);
 
     const dueDay = dueRemindersAt(Date.parse("2027-03-31T08:00:00.000Z"));
-    expect(dueDay.filter((d) => d.formType === "PIT")).toEqual([]);
+    expect(dueDay.filter((d) => d.formType === "PIT")).toEqual([
+      expect.objectContaining({
+        formType: "PIT",
+        daysRemaining: 1,
+      }),
+    ]);
+  });
+
+  it("catches up a missed window with only the lowest due tier", () => {
+    expect(lowestDueTier(5)).toBe(7);
+    expect(lowestDueTier(2)).toBe(3);
+    expect(lowestDueTier(0)).toBe(1);
+    expect(lowestDueTier(-1)).toBe(null);
+    expect(lowestDueTier(8)).toBe(null);
+
+    const five = dueRemindersAt(Date.parse("2027-03-26T08:00:00.000Z"));
+    expect(five.filter((d) => d.formType === "PIT")).toEqual([
+      expect.objectContaining({ formType: "PIT", daysRemaining: 7 }),
+    ]);
+
+    const two = dueRemindersAt(Date.parse("2027-03-29T08:00:00.000Z"));
+    expect(two.filter((d) => d.formType === "PIT")).toEqual([
+      expect.objectContaining({ formType: "PIT", daysRemaining: 3 }),
+    ]);
   });
 
   it("matches CIT and monthly VAT windows", () => {

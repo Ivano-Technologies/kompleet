@@ -7,6 +7,7 @@ import type { MutationCtx } from "./_generated/server";
 import {
   claimSendHandler,
   releaseSendHandler,
+  sendDueRemindersHandler,
   sendReminderEmail,
 } from "./reminders";
 
@@ -143,6 +144,58 @@ describe("deadline reminder cron", () => {
     expect(source).toMatch(/internal\.reminders\.sendDueReminders/);
     const send = readFileSync(resolve("convex/reminders.ts"), "utf8");
     expect(send).toMatch(/reminderAppliesToEntity/);
-    expect(send).toMatch(/internal\.reminders\.releaseSend/);
+    expect(send).toMatch(/sendDueRemindersHandler/);
+    expect(send).toMatch(/internal\.reminders\.wasSent/);
+    expect(send).toMatch(/internal\.reminders\.claimSend/);
+  });
+
+  it("records a send only after mail goes out and continues after a throw", async () => {
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    const sendEmail = vi.fn(async (to: string) => {
+      if (to === "a@example.com") throw new Error("network");
+      return true;
+    });
+    const recorded: string[] = [];
+    const result = await sendDueRemindersHandler({
+      now: Date.parse("2027-03-24T08:00:00.000Z"),
+      due: [
+        {
+          formType: "PIT",
+          taxYear: 2026,
+          deadlineDate: "2027-03-31",
+          description: "Personal Income Tax Return",
+          daysRemaining: 7,
+        },
+      ],
+      listPage: async () => ({
+        isDone: true,
+        continueCursor: "",
+        page: [
+          {
+            userId: "users:1" as never,
+            email: "a@example.com",
+            name: "A",
+            entityType: "individual",
+          },
+          {
+            userId: "users:2" as never,
+            email: "b@example.com",
+            name: "B",
+            entityType: "individual",
+          },
+        ],
+      }),
+      wasSent: async () => false,
+      recordSend: async (args) => {
+        recorded.push(String(args.userId));
+        return true;
+      },
+      sendEmail,
+    });
+    expect(result.claimed).toBe(1);
+    expect(recorded).toEqual(["users:2"]);
+    expect(sendEmail).toHaveBeenCalledTimes(2);
+    expect(error).toHaveBeenCalled();
+    error.mockRestore();
   });
 });

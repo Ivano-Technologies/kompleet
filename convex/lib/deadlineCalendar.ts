@@ -108,6 +108,18 @@ export function isReminderWindow(days: number): days is ReminderWindow {
   return days === 7 || days === 3 || days === 1;
 }
 
+/**
+ * Catch-up window: send when days left is at most 7, 3 or 1, using only the
+ * lowest due tier so a late cron does not fire several emails at once.
+ */
+export function lowestDueTier(daysLeft: number): ReminderWindow | null {
+  if (!Number.isFinite(daysLeft) || daysLeft < 0) return null;
+  if (daysLeft <= 1) return 1;
+  if (daysLeft <= 3) return 3;
+  if (daysLeft <= 7) return 7;
+  return null;
+}
+
 export function isReminderEmailEnabled(
   reminderEmailEnabled: boolean | undefined,
 ): boolean {
@@ -115,7 +127,8 @@ export function isReminderEmailEnabled(
 }
 
 /**
- * Deadlines whose due date is exactly 7, 3 or 1 calendar days from `nowMs`.
+ * Deadlines whose due date is 7, 3 or 1 calendar days from `nowMs`, catching
+ * up a missed exact-day window with only the lowest due tier.
  * Looks at last year, this year and next year so year boundaries are covered.
  */
 export function dueRemindersAt(nowMs: number): DueReminder[] {
@@ -125,8 +138,9 @@ export function dueRemindersAt(nowMs: number): DueReminder[] {
   const due: DueReminder[] = [];
   for (const taxYear of years) {
     for (const deadline of filingDeadlinesForTaxYear(taxYear)) {
-      const daysRemaining = calendarDaysUntil(deadline.deadlineDate, todayIso);
-      if (!isReminderWindow(daysRemaining)) continue;
+      const daysLeft = calendarDaysUntil(deadline.deadlineDate, todayIso);
+      const daysRemaining = lowestDueTier(daysLeft);
+      if (daysRemaining === null) continue;
       due.push({ ...deadline, daysRemaining });
     }
   }
