@@ -230,11 +230,11 @@ function InvoicesPageInner() {
 
   return (
     <div
-      className="flex -m-4 lg:-m-6"
+      className="flex min-w-0 overflow-x-hidden -m-4 lg:-m-6"
       style={{ minHeight: "calc(100vh - 3.5rem)" }}
     >
       {/* Left Sidebar - Invoice List */}
-      <div className="w-full md:w-80 lg:w-96 bg-light-surface dark:bg-dark-surface md:border-r border-light-border dark:border-dark-border flex flex-col flex-shrink-0">
+      <div className="flex min-w-0 w-full md:w-80 lg:w-96 flex-col bg-light-surface dark:bg-dark-surface md:flex-shrink-0 md:border-r border-light-border dark:border-dark-border">
         {/* Header */}
         <div className="p-5 border-b border-light-border dark:border-dark-border">
           <div className="flex items-center justify-between mb-1">
@@ -291,7 +291,7 @@ function InvoicesPageInner() {
         )}
 
         {/* Invoice List */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden px-4">
           {loading ? (
             <div className="p-8 text-center">
               <div className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
@@ -354,7 +354,7 @@ function InvoicesPageInner() {
                       )}
                     </span>
                     <span
-                      className={`font-semibold text-sm ${
+                      className={`min-w-0 truncate font-semibold text-sm ${
                         invoice.status === "cancelled"
                           ? "text-light-text-tertiary dark:text-dark-text-tertiary line-through"
                           : "text-light-text-primary dark:text-dark-text-primary"
@@ -371,7 +371,7 @@ function InvoicesPageInner() {
       </div>
 
       {/* Right Panel - Invoice Preview */}
-      <div className="hidden md:flex flex-1 overflow-y-auto bg-light-background dark:bg-dark-background">
+      <div className="hidden min-w-0 md:flex flex-1 overflow-x-hidden overflow-y-auto bg-light-background dark:bg-dark-background">
         {selectedInvoice ? (
           <div className="max-w-3xl mx-auto p-6 lg:p-8">
             {/* Action Bar */}

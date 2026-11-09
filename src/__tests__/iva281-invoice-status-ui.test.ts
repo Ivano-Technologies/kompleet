@@ -18,8 +18,11 @@ describe("IVA-281 invoice status UI", () => {
     const list = read("src/app/(dashboard)/invoices/page.tsx");
     expect(list).toMatch(/invoice\.status === "cancelled"/);
     expect(list).toMatch(/line-through/);
-    expect(list).toMatch(/hidden md:flex flex-1/);
+    expect(list).toMatch(/hidden min-w-0 md:flex flex-1/);
     expect(list).toMatch(/w-full md:w-80/);
+    expect(list).toMatch(/overflow-x-hidden px-4/);
+    expect(list).toMatch(/absolute left-3/);
+    expect(list).toMatch(/pl-9 pr-3/);
   });
 
   it("closes the status dialog on Escape", () => {
