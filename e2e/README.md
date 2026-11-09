@@ -126,6 +126,8 @@ pnpm exec playwright show-report          # open the last HTML report
 
 The `e2e` job in `.github/workflows/ci.yml` installs Chromium and runs
 `pnpm test:e2e` on pushes and pull requests targeting `main` and `dev`.
+It uses Node 22 so the isolated Convex backend can deploy `"use node"`
+actions (IVA-235). Playwright reports are retained for 3 days.
 
 Configure it in **Settings → Secrets and variables → Actions**:
 

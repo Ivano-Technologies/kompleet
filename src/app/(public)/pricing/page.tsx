@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/pricing" },
   title: "Kompleet: Pricing",
   description:
-    "KOMPLEET is free during beta. See what is included today and what we will price later.",
+    "KOMPLEET is free during beta. A one-off lifetime plan is coming soon.",
 };
 
 const included = [
@@ -38,8 +38,7 @@ export default function PricingPage() {
             Free during beta
           </h1>
           <p className="mx-auto max-w-2xl text-base text-text-2">
-            Every live feature is included while we are in beta. No card, no
-            seat limits announced.
+            A one-off lifetime plan is coming soon.
           </p>
         </div>
 
@@ -74,9 +73,8 @@ export default function PricingPage() {
         <div className="mx-auto max-w-2xl rounded-xl border border-border bg-surface p-8 text-center">
           <h3 className="font-display mb-3 text-xl font-bold">After beta</h3>
           <p className="text-sm leading-relaxed text-text-2">
-            We will publish paid tiers for Nigerian SMEs before charging anyone.
-            Beta accounts keep access through that notice period. Early testers
-            get a stated discount. We will email it, not bury it.
+            A one-off lifetime plan is coming soon. We will email testers
+            before charging anyone. No price is published yet.
           </p>
         </div>
       </main>
