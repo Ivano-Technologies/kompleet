@@ -1,14 +1,46 @@
 "use client";
 
+import { useLayoutEffect, useRef } from "react";
 import Link from "next/link";
 import { COMPANY_LEGAL } from "@/lib/legal";
+import {
+  applyCookieBannerHeight,
+  clearCookieBannerHeight,
+} from "@/lib/cookie-consent";
 import { useCookieConsent } from "@/components/cookies/CookieConsentContext";
+
+function measureBanner(el: HTMLElement): void {
+  applyCookieBannerHeight(el.getBoundingClientRect().height);
+}
 
 export function CookieConsentBanner() {
   const { accept, decline } = useCookieConsent();
+  const bannerRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const el = bannerRef.current;
+    if (!el) {
+      return;
+    }
+    measureBanner(el);
+    if (typeof ResizeObserver === "undefined") {
+      return () => {
+        clearCookieBannerHeight();
+      };
+    }
+    const observer = new ResizeObserver(() => {
+      measureBanner(el);
+    });
+    observer.observe(el);
+    return () => {
+      observer.disconnect();
+      clearCookieBannerHeight();
+    };
+  }, []);
 
   return (
     <div
+      ref={bannerRef}
       role="dialog"
       aria-labelledby="cookie-consent-title"
       aria-describedby="cookie-consent-copy"
@@ -39,18 +71,18 @@ export function CookieConsentBanner() {
             .
           </p>
         </div>
-        <div className="flex shrink-0 flex-wrap gap-2">
+        <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-none">
           <button
             type="button"
             onClick={decline}
-            className="rounded-md border border-border bg-surface px-4 py-2 text-sm font-semibold text-text-1 hover:bg-surface-2"
+            className="w-full rounded-md border border-border bg-surface px-4 py-2 text-sm font-semibold text-text-1 hover:bg-surface-2 sm:w-auto"
           >
             Decline
           </button>
           <button
             type="button"
             onClick={accept}
-            className="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-charcoal hover:bg-accent-hover"
+            className="w-full rounded-md bg-accent px-4 py-2 text-sm font-semibold text-charcoal hover:bg-accent-hover sm:w-auto"
           >
             Accept
           </button>

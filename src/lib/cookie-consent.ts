@@ -1,5 +1,19 @@
 export const COOKIE_CONSENT_STORAGE_KEY = "kompleet.cookie-consent.v1";
 
+/** Document inset while the cookie banner is open. Written by ResizeObserver. */
+export const COOKIE_BANNER_HEIGHT_VAR = "--cookie-banner-height";
+
+export function applyCookieBannerHeight(heightPx: number): void {
+  document.documentElement.style.setProperty(
+    COOKIE_BANNER_HEIGHT_VAR,
+    `${Math.max(0, Math.ceil(heightPx))}px`,
+  );
+}
+
+export function clearCookieBannerHeight(): void {
+  document.documentElement.style.setProperty(COOKIE_BANNER_HEIGHT_VAR, "0px");
+}
+
 export type CookieConsentChoice = "granted" | "denied";
 
 export const CONSENT_MODE_DEFAULT_DENIED = {

@@ -1,11 +1,16 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { CookieConsentProvider } from "@/components/cookies/CookieConsentProvider";
 import { CookieSettingsButton } from "@/components/cookies/CookieSettingsButton";
 import {
+  COOKIE_BANNER_HEIGHT_VAR,
   COOKIE_CONSENT_STORAGE_KEY,
   CONSENT_MODE_DEFAULT_DENIED,
+  applyCookieBannerHeight,
+  clearCookieBannerHeight,
   gtagScriptUrl,
 } from "@/lib/cookie-consent";
 
@@ -23,6 +28,37 @@ function renderConsentUi() {
   );
 }
 
+const BANNER_HEIGHT_PX = 190;
+
+class MeasuringResizeObserver {
+  private readonly callback: ResizeObserverCallback;
+
+  constructor(callback: ResizeObserverCallback) {
+    this.callback = callback;
+  }
+
+  observe(target: Element): void {
+    vi.spyOn(target, "getBoundingClientRect").mockReturnValue({
+      x: 0,
+      y: 654,
+      width: 390,
+      height: BANNER_HEIGHT_PX,
+      top: 654,
+      right: 390,
+      bottom: 844,
+      left: 0,
+      toJSON() {
+        return {};
+      },
+    } as DOMRect);
+    this.callback([], this as unknown as ResizeObserver);
+  }
+
+  unobserve(): void {}
+
+  disconnect(): void {}
+}
+
 describe("Google Analytics cookie consent", () => {
   beforeEach(() => {
     window.localStorage.clear();
@@ -31,10 +67,14 @@ describe("Google Analytics cookie consent", () => {
     document
       .querySelectorAll("script[data-kompleet-ga]")
       .forEach((node) => node.remove());
+    vi.stubGlobal("ResizeObserver", MeasuringResizeObserver);
+    clearCookieBannerHeight();
   });
 
   afterEach(() => {
     cleanup();
+    clearCookieBannerHeight();
+    vi.unstubAllGlobals();
     document
       .querySelectorAll("script[data-kompleet-ga]")
       .forEach((node) => node.remove());
@@ -123,5 +163,76 @@ describe("Google Analytics cookie consent", () => {
       screen.getByRole("dialog", { name: "Cookie notice" }),
     ).toBeInTheDocument();
     expect(gaScript()).toBeNull();
+  });
+
+  it("reserves the measured banner height on the document while open", async () => {
+    renderConsentUi();
+
+    await waitFor(() => {
+      expect(
+        document.documentElement.style.getPropertyValue(COOKIE_BANNER_HEIGHT_VAR),
+      ).toBe(`${BANNER_HEIGHT_PX}px`);
+    });
+  });
+
+  it("removes the reserved inset when the banner closes", async () => {
+    const user = userEvent.setup();
+    renderConsentUi();
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("dialog", { name: "Cookie notice" }),
+      ).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole("button", { name: "Decline" }));
+
+    expect(
+      document.documentElement.style.getPropertyValue(COOKIE_BANNER_HEIGHT_VAR),
+    ).toBe("0px");
+  });
+
+  it("keeps Decline and Accept equal width on one row at a narrow width", async () => {
+    renderConsentUi();
+
+    const decline = await screen.findByRole("button", { name: "Decline" });
+    const accept = screen.getByRole("button", { name: "Accept" });
+    const row = decline.parentElement;
+    expect(row).not.toBeNull();
+    expect(row).toHaveClass("grid-cols-2");
+    expect(row?.className).toMatch(/\bgap-2\b/);
+    expect(row?.firstElementChild).toBe(decline);
+    expect(row?.lastElementChild).toBe(accept);
+  });
+});
+
+describe("cookie banner height helpers", () => {
+  afterEach(() => {
+    clearCookieBannerHeight();
+  });
+
+  it("writes a CSS custom property and clears it", () => {
+    applyCookieBannerHeight(189.2);
+    expect(
+      document.documentElement.style.getPropertyValue(COOKIE_BANNER_HEIGHT_VAR),
+    ).toBe("190px");
+    clearCookieBannerHeight();
+    expect(
+      document.documentElement.style.getPropertyValue(COOKIE_BANNER_HEIGHT_VAR),
+    ).toBe("0px");
+  });
+
+  it("pads body from the measured CSS variable", () => {
+    const globals = readFileSync(
+      resolve(process.cwd(), "src/app/globals.css"),
+      "utf8",
+    );
+    expect(globals).toMatch(/--cookie-banner-height:\s*0px/);
+    expect(globals).toMatch(
+      /padding-bottom:\s*var\(--cookie-banner-height, 0px\)/,
+    );
+    expect(globals).toMatch(
+      /scroll-padding-bottom:\s*var\(--cookie-banner-height, 0px\)/,
+    );
   });
 });

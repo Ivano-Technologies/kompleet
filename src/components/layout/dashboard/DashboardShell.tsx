@@ -63,7 +63,7 @@ export function DashboardShell({ user, children }: DashboardShellProps) {
           onOpenSettings={(section) => openSettings(section)}
         />
 
-        <main className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden pb-[calc(4.25rem+env(safe-area-inset-bottom))] lg:pb-0">
+        <main className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden pb-[calc(4.25rem+env(safe-area-inset-bottom)+var(--cookie-banner-height,0px))] lg:pb-[var(--cookie-banner-height,0px)]">
           <div className="p-4 lg:p-6">{children}</div>
         </main>
       </div>

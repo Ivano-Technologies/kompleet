@@ -8,7 +8,10 @@
 
 import { test, expect } from "@playwright/test";
 import { COMPANY_LEGAL } from "../src/lib/legal";
-import { COOKIE_CONSENT_STORAGE_KEY } from "../src/lib/cookie-consent";
+import {
+  COOKIE_BANNER_HEIGHT_VAR,
+  COOKIE_CONSENT_STORAGE_KEY,
+} from "../src/lib/cookie-consent";
 import { EMPTY_STORAGE_STATE } from "./helpers/cookie-consent";
 
 test.use({ storageState: EMPTY_STORAGE_STATE });
@@ -48,6 +51,45 @@ test.describe("Cookie consent", () => {
     // CI does not set NEXT_PUBLIC_GA_MEASUREMENT_ID, so even Accept must not
     // inject gtag.js. When the id is present, the unit suite covers the load.
     await expect(page.locator(GA_SCRIPT)).toHaveCount(0);
+  });
+
+  test("signup submit scrolls clear of the banner at 390x844", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/signup");
+
+    const banner = page.getByRole("dialog", { name: "Cookie notice" });
+    await expect(banner).toBeVisible();
+
+    const inset = await page.evaluate((varName) => {
+      return getComputedStyle(document.documentElement)
+        .getPropertyValue(varName)
+        .trim();
+    }, COOKIE_BANNER_HEIGHT_VAR);
+    const bannerBox = await banner.boundingBox();
+    expect(bannerBox).not.toBeNull();
+    expect(Number.parseFloat(inset)).toBeGreaterThanOrEqual(
+      Math.floor(bannerBox!.height),
+    );
+
+    const decline = banner.getByRole("button", { name: "Decline" });
+    const accept = banner.getByRole("button", { name: "Accept" });
+    const declineBox = await decline.boundingBox();
+    const acceptBox = await accept.boundingBox();
+    expect(declineBox).not.toBeNull();
+    expect(acceptBox).not.toBeNull();
+    expect(Math.abs(declineBox!.y - acceptBox!.y)).toBeLessThan(2);
+    expect(Math.abs(declineBox!.width - acceptBox!.width)).toBeLessThan(2);
+    expect(acceptBox!.x).toBeGreaterThan(declineBox!.x);
+
+    const submit = page.getByRole("button", { name: /Create Free Account/ });
+    await submit.scrollIntoViewIfNeeded();
+    const submitBox = await submit.boundingBox();
+    expect(submitBox).not.toBeNull();
+    expect(submitBox!.y + submitBox!.height).toBeLessThanOrEqual(
+      bannerBox!.y + 1,
+    );
   });
 
   test("footer legal links point at the company site", async ({ page }) => {
