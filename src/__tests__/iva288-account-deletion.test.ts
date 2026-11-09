@@ -17,7 +17,11 @@ describe("IVA-288 account deletion", () => {
     expect(modal).toMatch(/signOut/);
     expect(modal).not.toMatch(/Type DELETE to permanently/);
     expect(dialog).toMatch(/RETENTION_NOTE/);
-    expect(dialog).toMatch(/Type \{DELETE_ACCOUNT_PHRASE\} to confirm/);
+    expect(dialog).toMatch(/Type\{" "\}/);
+    expect(dialog).toMatch(
+      /font-mono font-semibold">\{DELETE_ACCOUNT_PHRASE\}/,
+    );
+    expect(dialog).toMatch(/px-4 py-4/);
     expect(api).toMatch(/accountDeletion\.eraseMine/);
     expect(api).toMatch(/confirmText: parsed\.data\.confirmText/);
     expect(api).toMatch(/DELETE_ACCOUNT_PHRASE/);
@@ -41,6 +45,14 @@ describe("IVA-288 account deletion", () => {
     expect(dialog).toMatch(/aria-modal="true"/);
     expect(dialog).toMatch(/addEventListener\("keydown"/);
     expect(dialog).toMatch(/addEventListener\("focusin"/);
+  });
+
+  it("keeps the settings dialog inset at 390 with a scrolling tab row", () => {
+    const modal = read("src/components/layout/dashboard/SettingsModal.tsx");
+    expect(modal).toMatch(/w-\[calc\(100vw-2rem\)\] max-w-full/);
+    expect(modal).toMatch(/overflow-x-auto md:overflow-y-auto/);
+    expect(modal).toMatch(/pr-14 md:pr-2/);
+    expect(modal).toMatch(/scroll-pr-14/);
   });
 
   it("stacks the Delete button under danger zone copy on narrow screens", () => {

@@ -247,8 +247,9 @@ export function SettingsModal({
         className={cn(
           "p-0 gap-0 overflow-hidden border border-light-border dark:border-dark-border",
           "bg-white dark:bg-dark-surface shadow-xl",
-          "max-sm:inset-0 max-sm:left-0 max-sm:top-0 max-sm:translate-x-0 max-sm:translate-y-0 max-sm:w-full max-sm:h-full max-sm:max-h-none max-sm:rounded-none",
-          "sm:w-[calc(100%-2rem)] sm:min-w-[min(calc(100%-2rem),28rem)] sm:max-w-4xl sm:h-[85vh] sm:max-h-[85vh] sm:rounded-lg md:min-w-[32rem]"
+          "w-[calc(100vw-2rem)] max-w-full rounded-lg",
+          "h-[calc(100vh-2rem)] max-h-[calc(100vh-2rem)]",
+          "sm:max-w-4xl sm:h-[85vh] sm:max-h-[85vh] md:min-w-[32rem]"
         )}
         onPointerDownOutside={(e) => {
           if (deleteDialogOpen) {
@@ -269,7 +270,7 @@ export function SettingsModal({
         <div className="flex flex-col md:flex-row h-full sm:min-h-[85vh] max-h-[90vh] sm:max-h-[85vh]">
           {/* Left: section nav — opaque background for visibility in light and dark theme */}
           <nav
-            className="flex md:flex-col md:w-52 shrink-0 border-b md:border-b-0 md:border-r border-light-border dark:border-dark-border bg-white dark:bg-dark-background p-2 gap-0.5 overflow-x-auto md:overflow-y-auto"
+            className="flex md:flex-col md:w-52 shrink-0 border-b md:border-b-0 md:border-r border-light-border dark:border-dark-border bg-white dark:bg-dark-background p-2 pr-14 md:pr-2 gap-0.5 overflow-x-auto md:overflow-y-auto scroll-pr-14 md:scroll-pr-0"
             aria-label="Settings sections"
           >
             {navSections.map(({ id, label, icon: Icon }) => (
@@ -288,6 +289,7 @@ export function SettingsModal({
                 {label}
               </button>
             ))}
+            <span className="w-10 shrink-0 md:hidden" aria-hidden="true" />
           </nav>
 
           {/* Right: content — fixed min height so modal size stays consistent when switching tabs */}

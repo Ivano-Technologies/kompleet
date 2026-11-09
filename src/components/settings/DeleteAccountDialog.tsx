@@ -85,7 +85,7 @@ export function DeleteAccountDialog({
   return (
     <div
       ref={rootRef}
-      className="absolute inset-0 z-30 flex items-center justify-center p-4"
+      className="absolute inset-0 z-30 flex items-center justify-center px-4 py-4"
     >
       <button
         type="button"
@@ -125,7 +125,9 @@ export function DeleteAccountDialog({
           {RETENTION_NOTE}
         </p>
         <label className="block text-sm font-medium text-light-text-primary dark:text-dark-text-primary mt-4">
-          Type {DELETE_ACCOUNT_PHRASE} to confirm.
+          Type{" "}
+          <span className="font-mono font-semibold">{DELETE_ACCOUNT_PHRASE}</span>{" "}
+          to confirm.
           <input
             ref={inputRef}
             type="text"
