@@ -18,6 +18,8 @@ import {
 } from "@/components/landing/hero-auth";
 import { FRIENDLY_MESSAGES, toFriendlyError, withRef } from "@/lib/friendly-error";
 import { ErrorText } from "@/components/ui/error-ref";
+import { didSignInComplete, verifyEmailPath } from "@/lib/auth/sign-in-result";
+import { RECLAIM_SIGNUP_NOTE } from "@/lib/auth/copy";
 
 const inputClassName =
   "mt-1.5 h-11 w-full rounded-md border border-border bg-surface px-3 text-sm text-text-1 focus:border-primary focus:ring-2 focus:ring-primary/20";
@@ -87,11 +89,16 @@ export default function HeroAuthCard() {
 
     setLoading(true);
     try {
-      await signIn("password", {
+      const result = await signIn("password", {
         email,
         password,
         flow: mode === "signup" ? "signUp" : "signIn",
       });
+      if (!didSignInComplete(result)) {
+        router.push(verifyEmailPath(email));
+        router.refresh();
+        return;
+      }
       await fetch("/api/auth/ensure-profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -125,6 +132,7 @@ export default function HeroAuthCard() {
         </h2>
         {error ? (
           <div
+            id="hero-auth-error"
             role="alert"
             className="mb-3 rounded-md border border-error/30 bg-error-bg p-2.5 text-sm text-error"
           >
@@ -147,6 +155,8 @@ export default function HeroAuthCard() {
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             required
+            aria-invalid={Boolean(error)}
+            aria-describedby={error ? "hero-auth-error" : undefined}
             className={inputClassName}
           />
         </div>
@@ -179,12 +189,14 @@ export default function HeroAuthCard() {
               onChange={(event) => setPassword(event.target.value)}
               required
               minLength={mode === "signup" ? 8 : undefined}
+              aria-invalid={Boolean(error)}
+              aria-describedby={error ? "hero-auth-error" : undefined}
               className={`${inputClassName} pr-11`}
             />
             <button
               type="button"
               onClick={() => setShowPassword((current) => !current)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-text-3 hover:text-text-1"
+              className="absolute right-0 top-0 flex h-11 w-11 items-center justify-center text-text-3 hover:text-text-1"
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
               {showPassword ? (
@@ -198,7 +210,7 @@ export default function HeroAuthCard() {
         <button
           type="submit"
           disabled={loading}
-          className="mt-4 h-11 w-full rounded-md bg-accent text-sm font-bold text-white hover:bg-accent-hover disabled:opacity-50"
+          className="mt-4 h-11 w-full rounded-md bg-accent-hover text-sm font-bold text-charcoal hover:bg-[#115E59] disabled:opacity-50"
         >
           {loading
             ? mode === "signup"
@@ -212,7 +224,11 @@ export default function HeroAuthCard() {
           <p data-testid="reclaim-note" className="mt-2 text-center text-xs tracking-normal [word-spacing:0.12em] text-text-3">
             {"Existing Kompleet users: choose Get started and use this same email to reclaim your data."}
           </p>
-        ) : null}
+        ) : (
+          <p data-testid="reclaim-note" className="mt-2 text-center text-xs tracking-normal [word-spacing:0.12em] text-text-3">
+            {RECLAIM_SIGNUP_NOTE}
+          </p>
+        )}
         <p className="mt-3 text-center text-sm text-text-2">
           {mode === "signup" ? (
             <>
@@ -220,7 +236,7 @@ export default function HeroAuthCard() {
               <button
                 type="button"
                 onClick={focusSignIn}
-                className="font-semibold text-primary underline-offset-2 hover:underline"
+                className="inline-flex min-h-11 items-center font-semibold text-primary underline underline-offset-2"
               >
                 Sign in
               </button>
@@ -234,7 +250,7 @@ export default function HeroAuthCard() {
                   setMode("signup");
                   setError(null);
                 }}
-                className="font-semibold text-primary underline-offset-2 hover:underline"
+                className="inline-flex min-h-11 items-center font-semibold text-primary underline underline-offset-2"
               >
                 Get started
               </button>
@@ -242,7 +258,7 @@ export default function HeroAuthCard() {
           )}
         </p>
       </form>
-      <p className="pt-2 text-center text-xs font-medium text-text-3">
+      <p className="pt-2 text-center text-xs font-medium text-text-2">
         Free during beta. No credit card required.
       </p>
     </div>

@@ -17,95 +17,95 @@ export default function LandingFooter() {
             </p>
           </div>
           <div>
-            <h4 className="mb-4 text-sm font-semibold text-text-1">Product</h4>
-            <ul className="space-y-2.5 text-sm text-text-2">
+            <h2 className="mb-4 text-sm font-semibold text-text-1">Product</h2>
+            <ul className="space-y-1 text-sm text-text-2">
               <li>
-                <Link href="/#features" className="hover:text-text-1">
+                <Link href="/#features" className="inline-flex min-h-11 min-w-11 items-center hover:text-text-1">
                   Features
                 </Link>
               </li>
               <li>
-                <Link href="/pricing" className="hover:text-text-1">
+                <Link href="/pricing" className="inline-flex min-h-11 min-w-11 items-center hover:text-text-1">
                   Pricing
                 </Link>
               </li>
               <li>
-                <Link href="/#security" className="hover:text-text-1">
+                <Link href="/#security" className="inline-flex min-h-11 min-w-11 items-center hover:text-text-1">
                   Security
                 </Link>
               </li>
               <li>
-                <Link href="/api-docs" className="hover:text-text-1">
+                <Link href="/api-docs" className="inline-flex min-h-11 min-w-11 items-center hover:text-text-1">
                   API Docs
                 </Link>
               </li>
             </ul>
           </div>
           <div>
-            <h4 className="mb-4 text-sm font-semibold text-text-1">Company</h4>
-            <ul className="space-y-2.5 text-sm text-text-2">
+            <h2 className="mb-4 text-sm font-semibold text-text-1">Company</h2>
+            <ul className="space-y-1 text-sm text-text-2">
               <li>
-                <Link href="/about" className="hover:text-text-1">
+                <Link href="/about" className="inline-flex min-h-11 min-w-11 items-center hover:text-text-1">
                   About
                 </Link>
               </li>
               <li>
-                <Link href="/help" className="hover:text-text-1">
+                <Link href="/help" className="inline-flex min-h-11 min-w-11 items-center hover:text-text-1">
                   Help
                 </Link>
               </li>
               <li>
-                <Link href="/careers" className="hover:text-text-1">
+                <Link href="/careers" className="inline-flex min-h-11 min-w-11 items-center hover:text-text-1">
                   Careers
                 </Link>
               </li>
               <li>
-                <Link href="/contact" className="hover:text-text-1">
+                <Link href="/contact" className="inline-flex min-h-11 min-w-11 items-center hover:text-text-1">
                   Contact
                 </Link>
               </li>
             </ul>
           </div>
           <div>
-            <h4 className="mb-4 text-sm font-semibold text-text-1">Resources</h4>
-            <ul className="space-y-2.5 text-sm text-text-2">
+            <h2 className="mb-4 text-sm font-semibold text-text-1">Resources</h2>
+            <ul className="space-y-1 text-sm text-text-2">
               <li>
-                <Link href="/help" className="hover:text-text-1">
+                <Link href="/help" className="inline-flex min-h-11 min-w-11 items-center hover:text-text-1">
                   Help Center
                 </Link>
               </li>
               <li>
-                <Link href="/press" className="hover:text-text-1">
+                <Link href="/press" className="inline-flex min-h-11 min-w-11 items-center hover:text-text-1">
                   Press
                 </Link>
               </li>
               <li>
-                <Link href="/help" className="hover:text-text-1">
+                <Link href="/help" className="inline-flex min-h-11 min-w-11 items-center hover:text-text-1">
                   Guides
                 </Link>
               </li>
             </ul>
           </div>
           <div>
-            <h4 className="mb-4 text-sm font-semibold text-text-1">Legal</h4>
-            <ul className="space-y-2.5 text-sm text-text-2">
+            <h2 className="mb-4 text-sm font-semibold text-text-1">Legal</h2>
+            <ul className="space-y-1 text-sm text-text-2">
               <li>
-                <a href={COMPANY_LEGAL.privacy} className="hover:text-text-1">
+                <a href={COMPANY_LEGAL.privacy} className="inline-flex min-h-11 min-w-11 items-center hover:text-text-1">
                   Privacy
                 </a>
               </li>
               <li>
-                <a href={COMPANY_LEGAL.terms} className="hover:text-text-1">
+                <a href={COMPANY_LEGAL.terms} className="inline-flex min-h-11 min-w-11 items-center hover:text-text-1">
                   Terms
                 </a>
               </li>
               <li>
-                <a href={COMPANY_LEGAL.refunds} className="hover:text-text-1">
+                <a href={COMPANY_LEGAL.refunds} className="inline-flex min-h-11 min-w-11 items-center hover:text-text-1">
                   Refunds
                 </a>
               </li>
               <li>
-                <Link href="/cookies" className="hover:text-text-1">
+                <Link href="/cookies" className="inline-flex min-h-11 min-w-11 items-center hover:text-text-1">
                   Cookies
                 </Link>
               </li>
@@ -120,13 +120,13 @@ export default function LandingFooter() {
           <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1">
             <a
               href="mailto:hi@ivanotechnologies.com"
-              className="hover:text-text-1"
+              className="inline-flex min-h-11 min-w-11 items-center hover:text-text-1"
             >
               hi@ivanotechnologies.com
             </a>
             <a
               href="mailto:support@ivanotechnologies.com"
-              className="hover:text-text-1"
+              className="inline-flex min-h-11 min-w-11 items-center hover:text-text-1"
             >
               support@ivanotechnologies.com
             </a>
