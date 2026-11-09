@@ -1,4 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
+import { cookieConsentDeniedStorageState } from "./e2e/helpers/cookie-consent";
 
 /**
  * Base URL is configurable so the same suite can run against a local dev server,
@@ -17,6 +18,7 @@ import { defineConfig, devices } from "@playwright/test";
 const EXTERNAL_BASE_URL =
   process.env.E2E_BASE_URL || process.env.PLAYWRIGHT_BASE_URL || "";
 const LOCAL_BASE_URL = "http://localhost:3000";
+const BASE_URL = EXTERNAL_BASE_URL || LOCAL_BASE_URL;
 
 export default defineConfig({
   testDir: "./e2e",
@@ -35,7 +37,8 @@ export default defineConfig({
     ? [["github"], ["list"], ["html", { open: "never" }]]
     : "html",
   use: {
-    baseURL: EXTERNAL_BASE_URL || LOCAL_BASE_URL,
+    baseURL: BASE_URL,
+    storageState: cookieConsentDeniedStorageState(BASE_URL),
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     video: "retain-on-failure",

@@ -1,6 +1,6 @@
 # Convex Auth + Storage cutover (IVA-60)
 
-**Decision lock (Kezie via CoS, 2026-09-24):** leave Path B. App DB stays on Convex (`shiny-cricket-316`). Move web **Auth** and **Storage** fully onto Convex. Do **not** enable Production Vercel `NEXT_PUBLIC_CONVEX_URL`.
+**Decision lock (Kezie via CoS, 2026-09-24; prod cutover IVA-183, 17 Oct 2026):** leave Path B. App DB, Auth and Storage are on Convex. Production is `wooden-toucan-837` (`https://wooden-toucan-837.convex.cloud`) at https://kompleet.techivano.com. Preview and Development use `shiny-cricket-316`.
 
 ## What changed
 
@@ -15,14 +15,14 @@ Supabase JWT verification remains in `convex/auth.config.ts` so the Expo app can
 
 ## Environment
 
-### Next.js (Vercel Preview / Development only)
+### Next.js (Vercel)
 
 ```
 NEXT_PUBLIC_CONVEX_URL=https://shiny-cricket-316.convex.cloud
 NEXT_PUBLIC_SITE_URL=https://kompleet-git-dev-techivano.vercel.app
 ```
 
-Leave **Production** `NEXT_PUBLIC_CONVEX_URL` unset.
+Production `NEXT_PUBLIC_CONVEX_URL` is `https://wooden-toucan-837.convex.cloud` (set since IVA-183 on 17 Oct 2026). Preview and Development stay on `shiny-cricket-316`.
 
 Supabase URL / keys stay set for leftover Postgres + keep-alive. They are not the live web auth source.
 
@@ -78,7 +78,7 @@ npx convex run users:listEmailsInternal
 
 ## Out of scope
 
-- Production Convex URL
+- Further Production Convex URL changes (prod is `wooden-toucan-837` at kompleet.techivano.com since IVA-183)
 - Supabase project teardown
 - Mobile Auth/Storage cutover
 - JUO campaign repos

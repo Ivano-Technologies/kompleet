@@ -9,6 +9,7 @@ import { YearProvider } from "@/contexts/year-context";
 import { ConvexAuthClientProvider } from "@/components/providers/ConvexAuthClientProvider";
 import { ErrorToaster } from "@/components/ui/error-toast";
 import { AuthLinkErrorRedirect } from "@/components/auth/AuthLinkErrorRedirect";
+import { CookieConsentProvider } from "@/components/cookies/CookieConsentProvider";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -78,9 +79,11 @@ export default function RootLayout({
         <body className="font-body">
           <ConvexAuthClientProvider>
             <ThemeProvider>
-              <YearProvider>{children}</YearProvider>
-              <ErrorToaster />
-              <AuthLinkErrorRedirect />
+              <CookieConsentProvider>
+                <YearProvider>{children}</YearProvider>
+                <ErrorToaster />
+                <AuthLinkErrorRedirect />
+              </CookieConsentProvider>
             </ThemeProvider>
           </ConvexAuthClientProvider>
         </body>
