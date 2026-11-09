@@ -15,7 +15,7 @@ export function CompanyLegalNotice({ page }: { page: CompanyLegalPage }) {
       The current {label} for Ivano Technologies Ltd is published at{" "}
       <a
         href={href}
-        className="font-medium text-primary underline-offset-2 hover:underline"
+        className="inline-flex min-h-11 items-center font-medium text-primary underline underline-offset-2"
       >
         {href.replace(/^https:\/\//, "")}
       </a>

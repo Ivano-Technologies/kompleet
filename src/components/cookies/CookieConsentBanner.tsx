@@ -58,13 +58,13 @@ export function CookieConsentBanner() {
             We use essential cookies to keep you signed in. Google Analytics
             loads and sets cookies only if you accept. You can change this
             later under Cookie settings. See our{" "}
-            <Link href="/cookies" className="text-primary underline-offset-2 hover:underline">
+            <Link href="/cookies" className="text-primary underline underline-offset-2">
               cookie notice
             </Link>{" "}
             and{" "}
             <a
               href={COMPANY_LEGAL.privacy}
-              className="text-primary underline-offset-2 hover:underline"
+              className="text-primary underline underline-offset-2"
             >
               Privacy Policy
             </a>
@@ -75,14 +75,14 @@ export function CookieConsentBanner() {
           <button
             type="button"
             onClick={decline}
-            className="w-full rounded-md border border-border bg-surface px-4 py-2 text-sm font-semibold text-text-1 hover:bg-surface-2 sm:w-auto"
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-md border border-border bg-surface px-4 text-sm font-semibold text-text-1 hover:bg-surface-2 sm:w-auto"
           >
             Decline
           </button>
           <button
             type="button"
             onClick={accept}
-            className="w-full rounded-md bg-accent px-4 py-2 text-sm font-semibold text-charcoal hover:bg-accent-hover sm:w-auto"
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-md bg-accent-hover px-4 text-sm font-semibold text-charcoal hover:bg-[#115E59] sm:w-auto"
           >
             Accept
           </button>

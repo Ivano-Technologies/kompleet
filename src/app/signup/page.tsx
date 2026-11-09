@@ -136,7 +136,7 @@ export default function SignUpPage() {
       </div>
 
       {error && (
-        <div className={AUTH_ERROR}>
+        <div id="signup-error" role="alert" className={AUTH_ERROR}>
           <ErrorText text={error} />
         </div>
       )}
@@ -144,79 +144,100 @@ export default function SignUpPage() {
       <form onSubmit={handleSubmit} className={AUTH_FORM}>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className={AUTH_LABEL}>
+            <label htmlFor="signup-first-name" className={AUTH_LABEL}>
               First Name
             </label>
             <input
+              id="signup-first-name"
               type="text"
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
               required
               placeholder="e.g. Tunde"
+              autoComplete="given-name"
+              aria-invalid={Boolean(error)}
+              aria-describedby={error ? "signup-error" : undefined}
               className={AUTH_INPUT}
             />
           </div>
           <div>
-            <label className={AUTH_LABEL}>
+            <label htmlFor="signup-last-name" className={AUTH_LABEL}>
               Last Name
             </label>
             <input
+              id="signup-last-name"
               type="text"
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
               required
               placeholder="e.g. Balogun"
+              autoComplete="family-name"
+              aria-invalid={Boolean(error)}
+              aria-describedby={error ? "signup-error" : undefined}
               className={AUTH_INPUT}
             />
           </div>
         </div>
 
         <div>
-          <label className={AUTH_LABEL}>
+          <label htmlFor="signup-business-name" className={AUTH_LABEL}>
             Business Name
           </label>
           <input
+            id="signup-business-name"
             type="text"
             value={businessName}
             onChange={(e) => setBusinessName(e.target.value)}
             required
             placeholder="e.g. Tunde Ventures Ltd"
+            autoComplete="organization"
+            aria-invalid={Boolean(error)}
+            aria-describedby={error ? "signup-error" : undefined}
             className={AUTH_INPUT}
           />
         </div>
 
         <div>
-          <label className={AUTH_LABEL}>
+          <label htmlFor="signup-business-email" className={AUTH_LABEL}>
             Business Email
           </label>
           <input
+            id="signup-business-email"
             type="email"
             value={businessEmail}
             onChange={(e) => setBusinessEmail(e.target.value)}
             required
             placeholder="name@company.ng"
+            autoComplete="email"
+            aria-invalid={Boolean(error)}
+            aria-describedby={error ? "signup-error" : undefined}
             className={AUTH_INPUT}
           />
         </div>
 
         <div>
-          <label className={AUTH_LABEL}>
+          <label htmlFor="signup-password" className={AUTH_LABEL}>
             Password
           </label>
           <div className="relative mt-1">
             <input
+              id="signup-password"
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={8}
               placeholder="Minimum 8 characters"
+              autoComplete="new-password"
+              aria-invalid={Boolean(error)}
+              aria-describedby={error ? "signup-error" : undefined}
               className={AUTH_INPUT_WITH_TOGGLE}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-text-3 hover:text-text-1 dark:text-dark-text-3 dark:hover:text-dark-text-1"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              className="absolute right-0 top-0 flex h-11 w-11 items-center justify-center text-text-3 hover:text-text-1 dark:text-dark-text-3 dark:hover:text-dark-text-1"
             >
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
@@ -248,9 +269,9 @@ export default function SignUpPage() {
 
       <p className={AUTH_TERMS}>
         By signing up, you agree to our{' '}
-        <Link href="/terms" className={AUTH_LINK}>Terms of Service</Link>
+        <Link href="/terms" className={`${AUTH_LINK} underline underline-offset-2`}>Terms of Service</Link>
         {' '}and{' '}
-        <Link href="/privacy" className={AUTH_LINK}>Privacy Policy</Link>
+        <Link href="/privacy" className={`${AUTH_LINK} underline underline-offset-2`}>Privacy Policy</Link>
       </p>
 
       <div className={AUTH_TRUST}>
