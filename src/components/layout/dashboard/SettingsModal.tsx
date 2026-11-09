@@ -103,8 +103,8 @@ export function SettingsModal({
   const [language, setLanguage] = useState("English (US)");
   const [currency, setCurrency] = useState("NGN (Nigerian Naira)");
   const [timezone, setTimezone] = useState("GMT+01:00, West Africa Time");
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [marketingEmails, setMarketingEmails] = useState(false);
+  const [reminderEmails, setReminderEmails] = useState(true);
+  const [reminderEmailsLoading, setReminderEmailsLoading] = useState(false);
 
   const isAdmin = userRole === "owner" || userRole === "admin";
 
@@ -113,7 +113,10 @@ export function SettingsModal({
   }, [open, initialSection]);
 
   useEffect(() => {
-    if (open) fetchProfile();
+    if (open) {
+      void fetchProfile();
+      void fetchReminderPrefs();
+    }
   }, [open]);
 
   const fetchProfile = async () => {
@@ -134,6 +137,46 @@ export function SettingsModal({
       });
     } catch (err) {
       console.error("Error fetching profile:", err);
+    }
+  };
+
+  const fetchReminderPrefs = async () => {
+    try {
+      const res = await fetch("/api/notifications/preferences");
+      if (!res.ok) return;
+      const data = (await res.json()) as {
+        preferences?: { emailEnabled?: boolean; email?: boolean };
+      };
+      const enabled = data.preferences?.emailEnabled ?? data.preferences?.email;
+      if (typeof enabled === "boolean") setReminderEmails(enabled);
+    } catch (err) {
+      console.error("Error fetching reminder preferences:", err);
+    }
+  };
+
+  const handleReminderEmailsToggle = async () => {
+    const next = !reminderEmails;
+    setReminderEmails(next);
+    setReminderEmailsLoading(true);
+    setError("");
+    try {
+      const res = await fetch("/api/notifications/preferences", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ emailEnabled: next }),
+      });
+      if (!res.ok) {
+        setReminderEmails(!next);
+        const data = await res.json().catch(() => ({}));
+        setError(
+          apiErrorMessage(data, "We couldn't save your reminder emails. Please try again."),
+        );
+      }
+    } catch (err) {
+      setReminderEmails(!next);
+      setError(toFriendlyMessage(err, "Something went wrong. Please try again."));
+    } finally {
+      setReminderEmailsLoading(false);
     }
   };
 
@@ -524,31 +567,17 @@ export function SettingsModal({
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <h3 className="text-sm font-medium text-light-text-primary dark:text-dark-text-primary">
-                      Push notifications
+                      Deadline emails
                     </h3>
                     <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
-                      Deadline and activity alerts
+                      Email me 7, 3 and 1 days before a filing deadline.
                     </p>
                   </div>
                   <Toggle
-                    on={notificationsEnabled}
-                    onToggle={() =>
-                      setNotificationsEnabled(!notificationsEnabled)
-                    }
-                  />
-                </div>
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <h3 className="text-sm font-medium text-light-text-primary dark:text-dark-text-primary">
-                      Marketing emails
-                    </h3>
-                    <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
-                      Product updates and offers
-                    </p>
-                  </div>
-                  <Toggle
-                    on={marketingEmails}
-                    onToggle={() => setMarketingEmails(!marketingEmails)}
+                    on={reminderEmails}
+                    onToggle={() => {
+                      if (!reminderEmailsLoading) void handleReminderEmailsToggle();
+                    }}
                   />
                 </div>
               </div>

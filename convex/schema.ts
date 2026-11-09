@@ -36,6 +36,8 @@ export default defineSchema({
     defaultCurrency: v.string(),
     fiscalYearStart: v.number(),
     onboardingCompleted: v.boolean(),
+    // IVA-287: opt out of deadline reminder emails. Missing means on.
+    reminderEmailEnabled: v.optional(v.boolean()),
     avatarStorageId: v.optional(v.id("_storage")),
     deletedAt: v.optional(v.number()),
     lastLoginAt: v.optional(v.number()),
@@ -514,4 +516,22 @@ export default defineSchema({
   })
     .index("by_externalId", ["externalId"])
     .index("by_user", ["userId"]),
+
+  /**
+   * Occupancy for deadline reminder emails. One row per user, form, year,
+   * and window (7, 3, or 1 days) so the daily cron sends each once.
+   */
+  deadlineReminders: defineTable({
+    userId: v.id("users"),
+    formType: v.string(),
+    taxYear: v.number(),
+    daysRemaining: v.number(),
+    deadlineDate: v.string(),
+    sentAt: v.number(),
+  }).index("by_user_and_key", [
+    "userId",
+    "formType",
+    "taxYear",
+    "daysRemaining",
+  ]),
 });
