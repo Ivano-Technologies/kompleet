@@ -10,16 +10,20 @@ import {
   XCircle,
   Lock,
   ShieldCheck,
+  CheckCircle,
 } from "lucide-react";
 
 import type { InvoiceView } from "@/lib/invoices/view-types";
 import { AttachFileButton } from "@/components/documents/AttachFileButton";
 import { InvoicePreview } from "@/components/invoices/InvoicePreview";
-import { INV_COPY } from "@/components/invoices/invoice-copy";
+import { INV_COPY, INV_STATUS_LABEL } from "@/components/invoices/invoice-copy";
+import { CancelInvoiceDialog, MarkPaidDialog } from "@/components/invoices/InvoiceStatusDialogs";
 import { BIZ_COPY } from "@/components/settings/profile-copy";
 import {
   attachInvoiceClient,
+  cancelInvoice,
   issueInvoice,
+  markInvoicePaid,
 } from "@/components/invoices/invoice-actions";
 import type { InvoiceClient } from "@/components/invoices/CustomerCombobox";
 import {
@@ -27,7 +31,7 @@ import {
   type BusinessProfile,
 } from "@/lib/invoices/profiles";
 import { onBusinessProfileChanged } from "@/lib/invoices/profile-events";
-import { UserFacingError, toFriendlyMessage, userFacingError } from "@/lib/friendly-error";
+import { toFriendlyMessage, userFacingError } from "@/lib/friendly-error";
 import { notifyError } from "@/components/ui/error-toast";
 
 type Invoice = InvoiceView;
@@ -43,6 +47,10 @@ export default function InvoiceDetailPage() {
   const [profile, setProfile] = useState<BusinessProfile | null>(null);
   const [clients, setClients] = useState<InvoiceClient[]>([]);
   const [issuing, setIssuing] = useState(false);
+  const [paidOpen, setPaidOpen] = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [statusBusy, setStatusBusy] = useState(false);
+  const [statusError, setStatusError] = useState("");
 
   const fetchInvoice = useCallback(async () => {
     setLoading(true);
@@ -107,28 +115,44 @@ export default function InvoiceDetailPage() {
     window.open(`/api/invoices/${invoiceId}/pdf`, "_blank");
   };
 
-  const handleCancelInvoice = async () => {
-    if (
-      !confirm(
-        "Are you sure you want to cancel this invoice? This action cannot be undone.",
-      )
-    ) {
-      return;
-    }
-
+  const handleMarkPaid = async (input: { paidOn: string; note: string }) => {
+    setStatusBusy(true);
+    setStatusError("");
     try {
-      const response = await fetch(`/api/invoices/${invoiceId}/cancel`, {
-        method: "POST",
+      await markInvoicePaid(invoiceId, {
+        paidOn: input.paidOn,
+        note: input.note.trim() || undefined,
       });
-
-      if (!response.ok) {
-        throw new UserFacingError("We couldn't cancel this invoice. Please try again.");
-      }
-
+      setPaidOpen(false);
       await fetchInvoice();
-      alert("Invoice cancelled successfully");
     } catch (err: unknown) {
-      notifyError(toFriendlyMessage(err, "We couldn't cancel this invoice. Please try again."));
+      const message = toFriendlyMessage(
+        err,
+        "We couldn't mark this invoice as paid. Please try again.",
+      );
+      setStatusError(message);
+      notifyError(message);
+    } finally {
+      setStatusBusy(false);
+    }
+  };
+
+  const handleCancelInvoice = async (reason: string) => {
+    setStatusBusy(true);
+    setStatusError("");
+    try {
+      await cancelInvoice(invoiceId, reason);
+      setCancelOpen(false);
+      await fetchInvoice();
+    } catch (err: unknown) {
+      const message = toFriendlyMessage(
+        err,
+        "We couldn't cancel this invoice. Please try again.",
+      );
+      setStatusError(message);
+      notifyError(message);
+    } finally {
+      setStatusBusy(false);
     }
   };
 
@@ -146,9 +170,9 @@ export default function InvoiceDetailPage() {
 
     return (
       <span
-        className={`px-4 py-2 rounded-full text-sm font-medium ${styles[status]}`}
+        className={`px-4 py-2 rounded-full text-sm font-medium ${styles[status] ?? styles.draft}`}
       >
-        {status.charAt(0).toUpperCase() + status.slice(1)}
+        {INV_STATUS_LABEL[status] ?? status}
       </span>
     );
   };
@@ -171,7 +195,7 @@ export default function InvoiceDetailPage() {
           onClick={() => router.push("/invoices")}
           className="mt-4 btn-secondary"
         >
-          Back to Invoices
+          Back to invoices
         </button>
       </div>
     );
@@ -187,14 +211,24 @@ export default function InvoiceDetailPage() {
             className="text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-500 mb-4 flex items-center gap-2"
           >
             <ArrowLeft size={16} />
-            Back to Invoices
+            Back to invoices
           </button>
           <h1 className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">
             {invoice.invoice_number}
           </h1>
           <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mt-1">
-            Tax Year {invoice.tax_year}
+            Tax year {invoice.tax_year}
           </p>
+          {invoice.status === "paid" && invoice.paid_on ? (
+            <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mt-1">
+              {INV_COPY.paidOnPrefix} {invoice.paid_on}
+            </p>
+          ) : null}
+          {invoice.status === "cancelled" && invoice.cancel_reason ? (
+            <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mt-1">
+              {INV_COPY.cancelledPrefix}: {invoice.cancel_reason}
+            </p>
+          ) : null}
         </div>
         <div className="flex items-center gap-4">
           {getStatusBadge(invoice.status)}
@@ -247,7 +281,10 @@ export default function InvoiceDetailPage() {
             label: invoice.invoice_number,
           }}
         />
-        {(invoice.status === "issued" || invoice.status === "draft") && (
+        {(invoice.status === "issued" ||
+          invoice.status === "paid" ||
+          invoice.status === "cancelled" ||
+          invoice.status === "draft") && (
           <button
             onClick={handleDownloadPDF}
             className="btn-primary disabled:opacity-45"
@@ -268,13 +305,33 @@ export default function InvoiceDetailPage() {
             className="btn-secondary"
           >
             <Edit size={16} />
-            Edit Invoice
+            Edit invoice
           </button>
         )}
-        {(invoice.status === "issued" || invoice.status === "draft") && (
-          <button onClick={handleCancelInvoice} className="btn-danger">
+        {invoice.status === "issued" && (
+          <button
+            type="button"
+            onClick={() => {
+              setStatusError("");
+              setPaidOpen(true);
+            }}
+            className="btn-secondary"
+          >
+            <CheckCircle size={16} />
+            {INV_COPY.markPaid}
+          </button>
+        )}
+        {invoice.status === "issued" && (
+          <button
+            type="button"
+            onClick={() => {
+              setStatusError("");
+              setCancelOpen(true);
+            }}
+            className="btn-secondary text-error"
+          >
             <XCircle size={16} />
-            Cancel Invoice
+            {INV_COPY.cancelInvoice}
           </button>
         )}
       </div>
@@ -374,6 +431,22 @@ export default function InvoiceDetailPage() {
             </div>
           </div>
         </div>
+      )}
+      {paidOpen && (
+        <MarkPaidDialog
+          error={statusError}
+          busy={statusBusy}
+          onClose={() => setPaidOpen(false)}
+          onConfirm={(input) => void handleMarkPaid(input)}
+        />
+      )}
+      {cancelOpen && (
+        <CancelInvoiceDialog
+          error={statusError}
+          busy={statusBusy}
+          onClose={() => setCancelOpen(false)}
+          onConfirm={(reason) => void handleCancelInvoice(reason)}
+        />
       )}
     </div>
   );

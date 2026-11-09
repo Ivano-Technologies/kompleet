@@ -13,7 +13,7 @@ import {
 import { NewInvoiceSheet } from "@/components/invoices/NewInvoiceSheet";
 import { InvoiceDropZone } from "@/components/invoices/InvoiceDropZone";
 import { InvoicePreview } from "@/components/invoices/InvoicePreview";
-import { INV_COPY } from "@/components/invoices/invoice-copy";
+import { INV_COPY, INV_STATUS_LABEL } from "@/components/invoices/invoice-copy";
 import { BIZ_COPY } from "@/components/settings/profile-copy";
 import {
   attachInvoiceClient,
@@ -154,21 +154,13 @@ function InvoicesPageInner() {
       "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
   };
 
-  const statusLabels: Record<string, string> = {
-    draft: "Draft",
-    issued: "Awaiting Payment",
-    paid: "Paid",
-    cancelled: "Cancelled",
-    archived: "Archived",
-  };
-
   const StatusBadge = ({ status }: { status: string }) => (
     <span
       className={`px-2 py-0.5 rounded-full text-xs font-medium ${
         statusStyles[status] || statusStyles.draft
       }`}
     >
-      {statusLabels[status] || status}
+      {INV_STATUS_LABEL[status] || status}
     </span>
   );
 
@@ -286,7 +278,7 @@ function InvoicesPageInner() {
                     : "bg-light-background dark:bg-dark-background text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover"
                 }`}
               >
-                {s === "all" ? "All" : statusLabels[s]}
+                {s === "all" ? INV_COPY.statusAll : INV_STATUS_LABEL[s]}
               </button>
             ))}
           </div>
