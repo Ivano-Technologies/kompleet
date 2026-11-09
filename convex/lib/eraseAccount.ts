@@ -320,6 +320,12 @@ async function eraseUserScoped(
     .withIndex("by_user", (q) => q.eq("userId", user._id))
     .collect();
   await deleteRows(ctx, memberships);
+
+  const deadlineReminders = await ctx.db
+    .query("deadlineReminders")
+    .withIndex("by_user_and_key", (q) => q.eq("userId", user._id))
+    .collect();
+  await deleteRows(ctx, deadlineReminders);
 }
 
 export async function eraseMineHandler(

@@ -40,7 +40,9 @@ async function handlePOST(request: NextRequest) {
       );
     }
 
-    await convex.mutation(api.accountDeletion.eraseMine, {});
+    await convex.mutation(api.accountDeletion.eraseMine, {
+      confirmText: parsed.data.confirmText,
+    });
 
     return NextResponse.json({
       success: true,

@@ -6,7 +6,6 @@ import {
   query,
 } from "./_generated/server";
 import { getCurrentUser, getCurrentUserOrNull, supabaseSubject } from "./lib/auth";
-import { eraseMineHandler } from "./lib/eraseAccount";
 import type { Id } from "./_generated/dataModel";
 import { toMs } from "./lib/ids";
 
@@ -198,16 +197,6 @@ export const updateMine = mutation({
     const updated = await ctx.db.get(user._id);
     if (!updated) throw new Error("User not found");
     return toApi(updated);
-  },
-});
-
-export const softDeleteMine = mutation({
-  args: {},
-  returns: v.null(),
-  handler: async (ctx) => {
-    const user = await getCurrentUser(ctx);
-    await eraseMineHandler(ctx, user);
-    return null;
   },
 });
 

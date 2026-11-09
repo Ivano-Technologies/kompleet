@@ -514,4 +514,22 @@ export default defineSchema({
   })
     .index("by_externalId", ["externalId"])
     .index("by_user", ["userId"]),
+
+  /**
+   * Occupancy for deadline reminder emails (IVA-287). Erase deletes these
+   * with the rest of the caller's rows.
+   */
+  deadlineReminders: defineTable({
+    userId: v.id("users"),
+    formType: v.string(),
+    taxYear: v.number(),
+    daysRemaining: v.number(),
+    deadlineDate: v.string(),
+    sentAt: v.number(),
+  }).index("by_user_and_key", [
+    "userId",
+    "formType",
+    "taxYear",
+    "daysRemaining",
+  ]),
 });

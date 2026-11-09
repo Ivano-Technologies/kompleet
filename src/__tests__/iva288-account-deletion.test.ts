@@ -19,7 +19,15 @@ describe("IVA-288 account deletion", () => {
     expect(dialog).toMatch(/RETENTION_NOTE/);
     expect(dialog).toMatch(/Type \{DELETE_ACCOUNT_PHRASE\} to confirm/);
     expect(api).toMatch(/accountDeletion\.eraseMine/);
+    expect(api).toMatch(/confirmText: parsed\.data\.confirmText/);
     expect(api).toMatch(/DELETE_ACCOUNT_PHRASE/);
+    const convex = read("convex/accountDeletion.ts");
+    expect(convex).toMatch(/confirmText: v\.string\(\)/);
+    expect(convex).toMatch(/DELETE_ACCOUNT_PHRASE/);
+    const users = read("convex/users.ts");
+    expect(users).not.toMatch(/softDeleteMine/);
+    const erase = read("convex/lib/eraseAccount.ts");
+    expect(erase).toMatch(/deadlineReminders/);
   });
 
   it("nests the confirm in the settings portal and traps focus", () => {
