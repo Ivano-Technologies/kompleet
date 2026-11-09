@@ -3,6 +3,7 @@ import {
   profileToCompatUser,
   type CompatUser,
 } from "@/lib/auth/compat-user";
+import { isConvexFunctionMissing } from "@/lib/convex/errors";
 import { rethrowIfNextControlFlow } from "@/lib/next-control-flow";
 
 export async function getConvexAccessToken(
@@ -38,7 +39,22 @@ export async function getCompatUser(
     const convex = createConvexHttpClient(token);
     const profile = await convex.query(api.users.getMine, {});
     if (!profile) return null;
-    return profileToCompatUser(profile);
+    let verification: {
+      verified: boolean;
+      emailVerificationTime: number | null;
+    } | null = null;
+    try {
+      verification = await convex.query(
+        api.authStatus.getMineEmailVerification,
+        {},
+      );
+    } catch (error) {
+      rethrowIfNextControlFlow(error);
+      if (!isConvexFunctionMissing(error)) {
+        throw error;
+      }
+    }
+    return profileToCompatUser(profile, verification);
   } catch (error) {
     rethrowIfNextControlFlow(error);
     return null;

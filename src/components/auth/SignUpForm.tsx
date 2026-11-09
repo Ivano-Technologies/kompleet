@@ -5,6 +5,7 @@ import { useAuthActions } from "@convex-dev/auth/react";
 import { useRouter } from "next/navigation";
 import { toFriendlyMessage } from "@/lib/friendly-error";
 import { ErrorText } from "@/components/ui/error-ref";
+import { didSignInComplete, verifyEmailPath } from "@/lib/auth/sign-in-result";
 
 export default function SignUpForm() {
   const [email, setEmail] = useState("");
@@ -22,9 +23,14 @@ export default function SignUpForm() {
     setSuccess(false);
 
     try {
-      await signIn("password", { email, password, flow: "signUp" });
-      setSuccess(true);
-      router.push("/dashboard");
+      const result = await signIn("password", { email, password, flow: "signUp" });
+      if (didSignInComplete(result)) {
+        setSuccess(true);
+        router.push("/dashboard");
+        router.refresh();
+        return;
+      }
+      router.push(verifyEmailPath(email));
       router.refresh();
     } catch (err) {
       setError(toFriendlyMessage(err, "Sign up failed. Please try again."));
