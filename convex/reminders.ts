@@ -394,16 +394,33 @@ export const sendDueReminders = internalAction({
     due: v.number(),
     claimed: v.number(),
   }),
-  handler: async (ctx) => {
+  handler: async (ctx): Promise<{ due: number; claimed: number }> => {
     const now = Date.now();
+    const listPage = async (
+      cursor: string | null,
+    ): Promise<CandidatePage> =>
+      ctx.runQuery(internal.reminders.listCandidates, {
+        paginationOpts: { numItems: 50, cursor },
+      });
+    const peekSent = async (args: {
+      userId: Id<"users">;
+      formType: string;
+      taxYear: number;
+      daysRemaining: number;
+    }): Promise<boolean> => ctx.runQuery(internal.reminders.wasSent, args);
+    const recordSend = async (args: {
+      userId: Id<"users">;
+      formType: string;
+      taxYear: number;
+      daysRemaining: number;
+      deadlineDate: string;
+      now: number;
+    }): Promise<boolean> => ctx.runMutation(internal.reminders.claimSend, args);
     return await sendDueRemindersHandler({
       now,
-      listPage: (cursor) =>
-        ctx.runQuery(internal.reminders.listCandidates, {
-          paginationOpts: { numItems: 50, cursor },
-        }),
-      wasSent: (args) => ctx.runQuery(internal.reminders.wasSent, args),
-      recordSend: (args) => ctx.runMutation(internal.reminders.claimSend, args),
+      listPage,
+      wasSent: peekSent,
+      recordSend,
       sendEmail: sendReminderEmail,
     });
   },
