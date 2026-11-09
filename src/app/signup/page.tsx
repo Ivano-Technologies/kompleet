@@ -233,7 +233,7 @@ export default function SignUpPage() {
           disabled={loading}
           className={AUTH_SUBMIT}
         >
-          {loading ? 'Creating account…' : 'Create Free Account'}
+          {loading ? 'Creating account…' : 'Create account'}
           {!loading && <ArrowRight className="w-4 h-4" />}
         </button>
       </form>

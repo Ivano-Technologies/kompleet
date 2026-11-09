@@ -161,7 +161,7 @@ async function seedE2eUserViaSignup(page: Page): Promise<void> {
     page.getByPlaceholder("Minimum 8 characters", { exact: true }),
     E2E_USER_PASSWORD,
   );
-  await page.getByRole("button", { name: /Create Free Account/ }).click();
+  await page.getByRole("button", { name: /Create account/ }).click();
 
   const verifyHeading = page.getByRole("heading", { name: "Check your email" });
   const already = page.getByText(/already exists/i);

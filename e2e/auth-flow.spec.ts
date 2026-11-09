@@ -23,7 +23,7 @@ const SIGNUP_SELECTORS = {
   businessName: "e.g. Tunde Ventures Ltd",
   businessEmail: "name@company.ng",
   password: "Minimum 8 characters",
-  submit: /Create Free Account/,
+  submit: /Create account/,
 };
 
 const LOGIN_SELECTORS = {
