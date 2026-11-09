@@ -348,6 +348,7 @@ describe("IVA-72 landing copy", () => {
     expect(pricing).not.toMatch(/credit card/i);
     expect(pricing).not.toMatch(/₦5,?000/);
     expect(pricing).toMatch(/No price is published yet/);
+    expect(pricing).toMatch(/CompanyLegalLinks/);
   });
 
   it("does not ship legacy /api/kompleet HTML legal duplicates", () => {
@@ -361,8 +362,12 @@ describe("IVA-72 landing copy", () => {
     ]) {
       expect(existsSync(resolve(process.cwd(), file))).toBe(false);
     }
-    expect(landingFooter).toMatch(/href="\/privacy"/);
-    expect(landingFooter).toMatch(/href="\/terms"/);
+    expect(landingFooter).toMatch(
+      /href=\{COMPANY_LEGAL\.privacy\}/,
+    );
+    expect(landingFooter).toMatch(/href=\{COMPANY_LEGAL\.terms\}/);
+    expect(landingFooter).toMatch(/href=\{COMPANY_LEGAL\.refunds\}/);
+    expect(landingFooter).toMatch(/CookieSettingsButton/);
     expect(landingFooter).not.toMatch(/\/api\/kompleet/);
   });
 

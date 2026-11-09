@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
+import { CompanyLegalLinks } from "@/components/legal/CompanyLegalLinks";
 import { Check } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -76,6 +77,9 @@ export default function PricingPage() {
             A one-off lifetime plan is coming soon. We will email testers
             before charging anyone. No price is published yet.
           </p>
+          <div className="mt-6">
+            <CompanyLegalLinks />
+          </div>
         </div>
       </main>
 

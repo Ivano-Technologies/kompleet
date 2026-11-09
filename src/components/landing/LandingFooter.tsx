@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { BrandLockup } from "@/components/brand/BrandLockup";
+import { CookieSettingsButton } from "@/components/cookies/CookieSettingsButton";
+import { COMPANY_LEGAL } from "@/lib/legal";
 
 export default function LandingFooter() {
   return (
@@ -88,19 +90,27 @@ export default function LandingFooter() {
             <h4 className="mb-4 text-sm font-semibold text-text-1">Legal</h4>
             <ul className="space-y-2.5 text-sm text-text-2">
               <li>
-                <Link href="/privacy" className="hover:text-text-1">
+                <a href={COMPANY_LEGAL.privacy} className="hover:text-text-1">
                   Privacy
-                </Link>
+                </a>
               </li>
               <li>
-                <Link href="/terms" className="hover:text-text-1">
+                <a href={COMPANY_LEGAL.terms} className="hover:text-text-1">
                   Terms
-                </Link>
+                </a>
+              </li>
+              <li>
+                <a href={COMPANY_LEGAL.refunds} className="hover:text-text-1">
+                  Refunds
+                </a>
               </li>
               <li>
                 <Link href="/cookies" className="hover:text-text-1">
                   Cookies
                 </Link>
+              </li>
+              <li>
+                <CookieSettingsButton />
               </li>
             </ul>
           </div>
