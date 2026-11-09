@@ -1,4 +1,5 @@
 import { Email } from "@convex-dev/auth/providers/Email";
+import { recordE2eOtp } from "./e2eOtp";
 import {
   EMAIL_VERIFICATION_MAX_AGE_SECONDS,
   generateAuthOtp,
@@ -15,7 +16,13 @@ export const EmailVerificationOtp = Email({
   async generateVerificationToken() {
     return generateAuthOtp();
   },
-  async sendVerificationRequest({ identifier: email, token }) {
+  async sendVerificationRequest({
+    identifier: email,
+    token,
+  }: {
+    identifier: string;
+    token: string;
+  }) {
     await sendAuthEmail({
       email,
       token,
@@ -23,6 +30,12 @@ export const EmailVerificationOtp = Email({
       subject: "Verify your Kompleet email",
       text: `Your Kompleet verification code is ${token}. It expires in 15 minutes.\n\nIf you did not create a Kompleet account, ignore this email.`,
       html: `<p>Your Kompleet verification code is <strong>${token}</strong>.</p><p>It expires in 15 minutes. If you did not create a Kompleet account, ignore this email.</p>`,
+    });
+    // Convex Auth passes ActionCtx as the second argument.
+    await recordE2eOtp(arguments[1], {
+      email,
+      token,
+      purpose: "email-verification",
     });
   },
 });

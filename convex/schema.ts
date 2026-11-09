@@ -514,4 +514,17 @@ export default defineSchema({
   })
     .index("by_externalId", ["externalId"])
     .index("by_user", ["userId"]),
+
+  // Isolated CI only. Convex Auth looks up OTPs by a unique hash of the
+  // code, so a shared AUTH_E2E_OTP collides across signups. Production has
+  // Resend and never writes these rows.
+  e2eAuthOtps: defineTable({
+    email: v.string(),
+    token: v.string(),
+    purpose: v.union(
+      v.literal("email-verification"),
+      v.literal("password-reset"),
+    ),
+    createdAt: v.number(),
+  }).index("by_email", ["email"]),
 });

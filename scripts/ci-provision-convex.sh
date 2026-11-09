@@ -74,7 +74,7 @@ configure_isolated_backend() {
   fi
   echo "Seeding e2e tax rules on isolated backend"
   pnpm exec convex run internal.tax.seedE2eTaxRules '{}'
-  echo "Setting AUTH_E2E_OTP on isolated backend for signup verification"
+  echo "Setting AUTH_E2E_OTP on isolated backend (read secret for stored OTPs)"
   pnpm exec convex env set AUTH_E2E_OTP 42424242
 }
 

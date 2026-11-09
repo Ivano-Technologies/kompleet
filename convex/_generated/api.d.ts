@@ -17,6 +17,7 @@ import type * as backfill from "../backfill.js";
 import type * as backfillCounts from "../backfillCounts.js";
 import type * as categories from "../categories.js";
 import type * as documents from "../documents.js";
+import type * as e2eOtp from "../e2eOtp.js";
 import type * as emailVerification from "../emailVerification.js";
 import type * as expenses from "../expenses.js";
 import type * as exports from "../exports.js";
@@ -59,6 +60,7 @@ declare const fullApi: ApiFromModules<{
   backfillCounts: typeof backfillCounts;
   categories: typeof categories;
   documents: typeof documents;
+  e2eOtp: typeof e2eOtp;
   emailVerification: typeof emailVerification;
   expenses: typeof expenses;
   exports: typeof exports;

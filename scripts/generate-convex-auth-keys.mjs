@@ -16,8 +16,8 @@
  *
  * Optional password-reset and signup verification email:
  *   npx convex env set AUTH_RESEND_KEY "re_..."
- * Isolated CI only (never production): AUTH_E2E_OTP, an 8 digit code used
- * when AUTH_RESEND_KEY is unset.
+ * Isolated CI only (never production): AUTH_E2E_OTP, an 8 digit secret used
+ * to read stored OTPs when AUTH_RESEND_KEY is unset. Not the code itself.
  */
 import { spawnSync } from "node:child_process";
 import { generateKeyPairSync } from "node:crypto";
