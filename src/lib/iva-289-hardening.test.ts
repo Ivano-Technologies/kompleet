@@ -35,6 +35,21 @@ describe("IVA-289 hardening", () => {
     expect(read("src/app/api/auth/profile/route.ts")).toMatch(/withRateLimit/);
     expect(read("src/app/api/contact/route.ts")).toMatch(/withRateLimit/);
     expect(read("src/app/api/feedback/route.ts")).toMatch(/withRateLimit/);
+    expect(read("src/app/api/upload-avatar/route.ts")).toMatch(/withRateLimit/);
+    expect(read("src/app/api/year/switch/route.ts")).toMatch(/withRateLimit/);
+    expect(read("src/app/api/admin/users/route.ts")).toMatch(/withRateLimit/);
+    expect(read("src/app/api/tax/sources/check/route.ts")).toMatch(
+      /withRateLimit/,
+    );
+    expect(read("src/app/api/migration/migrate/route.ts")).toMatch(
+      /withRateLimit/,
+    );
+    expect(read("src/app/api/expenses/route.ts")).toMatch(/withRateLimit/);
+    expect(read("src/app/api/expenses/[id]/route.ts")).toMatch(/withRateLimit/);
+    expect(read("src/app/api/expenses/export/route.ts")).toMatch(
+      /withRateLimit/,
+    );
+    expect(read("src/app/api/export/bulk/route.ts")).toMatch(/withRateLimit/);
   });
 
   it("uses EmptyState on list tables that were a blank tbody", () => {

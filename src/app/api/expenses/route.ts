@@ -10,6 +10,7 @@ import {
   requireAuthedConvex,
 } from "@/lib/convex/server";
 import { friendlyErrorBody, apiErrorBody } from "@/lib/friendly-error";
+import { withRateLimit } from "@/lib/with-rate-limit";
 
 const querySchema = z.object({
   startDate: z
@@ -38,7 +39,7 @@ const postBodySchema = z.object({
   notes: z.string().max(2000).nullable().optional(),
 });
 
-export async function GET(request: NextRequest) {
+async function handleGET(request: NextRequest) {
   try {
     const { convex } = await requireAuthedConvex(request);
 
@@ -85,7 +86,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+async function handlePOST(request: NextRequest) {
   try {
     const { convex } = await requireAuthedConvex(request);
 
@@ -120,3 +121,6 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const GET = withRateLimit(handleGET);
+export const POST = withRateLimit(handlePOST, { limit: 60 });

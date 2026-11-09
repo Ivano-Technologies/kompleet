@@ -10,6 +10,10 @@
  * - Sentry via same-origin `/monitoring` plus ingest hosts
  * - Convex (HTTP + WebSocket)
  * - Resend is server-side only (api.resend.com) — not needed in script-src
+ *
+ * No report-uri / report-to: there is no existing CSP report collector
+ * (no /api/csp-report or equivalent). Pointing report-uri at a missing
+ * route would 404 every browser report.
  */
 
 export const CONTENT_SECURITY_POLICY_REPORT_ONLY = [

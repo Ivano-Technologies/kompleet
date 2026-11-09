@@ -4,11 +4,14 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { apiErrorBody } from "@/lib/friendly-error";
+import { withRateLimit } from "@/lib/with-rate-limit";
 
-export async function POST(request: NextRequest) {
+async function handlePOST(request: NextRequest) {
   return NextResponse.json({ ...apiErrorBody("Billing is disabled until legal review. No real charges."),
       code: "BILLING_DISABLED",
     },
     { status: 503 }
   );
 }
+
+export const POST = withRateLimit(handlePOST, { limit: 20 });

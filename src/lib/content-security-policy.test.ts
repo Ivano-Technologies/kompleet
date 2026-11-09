@@ -27,4 +27,10 @@ describe("CSP report-only policy", () => {
       /upgrade-insecure-requests/i,
     );
   });
+
+  it("omits report-uri because no CSP report endpoint exists", () => {
+    expect(CONTENT_SECURITY_POLICY_REPORT_ONLY).not.toMatch(
+      /report-uri|report-to/i,
+    );
+  });
 });
