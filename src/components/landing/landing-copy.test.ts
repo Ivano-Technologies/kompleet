@@ -348,6 +348,34 @@ describe("IVA-72 landing copy", () => {
     expect(pricing).not.toMatch(/credit card/i);
     expect(pricing).not.toMatch(/₦5,?000/);
     expect(pricing).toMatch(/No price is published yet/);
+    expect(pricing).toMatch(/₦0/);
+    expect(pricing).toMatch(/Get started/);
+    expect(pricing).toMatch(/href="\/signup"/);
+
+    const lifetimeHeadline = "Lifetime access";
+    const lifetimeBody =
+      "For founding users: one payment, lifetime access for one user, and it is coming soon.";
+    const lifetimeCta = "Coming soon";
+    expect(lifetimeHeadline).not.toMatch(/[-–—]/);
+    expect(lifetimeBody).not.toMatch(/[-–—]/);
+    expect(lifetimeCta).not.toMatch(/[-–—]/);
+    expect(pricing).toContain(lifetimeHeadline);
+    expect(pricing).toMatch(
+      /For founding users:\s+one payment, lifetime access for one user,\s+and it is coming soon\./,
+    );
+    expect(pricing).toContain(lifetimeCta);
+    expect(pricing).toMatch(/Founding users/);
+    expect(pricing).toMatch(/md:grid-cols-2/);
+    expect(pricing).toMatch(/disabled/);
+    expect(pricing).not.toMatch(/5,?000/);
+
+    const lifetimeStart = pricing.indexOf("Founding users");
+    const lifetimeEnd = pricing.indexOf("After beta");
+    expect(lifetimeStart).toBeGreaterThan(-1);
+    expect(lifetimeEnd).toBeGreaterThan(lifetimeStart);
+    const lifetimeBlock = pricing.slice(lifetimeStart, lifetimeEnd);
+    expect(lifetimeBlock).not.toMatch(/₦/);
+    expect(lifetimeBlock).not.toMatch(/href=/);
   });
 
   it("does not ship legacy /api/kompleet HTML legal duplicates", () => {
