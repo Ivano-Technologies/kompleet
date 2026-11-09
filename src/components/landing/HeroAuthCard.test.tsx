@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 import HeroAuthCard from "@/components/landing/HeroAuthCard";
 import { requestHeroAuth } from "@/components/landing/hero-auth";
+import { RECLAIM_SIGNUP_NOTE } from "@/lib/auth/copy";
 
 const signIn = vi.fn();
 const push = vi.fn();
@@ -37,6 +38,7 @@ describe("HeroAuthCard", () => {
     expect(
       screen.getByText("Free during beta. No credit card required."),
     ).toBeInTheDocument();
+    expect(screen.getByTestId("reclaim-note").textContent).toBe(RECLAIM_SIGNUP_NOTE);
 
     await user.click(screen.getByRole("button", { name: "Sign in" }));
 

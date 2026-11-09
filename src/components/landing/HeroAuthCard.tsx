@@ -18,6 +18,8 @@ import {
 } from "@/components/landing/hero-auth";
 import { FRIENDLY_MESSAGES, toFriendlyError, withRef } from "@/lib/friendly-error";
 import { ErrorText } from "@/components/ui/error-ref";
+import { didSignInComplete, verifyEmailPath } from "@/lib/auth/sign-in-result";
+import { RECLAIM_SIGNUP_NOTE } from "@/lib/auth/copy";
 
 const inputClassName =
   "mt-1.5 h-11 w-full rounded-md border border-border bg-surface px-3 text-sm text-text-1 focus:border-primary focus:ring-2 focus:ring-primary/20";
@@ -87,11 +89,16 @@ export default function HeroAuthCard() {
 
     setLoading(true);
     try {
-      await signIn("password", {
+      const result = await signIn("password", {
         email,
         password,
         flow: mode === "signup" ? "signUp" : "signIn",
       });
+      if (!didSignInComplete(result)) {
+        router.push(verifyEmailPath(email));
+        router.refresh();
+        return;
+      }
       await fetch("/api/auth/ensure-profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -217,7 +224,11 @@ export default function HeroAuthCard() {
           <p data-testid="reclaim-note" className="mt-2 text-center text-xs tracking-normal [word-spacing:0.12em] text-text-3">
             {"Existing Kompleet users: choose Get started and use this same email to reclaim your data."}
           </p>
-        ) : null}
+        ) : (
+          <p data-testid="reclaim-note" className="mt-2 text-center text-xs tracking-normal [word-spacing:0.12em] text-text-3">
+            {RECLAIM_SIGNUP_NOTE}
+          </p>
+        )}
         <p className="mt-3 text-center text-sm text-text-2">
           {mode === "signup" ? (
             <>
