@@ -86,9 +86,10 @@ export default function CookiesPage() {
               2.3 Analytics Cookies
             </h3>
             <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              We use analytics to understand how visitors interact with our
-              platform, helping us improve the user experience. Analytics data
-              is aggregated and anonymized.
+              Google Analytics is off until you accept analytics cookies in the
+              cookie banner. If you decline, we do not load GA or set its
+              cookies. You can change that later from Cookie settings in the
+              footer. Analytics data is aggregated and anonymized.
             </p>
           </section>
 

@@ -58,6 +58,9 @@
   /* #3D4A55 */
   --text-tertiary: 107 114 128;
   /* #6B7280 */
+
+  /* Space reserved while the cookie banner is open (ResizeObserver). */
+  --cookie-banner-height: 0px;
 }
 
 /* Dark Theme */
@@ -92,6 +95,10 @@ body {
   overflow-x: hidden;
 }
 
+html {
+  scroll-padding-bottom: var(--cookie-banner-height, 0px);
+}
+
 /* IVA-86: one vertical scroll owner while the authenticated shell is mounted */
 html.dashboard-shell-scroll-lock,
 html.dashboard-shell-scroll-lock body {
@@ -114,6 +121,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.6;
   letter-spacing: -0.01em;
+  padding-bottom: var(--cookie-banner-height, 0px);
 }
 
 /* Brand teal for toggles and form controls when on/checked */
