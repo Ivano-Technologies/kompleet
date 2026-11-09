@@ -234,7 +234,7 @@ function InvoicesPageInner() {
       style={{ minHeight: "calc(100vh - 3.5rem)" }}
     >
       {/* Left Sidebar - Invoice List */}
-      <div className="w-80 lg:w-96 bg-light-surface dark:bg-dark-surface border-r border-light-border dark:border-dark-border flex flex-col flex-shrink-0">
+      <div className="w-full md:w-80 lg:w-96 bg-light-surface dark:bg-dark-surface md:border-r border-light-border dark:border-dark-border flex flex-col flex-shrink-0">
         {/* Header */}
         <div className="p-5 border-b border-light-border dark:border-dark-border">
           <div className="flex items-center justify-between mb-1">
@@ -310,7 +310,12 @@ function InvoicesPageInner() {
               {filteredInvoices.map((invoice) => (
                 <button
                   key={invoice.id}
-                  onClick={() => setSelectedInvoice(invoice)}
+                  onClick={() => {
+                    setSelectedInvoice(invoice);
+                    if (window.matchMedia("(max-width: 767px)").matches) {
+                      router.push(`/invoices/${invoice.id}`);
+                    }
+                  }}
                   className={`w-full p-4 text-left hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover transition-colors ${
                     selectedInvoice?.id === invoice.id
                       ? "bg-primary-500/5 dark:bg-primary-500/10 border-l-2 border-primary-500"
@@ -348,7 +353,13 @@ function InvoicesPageInner() {
                         },
                       )}
                     </span>
-                    <span className="font-semibold text-sm text-light-text-primary dark:text-dark-text-primary">
+                    <span
+                      className={`font-semibold text-sm ${
+                        invoice.status === "cancelled"
+                          ? "text-light-text-tertiary dark:text-dark-text-tertiary line-through"
+                          : "text-light-text-primary dark:text-dark-text-primary"
+                      }`}
+                    >
                       ₦{invoice.total_amount.toLocaleString("en-NG")}
                     </span>
                   </div>
@@ -360,7 +371,7 @@ function InvoicesPageInner() {
       </div>
 
       {/* Right Panel - Invoice Preview */}
-      <div className="flex-1 overflow-y-auto bg-light-background dark:bg-dark-background">
+      <div className="hidden md:flex flex-1 overflow-y-auto bg-light-background dark:bg-dark-background">
         {selectedInvoice ? (
           <div className="max-w-3xl mx-auto p-6 lg:p-8">
             {/* Action Bar */}

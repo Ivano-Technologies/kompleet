@@ -174,7 +174,7 @@ export function CancelInvoiceDialog({
           </button>
           <button
             type="submit"
-            className="btn-secondary text-sm px-3 py-2 text-error"
+            className="bg-red-600 hover:bg-red-700 text-white text-sm px-3 py-2 rounded-[10px] font-semibold disabled:opacity-50"
             disabled={busy || !reason.trim()}
           >
             {INV_COPY.cancelConfirm}

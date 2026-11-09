@@ -328,7 +328,7 @@ export default function InvoiceDetailPage() {
               setStatusError("");
               setCancelOpen(true);
             }}
-            className="btn-secondary text-error"
+            className="btn-secondary text-error bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800/40"
           >
             <XCircle size={16} />
             {INV_COPY.cancelInvoice}
