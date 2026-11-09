@@ -40,4 +40,7 @@ async function handlePOST(request: NextRequest) {
   }
 }
 
-export const POST = withRateLimit(handlePOST, { limit: 20, window: 60_000 });
+// Auth-required bootstrap: login, signup, verify-email, AuthContext, and
+// the e2e helper all POST this on a session. 20/min 429s a normal dashboard
+// tour and CI (one worker, many logins in the same window).
+export const POST = withRateLimit(handlePOST, { limit: 120, window: 60_000 });
