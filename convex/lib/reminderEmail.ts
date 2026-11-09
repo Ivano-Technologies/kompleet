@@ -3,6 +3,8 @@
  * Next.js email-service re-exports used in existing tests.
  */
 
+import { MONTH_NAMES } from "./deadlineCalendar";
+
 export const REMINDER_HEADER =
   "Bookkeeping and invoicing for Nigerian businesses";
 
@@ -40,35 +42,26 @@ const FORM_COPY: Record<string, FormCopy> = {
     periodLabel: (year) => String(year),
     subjectVerb: "filing deadline is",
   },
-  VAT_Q1: {
-    shortName: "Q1 VAT return",
-    formLabel: "VAT return",
-    periodLabel: (year) => `Q1 ${year}`,
-    subjectVerb: "is due",
-  },
-  VAT_Q2: {
-    shortName: "Q2 VAT return",
-    formLabel: "VAT return",
-    periodLabel: (year) => `Q2 ${year}`,
-    subjectVerb: "is due",
-  },
-  VAT_Q3: {
-    shortName: "Q3 VAT return",
-    formLabel: "VAT return",
-    periodLabel: (year) => `Q3 ${year}`,
-    subjectVerb: "is due",
-  },
-  VAT_Q4: {
-    shortName: "Q4 VAT return",
-    formLabel: "VAT return",
-    periodLabel: (year) => `Q4 ${year}`,
-    subjectVerb: "is due",
-  },
 };
+
+function vatMonthCopy(formType: string): FormCopy | null {
+  const match = /^VAT_(\d{2})$/.exec(formType);
+  if (!match) return null;
+  const month = Number(match[1]);
+  const name = MONTH_NAMES[month - 1];
+  if (!name) return null;
+  return {
+    shortName: `${name} VAT return`,
+    formLabel: "VAT return",
+    periodLabel: (year) => `${name} ${year}`,
+    subjectVerb: "is due",
+  };
+}
 
 function formCopy(formType: string): FormCopy {
   return (
-    FORM_COPY[formType] || {
+    FORM_COPY[formType] ||
+    vatMonthCopy(formType) || {
       shortName: formType,
       formLabel: formType,
       periodLabel: (year) => String(year),

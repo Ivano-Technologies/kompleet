@@ -1,11 +1,13 @@
 /** @vitest-environment node */
 
 import { describe, expect, it } from "vitest";
+import { getFilingDeadlines } from "../../src/lib/nrs-filing/deadline-manager";
 import {
   calendarDaysUntil,
   dueRemindersAt,
   filingDeadlinesForTaxYear,
   isReminderEmailEnabled,
+  reminderAppliesToEntity,
   utcTodayIso,
 } from "./deadlineCalendar";
 
@@ -20,20 +22,40 @@ describe("filing deadlines", () => {
     );
   });
 
-  it("uses quarterly VAT due on the 21st after each quarter", () => {
+  it("uses monthly VAT due on the 21st of the following month", () => {
     const deadlines = filingDeadlinesForTaxYear(2026);
-    expect(deadlines.find((d) => d.formType === "VAT_Q1")?.deadlineDate).toBe(
+    expect(deadlines.find((d) => d.formType === "VAT_01")?.deadlineDate).toBe(
+      "2026-02-21",
+    );
+    expect(deadlines.find((d) => d.formType === "VAT_03")?.deadlineDate).toBe(
       "2026-04-21",
     );
-    expect(deadlines.find((d) => d.formType === "VAT_Q2")?.deadlineDate).toBe(
-      "2026-07-21",
-    );
-    expect(deadlines.find((d) => d.formType === "VAT_Q3")?.deadlineDate).toBe(
-      "2026-10-21",
-    );
-    expect(deadlines.find((d) => d.formType === "VAT_Q4")?.deadlineDate).toBe(
+    expect(deadlines.find((d) => d.formType === "VAT_12")?.deadlineDate).toBe(
       "2027-01-21",
     );
+    expect(deadlines.filter((d) => d.formType.startsWith("VAT_"))).toHaveLength(
+      12,
+    );
+  });
+
+  it("shares that calendar with the NRS deadline manager", () => {
+    const convex = filingDeadlinesForTaxYear(2026);
+    const nrs = getFilingDeadlines(2026);
+    expect(nrs.map((d) => d.dueDate)).toEqual(convex.map((d) => d.deadlineDate));
+    expect(nrs.filter((d) => d.taxType === "VAT").every((d) => d.frequency === "monthly")).toBe(
+      true,
+    );
+  });
+});
+
+describe("reminderAppliesToEntity", () => {
+  it("sends PIT to individuals and CIT to companies", () => {
+    expect(reminderAppliesToEntity("PIT", "individual")).toBe(true);
+    expect(reminderAppliesToEntity("PIT", "company")).toBe(false);
+    expect(reminderAppliesToEntity("CIT", "company")).toBe(true);
+    expect(reminderAppliesToEntity("CIT", "individual")).toBe(false);
+    expect(reminderAppliesToEntity("VAT_03", "individual")).toBe(true);
+    expect(reminderAppliesToEntity("VAT_03", "company")).toBe(true);
   });
 });
 
@@ -69,7 +91,7 @@ describe("dueRemindersAt", () => {
     expect(dueDay.filter((d) => d.formType === "PIT")).toEqual([]);
   });
 
-  it("matches CIT and VAT quarterly windows", () => {
+  it("matches CIT and monthly VAT windows", () => {
     const cit = dueRemindersAt(Date.parse("2027-06-23T08:00:00.000Z"));
     expect(cit).toEqual([
       expect.objectContaining({
@@ -82,7 +104,7 @@ describe("dueRemindersAt", () => {
     const vat = dueRemindersAt(Date.parse("2026-04-14T08:00:00.000Z"));
     expect(vat).toEqual([
       expect.objectContaining({
-        formType: "VAT_Q1",
+        formType: "VAT_03",
         taxYear: 2026,
         deadlineDate: "2026-04-21",
         daysRemaining: 7,

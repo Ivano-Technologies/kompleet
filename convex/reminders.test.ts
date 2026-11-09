@@ -2,9 +2,13 @@
 
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import type { MutationCtx } from "./_generated/server";
-import { claimSendHandler } from "./reminders";
+import {
+  claimSendHandler,
+  releaseSendHandler,
+  sendReminderEmail,
+} from "./reminders";
 
 function fakeDb() {
   const tables: Record<string, Array<Record<string, unknown>>> = {
@@ -45,6 +49,12 @@ function fakeDb() {
         tables[table] ??= [];
         tables[table].push({ _id, ...doc });
         return _id;
+      },
+      delete: async (id: string) => {
+        for (const rows of Object.values(tables)) {
+          const idx = rows.findIndex((row) => row._id === id);
+          if (idx >= 0) rows.splice(idx, 1);
+        }
       },
     },
   };
@@ -87,6 +97,42 @@ describe("claimSendHandler", () => {
       claimSendHandler(asCtx(db), { ...CLAIM, userId: "users:2" as never }),
     ).resolves.toBe(true);
   });
+
+  it("drops a claimed row so a failed send can retry", async () => {
+    const db = fakeDb();
+    await expect(claimSendHandler(asCtx(db), CLAIM)).resolves.toBe(true);
+    await releaseSendHandler(asCtx(db), {
+      userId: CLAIM.userId,
+      formType: CLAIM.formType,
+      taxYear: CLAIM.taxYear,
+      daysRemaining: CLAIM.daysRemaining,
+    });
+    expect(db.tables.deadlineReminders).toHaveLength(0);
+    await expect(claimSendHandler(asCtx(db), CLAIM)).resolves.toBe(true);
+  });
+});
+
+describe("sendReminderEmail", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.restoreAllMocks();
+  });
+
+  it("does not log the recipient or mark a send when the mail key is missing", async () => {
+    vi.stubEnv("AUTH_RESEND_KEY", "");
+    vi.stubEnv("RESEND_API_KEY", "");
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    await expect(
+      sendReminderEmail("hidden@example.com", {
+        subject: "Due",
+        html: "<p>Due</p>",
+        text: "Due",
+      }),
+    ).resolves.toBe(false);
+    const logged = warn.mock.calls.flat().join(" ");
+    expect(logged).not.toMatch(/hidden@example.com/);
+    expect(logged).not.toMatch(/@/);
+  });
 });
 
 describe("deadline reminder cron", () => {
@@ -95,5 +141,8 @@ describe("deadline reminder cron", () => {
     expect(source).toMatch(/cronJobs/);
     expect(source).toMatch(/crons\.daily/);
     expect(source).toMatch(/internal\.reminders\.sendDueReminders/);
+    const send = readFileSync(resolve("convex/reminders.ts"), "utf8");
+    expect(send).toMatch(/reminderAppliesToEntity/);
+    expect(send).toMatch(/internal\.reminders\.releaseSend/);
   });
 });

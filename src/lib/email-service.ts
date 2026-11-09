@@ -16,7 +16,7 @@ export {
 export type { DeadlineInfo, EmailTemplate } from "../../convex/lib/reminderEmail";
 
 /**
- * Send email using Resend API (or fallback to console log for testing)
+ * Send email using Resend. Returns false when the key is missing or the send fails.
  */
 export async function sendEmail(
   to: string,
@@ -26,11 +26,8 @@ export async function sendEmail(
     const resendApiKey = process.env.RESEND_API_KEY;
 
     if (!resendApiKey) {
-      console.log("RESEND_API_KEY not configured. Email would be sent:");
-      console.log(`To: ${to}`);
-      console.log(`Subject: ${template.subject}`);
-      console.log(`Text: ${template.text.substring(0, 200)}...`);
-      return true;
+      console.warn("[email] mail key unset; skip send");
+      return false;
     }
 
     const response = await fetch("https://api.resend.com/emails", {
@@ -54,8 +51,7 @@ export async function sendEmail(
       return false;
     }
 
-    const result = await response.json();
-    console.log("Email sent successfully:", result);
+    await response.json();
     return true;
   } catch (error) {
     console.error("Send email error:", error);

@@ -14,6 +14,7 @@ import { getCurrentUser } from "./lib/auth";
 import {
   dueRemindersAt,
   isReminderEmailEnabled,
+  reminderAppliesToEntity,
   type ReminderWindow,
 } from "./lib/deadlineCalendar";
 import {
@@ -40,6 +41,7 @@ const candidateApi = v.object({
   userId: v.id("users"),
   email: v.string(),
   name: v.string(),
+  entityType: v.union(v.literal("individual"), v.literal("company")),
 });
 
 const candidatePageApi = v.object({
@@ -49,7 +51,12 @@ const candidatePageApi = v.object({
 });
 
 type CandidatePage = {
-  page: Array<{ userId: Id<"users">; email: string; name: string }>;
+  page: Array<{
+    userId: Id<"users">;
+    email: string;
+    name: string;
+    entityType: "individual" | "company";
+  }>;
   isDone: boolean;
   continueCursor: string;
 };
@@ -86,10 +93,8 @@ export async function sendReminderEmail(
 ): Promise<boolean> {
   const apiKey = process.env.AUTH_RESEND_KEY ?? process.env.RESEND_API_KEY;
   if (!apiKey) {
-    console.warn(
-      `[reminders] AUTH_RESEND_KEY unset; would send "${template.subject}" to ${to}`,
-    );
-    return true;
+    console.warn("[reminders] mail key unset; skip send");
+    return false;
   }
 
   const response = await fetch("https://api.resend.com/emails", {
@@ -209,6 +214,7 @@ export const listCandidates = internalQuery({
           userId: user._id,
           email: user.email,
           name: user.fullName ?? user.name ?? "",
+          entityType: user.entityType,
         })),
     };
   },
@@ -225,6 +231,40 @@ export const claimSend = internalMutation({
   },
   returns: v.boolean(),
   handler: async (ctx, args) => claimSendHandler(ctx, args),
+});
+
+export async function releaseSendHandler(
+  ctx: MutationCtx,
+  args: {
+    userId: Id<"users">;
+    formType: string;
+    taxYear: number;
+    daysRemaining: number;
+  },
+): Promise<null> {
+  const existing = await ctx.db
+    .query("deadlineReminders")
+    .withIndex("by_user_and_key", (q) =>
+      q
+        .eq("userId", args.userId)
+        .eq("formType", args.formType)
+        .eq("taxYear", args.taxYear)
+        .eq("daysRemaining", args.daysRemaining),
+    )
+    .unique();
+  if (existing) await ctx.db.delete(existing._id);
+  return null;
+}
+
+export const releaseSend = internalMutation({
+  args: {
+    userId: v.id("users"),
+    formType: v.string(),
+    taxYear: v.number(),
+    daysRemaining: v.number(),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => releaseSendHandler(ctx, args),
 });
 
 export const sendDueReminders = internalAction({
@@ -251,6 +291,9 @@ export const sendDueReminders = internalAction({
       );
       for (const user of page.page) {
         for (const reminder of due) {
+          if (!reminderAppliesToEntity(reminder.formType, user.entityType)) {
+            continue;
+          }
           const won = await ctx.runMutation(internal.reminders.claimSend, {
             userId: user.userId,
             formType: reminder.formType,
@@ -272,7 +315,16 @@ export const sendDueReminders = internalAction({
             },
           );
           const sent = await sendReminderEmail(user.email, template);
-          if (sent) claimed += 1;
+          if (!sent) {
+            await ctx.runMutation(internal.reminders.releaseSend, {
+              userId: user.userId,
+              formType: reminder.formType,
+              taxYear: reminder.taxYear,
+              daysRemaining: reminder.daysRemaining,
+            });
+            continue;
+          }
+          claimed += 1;
         }
       }
       if (page.isDone) break;
