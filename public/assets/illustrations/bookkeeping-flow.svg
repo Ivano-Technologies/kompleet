@@ -13,16 +13,16 @@
   <path d="M282 100 V106 c0 2 1.5 3.5 3.5 3.5 H302.5 c2 0 3.5 -1.5 3.5 -3.5 V100" stroke="#1B6CA8" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
   <rect x="76" y="152" width="232" height="42" rx="12" fill="#D6E8F5"/>
   <text x="92" y="179" text-anchor="start" font-family="Inter, system-ui, sans-serif" font-size="17" font-weight="500" fill="#2A5A7A">Transfer in</text>
-  <text x="292" y="179" text-anchor="end" font-family="Inter, system-ui, sans-serif" font-size="17" font-weight="700" fill="#0B3A5C">₦450,000</text>
+  <rect x="236" y="169" width="56" height="8" rx="4" fill="#C9BFAE"/>
   <rect x="76" y="204" width="232" height="42" rx="12" fill="#EBE6DC"/>
   <text x="92" y="231.0" text-anchor="start" font-family="Inter, system-ui, sans-serif" font-size="17" font-weight="500" fill="#2A5A7A">POS</text>
-  <text x="292" y="231.0" text-anchor="end" font-family="Inter, system-ui, sans-serif" font-size="17" font-weight="700" fill="#0B3A5C">₦12,500</text>
+  <rect x="236" y="221" width="56" height="8" rx="4" fill="#C9BFAE"/>
   <rect x="76" y="256" width="232" height="42" rx="12" fill="#EBE6DC"/>
   <text x="92" y="283.0" text-anchor="start" font-family="Inter, system-ui, sans-serif" font-size="17" font-weight="500" fill="#2A5A7A">Fuel</text>
-  <text x="292" y="283.0" text-anchor="end" font-family="Inter, system-ui, sans-serif" font-size="17" font-weight="700" fill="#0B3A5C">₦38,000</text>
+  <rect x="236" y="273" width="56" height="8" rx="4" fill="#C9BFAE"/>
   <rect x="76" y="308" width="232" height="42" rx="12" fill="#EBE6DC"/>
   <text x="92" y="335.0" text-anchor="start" font-family="Inter, system-ui, sans-serif" font-size="17" font-weight="500" fill="#2A5A7A">Office rent</text>
-  <text x="292" y="335.0" text-anchor="end" font-family="Inter, system-ui, sans-serif" font-size="17" font-weight="700" fill="#0B3A5C">₦200,000</text>
+  <rect x="236" y="325" width="56" height="8" rx="4" fill="#C9BFAE"/>
   <text x="76" y="394" text-anchor="start" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="600" fill="#3D6F99">4 rows imported</text>
   <rect x="400" y="60" width="288" height="360" rx="20" fill="#FFFDF8" stroke="#DDD5C8" stroke-width="2"/>
   <text x="428" y="112" text-anchor="start" font-family="Inter, system-ui, sans-serif" font-size="30" font-weight="700" fill="#0B3A5C">Expenses</text>
@@ -36,18 +36,18 @@
   <rect x="428" y="192" width="232" height="42" rx="12" fill="#EBE6DC"/>
   <circle cx="448" cy="213.0" r="6" fill="#0B3A5C"/>
   <text x="464" y="219.0" text-anchor="start" font-family="Inter, system-ui, sans-serif" font-size="17" font-weight="500" fill="#2A5A7A">Rent</text>
-  <text x="644" y="219.0" text-anchor="end" font-family="Inter, system-ui, sans-serif" font-size="17" font-weight="700" fill="#0B3A5C">₦200,000</text>
+  <rect x="588" y="209" width="56" height="8" rx="4" fill="#C9BFAE"/>
   <rect x="428" y="244" width="232" height="42" rx="12" fill="#EBE6DC"/>
   <circle cx="448" cy="265.0" r="6" fill="#3D6F99"/>
   <text x="464" y="271.0" text-anchor="start" font-family="Inter, system-ui, sans-serif" font-size="17" font-weight="500" fill="#2A5A7A">Transport</text>
-  <text x="644" y="271.0" text-anchor="end" font-family="Inter, system-ui, sans-serif" font-size="17" font-weight="700" fill="#0B3A5C">₦38,000</text>
+  <rect x="588" y="261" width="56" height="8" rx="4" fill="#C9BFAE"/>
   <rect x="428" y="296" width="232" height="42" rx="12" fill="#EBE6DC"/>
   <circle cx="448" cy="317.0" r="6" fill="#1B6CA8"/>
   <text x="464" y="323.0" text-anchor="start" font-family="Inter, system-ui, sans-serif" font-size="17" font-weight="500" fill="#2A5A7A">Supplies</text>
-  <text x="644" y="323.0" text-anchor="end" font-family="Inter, system-ui, sans-serif" font-size="17" font-weight="700" fill="#0B3A5C">₦12,500</text>
+  <rect x="588" y="313" width="56" height="8" rx="4" fill="#C9BFAE"/>
   <rect x="428" y="352" width="232" height="2" rx="1" fill="#DDD5C8"/>
   <text x="428" y="394" text-anchor="start" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="600" fill="#2A5A7A">Total spent</text>
-  <text x="660" y="394" text-anchor="end" font-family="Inter, system-ui, sans-serif" font-size="18" font-weight="700" fill="#0B3A5C">₦250,500</text>
+  <rect x="596" y="384" width="64" height="8" rx="4" fill="#C9BFAE"/>
   <rect x="752" y="60" width="288" height="360" rx="20" fill="#FFFDF8" stroke="#DDD5C8" stroke-width="2"/>
   <text x="780" y="112" text-anchor="start" font-family="Inter, system-ui, sans-serif" font-size="30" font-weight="700" fill="#0B3A5C">Invoice</text>
   <rect x="780" y="132" width="232" height="2" rx="1" fill="#EBE6DC"/>
@@ -61,12 +61,12 @@
   <text x="796" y="228" text-anchor="start" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="500" fill="#3D6F99">Billed to</text>
   <text x="796" y="248" text-anchor="start" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="700" fill="#0B3A5C">Ada Stores Ltd</text>
   <text x="796" y="282" text-anchor="start" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="500" fill="#2A5A7A">Design work</text>
-  <text x="996" y="282" text-anchor="end" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="600" fill="#0B3A5C">₦150,000</text>
+  <rect x="940" y="274" width="56" height="8" rx="4" fill="#C9BFAE"/>
   <text x="796" y="312" text-anchor="start" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="500" fill="#2A5A7A">Printing</text>
-  <text x="996" y="312" text-anchor="end" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="600" fill="#0B3A5C">₦30,000</text>
+  <rect x="940" y="304" width="56" height="8" rx="4" fill="#C9BFAE"/>
   <rect x="796" y="332" width="200" height="2" rx="1" fill="#EBE6DC"/>
   <text x="796" y="370" text-anchor="start" font-family="Inter, system-ui, sans-serif" font-size="17" font-weight="700" fill="#0B3A5C">Total</text>
-  <text x="996" y="370" text-anchor="end" font-family="Inter, system-ui, sans-serif" font-size="20" font-weight="700" fill="#0B3A5C">₦180,000</text>
+  <rect x="932" y="358" width="64" height="8" rx="4" fill="#C9BFAE"/>
   <rect x="1104" y="60" width="288" height="360" rx="20" fill="#FFFDF8" stroke="#DDD5C8" stroke-width="2"/>
   <text x="1132" y="112" text-anchor="start" font-family="Inter, system-ui, sans-serif" font-size="30" font-weight="700" fill="#0B3A5C">Monthly report</text>
   <rect x="1132" y="132" width="232" height="2" rx="1" fill="#EBE6DC"/>
@@ -81,7 +81,7 @@
   <rect x="1132" y="298" width="232" height="2" rx="1" fill="#DDD5C8"/>
   <rect x="1132" y="338" width="232" height="56" rx="12" fill="#EBE6DC"/>
   <text x="1148" y="372" text-anchor="start" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="600" fill="#2A5A7A">Net profit</text>
-  <text x="1348" y="373" text-anchor="end" font-family="Inter, system-ui, sans-serif" font-size="20" font-weight="700" fill="#0B3A5C">₦379,500</text>
+  <rect x="1284" y="361" width="64" height="8" rx="4" fill="#C9BFAE"/>
   <circle cx="1347.0" cy="160" r="18" fill="#0D9488"/>
   <path d="M1339.0 160 l5.5 5.5 11 -12" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

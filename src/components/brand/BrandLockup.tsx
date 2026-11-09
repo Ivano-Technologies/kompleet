@@ -42,6 +42,8 @@ type BrandLockupProps = {
   collapsed?: boolean;
   className?: string;
   onClick?: () => void;
+  /** Extra classes on the wrapping link (tap target, density). */
+  linkClassName?: string;
 };
 
 function MarkImage({
@@ -84,6 +86,7 @@ export function BrandLockup({
   collapsed = false,
   className,
   onClick,
+  linkClassName,
 }: BrandLockupProps) {
   const height = collapsed
     ? COLLAPSED_MARK_HEIGHT
@@ -154,7 +157,11 @@ export function BrandLockup({
   }
 
   return (
-    <Link href={href} className="inline-flex items-center" onClick={onClick}>
+    <Link
+      href={href}
+      className={cn("inline-flex items-center", linkClassName)}
+      onClick={onClick}
+    >
       {lockup}
     </Link>
   );

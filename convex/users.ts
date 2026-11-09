@@ -4,6 +4,7 @@ import {
   internalQuery,
   mutation,
   query,
+  type MutationCtx,
   type QueryCtx,
 } from "./_generated/server";
 import {
@@ -96,6 +97,93 @@ function toApi(user: {
   };
 }
 
+/**
+ * Client-supplied `args.email` is not proof of ownership. Only the verified
+ * identity email may be written onto a users row.
+ */
+export function verifiedIdentityEmail(identity: {
+  email?: unknown;
+  emailVerified?: unknown;
+}): string {
+  const email =
+    typeof identity.email === "string" ? identity.email.trim().toLowerCase() : "";
+  const verified =
+    identity.emailVerified === true || identity.emailVerified === "true";
+  if (!verified || !email) return "";
+  return email;
+}
+
+type EnsureCurrentArgs = {
+  email?: string;
+  fullName?: string;
+};
+
+export async function ensureCurrentHandler(
+  ctx: MutationCtx,
+  args: EnsureCurrentArgs,
+) {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) {
+    throw new Error("Not authenticated");
+  }
+  const now = Date.now();
+  // Client-supplied args.email is untrusted (ensure-profile body). Ignore it.
+  const verifiedEmail = verifiedIdentityEmail(identity);
+  const existing = await getCurrentUserOrNull(ctx);
+  if (existing) {
+    await ctx.db.patch(existing._id, {
+      tokenIdentifier: identity.tokenIdentifier,
+      ...(verifiedEmail ? { email: verifiedEmail } : {}),
+      fullName: args.fullName ?? existing.fullName,
+      lastLoginAt: now,
+      updatedAt: now,
+    });
+    const updated = await ctx.db.get(existing._id);
+    if (!updated) throw new Error("User not found");
+    return toApi(updated);
+  }
+  const byEmail = verifiedEmail
+    ? await ctx.db
+        .query("users")
+        .withIndex("email", (q) => q.eq("email", verifiedEmail))
+        .unique()
+    : null;
+  if (byEmail && !byEmail.deletedAt) {
+    await ctx.db.patch(byEmail._id, {
+      tokenIdentifier: identity.tokenIdentifier,
+      email: verifiedEmail,
+      fullName: args.fullName ?? byEmail.fullName,
+      supabaseUserId: byEmail.supabaseUserId ?? byEmail.externalId,
+      lastLoginAt: now,
+      updatedAt: now,
+    });
+    const updated = await ctx.db.get(byEmail._id);
+    if (!updated) throw new Error("User not found");
+    return toApi(updated);
+  }
+  const externalId = supabaseSubject(identity);
+  await ctx.db.insert("users", {
+    externalId,
+    tokenIdentifier: identity.tokenIdentifier,
+    email: verifiedEmail,
+    fullName: args.fullName,
+    phone: "",
+    entityType: "individual",
+    defaultCurrency: "NGN",
+    fiscalYearStart: 1,
+    onboardingCompleted: false,
+    lastLoginAt: now,
+    createdAt: now,
+    updatedAt: now,
+  });
+  const created = await ctx.db
+    .query("users")
+    .withIndex("by_externalId", (q) => q.eq("externalId", externalId))
+    .unique();
+  if (!created) throw new Error("User not found");
+  return toApi(created);
+}
+
 export const ensureCurrent = mutation({
   args: {
     email: v.optional(v.string()),
@@ -103,68 +191,7 @@ export const ensureCurrent = mutation({
   },
   returns: userApi,
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Not authenticated");
-    }
-    const now = Date.now();
-    const existing = await getCurrentUserOrNull(ctx);
-    if (existing) {
-      await ctx.db.patch(existing._id, {
-        tokenIdentifier: identity.tokenIdentifier,
-        email: args.email ?? existing.email,
-        fullName: args.fullName ?? existing.fullName,
-        lastLoginAt: now,
-        updatedAt: now,
-      });
-      const updated = await ctx.db.get(existing._id);
-      if (!updated) throw new Error("User not found");
-      return toApi(updated);
-    }
-    const identityEmail =
-      typeof identity.email === "string" ? identity.email.trim().toLowerCase() : "";
-    // Never attach this session to a different user's row via a spoofed email.
-    const email = identityEmail || (args.email ?? "").trim().toLowerCase();
-    const byEmail = email
-      ? await ctx.db
-          .query("users")
-          .withIndex("email", (q) => q.eq("email", email))
-          .unique()
-      : null;
-    if (byEmail && !byEmail.deletedAt) {
-      await ctx.db.patch(byEmail._id, {
-        tokenIdentifier: identity.tokenIdentifier,
-        email,
-        fullName: args.fullName ?? byEmail.fullName,
-        supabaseUserId: byEmail.supabaseUserId ?? byEmail.externalId,
-        lastLoginAt: now,
-        updatedAt: now,
-      });
-      const updated = await ctx.db.get(byEmail._id);
-      if (!updated) throw new Error("User not found");
-      return toApi(updated);
-    }
-    const externalId = supabaseSubject(identity);
-    await ctx.db.insert("users", {
-      externalId,
-      tokenIdentifier: identity.tokenIdentifier,
-      email,
-      fullName: args.fullName,
-      phone: "",
-      entityType: "individual",
-      defaultCurrency: "NGN",
-      fiscalYearStart: 1,
-      onboardingCompleted: false,
-      lastLoginAt: now,
-      createdAt: now,
-      updatedAt: now,
-    });
-    const created = await ctx.db
-      .query("users")
-      .withIndex("by_externalId", (q) => q.eq("externalId", externalId))
-      .unique();
-    if (!created) throw new Error("User not found");
-    return toApi(created);
+    return await ensureCurrentHandler(ctx, args);
   },
 });
 
