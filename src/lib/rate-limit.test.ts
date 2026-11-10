@@ -13,6 +13,10 @@ describe("Rate Limiter", () => {
     identifier: string,
     options?: { limit?: number; window?: number },
   ) => { success: boolean; remaining: number; reset: Date };
+  let rateLimitAsync: (
+    identifier: string,
+    options?: { limit?: number; window?: number },
+  ) => Promise<{ success: boolean; remaining: number; reset: Date }>;
   let getIdentifier: (request: Request) => string;
 
   beforeEach(async () => {
@@ -21,6 +25,7 @@ describe("Rate Limiter", () => {
     vi.resetModules();
     const mod = await import("./rate-limit");
     rateLimit = mod.rateLimit;
+    rateLimitAsync = mod.rateLimitAsync;
     getIdentifier = mod.getIdentifier;
   });
 
@@ -166,6 +171,19 @@ describe("Rate Limiter", () => {
   });
 
   // ─── Default options ──────────────────────────────────────────────────────
+
+  describe("rateLimitAsync without Upstash", () => {
+    it("uses the in-memory limiter when Upstash env is unset", async () => {
+      delete process.env.UPSTASH_REDIS_REST_URL;
+      delete process.env.UPSTASH_REDIS_REST_TOKEN;
+      const first = await rateLimitAsync("async-user", { limit: 2, window: 60_000 });
+      const second = await rateLimitAsync("async-user", { limit: 2, window: 60_000 });
+      const third = await rateLimitAsync("async-user", { limit: 2, window: 60_000 });
+      expect(first.success).toBe(true);
+      expect(second.success).toBe(true);
+      expect(third.success).toBe(false);
+    });
+  });
 
   describe("default options", () => {
     it("should use default limit of 60 when RATE_LIMIT_REQUESTS_PER_MINUTE is not set", () => {

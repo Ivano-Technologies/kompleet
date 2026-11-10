@@ -229,8 +229,24 @@ export async function login(page: Page): Promise<void> {
 
   // Isolated CI Convex starts empty. Money-path specs call Convex
   // getCurrentUser; wait until the users row exists for this session.
-  const ensure = await page.request.post("/api/auth/ensure-profile");
-  if (!ensure.ok()) {
+  await postEnsureProfile(page);
+}
+
+async function postEnsureProfile(page: Page): Promise<void> {
+  const maxAttempts = 3;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const ensure = await page.request.post("/api/auth/ensure-profile");
+    if (ensure.ok()) return;
+    if (ensure.status() === 429 && attempt < maxAttempts) {
+      const retryAfterHeader = ensure.headers()["retry-after"];
+      const retryAfterSec = Number(retryAfterHeader);
+      const waitMs =
+        (Number.isFinite(retryAfterSec) && retryAfterSec > 0
+          ? Math.min(retryAfterSec, 30)
+          : 10) * 1000;
+      await new Promise((resolve) => setTimeout(resolve, waitMs));
+      continue;
+    }
     throw new Error(
       `ensure-profile returned HTTP ${ensure.status()} ${await ensure.text()}`,
     );

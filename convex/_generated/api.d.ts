@@ -37,6 +37,8 @@ import type * as lib_emailVerified from "../lib/emailVerified.js";
 import type * as lib_eraseAccount from "../lib/eraseAccount.js";
 import type * as lib_ids from "../lib/ids.js";
 import type * as lib_imageMeta from "../lib/imageMeta.js";
+import type * as lib_invoiceAmounts from "../lib/invoiceAmounts.js";
+import type * as lib_lineAmounts from "../lib/lineAmounts.js";
 import type * as lib_profiles from "../lib/profiles.js";
 import type * as lib_triage from "../lib/triage.js";
 import type * as lib_workerAuth from "../lib/workerAuth.js";
@@ -84,6 +86,8 @@ declare const fullApi: ApiFromModules<{
   "lib/eraseAccount": typeof lib_eraseAccount;
   "lib/ids": typeof lib_ids;
   "lib/imageMeta": typeof lib_imageMeta;
+  "lib/invoiceAmounts": typeof lib_invoiceAmounts;
+  "lib/lineAmounts": typeof lib_lineAmounts;
   "lib/profiles": typeof lib_profiles;
   "lib/triage": typeof lib_triage;
   "lib/workerAuth": typeof lib_workerAuth;

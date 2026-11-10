@@ -19,15 +19,13 @@ import {
   repairWrappedStatementDates,
 } from "./statement-text-parser";
 import { extractPdfText } from "./pdf-text-extract";
+import { serverOpenAiApiKey } from "@/lib/openai-api-key";
 
 let _openai: OpenAI | null = null;
 
 function getOpenAI(): OpenAI {
   if (!_openai) {
-    const apiKey =
-      process.env.OPENAI_API_KEY ||
-      process.env.OPEN_AI_API_KEY ||
-      process.env.NEXT_PUBLIC_OPEN_AI_API_KEY;
+    const apiKey = serverOpenAiApiKey();
     if (!apiKey) {
       throw new Error(
         "OpenAI API key not configured. Set OPENAI_API_KEY in environment variables.",
@@ -187,10 +185,7 @@ export async function parsePDF(
     }
 
     // Step 2: Check if OpenAI API key is available
-    const apiKey =
-      process.env.OPENAI_API_KEY ||
-      process.env.OPEN_AI_API_KEY ||
-      process.env.NEXT_PUBLIC_OPEN_AI_API_KEY;
+    const apiKey = serverOpenAiApiKey();
     if (!apiKey) {
       // Fallback: try basic regex extraction without LLM
       const transactions = extractTransactionsWithRegex(repairedText);
