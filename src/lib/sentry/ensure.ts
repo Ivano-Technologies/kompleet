@@ -27,14 +27,8 @@ export async function ensureServerSentry(): Promise<boolean> {
     const existing =
       typeof Sentry.getClient === "function" ? Sentry.getClient() : undefined;
     if (clientHasDsn(existing)) return true;
-    if (
-      existing &&
-      typeof (existing as { close?: (timeout?: number) => Promise<boolean> })
-        .close === "function"
-    ) {
-      await (
-        existing as { close: (timeout?: number) => Promise<boolean> }
-      ).close(0);
+    if (existing) {
+      await Promise.resolve(existing.close(0));
     }
     if (typeof Sentry.init === "function") {
       Sentry.init({
