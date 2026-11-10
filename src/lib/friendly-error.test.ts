@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as Sentry from "@sentry/nextjs";
 import { AUTH_ERROR_CODES } from "../../convex/lib/authErrors";
+import { MissingTaxRuleError } from "@/lib/tax/errors";
 import {
   FRIENDLY_FALLBACK,
   FRIENDLY_MESSAGES,
@@ -281,6 +282,20 @@ describe("friendly-error", () => {
       expect(msg(new Error("Email not verified"))).toBe(
         FRIENDLY_MESSAGES.unverified,
       );
+      expect(msg(new Error("Confirm your email"))).toBe(
+        FRIENDLY_MESSAGES.unverified,
+      );
+      expect(msg(new Error("Email verification required"))).toBe(
+        FRIENDLY_MESSAGES.unverified,
+      );
+    });
+
+    it("does not treat tax-rule 'unverified-candidate' copy as email verification", () => {
+      const err = new Error(
+        'Missing tax rule "business_tax.capital_gains_integration". This figure has not been verified/seeded in the tax_rules table for the active (or unverified-candidate) rule version — refusing to fall back to a hardcoded rate.',
+      );
+      expect(msg(err)).toBe(FRIENDLY_FALLBACK);
+      expect(msg(err)).not.toBe(FRIENDLY_MESSAGES.unverified);
     });
 
     it("formats rate-limit wait copy", () => {
@@ -442,6 +457,19 @@ describe("friendly-error", () => {
       const out = msg(err);
       expect(out).toBe(FRIENDLY_MESSAGES.missingTaxRule);
       expect(out).not.toContain("vat.standard_rate");
+    });
+
+    it("maps MissingTaxRuleError before email-verification wording, even when the message contains unverified-candidate", () => {
+      const err = new MissingTaxRuleError(
+        "business_tax",
+        "capital_gains_integration",
+      );
+      expect(err.message).toMatch(/unverified-candidate/);
+      const out = msg(err);
+      expect(out).toBe(FRIENDLY_MESSAGES.missingTaxRule);
+      expect(out).not.toBe(FRIENDLY_MESSAGES.unverified);
+      expect(out).not.toContain("unverified-candidate");
+      expect(out).not.toContain("capital_gains_integration");
     });
 
     it("logs a stack-free detail with the same 8 character ref", () => {
