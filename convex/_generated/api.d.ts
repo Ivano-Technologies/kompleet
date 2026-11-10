@@ -46,6 +46,7 @@ import type * as lib_profiles from "../lib/profiles.js";
 import type * as lib_reminderEmail from "../lib/reminderEmail.js";
 import type * as lib_storageAccess from "../lib/storageAccess.js";
 import type * as lib_triage from "../lib/triage.js";
+import type * as lib_uploadSafety from "../lib/uploadSafety.js";
 import type * as lib_workerAuth from "../lib/workerAuth.js";
 import type * as passwordReset from "../passwordReset.js";
 import type * as reminders from "../reminders.js";
@@ -101,6 +102,7 @@ declare const fullApi: ApiFromModules<{
   "lib/reminderEmail": typeof lib_reminderEmail;
   "lib/storageAccess": typeof lib_storageAccess;
   "lib/triage": typeof lib_triage;
+  "lib/uploadSafety": typeof lib_uploadSafety;
   "lib/workerAuth": typeof lib_workerAuth;
   passwordReset: typeof passwordReset;
   reminders: typeof reminders;

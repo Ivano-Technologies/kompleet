@@ -1,16 +1,24 @@
 import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
+import { internal } from "./_generated/api";
 import type { Doc, Id } from "./_generated/dataModel";
-import type { MutationCtx, QueryCtx } from "./_generated/server";
-import { mutation, query } from "./_generated/server";
+import type { ActionCtx, MutationCtx, QueryCtx } from "./_generated/server";
+import {
+  action,
+  internalMutation,
+  internalQuery,
+  mutation,
+  query,
+} from "./_generated/server";
 import { getCurrentUser } from "./lib/auth";
 import { newExternalId } from "./lib/ids";
 import {
   assertStorageAssignableToUser,
   userCanAccessStorageId,
 } from "./lib/storageAccess";
+import { inspectUpload, LIBRARY_MAX_BYTES } from "./lib/uploadSafety";
 
-const MAX_BYTES = 10 * 1024 * 1024;
+const MAX_BYTES = LIBRARY_MAX_BYTES;
 const SEARCH_SCAN = 80;
 
 const linkTypeValidator = v.union(
@@ -74,17 +82,6 @@ type FileFilter =
   | "attached"
   | "unattached";
 
-const ALLOWED_EXTENSIONS = [
-  ".pdf",
-  ".png",
-  ".jpg",
-  ".jpeg",
-  ".webp",
-  ".csv",
-  ".xlsx",
-  ".xls",
-] as const;
-
 function extensionOf(filename: string): string {
   const dot = filename.lastIndexOf(".");
   if (dot < 0) return "";
@@ -116,14 +113,27 @@ function fileKind(filename: string, contentType: string): FileKind {
   return "other";
 }
 
-function assertAllowedUpload(filename: string, size: number): void {
-  if (size > MAX_BYTES) {
+async function sniffLibraryUpload(
+  ctx: Pick<ActionCtx, "storage">,
+  args: { storageId: Id<"_storage">; filename: string; contentType: string; size: number },
+): Promise<{ filename: string; contentType: string }> {
+  if (args.size > MAX_BYTES) {
     throw new Error("File size must be less than 10MB");
   }
-  const ext = extensionOf(filename);
-  if (!ALLOWED_EXTENSIONS.includes(ext as (typeof ALLOWED_EXTENSIONS)[number])) {
-    throw new Error("Use PDF, image, or CSV.");
+  const blob = await ctx.storage.get(args.storageId);
+  if (!blob) {
+    throw new Error("File not found");
   }
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  const safe = inspectUpload({
+    filename: args.filename,
+    contentType: args.contentType,
+    bytes,
+    size: args.size,
+    maxBytes: MAX_BYTES,
+    kind: "library",
+  });
+  return { filename: safe.filename, contentType: safe.contentType };
 }
 
 function toApi(row: Doc<"uploadedFiles">) {
@@ -141,6 +151,8 @@ function toApi(row: Doc<"uploadedFiles">) {
     linkLabel: row.linkLabel ?? null,
   };
 }
+
+type FileApiShape = ReturnType<typeof toApi>;
 
 function matchesFilter(row: Doc<"uploadedFiles">, filter: FileFilter): boolean {
   const kind = fileKind(row.filename, row.contentType);
@@ -255,7 +267,17 @@ export const getUrl = query({
   handler: getUrlHandler,
 });
 
-export const saveFileMetadata = mutation({
+export const assertFileStorageAssignable = internalQuery({
+  args: { storageId: v.id("_storage") },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
+    await assertStorageAssignableToUser(ctx, user, args.storageId);
+    return null;
+  },
+});
+
+export const insertFileMetadata = internalMutation({
   args: {
     storageId: v.id("_storage"),
     filename: v.string(),
@@ -269,7 +291,6 @@ export const saveFileMetadata = mutation({
   handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx);
     await assertStorageAssignableToUser(ctx, user, args.storageId);
-    assertAllowedUpload(args.filename, args.size);
 
     let linkType = args.linkType;
     let linkId = args.linkId;
@@ -288,8 +309,8 @@ export const saveFileMetadata = mutation({
       userId: user._id,
       userExternalId: user.externalId,
       storageId: args.storageId,
-      filename: args.filename.trim() || "untitled",
-      contentType: args.contentType || "application/octet-stream",
+      filename: args.filename,
+      contentType: args.contentType,
       size: args.size,
       uploadedAt: now,
       uploadedBy: user._id,
@@ -304,6 +325,40 @@ export const saveFileMetadata = mutation({
       .unique();
     if (!row) throw new Error("File not found");
     return toApi(row);
+  },
+});
+
+export const saveFileMetadata = action({
+  args: {
+    storageId: v.id("_storage"),
+    filename: v.string(),
+    contentType: v.string(),
+    size: v.number(),
+    source: v.optional(sourceValidator),
+    linkType: v.optional(linkTypeValidator),
+    linkId: v.optional(v.string()),
+  },
+  returns: fileApi,
+  handler: async (ctx, args): Promise<FileApiShape> => {
+    await ctx.runQuery(internal.files.assertFileStorageAssignable, {
+      storageId: args.storageId,
+    });
+    let safe: { filename: string; contentType: string };
+    try {
+      safe = await sniffLibraryUpload(ctx, args);
+    } catch (error) {
+      await ctx.storage.delete(args.storageId).catch(() => {});
+      throw error;
+    }
+    return await ctx.runMutation(internal.files.insertFileMetadata, {
+      storageId: args.storageId,
+      filename: safe.filename,
+      contentType: safe.contentType,
+      size: args.size,
+      source: args.source,
+      linkType: args.linkType,
+      linkId: args.linkId,
+    });
   },
 });
 

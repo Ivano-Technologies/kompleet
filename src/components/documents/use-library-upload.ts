@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { useMutation } from "convex/react";
+import { useAction, useMutation } from "convex/react";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { api } from "@/lib/convex/browser";
 import { rejectDocsFile, type FileSource, type LibraryFile, type LinkType } from "./file-kind";
@@ -60,7 +60,7 @@ async function postToStorage(
 
 export function useLibraryUpload() {
   const generateUploadUrl = useMutation(api.files.generateUploadUrl);
-  const saveFileMetadata = useMutation(api.files.saveFileMetadata);
+  const saveFileMetadata = useAction(api.files.saveFileMetadata);
   const [state, setState] = useState<UploadState>({
     uploading: false,
     progress: 0,

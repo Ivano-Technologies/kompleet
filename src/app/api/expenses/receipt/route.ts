@@ -12,6 +12,10 @@ import { uploadToConvexStorage } from "@/lib/convex/store-file";
 import type { Id } from "../../../../../convex/_generated/dataModel";
 import { toFriendlyError, apiErrorBody } from "@/lib/friendly-error";
 import { withRateLimit } from "@/lib/with-rate-limit";
+import {
+  inspectUpload,
+  RECEIPT_MAX_BYTES,
+} from "../../../../../convex/lib/uploadSafety";
 
 async function handlePOST(request: NextRequest) {
   try {
@@ -21,24 +25,28 @@ async function handlePOST(request: NextRequest) {
     if (!(file instanceof File)) {
       return NextResponse.json({ ...apiErrorBody("No file provided") }, { status: 400 });
     }
-    if (!file.type.startsWith("image/")) {
-      return NextResponse.json({ ...apiErrorBody("Please select an image file") },
-        { status: 400 },
-      );
-    }
-    if (file.size > 8 * 1024 * 1024) {
-      return NextResponse.json({ ...apiErrorBody("Image size must be less than 8MB") },
-        { status: 400 },
-      );
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    let safe;
+    try {
+      safe = inspectUpload({
+        filename: file.name || "receipt",
+        contentType: file.type,
+        bytes,
+        size: file.size,
+        maxBytes: RECEIPT_MAX_BYTES,
+        kind: "image",
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Please select an image file";
+      return NextResponse.json({ ...apiErrorBody(message) }, { status: 400 });
     }
 
-    const storageId = await uploadToConvexStorage(convex, file, file.type);
-    const filename =
-      file.name && file.name.includes(".") ? file.name : "receipt.jpg";
-    await convex.mutation(api.files.saveFileMetadata, {
+    const blob = new Blob([bytes], { type: safe.contentType });
+    const storageId = await uploadToConvexStorage(convex, blob, safe.contentType);
+    await convex.action(api.files.saveFileMetadata, {
       storageId,
-      filename,
-      contentType: file.type || "image/jpeg",
+      filename: safe.filename,
+      contentType: safe.contentType,
       size: file.size,
       source: "expense_attach",
     });

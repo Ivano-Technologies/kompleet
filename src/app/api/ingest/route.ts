@@ -27,6 +27,10 @@ import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 import { rethrowIfNextControlFlow } from "@/lib/next-control-flow";
 import { IngestionRequest } from "@/lib/ingestion/types";
 import { apiErrorBody, friendlyErrorBody } from "@/lib/friendly-error";
+import {
+  inspectUpload,
+  INGEST_MAX_BYTES,
+} from "../../../../convex/lib/uploadSafety";
 
 /** `{ message, ref }` error body; logs the ref on the server. */
 function messageBody(text: string) {
@@ -50,13 +54,32 @@ async function handlePOST(request: NextRequest) {
       );
     }
 
-    const maxFileSize = 100 * 1024 * 1024;
+    const maxFileSize = INGEST_MAX_BYTES;
     if (file.size > maxFileSize) {
       return NextResponse.json(
         {
           success: false,
           ...messageBody(`File size exceeds 100 MB limit (${(file.size / 1024 / 1024).toFixed(2)} MB)`),
         },
+        { status: 400 },
+      );
+    }
+
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    try {
+      inspectUpload({
+        filename: file.name,
+        contentType: file.type,
+        bytes,
+        size: file.size,
+        maxBytes: INGEST_MAX_BYTES,
+        kind: "ingest",
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Unsupported file type";
+      return NextResponse.json(
+        { success: false, ...messageBody(message) },
         { status: 400 },
       );
     }

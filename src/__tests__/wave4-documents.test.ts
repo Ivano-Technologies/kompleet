@@ -110,6 +110,7 @@ describe("IVA-75 attach / preview / Convex storage", () => {
   it("uploads through Convex generateUploadUrl and saveFileMetadata", () => {
     expect(files).toMatch(/export const generateUploadUrl/);
     expect(files).toMatch(/export const saveFileMetadata/);
+    expect(files).toMatch(/inspectUpload/);
     expect(files).toMatch(/export const listFiles/);
     expect(files).toMatch(/export const getFileUrl/);
     expect(files).toMatch(/export const attachFile/);
@@ -121,6 +122,9 @@ describe("IVA-75 attach / preview / Convex storage", () => {
     );
     expect(read("src/components/documents/use-library-upload.ts")).toMatch(
       /open\("POST"/,
+    );
+    expect(read("src/components/documents/use-library-upload.ts")).toMatch(
+      /useAction/,
     );
     expect(invoiceSheet).toMatch(/source: "invoice_drop"/);
     expect(invoicePage).toMatch(/source: "invoice_drop"/);
