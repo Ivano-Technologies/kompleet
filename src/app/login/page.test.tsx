@@ -100,4 +100,11 @@ describe("LoginPage", () => {
     expect(screen.queryByText(/Database exploded/)).not.toBeInTheDocument();
     expect(screen.queryByTestId("error-ref")).not.toBeInTheDocument();
   });
+
+  it("shows Account deleted after a signed-out redirect", () => {
+    search = new URLSearchParams("deleted=1");
+    render(<LoginPage />);
+    expect(screen.getByRole("status")).toHaveTextContent("Account deleted");
+    expect(screen.queryByTestId("error-ref")).not.toBeInTheDocument();
+  });
 });

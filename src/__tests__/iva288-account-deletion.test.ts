@@ -15,6 +15,10 @@ describe("IVA-288 account deletion", () => {
     const api = read("src/app/api/auth/delete-account/route.ts");
     expect(modal).toMatch(/DeleteAccountDialog/);
     expect(modal).toMatch(/signOut/);
+    expect(modal).toMatch(/router\.replace\("\/login\?deleted=1"\)/);
+    const login = read("src/app/login/page.tsx");
+    expect(login).toMatch(/deleted"\) === "1"/);
+    expect(login).toMatch(/Account deleted/);
     expect(modal).not.toMatch(/Type DELETE to permanently/);
     expect(dialog).toMatch(/RETENTION_NOTE/);
     expect(dialog).toMatch(/Type\{" "\}/);

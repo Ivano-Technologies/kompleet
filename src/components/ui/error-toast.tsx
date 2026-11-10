@@ -9,7 +9,7 @@ const EVENT = "kompleet:error-toast";
 /**
  * Show a friendly error in a toast instead of a browser alert, so it gets
  * the muted ref line. Pass the output of `toFriendlyMessage` or plain copy
- * (a ref is issued and logged for plain copy).
+ * (a ref is issued only for unexpected plain copy).
  */
 export function notifyError(text: string, context = "toast"): void {
   if (typeof window === "undefined") return;

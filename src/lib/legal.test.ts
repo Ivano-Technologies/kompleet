@@ -55,15 +55,21 @@ describe("company legal URLs", () => {
     expect(COOKIE_POLICY_SOURCE_OF_TRUTH).toMatch(/source of truth/);
   });
 
-  it("308s /refunds to the company policy and /security to Kompleet /privacy", () => {
+  it("308s /refunds and /refunds/ to the company policy and 307s /security to /privacy", () => {
     const config = readFileSync(
       resolve(process.cwd(), "next.config.mjs"),
       "utf8",
     );
     expect(config).toMatch(
+      /source: "\/refunds\/",\s*destination: "https:\/\/www\.ivanotechnologies\.com\/refunds",\s*permanent: true,/,
+    );
+    expect(config).toMatch(
       /source: "\/refunds",\s*destination: "https:\/\/www\.ivanotechnologies\.com\/refunds",\s*permanent: true,/,
     );
     expect(config).toMatch(
+      /source: "\/security",\s*destination: "\/privacy",\s*permanent: false,/,
+    );
+    expect(config).not.toMatch(
       /source: "\/security",\s*destination: "\/privacy",\s*permanent: true,/,
     );
     expect(COMPANY_LEGAL.refunds).toBe(
@@ -79,5 +85,10 @@ describe("company legal URLs", () => {
     expect(terms).not.toMatch(/non-refundable/i);
     expect(terms).toMatch(/14-day refund window/);
     expect(terms).toMatch(/COMPANY_LEGAL\.refunds/);
+    expect(terms).toMatch(/one-off founding payment/);
+    expect(terms).toMatch(/price is shown at checkout/);
+    expect(terms).toMatch(/>\s*Refund Policy\s*</);
+    expect(terms).not.toMatch(/COMPANY_LEGAL\.refunds\.replace/);
+    expect(terms).not.toMatch(/9\.1 Free and Paid/);
   });
 });

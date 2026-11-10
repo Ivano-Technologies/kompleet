@@ -31,6 +31,9 @@ export const AUTH_LINK_MUTED =
 export const AUTH_ERROR =
   "mb-3 rounded-md border border-error/30 bg-error-bg p-2.5 text-sm text-error dark:bg-error-darkBg dark:text-error-dark";
 
+export const AUTH_SUCCESS =
+  "mb-3 rounded-md border border-green-200 bg-green-50 p-2.5 text-sm text-green-700 dark:border-green-800 dark:bg-green-900/20 dark:text-green-400";
+
 export const AUTH_FORM = "space-y-3";
 
 // text-4 / dark-text-4 measured 2.5:1 / 3.65:1 on the card; text-3 tokens clear 4.5:1.

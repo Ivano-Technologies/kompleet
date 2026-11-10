@@ -11,16 +11,6 @@ export const metadata: Metadata = {
   description: "Kompleet pricing.",
 };
 
-const included = [
-  "Bank statement import for 11 Nigerian banks",
-  "Expense tracking",
-  "Invoicing with payment tracking",
-  "CSV and PDF exports",
-  "P&L and balance sheet reports",
-  "Transaction categorization",
-  "Email support",
-];
-
 const lifetimeIncluded = [
   "All current features",
   "One payment, no monthly or annual fees",
@@ -63,32 +53,12 @@ export default function PricingPage() {
             Pricing
           </h1>
           <p className="mx-auto max-w-2xl text-base text-text-2 dark:text-dark-text-2">
-            A one-off lifetime plan is coming soon.
+            Access is through a one-off founding payment. The price is shown at
+            checkout.
           </p>
         </div>
 
-        <div className="mx-auto mb-12 grid max-w-5xl grid-cols-1 gap-6 md:grid-cols-2">
-          <div data-plan="current" className={PLAN_CARD}>
-            <div className="text-center">
-              <span className="mb-4 inline-flex items-center rounded-full border border-border bg-surface-2 px-3 py-1 text-xs font-bold uppercase tracking-wider text-text-2 dark:border-dark-border dark:bg-dark-surface-2 dark:text-dark-text-2">
-                Current access
-              </span>
-              <h2 className="font-display mb-2 text-4xl font-bold">₦0</h2>
-              <p className="mb-8 text-sm text-text-2 dark:text-dark-text-2">
-                Full access to what ships today
-              </p>
-            </div>
-
-            <PlanFeatureList features={included} />
-
-            <Link
-              href="/signup"
-              className="mt-auto flex min-h-11 items-center justify-center rounded-md bg-primary-fill py-3.5 text-center text-sm font-bold text-white hover:bg-primary-fill-hover focus-visible:ring-2 focus-visible:ring-link disabled:opacity-50"
-            >
-              Get started
-            </Link>
-          </div>
-
+        <div className="mx-auto mb-12 max-w-md">
           <div data-plan="lifetime" className={PLAN_CARD}>
             <div className="text-center">
               <span className="mb-4 inline-flex items-center rounded-full border border-border bg-surface-2 px-3 py-1 text-xs font-bold uppercase tracking-wider text-text-2 dark:border-dark-border dark:bg-dark-surface-2 dark:text-dark-text-2">
@@ -98,19 +68,27 @@ export default function PricingPage() {
                 Lifetime access
               </h2>
               <p className="mb-8 text-sm text-text-2 dark:text-dark-text-2">
-                One payment for lifetime access. Opening soon to founding users.
+                One-off founding payment. The price is shown at checkout.
               </p>
             </div>
 
             <PlanFeatureList features={lifetimeIncluded} />
 
-            <button
-              type="button"
-              disabled
-              className="mt-auto block min-h-11 w-full cursor-not-allowed rounded-md border border-border bg-surface-2 py-3.5 text-center text-sm font-bold text-text-2 dark:border-dark-border dark:bg-dark-surface-2 dark:text-dark-text-2"
+            <Link
+              href="/signup"
+              className="mt-auto flex min-h-11 items-center justify-center rounded-md bg-primary-fill py-3.5 text-center text-sm font-bold text-white hover:bg-primary-fill-hover focus-visible:ring-2 focus-visible:ring-link disabled:opacity-50"
             >
-              Coming soon
-            </button>
+              Get started
+            </Link>
+            <p className="mt-4 text-center text-sm text-text-2 dark:text-dark-text-2">
+              Already have an account?{" "}
+              <Link
+                href="/login"
+                className="font-bold text-primary hover:underline"
+              >
+                Sign in
+              </Link>
+            </p>
           </div>
         </div>
 

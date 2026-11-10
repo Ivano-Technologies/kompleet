@@ -27,6 +27,7 @@ import {
   flushSentry,
   isConvexResourceLimitError,
   isStatementSizeLimitError,
+  isExpectedUiErrorMessage,
   userFacingError,
 } from "@/lib/friendly-error";
 
@@ -582,5 +583,21 @@ describe("friendly-error", () => {
     expect(normalizeEmail("  A@B.COM ")).toBe("a@b.com");
     expect(isNetworkError(new Error("InvalidAccountId"))).toBe(false);
     expect(isNetworkError(new TypeError("Load failed"))).toBe(true);
+  });
+
+  it("classifies expected UI copy vs unexpected fallbacks", () => {
+    expect(isExpectedUiErrorMessage("Enter an amount greater than 0.")).toBe(
+      true,
+    );
+    expect(isExpectedUiErrorMessage(FRIENDLY_MESSAGES.invalidCredentials)).toBe(
+      true,
+    );
+    expect(isExpectedUiErrorMessage("Page not found")).toBe(true);
+    expect(isExpectedUiErrorMessage("Sign in to see this page.")).toBe(true);
+    expect(isExpectedUiErrorMessage("No access")).toBe(true);
+    expect(isExpectedUiErrorMessage(FRIENDLY_FALLBACK)).toBe(false);
+    expect(
+      isExpectedUiErrorMessage("We couldn't save this. Please try again."),
+    ).toBe(false);
   });
 });

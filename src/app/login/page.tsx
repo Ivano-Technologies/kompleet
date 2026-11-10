@@ -7,6 +7,7 @@ import { useAuthActions } from "@convex-dev/auth/react";
 import { AuthLayout } from "@/components/layout/AuthLayout";
 import {
   AUTH_ERROR,
+  AUTH_SUCCESS,
   AUTH_EYEBROW,
   AUTH_FORM,
   AUTH_INPUT,
@@ -32,6 +33,7 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirectTo") || "/dashboard";
+  const accountDeleted = searchParams.get("deleted") === "1";
   const { signIn } = useAuthActions();
 
   useEffect(() => {
@@ -77,6 +79,11 @@ function LoginForm() {
           Access your business financial dashboard.
         </p>
       </div>
+      {accountDeleted && (
+        <div className={AUTH_SUCCESS} role="status">
+          Account deleted
+        </div>
+      )}
       {error && (
         <div className={AUTH_ERROR}>
           <ErrorText text={error} issueGeneratedRef={false} />
