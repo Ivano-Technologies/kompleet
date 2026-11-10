@@ -1,5 +1,11 @@
 /** @type {import('tailwindcss').Config} */
 // KOMPLEET Design System — Option C teal lock (Kezie 26 Sep 2026, IVA-72)
+
+/** Space-separated RGB channels from globals.css. Keeps /opacity modifiers. */
+function rgb(channelVar) {
+  return `rgb(var(${channelVar}) / <alpha-value>)`;
+}
+
 module.exports = {
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
@@ -25,57 +31,59 @@ module.exports = {
           dk: "#252E32",
         },
 
-        // Semantic tokens follow html.dark CSS variables so landing/auth
-        // surfaces pick up the toggle even without a dark: class. Native
-        // form controls in globals.css already read the same variables.
-        bg: "rgb(var(--background) / <alpha-value>)",
+        // Theme surfaces follow :root / html.dark so bg-bg, bg-light-*, and
+        // dark:bg-dark-* all read CSS variables instead of compiled hex.
+        // Light channel values stay cream; dark channels stay brand navy.
+        bg: rgb("--background"),
         surface: {
-          DEFAULT: "rgb(var(--surface) / <alpha-value>)",
-          2: "rgb(var(--surface-2) / <alpha-value>)",
+          DEFAULT: rgb("--surface"),
+          2: rgb("--surface-2"),
         },
         border: {
-          DEFAULT: "rgb(var(--border) / <alpha-value>)",
-          hover: "rgb(var(--border-hover) / <alpha-value>)",
+          DEFAULT: rgb("--border"),
+          hover: rgb("--border-hover"),
         },
         text: {
-          1: "rgb(var(--text-primary) / <alpha-value>)",
-          2: "rgb(var(--text-secondary) / <alpha-value>)",
-          3: "rgb(var(--text-tertiary) / <alpha-value>)",
-          4: "rgb(var(--text-4) / <alpha-value>)",
+          1: rgb("--text-primary"),
+          2: rgb("--text-secondary"),
+          3: rgb("--text-tertiary"),
+          4: rgb("--text-4"),
         },
 
-        // Aliases so leftover light-* utility classes on legal/help resolve
-        // to Option C tokens without a full copy rewrite (token pass only).
+        // Leftover light-* utilities (legal/help/dashboard) follow the same
+        // switching channels as bg/surface/text.
         light: {
-          background: "#F4F1EB",
-          surface: "#FFFDF8",
-          border: "#DDD5C8",
+          background: rgb("--background"),
+          surface: rgb("--surface"),
+          border: rgb("--border"),
           text: {
-            primary: "#0D1B2A",
-            secondary: "#3D4A55",
-            tertiary: "#6B7280",
+            primary: rgb("--text-primary"),
+            secondary: rgb("--text-secondary"),
+            tertiary: rgb("--text-tertiary"),
           },
         },
 
+        // Always-navy channels. dark: variants and code wells stay brand navy
+        // even when a page is in light mode.
         dark: {
-          bg: "#080F18",
-          background: "#080F18",
+          bg: rgb("--dark-bg"),
+          background: rgb("--dark-bg"),
           surface: {
-            DEFAULT: "#0F1E2E",
-            2: "#162438",
+            DEFAULT: rgb("--dark-surface"),
+            2: rgb("--dark-surface-2"),
           },
           border: {
-            DEFAULT: "#1A3050",
-            hover: "#244060",
+            DEFAULT: rgb("--dark-border"),
+            hover: rgb("--dark-border-hover"),
           },
           text: {
-            1: "#F0F9FF",
-            primary: "#F0F9FF",
-            2: "#BAD8F5",
-            secondary: "#BAD8F5",
-            3: "#7BA8CC",
-            tertiary: "#7BA8CC",
-            4: "#4A7A9B",
+            1: rgb("--dark-text-1"),
+            primary: rgb("--dark-text-1"),
+            2: rgb("--dark-text-2"),
+            secondary: rgb("--dark-text-2"),
+            3: rgb("--dark-text-3"),
+            tertiary: rgb("--dark-text-3"),
+            4: rgb("--dark-text-4"),
           },
         },
 

@@ -43,6 +43,7 @@
   --charcoal: 255 255 255;
   /* #FFFFFF — on-teal button text */
 
+  /* Light channels — cream stone. html.dark remaps these to --dark-*. */
   --background: 244 241 235;
   /* #F4F1EB warm stone */
   --surface: 255 253 248;
@@ -62,36 +63,44 @@
   /* #6B7280 */
   --text-4: 156 163 175;
   /* #9CA3AF */
-  --surface-2: 235 230 220;
-  /* #EBE6DC */
+
+  /* Always-navy channels for dark-* utilities (code wells, dark: variants). */
+  --dark-bg: 8 15 24;
+  /* #080F18 */
+  --dark-surface: 15 30 46;
+  /* #0F1E2E */
+  --dark-surface-2: 22 36 56;
+  /* #162438 */
+  --dark-border: 26 48 80;
+  /* #1A3050 */
+  --dark-border-hover: 36 64 96;
+  /* #244060 */
+  --dark-text-1: 240 249 255;
+  /* #F0F9FF */
+  --dark-text-2: 186 216 245;
+  /* #BAD8F5 */
+  --dark-text-3: 123 168 204;
+  /* #7BA8CC */
+  --dark-text-4: 74 122 155;
+  /* #4A7A9B */
 
   /* Space reserved while the cookie banner is open (ResizeObserver). */
   --cookie-banner-height: 0px;
 }
 
-/* Dark Theme — brand navy palette (tailwind dark-* tokens), not the old slate. */
+/* Dark Theme — brand navy palette, not the old slate. */
 html.dark,
 :root.dark {
-  --background: 8 15 24;
-  /* #080F18 */
-  --surface: 15 30 46;
-  /* #0F1E2E */
-  --surface-2: 22 36 56;
-  /* #162438 */
-  --surface-hover: 22 36 56;
-  /* #162438 */
-  --border: 26 48 80;
-  /* #1A3050 */
-  --border-hover: 36 64 96;
-  /* #244060 */
-  --text-primary: 240 249 255;
-  /* #F0F9FF */
-  --text-secondary: 186 216 245;
-  /* #BAD8F5 */
-  --text-tertiary: 123 168 204;
-  /* #7BA8CC */
-  --text-4: 74 122 155;
-  /* #4A7A9B */
+  --background: var(--dark-bg);
+  --surface: var(--dark-surface);
+  --surface-2: var(--dark-surface-2);
+  --surface-hover: var(--dark-surface-2);
+  --border: var(--dark-border);
+  --border-hover: var(--dark-border-hover);
+  --text-primary: var(--dark-text-1);
+  --text-secondary: var(--dark-text-2);
+  --text-tertiary: var(--dark-text-3);
+  --text-4: var(--dark-text-4);
 }
 
 /* Base Styles */
