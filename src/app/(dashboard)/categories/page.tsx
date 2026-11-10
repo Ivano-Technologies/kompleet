@@ -5,13 +5,13 @@ import Link from "next/link";
 import {
   Tags,
   Pencil,
-  Plus,
   X,
   Save,
   Loader2,
   ArrowRight,
-  Lightbulb,
 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { hasPermission, type Role } from "@/lib/auth/rbac";
 import { apiErrorMessage, toFriendlyMessage } from "@/lib/friendly-error";
 import { ErrorText } from "@/components/ui/error-ref";
 
@@ -26,6 +26,9 @@ interface Category {
 }
 
 export default function CategoriesPage() {
+  const { user } = useAuth();
+  const role: Role = (user?.app_metadata?.role as Role | undefined) ?? "user";
+  const canEditCategories = hasPermission(role, "admin:manage_rules");
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -57,6 +60,7 @@ export default function CategoriesPage() {
   };
 
   const handleEdit = (category: Category) => {
+    if (!canEditCategories) return;
     setEditingId(category.id);
     setEditForm({
       name: category.name,
@@ -67,7 +71,7 @@ export default function CategoriesPage() {
   };
 
   const handleSave = async () => {
-    if (!editingId) return;
+    if (!canEditCategories || !editingId) return;
     try {
       const response = await fetch(`/api/categories/${editingId}`, {
         method: "PUT",
@@ -89,7 +93,7 @@ export default function CategoriesPage() {
   };
 
   const handleAddKeyword = () => {
-    if (!newKeyword.trim()) return;
+    if (!canEditCategories || !newKeyword.trim()) return;
     setEditForm({
       ...editForm,
       keywords: [...(editForm.keywords || []), newKeyword.trim()],
@@ -98,6 +102,7 @@ export default function CategoriesPage() {
   };
 
   const handleRemoveKeyword = (keyword: string) => {
+    if (!canEditCategories) return;
     setEditForm({
       ...editForm,
       keywords: (editForm.keywords || []).filter((k) => k !== keyword),
@@ -165,7 +170,9 @@ export default function CategoriesPage() {
             </h1>
           </div>
           <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
-            Manage transaction categories and keywords for auto-categorization
+            {canEditCategories
+              ? "Manage transaction categories and keywords for auto-categorization"
+              : "Transaction categories and keywords used for auto-categorization"}
           </p>
         </div>
         <Link
@@ -176,6 +183,23 @@ export default function CategoriesPage() {
         </Link>
       </div>
 
+      <div className="flex flex-wrap gap-2">
+        {["all", "income", "expense", "asset", "liability"].map((value) => (
+          <button
+            key={value}
+            type="button"
+            onClick={() => setFilter(value)}
+            className={`px-3 py-1 text-xs font-medium rounded-full border transition-colors ${
+              filter === value
+                ? "border-primary-500 bg-primary-500/10 text-primary-500"
+                : "border-light-border dark:border-dark-border text-light-text-secondary dark:text-dark-text-secondary"
+            }`}
+          >
+            {value}
+          </button>
+        ))}
+      </div>
+
       {/* Categories List */}
       <div className="space-y-3">
         {filteredCategories.map((category) => (
@@ -183,25 +207,149 @@ export default function CategoriesPage() {
             key={category.id}
             className="p-4 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface hover:border-primary-500/30 transition-colors"
           >
-            <div className="flex flex-wrap gap-1.5 mb-2">
-              <span
-                className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${
-                  typeColor[category.category_type] ||
-                  "bg-light-background dark:bg-dark-background text-light-text-secondary dark:text-dark-text-secondary"
-                }`}
-              >
-                {category.category_type}
-              </span>
+            {canEditCategories && editingId === category.id ? (
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1">
+                    Category name
+                  </label>
+                  <input
+                    type="text"
+                    value={editForm.name || ""}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, name: e.target.value })
+                    }
+                    disabled={category.is_system}
+                    className={inputCls}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1">
+                    Description
+                  </label>
+                  <textarea
+                    value={editForm.description || ""}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, description: e.target.value })
+                    }
+                    rows={2}
+                    className={inputCls}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1">
+                    Keywords
+                  </label>
+                  <div className="flex gap-2 mb-2">
+                    <input
+                      type="text"
+                      value={newKeyword}
+                      onChange={(e) => setNewKeyword(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleAddKeyword();
+                        }
+                      }}
+                      className={inputCls}
+                      placeholder="Add keyword"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddKeyword}
+                      className="px-3 py-2 text-sm rounded-lg bg-primary-500 text-white"
+                    >
+                      Add
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {(editForm.keywords || []).map((keyword) => (
+                      <span
+                        key={keyword}
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-primary-500/10 text-primary-500"
+                      >
+                        {keyword}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveKeyword(keyword)}
+                          className="hover:text-primary-400"
+                          aria-label={`Remove ${keyword}`}
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={handleSave}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 text-sm rounded-lg bg-primary-500 text-white"
+                  >
+                    <Save className="w-3.5 h-3.5" /> Save
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingId(null);
+                      setEditForm({});
+                    }}
+                    className="px-3 py-1.5 text-sm rounded-lg border border-light-border dark:border-dark-border"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="flex justify-between items-start gap-3 mb-2">
+                  <div>
+                    <h2 className="text-sm font-semibold text-light-text-primary dark:text-dark-text-primary">
+                      {category.name}
+                      {category.is_system && (
+                        <span className="ml-2 text-[10px] font-medium text-light-text-secondary dark:text-dark-text-secondary">
+                          System
+                        </span>
+                      )}
+                    </h2>
+                    {category.description && (
+                      <p className="text-xs text-light-text-secondary dark:text-dark-text-secondary mt-0.5">
+                        {category.description}
+                      </p>
+                    )}
+                  </div>
+                  {canEditCategories && (
+                    <button
+                      type="button"
+                      onClick={() => handleEdit(category)}
+                      className="inline-flex items-center gap-1 text-xs font-medium text-primary-500 hover:text-primary-400"
+                    >
+                      <Pencil className="w-3.5 h-3.5" /> Edit
+                    </button>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  <span
+                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${
+                      typeColor[category.category_type] ||
+                      "bg-light-background dark:bg-dark-background text-light-text-secondary dark:text-dark-text-secondary"
+                    }`}
+                  >
+                    {category.category_type}
+                  </span>
 
-              <span
-                className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${
-                  taxColor[category.tax_treatment] ||
-                  "bg-light-background dark:bg-dark-background text-light-text-secondary dark:text-dark-text-secondary"
-                }`}
-              >
-                {category.tax_treatment.replace("_", " ")}
-              </span>
-            </div>
+                  <span
+                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${
+                      taxColor[category.tax_treatment] ||
+                      "bg-light-background dark:bg-dark-background text-light-text-secondary dark:text-dark-text-secondary"
+                    }`}
+                  >
+                    {category.tax_treatment.replace("_", " ")}
+                  </span>
+                </div>
+              </>
+            )}
           </div>
         ))}
       </div>

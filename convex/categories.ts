@@ -1,6 +1,12 @@
 import { v } from "convex/values";
-import { internalMutation, mutation, query } from "./_generated/server";
-import { getCurrentUser } from "./lib/auth";
+import {
+  internalMutation,
+  mutation,
+  query,
+  type MutationCtx,
+} from "./_generated/server";
+import { getCurrentUser, isPlatformAdmin } from "./lib/auth";
+import { throwForbidden } from "./lib/errors";
 import { toMs } from "./lib/ids";
 
 const categoryApi = v.object({
@@ -56,6 +62,34 @@ export const getByExternalId = query({
   },
 });
 
+export async function updateByExternalIdHandler(
+  ctx: MutationCtx,
+  args: {
+    externalId: string;
+    name?: string;
+    description?: string;
+    keywords?: string[];
+  },
+) {
+  const me = await getCurrentUser(ctx);
+  // This table has no userId: every row is a shared/system category.
+  // User-owned custom categories live on expenseCategories (read-only public API).
+  if (!isPlatformAdmin(me)) throwForbidden();
+  const row = await ctx.db
+    .query("categories")
+    .withIndex("by_externalId", (q) => q.eq("externalId", args.externalId))
+    .unique();
+  if (!row) return null;
+  await ctx.db.patch(row._id, {
+    name: args.name ?? row.name,
+    description: args.description ?? row.description,
+    keywords: args.keywords ?? row.keywords,
+    updatedAt: Date.now(),
+  });
+  const updated = await ctx.db.get(row._id);
+  return updated ? toApi(updated) : null;
+}
+
 export const updateByExternalId = mutation({
   args: {
     externalId: v.string(),
@@ -64,22 +98,7 @@ export const updateByExternalId = mutation({
     keywords: v.optional(v.array(v.string())),
   },
   returns: v.union(categoryApi, v.null()),
-  handler: async (ctx, args) => {
-    await getCurrentUser(ctx);
-    const row = await ctx.db
-      .query("categories")
-      .withIndex("by_externalId", (q) => q.eq("externalId", args.externalId))
-      .unique();
-    if (!row) return null;
-    await ctx.db.patch(row._id, {
-      name: args.name ?? row.name,
-      description: args.description ?? row.description,
-      keywords: args.keywords ?? row.keywords,
-      updatedAt: Date.now(),
-    });
-    const updated = await ctx.db.get(row._id);
-    return updated ? toApi(updated) : null;
-  },
+  handler: updateByExternalIdHandler,
 });
 
 export const upsertFromBackfill = internalMutation({

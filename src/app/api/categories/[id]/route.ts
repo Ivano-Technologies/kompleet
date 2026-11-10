@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { api } from "@/lib/convex/http";
-import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
+import {
+  isForbidden,
+  isUnauthorized,
+  requireAuthedConvex,
+} from "@/lib/convex/server";
 import { friendlyErrorBody, apiErrorBody } from "@/lib/friendly-error";
 
 export const runtime = "nodejs";
@@ -38,6 +42,9 @@ async function handlePUT(
   } catch (error) {
     if (isUnauthorized(error)) {
       return NextResponse.json({ ...apiErrorBody("Unauthorized") }, { status: 401 });
+    }
+    if (isForbidden(error)) {
+      return NextResponse.json({ ...apiErrorBody("Forbidden") }, { status: 403 });
     }
     console.error("Error in PUT /api/categories/[id]:", error);
     return NextResponse.json(
