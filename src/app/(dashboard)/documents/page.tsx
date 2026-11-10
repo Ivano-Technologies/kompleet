@@ -30,6 +30,11 @@ import {
 import { useLibraryUpload } from "@/components/documents/use-library-upload";
 import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/ui/empty-state";
+import {
+  ListCardFooter,
+  LoadMoreButton,
+  showingCount,
+} from "@/components/ui/list-pager";
 
 const FILTERS: { id: DocsFilter; label: string }[] = [
   { id: "all", label: DOCS_COPY.filterAll },
@@ -259,9 +264,9 @@ function FileList({
   }
 
   return (
-    <div className="space-y-3">
-    <div className="divide-y divide-border rounded-xl border border-border bg-surface">
-      {rows.map((file) => (
+    <div className="rounded-xl border border-border bg-surface overflow-hidden">
+      <div className="divide-y divide-border">
+        {rows.map((file) => (
         <div
           key={file.id}
           className="flex flex-col sm:flex-row sm:items-center gap-3 px-4 py-3"
@@ -373,18 +378,15 @@ function FileList({
             </div>
           </div>
         </div>
-      ))}
-    </div>
-      {canLoadMore && (
-        <button
-          type="button"
-          className="text-sm font-medium text-primary"
-          disabled={loadingMore}
-          onClick={onLoadMore}
-        >
-          {loadingMore ? "Loading…" : DOCS_COPY.loadMore}
-        </button>
-      )}
+        ))}
+      </div>
+      <ListCardFooter
+        countLabel={showingCount(rows.length, "file", "files")}
+      >
+        {canLoadMore ? (
+          <LoadMoreButton loading={loadingMore} onClick={onLoadMore} />
+        ) : null}
+      </ListCardFooter>
     </div>
   );
 }

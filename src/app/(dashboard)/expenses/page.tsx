@@ -2,10 +2,15 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { Wallet, Plus, Search, ChevronRight } from "lucide-react";
+import { Wallet, ChevronRight } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { apiErrorMessage, toFriendlyMessage } from "@/lib/friendly-error";
 import { ErrorText } from "@/components/ui/error-ref";
+import {
+  ListCardFooter,
+  LoadMoreButton,
+  showingCount,
+} from "@/components/ui/list-pager";
 
 interface Expense {
   id: string;
@@ -161,56 +166,52 @@ export default function ExpensesPage() {
             />
           </div>
         ) : (
-          <ul className="divide-y divide-border">
-            {expenses.map((exp) => (
-              <li key={exp.id}>
-                <Link
-                  href={`/expenses/${exp.id}`}
-                  className="flex items-center justify-between gap-4 p-4 hover:bg-muted/50 transition-colors"
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium text-foreground truncate">
-                      {exp.vendor || "No vendor"}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {formatDate(exp.date)}
-                      {getCategoryName(exp.category_id)
-                        ? ` · ${getCategoryName(exp.category_id)}`
-                        : ""}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className="font-semibold text-primary">
-                      {formatCurrency(exp.amount, exp.currency)}
-                    </span>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <>
+            <ul className="divide-y divide-border">
+              {expenses.map((exp) => (
+                <li key={exp.id}>
+                  <Link
+                    href={`/expenses/${exp.id}`}
+                    className="flex items-center justify-between gap-4 p-4 hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-foreground truncate">
+                        {exp.vendor || "No vendor"}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {formatDate(exp.date)}
+                        {getCategoryName(exp.category_id)
+                          ? ` · ${getCategoryName(exp.category_id)}`
+                          : ""}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="font-semibold text-primary">
+                        {formatCurrency(exp.amount, exp.currency)}
+                      </span>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <ListCardFooter
+              countLabel={showingCount(
+                expenses.length,
+                "expense",
+                "expenses",
+              )}
+            >
+              {!isDone && nextCursor ? (
+                <LoadMoreButton
+                  loading={loadingMore}
+                  onClick={() => void fetchExpenses(nextCursor)}
+                />
+              ) : null}
+            </ListCardFooter>
+          </>
         )}
       </div>
-
-      {!loading && expenses.length > 0 && (
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-sm text-muted-foreground">
-            {isDone
-              ? `Showing ${expenses.length} of ${expenses.length} expense(s).`
-              : `Showing ${expenses.length} expense(s).`}
-          </p>
-          {!isDone && nextCursor && (
-            <button
-              type="button"
-              className="text-sm font-medium text-primary"
-              disabled={loadingMore}
-              onClick={() => void fetchExpenses(nextCursor)}
-            >
-              {loadingMore ? "Loading…" : "Load more"}
-            </button>
-          )}
-        </div>
-      )}
     </div>
   );
 }

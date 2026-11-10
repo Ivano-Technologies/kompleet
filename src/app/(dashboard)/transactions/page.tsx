@@ -6,8 +6,6 @@ import Link from "next/link";
 import {
   ArrowDown,
   ArrowUp,
-  ChevronLeft,
-  ChevronRight,
   Download,
   MoreVertical,
   Search,
@@ -24,6 +22,11 @@ import { TriageSheet, useTriageCount } from "@/components/review/TriageSheet";
 import { apiErrorMessage, toFriendlyMessage } from "@/lib/friendly-error";
 import { ErrorText } from "@/components/ui/error-ref";
 import { EmptyState } from "@/components/ui/empty-state";
+import {
+  ListCardFooter,
+  PageTurnButtons,
+  showingCount,
+} from "@/components/ui/list-pager";
 
 interface Transaction {
   id: string;
@@ -544,41 +547,28 @@ export default function TransactionsPage() {
                 </table>
               </div>
 
-              <div className="flex items-center justify-between px-5 py-3 border-t border-border">
-                <p className="text-xs text-text-3">
-                  Showing {(pagination.page - 1) * pagination.limit + 1} to{" "}
-                  {(pagination.page - 1) * pagination.limit + transactions.length}
-                  {knownTotal !== null
-                    ? ` of ${knownTotal.toLocaleString()} entries`
-                    : ""}
-                </p>
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() =>
-                      setCursors((stack) =>
-                        stack.length > 1 ? stack.slice(0, -1) : stack,
-                      )
-                    }
-                    disabled={pagination.page === 1}
-                    className="p-1.5 rounded-md hover:bg-surface-2 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-                  <span className="px-3 py-1 text-xs font-medium bg-primary text-white rounded-md">
-                    {pagination.page}
-                  </span>
-                  <button
-                    onClick={() => {
-                      if (pagination.isDone || !pagination.nextCursor) return;
-                      setCursors((stack) => [...stack, pagination.nextCursor]);
-                    }}
-                    disabled={pagination.isDone || !pagination.nextCursor}
-                    className="p-1.5 rounded-md hover:bg-surface-2 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
+              <ListCardFooter
+                countLabel={showingCount(
+                  transactions.length,
+                  "transaction",
+                  "transactions",
+                )}
+              >
+                <PageTurnButtons
+                  pageLabel={String(pagination.page)}
+                  prevDisabled={pagination.page === 1}
+                  nextDisabled={pagination.isDone || !pagination.nextCursor}
+                  onPrev={() =>
+                    setCursors((stack) =>
+                      stack.length > 1 ? stack.slice(0, -1) : stack,
+                    )
+                  }
+                  onNext={() => {
+                    if (pagination.isDone || !pagination.nextCursor) return;
+                    setCursors((stack) => [...stack, pagination.nextCursor]);
+                  }}
+                />
+              </ListCardFooter>
             </>
           )}
         </div>

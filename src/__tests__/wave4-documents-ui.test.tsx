@@ -72,6 +72,7 @@ describe("IVA-75 Documents hub UI", () => {
     expect(screen.getByRole("button", { name: "Attach" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Preview" })).toBeTruthy();
     expect(screen.getAllByText("Unattached").length).toBeGreaterThan(0);
+    expect(screen.getByText("Showing 1 file")).toBeTruthy();
   });
 });
 
