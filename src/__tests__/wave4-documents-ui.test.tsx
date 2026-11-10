@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 
 const emptyQuery = vi.hoisted(() => ({ current: true }));
+const paginatedStatus = vi.hoisted(() => ({ current: "Exhausted" as string }));
 const libraryFile = vi.hoisted(() => ({
   id: "file-1",
   storageId: "storage-1",
@@ -30,7 +31,7 @@ vi.mock("convex/react", () => ({
   useQuery: () => !emptyQuery.current,
   usePaginatedQuery: () => ({
     results: emptyQuery.current ? [] : [libraryFile],
-    status: "Exhausted",
+    status: paginatedStatus.current,
     loadMore: vi.fn(),
   }),
   useConvex: () => ({ query: vi.fn() }),
@@ -41,6 +42,7 @@ import DocumentsPage from "@/app/(dashboard)/documents/page";
 describe("IVA-75 Documents hub UI", () => {
   it("renders the empty hero with locked copy and Upload CTA", () => {
     emptyQuery.current = true;
+    paginatedStatus.current = "Exhausted";
     render(<DocumentsPage />);
     expect(screen.getByRole("heading", { name: "Documents" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Upload" })).toBeTruthy();
@@ -65,7 +67,9 @@ describe("IVA-75 Documents hub UI", () => {
 
   it("renders the strip, filters, and unattached row actions when files exist", () => {
     emptyQuery.current = false;
+    paginatedStatus.current = "CanLoadMore";
     render(<DocumentsPage />);
+    expect(screen.getByRole("button", { name: "Load more" })).toBeTruthy();
     expect(screen.getByText("invoice-scan.jpg")).toBeTruthy();
     expect(screen.getByRole("button", { name: "All" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Unattached" })).toBeTruthy();
@@ -73,6 +77,14 @@ describe("IVA-75 Documents hub UI", () => {
     expect(screen.getByRole("button", { name: "Preview" })).toBeTruthy();
     expect(screen.getAllByText("Unattached").length).toBeGreaterThan(0);
     expect(screen.getByText("Showing 1 file")).toBeTruthy();
+  });
+
+  it("keeps Load more visible and disabled while Convex is LoadingMore", () => {
+    emptyQuery.current = false;
+    paginatedStatus.current = "LoadingMore";
+    render(<DocumentsPage />);
+    const button = screen.getByRole("button", { name: /Loading/ });
+    expect(button).toBeDisabled();
   });
 });
 

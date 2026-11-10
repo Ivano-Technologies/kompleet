@@ -383,7 +383,7 @@ function FileList({
       <ListCardFooter
         countLabel={showingCount(rows.length, "file", "files")}
       >
-        {canLoadMore ? (
+        {canLoadMore || loadingMore ? (
           <LoadMoreButton loading={loadingMore} onClick={onLoadMore} />
         ) : null}
       </ListCardFooter>
