@@ -61,6 +61,8 @@ describe("VerifyEmailClient", () => {
   it("shows sentence case copy, expiry and resend, without the reclaim note", () => {
     render(<VerifyEmailClient />);
     expect(screen.getByRole("heading", { name: "Check your email" })).toBeInTheDocument();
+    expect(screen.getByText(/We sent an 8-digit code to/)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("8-digit code")).toBeInTheDocument();
     expect(screen.getByText(/expires in 15 minutes/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Verify email" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Resend code" })).toBeInTheDocument();

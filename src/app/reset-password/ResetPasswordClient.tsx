@@ -107,7 +107,7 @@ export default function ResetPasswordClient() {
         <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-accent/10">
           <KeyRound className="h-5 w-5 text-accent" />
         </div>
-        <h1 className={AUTH_TITLE}>Set New Password</h1>
+        <h1 className={AUTH_TITLE}>Set a new password</h1>
         <p className={AUTH_SUBTITLE}>
           Enter the 8-digit code from your email and choose a new password.
         </p>

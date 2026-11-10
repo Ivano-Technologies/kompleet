@@ -121,7 +121,7 @@ export default function VerifyEmailClient() {
         </div>
         <h1 className={AUTH_TITLE}>Check your email</h1>
         <p className={AUTH_SUBTITLE}>
-          We sent an 8 digit code to{" "}
+          We sent an 8-digit code to{" "}
           {email ? (
             <strong className="text-text-1 dark:text-dark-text-1">{email}</strong>
           ) : (
@@ -169,7 +169,7 @@ export default function VerifyEmailClient() {
               setCode(sanitiseAuthOtp(event.clipboardData.getData("text")));
             }}
             required
-            placeholder="8 digit code"
+            placeholder="8-digit code"
             className={AUTH_INPUT}
           />
         </div>

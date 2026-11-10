@@ -55,6 +55,9 @@ describe("ResetPasswordClient", () => {
 
   it("uses the shared back link and sentence-case update CTA", () => {
     render(<ResetPasswordClient />);
+    expect(
+      screen.getByRole("heading", { name: "Set a new password" }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Back to login" })).toHaveAttribute(
       "href",
       "/login",
