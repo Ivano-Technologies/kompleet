@@ -152,6 +152,19 @@ describe("mapAuthError", () => {
     expect(Sentry.captureException).not.toHaveBeenCalled();
   });
 
+  it("maps the prod proxy JSON {code} string the browser throws", () => {
+    const result = mapAuthError(
+      new Error(
+        JSON.stringify({ code: AUTH_ERROR_CODES.INVALID_CREDENTIALS }),
+      ),
+      "login",
+    );
+    expect(result.message).toBe(FRIENDLY_MESSAGES.invalidCredentials);
+    expect(result.known).toBe(true);
+    expect(authErrorText(result)).not.toMatch(/Ref:|Request ID/);
+    expect(Sentry.captureException).not.toHaveBeenCalled();
+  });
+
   it("masks login TOO_MANY_ATTEMPTS from the proxy string as doesn't match", () => {
     const result = mapAuthError(
       proxiedConvexError({

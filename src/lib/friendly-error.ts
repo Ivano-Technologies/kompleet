@@ -174,8 +174,8 @@ function extractConvexErrorJson(text: string): unknown | null {
 
 /**
  * Typed auth payload from a real ConvexError `.data`, or from the
- * `Uncaught ConvexError: {...}` string the Next.js `/api/auth` proxy returns
- * (it only forwards `error.message`, so `.data` never reaches the browser).
+ * `/api/auth` proxy body (`error` is `JSON.stringify({code})`, including
+ * after production redaction of `.message`).
  */
 export function authErrorDataFromUnknown(err: unknown): AuthErrorData | null {
   if (isConvexError(err) && isAuthErrorData(err.data)) return err.data;

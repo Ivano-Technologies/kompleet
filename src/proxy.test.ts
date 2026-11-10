@@ -1,12 +1,14 @@
 // @vitest-environment node
 /**
- * Runs requests through the real `src/proxy.ts`, which wraps the real
- * `convexAuthNextjsMiddleware` from `@convex-dev/auth`. Only the Convex
- * `signIn` action (`fetchAction`) and the Next request context
- * (`next/headers`) are mocked.
+ * Runs requests through the real `src/proxy.ts`. POST `/api/auth` uses
+ * `handleConvexAuthProxy`; other paths still wrap `convexAuthNextjsMiddleware`.
+ * Only the Convex `signIn` action (`fetchAction`) and the Next request
+ * context (`next/headers`) are mocked.
  */
+import { ConvexError } from "convex/values";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest, type NextFetchEvent } from "next/server";
+import { AUTH_ERROR_CODES } from "../convex/lib/authErrors";
 
 const { fetchAction, requestContext } = vi.hoisted(() => ({
   fetchAction: vi.fn(),
@@ -142,9 +144,81 @@ describe("proxy: ?code= exchange", () => {
     requestContext.current = request;
     const response = (await proxy(request, {} as NextFetchEvent)) as Response;
     expect(response.status).toBe(400);
+    const body = (await response.json()) as { error: string; code?: string };
+    expect(body.code).toBe(AUTH_ERROR_CODES.ACCOUNT_EXISTS);
+    expect(JSON.parse(body.error)).toEqual({
+      code: AUTH_ERROR_CODES.ACCOUNT_EXISTS,
+    });
+    expect(body.error).not.toMatch(/\bat\s+|Request ID|Server Error/);
+  });
+
+  it("forwards ConvexError.data when prod redacts the message", async () => {
+    const error = new ConvexError("[Request ID: 7f3a9c1e2b] Server Error");
+    (error as { data: unknown }).data = {
+      code: AUTH_ERROR_CODES.INVALID_CREDENTIALS,
+    };
+    fetchAction.mockRejectedValue(error);
+    const request = new NextRequest(`${ORIGIN}/api/auth`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        origin: ORIGIN,
+        host: "kompleet.test",
+      },
+      body: JSON.stringify({
+        action: "auth:signIn",
+        args: {
+          email: "nobody@example.com",
+          password: "wrongpass1",
+          flow: "signIn",
+        },
+      }),
+    });
+    requestContext.current = request;
+    const response = (await proxy(request, {} as NextFetchEvent)) as Response;
+    expect(response.status).toBe(400);
+    const body = (await response.json()) as { error: string; code?: string };
+    expect(body.code).toBe(AUTH_ERROR_CODES.INVALID_CREDENTIALS);
+    expect(JSON.parse(body.error)).toEqual({
+      code: AUTH_ERROR_CODES.INVALID_CREDENTIALS,
+    });
+    expect(JSON.stringify(body)).not.toMatch(/Request ID|Server Error|nobody@example/);
+  });
+
+  it("returns 400 for malformed JSON instead of 500", async () => {
+    const request = new NextRequest(`${ORIGIN}/api/auth`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        origin: ORIGIN,
+        host: "kompleet.test",
+      },
+      body: "{not-json",
+    });
+    requestContext.current = request;
+    const response = (await proxy(request, {} as NextFetchEvent)) as Response;
+    expect(fetchAction).not.toHaveBeenCalled();
+    expect(response.status).toBe(400);
     const body = (await response.json()) as { error: string };
-    expect(body.error).toContain('Uncaught ConvexError: {"code":"ACCOUNT_EXISTS"}');
-    expect(body.error).not.toMatch(/\bat\s+/);
+    expect(body.error).toBe("Invalid request");
+  });
+
+  it("returns 400 for an empty POST body", async () => {
+    const request = new NextRequest(`${ORIGIN}/api/auth`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        origin: ORIGIN,
+        host: "kompleet.test",
+      },
+      body: "",
+    });
+    requestContext.current = request;
+    const response = (await proxy(request, {} as NextFetchEvent)) as Response;
+    expect(fetchAction).not.toHaveBeenCalled();
+    expect(response.status).toBe(400);
+    const body = (await response.json()) as { error: string };
+    expect(body.error).toBe("Invalid request");
   });
 });
 
