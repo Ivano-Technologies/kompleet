@@ -86,7 +86,6 @@ export function AppSidebar() {
             <div className="text-sm font-semibold text-white truncate">
               Adaeze Okonkwo
             </div>
-            <div className="text-xs text-white/40">Free Beta · Lagos</div>
           </div>
         </div>
       </div>
