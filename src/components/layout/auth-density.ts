@@ -25,7 +25,7 @@ export const AUTH_SUBMIT =
 export const AUTH_LINK =
   "font-bold text-primary hover:underline dark:text-teal-400";
 
-/** Muted auth link (Back to Login etc.). */
+/** Muted auth link (Back to login etc.). */
 export const AUTH_LINK_MUTED =
   "text-xs text-text-3 hover:text-text-1 dark:text-dark-text-3 dark:hover:text-dark-text-1";
 

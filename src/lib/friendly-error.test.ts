@@ -1,13 +1,20 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import * as Sentry from "@sentry/nextjs";
+import { AUTH_ERROR_CODES } from "../../convex/lib/authErrors";
 import {
   FRIENDLY_FALLBACK,
   FRIENDLY_MESSAGES,
   UserFacingError,
   apiErrorMessage,
+  authErrorDataFromUnknown,
+  clientLogDetail,
   isNetworkError,
+  isRedactedConvexServerError,
   normalizeEmail,
+  rateLimitedMessage,
   responseError,
   stripErrorWrappers,
+  stripStackFrames,
   toFriendlyMessage,
   toFriendlyError,
   generateRef,
@@ -21,6 +28,17 @@ vi.mock("@sentry/nextjs", () => ({ captureException: vi.fn() }));
 
 const convexWrap = (inner: string) =>
   `[CONVEX A(auth:signIn)] [Request ID: 7f3a9c1e2b] Server Error\nUncaught Error: ${inner}\n    at handler (../convex/auth.ts:42:11)\n\n  Called by client`;
+
+/** Exact shape the Convex Auth Next.js `/api/auth` proxy throws in the browser. */
+const proxiedConvexError = (data: object) =>
+  new Error(
+    `[Request ID: 7f3a9c1e2b] Server Error\nUncaught ConvexError: ${JSON.stringify(data)}`,
+  );
+
+const proxiedConvexErrorWithStack = (data: object) =>
+  new Error(
+    `[Request ID: 7f3a9c1e2b] Server Error\nUncaught ConvexError: ${JSON.stringify(data)}\n    at throwAuthError (../../convex/lib/authErrors.ts:98:9)\n    at handler (../convex/auth.ts:42:11)`,
+  );
 
 class FakeConvexError extends Error {
   data: unknown;
@@ -40,6 +58,7 @@ describe("friendly-error", () => {
   beforeEach(() => {
     errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.mocked(Sentry.captureException).mockClear();
   });
   afterEach(() => {
     errorSpy.mockRestore();
@@ -106,6 +125,162 @@ describe("friendly-error", () => {
       );
       expect(msg(new Error("Could not verify code"))).toBe(
         FRIENDLY_MESSAGES.invalidCode,
+      );
+    });
+
+    it("maps typed ConvexError auth codes, including wait time", () => {
+      expect(
+        msg(new FakeConvexError({ code: AUTH_ERROR_CODES.INVALID_CODE })),
+      ).toBe(FRIENDLY_MESSAGES.invalidCode);
+      expect(
+        msg(new FakeConvexError({ code: AUTH_ERROR_CODES.EXPIRED_CODE })),
+      ).toBe(FRIENDLY_MESSAGES.invalidCode);
+      expect(
+        msg(new FakeConvexError({ code: AUTH_ERROR_CODES.ACCOUNT_EXISTS })),
+      ).toBe(FRIENDLY_MESSAGES.accountExists);
+      expect(
+        msg(new FakeConvexError({ code: AUTH_ERROR_CODES.INVALID_CREDENTIALS })),
+      ).toBe(FRIENDLY_MESSAGES.invalidCredentials);
+      expect(
+        msg(
+          new FakeConvexError({
+            code: AUTH_ERROR_CODES.RATE_LIMITED,
+            retryAfterSeconds: 47,
+          }),
+        ),
+      ).toBe("Too many attempts. Please wait 47 seconds and try again.");
+      expect(
+        msg(
+          new FakeConvexError({
+            code: AUTH_ERROR_CODES.TOO_MANY_ATTEMPTS,
+            retryAfterSeconds: 3600,
+          }),
+        ),
+      ).toBe("Too many attempts. Please wait an hour and try again.");
+    });
+
+    it("maps a redacted Server Error to the caller fallback but still reports to Sentry", () => {
+      const err = new Error("[Request ID: abc] Server Error");
+      expect(isRedactedConvexServerError(err)).toBe(true);
+      const result = toFriendlyError(err, FRIENDLY_FALLBACK, {
+        redactedFallback: FRIENDLY_MESSAGES.invalidCode,
+      });
+      expect(result.message).toBe(FRIENDLY_MESSAGES.invalidCode);
+      expect(result.known).toBe(false);
+      expect(result.hideRef).toBe(true);
+      expect(Sentry.captureException).toHaveBeenCalledWith(
+        err,
+        expect.anything(),
+      );
+    });
+
+    it("treats a redacted Server Error with no parseable code as a real fault", () => {
+      const err = new Error("[Request ID: abc] Server Error");
+      const result = toFriendlyError(err);
+      expect(result.message).toBe(FRIENDLY_FALLBACK);
+      expect(result.known).toBe(false);
+      expect(result.hideRef).toBe(true);
+      expect(Sentry.captureException).toHaveBeenCalledWith(
+        err,
+        expect.anything(),
+      );
+    });
+
+    it("parses typed codes from the real /api/auth proxy string, including RATE_LIMITED wait time", () => {
+      const cases: Array<{
+        data: object;
+        message: string;
+      }> = [
+        {
+          data: { code: AUTH_ERROR_CODES.ACCOUNT_EXISTS },
+          message: FRIENDLY_MESSAGES.accountExists,
+        },
+        {
+          data: {
+            code: AUTH_ERROR_CODES.TOO_MANY_ATTEMPTS,
+            retryAfterSeconds: 3600,
+          },
+          message: "Too many attempts. Please wait an hour and try again.",
+        },
+        {
+          data: {
+            code: AUTH_ERROR_CODES.RATE_LIMITED,
+            retryAfterSeconds: 47,
+          },
+          message: "Too many attempts. Please wait 47 seconds and try again.",
+        },
+        {
+          data: { code: AUTH_ERROR_CODES.INVALID_CODE },
+          message: FRIENDLY_MESSAGES.invalidCode,
+        },
+        {
+          data: { code: AUTH_ERROR_CODES.INVALID_CREDENTIALS },
+          message: FRIENDLY_MESSAGES.invalidCredentials,
+        },
+        {
+          data: { code: AUTH_ERROR_CODES.EXPIRED_CODE },
+          message: FRIENDLY_MESSAGES.invalidCode,
+        },
+      ];
+      for (const { data, message } of cases) {
+        const err = proxiedConvexError(data);
+        expect(err).not.toHaveProperty("data");
+        expect(authErrorDataFromUnknown(err)).toEqual(data);
+        const result = toFriendlyError(err);
+        expect(result.message).toBe(message);
+        expect(result.known).toBe(true);
+        expect(result.hideRef).toBe(true);
+        expect(result.message).not.toMatch(/at throwAuthError|Request ID|Server Error/);
+      }
+      expect(Sentry.captureException).not.toHaveBeenCalled();
+    });
+
+    it("strips the proxied server stack from display copy and client logs", () => {
+      const err = proxiedConvexErrorWithStack({
+        code: AUTH_ERROR_CODES.ACCOUNT_EXISTS,
+      });
+      const result = toFriendlyError(err);
+      expect(result.message).toBe(FRIENDLY_MESSAGES.accountExists);
+      expect(result.message).not.toMatch(/\bat\s+/);
+      const logged = clientLogDetail(err) as { message: string };
+      expect(logged.message).not.toMatch(/\bat\s+/);
+      expect(stripStackFrames(err.message)).not.toMatch(/\bat\s+/);
+      expect(stripErrorWrappers(err.message)).toBe('{"code":"ACCOUNT_EXISTS"}');
+      expect(warnSpy.mock.calls[0][1]).toEqual(logged);
+      expect(JSON.stringify(warnSpy.mock.calls[0][1])).not.toMatch(/\bat\s+/);
+    });
+
+    it("does not report expected auth errors to Sentry", () => {
+      const result = toFriendlyError(new Error("Could not verify code"));
+      expect(result.known).toBe(true);
+      expect(result.message).toBe(FRIENDLY_MESSAGES.invalidCode);
+      expect(Sentry.captureException).not.toHaveBeenCalled();
+    });
+
+    it("reports unexpected errors to Sentry", () => {
+      const err = new Error("[Request ID: abc] Server Error");
+      const result = toFriendlyError(err);
+      expect(result.known).toBe(false);
+      expect(result.message).toBe(FRIENDLY_FALLBACK);
+      expect(Sentry.captureException).toHaveBeenCalledWith(
+        err,
+        expect.anything(),
+      );
+    });
+
+    it("maps an unverified account", () => {
+      expect(msg(new Error("Email not verified"))).toBe(
+        FRIENDLY_MESSAGES.unverified,
+      );
+    });
+
+    it("formats rate-limit wait copy", () => {
+      expect(rateLimitedMessage(null)).toBe(FRIENDLY_MESSAGES.rateLimited);
+      expect(rateLimitedMessage(1)).toBe(
+        "Too many attempts. Please wait 1 second and try again.",
+      );
+      expect(rateLimitedMessage(90)).toBe(
+        "Too many attempts. Please wait 2 minutes and try again.",
       );
     });
 
@@ -201,13 +376,13 @@ describe("friendly-error", () => {
       expect(out).not.toContain("vat.standard_rate");
     });
 
-    it("logs the raw error with the same 8 character ref", () => {
+    it("logs a stack-free detail with the same 8 character ref", () => {
       const err = new Error("boom");
       const { ref } = toFriendlyError(err);
       expect(ref).toMatch(/^[A-Z0-9]{8}$/);
       expect(warnSpy).toHaveBeenCalledWith(
         expect.stringContaining(`[friendly-error] ref=${ref}`),
-        err,
+        { name: "Error", message: "boom" },
       );
       expect(errorSpy).not.toHaveBeenCalled();
     });

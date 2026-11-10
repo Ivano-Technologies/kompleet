@@ -79,9 +79,7 @@ test.describe("Auth flow", () => {
     const email = `e2e-${runId()}@example.test`;
 
     await page.goto("/signup");
-    await expect(page.getByTestId("reclaim-note")).toHaveText(
-      "Already used Kompleet with this email? Sign up with the same address to keep your books.",
-    );
+    await expect(page.getByText(/Already used Kompleet/)).toHaveCount(0);
 
     await fillHydrated(
       page.getByPlaceholder(SIGNUP_SELECTORS.firstName, { exact: true }),
@@ -142,11 +140,45 @@ test.describe("Auth flow", () => {
     await expect(inPageError(page, message)).toBeVisible();
   });
 
-  test("the login page shows the reclaim note", async ({ page }) => {
-    await page.goto("/login");
-    await expect(page.getByTestId("reclaim-note")).toHaveText(
-      "Already used Kompleet with this email? Sign up with the same address to keep your books.",
-    );
+  test("verify-email sanitises a pasted code that includes punctuation", async ({
+    page,
+  }) => {
+    await page.goto("/verify-email?email=kezie@example.test");
+    const input = page.getByLabel("Verification code");
+    await expect(input).toBeVisible();
+    await expect(page.getByRole("button", { name: "Verify email" })).toBeDisabled();
+
+    await input.focus();
+    await page.evaluate(async () => {
+      const dt = new DataTransfer();
+      dt.setData("text/plain", "85118942.");
+      document.activeElement?.dispatchEvent(
+        new ClipboardEvent("paste", { clipboardData: dt, bubbles: true, cancelable: true }),
+      );
+    });
+
+    await expect(input).toHaveValue("85118942");
+    await expect(page.getByRole("button", { name: "Verify email" })).toBeEnabled();
+  });
+
+  test("reset-password sanitises a pasted code that includes punctuation", async ({
+    page,
+  }) => {
+    await page.goto("/reset-password?email=kezie@example.test");
+    const input = page.getByLabel("Reset code");
+    await expect(input).toBeVisible();
+    await expect(page.getByRole("button", { name: "Update password" })).toBeDisabled();
+
+    await input.focus();
+    await page.evaluate(async () => {
+      const dt = new DataTransfer();
+      dt.setData("text/plain", "85118942.");
+      document.activeElement?.dispatchEvent(
+        new ClipboardEvent("paste", { clipboardData: dt, bubbles: true, cancelable: true }),
+      );
+    });
+
+    await expect(input).toHaveValue("85118942");
   });
 
   for (const route of PROTECTED_ROUTES) {

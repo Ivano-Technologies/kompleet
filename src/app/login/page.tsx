@@ -19,17 +19,10 @@ import {
   AUTH_TITLE_BLOCK,
 } from "@/components/layout/auth-density";
 import { Eye, EyeOff } from "lucide-react";
-import {
-  FRIENDLY_MESSAGES,
-  generateRef,
-  toFriendlyError,
-  withRef,
-} from "@/lib/friendly-error";
+import { generateRef, withRef } from "@/lib/friendly-error";
 import { ErrorText } from "@/components/ui/error-ref";
+import { authErrorText, mapAuthError } from "@/lib/auth/map-error";
 import { didSignInComplete, verifyEmailPath } from "@/lib/auth/sign-in-result";
-
-const RECLAIM_NOTE =
-  "Already used Kompleet with this email? Sign up with the same address to keep your books.";
 
 function LoginForm() {
   const [email, setEmail] = useState("");
@@ -73,17 +66,7 @@ function LoginForm() {
       router.push(redirectTo);
       router.refresh();
     } catch (err) {
-      const { message, ref } = toFriendlyError(err, FRIENDLY_MESSAGES.fallback, {
-        context: "login",
-      });
-      setError(
-        withRef(
-          message === FRIENDLY_MESSAGES.network || message === FRIENDLY_MESSAGES.rateLimited
-            ? message
-            : FRIENDLY_MESSAGES.invalidCredentials,
-          ref,
-        ),
-      );
+      setError(authErrorText(mapAuthError(err, "login")));
       setLoading(false);
     }
   };
@@ -97,7 +80,11 @@ function LoginForm() {
           Access your business financial dashboard.
         </p>
       </div>
-      {error && <div className={AUTH_ERROR}><ErrorText text={error} /></div>}
+      {error && (
+        <div className={AUTH_ERROR}>
+          <ErrorText text={error} issueGeneratedRef={false} />
+        </div>
+      )}
       <form onSubmit={handleSubmit} className={AUTH_FORM}>
         <div>
           <label className={AUTH_LABEL}>Business Email</label>
@@ -144,12 +131,6 @@ function LoginForm() {
           {loading ? "Signing in…" : "Sign in"}
         </button>
       </form>
-      <p
-        data-testid="reclaim-note"
-        className="mt-2 text-center text-xs tracking-normal [word-spacing:0.12em] text-text-3 dark:text-dark-text-3"
-      >
-        {RECLAIM_NOTE}
-      </p>
       <p className="mt-3 text-center text-xs text-text-3 dark:text-dark-text-3">
         New to Kompleet?{" "}
         <Link href="/signup" className={AUTH_LINK}>

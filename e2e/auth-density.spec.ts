@@ -3,8 +3,8 @@ import { expect, test, type Page } from "@playwright/test";
 const AUTH_ROUTES = [
   { path: "/signup", cta: /^Create account$/ },
   { path: "/login", cta: /Sign in/ },
-  { path: "/forgot-password", cta: /Send Reset Code/ },
-  { path: "/reset-password", cta: /Update Password/ },
+  { path: "/forgot-password", cta: /Send reset code/ },
+  { path: "/reset-password", cta: /Update password/ },
   { path: "/verify-email", cta: /Verify email/ },
 ] as const;
 
