@@ -89,9 +89,26 @@ async function main() {
       await shot(page, vp, "invoices_view_invoice", async () => {
         await page.goto(urlFor("invoices"), { waitUntil: "domcontentloaded" });
         await waitReady(page, "INV-001");
-        if (vp.width >= 768) {
-          await page.getByRole("button", { name: "View invoice" }).waitFor();
+        if (vp.width < 768) {
+          await page.getByRole("button", { name: "View invoice" }).evaluate((btn) => {
+            let node = btn.parentElement;
+            while (node && node !== document.body) {
+              const style = getComputedStyle(node);
+              if (style.display === "none") {
+                node.style.setProperty("display", "flex", "important");
+                node.style.setProperty("position", "fixed");
+                node.style.setProperty("inset", "0");
+                node.style.setProperty("z-index", "40");
+                node.style.setProperty("background", "white");
+                node.style.setProperty("overflow", "auto");
+              }
+              node = node.parentElement;
+            }
+          });
         }
+        await page.getByRole("button", { name: "View invoice" }).waitFor({
+          state: "visible",
+        });
       });
 
       await shot(page, vp, "invoice_detail_send", async () => {
@@ -124,6 +141,7 @@ async function main() {
 
       await shot(page, vp, "sidebar_full_name", async () => {
         await page.goto(urlFor("books"), { waitUntil: "domcontentloaded" });
+        await waitReady(page, "GTBank transfer");
         if (vp.width < 1024) {
           await page.addStyleTag({
             content:
@@ -147,13 +165,23 @@ async function main() {
         await page.goto(urlFor("export"), { waitUntil: "domcontentloaded" });
         await waitReady(page, "Export History");
         await page.getByText("Expires", { exact: false }).waitFor();
-        await page.getByRole("heading", { name: "Export History" }).scrollIntoViewIfNeeded();
+        await page
+          .getByRole("heading", { name: "Export History" })
+          .evaluate((el) => el.scrollIntoView({ block: "start" }));
+        await page
+          .locator("div.overflow-x-auto")
+          .filter({ hasText: "Expires" })
+          .evaluate((el) => {
+            el.scrollLeft = el.scrollWidth;
+          });
       });
 
       await shot(page, vp, "export_history_empty", async () => {
         await page.goto(urlFor("export-empty"), { waitUntil: "domcontentloaded" });
         await waitReady(page, "No exports yet");
-        await page.getByRole("heading", { name: "Export History" }).scrollIntoViewIfNeeded();
+        await page
+          .getByRole("heading", { name: "Export History" })
+          .evaluate((el) => el.scrollIntoView({ block: "start" }));
       });
 
       await shot(page, vp, "categories_subheading", async () => {
