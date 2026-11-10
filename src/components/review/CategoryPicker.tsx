@@ -3,16 +3,19 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { TRIAGE_COPY } from "./triage-copy";
+import { cn } from "@/lib/utils";
 import type { TriageCategory } from "@/lib/transactions/triage";
 
 export function CategoryPicker({
   categories,
   onPick,
   onClose,
+  className,
 }: {
   categories: TriageCategory[];
   onPick: (category: TriageCategory) => void;
   onClose: () => void;
+  className?: string;
 }) {
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -48,7 +51,10 @@ export function CategoryPicker({
   return (
     <div
       ref={rootRef}
-      className="absolute right-0 top-full z-20 mt-1.5 w-[280px] overflow-hidden rounded-xl border border-border bg-surface shadow-1"
+      className={cn(
+        "absolute right-0 top-full z-20 mt-1.5 w-[280px] overflow-hidden rounded-xl border border-border bg-surface shadow-1",
+        className,
+      )}
       role="listbox"
       aria-label={TRIAGE_COPY.pickerSearch}
     >

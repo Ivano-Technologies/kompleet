@@ -13,6 +13,7 @@ import { InvoiceDropZone } from "./InvoiceDropZone";
 import {
   createInvoiceDraft,
   issueInvoice,
+  resolveOrCreateClient,
   titleFromFile,
 } from "./invoice-actions";
 import { useLibraryUpload } from "@/components/documents/use-library-upload";
@@ -32,6 +33,7 @@ export function NewInvoiceSheet({
   const router = useRouter();
   const [clients, setClients] = useState<InvoiceClient[]>([]);
   const [customer, setCustomer] = useState<InvoiceClient | null>(null);
+  const [pendingName, setPendingName] = useState("");
   const [amount, setAmount] = useState("");
   const [addVat, setAddVat] = useState(true);
   const [description, setDescription] = useState("");
@@ -75,8 +77,26 @@ export function NewInvoiceSheet({
 
   if (!open) return null;
 
+  const rememberClient = (client: InvoiceClient) => {
+    setCustomer(client);
+    setClients((prev) =>
+      prev.some((row) => row.id === client.id) ? prev : [client, ...prev],
+    );
+  };
+
+  const clientForSave = async () => {
+    const client = await resolveOrCreateClient({
+      selected: customer,
+      pendingName,
+      clients,
+    });
+    if (client) rememberClient(client);
+    return client;
+  };
+
   const reset = () => {
     setCustomer(null);
+    setPendingName("");
     setAmount("");
     setAddVat(true);
     setDescription("");
@@ -89,8 +109,11 @@ export function NewInvoiceSheet({
     onClose();
   };
 
-  const validateQuick = (forIssue: boolean): string | null => {
-    if (forIssue && !customer) return INV_COPY.billtoRequired;
+  const validateQuick = (
+    forIssue: boolean,
+    resolvedClient?: InvoiceClient | null,
+  ): string | null => {
+    if (forIssue && !(resolvedClient ?? customer)) return INV_COPY.billtoRequired;
     if (forIssue && !hasBusinessName) return BIZ_COPY.blockLegalName;
     const value = Number(amount);
     if (!Number.isFinite(value) || value <= 0) return "Enter an amount greater than 0.";
@@ -106,8 +129,9 @@ export function NewInvoiceSheet({
     setBusy(true);
     setError(null);
     try {
+      const client = await clientForSave();
       const created = await createInvoiceDraft({
-        client: customer ?? undefined,
+        client: client ?? undefined,
         amount: Number(amount),
         addVat,
         description,
@@ -123,17 +147,18 @@ export function NewInvoiceSheet({
   };
 
   const issue = async () => {
-    const problem = validateQuick(true);
-    if (problem) {
-      setError(problem);
-      return;
-    }
-    if (!customer) return;
     setBusy(true);
     setError(null);
     try {
+      const client = await clientForSave();
+      const problem = validateQuick(true, client);
+      if (problem) {
+        setError(problem);
+        return;
+      }
+      if (!client) return;
       const created = await createInvoiceDraft({
-        client: customer,
+        client,
         amount: Number(amount),
         addVat,
         description,
@@ -141,7 +166,7 @@ export function NewInvoiceSheet({
       await issueInvoice(created.invoice_id);
       onCreated?.(created.invoice_id);
       close();
-      router.push(`/invoices/${created.invoice_id}`);
+      router.push(`/invoices/${created.invoice_id}?issued=1`);
     } catch (err) {
       setError(toFriendlyMessage(err, "We couldn't issue this invoice. Please try again."));
     } finally {
@@ -222,7 +247,8 @@ export function NewInvoiceSheet({
                   clients={clients}
                   value={customer}
                   onChange={setCustomer}
-                  onCreated={(created) => setClients((prev) => [created, ...prev])}
+                  onQueryChange={setPendingName}
+                  onCreated={rememberClient}
                 />
               </div>
             </label>
@@ -271,9 +297,13 @@ export function NewInvoiceSheet({
               <button
                 type="button"
                 className="btn-primary text-sm px-3 py-2 disabled:opacity-45"
-                disabled={busy || !customer || !hasBusinessName}
+                disabled={
+                  busy ||
+                  (!customer && !pendingName.trim()) ||
+                  !hasBusinessName
+                }
                 title={
-                  !customer
+                  !customer && !pendingName.trim()
                     ? INV_COPY.billtoRequired
                     : !hasBusinessName
                       ? BIZ_COPY.blockLegalName

@@ -7,6 +7,10 @@ import { notifyError } from "@/components/ui/error-toast";
 import { apiErrorMessage, toFriendlyMessage } from "@/lib/friendly-error";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Download } from "lucide-react";
+import {
+  formatExportExpiry,
+  shouldShowExportEmptyState,
+} from "@/lib/export-history-display";
 
 interface ExportHistory {
   id: string;
@@ -15,13 +19,14 @@ interface ExportHistory {
   tax_year: number | null;
   file_size: number;
   created_at: string;
-  expires_at: string;
+  expires_at: string | null;
 }
 
 export default function ExportCenterPage() {
   const { selectedYear } = useYear();
   const [isExporting, setIsExporting] = useState(false);
   const [exportHistory, setExportHistory] = useState<ExportHistory[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(true);
   const [consentGiven, setConsentGiven] = useState(false);
 
   useEffect(() => {
@@ -29,6 +34,7 @@ export default function ExportCenterPage() {
   }, []);
 
   async function fetchExportHistory() {
+    setHistoryLoading(true);
     try {
       const response = await fetch("/api/export/history");
       if (response.ok) {
@@ -37,6 +43,8 @@ export default function ExportCenterPage() {
       }
     } catch (error) {
       console.error("Failed to fetch export history:", error);
+    } finally {
+      setHistoryLoading(false);
     }
   }
 
@@ -273,7 +281,11 @@ export default function ExportCenterPage() {
           Export History
         </h2>
         <div className="mt-4 overflow-x-auto">
-          {exportHistory.length === 0 ? (
+          {historyLoading ? (
+            <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
+              Loading export history…
+            </p>
+          ) : shouldShowExportEmptyState(historyLoading, exportHistory.length) ? (
             <EmptyState
               icon={Download}
               title="No exports yet"
@@ -322,7 +334,7 @@ export default function ExportCenterPage() {
                       {formatDate(item.created_at)}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-light-text-tertiary dark:text-dark-text-tertiary">
-                      {formatDate(item.expires_at)}
+                      {formatExportExpiry(item.expires_at, item.created_at)}
                     </td>
                   </tr>
                 ))}

@@ -90,6 +90,19 @@ function displayName(
   return existing?.name ?? existing?.fullName;
 }
 
+/** Prefer a longer stored name (first + last) over a first-name-only leftover. */
+export function mergeStoredFullName(
+  existing: string | undefined,
+  next: string | undefined,
+): string | undefined {
+  const current = existing?.trim() ?? "";
+  const incoming = next?.trim() ?? "";
+  if (!current) return incoming || undefined;
+  if (!incoming) return current;
+  if (incoming.length > current.length) return incoming;
+  return current;
+}
+
 export function pendingSignupEmail(): string {
   return `unverified+${newExternalId()}@invalid.local`;
 }
@@ -156,7 +169,7 @@ export async function createOrUpdateAuthUser(
           await ctx.db.patch(byEmail._id, {
             email,
             name: reclaimedName,
-            fullName: byEmail.fullName ?? reclaimedName,
+            fullName: mergeStoredFullName(byEmail.fullName, reclaimedName),
             companyName: companyName || byEmail.companyName,
             supabaseUserId: byEmail.supabaseUserId ?? byEmail.externalId,
             emailVerificationTime: now,
@@ -178,7 +191,7 @@ export async function createOrUpdateAuthUser(
       await ctx.db.patch(existing._id, {
         email: emailTakenByOther ? existing.email : email || existing.email,
         name: nextName,
-        fullName: existing.fullName ?? nextName,
+        fullName: mergeStoredFullName(existing.fullName, nextName),
         companyName: companyName || existing.companyName,
         ...(verified ? { emailVerificationTime: now } : {}),
         updatedAt: now,
@@ -194,7 +207,7 @@ export async function createOrUpdateAuthUser(
       await ctx.db.patch(existing._id, {
         email: email || existing.email,
         name: nextName,
-        fullName: existing.fullName ?? nextName,
+        fullName: mergeStoredFullName(existing.fullName, nextName),
         supabaseUserId: existing.supabaseUserId ?? existing.externalId,
         ...(companyName ? { companyName } : {}),
         emailVerificationTime: now,

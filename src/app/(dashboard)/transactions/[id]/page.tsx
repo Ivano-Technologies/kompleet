@@ -101,6 +101,12 @@ export default function TransactionDetailsPage() {
     fetchCategories();
   }, [fetchTransaction, fetchCategories]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("edit") === "1") setEditing(true);
+  }, []);
+
   const handleSave = async () => {
     setSaving(true);
     setError(null);

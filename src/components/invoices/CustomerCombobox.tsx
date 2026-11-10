@@ -13,11 +13,13 @@ export function CustomerCombobox({
   value,
   onChange,
   onCreated,
+  onQueryChange,
 }: {
   clients: InvoiceClient[];
   value: InvoiceClient | null;
   onChange: (client: InvoiceClient | null) => void;
   onCreated: (client: InvoiceClient) => void;
+  onQueryChange?: (query: string) => void;
 }) {
   const [query, setQuery] = useState(value?.legal_name ?? "");
   const [open, setOpen] = useState(false);
@@ -32,6 +34,10 @@ export function CustomerCombobox({
   useEffect(() => {
     if (value) setQuery(value.legal_name);
   }, [value]);
+
+  useEffect(() => {
+    onQueryChange?.(query);
+  }, [onQueryChange, query]);
 
   const matches = useMemo(() => {
     const q = query.trim().toLowerCase();

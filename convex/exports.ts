@@ -9,6 +9,7 @@ import {
   paginationOptsFromArgs,
 } from "./lib/listPage";
 import { assertStorageAssignableToUser } from "./lib/storageAccess";
+import { exportExpiresAt, exportExpiresAtIso } from "./lib/exportExpiry";
 
 const exportApi = v.object({
   id: v.string(),
@@ -43,7 +44,7 @@ function toApi(row: {
     tax_year: row.taxYear ?? null,
     status: row.status,
     file_size: row.fileSize ?? null,
-    expires_at: row.expiresAt ? new Date(row.expiresAt).toISOString() : null,
+    expires_at: exportExpiresAtIso(row.createdAt, row.expiresAt),
     completed_at: row.completedAt
       ? new Date(row.completedAt).toISOString()
       : null,
@@ -100,6 +101,7 @@ export const createMine = mutation({
       status: args.status ?? "completed",
       fileSize: args.fileSize,
       storageId: args.storageId,
+      expiresAt: exportExpiresAt(now),
       completedAt: now,
       createdAt: now,
     });

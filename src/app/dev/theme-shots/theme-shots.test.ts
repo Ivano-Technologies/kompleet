@@ -20,6 +20,10 @@ const dashboardClient = readFileSync(
   resolve(process.cwd(), "src/app/(dashboard)/dashboard/DashboardClient.tsx"),
   "utf8",
 );
+const audit = readFileSync(
+  resolve(process.cwd(), "src/app/dev/theme-shots/audit/page.tsx"),
+  "utf8",
+);
 
 describe("theme-shot harness", () => {
   it("404s in production and wraps real DashboardShell with mocked auth", () => {
@@ -40,6 +44,11 @@ describe("theme-shot harness", () => {
     expect(books).toMatch(/min-w-0 max-w-0/);
     expect(books).toMatch(/Search transactions/);
     expect(books).toMatch(/₦12,450,000\.00/);
+    expect(audit).toMatch(/DashboardShell/);
+    expect(audit).toMatch(/Chukwuemeka Okonkwo-Adebayo/);
+    expect(audit).toMatch(/InvoicesPage/);
+    expect(audit).toMatch(/ConfirmDialog/);
+    expect(audit).toMatch(/installAuditShotFetch/);
   });
 
   it("blocks when NODE_ENV or VERCEL_ENV is production", () => {

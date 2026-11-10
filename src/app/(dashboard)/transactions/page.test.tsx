@@ -3,10 +3,13 @@
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import TransactionsPage from "./page";
 
+const { push } = vi.hoisted(() => ({ push: vi.fn() }));
+
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
+  useRouter: () => ({ push, replace: vi.fn() }),
 }));
 
 vi.mock("next/link", () => ({
@@ -31,6 +34,28 @@ vi.mock("@/components/review/TriageSheet", () => ({
     setCounts: vi.fn(),
     refresh: vi.fn(),
   }),
+}));
+
+vi.mock("@/components/review/CategoryPicker", () => ({
+  CategoryPicker: ({
+    categories,
+    onPick,
+  }: {
+    categories: Array<{ id: string; name: string }>;
+    onPick: (category: { id: string; name: string }) => void;
+  }) => (
+    <div>
+      {categories.map((category) => (
+        <button
+          key={category.id}
+          type="button"
+          onClick={() => onPick(category)}
+        >
+          {category.name}
+        </button>
+      ))}
+    </div>
+  ),
 }));
 
 type ListRow = {
@@ -62,9 +87,10 @@ function row(overrides: Partial<ListRow>): ListRow {
 function mockList(transactions: ListRow[]) {
   vi.stubGlobal(
     "fetch",
-    vi.fn(async (input: RequestInfo) => {
+    vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
       const url = String(input);
-      if (url.startsWith("/api/transactions?")) {
+      const method = init?.method ?? "GET";
+      if (url.startsWith("/api/transactions?") && method === "GET") {
         return {
           ok: true,
           json: async () => ({
@@ -78,7 +104,21 @@ function mockList(transactions: ListRow[]) {
           }),
         };
       }
-      throw new Error(`unexpected fetch: ${url}`);
+      if (url === "/api/categories") {
+        return {
+          ok: true,
+          json: async () => ({
+            categories: [{ id: "cat-sales", name: "Sales Revenue" }],
+          }),
+        };
+      }
+      if (url === "/api/transactions/triage" && method === "POST") {
+        return { ok: true, json: async () => ({ ok: true }) };
+      }
+      if (url.startsWith("/api/transactions/") && method === "DELETE") {
+        return { ok: true, json: async () => ({ ok: true }) };
+      }
+      throw new Error(`unexpected fetch: ${method} ${url}`);
     }),
   );
 }
@@ -137,5 +177,99 @@ describe("books list optional confidence (C3 / 15)", () => {
     expect(omittedCell?.textContent).not.toMatch(/\(%\)/);
     expect(zeroCell?.textContent).toMatch(/\(0%\)/);
     expect(partialCell?.textContent).toMatch(/\(42%\)/);
+  });
+});
+
+describe("books row actions menu", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("opens Edit, Delete with confirm, and Categorise from the row menu", async () => {
+    push.mockReset();
+    mockList([
+      row({
+        id: "txn-menu-1",
+        description: "Audit test sale — made-up",
+        category: sales,
+      }),
+    ]);
+    const user = userEvent.setup();
+    render(<TransactionsPage />);
+    await waitFor(() => {
+      expect(screen.getByText("Audit test sale — made-up")).toBeInTheDocument();
+    });
+
+    await user.click(
+      screen.getByRole("button", { name: "Transaction actions" }),
+    );
+    expect(screen.getByRole("menuitem", { name: "Edit" })).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: "Delete" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("menuitem", { name: "Categorise" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: "Edit" })).toHaveFocus();
+
+    await user.click(screen.getByRole("menuitem", { name: "Edit" }));
+    expect(push).toHaveBeenCalledWith("/transactions/txn-menu-1?edit=1");
+
+    await user.click(
+      screen.getByRole("button", { name: "Transaction actions" }),
+    );
+    await user.click(screen.getByRole("menuitem", { name: "Delete" }));
+    expect(
+      screen.getByRole("dialog", {
+        name: "Are you sure you want to delete this transaction?",
+      }),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Delete" }));
+    await waitFor(() => {
+      expect(vi.mocked(fetch).mock.calls.some(([url, init]) =>
+        String(url) === "/api/transactions/txn-menu-1" &&
+        (init as RequestInit | undefined)?.method === "DELETE",
+      )).toBe(true);
+    });
+
+    await user.click(
+      screen.getByRole("button", { name: "Transaction actions" }),
+    );
+    await user.click(screen.getByRole("menuitem", { name: "Categorise" }));
+    await user.click(await screen.findByRole("button", { name: "Sales Revenue" }));
+    await waitFor(() => {
+      const triage = vi.mocked(fetch).mock.calls.find(
+        ([url, init]) =>
+          String(url) === "/api/transactions/triage" &&
+          (init as RequestInit | undefined)?.method === "POST",
+      );
+      expect(triage).toBeTruthy();
+      expect(JSON.parse(String((triage?.[1] as RequestInit).body))).toMatchObject({
+        op: "categorise",
+        id: "txn-menu-1",
+        categoryId: "cat-sales",
+      });
+    });
+  });
+
+  it("closes the row menu on Escape and outside click", async () => {
+    mockList([
+      row({
+        id: "txn-menu-2",
+        description: "Audit escape row — made-up",
+      }),
+    ]);
+    const user = userEvent.setup();
+    render(<TransactionsPage />);
+    await waitFor(() => {
+      expect(screen.getByText("Audit escape row — made-up")).toBeInTheDocument();
+    });
+    await user.click(screen.getByRole("button", { name: "Transaction actions" }));
+    expect(screen.getByRole("menuitem", { name: "Edit" })).toBeInTheDocument();
+    await user.keyboard("{Escape}");
+    expect(screen.queryByRole("menuitem", { name: "Edit" })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Transaction actions" }));
+    expect(screen.getByRole("menuitem", { name: "Edit" })).toBeInTheDocument();
+    await user.click(screen.getByRole("heading", { name: "Books" }));
+    expect(screen.queryByRole("menuitem", { name: "Edit" })).not.toBeInTheDocument();
   });
 });

@@ -37,6 +37,7 @@ const adminItems: AdminItem[] = [
 
 interface SidebarProps {
   userEmail?: string;
+  userDisplayName?: string;
   userRole?: string;
   isMobileOpen: boolean;
   onMobileClose: () => void;
@@ -45,6 +46,7 @@ interface SidebarProps {
 
 export function Sidebar({
   userEmail,
+  userDisplayName,
   userRole,
   isMobileOpen,
   onMobileClose,
@@ -75,7 +77,8 @@ export function Sidebar({
     router.refresh();
   };
 
-  const userInitial = userEmail?.charAt(0).toUpperCase() || "U";
+  const sidebarName = userDisplayName?.trim() || userEmail || "User";
+  const userInitial = sidebarName.charAt(0).toUpperCase() || "U";
   const moreChildActive = isMoreChildActive(pathname);
   const moreActive = moreOpen || moreChildActive;
 
@@ -219,8 +222,11 @@ export function Sidebar({
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-white truncate">
-              {userEmail || "User"}
+              {sidebarName}
             </p>
+            {userDisplayName?.trim() && userEmail && userEmail !== sidebarName ? (
+              <p className="text-xs text-white/60 truncate">{userEmail}</p>
+            ) : null}
           </div>
         </Link>
 

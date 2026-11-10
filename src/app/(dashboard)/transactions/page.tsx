@@ -18,10 +18,14 @@ import type { StatementUploadResult } from "@/components/import/StatementDropZon
 import { ExceptionBanner, ImportToast } from "@/components/import/ImportToast";
 import { AddManualTransaction } from "@/components/import/AddManualTransaction";
 import { DROP_COPY } from "@/components/import/statement-copy";
+import { CategoryPicker } from "@/components/review/CategoryPicker";
 import { TriageSheet, useTriageCount } from "@/components/review/TriageSheet";
+import type { TriageCategory } from "@/lib/transactions/triage";
 import { apiErrorMessage, toFriendlyMessage } from "@/lib/friendly-error";
 import { ErrorText } from "@/components/ui/error-ref";
 import { EmptyState } from "@/components/ui/empty-state";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { AnchoredPortal } from "@/components/ui/anchored-portal";
 import {
   ListCardFooter,
   PageTurnButtons,
@@ -80,6 +84,13 @@ export default function TransactionsPage() {
   const [toast, setToast] = useState<StatementUploadResult | null>(null);
   const [showManual, setShowManual] = useState(false);
   const [triageOpen, setTriageOpen] = useState(false);
+  const [rowMenuId, setRowMenuId] = useState<string | null>(null);
+  const [rowMenuAnchor, setRowMenuAnchor] = useState<HTMLElement | null>(null);
+  const [categoriseId, setCategoriseId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<
+    { kind: "one"; id: string } | { kind: "bulk" } | null
+  >(null);
+  const [categories, setCategories] = useState<TriageCategory[]>([]);
   const { counts, setCounts, refresh: refreshTriage } = useTriageCount();
 
   const cursor = cursors[cursors.length - 1] ?? null;
@@ -164,9 +175,93 @@ export default function TransactionsPage() {
     setSelectedIds(next);
   };
 
+  const closeRowMenu = useCallback(() => {
+    setRowMenuId(null);
+    setRowMenuAnchor(null);
+    setCategoriseId(null);
+  }, []);
+
+  const loadCategories = useCallback(async () => {
+    if (categories.length > 0) return;
+    try {
+      const response = await fetch("/api/categories");
+      const data = (await response.json()) as {
+        categories?: TriageCategory[];
+      };
+      if (response.ok) setCategories(data.categories ?? []);
+    } catch {
+      /* picker can stay empty */
+    }
+  }, [categories.length]);
+
+  const handleDeleteOne = async (id: string) => {
+    closeRowMenu();
+    try {
+      const response = await fetch(`/api/transactions/${id}`, {
+        method: "DELETE",
+      });
+      if (response.ok) {
+        setError(null);
+        setDeleteTarget(null);
+        fetchTransactions();
+        void refreshTriage();
+      } else {
+        const data = await response.json().catch(() => ({}));
+        setError(
+          apiErrorMessage(
+            data,
+            "We couldn't delete this transaction. Please try again.",
+          ),
+        );
+      }
+    } catch (deleteError) {
+      setError(
+        toFriendlyMessage(
+          deleteError,
+          "We couldn't delete this transaction. Please try again.",
+        ),
+      );
+    }
+  };
+
+  const handleCategorise = async (id: string, category: TriageCategory) => {
+    closeRowMenu();
+    try {
+      const response = await fetch("/api/transactions/triage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          op: "categorise",
+          kind: "transaction",
+          id,
+          categoryId: category.id,
+        }),
+      });
+      if (response.ok) {
+        setError(null);
+        fetchTransactions();
+        void refreshTriage();
+      } else {
+        const data = await response.json().catch(() => ({}));
+        setError(
+          apiErrorMessage(
+            data,
+            "We couldn't categorise this transaction. Please try again.",
+          ),
+        );
+      }
+    } catch (categoriseError) {
+      setError(
+        toFriendlyMessage(
+          categoriseError,
+          "We couldn't categorise this transaction. Please try again.",
+        ),
+      );
+    }
+  };
+
   const handleBulkDelete = async () => {
     if (selectedIds.size === 0) return;
-    if (!confirm(`Delete ${selectedIds.size} transaction(s)?`)) return;
 
     try {
       const response = await fetch("/api/transactions", {
@@ -177,6 +272,7 @@ export default function TransactionsPage() {
 
       if (response.ok) {
         setSelectedIds(new Set());
+        setDeleteTarget(null);
         setError(null);
         fetchTransactions();
       } else {
@@ -404,7 +500,7 @@ export default function TransactionsPage() {
             selected
           </span>
           <button
-            onClick={handleBulkDelete}
+            onClick={() => setDeleteTarget({ kind: "bulk" })}
             className="text-sm bg-error hover:bg-error/90 text-white px-3 py-1.5 rounded-lg transition-colors"
           >
             Delete Selected
@@ -540,12 +636,95 @@ export default function TransactionsPage() {
                           </span>
                         </td>
                         <td
-                          className="px-2.5 sm:px-5 py-3.5 text-center"
+                          className="relative px-2.5 sm:px-5 py-3.5 text-center"
                           onClick={(e) => e.stopPropagation()}
                         >
-                          <button className="p-1.5 hover:bg-bg rounded-lg transition-colors">
+                          <button
+                            type="button"
+                            className="p-1.5 hover:bg-bg rounded-lg transition-colors"
+                            aria-label="Transaction actions"
+                            aria-expanded={rowMenuId === transaction.id}
+                            aria-haspopup="menu"
+                            onClick={(event) => {
+                              const opening = rowMenuId !== transaction.id;
+                              setRowMenuId(opening ? transaction.id : null);
+                              setRowMenuAnchor(
+                                opening ? event.currentTarget : null,
+                              );
+                              setCategoriseId(null);
+                            }}
+                          >
                             <MoreVertical className="w-4 h-4 text-text-3" />
                           </button>
+                          {rowMenuId === transaction.id && (
+                            <AnchoredPortal
+                              open
+                              anchor={rowMenuAnchor}
+                              onClose={closeRowMenu}
+                              align="end"
+                              role="menu"
+                            >
+                              <div className="w-40">
+                                <button
+                                  type="button"
+                                  className="block w-full text-left px-3 py-1.5 text-sm text-text-1 hover:bg-surface-2"
+                                  role="menuitem"
+                                  onClick={() => {
+                                    closeRowMenu();
+                                    router.push(
+                                      `/transactions/${transaction.id}?edit=1`,
+                                    );
+                                  }}
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  type="button"
+                                  className="block w-full text-left px-3 py-1.5 text-sm text-text-1 hover:bg-surface-2"
+                                  role="menuitem"
+                                  onClick={() => {
+                                    setCategoriseId(transaction.id);
+                                    setRowMenuId(null);
+                                    void loadCategories();
+                                  }}
+                                >
+                                  Categorise
+                                </button>
+                                <button
+                                  type="button"
+                                  className="block w-full text-left px-3 py-1.5 text-sm text-error hover:bg-error/10"
+                                  role="menuitem"
+                                  onClick={() => {
+                                    setDeleteTarget({
+                                      kind: "one",
+                                      id: transaction.id,
+                                    });
+                                    closeRowMenu();
+                                  }}
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            </AnchoredPortal>
+                          )}
+                          {categoriseId === transaction.id && (
+                            <AnchoredPortal
+                              open
+                              anchor={rowMenuAnchor}
+                              onClose={() => setCategoriseId(null)}
+                              align="end"
+                              className="p-0 border-0 bg-transparent shadow-none"
+                            >
+                              <CategoryPicker
+                                className="relative right-auto top-auto mt-0 z-0"
+                                categories={categories}
+                                onPick={(category) => {
+                                  void handleCategorise(transaction.id, category);
+                                }}
+                                onClose={() => setCategoriseId(null)}
+                              />
+                            </AnchoredPortal>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -606,6 +785,32 @@ export default function TransactionsPage() {
         onClose={() => setShowManual(false)}
         onCreated={() => void fetchTransactions()}
       />
+      {deleteTarget ? (
+        <ConfirmDialog
+          title={
+            deleteTarget.kind === "bulk"
+              ? `Delete ${selectedIds.size} transaction(s)?`
+              : "Are you sure you want to delete this transaction?"
+          }
+          confirmLabel="Delete"
+          confirmTone="danger"
+          onCancel={() => setDeleteTarget(null)}
+          onConfirm={() => {
+            switch (deleteTarget.kind) {
+              case "bulk":
+                void handleBulkDelete();
+                return;
+              case "one":
+                void handleDeleteOne(deleteTarget.id);
+                return;
+              default: {
+                const _exhaustive: never = deleteTarget;
+                return _exhaustive;
+              }
+            }
+          }}
+        />
+      ) : null}
     </div>
   );
 }
