@@ -11,6 +11,9 @@ import { emailSendLimitIdentifier } from "./lib/authResendLimit";
 import * as eraseAccount from "./lib/eraseAccount";
 
 export const KEEPER = "nn70z49qsbdrfwszjjwg74pbz98f05rp";
+export const KEEPER_EMAIL = "ivanonigeria@gmail.com";
+export const PURGE_ORPHANS_CONFIRM = "PURGE ORPHANS" as const;
+export const KEEPER_OWNER_CONFIRM = "KEEPER OWNER" as const;
 export const ALLOWED = new Set([
   "nn71j50ytsa4h90g3nb10remdn8hy0bn",
   "nn7287k0tc8bxc307ewt4v14ms8f6qaz",
@@ -52,9 +55,17 @@ export const EXPECTED_ORPHAN_SEQUENCES = 1;
 export const EXPECTED_ORPHAN_SEND_LIMITS = 1;
 export const EXPECTED_KEEPER_REFERENCED_STORAGE = 8;
 
+/** 24 Sep 00:00 WAT inclusive through 29 Sep 00:00 WAT exclusive. */
+export const ORPHAN_STORAGE_CREATED_FROM = Date.UTC(2026, 8, 23, 23);
+export const ORPHAN_STORAGE_CREATED_UNTIL = Date.UTC(2026, 8, 28, 23);
+
 type Plan = Record<string, Set<string>>;
 
-type StorageFile = { _id: Id<"_storage">; size?: number };
+type StorageFile = {
+  _id: Id<"_storage">;
+  size?: number;
+  _creationTime?: number;
+};
 
 const add = (plan: Plan, table: string, ids: string[]) => {
   plan[table] ??= new Set();
@@ -462,8 +473,11 @@ async function assertKeeperUntouched(ctx: MutationCtx, plan: Plan) {
       if (keeperIds.has(id)) {
         throw new Error(`Plan touches keeper ${table} row: abort`);
       }
-      if (table === "_storage" && keeperStorage.has(id)) {
-        throw new Error("Plan touches keeper storage file: abort");
+      if (table === "_storage") {
+        if (keeperStorage.has(id)) {
+          throw new Error("Plan touches keeper storage file: abort");
+        }
+        continue;
       }
       const row = (await ctx.db.get(asId(id))) as Record<string, unknown> | null;
       if (!row) continue;
@@ -691,6 +705,18 @@ async function buildOrphanPlan(ctx: MutationCtx) {
       unreferencedStorage.length,
     );
   }
+  for (const file of unreferencedStorage) {
+    const created = file._creationTime;
+    if (
+      typeof created !== "number" ||
+      created < ORPHAN_STORAGE_CREATED_FROM ||
+      created >= ORPHAN_STORAGE_CREATED_UNTIL
+    ) {
+      throw new Error(
+        "Refusing: unreferenced storage file outside 24-28 Sep 2026 WAT",
+      );
+    }
+  }
 
   const clients = await collectAll(ctx, "clients");
   const clientExt = new Set(clients.map((client) => client.externalId));
@@ -778,8 +804,11 @@ async function buildOrphanPlan(ctx: MutationCtx) {
 
 export async function purgeOrphansHandler(
   ctx: MutationCtx,
-  args: { dryRun: boolean },
+  args: { dryRun: boolean; confirm: string },
 ) {
+  if (args.confirm !== PURGE_ORPHANS_CONFIRM) {
+    throw new Error(`Refusing: confirm must be "${PURGE_ORPHANS_CONFIRM}"`);
+  }
   const built = await buildOrphanPlan(ctx);
   const storageIds = built.unreferencedStorage.map((file) => file._id);
   const sequenceIds = built.orphanSequences.map((row) => row._id);
@@ -807,7 +836,10 @@ export async function purgeOrphansHandler(
 }
 
 export const purgeOrphans = internalMutation({
-  args: { dryRun: v.boolean() },
+  args: {
+    confirm: v.literal(PURGE_ORPHANS_CONFIRM),
+    dryRun: v.boolean(),
+  },
   handler: async (ctx, args) => {
     return await purgeOrphansHandler(ctx, args);
   },
@@ -826,10 +858,16 @@ async function assertKeeperOwnsFirm(ctx: MutationCtx, keeper: Doc<"users">) {
 
 export async function makeKeeperOwnerSuperAdminHandler(
   ctx: MutationCtx,
-  args: { dryRun: boolean },
+  args: { dryRun: boolean; confirm: string },
 ) {
+  if (args.confirm !== KEEPER_OWNER_CONFIRM) {
+    throw new Error(`Refusing: confirm must be "${KEEPER_OWNER_CONFIRM}"`);
+  }
   const keeper = await ctx.db.get(asId<"users">(KEEPER));
   if (!keeper) throw new Error("Keeper row missing: abort");
+  if (keeper.email.trim().toLowerCase() !== KEEPER_EMAIL) {
+    throw new Error("Refusing: keeper email mismatch");
+  }
   const firms = await assertKeeperOwnsFirm(ctx, keeper);
   const before = {
     userId: keeper._id,
@@ -877,7 +915,10 @@ export async function makeKeeperOwnerSuperAdminHandler(
 }
 
 export const makeKeeperOwnerSuperAdmin = internalMutation({
-  args: { dryRun: v.boolean() },
+  args: {
+    confirm: v.literal(KEEPER_OWNER_CONFIRM),
+    dryRun: v.boolean(),
+  },
   handler: async (ctx, args) => {
     return await makeKeeperOwnerSuperAdminHandler(ctx, args);
   },

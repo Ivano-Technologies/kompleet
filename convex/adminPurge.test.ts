@@ -12,11 +12,17 @@ import {
   EXPECTED_UNREFERENCED_STORAGE,
   HIGHEST_PLATFORM_ROLE,
   KEEPER,
+  KEEPER_OWNER_CONFIRM,
+  ORPHAN_STORAGE_CREATED_FROM,
+  PURGE_ORPHANS_CONFIRM,
   STORAGE_REF_FIELDS,
   hardDeleteUserHandler,
   makeKeeperOwnerSuperAdminHandler,
   purgeOrphansHandler,
 } from "./adminPurge";
+
+const ORPHAN_CREATED_INSIDE = Date.UTC(2026, 8, 25, 12);
+const ORPHAN_CREATED_OUTSIDE = Date.UTC(2026, 8, 29, 0);
 
 const TARGET = [...ALLOWED][1]!;
 const ERASED = [...ALLOWED][0]!;
@@ -107,13 +113,21 @@ function fakeDb() {
     storageDeleted,
     db: {
       query: indexedQuery,
-      system: { query: indexedQuery },
       get: async (id: string) => {
-        for (const rows of Object.values(tables)) {
+        if (tables._storage.some((row) => row._id === id)) {
+          throw new Error("System tables can only be accessed with db.system.");
+        }
+        for (const [table, rows] of Object.entries(tables)) {
+          if (table === "_storage") continue;
           const row = rows.find((r) => r._id === id);
           if (row) return row;
         }
         return null;
+      },
+      system: {
+        query: indexedQuery,
+        get: async (id: string) =>
+          tables._storage.find((row) => row._id === id) ?? null,
       },
       insert: async (table: string, doc: Record<string, unknown>) => {
         const _id = `${table}:${nextId++}`;
@@ -438,23 +452,59 @@ function seedKeeperStorage(db: ReturnType<typeof fakeDb>) {
   return ids;
 }
 
-function seedExactOrphans(db: ReturnType<typeof fakeDb>, unreferenced = EXPECTED_UNREFERENCED_STORAGE) {
+function seedExactOrphans(
+  db: ReturnType<typeof fakeDb>,
+  opts: {
+    unreferenced?: number;
+    sequences?: number;
+    sendLimits?: number;
+    creationTime?: number;
+  } = {},
+) {
+  const unreferenced = opts.unreferenced ?? EXPECTED_UNREFERENCED_STORAGE;
+  const sequences = opts.sequences ?? EXPECTED_ORPHAN_SEQUENCES;
+  const sendLimits = opts.sendLimits ?? EXPECTED_ORPHAN_SEND_LIMITS;
+  const creationTime = opts.creationTime ?? ORPHAN_CREATED_INSIDE;
   for (let i = 0; i < unreferenced; i += 1) {
-    db.tables._storage.push({ _id: `storage:orphan-${i}`, size: 51 });
+    db.tables._storage.push({
+      _id: `storage:orphan-${i}`,
+      size: 51,
+      _creationTime: creationTime,
+    });
   }
-  db.tables.invoiceSequences.push({
-    _id: "invoiceSequences:orphan",
-    clientExternalId: ORPHAN_CLIENT_EXT,
-    taxYear: 2026,
-    nextNumber: 4,
-  });
-  db.tables.authEmailSendLimits.push({
-    _id: "authEmailSendLimits:orphan",
-    identifier: "password-reset:gone@example.com",
-    lastSentAt: 1,
-    hourStartedAt: 1,
-    hourCount: 1,
-  });
+  for (let i = 0; i < sequences; i += 1) {
+    db.tables.invoiceSequences.push({
+      _id: `invoiceSequences:orphan-${i}`,
+      clientExternalId: `${ORPHAN_CLIENT_EXT.slice(0, -1)}${i}`,
+      taxYear: 2026,
+      nextNumber: 4,
+    });
+  }
+  for (let i = 0; i < sendLimits; i += 1) {
+    db.tables.authEmailSendLimits.push({
+      _id: `authEmailSendLimits:orphan-${i}`,
+      identifier: `password-reset:gone${i}@example.com`,
+      lastSentAt: 1,
+      hourStartedAt: 1,
+      hourCount: 1,
+    });
+  }
+}
+
+function runPurgeOrphans(
+  db: ReturnType<typeof fakeDb>,
+  dryRun: boolean,
+  confirm: string = PURGE_ORPHANS_CONFIRM,
+) {
+  return purgeOrphansHandler(asCtx(db), { dryRun, confirm });
+}
+
+function runKeeperOwner(
+  db: ReturnType<typeof fakeDb>,
+  dryRun: boolean,
+  confirm: string = KEEPER_OWNER_CONFIRM,
+) {
+  return makeKeeperOwnerSuperAdminHandler(asCtx(db), { dryRun, confirm });
 }
 
 async function purge(db: ReturnType<typeof fakeDb>, userId: string, dryRun: boolean) {
@@ -555,8 +605,14 @@ describe("adminPurge", () => {
       expect(db.tables.authAccounts).toHaveLength(0);
       expect(db.tables.authVerifiers).toHaveLength(0);
       expect(db.tables.firms.map((row) => row._id)).toEqual(["firms:keeper"]);
-      const second = await purge(db, TARGET, false);
-      expect(second).toEqual({ alreadyGone: true });
+    });
+
+    it("returns alreadyGone on a second real run", async () => {
+      const db = fakeDb();
+      seedKeeper(db);
+      seedTargetLive(db);
+      await purge(db, TARGET, false);
+      expect(await purge(db, TARGET, false)).toEqual({ alreadyGone: true });
     });
 
     it("leaves keeper sequences when names, TIN, RC and invoice numbers match", async () => {
@@ -685,13 +741,13 @@ describe("adminPurge", () => {
       const db = fakeDb();
       seedReadyOrphans(db);
       const before = snapshot(db);
-      const result = await purgeOrphansHandler(asCtx(db), { dryRun: true });
+      const result = await runPurgeOrphans(db, true);
       expect(snapshot(db)).toBe(before);
       expect(result).toMatchObject({
         dryRun: true,
         unreferencedStorageCount: EXPECTED_UNREFERENCED_STORAGE,
-        orphanInvoiceSequenceIds: ["invoiceSequences:orphan"],
-        orphanAuthEmailSendLimitIds: ["authEmailSendLimits:orphan"],
+        orphanInvoiceSequenceIds: ["invoiceSequences:orphan-0"],
+        orphanAuthEmailSendLimitIds: ["authEmailSendLimits:orphan-0"],
         keeperUntouched: true,
       });
     });
@@ -699,7 +755,7 @@ describe("adminPurge", () => {
     it("keeps referenced files and deletes unreferenced ones", async () => {
       const db = fakeDb();
       const keeperFiles = seedReadyOrphans(db);
-      const result = await purgeOrphansHandler(asCtx(db), { dryRun: false });
+      const result = await runPurgeOrphans(db, false);
       expect(result).toMatchObject({
         dryRun: false,
         deletedStorageCount: EXPECTED_UNREFERENCED_STORAGE,
@@ -721,17 +777,101 @@ describe("adminPurge", () => {
       seedKeeperStorage(extraUser);
       seedExactOrphans(extraUser);
       extraUser.tables.users.push(userDoc(TARGET));
-      await expect(
-        purgeOrphansHandler(asCtx(extraUser), { dryRun: true }),
-      ).rejects.toThrow("keeper is not the only remaining user");
+      await expect(runPurgeOrphans(extraUser, true)).rejects.toThrow(
+        "keeper is not the only remaining user",
+      );
 
       const wrongCount = fakeDb();
       seedKeeper(wrongCount);
       seedKeeperStorage(wrongCount);
-      seedExactOrphans(wrongCount, EXPECTED_UNREFERENCED_STORAGE - 1);
-      await expect(
-        purgeOrphansHandler(asCtx(wrongCount), { dryRun: true }),
-      ).rejects.toThrow("unreferenced storage files");
+      seedExactOrphans(wrongCount, { unreferenced: EXPECTED_UNREFERENCED_STORAGE - 1 });
+      await expect(runPurgeOrphans(wrongCount, true)).rejects.toThrow(
+        "unreferenced storage files",
+      );
+    });
+
+    it("does not call ctx.db.get on _storage ids", async () => {
+      const db = fakeDb();
+      seedReadyOrphans(db);
+      const get = db.db.get;
+      db.db.get = async (id: string) => {
+        if (String(id).startsWith("storage:")) {
+          throw new Error("System tables can only be accessed with db.system.");
+        }
+        return await get(id);
+      };
+      await expect(runPurgeOrphans(db, true)).resolves.toMatchObject({
+        dryRun: true,
+        unreferencedStorageCount: EXPECTED_UNREFERENCED_STORAGE,
+      });
+    });
+
+    it("refuses an unreferenced file outside 24-28 Sep 2026 WAT", async () => {
+      const db = fakeDb();
+      seedKeeper(db);
+      seedKeeperStorage(db);
+      seedExactOrphans(db);
+      db.tables._storage.find((row) => row._id === "storage:orphan-0")!._creationTime =
+        ORPHAN_CREATED_OUTSIDE;
+      await expect(runPurgeOrphans(db, true)).rejects.toThrow(
+        "outside 24-28 Sep 2026 WAT",
+      );
+      expect(ORPHAN_CREATED_OUTSIDE).toBeGreaterThanOrEqual(
+        Date.UTC(2026, 8, 28, 23),
+      );
+      expect(ORPHAN_STORAGE_CREATED_FROM).toBe(Date.UTC(2026, 8, 23, 23));
+    });
+
+    it("refuses 52 unreferenced files", async () => {
+      const db = fakeDb();
+      seedKeeper(db);
+      seedKeeperStorage(db);
+      seedExactOrphans(db, { unreferenced: 52 });
+      await expect(runPurgeOrphans(db, true)).rejects.toThrow(
+        "unreferenced storage files",
+      );
+    });
+
+    it("refuses 0 or 2 orphan sequences and send-limit rows", async () => {
+      const zeroSeq = fakeDb();
+      seedKeeper(zeroSeq);
+      seedKeeperStorage(zeroSeq);
+      seedExactOrphans(zeroSeq, { sequences: 0 });
+      await expect(runPurgeOrphans(zeroSeq, true)).rejects.toThrow(
+        "orphan invoiceSequences rows",
+      );
+
+      const twoSeq = fakeDb();
+      seedKeeper(twoSeq);
+      seedKeeperStorage(twoSeq);
+      seedExactOrphans(twoSeq, { sequences: 2 });
+      await expect(runPurgeOrphans(twoSeq, true)).rejects.toThrow(
+        "orphan invoiceSequences rows",
+      );
+
+      const zeroLimit = fakeDb();
+      seedKeeper(zeroLimit);
+      seedKeeperStorage(zeroLimit);
+      seedExactOrphans(zeroLimit, { sendLimits: 0 });
+      await expect(runPurgeOrphans(zeroLimit, true)).rejects.toThrow(
+        "orphan authEmailSendLimits rows",
+      );
+
+      const twoLimit = fakeDb();
+      seedKeeper(twoLimit);
+      seedKeeperStorage(twoLimit);
+      seedExactOrphans(twoLimit, { sendLimits: 2 });
+      await expect(runPurgeOrphans(twoLimit, true)).rejects.toThrow(
+        "orphan authEmailSendLimits rows",
+      );
+    });
+
+    it("refuses a confirm mismatch", async () => {
+      const db = fakeDb();
+      seedReadyOrphans(db);
+      await expect(runPurgeOrphans(db, true, "HARD DELETE")).rejects.toThrow(
+        "confirm must be",
+      );
     });
   });
 
@@ -740,9 +880,7 @@ describe("adminPurge", () => {
       const db = fakeDb();
       seedKeeper(db);
       const before = snapshot(db);
-      const result = await makeKeeperOwnerSuperAdminHandler(asCtx(db), {
-        dryRun: true,
-      });
+      const result = await runKeeperOwner(db, true);
       expect(snapshot(db)).toBe(before);
       expect(result).toMatchObject({
         dryRun: true,
@@ -759,9 +897,7 @@ describe("adminPurge", () => {
     it("sets platformRole owner only and asserts firm ownership", async () => {
       const db = fakeDb();
       seedKeeper(db);
-      const result = await makeKeeperOwnerSuperAdminHandler(asCtx(db), {
-        dryRun: false,
-      });
+      const result = await runKeeperOwner(db, false);
       expect(db.tables.users[0]?.platformRole).toBe("owner");
       expect(db.tables.firms[0]?.ownerUserId).toBe(KEEPER);
       expect(result).toMatchObject({
@@ -773,9 +909,39 @@ describe("adminPurge", () => {
     it("throws if the keeper does not own a firm", async () => {
       const db = fakeDb();
       db.tables.users.push(userDoc(KEEPER, { email: "ivanonigeria@gmail.com" }));
-      await expect(
-        makeKeeperOwnerSuperAdminHandler(asCtx(db), { dryRun: true }),
-      ).rejects.toThrow("Keeper is not the firm owner: abort");
+      await expect(runKeeperOwner(db, true)).rejects.toThrow(
+        "Keeper is not the firm owner: abort",
+      );
+    });
+
+    it("refuses a keeper email mismatch", async () => {
+      const db = fakeDb();
+      seedKeeper(db, { email: "other@example.com" });
+      await expect(runKeeperOwner(db, true)).rejects.toThrow(
+        "keeper email mismatch",
+      );
+    });
+
+    it("refuses a confirm mismatch", async () => {
+      const db = fakeDb();
+      seedKeeper(db);
+      await expect(runKeeperOwner(db, true, "PURGE ORPHANS")).rejects.toThrow(
+        "confirm must be",
+      );
+    });
+
+    it("is idempotent when run twice", async () => {
+      const db = fakeDb();
+      seedKeeper(db);
+      await runKeeperOwner(db, false);
+      const afterFirst = snapshot(db);
+      const second = await runKeeperOwner(db, false);
+      expect(second).toMatchObject({
+        dryRun: false,
+        after: { platformRole: "owner", firmOwnerAsserted: true },
+      });
+      expect(db.tables.users[0]?.platformRole).toBe("owner");
+      expect(snapshot(db)).toBe(afterFirst);
     });
   });
 });
