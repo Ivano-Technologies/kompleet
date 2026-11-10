@@ -1,8 +1,38 @@
 import { v } from "convex/values";
-import { internalMutation, mutation, query } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
+import type { MutationCtx } from "./_generated/server";
+import { internalMutation, mutation, query } from "./_generated/server";
 import { getCurrentUser, getUserByExternalId } from "./lib/auth";
+import { throwForbidden } from "./lib/errors";
 import { assertDocumentWorkerToken } from "./lib/workerAuth";
+
+export async function appendHandler(
+  ctx: MutationCtx,
+  args: {
+    action: string;
+    resourceType?: string;
+    entityType?: string;
+    entityId?: string;
+    ipAddress?: string;
+    userAgent?: string;
+    metadata?: unknown;
+  },
+) {
+  const user = await getCurrentUser(ctx);
+  const id = await ctx.db.insert("auditLogs", {
+    userId: user._id,
+    userExternalId: user.externalId,
+    action: args.action,
+    resourceType: args.resourceType,
+    entityType: args.entityType,
+    entityId: args.entityId,
+    ipAddress: args.ipAddress,
+    userAgent: args.userAgent,
+    metadata: args.metadata,
+    createdAt: Date.now(),
+  });
+  return String(id);
+}
 
 export const append = mutation({
   args: {
@@ -15,29 +45,7 @@ export const append = mutation({
     metadata: v.optional(v.any()),
   },
   returns: v.union(v.string(), v.null()),
-  handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) return null;
-    let user;
-    try {
-      user = await getCurrentUser(ctx);
-    } catch {
-      user = null;
-    }
-    const id = await ctx.db.insert("auditLogs", {
-      userId: user?._id,
-      userExternalId: user?.externalId,
-      action: args.action,
-      resourceType: args.resourceType,
-      entityType: args.entityType,
-      entityId: args.entityId,
-      ipAddress: args.ipAddress,
-      userAgent: args.userAgent,
-      metadata: args.metadata,
-      createdAt: Date.now(),
-    });
-    return String(id);
-  },
+  handler: appendHandler,
 });
 
 export const appendForWorker = mutation({
@@ -119,17 +127,22 @@ export const listMine = query({
   },
 });
 
+export async function removeMineHandler(
+  ctx: MutationCtx,
+  args: { id: Id<"auditLogs"> },
+) {
+  const user = await getCurrentUser(ctx);
+  const row = await ctx.db.get(args.id);
+  if (!row) throw new Error("Audit log not found");
+  const owns =
+    row.userExternalId === user.externalId || row.userId === user._id;
+  if (!owns) throwForbidden();
+  await ctx.db.delete(args.id);
+  return null;
+}
+
 export const removeMine = mutation({
   args: { id: v.id("auditLogs") },
   returns: v.null(),
-  handler: async (ctx, args) => {
-    const user = await getCurrentUser(ctx);
-    const row = await ctx.db.get(args.id as Id<"auditLogs">);
-    if (!row) throw new Error("Audit log not found");
-    if (row.userExternalId !== user.externalId) {
-      throw new Error("Unauthorized");
-    }
-    await ctx.db.delete(args.id);
-    return null;
-  },
+  handler: removeMineHandler,
 });

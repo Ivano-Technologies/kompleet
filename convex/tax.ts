@@ -1,6 +1,16 @@
 import { v } from "convex/values";
-import { internalMutation, mutation, query } from "./_generated/server";
-import { getCurrentUser, getCurrentUserOrNull } from "./lib/auth";
+import {
+  internalMutation,
+  mutation,
+  query,
+  type MutationCtx,
+} from "./_generated/server";
+import {
+  getCurrentUser,
+  getCurrentUserOrNull,
+  isPlatformAdmin,
+} from "./lib/auth";
+import { throwForbidden } from "./lib/errors";
 import { newExternalId, toMs } from "./lib/ids";
 
 export const listRuleVersions = query({
@@ -572,6 +582,31 @@ export const deleteReport = mutation({
   },
 });
 
+export async function touchSourcesHandler(
+  ctx: MutationCtx,
+  args: { sourceExternalId?: string },
+) {
+  const me = await getCurrentUser(ctx);
+  if (!isPlatformAdmin(me)) throwForbidden();
+  const now = Date.now();
+  if (args.sourceExternalId) {
+    const row = await ctx.db
+      .query("sources")
+      .withIndex("by_externalId", (q) =>
+        q.eq("externalId", args.sourceExternalId!),
+      )
+      .unique();
+    if (!row) throw new Error("Source not found");
+    await ctx.db.patch(row._id, { updatedAt: now });
+    return { ok: true, checked: 1, sourceId: row.externalId };
+  }
+  const rows = await ctx.db.query("sources").collect();
+  for (const row of rows) {
+    await ctx.db.patch(row._id, { updatedAt: now });
+  }
+  return { ok: true, checked: "all" as const };
+}
+
 export const touchSources = mutation({
   args: { sourceExternalId: v.optional(v.string()) },
   returns: v.object({
@@ -579,26 +614,7 @@ export const touchSources = mutation({
     checked: v.union(v.number(), v.literal("all")),
     sourceId: v.optional(v.string()),
   }),
-  handler: async (ctx, args) => {
-    await getCurrentUser(ctx);
-    const now = Date.now();
-    if (args.sourceExternalId) {
-      const row = await ctx.db
-        .query("sources")
-        .withIndex("by_externalId", (q) =>
-          q.eq("externalId", args.sourceExternalId!),
-        )
-        .unique();
-      if (!row) throw new Error("Source not found");
-      await ctx.db.patch(row._id, { updatedAt: now });
-      return { ok: true, checked: 1, sourceId: row.externalId };
-    }
-    const rows = await ctx.db.query("sources").collect();
-    for (const row of rows) {
-      await ctx.db.patch(row._id, { updatedAt: now });
-    }
-    return { ok: true, checked: "all" as const };
-  },
+  handler: touchSourcesHandler,
 });
 
 export const upsertSourceFromBackfill = internalMutation({

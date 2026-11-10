@@ -3,7 +3,7 @@
  * (mobile / API clients).
  */
 import type { ConvexHttpClient } from "convex/browser";
-import { isConvexAuthError } from "./errors";
+import { isConvexAuthError, isConvexForbiddenError } from "./errors";
 import { api, createConvexHttpClient } from "./http";
 import {
   getCompatUser,
@@ -69,8 +69,13 @@ export function isUnauthorized(error: unknown): boolean {
   return error instanceof ConvexUnauthorizedError || isConvexAuthError(error);
 }
 
+export function isForbidden(error: unknown): boolean {
+  return isConvexForbiddenError(error);
+}
+
 export {
   isConvexArgumentExtraField,
   isConvexAuthError,
+  isConvexForbiddenError,
   isConvexFunctionMissing,
 } from "./errors";

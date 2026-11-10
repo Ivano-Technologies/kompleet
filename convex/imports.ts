@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { internalMutation, mutation, query } from "./_generated/server";
 import { getCurrentUser } from "./lib/auth";
 import { newExternalId, toMs } from "./lib/ids";
+import { assertStorageAssignableToUser } from "./lib/storageAccess";
 
 const sessionApi = v.object({
   id: v.string(),
@@ -95,6 +96,7 @@ export const attachStorage = mutation({
     if (!row || row.userId !== user._id) {
       throw new Error("Import session not found");
     }
+    await assertStorageAssignableToUser(ctx, user, args.storageId);
     await ctx.db.patch(row._id, { storageId: args.storageId });
     const updated = await ctx.db.get(row._id);
     if (!updated) throw new Error("Import session not found");
