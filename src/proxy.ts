@@ -22,26 +22,60 @@ import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
 import { addCorsHeaders } from "@/lib/cors";
 import { CONVEX_AUTH_API_ROUTE } from "@/lib/auth/convex-auth-api-route";
 import { redirectFailedCodeExchange } from "@/lib/auth/failed-code-exchange";
+import {
+  applySecurityHeaders,
+  attachCspRequestHeaders,
+  createNonce,
+} from "@/lib/security-headers.mjs";
+
+function isDevEnv(): boolean {
+  return process.env.NODE_ENV === "development";
+}
+
+function applyPageSecurity(
+  response: Response,
+  nonce: string,
+): void {
+  applySecurityHeaders(response, { nonce, isDev: isDevEnv() });
+}
 
 const handleAuthProxy = convexAuthNextjsMiddleware(async (request) => {
   const origin = request.headers.get("origin") || "";
+  // Same nonce the outer proxy stamped on this request — never mint a second
+  // one here, or Next.js would stamp scripts with a value the response CSP
+  // (applied after Convex Auth returns) would not allow.
+  const nonce = request.headers.get("x-nonce") ?? createNonce();
+  const requestHeaders = new Headers(request.headers);
+  attachCspRequestHeaders(requestHeaders, { nonce, isDev: isDevEnv() });
 
   if (request.method === "OPTIONS") {
     const response = new NextResponse(null, { status: 204 });
     addCorsHeaders(response, origin);
     response.headers.set("Access-Control-Max-Age", "86400");
+    applyPageSecurity(response, nonce);
     return response;
   }
 
-  const response = NextResponse.next({ request });
+  const response = NextResponse.next({
+    request: { headers: requestHeaders },
+  });
   addCorsHeaders(response, origin);
+  applyPageSecurity(response, nonce);
   return response;
 }, {
   apiRoute: CONVEX_AUTH_API_ROUTE,
 });
 
 export default async function proxy(request: NextRequest, event: NextFetchEvent) {
-  const response = await handleAuthProxy(request, event);
+  const nonce = createNonce();
+  const requestHeaders = new Headers(request.headers);
+  attachCspRequestHeaders(requestHeaders, { nonce, isDev: isDevEnv() });
+  const requestWithCsp = new NextRequest(request, { headers: requestHeaders });
+
+  const response = await handleAuthProxy(requestWithCsp, event);
+  if (response) {
+    applyPageSecurity(response, nonce);
+  }
   return redirectFailedCodeExchange(request, response);
 }
 

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Montserrat } from "next/font/google";
 import localFont from "next/font/local";
+import { connection } from "next/server";
 import { ConvexAuthNextjsServerProvider } from "@convex-dev/auth/nextjs/server";
 import "./globals.css";
 import { CANONICAL_ORIGIN } from "@/lib/seo/site";
@@ -62,11 +63,14 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Nonce CSP requires a fresh render per request (Next.js CSP guide).
+  await connection();
+
   return (
     <ConvexAuthNextjsServerProvider>
       <html lang="en" className={`${montserrat.variable} ${ceoruse.variable}`}>
