@@ -86,7 +86,7 @@ export default function PrivacyPage() {
               2.2 Sign-in information
             </h3>
             <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              You sign in to KOMPLEET with your email address and password. We
+              You sign in to Kompleet with your email address and password. We
               collect the email address you provide and store a hashed copy of
               your password so you can sign in.
             </p>

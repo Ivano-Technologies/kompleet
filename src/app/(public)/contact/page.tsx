@@ -66,6 +66,8 @@ export default function ContactPage() {
               <h3 className="font-display mb-2 text-lg font-bold">Office</h3>
               <OperatorDetails
                 showEmails={false}
+                showRc={false}
+                showDpo={false}
                 lineClassName="text-sm leading-relaxed text-text-2 mb-1 last:mb-0"
               />
             </div>

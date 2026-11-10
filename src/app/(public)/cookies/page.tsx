@@ -24,8 +24,11 @@ export default function CookiesPage() {
         <h1 className="text-4xl font-bold text-light-text-primary dark:text-dark-text-primary mb-4">
           Cookie Policy
         </h1>
+        <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-2">
+          Last updated: 10 November 2026
+        </p>
         <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-8">
-          Last updated: 10 November 2026. {COOKIE_POLICY_SOURCE_OF_TRUTH}
+          {COOKIE_POLICY_SOURCE_OF_TRUTH}
         </p>
 
         <div className="prose prose-lg max-w-none">

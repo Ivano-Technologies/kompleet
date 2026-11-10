@@ -9,6 +9,7 @@ import {
   OPERATOR_DPO,
   OPERATOR_LEGAL_NAME,
   OPERATOR_RC,
+  OPERATOR_WEBSITE_HREF,
 } from "@/lib/legal";
 
 const read = (rel: string) => readFileSync(resolve(process.cwd(), rel), "utf8");
@@ -25,12 +26,20 @@ describe("operator identity on legal and contact pages", () => {
     expect(OPERATOR_LEGAL_NAME).toBe("Ivano Technologies Ltd");
     expect(OPERATOR_RC).toBe("RC 9326735");
     expect(OPERATOR_ADDRESS).toBe(
-      "Shop B18, Saham Plaza, No. 10 Alexandria Crescent, Wuse 2, Abuja, FCT",
+      "Shop B18, Saham Plaza, No. 10 Alexandria Crescent, Wuse 2, Abuja, FCT, Nigeria",
     );
     expect(OPERATOR_DPO).toBe("David Inalegwu");
+    expect(OPERATOR_WEBSITE_HREF).toBe("https://www.ivanotechnologies.com");
     expect(operatorDetails).toMatch(/OPERATOR_RC/);
     expect(operatorDetails).toMatch(/OPERATOR_ADDRESS/);
     expect(operatorDetails).toMatch(/OPERATOR_DPO/);
+    expect(operatorDetails).toMatch(/OPERATOR_WEBSITE_HREF/);
+    expect(operatorDetails).not.toMatch(/techivano\.com/);
+    expect(operatorDetails).toMatch(/const websiteLabel = websiteHref\.replace/);
+    expect(privacy).toMatch(/showWebsite/);
+    expect(terms).toMatch(/showWebsite/);
+    expect(privacy).not.toMatch(/websiteHref=/);
+    expect(terms).not.toMatch(/websiteHref=/);
     for (const page of legalPages) {
       expect(page).toMatch(/OperatorDetails/);
       expect(page).not.toMatch(/RC 8736090/);
@@ -47,9 +56,13 @@ describe("operator identity on legal and contact pages", () => {
     expect(contact).toMatch(/Support and data-protection requests/);
   });
 
-  it("replaces Lagos on the contact office card with Abuja operator details", () => {
+  it("replaces Lagos on the contact office card with name and address only", () => {
     expect(contact).not.toMatch(/Lagos, Nigeria/);
     expect(contact).toMatch(/showEmails=\{false\}/);
+    expect(contact).toMatch(/showRc=\{false\}/);
+    expect(contact).toMatch(/showDpo=\{false\}/);
+    expect(privacy).not.toMatch(/showRc=\{false\}/);
+    expect(terms).not.toMatch(/showDpo=\{false\}/);
   });
 });
 
@@ -62,7 +75,10 @@ describe("email sign-in copy on Privacy and Terms", () => {
   });
 
   it("describes email-and-password sign-in in Privacy §2 and Terms §3.1", () => {
-    expect(privacy).toMatch(/email address and password/);
+    expect(privacy).toMatch(
+      /You sign in to Kompleet with your email address and password/,
+    );
+    expect(privacy).not.toMatch(/You sign in to KOMPLEET/);
     expect(terms).toMatch(/Valid email address/);
     expect(terms).toMatch(/Secure password/);
     expect(terms).not.toMatch(/third-party provider/);
@@ -75,6 +91,9 @@ describe("Cookie Policy source of truth and theme copy", () => {
       "This Cookie Policy is the source of truth for cookies used on Kompleet.",
     );
     expect(cookies).toMatch(/COOKIE_POLICY_SOURCE_OF_TRUTH/);
+    expect(cookies).not.toMatch(
+      /Last updated: 10 November 2026\. \{COOKIE_POLICY_SOURCE_OF_TRUTH\}/,
+    );
     expect(cookies).not.toMatch(/CompanyLegalNotice/);
   });
 

@@ -5,6 +5,7 @@ import {
   OPERATOR_DPO,
   OPERATOR_LEGAL_NAME,
   OPERATOR_RC,
+  OPERATOR_WEBSITE_HREF,
 } from "@/lib/legal";
 
 const DEFAULT_LINE =
@@ -16,24 +17,32 @@ export function OperatorDetails({
   lineClassName = DEFAULT_LINE,
   linkClassName = DEFAULT_LINK,
   showEmails = true,
+  showRc = true,
+  showDpo = true,
   showWebsite = false,
-  websiteHref = "https://techivano.com",
+  websiteHref = OPERATOR_WEBSITE_HREF,
 }: {
   className?: string;
   lineClassName?: string;
   linkClassName?: string;
   showEmails?: boolean;
+  showRc?: boolean;
+  showDpo?: boolean;
   showWebsite?: boolean;
   websiteHref?: string;
 }) {
+  const websiteLabel = websiteHref.replace(/^https:\/\//, "");
+
   return (
     <div className={className}>
       <p className={lineClassName}>
         <strong>{OPERATOR_LEGAL_NAME}</strong>
       </p>
-      <p className={lineClassName}>{OPERATOR_RC}</p>
+      {showRc ? <p className={lineClassName}>{OPERATOR_RC}</p> : null}
       <p className={lineClassName}>{OPERATOR_ADDRESS}</p>
-      <p className={lineClassName}>Data Protection Officer: {OPERATOR_DPO}</p>
+      {showDpo ? (
+        <p className={lineClassName}>Data Protection Officer: {OPERATOR_DPO}</p>
+      ) : null}
       {showEmails ? (
         <>
           <p className={lineClassName}>
@@ -60,7 +69,7 @@ export function OperatorDetails({
         <p className={lineClassName}>
           Website:{" "}
           <a href={websiteHref} className={linkClassName}>
-            {websiteHref}
+            {websiteLabel}
           </a>
         </p>
       ) : null}

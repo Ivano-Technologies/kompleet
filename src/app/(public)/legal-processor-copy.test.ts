@@ -55,6 +55,9 @@ describe("IVA-292 legal processor copy", () => {
 
   it("keeps the Cookie Policy as the product source of truth without a theme toggle", () => {
     expect(cookies).toMatch(/COOKIE_POLICY_SOURCE_OF_TRUTH/);
+    expect(cookies).not.toMatch(
+      /Last updated: 10 November 2026\. \{COOKIE_POLICY_SOURCE_OF_TRUTH\}/,
+    );
     expect(cookies).not.toMatch(/light\/dark/i);
     expect(cookies).not.toMatch(/dark mode/i);
   });
