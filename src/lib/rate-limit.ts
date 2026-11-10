@@ -1,8 +1,12 @@
 /**
- * Rate limiter. Uses Upstash Redis when UPSTASH_REDIS_REST_URL and
- * UPSTASH_REDIS_REST_TOKEN are already set (no new env in this PR).
- * Falls back to a per-instance in-memory map otherwise.
+ * Rate limiter. Uses @upstash/ratelimit (Redis REST) when
+ * UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN are set.
+ * Falls back to a per-instance in-memory map otherwise — app behaviour is
+ * unchanged when those vars are absent.
  */
+
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
 
 interface RateLimitEntry {
   count: number;
@@ -20,10 +24,10 @@ export interface RateLimitResult {
   reset: Date;
 }
 
-// In-memory store (single server only)
 const rateLimitStore = new Map<string, RateLimitEntry>();
+const upstashLimiters = new Map<string, Ratelimit>();
+let upstashRedis: Redis | null = null;
 
-// Cleanup old entries every 5 minutes
 setInterval(
   () => {
     const now = Date.now();
@@ -42,49 +46,55 @@ export function upstashRateLimitConfigured(): boolean {
   );
 }
 
+function getUpstashRedis(): Redis | null {
+  if (!upstashRateLimitConfigured()) {
+    return null;
+  }
+  if (!upstashRedis) {
+    upstashRedis = new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL as string,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN as string,
+    });
+  }
+  return upstashRedis;
+}
+
+function getUpstashLimiter(limit: number, windowMs: number): Ratelimit | null {
+  const redis = getUpstashRedis();
+  if (!redis) {
+    return null;
+  }
+  const windowSec = Math.max(1, Math.ceil(windowMs / 1000));
+  const cacheKey = `${limit}:${windowSec}`;
+  const cached = upstashLimiters.get(cacheKey);
+  if (cached) {
+    return cached;
+  }
+  const limiter = new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(limit, `${windowSec} s`),
+    prefix: "kompleet:rl",
+    analytics: false,
+  });
+  upstashLimiters.set(cacheKey, limiter);
+  return limiter;
+}
+
 async function rateLimitUpstash(
   identifier: string,
   limit: number,
   windowMs: number,
 ): Promise<RateLimitResult> {
-  const base = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (!base || !token) {
+  const limiter = getUpstashLimiter(limit, windowMs);
+  if (!limiter) {
     return rateLimit(identifier, { limit, window: windowMs });
   }
 
-  const key = `rl:${identifier}`;
-  const windowSec = Math.max(1, Math.ceil(windowMs / 1000));
-  const response = await fetch(`${base.replace(/\/$/, "")}/pipeline`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify([
-      ["INCR", key],
-      ["EXPIRE", key, String(windowSec), "NX"],
-      ["PTTL", key],
-    ]),
-  });
-
-  if (!response.ok) {
-    return rateLimit(identifier, { limit, window: windowMs });
-  }
-
-  const rows = (await response.json()) as { result?: number }[];
-  const count = Number(rows[0]?.result ?? 0);
-  const pttl = Number(rows[2]?.result ?? windowMs);
-  const resetMs = Date.now() + (pttl > 0 ? pttl : windowMs);
-
-  if (count > limit) {
-    return { success: false, remaining: 0, reset: new Date(resetMs) };
-  }
-
+  const result = await limiter.limit(identifier);
   return {
-    success: true,
-    remaining: Math.max(0, limit - count),
-    reset: new Date(resetMs),
+    success: result.success,
+    remaining: result.remaining,
+    reset: new Date(result.reset),
   };
 }
 
@@ -116,14 +126,12 @@ export function rateLimit(
   const limit =
     options.limit ??
     parseInt(process.env.RATE_LIMIT_REQUESTS_PER_MINUTE ?? "60", 10);
-  const window = options.window ?? 60 * 1000; // default 1 minute
+  const window = options.window ?? 60 * 1000;
   const now = Date.now();
 
-  // Get or create entry
   let entry = rateLimitStore.get(identifier);
 
   if (!entry || entry.resetTime < now) {
-    // Create new entry
     entry = {
       count: 1,
       resetTime: now + window,
@@ -137,7 +145,6 @@ export function rateLimit(
     };
   }
 
-  // Increment counter
   entry.count++;
 
   if (entry.count > limit) {
@@ -156,16 +163,14 @@ export function rateLimit(
 }
 
 /**
- * Get identifier from request (user ID or IP address)
+ * Get identifier from request (IP address).
  *
  * Priority:
- * 1. User ID from auth token
- * 2. IP address from headers
+ * 1. IP address from x-forwarded-for
+ * 2. x-real-ip
  * 3. Fallback to "anonymous"
  */
 export function getIdentifier(request: Request): string {
-  // Try to get user ID from auth header (implement based on your auth system)
-  // For now, use IP address as fallback
   const forwarded = request.headers.get("x-forwarded-for");
   const ip = forwarded
     ? forwarded.split(",")[0]

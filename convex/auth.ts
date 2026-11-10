@@ -16,6 +16,7 @@ import {
   type AuthUserType,
   type CreateOrUpdateUserCtx,
 } from "./lib/createOrUpdateUser";
+import { SIGN_IN_MAX_FAILED_ATTEMPTS_PER_HOUR } from "./lib/authLockout";
 
 type PasswordProvider = ReturnType<typeof Password>;
 
@@ -106,6 +107,10 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
       }),
     ),
   ],
+  signIn: {
+    // Library spelling: maxFailedAttempsPerHour. Applies to password and OTP.
+    maxFailedAttempsPerHour: SIGN_IN_MAX_FAILED_ATTEMPTS_PER_HOUR,
+  },
   callbacks: {
     async createOrUpdateUser(ctx, args) {
       return await createOrUpdateAuthUser(

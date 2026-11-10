@@ -45,7 +45,7 @@ async function handleConvexAuthProxy(request: NextRequest): Promise<Response> {
 }
 
 export const POST = withRateLimit(handleConvexAuthProxy, {
-  limit: 30,
+  limit: 15,
   window: 60_000,
 });
 
