@@ -22,7 +22,10 @@ describe("IVA-281 invoice status UI", () => {
     expect(list).toMatch(/w-full md:w-80/);
     expect(list).toMatch(/overflow-x-hidden px-4/);
     expect(list).toMatch(/absolute left-3/);
-    expect(list).toMatch(/pl-9 pr-3/);
+    // input[type=text] in globals.css is (0,1,1) and beats .pl-9 (0,1,0).
+    expect(list).toMatch(/!pl-10 pr-3/);
+    const globals = read("src/app/globals.css");
+    expect(globals).toMatch(/input\[type="text"\][\s\S]*?padding: 12px 16px/);
   });
 
   it("closes the status dialog on Escape", () => {
