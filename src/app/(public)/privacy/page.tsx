@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { SkipToContent } from "@/components/a11y/SkipToContent";
 import { CompanyLegalNotice } from "@/components/legal/CompanyLegalNotice";
+import { OperatorDetails } from "@/components/legal/OperatorDetails";
 
 const PRIVACY_LINK = "text-primary underline underline-offset-2";
 
@@ -82,17 +83,13 @@ export default function PrivacyPage() {
             </ul>
 
             <h3 className="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-3">
-              2.2 Authentication Information
+              2.2 Sign-in information
             </h3>
             <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              When you sign in using third-party authentication services (such
-              as Google OAuth), we receive:
+              You sign in to KOMPLEET with your email address and password. We
+              collect the email address you provide and store a hashed copy of
+              your password so you can sign in.
             </p>
-            <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
-              <li>Your name and email address from your Google account</li>
-              <li>Profile picture (if available)</li>
-              <li>Unique identifier from the authentication provider</li>
-            </ul>
 
             <h3 className="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-3">
               2.3 Usage Data
@@ -295,9 +292,6 @@ export default function PrivacyPage() {
             </p>
             <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
               <li>
-                <strong>Google OAuth:</strong> For authentication services
-              </li>
-              <li>
                 <strong>OCR / document processing:</strong> To extract data from
                 uploaded bank statements and receipts
               </li>
@@ -355,32 +349,11 @@ export default function PrivacyPage() {
               If you have any questions, concerns, or requests regarding this
               Privacy Policy or our data practices, please contact us:
             </p>
-            <div className="bg-light-background dark:bg-dark-background p-6 rounded-lg">
-              <p className="text-light-text-secondary dark:text-dark-text-secondary mb-2">
-                <strong>Ivano Technologies Ltd</strong>
-              </p>
-              <p className="text-light-text-secondary dark:text-dark-text-secondary mb-2">
-                Email:{" "}
-                <a
-                  href="mailto:support@ivanotechnologies.com"
-                className={`inline-flex min-h-11 items-center ${PRIVACY_LINK}`}
-              >
-                support@ivanotechnologies.com
-              </a>
-            </p>
-            <p className="text-light-text-secondary dark:text-dark-text-secondary mb-2">
-              Website:{" "}
-              <a
-                href="https://techivano.com"
-                className={`inline-flex min-h-11 items-center ${PRIVACY_LINK}`}
-              >
-                  https://techivano.com
-                </a>
-              </p>
-              <p className="text-light-text-secondary dark:text-dark-text-secondary">
-                Location: Nigeria
-              </p>
-            </div>
+            <OperatorDetails
+              className="bg-light-background dark:bg-dark-background p-6 rounded-lg"
+              linkClassName={`inline-flex min-h-11 items-center ${PRIVACY_LINK}`}
+              showWebsite
+            />
           </section>
 
           <section className="mb-8">

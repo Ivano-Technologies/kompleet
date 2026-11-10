@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CompanyLegalNotice } from "@/components/legal/CompanyLegalNotice";
+import { OperatorDetails } from "@/components/legal/OperatorDetails";
 
 export const metadata: Metadata = {
   title: "Kompleet: Terms of Service",
@@ -103,11 +104,7 @@ export default function TermsPage() {
             </p>
             <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
               <li>Valid email address</li>
-              <li>Secure password, or</li>
-              <li>
-                Authentication through a third-party provider (e.g., Google
-                OAuth)
-              </li>
+              <li>Secure password</li>
             </ul>
 
             <h3 className="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-3">
@@ -454,7 +451,6 @@ export default function TermsPage() {
               including:
             </p>
             <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
-              <li>Authentication providers (e.g., Google OAuth)</li>
               <li>Payment processors</li>
               <li>Cloud infrastructure providers</li>
             </ul>
@@ -587,32 +583,10 @@ export default function TermsPage() {
               If you have any questions, concerns, or feedback regarding these
               Terms of Service, please contact us:
             </p>
-            <div className="bg-light-background dark:bg-dark-background p-6 rounded-lg">
-              <p className="text-light-text-secondary dark:text-dark-text-secondary mb-2">
-                <strong>Ivano Technologies Ltd</strong>
-              </p>
-              <p className="text-light-text-secondary dark:text-dark-text-secondary mb-2">
-                Email:{" "}
-                <a
-                  href="mailto:support@ivanotechnologies.com"
-                  className="text-primary hover:underline"
-                >
-                  support@ivanotechnologies.com
-                </a>
-              </p>
-              <p className="text-light-text-secondary dark:text-dark-text-secondary mb-2">
-                Website:{" "}
-                <a
-                  href="https://techivano.com"
-                  className="text-primary hover:underline"
-                >
-                  https://techivano.com
-                </a>
-              </p>
-              <p className="text-light-text-secondary dark:text-dark-text-secondary">
-                Location: Nigeria
-              </p>
-            </div>
+            <OperatorDetails
+              className="bg-light-background dark:bg-dark-background p-6 rounded-lg"
+              showWebsite
+            />
           </section>
 
           <section className="mb-8">
