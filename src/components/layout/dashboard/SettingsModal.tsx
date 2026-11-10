@@ -107,6 +107,7 @@ export function SettingsModal({
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
+  const [signOutAllLoading, setSignOutAllLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteError, setDeleteError] = useState("");
@@ -242,6 +243,27 @@ export function SettingsModal({
       setError(toFriendlyMessage(err, "Something went wrong. Please try again."));
     } finally {
       setPasswordLoading(false);
+    }
+  };
+
+  const handleSignOutAll = async () => {
+    setSignOutAllLoading(true);
+    setError("");
+    setSuccess("");
+    try {
+      const res = await fetch("/api/auth/sign-out-all", { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(apiErrorMessage(data, "We couldn't sign out your other devices."));
+        return;
+      }
+      await signOut();
+      onOpenChange(false);
+      router.push("/login");
+    } catch (err) {
+      setError(toFriendlyMessage(err, "We couldn't sign out your other devices."));
+    } finally {
+      setSignOutAllLoading(false);
     }
   };
 
@@ -557,6 +579,34 @@ export function SettingsModal({
                       </button>
                     </div>
                   )}
+                </div>
+
+                <div
+                  data-testid="sign-out-all"
+                  className="p-4 rounded-xl border border-light-border dark:border-dark-border bg-light-background dark:bg-dark-background"
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <h3 className="text-sm font-medium text-light-text-primary dark:text-dark-text-primary">
+                        Sign out of all devices
+                      </h3>
+                      <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
+                        End every Kompleet session, including this one.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => void handleSignOutAll()}
+                      disabled={signOutAllLoading}
+                      className="btn-secondary text-xs px-3 py-1.5 shrink-0 disabled:opacity-50"
+                    >
+                      {signOutAllLoading ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        "Sign out all"
+                      )}
+                    </button>
+                  </div>
                 </div>
 
                 <div className="p-4 rounded-xl border-2 border-red-200 dark:border-red-800/30 bg-light-background dark:bg-dark-background">

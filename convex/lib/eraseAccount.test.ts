@@ -47,6 +47,7 @@ function fakeDb() {
     authRateLimits: [],
     users: [],
     deadlineReminders: [],
+    authDevices: [],
   };
   let nextId = 1;
   const storageDeleted: string[] = [];
@@ -227,6 +228,11 @@ describe("eraseMineHandler", () => {
       formType: "PIT",
       taxYear: 2026,
     });
+    db.tables.authDevices.push({
+      _id: "authDevices:1",
+      userId: USER._id,
+      fingerprint: "abc",
+    });
 
     const result = await eraseMineHandler(asCtx(db), USER);
 
@@ -254,6 +260,7 @@ describe("eraseMineHandler", () => {
     expect(db.tables.authAccounts).toHaveLength(0);
     expect(db.tables.authRefreshTokens).toHaveLength(0);
     expect(db.tables.deadlineReminders).toHaveLength(0);
+    expect(db.tables.authDevices).toHaveLength(0);
     expect(db.tables.auditLogs).toHaveLength(1);
     expect(db.tables.auditLogs[0]?.action).toBe(ACCOUNT_ERASED_ACTION);
     expect(db.tables.auditLogs[0]?.userExternalId).toBe("u1");

@@ -76,3 +76,87 @@ export async function sendAuthEmail(args: {
     );
   }
 }
+
+export type SecurityEmailPurpose = "password-change" | "new-device";
+
+/** Best-effort notice. No-ops without a Resend key; never throws. */
+export async function sendSecurityEmail(args: {
+  email: string;
+  purpose: SecurityEmailPurpose;
+  subject: string;
+  text: string;
+  html: string;
+}): Promise<boolean> {
+  const apiKey = process.env.AUTH_RESEND_KEY ?? process.env.RESEND_API_KEY;
+  const from = authEmailFrom();
+  if (!apiKey) {
+    console.warn(
+      `[convex-auth] AUTH_RESEND_KEY unset; skip ${args.purpose} notice for ${args.email}`,
+    );
+    return false;
+  }
+  try {
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from,
+        to: [args.email],
+        subject: args.subject,
+        text: args.text,
+        html: args.html,
+      }),
+    });
+    if (!response.ok) {
+      const detail = await response.text();
+      console.error(`[convex-auth] Resend ${args.purpose} failed`, detail);
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error(`[convex-auth] Resend ${args.purpose} error`, error);
+    return false;
+  }
+}
+
+export function passwordChangeNotice(email: string): {
+  subject: string;
+  text: string;
+  html: string;
+} {
+  const subject = "Your Kompleet password was changed";
+  const text =
+    `The password for ${email} on Kompleet was just changed.\n\n` +
+    "If this was you, no action is needed. If it was not, reset your password " +
+    "and contact support@ivanotechnologies.com.";
+  const html =
+    `<p>The password for <strong>${email}</strong> on Kompleet was just changed.</p>` +
+    "<p>If this was you, no action is needed. If it was not, reset your password " +
+    "and contact <a href=\"mailto:support@ivanotechnologies.com\">support@ivanotechnologies.com</a>.</p>";
+  return { subject, text, html };
+}
+
+export function newDeviceNotice(
+  email: string,
+  deviceLabel: string,
+): {
+  subject: string;
+  text: string;
+  html: string;
+} {
+  const subject = "New sign-in to your Kompleet account";
+  const text =
+    `A new device signed in to ${email} on Kompleet.\n\n` +
+    `Device: ${deviceLabel}\n\n` +
+    "If this was you, no action is needed. If it was not, change your password " +
+    "and contact support@ivanotechnologies.com.";
+  const html =
+    `<p>A new device signed in to <strong>${email}</strong> on Kompleet.</p>` +
+    `<p>Device: ${deviceLabel}</p>` +
+    "<p>If this was you, no action is needed. If it was not, change your password " +
+    "and contact <a href=\"mailto:support@ivanotechnologies.com\">support@ivanotechnologies.com</a>.</p>";
+  return { subject, text, html };
+}

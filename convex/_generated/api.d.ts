@@ -49,6 +49,7 @@ import type * as lib_triage from "../lib/triage.js";
 import type * as lib_workerAuth from "../lib/workerAuth.js";
 import type * as passwordReset from "../passwordReset.js";
 import type * as reminders from "../reminders.js";
+import type * as sessions from "../sessions.js";
 import type * as reports from "../reports.js";
 import type * as tax from "../tax.js";
 import type * as tenancy from "../tenancy.js";
@@ -104,6 +105,7 @@ declare const fullApi: ApiFromModules<{
   "lib/workerAuth": typeof lib_workerAuth;
   passwordReset: typeof passwordReset;
   reminders: typeof reminders;
+  sessions: typeof sessions;
   reports: typeof reports;
   tax: typeof tax;
   tenancy: typeof tenancy;

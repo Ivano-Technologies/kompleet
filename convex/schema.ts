@@ -581,4 +581,14 @@ export default defineSchema({
     "taxYear",
     "daysRemaining",
   ]),
+
+  authDevices: defineTable({
+    userId: v.id("users"),
+    fingerprint: v.string(),
+    userAgent: v.string(),
+    createdAt: v.number(),
+    lastSeenAt: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_and_fingerprint", ["userId", "fingerprint"]),
 });

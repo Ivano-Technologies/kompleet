@@ -16,6 +16,7 @@ import {
   type AuthUserType,
   type CreateOrUpdateUserCtx,
 } from "./lib/createOrUpdateUser";
+import { CONVEX_AUTH_JWT, CONVEX_AUTH_SESSION } from "./lib/sessionPolicy";
 
 type PasswordProvider = ReturnType<typeof Password>;
 
@@ -73,6 +74,8 @@ function withPasswordAuthGuards(provider: PasswordProvider): PasswordProvider {
 }
 
 export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
+  session: CONVEX_AUTH_SESSION,
+  jwt: CONVEX_AUTH_JWT,
   providers: [
     withPasswordAuthGuards(
       Password({
