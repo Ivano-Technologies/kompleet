@@ -15,7 +15,8 @@ import {
   AUTH_TITLE,
   AUTH_TITLE_BLOCK,
 } from '@/components/layout/auth-density';
-import { ArrowLeft, KeyRound, Mail } from 'lucide-react';
+import { KeyRound, Mail } from 'lucide-react';
+import { AuthBackToLogin } from '@/components/auth/AuthBackToLogin';
 import {
   FRIENDLY_MESSAGES,
   isNetworkError,
@@ -87,7 +88,7 @@ export default function ForgotPasswordPage() {
             Enter reset code
           </Link>
           <Link href="/login" className={AUTH_LINK_MUTED}>
-            Back to Login
+            Back to login
           </Link>
         </div>
       </AuthLayout>
@@ -97,14 +98,7 @@ export default function ForgotPasswordPage() {
   return (
     <AuthLayout
       variant="dark-split"
-      headerLeftAddon={
-        <Link
-          href="/login"
-          className={`flex items-center gap-1.5 ${AUTH_LINK_MUTED}`}
-        >
-          <ArrowLeft className="h-3.5 w-3.5" /> Back to Login
-        </Link>
-      }
+      headerLeftAddon={<AuthBackToLogin />}
     >
       <div className={`${AUTH_TITLE_BLOCK} text-center`}>
         <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
@@ -112,7 +106,7 @@ export default function ForgotPasswordPage() {
         </div>
         <h1 className={AUTH_TITLE}>Reset your password</h1>
         <p className={AUTH_SUBTITLE}>
-          Enter your email and we&apos;ll send an 8-digit code to reset your password.
+          Enter your email to get an 8-digit code to reset your password.
         </p>
       </div>
 
@@ -142,11 +136,11 @@ export default function ForgotPasswordPage() {
           disabled={loading}
           className={AUTH_SUBMIT}
         >
-          {loading ? 'Sending...' : 'Send Reset Code'}
+          {loading ? 'Sending...' : 'Send reset code'}
         </button>
       </form>
 
-      <p className="mt-3 text-center text-xs text-text-3 dark:text-dark-text-3">
+      <p className={`mt-3 text-center ${AUTH_SUBTITLE}`}>
         The code expires in {PASSWORD_RESET_MAX_AGE_MINUTES} minutes.
       </p>
     </AuthLayout>

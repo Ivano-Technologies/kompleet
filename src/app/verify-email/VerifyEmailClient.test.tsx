@@ -34,7 +34,18 @@ vi.mock("next/link", () => ({
   ),
 }));
 vi.mock("@/components/layout/AuthLayout", () => ({
-  AuthLayout: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  AuthLayout: ({
+    children,
+    headerLeftAddon,
+  }: {
+    children: ReactNode;
+    headerLeftAddon?: ReactNode;
+  }) => (
+    <div>
+      {headerLeftAddon}
+      {children}
+    </div>
+  ),
 }));
 
 describe("VerifyEmailClient", () => {
@@ -53,6 +64,10 @@ describe("VerifyEmailClient", () => {
     expect(screen.getByText(/expires in 15 minutes/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Verify email" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Resend code" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Back to login" })).toHaveAttribute(
+      "href",
+      "/login",
+    );
     expect(screen.queryByText(/Already used Kompleet/)).not.toBeInTheDocument();
     expect(screen.queryByText(/—|–/)).not.toBeInTheDocument();
   });

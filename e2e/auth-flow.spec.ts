@@ -167,7 +167,7 @@ test.describe("Auth flow", () => {
     await page.goto("/reset-password?email=kezie@example.test");
     const input = page.getByLabel("Reset code");
     await expect(input).toBeVisible();
-    await expect(page.getByRole("button", { name: "Update Password" })).toBeDisabled();
+    await expect(page.getByRole("button", { name: "Update password" })).toBeDisabled();
 
     await input.focus();
     await page.evaluate(async () => {

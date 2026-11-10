@@ -3,7 +3,6 @@
 import { useState, FormEvent, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthActions } from "@convex-dev/auth/react";
-import Link from "next/link";
 import { AuthLayout } from "@/components/layout/AuthLayout";
 import {
   AUTH_ERROR,
@@ -17,6 +16,7 @@ import {
   AUTH_TITLE_BLOCK,
 } from "@/components/layout/auth-density";
 import { Mail } from "lucide-react";
+import { AuthBackToLogin } from "@/components/auth/AuthBackToLogin";
 import { FRIENDLY_MESSAGES, normalizeEmail } from "@/lib/friendly-error";
 import { ErrorText } from "@/components/ui/error-ref";
 import { authErrorText, mapAuthError } from "@/lib/auth/map-error";
@@ -29,15 +29,6 @@ import {
 import { didSignInComplete } from "@/lib/auth/sign-in-result";
 
 const RESEND_COOLDOWN_SECONDS = 60;
-
-const headerLeftAddon = (
-  <Link
-    href="/login"
-    className={`flex items-center gap-1.5 ${AUTH_LINK_MUTED}`}
-  >
-    Back to login
-  </Link>
-);
 
 export default function VerifyEmailClient() {
   const searchParams = useSearchParams();
@@ -123,7 +114,7 @@ export default function VerifyEmailClient() {
   };
 
   return (
-    <AuthLayout variant="dark-split" headerLeftAddon={headerLeftAddon}>
+    <AuthLayout variant="dark-split" headerLeftAddon={<AuthBackToLogin />}>
       <div className={`${AUTH_TITLE_BLOCK} text-center`}>
         <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
           <Mail className="h-5 w-5 text-primary dark:text-teal-400" />

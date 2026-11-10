@@ -19,7 +19,18 @@ vi.mock("next/link", () => ({
 }));
 
 vi.mock("@/components/layout/AuthLayout", () => ({
-  AuthLayout: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  AuthLayout: ({
+    children,
+    headerLeftAddon,
+  }: {
+    children: ReactNode;
+    headerLeftAddon?: ReactNode;
+  }) => (
+    <div>
+      {headerLeftAddon}
+      {children}
+    </div>
+  ),
 }));
 
 const RAW_SERVER_ERROR =
@@ -29,7 +40,7 @@ async function submit(email: string) {
   const user = userEvent.setup();
   render(<ForgotPasswordPage />);
   await user.type(screen.getByLabelText("Email address"), email);
-  await user.click(screen.getByRole("button", { name: "Send Reset Code" }));
+  await user.click(screen.getByRole("button", { name: "Send reset code" }));
 }
 
 describe("ForgotPasswordPage", () => {
@@ -98,6 +109,23 @@ describe("ForgotPasswordPage", () => {
     expect(
       screen.getByText(/The code expires in 60 minutes\./),
     ).toBeInTheDocument();
+  });
+
+  it("uses sentence-case reset copy, the shared back link, and the verify-sized expiry line", () => {
+    render(<ForgotPasswordPage />);
+    expect(
+      screen.getByText(
+        "Enter your email to get an 8-digit code to reset your password.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Send reset code" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Back to login" })).toHaveAttribute(
+      "href",
+      "/login",
+    );
+    const expiry = screen.getByText(/The code expires in 60 minutes\./);
+    expect(expiry.className).toMatch(/text-sm/);
+    expect(expiry.className).not.toMatch(/text-xs/);
   });
 
   it("shows a wait message when sending is rate limited", async () => {

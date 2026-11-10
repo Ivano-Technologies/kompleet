@@ -22,7 +22,18 @@ vi.mock("next/link", () => ({
   ),
 }));
 vi.mock("@/components/layout/AuthLayout", () => ({
-  AuthLayout: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  AuthLayout: ({
+    children,
+    headerLeftAddon,
+  }: {
+    children: ReactNode;
+    headerLeftAddon?: ReactNode;
+  }) => (
+    <div>
+      {headerLeftAddon}
+      {children}
+    </div>
+  ),
 }));
 
 async function submit() {
@@ -31,7 +42,7 @@ async function submit() {
   await user.type(screen.getByLabelText("Reset code"), "12345678");
   await user.type(screen.getByLabelText("New Password"), "secret123");
   await user.type(screen.getByLabelText("Confirm Password"), "secret123");
-  await user.click(screen.getByRole("button", { name: "Update Password" }));
+  await user.click(screen.getByRole("button", { name: "Update password" }));
 }
 
 describe("ResetPasswordClient", () => {
@@ -40,6 +51,15 @@ describe("ResetPasswordClient", () => {
     vi.mocked(Sentry.captureException).mockClear();
     vi.spyOn(console, "error").mockImplementation(() => {});
     vi.spyOn(console, "warn").mockImplementation(() => {});
+  });
+
+  it("uses the shared back link and sentence-case update CTA", () => {
+    render(<ResetPasswordClient />);
+    expect(screen.getByRole("link", { name: "Back to login" })).toHaveAttribute(
+      "href",
+      "/login",
+    );
+    expect(screen.getByRole("button", { name: "Update password" })).toBeDisabled();
   });
 
   it("strips punctuation on paste", () => {
