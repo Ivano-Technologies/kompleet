@@ -48,6 +48,26 @@ const ALLOWED_EXTENSIONS = [
   ".xls",
 ] as const;
 
+const BLOCKED_EXTENSIONS = [
+  ".html",
+  ".htm",
+  ".shtml",
+  ".svg",
+  ".svgz",
+  ".js",
+  ".mjs",
+  ".cjs",
+  ".exe",
+  ".bat",
+  ".cmd",
+  ".com",
+  ".dll",
+  ".scr",
+  ".php",
+  ".phtml",
+  ".wasm",
+] as const;
+
 const STATEMENT_HINTS = [
   "statement",
   "bank",
@@ -105,6 +125,7 @@ export function classifyFileKind(
 
 export function isAllowedDocsFile(file: File): boolean {
   const ext = extensionOf(file.name);
+  if ((BLOCKED_EXTENSIONS as readonly string[]).includes(ext)) return false;
   return ALLOWED_EXTENSIONS.includes(
     ext as (typeof ALLOWED_EXTENSIONS)[number],
   );

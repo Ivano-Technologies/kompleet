@@ -28,6 +28,7 @@ vi.mock("next/link", () => ({
 
 vi.mock("convex/react", () => ({
   useMutation: () => vi.fn(),
+  useAction: () => vi.fn(),
   useQuery: () => !emptyQuery.current,
   usePaginatedQuery: () => ({
     results: emptyQuery.current ? [] : [libraryFile],

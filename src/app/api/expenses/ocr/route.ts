@@ -10,6 +10,7 @@ import { parseReceiptText } from "@/lib/expense-ocr/parse-receipt-text";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { friendlyErrorBody, apiErrorBody } from "@/lib/friendly-error";
+import { inspectUpload, OCR_MAX_BYTES } from "../../../../../convex/lib/uploadSafety";
 
 async function handlePOST(request: NextRequest) {
   try {
@@ -30,6 +31,24 @@ async function handlePOST(request: NextRequest) {
       return NextResponse.json({ ...apiErrorBody("Invalid base64 image") },
         { status: 400 },
       );
+    }
+    if (buffer.length > OCR_MAX_BYTES) {
+      return NextResponse.json(
+        { ...apiErrorBody("Image size must be less than 8MB") },
+        { status: 400 },
+      );
+    }
+    try {
+      inspectUpload({
+        filename: "receipt",
+        bytes: new Uint8Array(buffer),
+        size: buffer.length,
+        maxBytes: OCR_MAX_BYTES,
+        kind: "image",
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Please select an image file";
+      return NextResponse.json({ ...apiErrorBody(message) }, { status: 400 });
     }
 
     const worker = await createWorker("eng");

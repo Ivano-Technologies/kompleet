@@ -204,7 +204,17 @@ export const USER_MESSAGE_ALLOWLIST: Record<string, string> = {
   "This update can't change the invoice status.":
     "This update can't change the invoice status.",
   "Use PDF, image, or CSV.": "Use a PDF, image or CSV file.",
+  "This file type is not allowed.": "This file type is not allowed.",
+  "Please select an image file": "Please select an image file.",
+  "Unsupported file type. Please upload CSV, Excel, or PDF files.":
+    "Unsupported file type. Please upload CSV, Excel, or PDF files.",
+  "Unsupported file type. Please upload CSV, Excel, PDF, or ZIP files.":
+    "Unsupported file type. Please upload CSV, Excel, PDF, or ZIP files.",
+  "File size must be less than 100MB": "File size must be less than 100MB.",
   "File size must be less than 10MB": "File size must be less than 10MB.",
+  "File size must be less than 8MB": "File size must be less than 8MB.",
+  "File size must be less than 5MB": "File size must be less than 5MB.",
+  "Image size must be less than 8MB": "Image size must be less than 8MB.",
   "Expense already exists": "This expense already exists.",
   "Category is required": "Category is required.",
   "Current password is incorrect": "Current password is incorrect.",

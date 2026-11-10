@@ -25,6 +25,9 @@ describe("docs file kind", () => {
     expect(isAllowedDocsFile(fakeFile("a.webp"))).toBe(true);
     expect(isAllowedDocsFile(fakeFile("a.xls"))).toBe(true);
     expect(rejectDocsFile(fakeFile("a.docx"))).toBe(DOCS_COPY.toastReject);
+    expect(isAllowedDocsFile(fakeFile("logo.svg"))).toBe(false);
+    expect(isAllowedDocsFile(fakeFile("note.html"))).toBe(false);
+    expect(isAllowedDocsFile(fakeFile("setup.exe"))).toBe(false);
   });
 
   it("nudges statement-like names only for statement extensions", () => {

@@ -28,11 +28,15 @@ import {
   type ImportErrorCode,
 } from "@/lib/transaction-import/import-errors";
 import { apiErrorBody, toFriendlyError, userFacingError } from "@/lib/friendly-error";
+import {
+  inspectUpload,
+  STATEMENT_MAX_BYTES,
+} from "../../../../../convex/lib/uploadSafety";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_FILE_SIZE = STATEMENT_MAX_BYTES;
 
 function errorPayload(
   signal: Parameters<typeof classifyImportFailure>[0],
@@ -79,10 +83,28 @@ async function handlePOST(request: NextRequest) {
       );
     }
 
-    if (file.size > MAX_FILE_SIZE) {
-      return NextResponse.json({ ...apiErrorBody(`File size exceeds maximum of ${MAX_FILE_SIZE / 1024 / 1024}MB`),
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    let safe;
+    try {
+      safe = inspectUpload({
+        filename: file.name,
+        contentType: file.type,
+        bytes,
+        size: file.size,
+        maxBytes: MAX_FILE_SIZE,
+        kind: "statement",
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Unsupported file type. Please upload CSV, Excel, or PDF files.";
+      const clientKind = /size|MB/i.test(message) ? "size" : "unsupported";
+      return NextResponse.json(
+        {
+          ...apiErrorBody(message),
           ...errorPayload({
-            clientKind: "size",
+            clientKind,
             requestedBankCode: bankCode,
             fileName: file.name,
           }),
@@ -93,7 +115,7 @@ async function handlePOST(request: NextRequest) {
 
     let fileType: "csv" | "excel" | "pdf";
     try {
-      fileType = detectFileType(file.name, file.type);
+      fileType = detectFileType(safe.filename, safe.contentType);
     } catch {
       return NextResponse.json({ ...apiErrorBody("Unsupported file type. Please upload CSV, Excel, or PDF files."),
           ...errorPayload({
@@ -107,19 +129,19 @@ async function handlePOST(request: NextRequest) {
     }
 
     const session = await convex.mutation(api.imports.createSession, {
-      fileName: file.name,
+      fileName: safe.filename,
       fileSize: file.size,
       bankCode,
       status: "processing",
     });
 
     try {
-      const buffer = Buffer.from(await file.arrayBuffer());
+      const buffer = Buffer.from(bytes);
       try {
         const storageId = await uploadToConvexStorage(
           convex,
           new Blob([buffer]),
-          file.type,
+          safe.contentType,
         );
         await convex.mutation(api.imports.attachStorage, {
           externalId: session.id,

@@ -1,5 +1,7 @@
 import { v } from "convex/values";
+import { internal } from "./_generated/api";
 import {
+  action,
   internalMutation,
   internalQuery,
   mutation,
@@ -16,6 +18,7 @@ import {
 } from "./lib/auth";
 import { throwForbidden } from "./lib/errors";
 import { assertStorageAssignableToUser } from "./lib/storageAccess";
+import { inspectUpload, AVATAR_MAX_BYTES } from "./lib/uploadSafety";
 import type { Id } from "./_generated/dataModel";
 import { toMs } from "./lib/ids";
 
@@ -96,6 +99,8 @@ function toApi(user: {
     platform_role: platformRoleOf(user),
   };
 }
+
+type UserApiShape = ReturnType<typeof toApi>;
 
 /**
  * Client-supplied `args.email` is not proof of ownership. Only the verified
@@ -219,12 +224,10 @@ export const updateMine = mutation({
     defaultCurrency: v.optional(v.string()),
     fiscalYearStart: v.optional(v.number()),
     onboardingCompleted: v.optional(v.boolean()),
-    avatarStorageId: v.optional(v.id("_storage")),
   },
   returns: userApi,
   handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx);
-    await assertStorageAssignableToUser(ctx, user, args.avatarStorageId);
     await ctx.db.patch(user._id, {
       fullName: args.fullName ?? user.fullName,
       name: args.fullName ?? user.name,
@@ -237,12 +240,66 @@ export const updateMine = mutation({
       defaultCurrency: args.defaultCurrency ?? user.defaultCurrency,
       fiscalYearStart: args.fiscalYearStart ?? user.fiscalYearStart,
       onboardingCompleted: args.onboardingCompleted ?? user.onboardingCompleted,
-      avatarStorageId: args.avatarStorageId ?? user.avatarStorageId,
       updatedAt: Date.now(),
     });
     const updated = await ctx.db.get(user._id);
     if (!updated) throw new Error("User not found");
     return toApi(updated);
+  },
+});
+
+export const assertAvatarStorageAssignable = internalQuery({
+  args: { storageId: v.id("_storage") },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
+    await assertStorageAssignableToUser(ctx, user, args.storageId);
+    return null;
+  },
+});
+
+export const saveMyAvatar = internalMutation({
+  args: { storageId: v.id("_storage") },
+  returns: userApi,
+  handler: async (ctx, args) => {
+    const user = await getCurrentUser(ctx);
+    await assertStorageAssignableToUser(ctx, user, args.storageId);
+    await ctx.db.patch(user._id, {
+      avatarStorageId: args.storageId,
+      updatedAt: Date.now(),
+    });
+    const updated = await ctx.db.get(user._id);
+    if (!updated) throw new Error("User not found");
+    return toApi(updated);
+  },
+});
+
+export const setMyAvatar = action({
+  args: { storageId: v.id("_storage") },
+  returns: userApi,
+  handler: async (ctx, args): Promise<UserApiShape> => {
+    await ctx.runQuery(internal.users.assertAvatarStorageAssignable, {
+      storageId: args.storageId,
+    });
+    const blob = await ctx.storage.get(args.storageId);
+    if (!blob) throw new Error("File not found");
+    const bytes = new Uint8Array(await blob.arrayBuffer());
+    try {
+      inspectUpload({
+        filename: "avatar",
+        contentType: blob.type,
+        bytes,
+        size: blob.size,
+        maxBytes: AVATAR_MAX_BYTES,
+        kind: "image",
+      });
+    } catch (error) {
+      await ctx.storage.delete(args.storageId).catch(() => {});
+      throw error;
+    }
+    return await ctx.runMutation(internal.users.saveMyAvatar, {
+      storageId: args.storageId,
+    });
   },
 });
 

@@ -14,6 +14,10 @@ import {
 } from "@/lib/transaction-import/bank-adapter";
 import { resolveBankCode } from "@/lib/transaction-import/bank-configs";
 import { normalizeTransactions } from "@/lib/transaction-import/normalizer";
+import {
+  inspectUpload,
+  STATEMENT_MAX_BYTES,
+} from "../../../../../convex/lib/uploadSafety";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -54,11 +58,23 @@ async function handlePOST(
       );
     }
 
-    if (file.size > 10 * 1024 * 1024) {
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    try {
+      inspectUpload({
+        filename: file.name,
+        contentType: file.type,
+        bytes,
+        size: file.size,
+        maxBytes: STATEMENT_MAX_BYTES,
+        kind: "statement",
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Invalid file type";
+      const tooLarge = /size|MB/i.test(message);
       return NextResponse.json(
         {
           success: false,
-          message: "File too large (max 10MB)",
+          message: tooLarge ? "File too large (max 10MB)" : message,
           imported: 0,
           duplicates: 0,
           errors: 0,
@@ -84,7 +100,7 @@ async function handlePOST(
       );
     }
 
-    const buffer = Buffer.from(await file.arrayBuffer());
+    const buffer = Buffer.from(bytes);
     const content = fileType === "csv" ? buffer.toString("utf-8") : buffer;
     const parseResult = await parseBankStatement(content, bankCode, fileType);
 
