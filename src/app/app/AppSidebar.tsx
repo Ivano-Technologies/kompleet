@@ -21,7 +21,7 @@ export function AppSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-60 bg-gradient-to-b from-primary-deep to-primary text-white flex flex-col sticky top-0 h-screen shrink-0">
+    <aside className="w-60 bg-gradient-to-b from-primary-deep to-primary-navy text-white flex flex-col sticky top-0 h-screen shrink-0">
       <div className="flex items-center p-5 border-b border-white/10">
         <BrandLockup size="md" tone="inverse" />
       </div>

@@ -186,7 +186,7 @@ export default function ApiDocsPage() {
           </p>
           <Link
             href="/contact"
-            className="inline-block rounded-md bg-accent-hover px-6 py-3 text-sm font-bold text-charcoal hover:bg-[#115E59] transition-colors"
+            className="inline-block rounded-md bg-primary-fill px-6 py-3 text-sm font-bold text-white hover:bg-primary-fill-hover focus-visible:ring-2 focus-visible:ring-link disabled:opacity-50 transition-colors"
           >
             Contact Developer Support
           </Link>

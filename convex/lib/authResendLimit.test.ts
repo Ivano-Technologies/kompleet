@@ -27,6 +27,7 @@ describe("nextEmailSendState", () => {
     const second = nextEmailSendState(first.next, now + EMAIL_SEND_COOLDOWN_MS - 1);
     expect(second.allowed).toBe(false);
     expect(second.next).toEqual(first.next);
+    expect(second.retryAfterSeconds).toBe(1);
   });
 
   it("allows a send after the cooldown", () => {
@@ -49,6 +50,7 @@ describe("nextEmailSendState", () => {
       EMAIL_SEND_MAX_PER_HOUR * EMAIL_SEND_COOLDOWN_MS,
     );
     expect(blocked.allowed).toBe(false);
+    expect(blocked.retryAfterSeconds).toBeGreaterThan(0);
     const afterHour = nextEmailSendState(state, EMAIL_SEND_HOUR_MS);
     expect(afterHour.allowed).toBe(true);
     expect(afterHour.next.hourCount).toBe(1);

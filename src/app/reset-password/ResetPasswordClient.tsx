@@ -3,7 +3,6 @@
 import { useState, FormEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthActions } from '@convex-dev/auth/react';
-import Link from 'next/link';
 import { AuthLayout } from '@/components/layout/AuthLayout';
 import {
   AUTH_ERROR,
@@ -11,29 +10,21 @@ import {
   AUTH_INPUT,
   AUTH_INPUT_WITH_TOGGLE,
   AUTH_LABEL,
-  AUTH_LINK_MUTED,
   AUTH_SUBMIT,
   AUTH_SUBTITLE,
   AUTH_TITLE,
   AUTH_TITLE_BLOCK,
 } from '@/components/layout/auth-density';
 import { CheckCircle2, Eye, EyeOff, KeyRound } from 'lucide-react';
-import {
-  FRIENDLY_MESSAGES,
-  normalizeEmail,
-  toFriendlyError,
-  withRef,
-} from '@/lib/friendly-error';
+import { AuthBackToLogin } from '@/components/auth/AuthBackToLogin';
+import { FRIENDLY_MESSAGES, normalizeEmail } from '@/lib/friendly-error';
 import { ErrorText } from '@/components/ui/error-ref';
-
-const headerLeftAddon = (
-  <Link
-    href="/login"
-    className={`flex items-center gap-1.5 ${AUTH_LINK_MUTED}`}
-  >
-    Back to Login
-  </Link>
-);
+import { authErrorText, mapAuthError } from '@/lib/auth/map-error';
+import {
+  AUTH_OTP_LENGTH,
+  isCompleteAuthOtp,
+  sanitiseAuthOtp,
+} from '@/lib/auth/otp';
 
 export default function ResetPasswordClient() {
   const searchParams = useSearchParams();
@@ -47,9 +38,13 @@ export default function ResetPasswordClient() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { signIn } = useAuthActions();
+  const canSubmit = isCompleteAuthOtp(code);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const digits = sanitiseAuthOtp(code);
+    setCode(digits);
+    if (!isCompleteAuthOtp(digits)) return;
     setError(null);
     setLoading(true);
 
@@ -68,7 +63,7 @@ export default function ResetPasswordClient() {
     try {
       await signIn('password', {
         email: normalizeEmail(email),
-        code: code.trim(),
+        code: digits,
         newPassword: password,
         flow: 'reset-verification',
       });
@@ -78,16 +73,12 @@ export default function ResetPasswordClient() {
         router.refresh();
       }, 1500);
     } catch (err) {
-      const { message, ref } = toFriendlyError(err, FRIENDLY_MESSAGES.fallback, {
-        context: 'reset-password',
-      });
-      // In the reset flow an unknown account or bad secret means the code is wrong.
+      const mapped = mapAuthError(err, 'reset');
       setError(
-        withRef(
-          message === FRIENDLY_MESSAGES.invalidCredentials
-            ? FRIENDLY_MESSAGES.invalidCode
-            : message,
-          ref,
+        authErrorText(
+          mapped.message === FRIENDLY_MESSAGES.invalidCredentials
+            ? { ...mapped, message: FRIENDLY_MESSAGES.invalidCode, known: true }
+            : mapped,
         ),
       );
       setLoading(false);
@@ -96,7 +87,7 @@ export default function ResetPasswordClient() {
 
   if (success) {
     return (
-      <AuthLayout variant="dark-split" headerLeftAddon={headerLeftAddon}>
+      <AuthLayout variant="dark-split" headerLeftAddon={<AuthBackToLogin />}>
         <div className="space-y-4 text-center">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-accent/10">
             <CheckCircle2 className="h-6 w-6 text-accent" />
@@ -111,12 +102,12 @@ export default function ResetPasswordClient() {
   }
 
   return (
-    <AuthLayout variant="dark-split" headerLeftAddon={headerLeftAddon}>
+    <AuthLayout variant="dark-split" headerLeftAddon={<AuthBackToLogin />}>
       <div className={`${AUTH_TITLE_BLOCK} text-center`}>
         <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-accent/10">
           <KeyRound className="h-5 w-5 text-accent" />
         </div>
-        <h1 className={AUTH_TITLE}>Set New Password</h1>
+        <h1 className={AUTH_TITLE}>Set a new password</h1>
         <p className={AUTH_SUBTITLE}>
           Enter the 8-digit code from your email and choose a new password.
         </p>
@@ -124,7 +115,7 @@ export default function ResetPasswordClient() {
 
       {error && (
         <div className={AUTH_ERROR}>
-          <ErrorText text={error} />
+          <ErrorText text={error} issueGeneratedRef={false} />
         </div>
       )}
 
@@ -150,10 +141,16 @@ export default function ResetPasswordClient() {
             id="code"
             type="text"
             inputMode="numeric"
+            autoComplete="one-time-code"
+            pattern={`\\d{${AUTH_OTP_LENGTH}}`}
+            maxLength={AUTH_OTP_LENGTH}
             value={code}
-            onChange={(e) => setCode(e.target.value)}
+            onChange={(e) => setCode(sanitiseAuthOtp(e.target.value))}
+            onPaste={(e) => {
+              e.preventDefault();
+              setCode(sanitiseAuthOtp(e.clipboardData.getData('text')));
+            }}
             required
-            minLength={6}
             placeholder="8-digit code"
             className={AUTH_INPUT}
           />
@@ -200,10 +197,10 @@ export default function ResetPasswordClient() {
         </div>
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || !canSubmit}
           className={AUTH_SUBMIT}
         >
-          {loading ? 'Updating...' : 'Update Password'}
+          {loading ? 'Updating...' : 'Update password'}
         </button>
       </form>
     </AuthLayout>

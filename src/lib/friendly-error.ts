@@ -15,6 +15,13 @@
  * and flake e2e on expected user errors.
  */
 import * as Sentry from "@sentry/nextjs";
+import {
+  AUTH_ERROR_CODES,
+  isAuthErrorData,
+  retryAfterSecondsFromData,
+  type AuthErrorCode,
+  type AuthErrorData,
+} from "../../convex/lib/authErrors";
 
 export const FRIENDLY_FALLBACK = "Something went wrong. Please try again.";
 
@@ -23,9 +30,11 @@ export const FRIENDLY_MESSAGES = {
   invalidCredentials: "That email or password doesn't match. Check and try again.",
   accountExists:
     "An account with this email already exists. Try signing in or reset your password.",
-  invalidCode: "This code is invalid or has expired. Request a new one.",
+  invalidCode: "That code is invalid or expired. Check it or request a new one.",
   network: "We couldn't reach Kompleet. Check your connection and try again.",
   rateLimited: "Too many attempts. Please wait a moment and try again.",
+  unverified:
+    "Confirm your email before signing in. Check your inbox for the code.",
   unauthorized: "Your session has expired. Please sign in again.",
   missingTaxRule:
     "This tax figure hasn't been verified yet, so we can't calculate it right now. Please try again later.",
@@ -110,24 +119,88 @@ export function isNetworkError(err: unknown): boolean {
   return NETWORK_PATTERN.test(rawText(err));
 }
 
+/** Drop V8/lib stack frames so they never reach UI copy or client logs. */
+export function stripStackFrames(text: string): string {
+  return text
+    .split("\n")
+    .filter((line) => !/^\s*at\s+\S/.test(line))
+    .join("\n")
+    .replace(/\n{2,}/g, "\n")
+    .trim();
+}
+
 /**
  * Remove Convex and runtime wrappers from an error message:
  * "[Request ID: abc] Server Error", "Uncaught Error: ", "Called by client",
  * and any stack trace lines.
  */
 export function stripErrorWrappers(message: string): string {
-  return message
+  return stripStackFrames(message)
     .replace(/\[CONVEX [^\]]*\]\s*/gi, "")
     .replace(/\[Request ID: [^\]]*\]\s*/gi, "")
     .replace(/^\s*Server Error\s*/i, "")
     .replace(/\s*Called by client\s*$/i, "")
     .split("\n")
-    .filter((line) => !/^\s*at\s+\S/.test(line))
     .join(" ")
     .replace(/Uncaught\s+\w*Error:\s*/gi, "")
     .replace(/^\s*\w*Error:\s*/, "")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+/** JSON object after `ConvexError:` in a proxied `/api/auth` error message. */
+function extractConvexErrorJson(text: string): unknown | null {
+  const label = text.search(/ConvexError:\s*/);
+  if (label < 0) return null;
+  const start = text.indexOf("{", label);
+  if (start < 0) return null;
+  let depth = 0;
+  for (let i = start; i < text.length; i++) {
+    const char = text[i];
+    if (char === "{") depth += 1;
+    else if (char === "}") {
+      depth -= 1;
+      if (depth === 0) {
+        try {
+          return JSON.parse(text.slice(start, i + 1)) as unknown;
+        } catch {
+          return null;
+        }
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * Typed auth payload from a real ConvexError `.data`, or from the
+ * `Uncaught ConvexError: {...}` string the Next.js `/api/auth` proxy returns
+ * (it only forwards `error.message`, so `.data` never reaches the browser).
+ */
+export function authErrorDataFromUnknown(err: unknown): AuthErrorData | null {
+  if (isConvexError(err) && isAuthErrorData(err.data)) return err.data;
+  const original = err instanceof Error ? err.message : rawText(err);
+  const fromLabel = extractConvexErrorJson(original);
+  if (isAuthErrorData(fromLabel)) return fromLabel;
+  const stripped = stripErrorWrappers(original);
+  if (stripped.startsWith("{")) {
+    try {
+      const parsed: unknown = JSON.parse(stripped);
+      if (isAuthErrorData(parsed)) return parsed;
+    } catch {
+      // Not a typed payload.
+    }
+  }
+  return null;
+}
+
+/** Safe to pass to console.* (never includes a stack). */
+export function clientLogDetail(err: unknown): unknown {
+  if (err instanceof Error) {
+    return { name: err.name, message: stripStackFrames(err.message) };
+  }
+  if (typeof err === "string") return stripStackFrames(err);
+  return err;
 }
 
 function isConvexError(err: unknown): err is { data: unknown } {
@@ -139,10 +212,67 @@ function isConvexError(err: unknown): err is { data: unknown } {
   );
 }
 
+/** True when Convex redacted a plain Error to "[Request ID] Server Error". */
+export function isRedactedConvexServerError(err: unknown): boolean {
+  const raw = rawText(err);
+  const message = err instanceof Error ? err.message : raw;
+  if (!/server error|request id/i.test(raw) && !/server error|request id/i.test(message)) {
+    return false;
+  }
+  const stripped = stripErrorWrappers(message);
+  return stripped.length === 0 || /^server error\.?$/i.test(stripped);
+}
+
+export function rateLimitedMessage(retryAfterSeconds?: number | null): string {
+  if (retryAfterSeconds == null || retryAfterSeconds < 1) {
+    return FRIENDLY_MESSAGES.rateLimited;
+  }
+  if (retryAfterSeconds >= 3600) {
+    const hours = Math.max(1, Math.round(retryAfterSeconds / 3600));
+    if (hours <= 1) {
+      return "Too many attempts. Please wait an hour and try again.";
+    }
+    return `Too many attempts. Please wait ${hours} hours and try again.`;
+  }
+  if (retryAfterSeconds < 60) {
+    const seconds = Math.ceil(retryAfterSeconds);
+    return `Too many attempts. Please wait ${seconds} second${seconds === 1 ? "" : "s"} and try again.`;
+  }
+  const minutes = Math.ceil(retryAfterSeconds / 60);
+  if (minutes === 1) {
+    return "Too many attempts. Please wait a minute and try again.";
+  }
+  return `Too many attempts. Please wait ${minutes} minutes and try again.`;
+}
+
+function messageForAuthCode(
+  code: AuthErrorCode,
+  retryAfterSeconds: number | null,
+): string {
+  switch (code) {
+    case AUTH_ERROR_CODES.INVALID_CODE:
+    case AUTH_ERROR_CODES.EXPIRED_CODE:
+      return FRIENDLY_MESSAGES.invalidCode;
+    case AUTH_ERROR_CODES.TOO_MANY_ATTEMPTS:
+    case AUTH_ERROR_CODES.RATE_LIMITED:
+      return rateLimitedMessage(retryAfterSeconds);
+    case AUTH_ERROR_CODES.INVALID_CREDENTIALS:
+      return FRIENDLY_MESSAGES.invalidCredentials;
+    case AUTH_ERROR_CODES.ACCOUNT_EXISTS:
+      return FRIENDLY_MESSAGES.accountExists;
+    default: {
+      const _exhaustive: never = code;
+      return _exhaustive;
+    }
+  }
+}
+
 function deliberateMessage(err: unknown): string | null {
   if (err instanceof UserFacingError) return err.message.trim() || null;
   if (isConvexError(err)) {
     const { data } = err;
+    // Typed auth codes are mapped in mapKnown (wait time lives on the code).
+    if (isAuthErrorData(data)) return null;
     if (typeof data === "string") return stripErrorWrappers(data) || null;
     if (data && typeof data === "object") {
       const m = (data as { message?: unknown }).message;
@@ -237,7 +367,18 @@ function allowlisted(text: string): string | null {
 const PASSWORD_RULE_PATTERN = /^password (must|should)\b[^\n]{0,120}$/i;
 
 function mapKnown(err: unknown, text: string): string | null {
+  const typed = authErrorDataFromUnknown(err);
+  if (typed) {
+    return messageForAuthCode(typed.code, retryAfterSecondsFromData(typed));
+  }
   if (isNetworkError(err)) return FRIENDLY_MESSAGES.network;
+  if (
+    /unverified|email not verified|confirm your email|verification required/i.test(
+      text,
+    )
+  ) {
+    return FRIENDLY_MESSAGES.unverified;
+  }
   if (
     /rate.?limit|too many (requests|attempts)|\b429\b|TooManyFailedAttempts/i.test(
       text,
@@ -291,6 +432,12 @@ export interface FriendlyMessageOptions {
   silent?: boolean;
   /** Short label for the log line, e.g. "invoices:issue". */
   context?: string;
+  /**
+   * When Convex redacts a plain Error to "[Request ID] Server Error" with no
+   * typed code, override the displayed copy. The error is still reported to
+   * Sentry and the Ref is still hidden.
+   */
+  redactedFallback?: string;
 }
 
 export interface FriendlyError {
@@ -298,6 +445,13 @@ export interface FriendlyError {
   message: string;
   /** 8 character support reference, logged next to the raw error. */
   ref: string;
+  /** True for expected user mistakes. Those must not create Sentry events. */
+  known: boolean;
+  /**
+   * Hide the support Ref in the UI. Unexpected redacted Convex faults still
+   * go to Sentry (`known` is false) but must not show a Ref.
+   */
+  hideRef: boolean;
 }
 
 /**
@@ -317,11 +471,21 @@ export function toFriendlyError(
   const text = stripErrorWrappers(
     deliberate ?? (err instanceof Error ? err.message : rawText(err)),
   );
-  const known = deliberate ? null : mapKnown(err, text);
-  const message = deliberate ?? known ?? (fallback || FRIENDLY_FALLBACK);
+  const mapped = deliberate ? null : mapKnown(err, text);
+  const redactedFault =
+    !deliberate && !mapped && isRedactedConvexServerError(err);
+  const knownCopy = deliberate ?? mapped;
+  const message =
+    knownCopy ??
+    (redactedFault && options.redactedFallback
+      ? options.redactedFallback
+      : null) ??
+    (fallback || FRIENDLY_FALLBACK);
+  const known = knownCopy != null;
+  const hideRef = known || redactedFault;
 
   let ref: string | null = err instanceof UserFacingError && err.ref ? err.ref : null;
-  if (!ref && !deliberate && !known && !options.silent) {
+  if (!ref && !known && !options.silent) {
     try {
       ref = refFromEventId(
         Sentry.captureException(err, {
@@ -337,10 +501,10 @@ export function toFriendlyError(
   if (!options.silent) {
     console.warn(
       `[friendly-error] ref=${ref}${options.context ? ` context=${options.context}` : ""}`,
-      err,
+      clientLogDetail(err),
     );
   }
-  return { message, ref };
+  return { message, ref, known, hideRef };
 }
 
 /**

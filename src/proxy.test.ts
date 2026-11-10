@@ -120,4 +120,59 @@ describe("proxy: ?code= exchange", () => {
     expect(response.headers.get("location")).toBeNull();
     expect(response.headers.get("x-middleware-next")).toBe("1");
   });
+
+  it("strips the server stack from a proxied /api/auth error body", async () => {
+    fetchAction.mockRejectedValue(
+      new Error(
+        `[Request ID: 7f3a9c1e2b] Server Error\nUncaught ConvexError: {"code":"ACCOUNT_EXISTS"}\n    at throwAuthError (../../convex/lib/authErrors.ts:98:9)`,
+      ),
+    );
+    const request = new NextRequest(`${ORIGIN}/api/auth`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        origin: ORIGIN,
+        host: "kompleet.test",
+      },
+      body: JSON.stringify({
+        action: "auth:signIn",
+        args: { email: "a@b.c", password: "secret1", flow: "signUp" },
+      }),
+    });
+    requestContext.current = request;
+    const response = (await proxy(request, {} as NextFetchEvent)) as Response;
+    expect(response.status).toBe(400);
+    const body = (await response.json()) as { error: string };
+    expect(body.error).toContain('Uncaught ConvexError: {"code":"ACCOUNT_EXISTS"}');
+    expect(body.error).not.toMatch(/\bat\s+/);
+  });
+});
+
+describe("proxy: theme-shot harness", () => {
+  const previousVercelEnv = process.env.VERCEL_ENV;
+
+  beforeEach(() => {
+    fetchAction.mockReset();
+  });
+  afterEach(() => {
+    if (previousVercelEnv === undefined) {
+      delete process.env.VERCEL_ENV;
+    } else {
+      process.env.VERCEL_ENV = previousVercelEnv;
+    }
+    requestContext.current = null;
+  });
+
+  it("404s /dev/theme-shots when VERCEL_ENV is production", async () => {
+    process.env.VERCEL_ENV = "production";
+    const response = await run("/dev/theme-shots/dashboard");
+    expect(response.status).toBe(404);
+    expect(fetchAction).not.toHaveBeenCalled();
+  });
+
+  it("lets /dev/theme-shots through outside production", async () => {
+    const response = await run("/dev/theme-shots/dashboard");
+    expect(response.status).not.toBe(404);
+    expect(response.headers.get("x-middleware-next")).toBe("1");
+  });
 });

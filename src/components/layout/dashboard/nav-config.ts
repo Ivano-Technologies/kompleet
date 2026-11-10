@@ -53,11 +53,16 @@ export const MORE_NAV: MoreNavItem[] = [
 export const TAX_LEGACY_PREFIXES = ["/tax-reports", "/filing"] as const;
 
 export function isDashboardActive(pathname: string | null): boolean {
-  return pathname === "/dashboard";
+  return (
+    pathname === "/dashboard" || pathname === "/dev/theme-shots/dashboard"
+  );
 }
 
 export function isBooksActive(pathname: string | null): boolean {
-  return Boolean(pathname?.startsWith("/transactions"));
+  return Boolean(
+    pathname?.startsWith("/transactions") ||
+      pathname === "/dev/theme-shots/books",
+  );
 }
 
 export function isInvoicesActive(pathname: string | null): boolean {

@@ -31,7 +31,7 @@ export interface CategorizationResponse {
  */
 export interface AIProvider {
   /**
-   * Name of the provider (e.g., 'openai', 'kimi', 'fallback')
+   * Name of the provider (e.g., 'openai', 'claude', 'fallback')
    */
   name: string;
 
@@ -57,7 +57,7 @@ export interface AIProvider {
  * Provider Configuration
  */
 export interface ProviderConfig {
-  provider: "openai" | "claude" | "kimi" | "fallback";
+  provider: "openai" | "claude" | "fallback";
   apiKey?: string;
   model?: string;
   temperature?: number;

@@ -93,19 +93,12 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
       { page: filters.page, cursor: filters.cursor },
     );
 
-    const knownTotal =
-      page.isDone && filters.page === 1 && !filters.cursor
-        ? page.items.length
-        : page.items.length;
-    const totalPages = page.isDone ? filters.page : filters.page + 1;
-
     return NextResponse.json({
       transactions: page.items,
       pagination: {
         page: filters.page,
         limit: filters.limit,
-        total: knownTotal,
-        totalPages,
+        total: page.items.length,
         nextCursor: page.nextCursor,
         isDone: page.isDone,
       },

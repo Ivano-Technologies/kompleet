@@ -10,6 +10,7 @@ import { ConvexAuthClientProvider } from "@/components/providers/ConvexAuthClien
 import { ErrorToaster } from "@/components/ui/error-toast";
 import { AuthLinkErrorRedirect } from "@/components/auth/AuthLinkErrorRedirect";
 import { CookieConsentProvider } from "@/components/cookies/CookieConsentProvider";
+import { THEME_BOOT_SCRIPT } from "@/lib/theme-boot";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -69,8 +70,13 @@ export default function RootLayout({
 }) {
   return (
     <ConvexAuthNextjsServerProvider>
-      <html lang="en" className={`${montserrat.variable} ${ceoruse.variable}`}>
+      <html
+        lang="en"
+        className={`${montserrat.variable} ${ceoruse.variable}`}
+        suppressHydrationWarning
+      >
         <head>
+          <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
           <link rel="icon" href="/favicon.ico" sizes="any" />
           <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
           <link rel="apple-touch-icon" href="/apple-touch-icon.png" />

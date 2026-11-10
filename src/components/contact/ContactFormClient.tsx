@@ -127,7 +127,7 @@ export default function ContactFormClient() {
       <button
         type="submit"
         disabled={status === "sending"}
-        className="w-full rounded-md bg-accent px-6 py-3 font-bold text-charcoal hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-50"
+        className="w-full rounded-md bg-primary-fill px-6 py-3 font-bold text-white hover:bg-primary-fill-hover focus-visible:ring-2 focus-visible:ring-link disabled:cursor-not-allowed disabled:opacity-50"
       >
         {status === "sending" ? "Sending…" : "Send Message"}
       </button>

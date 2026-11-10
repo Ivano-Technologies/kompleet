@@ -16,13 +16,13 @@ import {
   HERO_AUTH_ID,
   type HeroAuthMode,
 } from "@/components/landing/hero-auth";
-import { FRIENDLY_MESSAGES, toFriendlyError, withRef } from "@/lib/friendly-error";
 import { ErrorText } from "@/components/ui/error-ref";
+import { authErrorText, mapAuthError } from "@/lib/auth/map-error";
 import { didSignInComplete, verifyEmailPath } from "@/lib/auth/sign-in-result";
-import { RECLAIM_SIGNUP_NOTE } from "@/lib/auth/copy";
+import { AUTH_LINK, AUTH_SUBMIT } from "@/components/layout/auth-density";
 
 const inputClassName =
-  "mt-1.5 h-11 w-full rounded-md border border-border bg-surface px-3 text-sm text-text-1 focus:border-primary focus:ring-2 focus:ring-primary/20";
+  "mt-1.5 h-11 w-full rounded-md border border-border bg-surface px-3 text-sm text-text-1 placeholder:text-text-3 focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-dark-border dark:bg-dark-surface dark:text-dark-text-1 dark:placeholder:text-dark-text-3";
 
 function validateSignupPassword(password: string): string | null {
   if (password.length < 8) {
@@ -107,14 +107,9 @@ export default function HeroAuthCard() {
       router.push("/dashboard");
       router.refresh();
     } catch (err) {
-      const { message, ref } = toFriendlyError(err, FRIENDLY_MESSAGES.fallback, {
-        context: `hero-auth:${mode}`,
-      });
-      const signInMismatch =
-        mode === "signin" &&
-        message !== FRIENDLY_MESSAGES.network &&
-        message !== FRIENDLY_MESSAGES.rateLimited;
-      setError(withRef(signInMismatch ? FRIENDLY_MESSAGES.invalidCredentials : message, ref));
+      setError(
+        authErrorText(mapAuthError(err, mode === "signup" ? "signup" : "login")),
+      );
       setLoading(false);
     }
   };
@@ -124,7 +119,7 @@ export default function HeroAuthCard() {
       <form
         id={HERO_AUTH_ID}
         onSubmit={handleSubmit}
-        className="rounded-xl border border-border bg-surface p-4 shadow-2"
+        className="rounded-xl border border-border bg-surface p-4 shadow-2 dark:border-dark-border dark:bg-dark-surface"
         aria-labelledby="hero-auth-heading"
       >
         <h2 id="hero-auth-heading" className="sr-only">
@@ -136,7 +131,7 @@ export default function HeroAuthCard() {
             role="alert"
             className="mb-3 rounded-md border border-error/30 bg-error-bg p-2.5 text-sm text-error"
           >
-            <ErrorText text={error} />
+            <ErrorText text={error} issueGeneratedRef={false} />
           </div>
         ) : null}
         <div>
@@ -210,7 +205,7 @@ export default function HeroAuthCard() {
         <button
           type="submit"
           disabled={loading}
-          className="mt-4 h-11 w-full rounded-md bg-accent-hover text-sm font-bold text-charcoal hover:bg-[#115E59] disabled:opacity-50"
+          className={`mt-4 ${AUTH_SUBMIT}`}
         >
           {loading
             ? mode === "signup"
@@ -220,15 +215,6 @@ export default function HeroAuthCard() {
               ? "Get started"
               : "Sign in"}
         </button>
-        {mode === "signin" ? (
-          <p data-testid="reclaim-note" className="mt-2 text-center text-xs tracking-normal [word-spacing:0.12em] text-text-3">
-            {"Already used Kompleet with this email? Sign up with the same address to keep your books."}
-          </p>
-        ) : (
-          <p data-testid="reclaim-note" className="mt-2 text-center text-xs tracking-normal [word-spacing:0.12em] text-text-3">
-            {RECLAIM_SIGNUP_NOTE}
-          </p>
-        )}
         <p className="mt-3 text-center text-sm text-text-2">
           {mode === "signup" ? (
             <>
@@ -236,7 +222,7 @@ export default function HeroAuthCard() {
               <button
                 type="button"
                 onClick={focusSignIn}
-                className="inline-flex min-h-11 items-center font-semibold text-primary underline underline-offset-2"
+                className={`inline-flex min-h-11 items-center underline underline-offset-2 ${AUTH_LINK}`}
               >
                 Sign in
               </button>
@@ -250,7 +236,7 @@ export default function HeroAuthCard() {
                   setMode("signup");
                   setError(null);
                 }}
-                className="inline-flex min-h-11 items-center font-semibold text-primary underline underline-offset-2"
+                className={`inline-flex min-h-11 items-center underline underline-offset-2 ${AUTH_LINK}`}
               >
                 Get started
               </button>

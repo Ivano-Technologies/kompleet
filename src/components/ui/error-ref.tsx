@@ -32,18 +32,30 @@ export function ErrorText({
   text,
   refClassName,
   context = "ui",
+  issueGeneratedRef = true,
 }: {
   text: string | null | undefined;
   refClassName?: string;
   context?: string;
+  /** When false, only an embedded "Ref: XXXXXXXX" is shown. Auth known errors use this. */
+  issueGeneratedRef?: boolean;
 }) {
   const { message, ref: embedded } = splitRef(text ?? "");
-  const ref = useErrorRef(Boolean(text) && !embedded, context, message, text, message);
+  const ref = useErrorRef(
+    Boolean(text) && !embedded && issueGeneratedRef,
+    context,
+    message,
+    text,
+    message,
+  );
   if (!text) return null;
   return (
     <>
       {message}
-      <ErrorRef value={embedded ?? ref} className={refClassName} />
+      <ErrorRef
+        value={embedded ?? (issueGeneratedRef ? ref : null)}
+        className={refClassName}
+      />
     </>
   );
 }

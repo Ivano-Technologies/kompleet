@@ -12,13 +12,13 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         className={cn(
           "inline-flex items-center justify-center rounded-md font-medium transition-all select-none",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-link focus-visible:ring-offset-2",
           "disabled:pointer-events-none disabled:opacity-50",
           // Skeuomorphic base (convex + pressable)
           "shadow-outer-soft gradient-convex border border-black/5",
           "active:shadow-pressed active:gradient-concave active:translate-y-px",
           {
-            "bg-primary text-white hover:brightness-[0.98]":
+            "bg-primary-fill text-white hover:bg-primary-fill-hover":
               variant === "default",
             "bg-surface text-text-1 hover:bg-surface-2 dark:bg-dark-surface dark:text-dark-text-1 dark:hover:bg-dark-surface-2":
               variant === "outline",

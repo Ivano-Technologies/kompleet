@@ -24,7 +24,7 @@ export default function Forbidden() {
         </div>
         <Link
           href="/dashboard"
-          className="flex items-center gap-2 rounded-md bg-accent px-6 py-3 text-sm font-bold text-charcoal hover:bg-accent-hover"
+          className="flex items-center gap-2 rounded-md bg-primary-fill px-6 py-3 text-sm font-bold text-white hover:bg-primary-fill-hover focus-visible:ring-2 focus-visible:ring-link disabled:opacity-50"
         >
           <LayoutDashboard className="w-4 h-4" />
           Go to dashboard

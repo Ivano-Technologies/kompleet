@@ -19,21 +19,42 @@ export function emailSendLimitIdentifier(
   return `${purpose}:${email.trim().toLowerCase()}`;
 }
 
+function retryAfterSeconds(waitMs: number): number {
+  return Math.max(1, Math.ceil(waitMs / 1000));
+}
+
 export function nextEmailSendState(
   state: EmailSendLimitState | null,
   now: number,
-): { allowed: boolean; next: EmailSendLimitState } {
+): {
+  allowed: boolean;
+  next: EmailSendLimitState;
+  retryAfterSeconds: number | null;
+} {
   if (state && now - state.lastSentAt < EMAIL_SEND_COOLDOWN_MS) {
-    return { allowed: false, next: state };
+    return {
+      allowed: false,
+      next: state,
+      retryAfterSeconds: retryAfterSeconds(
+        EMAIL_SEND_COOLDOWN_MS - (now - state.lastSentAt),
+      ),
+    };
   }
   const hourExpired =
     !state || now - state.hourStartedAt >= EMAIL_SEND_HOUR_MS;
   const hourCount = hourExpired ? 0 : state.hourCount;
   if (hourCount >= EMAIL_SEND_MAX_PER_HOUR) {
-    return { allowed: false, next: state as EmailSendLimitState };
+    const untilHour =
+      EMAIL_SEND_HOUR_MS - (now - (state as EmailSendLimitState).hourStartedAt);
+    return {
+      allowed: false,
+      next: state as EmailSendLimitState,
+      retryAfterSeconds: retryAfterSeconds(untilHour),
+    };
   }
   return {
     allowed: true,
+    retryAfterSeconds: null,
     next: {
       lastSentAt: now,
       hourStartedAt: hourExpired ? now : state.hourStartedAt,
