@@ -1,5 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { SkipToContent } from "@/components/a11y/SkipToContent";
+import { COOKIE_CONSENT_STORAGE_KEY } from "@/lib/cookie-consent";
+import { DSR_EMAIL } from "@/lib/legal";
+
+const COOKIE_LINK = "text-primary underline underline-offset-2";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/cookies" },
@@ -11,10 +16,11 @@ export const metadata: Metadata = {
 export default function CookiesPage() {
   return (
     <div data-marketing className="min-h-screen bg-bg dark:bg-dark-bg py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto bg-light-surface dark:bg-dark-surface rounded-lg p-8">
+      <SkipToContent />
+      <main id="main-content" className="max-w-4xl mx-auto bg-light-surface dark:bg-dark-surface rounded-lg p-8">
         <Link
           href="/"
-          className="text-sm text-primary hover:underline mb-8 inline-block"
+          className={`mb-8 inline-flex min-h-11 items-center text-sm ${COOKIE_LINK}`}
         >
           &larr; Back to Home
         </Link>
@@ -33,128 +39,143 @@ export default function CookiesPage() {
             </h2>
             <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
               Cookies are small text files placed on your device when you visit
-              a website. They are widely used to make websites work more
-              efficiently and to provide information to the website owners.
+              a website. Kompleet also uses the browser&apos;s local storage for
+              a few first-party preferences. This page lists only what Kompleet
+              actually sets.
             </p>
           </section>
 
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">
-              2. How We Use Cookies
+              2. Cookies and storage we set
             </h2>
             <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              Kompleet uses cookies for the following purposes:
+              Essential authentication cookies are required to keep you signed
+              in. Theme and consent are stored in local storage, not cookies.
+              We do not set Vercel analytics cookies or Sentry cookies. We do
+              not store a locale cookie or a dashboard-layout cookie.
             </p>
 
-            <h3 className="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-3">
-              2.1 Essential Cookies
-            </h3>
-            <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              These cookies are required for the platform to function. They
-              enable core features such as authentication, session management,
-              and security. You cannot opt out of essential cookies.
-            </p>
-            <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
-              <li>
-                <strong>Authentication tokens:</strong> Keep you signed in
-                securely
-              </li>
-              <li>
-                <strong>Session cookies:</strong> Maintain your session state as
-                you navigate
-              </li>
-              <li>
-                <strong>CSRF tokens:</strong> Protect against cross-site request
-                forgery
-              </li>
-            </ul>
-
-            <h3 className="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-3">
-              2.2 Functional Cookies
-            </h3>
-            <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              These cookies remember your preferences and settings to provide a
-              personalized experience:
-            </p>
-            <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
-              <li>Theme preference (light/dark mode)</li>
-              <li>Language and locale settings</li>
-              <li>Dashboard layout preferences</li>
-            </ul>
-
-            <h3 className="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-3">
-              2.3 Analytics Cookies
-            </h3>
-            <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              Google Analytics is off until you accept analytics cookies in the
-              cookie banner. If you decline, we do not load GA or set its
-              cookies. You can change that later from Cookie settings in the
-              footer. Analytics data is aggregated and anonymized.
-            </p>
+            <div className="overflow-x-auto mb-4">
+              <table className="w-full text-left text-sm text-light-text-secondary dark:text-dark-text-secondary">
+                <thead>
+                  <tr>
+                    <th className="border-b border-light-border dark:border-dark-border py-2 pr-4 font-semibold text-light-text-primary dark:text-dark-text-primary">
+                      Name
+                    </th>
+                    <th className="border-b border-light-border dark:border-dark-border py-2 pr-4 font-semibold text-light-text-primary dark:text-dark-text-primary">
+                      Purpose
+                    </th>
+                    <th className="border-b border-light-border dark:border-dark-border py-2 font-semibold text-light-text-primary dark:text-dark-text-primary">
+                      Duration
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td className="border-b border-light-border dark:border-dark-border py-2 pr-4 align-top font-mono text-xs">
+                      __Host-__convexAuthJWT
+                    </td>
+                    <td className="border-b border-light-border dark:border-dark-border py-2 pr-4 align-top">
+                      Convex Auth session token. Keeps you signed in. HttpOnly.
+                      On localhost the name is{" "}
+                      <span className="font-mono text-xs">__convexAuthJWT</span>.
+                    </td>
+                    <td className="border-b border-light-border dark:border-dark-border py-2 align-top">
+                      Session (until the browser session ends or you sign out).
+                      No max-age is configured.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="border-b border-light-border dark:border-dark-border py-2 pr-4 align-top font-mono text-xs">
+                      __Host-__convexAuthRefreshToken
+                    </td>
+                    <td className="border-b border-light-border dark:border-dark-border py-2 pr-4 align-top">
+                      Convex Auth refresh token. On localhost the name is{" "}
+                      <span className="font-mono text-xs">
+                        __convexAuthRefreshToken
+                      </span>
+                      .
+                    </td>
+                    <td className="border-b border-light-border dark:border-dark-border py-2 align-top">
+                      Session (until the browser session ends or you sign out).
+                      No max-age is configured.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="border-b border-light-border dark:border-dark-border py-2 pr-4 align-top font-mono text-xs">
+                      kompleet-theme
+                    </td>
+                    <td className="border-b border-light-border dark:border-dark-border py-2 pr-4 align-top">
+                      Local storage. Remembers light, dark, or system theme.
+                    </td>
+                    <td className="border-b border-light-border dark:border-dark-border py-2 align-top">
+                      Until you change theme or clear site data
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="border-b border-light-border dark:border-dark-border py-2 pr-4 align-top font-mono text-xs">
+                      {COOKIE_CONSENT_STORAGE_KEY}
+                    </td>
+                    <td className="border-b border-light-border dark:border-dark-border py-2 pr-4 align-top">
+                      Local storage. Stores your analytics-cookie choice
+                      (granted or denied). The banner defaults to deny and does
+                      not set cookies before you choose.
+                    </td>
+                    <td className="border-b border-light-border dark:border-dark-border py-2 align-top">
+                      Until you change Cookie settings or clear site data
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 pr-4 align-top font-mono text-xs">
+                      _ga, _ga_*
+                    </td>
+                    <td className="py-2 pr-4 align-top">
+                      Google Analytics cookies, set only if you accept in the
+                      banner and a measurement ID is configured. They are not
+                      set today: no measurement ID is configured.
+                    </td>
+                    <td className="py-2 align-top">
+                      Only if GA is enabled; then according to Google&apos;s
+                      cookie durations
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </section>
 
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">
-              3. Third-Party Cookies
+              3. Managing Cookies
             </h2>
             <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              Some cookies are placed by third-party services we use:
-            </p>
-            <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
-              <li>
-                <strong>Vercel:</strong> Performance monitoring and analytics
-              </li>
-              <li>
-                <strong>Sentry:</strong> Error tracking and reporting
-              </li>
-            </ul>
-          </section>
-
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">
-              4. Managing Cookies
-            </h2>
-            <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              You can control cookies through your browser settings. Most
-              browsers allow you to:
-            </p>
-            <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
-              <li>View what cookies are stored and delete them individually</li>
-              <li>Block third-party cookies</li>
-              <li>Block cookies from specific sites</li>
-              <li>Block all cookies</li>
-              <li>Delete all cookies when you close your browser</li>
-            </ul>
-            <p className="text-light-text-secondary dark:text-dark-text-secondary">
-              Please note that disabling essential cookies will prevent you from
-              using Kompleet, as they are required for authentication and
-              security.
+              Decline and Accept on the cookie banner have equal weight. You can
+              change the analytics choice later from Cookie settings in the
+              footer. You can also control cookies in your browser. Blocking the
+              Convex Auth cookies will sign you out, because they are required
+              to stay logged in.
             </p>
           </section>
 
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">
-              5. Updates to This Policy
+              4. Updates to This Policy
             </h2>
             <p className="text-light-text-secondary dark:text-dark-text-secondary">
               We may update this Cookie Policy from time to time. Changes will
-              be posted on this page with an updated date. Your continued use of
-              Kompleet after changes constitutes acceptance of the updated
-              policy.
+              be posted on this page with an updated date.
             </p>
           </section>
 
           <section className="mb-8">
             <h2 className="text-2xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">
-              6. Contact
+              5. Contact
             </h2>
             <p className="text-light-text-secondary dark:text-dark-text-secondary">
               If you have questions about our use of cookies, contact us at{" "}
-              <a
-                href="mailto:support@ivanotechnologies.com"
-                className="text-primary hover:underline"
-              >
-                support@ivanotechnologies.com
+              <a href={`mailto:${DSR_EMAIL}`} className={COOKIE_LINK}>
+                {DSR_EMAIL}
               </a>
               .
             </p>
@@ -166,7 +187,7 @@ export default function CookiesPage() {
             &copy; 2026 Ivano Technologies Ltd. All rights reserved.
           </p>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
