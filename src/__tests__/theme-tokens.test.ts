@@ -1,6 +1,20 @@
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { readdirSync, readFileSync } from "node:fs";
+import { join, relative, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+
+function walkSource(dir: string): string[] {
+  const out: string[] = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (entry.name === "node_modules") continue;
+    const path = join(dir, entry.name);
+    if (entry.isDirectory()) {
+      out.push(...walkSource(path));
+    } else if (/\.(tsx|ts)$/.test(entry.name)) {
+      out.push(path);
+    }
+  }
+  return out;
+}
 
 const config = readFileSync(resolve(process.cwd(), "tailwind.config.cjs"), "utf8");
 const globals = readFileSync(resolve(process.cwd(), "src/app/globals.css"), "utf8");
@@ -49,5 +63,19 @@ describe("theme colour tokens", () => {
     expect(button).not.toMatch(/bg-primary text-white/);
     expect(globals).toMatch(/\.btn-primary[\s\S]*?background-color:\s*rgb\(var\(--primary\)\)/);
     expect(globals).toMatch(/--dark-text-4:\s*107 155 184;/);
+  });
+
+  it("does not pair bg-primary (the link token) with white or primary-foreground", () => {
+    const root = resolve(process.cwd(), "src");
+    const bad =
+      /bg-primary(?!-fill|-deep)(?:\/[^\s"'`]+)?[^\n]*text-(?:white|primary-foreground)|text-(?:white|primary-foreground)[^\n]*bg-primary(?!-fill|-deep)/;
+    const hits: string[] = [];
+    for (const file of walkSource(root)) {
+      if (file.endsWith("theme-tokens.test.ts")) continue;
+      if (bad.test(readFileSync(file, "utf8"))) {
+        hits.push(relative(process.cwd(), file));
+      }
+    }
+    expect(hits).toEqual([]);
   });
 });
