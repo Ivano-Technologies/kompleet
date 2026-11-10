@@ -79,9 +79,7 @@ test.describe("Auth flow", () => {
     const email = `e2e-${runId()}@example.test`;
 
     await page.goto("/signup");
-    await expect(page.getByTestId("reclaim-note")).toHaveText(
-      "Already used Kompleet with this email? Sign up with the same address to keep your books.",
-    );
+    await expect(page.getByText(/Already used Kompleet/)).toHaveCount(0);
 
     await fillHydrated(
       page.getByPlaceholder(SIGNUP_SELECTORS.firstName, { exact: true }),
@@ -140,13 +138,6 @@ test.describe("Auth flow", () => {
     );
 
     await expect(inPageError(page, message)).toBeVisible();
-  });
-
-  test("the login page shows the reclaim note", async ({ page }) => {
-    await page.goto("/login");
-    await expect(page.getByTestId("reclaim-note")).toHaveText(
-      "Already used Kompleet with this email? Sign up with the same address to keep your books.",
-    );
   });
 
   for (const route of PROTECTED_ROUTES) {

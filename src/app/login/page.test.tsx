@@ -33,7 +33,7 @@ describe("LoginPage", () => {
     vi.spyOn(console, "warn").mockImplementation(() => {});
   });
 
-  it("shows the exact mismatch copy, a logged ref and the reclaim note on its own line", async () => {
+  it("shows the exact mismatch copy and a logged ref", async () => {
     const raw = new Error("[Request ID: abc] Server Error\nUncaught Error: InvalidAccountId");
     signIn.mockRejectedValueOnce(raw);
     const user = userEvent.setup();
@@ -55,13 +55,7 @@ describe("LoginPage", () => {
       raw,
     );
     expect(console.error).not.toHaveBeenCalled();
-
-    const note = screen.getByTestId("reclaim-note");
-    expect(note.tagName).toBe("P");
-    expect(note.className).toMatch(/text-xs/);
-    expect(note.textContent).toBe(
-      "Already used Kompleet with this email? Sign up with the same address to keep your books.",
-    );
+    expect(screen.queryByText(/Already used Kompleet/)).not.toBeInTheDocument();
   });
 
   it("shows the exact expired-link copy with a ref logged as a warning", () => {

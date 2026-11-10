@@ -20,7 +20,6 @@ import { FRIENDLY_MESSAGES, toFriendlyError, withRef } from "@/lib/friendly-erro
 import { ErrorText } from "@/components/ui/error-ref";
 import { didSignInComplete, verifyEmailPath } from "@/lib/auth/sign-in-result";
 import { AUTH_LINK } from "@/components/layout/auth-density";
-import { RECLAIM_SIGNUP_NOTE } from "@/lib/auth/copy";
 
 const inputClassName =
   "mt-1.5 h-11 w-full rounded-md border border-border bg-surface px-3 text-sm text-text-1 placeholder:text-text-3 focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-dark-border dark:bg-dark-surface dark:text-dark-text-1 dark:placeholder:text-dark-text-3";
@@ -221,15 +220,6 @@ export default function HeroAuthCard() {
               ? "Get started"
               : "Sign in"}
         </button>
-        {mode === "signin" ? (
-          <p data-testid="reclaim-note" className="mt-2 text-center text-xs tracking-normal [word-spacing:0.12em] text-text-3">
-            {"Already used Kompleet with this email? Sign up with the same address to keep your books."}
-          </p>
-        ) : (
-          <p data-testid="reclaim-note" className="mt-2 text-center text-xs tracking-normal [word-spacing:0.12em] text-text-3">
-            {RECLAIM_SIGNUP_NOTE}
-          </p>
-        )}
         <p className="mt-3 text-center text-sm text-text-2">
           {mode === "signup" ? (
             <>

@@ -3,7 +3,6 @@ import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import VerifyEmailClient from "./VerifyEmailClient";
-import { RECLAIM_SIGNUP_NOTE } from "@/lib/auth/copy";
 
 const signIn = vi.fn();
 const push = vi.fn();
@@ -35,13 +34,13 @@ describe("VerifyEmailClient", () => {
     vi.spyOn(console, "warn").mockImplementation(() => {});
   });
 
-  it("shows sentence case copy, expiry, resend and the reclaim note", () => {
+  it("shows sentence case copy, expiry and resend, without the reclaim note", () => {
     render(<VerifyEmailClient />);
     expect(screen.getByRole("heading", { name: "Check your email" })).toBeInTheDocument();
     expect(screen.getByText(/expires in 15 minutes/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Verify email" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Resend code" })).toBeInTheDocument();
-    expect(screen.getByTestId("reclaim-note").textContent).toBe(RECLAIM_SIGNUP_NOTE);
+    expect(screen.queryByText(/Already used Kompleet/)).not.toBeInTheDocument();
     expect(screen.queryByText(/—|–/)).not.toBeInTheDocument();
   });
 

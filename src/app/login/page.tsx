@@ -28,9 +28,6 @@ import {
 import { ErrorText } from "@/components/ui/error-ref";
 import { didSignInComplete, verifyEmailPath } from "@/lib/auth/sign-in-result";
 
-const RECLAIM_NOTE =
-  "Already used Kompleet with this email? Sign up with the same address to keep your books.";
-
 function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -144,12 +141,6 @@ function LoginForm() {
           {loading ? "Signing in…" : "Sign in"}
         </button>
       </form>
-      <p
-        data-testid="reclaim-note"
-        className="mt-2 text-center text-xs tracking-normal [word-spacing:0.12em] text-text-3 dark:text-dark-text-3"
-      >
-        {RECLAIM_NOTE}
-      </p>
       <p className="mt-3 text-center text-xs text-text-3 dark:text-dark-text-3">
         New to Kompleet?{" "}
         <Link href="/signup" className={AUTH_LINK}>

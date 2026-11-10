@@ -24,7 +24,6 @@ import {
   withRef,
 } from "@/lib/friendly-error";
 import { ErrorText } from "@/components/ui/error-ref";
-import { RECLAIM_SIGNUP_NOTE } from "@/lib/auth/copy";
 import { didSignInComplete } from "@/lib/auth/sign-in-result";
 
 const RESEND_COOLDOWN_SECONDS = 60;
@@ -194,13 +193,6 @@ export default function VerifyEmailClient() {
             ? "Sending…"
             : "Resend code"}
       </button>
-
-      <p
-        data-testid="reclaim-note"
-        className="mt-3 text-center text-xs tracking-normal [word-spacing:0.12em] text-text-3 dark:text-dark-text-3"
-      >
-        {RECLAIM_SIGNUP_NOTE}
-      </p>
     </AuthLayout>
   );
 }
