@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as Sentry from "@sentry/nextjs";
 import { AUTH_ERROR_CODES } from "../../convex/lib/authErrors";
+import { MissingTaxRuleError } from "@/lib/tax/errors";
 import {
   FRIENDLY_FALLBACK,
   FRIENDLY_MESSAGES,
@@ -17,14 +18,25 @@ import {
   stripStackFrames,
   toFriendlyMessage,
   toFriendlyError,
+  toFriendlyErrorAndFlush,
   generateRef,
   splitRef,
   withRef,
   friendlyErrorBody,
+  friendlyWithNewRef,
+  flushSentry,
+  isConvexResourceLimitError,
+  isStatementSizeLimitError,
+  isExpectedUiErrorMessage,
   userFacingError,
 } from "@/lib/friendly-error";
 
-vi.mock("@sentry/nextjs", () => ({ captureException: vi.fn() }));
+vi.mock("@sentry/nextjs", () => ({
+  captureException: vi.fn(),
+  flush: vi.fn(async () => true),
+  init: vi.fn(),
+  getClient: vi.fn(() => undefined),
+}));
 
 const convexWrap = (inner: string) =>
   `[CONVEX A(auth:signIn)] [Request ID: 7f3a9c1e2b] Server Error\nUncaught Error: ${inner}\n    at handler (../convex/auth.ts:42:11)\n\n  Called by client`;
@@ -272,6 +284,20 @@ describe("friendly-error", () => {
       expect(msg(new Error("Email not verified"))).toBe(
         FRIENDLY_MESSAGES.unverified,
       );
+      expect(msg(new Error("Confirm your email"))).toBe(
+        FRIENDLY_MESSAGES.unverified,
+      );
+      expect(msg(new Error("Email verification required"))).toBe(
+        FRIENDLY_MESSAGES.unverified,
+      );
+    });
+
+    it("does not treat tax-rule 'unverified-candidate' copy as email verification", () => {
+      const err = new Error(
+        'Missing tax rule "business_tax.capital_gains_integration". This figure has not been verified/seeded in the tax_rules table for the active (or unverified-candidate) rule version — refusing to fall back to a hardcoded rate.',
+      );
+      expect(msg(err)).toBe(FRIENDLY_FALLBACK);
+      expect(msg(err)).not.toBe(FRIENDLY_MESSAGES.unverified);
     });
 
     it("formats rate-limit wait copy", () => {
@@ -312,6 +338,65 @@ describe("friendly-error", () => {
       expect(
         msg(new FakeConvexError({ message: "Pick a client." })),
       ).toBe("Pick a client.");
+    });
+
+    it("maps Convex read/write/array limit errors to the statement-too-long copy", () => {
+      const tooMany = new Error(
+        "Too many documents read in a single function execution (limit: 4096 documents).",
+      );
+      expect(isConvexResourceLimitError(tooMany)).toBe(true);
+      expect(msg(tooMany)).toBe(FRIENDLY_MESSAGES.statementTooLong);
+      expect(msg(tooMany)).not.toMatch(/[\u2013\u2014]/);
+      expect(
+        msg(new Error("Array is too long (limit: 8192 array elements)")),
+      ).toBe(FRIENDLY_MESSAGES.statementTooLong);
+      expect(
+        msg(
+          new Error(
+            "[Request ID: xyz] Server Error\nUncaught Error: Value is too large",
+          ),
+        ),
+      ).toBe(FRIENDLY_MESSAGES.statementTooLong);
+      expect(Sentry.captureException).not.toHaveBeenCalled();
+    });
+
+    it("does not treat unrelated Convex faults as a statement size limit", () => {
+      expect(isConvexResourceLimitError(new Error("Not authenticated"))).toBe(
+        false,
+      );
+      expect(msg(new Error("column foo does not exist"), "fallback")).toBe(
+        "fallback",
+      );
+    });
+
+    it("does not remap a redacted persist Server Error to the too-long copy", () => {
+      const redacted = new Error("[Request ID: abc] Server Error");
+      expect(isStatementSizeLimitError(redacted)).toBe(false);
+      expect(isConvexResourceLimitError(redacted)).toBe(false);
+      expect(msg(redacted, "Import didn't complete. Please try again.")).toBe(
+        "Import didn't complete. Please try again.",
+      );
+      expect(msg(redacted, "Import didn't complete. Please try again.")).not.toBe(
+        FRIENDLY_MESSAGES.statementTooLong,
+      );
+    });
+
+    it("maps a typed ConvexError too-long payload to the statement copy", () => {
+      const typed = new FakeConvexError(FRIENDLY_MESSAGES.statementTooLong);
+      expect(isStatementSizeLimitError(typed)).toBe(true);
+      expect(msg(typed, "Import didn't complete. Please try again.")).toBe(
+        FRIENDLY_MESSAGES.statementTooLong,
+      );
+    });
+
+    it("flushes Sentry after reporting an unexpected server error", async () => {
+      vi.mocked(Sentry.flush).mockClear();
+      const err = new Error("[Request ID: abc] Server Error");
+      const result = await toFriendlyErrorAndFlush(err);
+      expect(result.message).toBe(FRIENDLY_FALLBACK);
+      expect(Sentry.captureException).toHaveBeenCalled();
+      expect(Sentry.flush).toHaveBeenCalled();
+      await expect(flushSentry()).resolves.toBe(true);
     });
 
     it("maps allowlisted validation messages from our Convex functions", () => {
@@ -376,6 +461,19 @@ describe("friendly-error", () => {
       expect(out).not.toContain("vat.standard_rate");
     });
 
+    it("maps MissingTaxRuleError before email-verification wording, even when the message contains unverified-candidate", () => {
+      const err = new MissingTaxRuleError(
+        "business_tax",
+        "capital_gains_integration",
+      );
+      expect(err.message).toMatch(/unverified-candidate/);
+      const out = msg(err);
+      expect(out).toBe(FRIENDLY_MESSAGES.missingTaxRule);
+      expect(out).not.toBe(FRIENDLY_MESSAGES.unverified);
+      expect(out).not.toContain("unverified-candidate");
+      expect(out).not.toContain("capital_gains_integration");
+    });
+
     it("logs a stack-free detail with the same 8 character ref", () => {
       const err = new Error("boom");
       const { ref } = toFriendlyError(err);
@@ -394,9 +492,9 @@ describe("friendly-error", () => {
       expect(ref).toBe("ABCD2345");
     });
 
-    it("toFriendlyMessage appends a ref that splitRef reads back", () => {
-      const text = toFriendlyMessage(new Error("[Request ID: x] Server Error"));
-      const { message, ref } = splitRef(text);
+    it("toFriendlyMessage appends a ref only for unexpected errors", () => {
+      const unexpected = toFriendlyMessage(new Error("column foo does not exist"));
+      const { message, ref } = splitRef(unexpected);
       expect(message).toBe(FRIENDLY_FALLBACK);
       expect(ref).toMatch(/^[A-Z0-9]{8}$/);
       expect(splitRef(withRef("Hi.", "ZZZZ2222"))).toEqual({
@@ -404,6 +502,36 @@ describe("friendly-error", () => {
         ref: "ZZZZ2222",
       });
       expect(generateRef()).toMatch(/^[A-Z0-9]{8}$/);
+    });
+
+    it("omits the Ref from known and redacted errors", () => {
+      expect(toFriendlyMessage(new Error("Could not verify code"))).toBe(
+        FRIENDLY_MESSAGES.invalidCode,
+      );
+      expect(toFriendlyMessage(new Error("Could not verify code"))).not.toMatch(
+        /Ref:/,
+      );
+      const redacted = toFriendlyMessage(
+        new Error("[Request ID: x] Server Error"),
+      );
+      expect(redacted).toBe(FRIENDLY_FALLBACK);
+      expect(redacted).not.toMatch(/Ref:/);
+      expect(
+        toFriendlyMessage(new UserFacingError("Pick a tax year first.")),
+      ).toBe("Pick a tax year first.");
+    });
+
+    it("friendlyWithNewRef logs a ref but does not append it to known copy", () => {
+      const text = friendlyWithNewRef(
+        "We can't treat this rent as VAT exempt yet.",
+        "calculators:vat:rent-exemption",
+      );
+      expect(text).toBe("We can't treat this rent as VAT exempt yet.");
+      expect(text).not.toMatch(/Ref:/);
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringMatching(/^\[friendly-error\] ref=[A-Z0-9]{8} context=calculators:vat:rent-exemption$/),
+        "We can't treat this rent as VAT exempt yet.",
+      );
     });
 
     it("friendlyErrorBody returns { error, ref } for API routes", () => {
@@ -455,5 +583,21 @@ describe("friendly-error", () => {
     expect(normalizeEmail("  A@B.COM ")).toBe("a@b.com");
     expect(isNetworkError(new Error("InvalidAccountId"))).toBe(false);
     expect(isNetworkError(new TypeError("Load failed"))).toBe(true);
+  });
+
+  it("classifies expected UI copy vs unexpected fallbacks", () => {
+    expect(isExpectedUiErrorMessage("Enter an amount greater than 0.")).toBe(
+      true,
+    );
+    expect(isExpectedUiErrorMessage(FRIENDLY_MESSAGES.invalidCredentials)).toBe(
+      true,
+    );
+    expect(isExpectedUiErrorMessage("Page not found")).toBe(true);
+    expect(isExpectedUiErrorMessage("Sign in to see this page.")).toBe(true);
+    expect(isExpectedUiErrorMessage("No access")).toBe(true);
+    expect(isExpectedUiErrorMessage(FRIENDLY_FALLBACK)).toBe(false);
+    expect(
+      isExpectedUiErrorMessage("We couldn't save this. Please try again."),
+    ).toBe(false);
   });
 });

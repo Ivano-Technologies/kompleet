@@ -1,4 +1,5 @@
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
+import type { Doc } from "./_generated/dataModel";
 import {
   internalMutation,
   mutation,
@@ -7,15 +8,25 @@ import {
   type QueryCtx,
 } from "./_generated/server";
 import { getCurrentUser } from "./lib/auth";
+import {
+  IMPORT_WRITE_BATCH_MAX,
+  STATEMENT_TOO_LONG_MESSAGE,
+} from "./lib/importWrite";
 import { newExternalId, toMs } from "./lib/ids";
 import {
   cursorValidator,
+  LIST_VISIBLE_SCAN_MAX,
   listCursorReturns,
   matchesSearch,
-  nextCursorOf,
   paginationOptsFromArgs,
 } from "./lib/listPage";
 import { transactionTriageReason } from "./lib/triage";
+import {
+  completedImportSessionIds,
+  isImportDuplicateVisible,
+  isImportLedgerVisible,
+  ledgerRowsForDisplay,
+} from "./lib/importVisibility";
 
 const categoryEmbed = v.union(
   v.object({
@@ -156,6 +167,7 @@ export const listMineArgs = {
   page: v.optional(v.number()),
   limit: v.optional(v.number()),
   cursor: cursorValidator,
+  includePendingImports: v.optional(v.boolean()),
 };
 
 export const listMineReturns = v.object({
@@ -175,46 +187,81 @@ export async function listMineHandler(
     page?: number;
     limit?: number;
     cursor?: string | null;
+    includePendingImports?: boolean;
   },
 ) {
   const user = await getCurrentUser(ctx);
   const paginationOpts = paginationOptsFromArgs(args);
+  const completedSessions = args.includePendingImports
+    ? null
+    : await completedImportSessionIds(ctx, user._id);
 
-  const ranged = ctx.db.query("transactions").withIndex("by_user_and_date", (q) => {
-    const base = q.eq("userId", user._id);
-    if (args.startDate && args.endDate) {
-      return base
-        .gte("transactionDate", args.startDate)
-        .lte("transactionDate", args.endDate);
+  const pageSize = paginationOpts.numItems;
+  const visible: Doc<"transactions">[] = [];
+  let cursor: string | null = paginationOpts.cursor;
+  let isDone = false;
+  let scanned = 0;
+  let continueCursor = cursor;
+
+  while (
+    visible.length < pageSize &&
+    !isDone &&
+    scanned < LIST_VISIBLE_SCAN_MAX
+  ) {
+    const remaining = pageSize - visible.length;
+    const ranged = ctx.db
+      .query("transactions")
+      .withIndex("by_user_and_date", (q) => {
+        const base = q.eq("userId", user._id);
+        if (args.startDate && args.endDate) {
+          return base
+            .gte("transactionDate", args.startDate)
+            .lte("transactionDate", args.endDate);
+        }
+        if (args.startDate) return base.gte("transactionDate", args.startDate);
+        if (args.endDate) return base.lte("transactionDate", args.endDate);
+        return base;
+      });
+
+    const typed = args.type
+      ? ranged.filter((q) => q.eq(q.field("transactionType"), args.type))
+      : ranged;
+    const categorized = args.categoryId
+      ? typed.filter((q) =>
+          q.eq(q.field("categoryExternalId"), args.categoryId),
+        )
+      : typed;
+
+    const result = await categorized.order("desc").paginate({
+      numItems: remaining,
+      cursor,
+    });
+    scanned += result.page.length;
+    let page = args.search
+      ? result.page.filter((r) => matchesSearch(r.description, args.search))
+      : result.page;
+    if (completedSessions) {
+      page = ledgerRowsForDisplay(page, completedSessions);
     }
-    if (args.startDate) return base.gte("transactionDate", args.startDate);
-    if (args.endDate) return base.lte("transactionDate", args.endDate);
-    return base;
-  });
-
-  const typed = args.type
-    ? ranged.filter((q) => q.eq(q.field("transactionType"), args.type))
-    : ranged;
-  const categorized = args.categoryId
-    ? typed.filter((q) => q.eq(q.field("categoryExternalId"), args.categoryId))
-    : typed;
-
-  const result = await categorized.order("desc").paginate(paginationOpts);
-  const rows = args.search
-    ? result.page.filter((r) => matchesSearch(r.description, args.search))
-    : result.page;
+    visible.push(...page);
+    isDone = result.isDone;
+    continueCursor = result.continueCursor;
+    cursor = result.continueCursor;
+    if (result.page.length === 0) {
+      isDone = true;
+      break;
+    }
+  }
 
   const transactions = [];
-  for (const row of rows) {
+  for (const row of visible) {
     transactions.push(await toApi(ctx, row));
   }
 
-  const isDone = result.isDone;
-  const startedAtStart = (args.cursor ?? null) === null;
   return {
     transactions,
-    total: startedAtStart && isDone ? transactions.length : transactions.length,
-    nextCursor: nextCursorOf(result),
+    total: transactions.length,
+    nextCursor: isDone ? null : continueCursor,
     isDone,
   };
 }
@@ -235,6 +282,8 @@ export const getMine = query({
       .withIndex("by_externalId", (q) => q.eq("externalId", args.externalId))
       .unique();
     if (!row || row.userId !== user._id) return null;
+    const completedSessions = await completedImportSessionIds(ctx, user._id);
+    if (!isImportLedgerVisible(row, completedSessions)) return null;
     return await toApi(ctx, row);
   },
 });
@@ -253,7 +302,10 @@ export const totalsForYear = query({
       .withIndex("by_user", (q) => q.eq("userId", user._id))
       .collect();
     const yearPrefix = String(args.taxYear);
-    const inYear = rows.filter((r) => r.transactionDate.startsWith(yearPrefix));
+    const completedSessions = await completedImportSessionIds(ctx, user._id);
+    const inYear = ledgerRowsForDisplay(rows, completedSessions).filter((r) =>
+      r.transactionDate.startsWith(yearPrefix),
+    );
     let income = 0;
     let expenses = 0;
     for (const row of inYear) {
@@ -281,7 +333,8 @@ export const summaryForPeriod = query({
       .query("transactions")
       .withIndex("by_user", (q) => q.eq("userId", user._id))
       .collect();
-    const inPeriod = rows.filter(
+    const completedSessions = await completedImportSessionIds(ctx, user._id);
+    const inPeriod = ledgerRowsForDisplay(rows, completedSessions).filter(
       (row) =>
         row.transactionDate >= args.startDate &&
         row.transactionDate <= args.endDate,
@@ -327,8 +380,10 @@ export const monthlyTotals = query({
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
       buckets.push({ month: key, income: 0, expenses: 0 });
     }
+    const completedSessions = await completedImportSessionIds(ctx, user._id);
+    const visible = ledgerRowsForDisplay(rows, completedSessions);
     const index = new Map(buckets.map((b, i) => [b.month, i]));
-    for (const row of rows) {
+    for (const row of visible) {
       const key = row.transactionDate.slice(0, 7);
       const i = index.get(key);
       if (i === undefined) continue;
@@ -398,6 +453,57 @@ export const createMine = mutation({
   },
 });
 
+export type CreateManyMineItem = {
+  description: string;
+  amount: number;
+  transactionType: "debit" | "credit";
+  transactionDate: string;
+  balance?: number;
+  source?: string;
+  reference?: string;
+};
+
+/**
+ * Insert a batch of the current user's transactions.
+ * Callers must chunk to IMPORT_WRITE_BATCH_SIZE (max IMPORT_WRITE_BATCH_MAX).
+ * Returns generated external ids only — no per-row get/hydrate, so a 400-row
+ * batch stays well under Convex's 4,096-read / 8,192-array caps.
+ */
+export async function createManyMineHandler(
+  ctx: MutationCtx,
+  args: { items: CreateManyMineItem[]; importSessionExternalId?: string },
+) {
+  if (args.items.length > IMPORT_WRITE_BATCH_MAX) {
+    throw new ConvexError(STATEMENT_TOO_LONG_MESSAGE);
+  }
+  const user = await getCurrentUser(ctx);
+  const now = Date.now();
+  const ids: string[] = [];
+  for (const item of args.items) {
+    const externalId = newExternalId();
+    await ctx.db.insert("transactions", {
+      externalId,
+      userId: user._id,
+      userExternalId: user.externalId,
+      transactionDate: item.transactionDate,
+      description: item.description,
+      amount: item.amount,
+      transactionType: item.transactionType,
+      balance: item.balance,
+      source: item.source,
+      reference: item.reference,
+      isReconciled: false,
+      ...(args.importSessionExternalId
+        ? { importSessionExternalId: args.importSessionExternalId }
+        : {}),
+      createdAt: now,
+      updatedAt: now,
+    });
+    ids.push(externalId);
+  }
+  return { ids, count: ids.length };
+}
+
 export const createManyMine = mutation({
   args: {
     items: v.array(
@@ -411,64 +517,57 @@ export const createManyMine = mutation({
         reference: v.optional(v.string()),
       }),
     ),
+    importSessionExternalId: v.optional(v.string()),
   },
-  returns: v.array(transactionApi),
-  handler: async (ctx, args) => {
-    const user = await getCurrentUser(ctx);
-    const now = Date.now();
-    const created = [];
-    for (const item of args.items) {
-      const externalId = newExternalId();
-      await ctx.db.insert("transactions", {
-        externalId,
-        userId: user._id,
-        userExternalId: user.externalId,
-        transactionDate: item.transactionDate,
-        description: item.description,
-        amount: item.amount,
-        transactionType: item.transactionType,
-        balance: item.balance,
-        source: item.source,
-        reference: item.reference,
-        isReconciled: false,
-        createdAt: now,
-        updatedAt: now,
-      });
-      const row = await ctx.db
-        .query("transactions")
-        .withIndex("by_externalId", (q) => q.eq("externalId", externalId))
-        .unique();
-      if (row) created.push(await toApi(ctx, row));
-    }
-    return created;
-  },
+  returns: v.object({
+    ids: v.array(v.string()),
+    count: v.number(),
+  }),
+  handler: createManyMineHandler,
 });
 
-export const updateMine = mutation({
-  args: {
-    externalId: v.string(),
-    description: v.optional(v.string()),
-    amount: v.optional(v.number()),
-    transactionType: v.optional(
-      v.union(v.literal("debit"), v.literal("credit")),
-    ),
-    transactionDate: v.optional(v.string()),
-    categoryExternalId: v.optional(v.union(v.string(), v.null())),
-    notes: v.optional(v.string()),
-    isReconciled: v.optional(v.boolean()),
-    confidenceScore: v.optional(v.union(v.number(), v.null())),
-    triageIgnoredAt: v.optional(v.union(v.number(), v.null())),
-  },
-  returns: transactionApi,
-  handler: async (ctx, args) => {
+async function loadOwnedVisibleTransaction(
+  ctx: QueryCtx | MutationCtx,
+  userId: Doc<"users">["_id"],
+  externalId: string,
+) {
+  const row = await ctx.db
+    .query("transactions")
+    .withIndex("by_externalId", (q) => q.eq("externalId", externalId))
+    .unique();
+  if (!row || row.userId !== userId) {
+    throw new Error("Transaction not found");
+  }
+  const completedSessions = await completedImportSessionIds(ctx, userId);
+  if (!isImportLedgerVisible(row, completedSessions)) {
+    throw new Error("Transaction not found");
+  }
+  return row;
+}
+
+export type UpdateMineArgs = {
+  externalId: string;
+  description?: string;
+  amount?: number;
+  transactionType?: "debit" | "credit";
+  transactionDate?: string;
+  categoryExternalId?: string | null;
+  notes?: string;
+  isReconciled?: boolean;
+  confidenceScore?: number | null;
+  triageIgnoredAt?: number | null;
+};
+
+export async function updateMineHandler(
+  ctx: MutationCtx,
+  args: UpdateMineArgs,
+) {
     const user = await getCurrentUser(ctx);
-    const row = await ctx.db
-      .query("transactions")
-      .withIndex("by_externalId", (q) => q.eq("externalId", args.externalId))
-      .unique();
-    if (!row || row.userId !== user._id) {
-      throw new Error("Transaction not found");
-    }
+    const row = await loadOwnedVisibleTransaction(
+      ctx,
+      user._id,
+      args.externalId,
+    );
     let categoryId = row.categoryId;
     let categoryExternalId = row.categoryExternalId;
     if (args.categoryExternalId === null) {
@@ -508,27 +607,53 @@ export const updateMine = mutation({
     const updated = await ctx.db.get(row._id);
     if (!updated) throw new Error("Transaction not found");
     return await toApi(ctx, updated);
+}
+
+export const updateMine = mutation({
+  args: {
+    externalId: v.string(),
+    description: v.optional(v.string()),
+    amount: v.optional(v.number()),
+    transactionType: v.optional(
+      v.union(v.literal("debit"), v.literal("credit")),
+    ),
+    transactionDate: v.optional(v.string()),
+    categoryExternalId: v.optional(v.union(v.string(), v.null())),
+    notes: v.optional(v.string()),
+    isReconciled: v.optional(v.boolean()),
+    confidenceScore: v.optional(v.union(v.number(), v.null())),
+    triageIgnoredAt: v.optional(v.union(v.number(), v.null())),
   },
+  returns: transactionApi,
+  handler: updateMineHandler,
 });
+
+export async function removeMineHandler(
+  ctx: MutationCtx,
+  args: { externalIds: string[] },
+) {
+  if (args.externalIds.length > IMPORT_WRITE_BATCH_MAX) {
+    throw new ConvexError(STATEMENT_TOO_LONG_MESSAGE);
+  }
+  const user = await getCurrentUser(ctx);
+  let removed = 0;
+  for (const externalId of args.externalIds) {
+    const row = await ctx.db
+      .query("transactions")
+      .withIndex("by_externalId", (q) => q.eq("externalId", externalId))
+      .unique();
+    if (row && row.userId === user._id) {
+      await ctx.db.delete(row._id);
+      removed += 1;
+    }
+  }
+  return removed;
+}
 
 export const removeMine = mutation({
   args: { externalIds: v.array(v.string()) },
   returns: v.number(),
-  handler: async (ctx, args) => {
-    const user = await getCurrentUser(ctx);
-    let removed = 0;
-    for (const externalId of args.externalIds) {
-      const row = await ctx.db
-        .query("transactions")
-        .withIndex("by_externalId", (q) => q.eq("externalId", externalId))
-        .unique();
-      if (row && row.userId === user._id) {
-        await ctx.db.delete(row._id);
-        removed += 1;
-      }
-    }
-    return removed;
-  },
+  handler: removeMineHandler,
 });
 
 export const upsertFromBackfill = internalMutation({
@@ -645,7 +770,7 @@ function duplicatePayloadFields(payload: unknown): {
   };
 }
 
-async function collectTriage(ctx: QueryCtx | MutationCtx) {
+export async function collectTriage(ctx: QueryCtx | MutationCtx) {
   const user = await getCurrentUser(ctx);
   const rows = await ctx.db
     .query("transactions")
@@ -655,6 +780,8 @@ async function collectTriage(ctx: QueryCtx | MutationCtx) {
     .query("duplicateCandidates")
     .withIndex("by_user", (q) => q.eq("userId", user._id))
     .collect();
+  const completedSessions = await completedImportSessionIds(ctx, user._id);
+  const visibleRows = ledgerRowsForDisplay(rows, completedSessions);
 
   const items: Array<{
     id: string;
@@ -672,7 +799,7 @@ async function collectTriage(ctx: QueryCtx | MutationCtx) {
 
   let uncategorised = 0;
   let lowConfidence = 0;
-  for (const row of rows) {
+  for (const row of visibleRows) {
     const reason = transactionTriageReason(row);
     if (!reason) continue;
     if (reason === "uncategorised") uncategorised += 1;
@@ -696,6 +823,7 @@ async function collectTriage(ctx: QueryCtx | MutationCtx) {
   let duplicateSuspect = 0;
   for (const row of duplicates) {
     if ((row.status ?? "pending") !== "pending") continue;
+    if (!isImportDuplicateVisible(row, completedSessions)) continue;
     const fields = duplicatePayloadFields(row.payload);
     if (!fields) continue;
     duplicateSuspect += 1;
@@ -757,22 +885,17 @@ export const countTriageMine = query({
   },
 });
 
-export const applyTriageMine = mutation({
-  args: {
-    kind: v.union(v.literal("transaction"), v.literal("duplicate")),
-    id: v.string(),
-    action: v.union(
-      v.literal("categorise"),
-      v.literal("confirm"),
-      v.literal("ignore"),
-    ),
-    categoryExternalId: v.optional(v.string()),
-  },
-  returns: v.object({
-    snapshot: triageSnapshot,
-    createdTransactionId: v.union(v.string(), v.null()),
-  }),
-  handler: async (ctx, args) => {
+export type ApplyTriageMineArgs = {
+  kind: "transaction" | "duplicate";
+  id: string;
+  action: "categorise" | "confirm" | "ignore";
+  categoryExternalId?: string;
+};
+
+export async function applyTriageMineHandler(
+  ctx: MutationCtx,
+  args: ApplyTriageMineArgs,
+) {
     const user = await getCurrentUser(ctx);
     if (args.kind === "duplicate") {
       const row = await ctx.db
@@ -780,6 +903,10 @@ export const applyTriageMine = mutation({
         .withIndex("by_externalId", (q) => q.eq("externalId", args.id))
         .unique();
       if (!row || row.userId !== user._id) {
+        throw new Error("Duplicate not found");
+      }
+      const completedSessions = await completedImportSessionIds(ctx, user._id);
+      if (!isImportDuplicateVisible(row, completedSessions)) {
         throw new Error("Duplicate not found");
       }
       const snapshot = {
@@ -820,13 +947,7 @@ export const applyTriageMine = mutation({
       return { snapshot, createdTransactionId: null };
     }
 
-    const row = await ctx.db
-      .query("transactions")
-      .withIndex("by_externalId", (q) => q.eq("externalId", args.id))
-      .unique();
-    if (!row || row.userId !== user._id) {
-      throw new Error("Transaction not found");
-    }
+    const row = await loadOwnedVisibleTransaction(ctx, user._id, args.id);
     const snapshot = {
       kind: "transaction" as const,
       id: row.externalId,
@@ -866,13 +987,35 @@ export const applyTriageMine = mutation({
       return { snapshot, createdTransactionId: null };
     }
 
-    await ctx.db.patch(row._id, {
-      confidenceScore: 100,
-      triageIgnoredAt: undefined,
-      updatedAt: Date.now(),
-    });
-    return { snapshot, createdTransactionId: null };
+    if (args.action === "confirm") {
+      await ctx.db.patch(row._id, {
+        confidenceScore: 100,
+        triageIgnoredAt: undefined,
+        updatedAt: Date.now(),
+      });
+      return { snapshot, createdTransactionId: null };
+    }
+
+    const _exhaustive: never = args.action;
+    throw new Error(`Unsupported triage action: ${_exhaustive}`);
+}
+
+export const applyTriageMine = mutation({
+  args: {
+    kind: v.union(v.literal("transaction"), v.literal("duplicate")),
+    id: v.string(),
+    action: v.union(
+      v.literal("categorise"),
+      v.literal("confirm"),
+      v.literal("ignore"),
+    ),
+    categoryExternalId: v.optional(v.string()),
   },
+  returns: v.object({
+    snapshot: triageSnapshot,
+    createdTransactionId: v.union(v.string(), v.null()),
+  }),
+  handler: applyTriageMineHandler,
 });
 
 export const undoTriageMine = mutation({
@@ -963,7 +1106,9 @@ export const ignoreLowConfidenceMine = mutation({
       createdTransactionId: null;
     }> = [];
     const now = Date.now();
-    for (const row of rows) {
+    const completedSessions = await completedImportSessionIds(ctx, user._id);
+    const visible = ledgerRowsForDisplay(rows, completedSessions);
+    for (const row of visible) {
       if (transactionTriageReason(row) !== "low_confidence") continue;
       snapshots.push({
         kind: "transaction",

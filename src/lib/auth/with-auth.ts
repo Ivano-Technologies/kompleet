@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getCompatUser } from "@/lib/auth/session";
 import { isCompatEmailVerified } from "@/lib/auth/email-verified";
+import {
+  flushSentry,
+  SENTRY_FLUSH_ERROR_MS,
+  SENTRY_FLUSH_SUCCESS_MS,
+} from "@/lib/friendly-error";
 import { hasPermission, type Permission, type Role } from "./rbac";
 
 interface AuthOptions {
@@ -121,9 +126,16 @@ export function withAuth<T extends Request | NextRequest = Request>(
       }
 
       // All checks passed - execute handler with authenticated user
-      return await handler(request, authenticatedUser, context);
+      const response = await handler(request, authenticatedUser, context);
+      if (response.status >= 400) {
+        await flushSentry(SENTRY_FLUSH_ERROR_MS);
+      } else {
+        await flushSentry(SENTRY_FLUSH_SUCCESS_MS);
+      }
+      return response;
     } catch (error) {
       console.error("[withAuth Error]", error);
+      await flushSentry(SENTRY_FLUSH_ERROR_MS);
       return NextResponse.json(
         { error: "Internal server error" },
         { status: 500 },

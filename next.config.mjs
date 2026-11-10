@@ -1,6 +1,7 @@
 // next.config.mjs
 import { withSentryConfig } from "@sentry/nextjs";
 import { CONTENT_SECURITY_POLICY } from "./src/lib/content-security-policy.mjs";
+import { KOMPLEET_PUBLIC_SENTRY_DSN } from "./src/lib/sentry/public-dsn.mjs";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -9,6 +10,8 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    NEXT_PUBLIC_SENTRY_DSN:
+      process.env.NEXT_PUBLIC_SENTRY_DSN || KOMPLEET_PUBLIC_SENTRY_DSN,
   },
 
   poweredByHeader: false,
@@ -38,6 +41,25 @@ const nextConfig = {
       {
         source: "/tax-reports",
         destination: "/tax?tab=reports",
+        permanent: false,
+      },
+      // Finding C2: /refunds 404s on kompleet.techivano.com; company policy is live.
+      // List /refunds/ first so a trailing slash is one hop, not slash-strip then 308.
+      {
+        source: "/refunds/",
+        destination: "https://www.ivanotechnologies.com/refunds",
+        permanent: true,
+      },
+      {
+        source: "/refunds",
+        destination: "https://www.ivanotechnologies.com/refunds",
+        permanent: true,
+      },
+      // Finding 12: footer "Security" already points at Kompleet /privacy
+      // (Data Storage and Security). Keep that label; temporary redirect for typed /security URLs.
+      {
+        source: "/security",
+        destination: "/privacy",
         permanent: false,
       },
     ];

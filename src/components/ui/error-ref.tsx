@@ -1,6 +1,6 @@
 "use client";
 
-import { splitRef } from "@/lib/friendly-error";
+import { isExpectedUiErrorMessage, splitRef } from "@/lib/friendly-error";
 import { useErrorRef } from "@/hooks/use-error-ref";
 
 /** Small muted "Ref: XXXXXXXX" line shown under every friendly error. */
@@ -23,26 +23,36 @@ export function ErrorRef({
 }
 
 /**
- * Render a friendly error string with its muted ref line. A trailing
- * "Ref: XXXXXXXX" (from `toFriendlyMessage` or `apiErrorMessage`) is reused;
- * otherwise (e.g. an input error we set ourselves) a ref is issued and
- * logged with the message, so every error a user sees has a ref.
+ * Render a friendly error string. A trailing "Ref: XXXXXXXX" from
+ * `toFriendlyMessage` (unexpected errors only) is shown as a muted line.
+ * Plain expected copy (validation, 401/403/404, known auth) stays Ref-free.
+ * Unexpected UI-set copy without an embedded Ref still gets one, unless
+ * `issueGeneratedRef` is false (auth banners already embed Refs when needed).
  */
 export function ErrorText({
   text,
   refClassName,
   context = "ui",
-  issueGeneratedRef = true,
+  issueGeneratedRef,
 }: {
   text: string | null | undefined;
   refClassName?: string;
   context?: string;
-  /** When false, only an embedded "Ref: XXXXXXXX" is shown. Auth known errors use this. */
+  /**
+   * true: always mint a Ref for plain text.
+   * false: never mint (auth banners; unexpected copy already embeds a Ref).
+   * omitted: mint only for unexpected UI-set errors.
+   */
   issueGeneratedRef?: boolean;
 }) {
   const { message, ref: embedded } = splitRef(text ?? "");
+  const shouldIssue =
+    Boolean(text) &&
+    !embedded &&
+    (issueGeneratedRef === true ||
+      (issueGeneratedRef !== false && !isExpectedUiErrorMessage(message)));
   const ref = useErrorRef(
-    Boolean(text) && !embedded && issueGeneratedRef,
+    shouldIssue,
     context,
     message,
     text,
@@ -53,7 +63,7 @@ export function ErrorText({
     <>
       {message}
       <ErrorRef
-        value={embedded ?? (issueGeneratedRef ? ref : null)}
+        value={embedded ?? (shouldIssue ? ref : null)}
         className={refClassName}
       />
     </>

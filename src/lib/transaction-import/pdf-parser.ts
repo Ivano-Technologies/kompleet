@@ -151,7 +151,9 @@ export async function parsePDF(
     }
 
     const repairedText = repairWrappedStatementDates(rawText);
-    const structured = extractStructuredStatementTransactions(repairedText);
+    const structured = extractStructuredStatementTransactions(repairedText, {
+      bankName,
+    });
     if (structured.length > 0) {
       return {
         transactions: structured,

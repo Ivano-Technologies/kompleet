@@ -91,8 +91,7 @@ export function SettingsModal({
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
   const [profile, setProfile] = useState({
-    firstName: "",
-    lastName: "",
+    fullName: "",
     email: "",
     bio: "",
     avatar: "",
@@ -138,10 +137,8 @@ export function SettingsModal({
         profile?: { email?: string; full_name?: string | null };
       };
       const fullName = body.profile?.full_name ?? "";
-      const [firstName, ...rest] = fullName.split(" ").filter(Boolean);
       setProfile({
-        firstName: firstName ?? "",
-        lastName: rest.join(" "),
+        fullName,
         email: body.profile?.email || "",
         bio: "",
         avatar: "",
@@ -200,7 +197,7 @@ export function SettingsModal({
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          fullName: `${profile.firstName} ${profile.lastName}`.trim(),
+          fullName: profile.fullName.trim(),
         }),
       });
       if (!res.ok) {
@@ -270,7 +267,7 @@ export function SettingsModal({
       setDeleteDialogOpen(false);
       onOpenChange(false);
       await signOut();
-      router.push("/login");
+      router.replace("/login?deleted=1");
     } catch (err) {
       setDeleteError(toFriendlyMessage(err, "Something went wrong. Please try again."));
     } finally {
@@ -395,12 +392,12 @@ export function SettingsModal({
                       </label>
                       <input
                         type="text"
-                        value={profile.firstName}
+                        value={profile.fullName}
                         onChange={(e) =>
-                          setProfile({ ...profile, firstName: e.target.value })
+                          setProfile({ ...profile, fullName: e.target.value })
                         }
                         className={inputCls}
-                        placeholder="Your name"
+                        placeholder="First and last name"
                       />
                     </div>
                     <div>

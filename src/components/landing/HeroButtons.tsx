@@ -20,9 +20,9 @@ export default function HeroButtons() {
         <Link
           href="/signup"
           className="btn-primary btn-with-icon px-8 py-4 rounded-lg font-bold text-lg"
-          aria-label="Get started for free"
+          aria-label="Get started"
         >
-          Get started for Free <ArrowRight className="w-5 h-5" />
+          Get started <ArrowRight className="w-5 h-5" />
         </Link>
         <button
           type="button"
@@ -50,14 +50,14 @@ export default function HeroButtons() {
             </div>
             <p className="text-slate-300 mb-6">
               We are putting the finishing touches on our demo walkthrough. In
-              the meantime, create a free account to explore KOMPLEET yourself.
+              the meantime, create an account to explore Kompleet yourself.
             </p>
             <Link
               href="/signup"
               className="inline-block btn-primary px-6 py-3 rounded-lg font-semibold"
               onClick={() => setDemoOpen(false)}
             >
-              Try KOMPLEET for Free
+              Get started
             </Link>
           </div>
         </DialogContent>

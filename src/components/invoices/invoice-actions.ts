@@ -100,6 +100,53 @@ export async function cancelInvoice(invoiceId: string, reason: string): Promise<
   }
 }
 
+export async function resolveOrCreateClient(input: {
+  selected?: InvoiceClient | null;
+  pendingName: string;
+  clients: InvoiceClient[];
+}): Promise<InvoiceClient | null> {
+  if (input.selected) return input.selected;
+  const name = input.pendingName.trim();
+  if (!name) return null;
+  const match = input.clients.find(
+    (client) => client.legal_name.trim().toLowerCase() === name.toLowerCase(),
+  );
+  if (match) return match;
+
+  const response = await fetch("/api/clients", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ legal_name: name }),
+  });
+  const body = (await response.json()) as {
+    client?: InvoiceClient;
+    error?: string;
+  };
+  if (!response.ok || !body.client) {
+    throw new Error(body.error || "Failed to create client");
+  }
+  return body.client;
+}
+
+export async function sendInvoiceEmail(
+  invoiceId: string,
+): Promise<{ sent: boolean; to?: string; error?: string }> {
+  const response = await fetch(`/api/invoices/${invoiceId}/send`, {
+    method: "POST",
+    credentials: "include",
+  });
+  const body = (await response.json().catch(() => ({}))) as {
+    sent?: boolean;
+    to?: string;
+    error?: string;
+  };
+  if (!response.ok) {
+    throw new Error(body.error || "Failed to send invoice");
+  }
+  return { sent: Boolean(body.sent), to: body.to, error: body.error };
+}
+
 export async function attachInvoiceClient(
   invoiceId: string,
   clientId: string,

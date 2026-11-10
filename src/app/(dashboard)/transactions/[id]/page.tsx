@@ -13,14 +13,14 @@ interface Transaction {
   description: string;
   amount: number;
   transaction_type: "debit" | "credit";
-  balance?: number;
+  balance?: number | null;
   category?: {
     id: string;
     name: string;
     category_type: string;
     tax_treatment: string;
   };
-  confidence_score?: number;
+  confidence_score?: number | null;
   reference?: string;
   notes?: string;
   source?: string;
@@ -100,6 +100,12 @@ export default function TransactionDetailsPage() {
     fetchTransaction();
     fetchCategories();
   }, [fetchTransaction, fetchCategories]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("edit") === "1") setEditing(true);
+  }, []);
 
   const handleSave = async () => {
     setSaving(true);
@@ -391,7 +397,7 @@ export default function TransactionDetailsPage() {
                 {transaction.category.category_type} •{" "}
                 {transaction.category.tax_treatment}
               </span>
-              {transaction.confidence_score !== undefined &&
+              {transaction.confidence_score != null &&
                 transaction.confidence_score < 100 && (
                   <span className="text-sm text-light-text-tertiary dark:text-dark-text-tertiary">
                     ({transaction.confidence_score}% confidence)
@@ -467,7 +473,7 @@ export default function TransactionDetailsPage() {
 
         {/* Additional Info */}
         <div className="pt-6 border-t border-light-border dark:border-dark-border space-y-2">
-          {transaction.balance !== undefined && (
+          {transaction.balance != null && (
             <div className="flex justify-between text-sm">
               <span className="text-light-text-secondary dark:text-dark-text-secondary">
                 Balance after transaction:

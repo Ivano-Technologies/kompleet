@@ -139,4 +139,69 @@ describe("Wave 3 money-path UI", () => {
       );
     });
   });
+
+  it("creates or selects the client from the quick-create Customer field on Save draft", async () => {
+    const created = {
+      id: "cli-fixture-1",
+      legal_name: "Audit Customer One",
+      email: "",
+      phone: "",
+      addressLine1: "",
+      addressLine2: "",
+      city: "",
+      state: "",
+      country: "NG",
+    };
+    vi.mocked(fetch).mockImplementation(async (input: string | URL | Request, init?: RequestInit) => {
+      const url = String(input);
+      const method = init?.method ?? "GET";
+      if (url === "/api/clients" && method === "POST") {
+        return {
+          ok: true,
+          json: async () => ({ client: created }),
+        } as Response;
+      }
+      if (url.startsWith("/api/clients")) {
+        return { ok: true, json: async () => ({ clients: [] }) } as Response;
+      }
+      if (url.startsWith("/api/business-profile")) {
+        return {
+          ok: true,
+          json: async () => ({ profile: { legalName: "Test Traders Ltd" } }),
+        } as Response;
+      }
+      if (url === "/api/invoices/create") {
+        const body = JSON.parse(String(init?.body)) as { client_id?: string };
+        expect(body.client_id).toBe("cli-fixture-1");
+        return {
+          ok: true,
+          json: async () => ({ invoice_id: "inv-fixture-1" }),
+        } as Response;
+      }
+      throw new Error(`unexpected fetch ${method} ${url}`);
+    });
+
+    const user = userEvent.setup();
+    render(<NewInvoiceSheet open onClose={() => undefined} />);
+    const customer = await screen.findByLabelText(/Customer/i);
+    await user.type(customer, "Audit Customer One");
+    await user.type(screen.getByRole("spinbutton"), "75000");
+    await user.click(screen.getByRole("button", { name: "Save draft" }));
+
+    await waitFor(() => {
+      const createClient = vi
+        .mocked(fetch)
+        .mock.calls.find(
+          ([url, init]) =>
+            String(url) === "/api/clients" &&
+            (init as RequestInit | undefined)?.method === "POST",
+        );
+      expect(createClient).toBeTruthy();
+      expect(
+        vi
+          .mocked(fetch)
+          .mock.calls.some(([url]) => String(url) === "/api/invoices/create"),
+      ).toBe(true);
+    });
+  });
 });

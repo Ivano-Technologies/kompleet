@@ -9,7 +9,12 @@ import { SettingsModal } from "./SettingsModal";
 import { parseSettingsSection, type SettingsSection } from "./settings-types";
 
 interface DashboardShellProps {
-  user: { email?: string | null; id: string; role?: string };
+  user: {
+    email?: string | null;
+    id: string;
+    role?: string;
+    displayName?: string | null;
+  };
   children: ReactNode;
 }
 
@@ -51,6 +56,7 @@ export function DashboardShell({ user, children }: DashboardShellProps) {
     <div className="flex h-dvh min-h-0 bg-bg bg-[url('/textures/noise.svg')] bg-repeat bg-[length:180px_180px] dark:bg-none dark:bg-dark-bg overflow-hidden">
       <Sidebar
         userEmail={user.email || undefined}
+        userDisplayName={user.displayName || undefined}
         userRole={user.role}
         isMobileOpen={mobileMenuOpen}
         onMobileClose={() => setMobileMenuOpen(false)}

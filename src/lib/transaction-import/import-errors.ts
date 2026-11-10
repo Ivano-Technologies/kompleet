@@ -76,8 +76,8 @@ export const IMPORT_ERROR_COPY = {
     primary: "Choose different file",
   },
   size: {
-    title: "This file is too large",
-    body: "Split the statement by month, or export a shorter CSV, then try again.",
+    title: "This statement is too long",
+    body: "Try a shorter date range, or split the statement by month and import again.",
     primary: "Choose different file",
   },
   password: {
@@ -271,9 +271,17 @@ export function classifyImportFailure(
     return { code: "ERR_UNSUPPORTED_FORMAT" };
   }
   if (
-    text.includes("too large") ||
+    text.includes("this statement is too long") ||
+    text.includes("shorter date range") ||
     text.includes("file size") ||
-    text.includes("exceeds maximum")
+    text.includes("exceeds maximum") ||
+    text.includes("too many reads") ||
+    text.includes("too many writes") ||
+    text.includes("too many documents") ||
+    text.includes("too many bytes") ||
+    text.includes("array is too long") ||
+    text.includes("value is too large") ||
+    text.includes("data is too large")
   ) {
     return { code: "ERR_SIZE_LIMIT" };
   }

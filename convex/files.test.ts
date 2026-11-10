@@ -12,7 +12,11 @@ vi.mock("./lib/auth", async (importOriginal) => {
   };
 });
 
-import { getUrlHandler } from "./files";
+import {
+  getUrlHandler,
+  resolveLinkLabel,
+  searchLinkTargetsHandler,
+} from "./files";
 
 const OWNER = {
   _id: "users:1",
@@ -46,6 +50,7 @@ function fakeCtx(opts: {
   documents?: Array<Record<string, unknown>>;
   importSessions?: Array<Record<string, unknown>>;
   exportHistory?: Array<Record<string, unknown>>;
+  transactions?: Array<Record<string, unknown>>;
 }) {
   const tables: Record<string, Array<Record<string, unknown>>> = {
     uploadedFiles: opts.uploadedFiles ?? [],
@@ -55,6 +60,7 @@ function fakeCtx(opts: {
     documents: opts.documents ?? [],
     importSessions: opts.importSessions ?? [],
     exportHistory: opts.exportHistory ?? [],
+    transactions: opts.transactions ?? [],
   };
   const indexFields: Record<string, string[]> = {
     by_storageId: ["storageId"],
@@ -85,11 +91,14 @@ function fakeCtx(opts: {
           }),
         );
       const rows = () => match();
-      return {
+      const terminal = {
         first: async () => rows()[0] ?? null,
         unique: async () => rows()[0] ?? null,
         collect: async () => rows(),
+        take: async (n: number) => rows().slice(0, n),
+        order: () => terminal,
       };
+      return terminal;
     },
   });
   return {
@@ -147,5 +156,105 @@ describe("files:getUrl", () => {
     await expect(
       getUrlHandler(ctx as never, { storageId: "kg-av" as never }),
     ).resolves.toBe("https://files.test/kg-av");
+  });
+});
+
+describe("files:searchLinkTargets / resolveLinkLabel", () => {
+  beforeEach(() => {
+    getCurrentUser.mockReset();
+    getCurrentUser.mockResolvedValue(OWNER);
+  });
+
+  function importRows() {
+    return {
+      transactions: [
+        {
+          _id: "tx:legacy",
+          externalId: "tx-legacy",
+          userId: OWNER._id,
+          description: "legacy visible",
+          amount: 10,
+          transactionDate: "2026-01-01",
+        },
+        {
+          _id: "tx:mid",
+          externalId: "tx-processing",
+          userId: OWNER._id,
+          description: "in-flight import",
+          amount: 20,
+          transactionDate: "2026-01-02",
+          importSessionExternalId: "sess-mid",
+        },
+        {
+          _id: "tx:fail",
+          externalId: "tx-failed",
+          userId: OWNER._id,
+          description: "failed import leftover",
+          amount: 30,
+          transactionDate: "2026-01-03",
+          importSessionExternalId: "sess-fail",
+        },
+        {
+          _id: "tx:done",
+          externalId: "tx-done",
+          userId: OWNER._id,
+          description: "completed import",
+          amount: 40,
+          transactionDate: "2026-01-04",
+          importSessionExternalId: "sess-done",
+        },
+      ],
+      importSessions: [
+        {
+          _id: "importSessions:mid",
+          externalId: "sess-mid",
+          userId: OWNER._id,
+          status: "processing",
+        },
+        {
+          _id: "importSessions:fail",
+          externalId: "sess-fail",
+          userId: OWNER._id,
+          status: "failed",
+        },
+        {
+          _id: "importSessions:done",
+          externalId: "sess-done",
+          userId: OWNER._id,
+          status: "completed",
+        },
+      ],
+    };
+  }
+
+  it("omits processing and failed import rows from link search", async () => {
+    const ctx = fakeCtx(importRows());
+    const found = await searchLinkTargetsHandler(ctx as never, {
+      linkType: "transaction",
+      limit: 20,
+    });
+    expect(found.map((row) => row.id)).toEqual(["tx-legacy", "tx-done"]);
+    expect(found.map((row) => row.label)).toEqual([
+      "legacy visible",
+      "completed import",
+    ]);
+    expect(found.some((row) => row.id === "tx-processing")).toBe(false);
+    expect(found.some((row) => row.amount === 20)).toBe(false);
+  });
+
+  it("treats a hidden import row as not found when resolving a link label", async () => {
+    const ctx = fakeCtx(importRows());
+    await expect(
+      resolveLinkLabel(ctx as never, OWNER._id as never, "transaction", "tx-processing"),
+    ).rejects.toThrow("Transaction not found");
+    await expect(
+      resolveLinkLabel(ctx as never, OWNER._id as never, "transaction", "tx-failed"),
+    ).rejects.toThrow("Transaction not found");
+    await expect(
+      resolveLinkLabel(ctx as never, OWNER._id as never, "transaction", "tx-done"),
+    ).resolves.toBe("completed import");
+    await expect(
+      resolveLinkLabel(ctx as never, OWNER._id as never, "transaction", "tx-legacy"),
+    ).resolves.toBe("legacy visible");
   });
 });

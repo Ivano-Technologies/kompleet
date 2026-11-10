@@ -62,6 +62,15 @@ describe("IVA-90 AUTH-DENSITY lock", () => {
     expect(signup).not.toMatch(/Your account is ready/);
   });
 
+  it("uses light-only success tokens for AUTH_SUCCESS", () => {
+    const match = density.match(/export const AUTH_SUCCESS =\s*"([^"]+)"/);
+    expect(match?.[1]).toMatch(/border-success\/30/);
+    expect(match?.[1]).toMatch(/bg-success\/10/);
+    expect(match?.[1]).toMatch(/text-success/);
+    expect(match?.[1]).not.toMatch(/dark:/);
+    expect(match?.[1]).not.toMatch(/green-/);
+  });
+
   it("does not change homepage hero auth density", () => {
     expect(heroAuth).toMatch(/h-11/);
     expect(heroAuth).toMatch(/Get started/);

@@ -7,6 +7,7 @@ import { useAuthActions } from "@convex-dev/auth/react";
 import { AuthLayout } from "@/components/layout/AuthLayout";
 import {
   AUTH_ERROR,
+  AUTH_SUCCESS,
   AUTH_EYEBROW,
   AUTH_FORM,
   AUTH_INPUT,
@@ -19,7 +20,6 @@ import {
   AUTH_TITLE_BLOCK,
 } from "@/components/layout/auth-density";
 import { Eye, EyeOff } from "lucide-react";
-import { generateRef, withRef } from "@/lib/friendly-error";
 import { ErrorText } from "@/components/ui/error-ref";
 import { authErrorText, mapAuthError } from "@/lib/auth/map-error";
 import { didSignInComplete, verifyEmailPath } from "@/lib/auth/sign-in-result";
@@ -33,6 +33,7 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirectTo") || "/dashboard";
+  const accountDeleted = searchParams.get("deleted") === "1";
   const { signIn } = useAuthActions();
 
   useEffect(() => {
@@ -45,9 +46,7 @@ function LoginForm() {
           ? "This link has expired. Request a new one."
           : null;
     if (copy) {
-      const ref = generateRef();
-      console.warn(`[friendly-error] ref=${ref} context=login:${err}`);
-      setError(withRef(copy, ref));
+      setError(copy);
     }
   }, [searchParams]);
 
@@ -80,6 +79,11 @@ function LoginForm() {
           Access your business financial dashboard.
         </p>
       </div>
+      {accountDeleted && (
+        <div className={AUTH_SUCCESS} role="status">
+          Account deleted
+        </div>
+      )}
       {error && (
         <div className={AUTH_ERROR}>
           <ErrorText text={error} issueGeneratedRef={false} />

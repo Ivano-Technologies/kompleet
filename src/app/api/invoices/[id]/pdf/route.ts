@@ -23,7 +23,7 @@ async function handleGET(request: NextRequest, context: RouteContext) {
         { status: 400 },
       );
     }
-    const pdf = await generateInvoicePDF(id);
+    const pdf = await generateInvoicePDF(id, request);
     return new NextResponse(new Uint8Array(pdf), {
       headers: {
         "Content-Type": "application/pdf",

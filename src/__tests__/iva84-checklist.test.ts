@@ -56,6 +56,7 @@ describe("IVA-84 post-signup business checklist", () => {
     const issue = read("src/app/api/invoices/[id]/issue/route.ts");
     expect(invoices).toMatch(/hasLegalName\(profile/);
     expect(invoices).toMatch(/BIZ_COPY\.blockLegalName/);
+    expect(invoices).toMatch(/INV_COPY\.openInvoice/);
     expect(issue).toMatch(/Add your business name in Settings before issuing/);
   });
 

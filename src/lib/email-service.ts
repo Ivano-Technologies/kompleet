@@ -3,6 +3,7 @@
  * Sends deadline reminder emails using Resend API
  */
 
+import { contactReplyTo } from "@/lib/contact-email";
 import { getEmailFrom } from "@/lib/email-from";
 import type { EmailTemplate } from "../../convex/lib/reminderEmail";
 
@@ -15,12 +16,20 @@ export {
 } from "../../convex/lib/reminderEmail";
 export type { DeadlineInfo, EmailTemplate } from "../../convex/lib/reminderEmail";
 
+export type EmailAttachment = {
+  filename: string;
+  content: string;
+};
+
 /**
  * Send email using Resend. Returns false when the key is missing or the send fails.
+ * Optional attachments are Resend `{ filename, content }` rows (content is base64).
  */
 export async function sendEmail(
   to: string,
   template: EmailTemplate,
+  attachments?: EmailAttachment[],
+  replyTo?: string,
 ): Promise<boolean> {
   try {
     const resendApiKey = process.env.RESEND_API_KEY;
@@ -30,6 +39,7 @@ export async function sendEmail(
       return false;
     }
 
+    const safeReplyTo = contactReplyTo(replyTo);
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -42,6 +52,8 @@ export async function sendEmail(
         subject: template.subject,
         html: template.html,
         text: template.text,
+        ...(attachments && attachments.length > 0 ? { attachments } : {}),
+        ...(safeReplyTo ? { replyTo: safeReplyTo } : {}),
       }),
     });
 

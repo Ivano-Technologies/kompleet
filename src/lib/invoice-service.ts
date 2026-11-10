@@ -140,8 +140,11 @@ function extraNumber(invoice: Record<string, unknown>, key: string): number {
   return typeof value === "number" ? value : 0;
 }
 
-export async function generateInvoicePDF(invoiceId: string): Promise<Buffer> {
-  const { convex } = await requireAuthedConvex();
+export async function generateInvoicePDF(
+  invoiceId: string,
+  request?: Request,
+): Promise<Buffer> {
+  const { convex } = await requireAuthedConvex(request);
   const invoice = await convex.query(api.invoices.getMine, {
     externalId: invoiceId,
   });

@@ -245,16 +245,19 @@ export class TaxComputationService {
   /**
    * Calculate assessable profit. Capital gains are treated as income when
    * the business_tax.capital_gains_integration rule is present, so that
-   * assumption is never silently applied without a backing rule.
+   * assumption is never silently applied without a backing rule. The rule
+   * is only required when capital gains or losses are non-zero.
    */
   private static calculateAssessableProfit(
     input: TaxComputationInput,
     rules: RuleBundle,
   ): number {
-    requireRule(rules, "business_tax", "capital_gains_integration");
-
     const netProfit = input.totalRevenue - input.totalExpenses;
     const capitalGainsNet = input.capitalGains - input.capitalLosses;
+
+    if (input.capitalGains !== 0 || input.capitalLosses !== 0) {
+      requireRule(rules, "business_tax", "capital_gains_integration");
+    }
 
     return netProfit + capitalGainsNet;
   }
@@ -566,12 +569,18 @@ export class TaxComputationService {
         description: "Small companies are exempt from development levy",
       });
 
-      const cgtRule = requireRule(rules, "business_tax", "capital_gains_integration");
-      if (cgtRule.value.integrated) {
-        exemptions.push({
-          name: "Capital Gains Tax Exemption",
-          description: `${smallRate}% capital gains tax (integrated into income tax)`,
-        });
+      if (input.capitalGains !== 0 || input.capitalLosses !== 0) {
+        const cgtRule = requireRule(
+          rules,
+          "business_tax",
+          "capital_gains_integration",
+        );
+        if (cgtRule.value.integrated) {
+          exemptions.push({
+            name: "Capital Gains Tax Exemption",
+            description: `${smallRate}% capital gains tax (integrated into income tax)`,
+          });
+        }
       }
     }
 

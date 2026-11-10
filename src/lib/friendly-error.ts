@@ -15,6 +15,7 @@
  * and flake e2e on expected user errors.
  */
 import * as Sentry from "@sentry/nextjs";
+import { ensureServerSentry } from "./sentry/ensure";
 import {
   AUTH_ERROR_CODES,
   isAuthErrorData,
@@ -22,6 +23,7 @@ import {
   type AuthErrorCode,
   type AuthErrorData,
 } from "../../convex/lib/authErrors";
+import { STATEMENT_TOO_LONG_MESSAGE } from "../../convex/lib/importWrite";
 
 export const FRIENDLY_FALLBACK = "Something went wrong. Please try again.";
 
@@ -38,7 +40,80 @@ export const FRIENDLY_MESSAGES = {
   unauthorized: "Your session has expired. Please sign in again.",
   missingTaxRule:
     "This tax figure hasn't been verified yet, so we can't calculate it right now. Please try again later.",
+  statementTooLong: STATEMENT_TOO_LONG_MESSAGE,
 } as const;
+
+const CONVEX_LIMIT_PATTERN =
+  /too many (bytes|documents|reads|writes)|array.{0,40}(too (long|large)|length)|value is too large|data is too large|exceeded.{0,80}(read|write|byte|array|size) limit|write size|read size|4096 documents|8192 array/i;
+
+/** True for Convex platform read/write/array/size limit errors. */
+export function isConvexResourceLimitError(err: unknown): boolean {
+  const text = `${rawText(err)} ${err instanceof Error ? err.message : ""} ${stripErrorWrappers(err instanceof Error ? err.message : rawText(err))}`;
+  return CONVEX_LIMIT_PATTERN.test(text);
+}
+
+/**
+ * True only for a real Convex size/limit fault or our typed too-long
+ * ConvexError. A redacted "[Request ID] Server Error" is not a size limit.
+ */
+export function isStatementSizeLimitError(err: unknown): boolean {
+  if (isConvexResourceLimitError(err)) return true;
+  if (isConvexError(err)) {
+    if (err.data === STATEMENT_TOO_LONG_MESSAGE) return true;
+    if (
+      err.data &&
+      typeof err.data === "object" &&
+      (err.data as { message?: unknown }).message === STATEMENT_TOO_LONG_MESSAGE
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/** Short flush on success so a serverless freeze does not wait 5s. */
+export const SENTRY_FLUSH_SUCCESS_MS = 500;
+/** Full flush on error paths so captureException reaches Sentry. */
+export const SENTRY_FLUSH_ERROR_MS = 5000;
+
+/**
+ * Await pending Sentry envelopes before a serverless response ends.
+ * Empty queue resolves immediately; failures are swallowed so flush never
+ * masks the original error.
+ */
+export async function flushSentry(
+  timeoutMs = SENTRY_FLUSH_ERROR_MS,
+): Promise<boolean> {
+  try {
+    await ensureServerSentry();
+    const client = Sentry.getClient?.();
+    if (client && typeof client.flush === "function") {
+      const flushed = await client.flush(timeoutMs);
+      if (flushed !== false) return true;
+    }
+    if (typeof Sentry.flush === "function") {
+      const flushed = await Sentry.flush(timeoutMs);
+      return flushed !== false;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Friendly copy plus a support ref, then wait for Sentry to send the event.
+ * Use on server error paths instead of `toFriendlyError` alone.
+ */
+export async function toFriendlyErrorAndFlush(
+  err: unknown,
+  fallback: string = FRIENDLY_FALLBACK,
+  options: FriendlyMessageOptions = {},
+): Promise<FriendlyError> {
+  const result = toFriendlyError(err, fallback, options);
+  await flushSentry();
+  return result;
+}
 
 /** An error whose message is written for end users and is safe to display. */
 export class UserFacingError extends Error {
@@ -344,6 +419,8 @@ export const USER_MESSAGE_ALLOWLIST: Record<string, string> = {
   "Type delete my account to confirm.":
     "Type delete my account to confirm.",
   "Your account has been deleted.": "Your account has been deleted.",
+  "This statement is too long. Try a shorter date range.":
+    "This statement is too long. Try a shorter date range.",
 };
 
 const NOT_FOUND_PATTERN =
@@ -371,9 +448,15 @@ function mapKnown(err: unknown, text: string): string | null {
   if (typed) {
     return messageForAuthCode(typed.code, retryAfterSecondsFromData(typed));
   }
+  if (isConvexResourceLimitError(err) || CONVEX_LIMIT_PATTERN.test(text)) {
+    return FRIENDLY_MESSAGES.statementTooLong;
+  }
   if (isNetworkError(err)) return FRIENDLY_MESSAGES.network;
+  if ((err as { name?: unknown })?.name === "MissingTaxRuleError") {
+    return FRIENDLY_MESSAGES.missingTaxRule;
+  }
   if (
-    /unverified|email not verified|confirm your email|verification required/i.test(
+    /email not verified|confirm your email|email.{0,40}verification required|unverified email|email (is )?unverified/i.test(
       text,
     )
   ) {
@@ -407,9 +490,6 @@ function mapKnown(err: unknown, text: string): string | null {
   ) {
     return FRIENDLY_MESSAGES.invalidCredentials;
   }
-  if ((err as { name?: unknown })?.name === "MissingTaxRuleError") {
-    return FRIENDLY_MESSAGES.missingTaxRule;
-  }
   if (
     (err as { name?: unknown })?.name === "ConvexUnauthorizedError" ||
     /^(unauthorized|unauthenticated|not authenticated|authentication required)\.?$/i.test(
@@ -425,6 +505,58 @@ function mapKnown(err: unknown, text: string): string | null {
     return t.charAt(0).toUpperCase() + t.slice(1);
   }
   return null;
+}
+
+const EXPECTED_HTTP_AND_AUTH_COPY = [
+  "Page not found",
+  "The page you're looking for doesn't exist or has been moved.",
+  "Please sign in",
+  "Sign in to see this page.",
+  "No access",
+  "Your account doesn't have access to this page. Ask your workspace owner for access.",
+  "We couldn't sign you in. Please try again.",
+  "This link has expired. Request a new one.",
+] as const;
+
+/**
+ * True for known/expected user-facing copy that must not mint a support Ref
+ * when rendered as plain text (validation, 401/403/404, known auth codes).
+ */
+export function isExpectedUiErrorMessage(text: string): boolean {
+  const { message } = splitRef(text);
+  const copy = message.trim();
+  if (!copy) return true;
+  if (copy === FRIENDLY_FALLBACK) return false;
+
+  for (const [key, value] of Object.entries(FRIENDLY_MESSAGES)) {
+    if (key !== "fallback" && value === copy) return true;
+  }
+  if (copy.startsWith("Too many attempts")) return true;
+
+  for (const known of EXPECTED_HTTP_AND_AUTH_COPY) {
+    if (copy === known) return true;
+  }
+
+  if (allowlisted(copy)) return true;
+  if (mapKnown({}, copy) != null) return true;
+  if (PASSWORD_RULE_PATTERN.test(copy)) return true;
+
+  if (
+    /^We couldn't find this \w+/i.test(copy) &&
+    !/please try again/i.test(copy)
+  ) {
+    return true;
+  }
+
+  if (
+    /please try again/i.test(copy) ||
+    /something went wrong/i.test(copy) ||
+    /contact support/i.test(copy)
+  ) {
+    return false;
+  }
+
+  return true;
 }
 
 export interface FriendlyMessageOptions {
@@ -508,16 +640,17 @@ export function toFriendlyError(
 }
 
 /**
- * String form of `toFriendlyError`: "message\nRef: XXXXXXXX".
- * Render it with `<ErrorText>` so the ref shows as a muted line.
+ * String form of `toFriendlyError`. Unexpected errors append
+ * "\nRef: XXXXXXXX"; known and redacted faults return the copy alone.
+ * Render it with `<ErrorText>` so an embedded ref shows as a muted line.
  */
 export function toFriendlyMessage(
   err: unknown,
   fallback: string = FRIENDLY_FALLBACK,
   options: FriendlyMessageOptions = {},
 ): string {
-  const { message, ref } = toFriendlyError(err, fallback, options);
-  return withRef(message, ref);
+  const { message, ref, hideRef } = toFriendlyError(err, fallback, options);
+  return hideRef ? message : withRef(message, ref);
 }
 
 const RAW_PATTERN =
@@ -609,6 +742,18 @@ export function friendlyErrorBody(
 }
 
 /**
+ * Async API error body that flushes Sentry before the caller returns a response.
+ */
+export async function friendlyErrorBodyAndFlush(
+  err: unknown,
+  fallback: string = FRIENDLY_FALLBACK,
+  options: FriendlyMessageOptions = {},
+): Promise<{ error: string; ref: string }> {
+  const { message, ref } = await toFriendlyErrorAndFlush(err, fallback, options);
+  return { error: message, ref };
+}
+
+/**
  * API route JSON body for an error we return on purpose (validation, auth,
  * not found): `{ error, ref }`. Logs the ref and message on the server.
  */
@@ -619,8 +764,8 @@ export function apiErrorBody(message: string): { error: string; ref: string } {
 }
 
 /**
- * For friendly errors we raise ourselves (no thrown value): issue a ref,
- * log it with the context and detail, and return "message\nRef: XXXXXXXX".
+ * For known/expected copy we raise ourselves (no thrown value): log a ref
+ * for support, but return the message without a user-visible Ref.
  */
 export function friendlyWithNewRef(
   message: string,
@@ -629,5 +774,5 @@ export function friendlyWithNewRef(
 ): string {
   const ref = generateRef();
   console.warn(`[friendly-error] ref=${ref} context=${context}`, detail ?? message);
-  return withRef(message, ref);
+  return message;
 }

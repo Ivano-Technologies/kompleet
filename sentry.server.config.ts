@@ -1,8 +1,9 @@
 // sentry.server.config.ts
 import * as Sentry from "@sentry/nextjs";
+import { resolveSentryDsn } from "./src/lib/sentry/public-dsn.mjs";
 
 Sentry.init({
-  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+  dsn: resolveSentryDsn(),
 
   // Performance: capture 10% of server transactions in production
   tracesSampleRate: process.env.NODE_ENV === "development" ? 1.0 : 0.1,
@@ -10,8 +11,11 @@ Sentry.init({
   // Enable structured logs
   enableLogs: true,
 
-  // Environment
-  environment: process.env.NODE_ENV,
+  // Environment. Prefer Vercel env so preview events are distinct from prod.
+  environment: process.env.VERCEL_ENV || process.env.NODE_ENV,
+
+  // Give flush() a bounded wait when API routes await it before responding.
+  shutdownTimeout: 8000,
 
   // Pino integration: capture Pino logs as Sentry logs + errors
   // KOMPLEET already uses Pino — this bridges them
