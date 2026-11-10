@@ -6,6 +6,7 @@ const clientFlush = vi.fn(async () => true);
 vi.mock("@sentry/nextjs", () => ({
   captureException: vi.fn(() => "0123456789abcdef0123456789abcdef"),
   flush: vi.fn(async () => true),
+  init: vi.fn(),
   getClient: vi.fn(() => ({
     getDsn: () => ({ host: "ingest.example" }),
     flush: clientFlush,

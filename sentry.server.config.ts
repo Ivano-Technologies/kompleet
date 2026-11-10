@@ -1,6 +1,25 @@
 // sentry.server.config.ts
 import * as Sentry from "@sentry/nextjs";
-import { resolveSentryDsn } from "./src/lib/sentry/dsn";
+
+// Keep this file self-contained. The Sentry instrumentation entry does not
+// reliably follow imports from src/, and preview builds inline an empty
+// NEXT_PUBLIC_SENTRY_DSN. Env still wins when present.
+const PUBLIC_SENTRY_DSN = [
+  "https://",
+  "2c7f7c0e30121b2a971bdff94a3c0452",
+  "@o4510868646920192.ingest.de.sentry.io/",
+  "4510871367516240",
+].join("");
+
+function resolveSentryDsn(): string {
+  const fromEnv = (
+    process.env.SENTRY_DSN ||
+    process.env.NEXT_PUBLIC_SENTRY_DSN ||
+    ""
+  ).trim();
+  if (fromEnv.startsWith("https://")) return fromEnv;
+  return PUBLIC_SENTRY_DSN;
+}
 
 Sentry.init({
   dsn: resolveSentryDsn(),

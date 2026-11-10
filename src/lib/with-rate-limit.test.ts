@@ -11,6 +11,7 @@ vi.mock("./rate-limit", () => ({
 vi.mock("@sentry/nextjs", () => ({
   captureException: vi.fn(),
   flush: vi.fn(async () => true),
+  init: vi.fn(),
   getClient: vi.fn(() => undefined),
 }));
 

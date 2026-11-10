@@ -7,6 +7,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import * as Sentry from "@sentry/nextjs";
 import { flushSentry, generateRef, refFromEventId } from "@/lib/friendly-error";
+import { ensureServerSentry } from "@/lib/sentry/ensure";
 import { withRateLimit } from "@/lib/with-rate-limit";
 
 export const runtime = "nodejs";
@@ -21,7 +22,7 @@ async function handleGET(_request: NextRequest) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const hasDsn = Boolean(Sentry.getClient()?.getDsn());
+  const hasDsn = await ensureServerSentry();
   const eventId = Sentry.captureException(
     new Error("kompleet sentry-test: preview proof"),
     {

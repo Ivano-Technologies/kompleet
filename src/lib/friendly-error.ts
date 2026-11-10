@@ -15,6 +15,7 @@
  * and flake e2e on expected user errors.
  */
 import * as Sentry from "@sentry/nextjs";
+import { ensureServerSentry } from "./sentry/ensure";
 import {
   AUTH_ERROR_CODES,
   isAuthErrorData,
@@ -58,6 +59,7 @@ export function isConvexResourceLimitError(err: unknown): boolean {
  */
 export async function flushSentry(timeoutMs = 5000): Promise<boolean> {
   try {
+    await ensureServerSentry();
     const client = Sentry.getClient?.();
     if (client && typeof client.flush === "function") {
       const flushed = await client.flush(timeoutMs);
