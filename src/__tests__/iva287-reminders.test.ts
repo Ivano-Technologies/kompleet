@@ -36,7 +36,9 @@ describe("IVA-287 reminder emails and year migration", () => {
     const modal = read("src/components/layout/dashboard/SettingsModal.tsx");
     expect(modal).toMatch(/flex items-center justify-between gap-2 min-h-11/);
     expect(modal).toMatch(/inline-flex h-11 w-11 shrink-0 items-center justify-center/);
-    expect(modal).toMatch(/pr-14 md:pr-2/);
-    expect(modal).toMatch(/flex flex-wrap gap-2/);
+    // Accepted #174 X gutter: reserved wrapper, not padding on the scrolling nav.
+    expect(modal).toMatch(/pr-14 md:pr-0 overflow-hidden/);
+    expect(modal).toMatch(/w-\[calc\(100vw-2rem\)\]/);
+    expect(modal).not.toMatch(/max-sm:w-full/);
   });
 });
