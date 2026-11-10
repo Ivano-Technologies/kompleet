@@ -588,16 +588,17 @@ export function toFriendlyError(
 }
 
 /**
- * String form of `toFriendlyError`: "message\nRef: XXXXXXXX".
- * Render it with `<ErrorText>` so the ref shows as a muted line.
+ * String form of `toFriendlyError`. Unexpected errors append
+ * "\nRef: XXXXXXXX"; known and redacted faults return the copy alone.
+ * Render it with `<ErrorText>` so an embedded ref shows as a muted line.
  */
 export function toFriendlyMessage(
   err: unknown,
   fallback: string = FRIENDLY_FALLBACK,
   options: FriendlyMessageOptions = {},
 ): string {
-  const { message, ref } = toFriendlyError(err, fallback, options);
-  return withRef(message, ref);
+  const { message, ref, hideRef } = toFriendlyError(err, fallback, options);
+  return hideRef ? message : withRef(message, ref);
 }
 
 const RAW_PATTERN =
@@ -711,8 +712,8 @@ export function apiErrorBody(message: string): { error: string; ref: string } {
 }
 
 /**
- * For friendly errors we raise ourselves (no thrown value): issue a ref,
- * log it with the context and detail, and return "message\nRef: XXXXXXXX".
+ * For known/expected copy we raise ourselves (no thrown value): log a ref
+ * for support, but return the message without a user-visible Ref.
  */
 export function friendlyWithNewRef(
   message: string,
@@ -721,5 +722,5 @@ export function friendlyWithNewRef(
 ): string {
   const ref = generateRef();
   console.warn(`[friendly-error] ref=${ref} context=${context}`, detail ?? message);
-  return withRef(message, ref);
+  return message;
 }

@@ -3,14 +3,10 @@ import { Home } from "lucide-react";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
 import { getConvexAccessToken } from "@/lib/auth/session";
-import { ErrorRef } from "@/components/ui/error-ref";
-import { generateRef } from "@/lib/friendly-error";
 
 export default async function NotFound() {
   // One action only: dashboard when signed in, home otherwise.
   const signedIn = Boolean(await getConvexAccessToken().catch(() => null));
-  const ref = generateRef();
-  console.warn(`[friendly-error] ref=${ref} context=page:404`);
 
   return (
     <div data-marketing className="flex min-h-screen flex-col bg-bg text-text-1 dark:bg-dark-bg dark:text-dark-text-1">
@@ -28,7 +24,6 @@ export default async function NotFound() {
               The page you&apos;re looking for doesn&apos;t exist or has been
               moved.
             </p>
-            <ErrorRef value={ref} />
           </div>
           <div className="flex items-center gap-3 pt-2">
             <Link

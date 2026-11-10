@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CompanyLegalNotice } from "@/components/legal/CompanyLegalNotice";
+import { COMPANY_LEGAL } from "@/lib/legal";
 
 export const metadata: Metadata = {
   title: "Kompleet: Terms of Service",
@@ -372,7 +373,17 @@ export default function TermsPage() {
             </p>
             <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
               <li>You agree to pay all applicable fees</li>
-              <li>Fees are non-refundable unless otherwise stated</li>
+              <li>
+                Fees follow the Ivano Technologies Ltd refund policy, which
+                provides a 14-day refund window. See{" "}
+                <a
+                  href={COMPANY_LEGAL.refunds}
+                  className="font-medium text-primary underline underline-offset-2"
+                >
+                  {COMPANY_LEGAL.refunds.replace(/^https:\/\//, "")}
+                </a>
+                .
+              </li>
               <li>We may change our pricing with 30 days' notice</li>
               <li>
                 You are responsible for all taxes associated with your purchase

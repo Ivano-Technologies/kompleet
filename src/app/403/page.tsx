@@ -1,11 +1,7 @@
 import Link from "next/link";
 import { LayoutDashboard, ShieldX } from "lucide-react";
-import { ErrorRef } from "@/components/ui/error-ref";
-import { generateRef } from "@/lib/friendly-error";
 
 export default function Forbidden() {
-  const ref = generateRef();
-  console.warn(`[friendly-error] ref=${ref} context=page:403`);
   return (
     <div className="min-h-screen bg-[rgb(var(--background))] text-[rgb(var(--text-primary))] flex items-center justify-center px-4">
       <div className="flex flex-col items-center gap-6 max-w-md text-center">
@@ -20,7 +16,6 @@ export default function Forbidden() {
           <p className="text-sm text-[rgb(var(--text-secondary))]">
             Your account doesn&apos;t have access to this page. Ask your workspace owner for access.
           </p>
-          <ErrorRef value={ref} />
         </div>
         <Link
           href="/dashboard"

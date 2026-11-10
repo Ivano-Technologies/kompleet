@@ -14,15 +14,12 @@ describe("ErrorText", () => {
     expect(ref.className).toMatch(/text-gray-500/);
   });
 
-  it("issues and logs a ref for plain input errors", () => {
+  it("does not issue a Ref for plain expected messages", () => {
     const spy = vi.spyOn(console, "warn").mockImplementation(() => {});
     render(<ErrorText text="Enter an amount greater than 0." />);
-    const ref = (screen.getByTestId("error-ref").textContent ?? "").slice(5);
-    expect(ref).toMatch(/^[A-Z0-9]{8}$/);
-    expect(spy).toHaveBeenCalledWith(
-      expect.stringContaining(`ref=${ref}`),
-      "Enter an amount greater than 0.",
-    );
+    expect(screen.getByText("Enter an amount greater than 0.")).toBeInTheDocument();
+    expect(screen.queryByTestId("error-ref")).not.toBeInTheDocument();
+    expect(spy).not.toHaveBeenCalled();
     spy.mockRestore();
   });
 });

@@ -78,26 +78,19 @@ describe("LoginPage", () => {
     expect(Sentry.captureException).not.toHaveBeenCalled();
   });
 
-  it("shows the exact expired-link copy with a ref logged as a warning", () => {
+  it("shows the exact expired-link copy without a support Ref", () => {
     search = new URLSearchParams("error=expired_link");
     render(<LoginPage />);
     expect(screen.getByText("This link has expired. Request a new one.")).toBeTruthy();
-    const ref = screen.getByTestId("error-ref").textContent ?? "";
-    expect(ref).toMatch(/^Ref: [A-Z2-9]{8}$/);
-    expect(console.warn).toHaveBeenCalledWith(
-      `[friendly-error] ref=${ref.slice(5)} context=login:expired_link`,
-    );
+    expect(screen.queryByTestId("error-ref")).not.toBeInTheDocument();
     expect(console.error).not.toHaveBeenCalled();
   });
 
-  it("shows the auth_failed copy with a ref logged as a warning", () => {
+  it("shows the auth_failed copy without a support Ref", () => {
     search = new URLSearchParams("error=auth_failed");
     render(<LoginPage />);
     expect(screen.getByText("We couldn't sign you in. Please try again.")).toBeTruthy();
-    const ref = screen.getByTestId("error-ref").textContent ?? "";
-    expect(console.warn).toHaveBeenCalledWith(
-      `[friendly-error] ref=${ref.slice(5)} context=login:auth_failed`,
-    );
+    expect(screen.queryByTestId("error-ref")).not.toBeInTheDocument();
     expect(console.error).not.toHaveBeenCalled();
   });
 
