@@ -372,7 +372,7 @@ export default function TermsPage() {
               <li>Fees are non-refundable unless otherwise stated</li>
               <li>We may change fees with 30 days&apos; notice</li>
               <li>
-                You are responsible for all taxes associated with your purchase
+                You are responsible for all taxes associated with a paid plan
               </li>
             </ul>
 

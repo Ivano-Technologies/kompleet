@@ -151,14 +151,19 @@ describe("Kompleet product legal copy (M2–M4)", () => {
 
   it("does not let the company page prevail over Kompleet product copy", () => {
     expect(notice).toMatch(/governs personal data processed inside Kompleet/);
+    expect(notice).toMatch(
+      /website, contact and company\s+dealings/,
+    );
     expect(notice).not.toMatch(/source of truth/i);
     expect(notice).not.toMatch(/company page is the source/i);
+    expect(notice).not.toMatch(/purchases/i);
     expect(notice).toMatch(/dark:bg-dark-surface-2/);
   });
 
   it("keeps payment processors and subscriptions conditional, and drops undisclosed analytics", () => {
     expect(terms).toMatch(/if and when paid plans are offered/i);
     expect(terms).not.toMatch(/<li>Payment processors<\/li>/);
+    expect(terms).not.toMatch(/your purchase/i);
     expect(terms).not.toMatch(/aggregated, anonymized data for analytics/i);
     expect(terms).not.toMatch(/₦/);
     expect(privacy).not.toMatch(/₦/);

@@ -36,7 +36,8 @@ export function CompanyLegalNotice({ page }: { page: CompanyLegalPage }) {
       >
         {href.replace(/^https:\/\//, "")}
       </a>{" "}
-      covers the Ivano Technologies Ltd website and purchases.
+      covers the Ivano Technologies Ltd website, contact and company
+      dealings.
     </aside>
   );
 }
