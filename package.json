@@ -145,7 +145,10 @@
     "overrides": {
       "braces": "workspace:*",
       "node-forge": "workspace:*",
-      "tar": "^7.5.10",
+      "tar": ">=7.5.19",
+      "protobufjs": ">=7.5.5",
+      "websocket-driver": ">=0.7.5",
+      "shell-quote": ">=1.8.4",
       "iconv-lite": "0.7.3",
       "esbuild@<=0.24.2": ">=0.25.0",
       "formidable@>=3.1.1-canary.20211030 <3.5.3": ">=3.5.3",
