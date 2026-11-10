@@ -26,6 +26,7 @@ import {
 } from "@/lib/auth/convex-auth-api-route";
 import { redirectFailedCodeExchange } from "@/lib/auth/failed-code-exchange";
 import { sanitizeAuthProxyResponse } from "@/lib/auth/sanitize-proxy-error";
+import { isThemeShotsBlocked } from "@/lib/theme-shots-gate";
 
 const handleAuthProxy = convexAuthNextjsMiddleware(async (request) => {
   const origin = request.headers.get("origin") || "";
@@ -45,6 +46,12 @@ const handleAuthProxy = convexAuthNextjsMiddleware(async (request) => {
 });
 
 export default async function proxy(request: NextRequest, event: NextFetchEvent) {
+  if (
+    request.nextUrl.pathname.startsWith("/dev/theme-shots") &&
+    isThemeShotsBlocked()
+  ) {
+    return new NextResponse(null, { status: 404 });
+  }
   const response = await handleAuthProxy(request, event);
   const redirected = redirectFailedCodeExchange(request, response);
   if (

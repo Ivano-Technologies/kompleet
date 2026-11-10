@@ -1,6 +1,6 @@
 // next.config.mjs
 import { withSentryConfig } from "@sentry/nextjs";
-import { CONTENT_SECURITY_POLICY_REPORT_ONLY } from "./src/lib/content-security-policy.mjs";
+import { CONTENT_SECURITY_POLICY } from "./src/lib/content-security-policy.mjs";
 
 // Public write-only ingest key (same class as NEXT_PUBLIC_SENTRY_DSN).
 // Vercel currently injects that env only on production, so preview builds
@@ -73,8 +73,8 @@ const nextConfig = {
             value: "max-age=31536000; includeSubDomains",
           },
           {
-            key: "Content-Security-Policy-Report-Only",
-            value: CONTENT_SECURITY_POLICY_REPORT_ONLY,
+            key: "Content-Security-Policy",
+            value: CONTENT_SECURITY_POLICY,
           },
         ],
       },

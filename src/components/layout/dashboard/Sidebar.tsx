@@ -114,7 +114,7 @@ export function Sidebar({
   );
 
   const sidebarContent = (
-    <div className="flex flex-col h-full bg-gradient-to-b from-primary-deep to-primary">
+    <div className="flex flex-col h-full bg-gradient-to-b from-primary-deep to-primary-navy">
       <div className="flex items-center p-5 border-b border-white/10">
         <BrandLockup
           href="/dashboard"
@@ -235,7 +235,7 @@ export function Sidebar({
 
         <a
           href="/contact?subject=bug"
-          className="block text-center text-[10px] text-white/30 hover:text-white/50 mt-1.5 py-0.5 transition-colors"
+          className="block text-center text-[10px] text-white/70 hover:text-white mt-1.5 py-0.5 transition-colors"
           title="Report a bug"
         >
           Report a bug

@@ -13,15 +13,6 @@ import { ExceptionBanner, ImportToast } from "@/components/import/ImportToast";
 import { DROP_COPY } from "@/components/import/statement-copy";
 import { SetupChecklist } from "@/components/dashboard/SetupChecklist";
 import { TriageSheet, useTriageCount } from "@/components/review/TriageSheet";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
 
 interface KpiData {
   totalRevenue: number;
@@ -75,6 +66,89 @@ function formatNaira(val: number) {
 
 function formatFullNaira(val: number) {
   return `₦${Math.abs(val).toLocaleString()}`;
+}
+
+function RevenueTrendChart({ data }: { data: RevenuePoint[] }) {
+  const width = 400;
+  const height = 224;
+  const pad = { l: 44, r: 8, t: 12, b: 28 };
+  const innerW = width - pad.l - pad.r;
+  const innerH = height - pad.t - pad.b;
+  const max = Math.max(...data.map((d) => d.revenue), 1);
+  const ticks = [0.25, 0.5, 0.75, 1];
+  const barSlot = data.length > 0 ? innerW / data.length : innerW;
+  const barW = Math.max(barSlot * 0.55, 8);
+
+  return (
+    <div className="mt-4 h-56 w-full min-w-0">
+      <svg
+        viewBox={`0 0 ${width} ${height}`}
+        className="h-full w-full"
+        role="img"
+        aria-label="Revenue trend"
+      >
+        {ticks.map((t) => {
+          const y = pad.t + innerH * (1 - t);
+          return (
+            <line
+              key={t}
+              x1={pad.l}
+              x2={width - pad.r}
+              y1={y}
+              y2={y}
+              stroke="rgb(var(--border))"
+              strokeDasharray="3 3"
+            />
+          );
+        })}
+        <line
+          x1={pad.l}
+          x2={width - pad.r}
+          y1={pad.t + innerH}
+          y2={pad.t + innerH}
+          stroke="rgb(var(--border))"
+        />
+        {ticks.map((t) => (
+          <text
+            key={`y-${t}`}
+            x={pad.l - 6}
+            y={pad.t + innerH * (1 - t) + 4}
+            textAnchor="end"
+            fill="rgb(var(--text-tertiary))"
+            fontSize="11"
+          >
+            ₦{formatNaira(max * t)}
+          </text>
+        ))}
+        {data.map((point, i) => {
+          const barH = (point.revenue / max) * innerH;
+          const x = pad.l + barSlot * i + (barSlot - barW) / 2;
+          const y = pad.t + innerH - barH;
+          return (
+            <g key={point.month}>
+              <rect
+                x={x}
+                y={y}
+                width={barW}
+                height={Math.max(barH, 1)}
+                rx="4"
+                fill="rgb(var(--accent))"
+              />
+              <text
+                x={x + barW / 2}
+                y={height - 8}
+                textAnchor="middle"
+                fill="rgb(var(--text-tertiary))"
+                fontSize="11"
+              >
+                {point.month}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+    </div>
+  );
 }
 
 export default function DashboardClient({
@@ -234,33 +308,7 @@ export default function DashboardClient({
       <div className="grid lg:grid-cols-2 gap-4">
         <Card className="p-5 rounded-xl">
           <h3 className="font-semibold text-base text-text-1">Revenue trend</h3>
-          <div className="h-56 mt-4">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={revenueData}>
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  className="stroke-border"
-                  vertical={false}
-                />
-                <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                <YAxis
-                  tickFormatter={(v) => `₦${formatNaira(Number(v))}`}
-                  tick={{ fontSize: 12 }}
-                  width={48}
-                />
-                <Tooltip
-                  formatter={(v) => [`₦${Number(v).toLocaleString()}`, ""]}
-                  contentStyle={{
-                    backgroundColor: "#FFFDF8",
-                    border: "1px solid #DDD5C8",
-                    borderRadius: 8,
-                    fontSize: 12,
-                  }}
-                />
-                <Bar dataKey="revenue" fill="#0B3A5C" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+          <RevenueTrendChart data={revenueData} />
         </Card>
 
         <Card className="rounded-xl">

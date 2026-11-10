@@ -18,7 +18,7 @@ interface EmptyStateProps {
 }
 
 const primaryButtonCls =
-  "inline-flex items-center justify-center rounded-md font-medium transition-all select-none shadow-outer-soft gradient-convex border border-black/5 active:shadow-pressed active:gradient-concave active:translate-y-px bg-primary text-white h-10 px-4 py-2 dark:border-white/10";
+  "inline-flex items-center justify-center rounded-md font-medium transition-all select-none shadow-outer-soft gradient-convex border border-black/5 active:shadow-pressed active:gradient-concave active:translate-y-px bg-primary-fill text-white hover:bg-primary-fill-hover focus-visible:ring-2 focus-visible:ring-link disabled:opacity-50 h-10 px-4 py-2 dark:border-white/10";
 
 export function EmptyState({
   title,

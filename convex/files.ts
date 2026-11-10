@@ -316,11 +316,25 @@ export async function listFilesHandler(
 ) {
   const user = await getCurrentUser(ctx);
   const filter = args.filter ?? "all";
-  const result = await ctx.db
-    .query("uploadedFiles")
-    .withIndex("by_user_and_uploadedAt", (q) => q.eq("userId", user._id))
-    .order("desc")
-    .paginate(args.paginationOpts);
+  const indexed =
+    filter === "unattached"
+      ? ctx.db
+          .query("uploadedFiles")
+          .withIndex("by_user_and_linkType_and_uploadedAt", (q) =>
+            q.eq("userId", user._id).eq("linkType", undefined),
+          )
+      : filter === "attached"
+        ? ctx.db
+            .query("uploadedFiles")
+            .withIndex("by_user_and_linkType_and_uploadedAt", (q) =>
+              q.eq("userId", user._id).gte("linkType", "expense"),
+            )
+        : ctx.db
+            .query("uploadedFiles")
+            .withIndex("by_user_and_uploadedAt", (q) =>
+              q.eq("userId", user._id),
+            );
+  const result = await indexed.order("desc").paginate(args.paginationOpts);
   return {
     page: result.page.filter((row) => matchesFilter(row, filter)).map(toApi),
     isDone: result.isDone,

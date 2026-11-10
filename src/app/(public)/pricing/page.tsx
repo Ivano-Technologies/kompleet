@@ -83,7 +83,7 @@ export default function PricingPage() {
 
             <Link
               href="/signup"
-              className="mt-auto flex min-h-11 items-center justify-center rounded-md bg-accent-hover py-3.5 text-center text-sm font-bold text-charcoal hover:bg-[#115E59]"
+              className="mt-auto flex min-h-11 items-center justify-center rounded-md bg-primary-fill py-3.5 text-center text-sm font-bold text-white hover:bg-primary-fill-hover focus-visible:ring-2 focus-visible:ring-link disabled:opacity-50"
             >
               Get started
             </Link>

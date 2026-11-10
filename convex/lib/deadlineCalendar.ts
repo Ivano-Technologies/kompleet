@@ -109,14 +109,19 @@ export function isReminderWindow(days: number): days is ReminderWindow {
 }
 
 /**
- * Catch-up window: send when days left is at most 7, 3 or 1, using only the
- * lowest due tier so a late cron does not fire several emails at once.
- * The weekly Monday job relies on this 0–7 day span to cover every deadline
+ * Catch-up window: send when days left is 1–7, using only the lowest due
+ * tier so a late cron does not fire several emails at once.
+ * The weekly Monday job relies on this 1–7 day span to cover every deadline
  * due in the coming week, not only those that land on an exact 7/3/1 mark.
+ *
+ * Day 0 (the deadline itself) is not a reminder window. A deadline that was
+ * exactly 7 days out on one Monday must not get a second "1-day" mail on the
+ * following Monday when daysLeft is 0. The 1-day template is the last-chance
+ * nudge for deadlines 1 day out, not a same-day duplicate.
  */
 export function lowestDueTier(daysLeft: number): ReminderWindow | null {
-  if (!Number.isFinite(daysLeft) || daysLeft < 0) return null;
-  if (daysLeft <= 1) return 1;
+  if (!Number.isFinite(daysLeft) || daysLeft < 1) return null;
+  if (daysLeft === 1) return 1;
   if (daysLeft <= 3) return 3;
   if (daysLeft <= 7) return 7;
   return null;
@@ -129,9 +134,11 @@ export function isReminderEmailEnabled(
 }
 
 /**
- * Deadlines due within the next 7 calendar days of `nowMs` (the coming week
- * from the Monday 07:00 UTC cron). Exact 7, 3 and 1 day marks catch up to
- * the lowest due tier so a weekly run does not skip mid-week dues.
+ * Deadlines due in 1–7 calendar days of `nowMs` (the coming week from the
+ * Monday 07:00 UTC cron). Exact 7, 3 and 1 day marks catch up to the lowest
+ * due tier so a weekly run does not skip mid-week dues. One email per
+ * deadline: occupancy is keyed on user + form + tax year, not on the
+ * template window.
  * Looks at last year, this year and next year so year boundaries are covered.
  */
 export function dueRemindersAt(nowMs: number): DueReminder[] {

@@ -193,7 +193,7 @@ export default function TaxCenterPage() {
           <h2 className="text-base font-semibold text-light-text-primary dark:text-dark-text-primary">
             Essential Calculators
           </h2>
-          <span className="text-[10px] bg-primary-500 text-white px-2 py-0.5 rounded-full font-medium">
+          <span className="text-[10px] bg-primary-fill text-white px-2 py-0.5 rounded-full font-medium">
             Phase 1
           </span>
         </div>

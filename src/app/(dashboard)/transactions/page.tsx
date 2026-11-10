@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -83,8 +83,10 @@ export default function TransactionsPage() {
   const { counts, setCounts, refresh: refreshTriage } = useTriageCount();
 
   const cursor = cursors[cursors.length - 1] ?? null;
+  const fetchGeneration = useRef(0);
 
   const fetchTransactions = useCallback(async () => {
+    const generation = ++fetchGeneration.current;
     setLoading(true);
     try {
       const params = new URLSearchParams({
@@ -98,7 +100,9 @@ export default function TransactionsPage() {
       });
 
       const response = await fetch(`/api/transactions?${params}`);
+      if (generation !== fetchGeneration.current) return;
       const data = await response.json();
+      if (generation !== fetchGeneration.current) return;
 
       if (response.ok) {
         const rows = data.transactions as Transaction[];
@@ -106,8 +110,8 @@ export default function TransactionsPage() {
         setPagination({
           page: cursors.length,
           limit: data.pagination.limit ?? pagination.limit,
-          total: data.pagination.total ?? rows.length,
-          totalPages: data.pagination.totalPages ?? cursors.length,
+          total: data.pagination.total,
+          totalPages: cursors.length,
           nextCursor: data.pagination.nextCursor ?? null,
           isDone: Boolean(data.pagination.isDone),
         });
@@ -116,9 +120,10 @@ export default function TransactionsPage() {
         setError(apiErrorMessage(data, "We couldn't load your transactions. Please try again."));
       }
     } catch (fetchError) {
+      if (generation !== fetchGeneration.current) return;
       setError(toFriendlyMessage(fetchError, "We couldn't load your transactions. Please try again."));
     } finally {
-      setLoading(false);
+      if (generation === fetchGeneration.current) setLoading(false);
     }
   }, [cursor, cursors.length, filters, pagination.limit]);
 
@@ -204,6 +209,7 @@ export default function TransactionsPage() {
     try {
       const params = new URLSearchParams({
         format,
+        ...(filters.search ? { search: filters.search } : {}),
         ...(filters.type ? { type: filters.type } : {}),
         ...(filters.startDate ? { startDate: filters.startDate } : {}),
         ...(filters.endDate ? { endDate: filters.endDate } : {}),
@@ -364,7 +370,7 @@ export default function TransactionsPage() {
               placeholder="Search transactions..."
               value={filters.search}
               onChange={(e) => updateFilters({ search: e.target.value })}
-              className="w-full pl-10 pr-4 py-2.5 text-sm bg-surface border border-border rounded-lg text-text-1 placeholder-text-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              className="w-full !pl-10 pr-4 py-2.5 text-sm bg-surface border border-border rounded-lg text-text-1 placeholder-text-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             />
           </div>
           <select
@@ -427,7 +433,7 @@ export default function TransactionsPage() {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border">
-                      <th className="px-5 py-3 text-left w-10">
+                      <th className="px-2.5 sm:px-5 py-3 text-left w-10">
                         <input
                           type="checkbox"
                           checked={
@@ -438,22 +444,22 @@ export default function TransactionsPage() {
                           className="rounded border-border"
                         />
                       </th>
-                      <th className="px-5 py-3 text-left text-xs font-medium text-text-3">
+                      <th className="px-2.5 sm:px-5 py-3 text-left text-xs font-medium text-text-3 whitespace-nowrap">
                         Date
                       </th>
-                      <th className="px-5 py-3 text-left text-xs font-medium text-text-3">
+                      <th className="px-2.5 sm:px-5 py-3 text-left text-xs font-medium text-text-3">
                         Description
                       </th>
-                      <th className="px-5 py-3 text-left text-xs font-medium text-text-3 hidden md:table-cell">
+                      <th className="px-2.5 sm:px-5 py-3 text-left text-xs font-medium text-text-3 hidden md:table-cell">
                         Category
                       </th>
-                      <th className="px-5 py-3 text-right text-xs font-medium text-text-3">
+                      <th className="px-2.5 sm:px-5 py-3 text-right text-xs font-medium text-text-3 whitespace-nowrap w-[1%]">
                         Amount
                       </th>
-                      <th className="px-5 py-3 text-center text-xs font-medium text-text-3 hidden sm:table-cell">
+                      <th className="px-2.5 sm:px-5 py-3 text-center text-xs font-medium text-text-3 hidden sm:table-cell">
                         Status
                       </th>
-                      <th className="px-5 py-3 text-center text-xs font-medium text-text-3 w-10"></th>
+                      <th className="px-2.5 sm:px-5 py-3 text-center text-xs font-medium text-text-3 w-10"></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -466,7 +472,7 @@ export default function TransactionsPage() {
                         }
                       >
                         <td
-                          className="px-5 py-3.5"
+                          className="px-2.5 sm:px-5 py-3.5"
                           onClick={(e) => e.stopPropagation()}
                         >
                           <input
@@ -476,11 +482,11 @@ export default function TransactionsPage() {
                             className="rounded border-border"
                           />
                         </td>
-                        <td className="px-5 py-3.5 text-text-2 text-xs">
+                        <td className="px-2.5 sm:px-5 py-3.5 text-text-2 text-xs whitespace-nowrap">
                           {formatDate(transaction.transaction_date)}
                         </td>
-                        <td className="px-5 py-3.5">
-                          <div className="flex items-center gap-2.5">
+                        <td className="px-2.5 sm:px-5 py-3.5 min-w-0 max-w-0">
+                          <div className="flex items-center gap-2.5 min-w-0">
                             <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
                               {transaction.transaction_type === "credit" ? (
                                 <ArrowDown className="w-3.5 h-3.5 text-success" />
@@ -488,12 +494,12 @@ export default function TransactionsPage() {
                                 <ArrowUp className="w-3.5 h-3.5 text-error" />
                               )}
                             </div>
-                            <span className="font-medium text-sm text-text-1 truncate">
+                            <span className="font-medium text-sm text-text-1 truncate block min-w-0">
                               {transaction.description}
                             </span>
                           </div>
                         </td>
-                        <td className="px-5 py-3.5 hidden md:table-cell">
+                        <td className="px-2.5 sm:px-5 py-3.5 hidden md:table-cell">
                           {transaction.category ? (
                             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-success/10 text-success">
                               {transaction.category.name}
@@ -510,9 +516,9 @@ export default function TransactionsPage() {
                             </span>
                           )}
                         </td>
-                        <td className="px-5 py-3.5 text-right">
+                        <td className="px-2.5 sm:px-5 py-3.5 text-right whitespace-nowrap w-[1%]">
                           <span
-                            className={`font-semibold text-sm ${
+                            className={`font-semibold text-sm tabular-nums ${
                               transaction.transaction_type === "credit"
                                 ? "text-success"
                                 : "text-text-1"
@@ -522,7 +528,7 @@ export default function TransactionsPage() {
                             {formatCurrency(transaction.amount)}
                           </span>
                         </td>
-                        <td className="px-5 py-3.5 text-center hidden sm:table-cell">
+                        <td className="px-2.5 sm:px-5 py-3.5 text-center hidden sm:table-cell">
                           <span
                             className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                               transaction.is_reconciled
@@ -534,7 +540,7 @@ export default function TransactionsPage() {
                           </span>
                         </td>
                         <td
-                          className="px-5 py-3.5 text-center"
+                          className="px-2.5 sm:px-5 py-3.5 text-center"
                           onClick={(e) => e.stopPropagation()}
                         >
                           <button className="p-1.5 hover:bg-bg rounded-lg transition-colors">

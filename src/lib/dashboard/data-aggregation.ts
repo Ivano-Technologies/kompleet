@@ -57,11 +57,9 @@ export async function getCategoryBreakdown(
   _userId: string,
 ): Promise<CategoryBreakdown[]> {
   const { convex } = await requireAuthedConvex();
-  const { transactions } = await listAllTransactionsMine(
-    convex,
-    { type: "debit" },
-    { maxItems: 500 },
-  );
+  const { transactions } = await listAllTransactionsMine(convex, {
+    type: "debit",
+  });
   const totals = new Map<string, number>();
   let sum = 0;
   for (const txn of transactions) {
@@ -99,11 +97,7 @@ export async function getComplianceMetrics(
   _userId: string,
 ): Promise<ComplianceMetrics> {
   const { convex } = await requireAuthedConvex();
-  const { transactions, total } = await listAllTransactionsMine(
-    convex,
-    {},
-    { maxItems: 500 },
-  );
+  const { transactions, total } = await listAllTransactionsMine(convex);
   const categorized = transactions.filter((t) => t.category_id).length;
   const reconciled = transactions.filter((t) => t.is_reconciled).length;
   const reconciliationRate = total > 0 ? reconciled / total : 0;
