@@ -7,6 +7,11 @@ import {
 } from "./authResend";
 import { EmailVerificationOtp } from "./emailVerification";
 import {
+  isBlankAuthCode,
+  toTypedAuthError,
+  withSanitisedAuthCode,
+} from "./lib/authErrors";
+import {
   isMissingAuthAccountError,
 } from "./lib/authResendLimit";
 import { PasswordResetEmail } from "./passwordReset";
@@ -40,33 +45,36 @@ function withPasswordAuthGuards(provider: PasswordProvider): PasswordProvider {
   withOptions.options = {
     ...withOptions.options,
     authorize: async (params, ctx) => {
-      const email = normalizeAuthEmail(params.email);
-      if (params.flow === "signIn" && email) {
-        await ctx.runMutation(internal.authLegacy.trustLegacyPasswordAccount, {
-          email,
-        });
-      }
-      const resendWithoutCode =
-        params.flow === "email-verification" &&
-        (params.code === undefined ||
-          params.code === null ||
-          params.code === "");
-      if (resendWithoutCode && email) {
-        const allowed = await consumeAuthEmailSend(ctx, {
-          email,
-          purpose: "email-verification",
-        });
-        assertEmailSendAllowed(allowed);
-        try {
-          return await inner(params, ctx);
-        } catch (error) {
-          if (isMissingAuthAccountError(error)) {
-            return null;
-          }
-          throw error;
+      const nextParams = withSanitisedAuthCode(params);
+      const email = normalizeAuthEmail(nextParams.email);
+      try {
+        if (nextParams.flow === "signIn" && email) {
+          await ctx.runMutation(internal.authLegacy.trustLegacyPasswordAccount, {
+            email,
+          });
         }
+        const resendWithoutCode =
+          nextParams.flow === "email-verification" && isBlankAuthCode(nextParams);
+        const sendingReset = nextParams.flow === "reset";
+        if ((resendWithoutCode || sendingReset) && email) {
+          const allowed = await consumeAuthEmailSend(ctx, {
+            email,
+            purpose: sendingReset ? "password-reset" : "email-verification",
+          });
+          assertEmailSendAllowed(allowed);
+          try {
+            return await inner(nextParams, ctx);
+          } catch (error) {
+            if (isMissingAuthAccountError(error)) {
+              return null;
+            }
+            throw toTypedAuthError(error);
+          }
+        }
+        return await inner(nextParams, ctx);
+      } catch (error) {
+        throw toTypedAuthError(error);
       }
-      return inner(params, ctx);
     },
   };
   return provider;

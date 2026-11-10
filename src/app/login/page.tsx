@@ -19,13 +19,9 @@ import {
   AUTH_TITLE_BLOCK,
 } from "@/components/layout/auth-density";
 import { Eye, EyeOff } from "lucide-react";
-import {
-  FRIENDLY_MESSAGES,
-  generateRef,
-  toFriendlyError,
-  withRef,
-} from "@/lib/friendly-error";
+import { generateRef, withRef } from "@/lib/friendly-error";
 import { ErrorText } from "@/components/ui/error-ref";
+import { authErrorText, mapAuthError } from "@/lib/auth/map-error";
 import { didSignInComplete, verifyEmailPath } from "@/lib/auth/sign-in-result";
 
 function LoginForm() {
@@ -70,17 +66,7 @@ function LoginForm() {
       router.push(redirectTo);
       router.refresh();
     } catch (err) {
-      const { message, ref } = toFriendlyError(err, FRIENDLY_MESSAGES.fallback, {
-        context: "login",
-      });
-      setError(
-        withRef(
-          message === FRIENDLY_MESSAGES.network || message === FRIENDLY_MESSAGES.rateLimited
-            ? message
-            : FRIENDLY_MESSAGES.invalidCredentials,
-          ref,
-        ),
-      );
+      setError(authErrorText(mapAuthError(err, "login")));
       setLoading(false);
     }
   };
@@ -94,7 +80,11 @@ function LoginForm() {
           Access your business financial dashboard.
         </p>
       </div>
-      {error && <div className={AUTH_ERROR}><ErrorText text={error} /></div>}
+      {error && (
+        <div className={AUTH_ERROR}>
+          <ErrorText text={error} issueGeneratedRef={false} />
+        </div>
+      )}
       <form onSubmit={handleSubmit} className={AUTH_FORM}>
         <div>
           <label className={AUTH_LABEL}>Business Email</label>

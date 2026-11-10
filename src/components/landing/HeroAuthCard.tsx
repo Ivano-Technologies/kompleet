@@ -16,8 +16,8 @@ import {
   HERO_AUTH_ID,
   type HeroAuthMode,
 } from "@/components/landing/hero-auth";
-import { FRIENDLY_MESSAGES, toFriendlyError, withRef } from "@/lib/friendly-error";
 import { ErrorText } from "@/components/ui/error-ref";
+import { authErrorText, mapAuthError } from "@/lib/auth/map-error";
 import { didSignInComplete, verifyEmailPath } from "@/lib/auth/sign-in-result";
 import { AUTH_LINK, AUTH_SUBMIT } from "@/components/layout/auth-density";
 
@@ -107,14 +107,9 @@ export default function HeroAuthCard() {
       router.push("/dashboard");
       router.refresh();
     } catch (err) {
-      const { message, ref } = toFriendlyError(err, FRIENDLY_MESSAGES.fallback, {
-        context: `hero-auth:${mode}`,
-      });
-      const signInMismatch =
-        mode === "signin" &&
-        message !== FRIENDLY_MESSAGES.network &&
-        message !== FRIENDLY_MESSAGES.rateLimited;
-      setError(withRef(signInMismatch ? FRIENDLY_MESSAGES.invalidCredentials : message, ref));
+      setError(
+        authErrorText(mapAuthError(err, mode === "signup" ? "signup" : "login")),
+      );
       setLoading(false);
     }
   };
@@ -136,7 +131,7 @@ export default function HeroAuthCard() {
             role="alert"
             className="mb-3 rounded-md border border-error/30 bg-error-bg p-2.5 text-sm text-error"
           >
-            <ErrorText text={error} />
+            <ErrorText text={error} issueGeneratedRef={false} />
           </div>
         ) : null}
         <div>

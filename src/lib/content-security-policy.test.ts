@@ -27,4 +27,8 @@ describe("enforced CSP", () => {
   it("omits report-uri because no CSP report endpoint exists", () => {
     expect(CONTENT_SECURITY_POLICY).not.toMatch(/report-uri|report-to/i);
   });
+
+  it("does not allow connect-src to api.moonshot.cn", () => {
+    expect(CONTENT_SECURITY_POLICY).not.toMatch(/moonshot/i);
+  });
 });

@@ -2,7 +2,9 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import * as Sentry from "@sentry/nextjs";
 import ForgotPasswordPage from "@/app/forgot-password/page";
+import { FRIENDLY_MESSAGES } from "@/lib/friendly-error";
 
 const signIn = vi.fn();
 
@@ -19,7 +21,18 @@ vi.mock("next/link", () => ({
 }));
 
 vi.mock("@/components/layout/AuthLayout", () => ({
-  AuthLayout: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  AuthLayout: ({
+    children,
+    headerLeftAddon,
+  }: {
+    children: ReactNode;
+    headerLeftAddon?: ReactNode;
+  }) => (
+    <div>
+      {headerLeftAddon}
+      {children}
+    </div>
+  ),
 }));
 
 const RAW_SERVER_ERROR =
@@ -29,12 +42,14 @@ async function submit(email: string) {
   const user = userEvent.setup();
   render(<ForgotPasswordPage />);
   await user.type(screen.getByLabelText("Email address"), email);
-  await user.click(screen.getByRole("button", { name: "Send Reset Code" }));
+  await user.click(screen.getByRole("button", { name: "Send reset code" }));
 }
 
 describe("ForgotPasswordPage", () => {
   beforeEach(() => {
     signIn.mockReset();
+    vi.mocked(Sentry.captureException).mockClear();
+    vi.spyOn(console, "warn").mockImplementation(() => {});
   });
 
   it("shows the neutral success screen when the account does not exist", async () => {
@@ -47,11 +62,15 @@ describe("ForgotPasswordPage", () => {
     expect(screen.queryByText(/InvalidAccountId/)).not.toBeInTheDocument();
   });
 
-  it("shows the neutral success screen for unknown errors", async () => {
+  it("shows a generic message with a Ref for unexpected send failures", async () => {
     signIn.mockRejectedValueOnce("something odd");
     await submit("user@example.com");
 
-    expect(await screen.findByText("Check Your Email")).toBeInTheDocument();
+    expect(
+      await screen.findByText("Something went wrong. Please try again."),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("error-ref")).toBeInTheDocument();
+    expect(screen.queryByText("Check Your Email")).not.toBeInTheDocument();
   });
 
   it("shows the success screen when the request succeeds", async () => {
@@ -88,12 +107,47 @@ describe("ForgotPasswordPage", () => {
     expect(await screen.findByText("jane.doe@example.com")).toBeInTheDocument();
   });
 
-  it("keeps the footer note unchanged", () => {
+  it("says the reset code lasts 60 minutes", () => {
+    render(<ForgotPasswordPage />);
+    expect(
+      screen.getByText(/The code expires in 60 minutes\./),
+    ).toBeInTheDocument();
+  });
+
+  it("uses sentence-case reset copy, the shared back link, and the verify-sized expiry line", () => {
     render(<ForgotPasswordPage />);
     expect(
       screen.getByText(
-        /The code expires in 15 minutes\./,
+        "Enter your email to get an 8-digit code to reset your password.",
       ),
     ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Send reset code" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Back to login" })).toHaveAttribute(
+      "href",
+      "/login",
+    );
+    const expiry = screen.getByText(/The code expires in 60 minutes\./);
+    expect(expiry.className).toMatch(/text-sm/);
+    expect(expiry.className).not.toMatch(/text-xs/);
+  });
+
+  it("shows a wait message when sending is rate limited", async () => {
+    signIn.mockRejectedValueOnce(new Error("Too many attempts"));
+    await submit("user@example.com");
+    expect(
+      await screen.findByText("Too many attempts. Please wait a moment and try again."),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Check Your Email")).not.toBeInTheDocument();
+  });
+
+  it("shows the generic message without a Ref for a redacted Server Error", async () => {
+    signIn.mockRejectedValueOnce(new Error("[Request ID: abc] Server Error"));
+    await submit("user@example.com");
+    expect(
+      await screen.findByText(FRIENDLY_MESSAGES.fallback),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Check Your Email")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("error-ref")).not.toBeInTheDocument();
+    expect(Sentry.captureException).toHaveBeenCalled();
   });
 });

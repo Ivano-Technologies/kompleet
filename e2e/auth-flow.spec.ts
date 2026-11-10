@@ -140,6 +140,47 @@ test.describe("Auth flow", () => {
     await expect(inPageError(page, message)).toBeVisible();
   });
 
+  test("verify-email sanitises a pasted code that includes punctuation", async ({
+    page,
+  }) => {
+    await page.goto("/verify-email?email=kezie@example.test");
+    const input = page.getByLabel("Verification code");
+    await expect(input).toBeVisible();
+    await expect(page.getByRole("button", { name: "Verify email" })).toBeDisabled();
+
+    await input.focus();
+    await page.evaluate(async () => {
+      const dt = new DataTransfer();
+      dt.setData("text/plain", "85118942.");
+      document.activeElement?.dispatchEvent(
+        new ClipboardEvent("paste", { clipboardData: dt, bubbles: true, cancelable: true }),
+      );
+    });
+
+    await expect(input).toHaveValue("85118942");
+    await expect(page.getByRole("button", { name: "Verify email" })).toBeEnabled();
+  });
+
+  test("reset-password sanitises a pasted code that includes punctuation", async ({
+    page,
+  }) => {
+    await page.goto("/reset-password?email=kezie@example.test");
+    const input = page.getByLabel("Reset code");
+    await expect(input).toBeVisible();
+    await expect(page.getByRole("button", { name: "Update password" })).toBeDisabled();
+
+    await input.focus();
+    await page.evaluate(async () => {
+      const dt = new DataTransfer();
+      dt.setData("text/plain", "85118942.");
+      document.activeElement?.dispatchEvent(
+        new ClipboardEvent("paste", { clipboardData: dt, bubbles: true, cancelable: true }),
+      );
+    });
+
+    await expect(input).toHaveValue("85118942");
+  });
+
   for (const route of PROTECTED_ROUTES) {
     test(`unauthenticated visit to ${route} redirects to login`, async ({
       page,

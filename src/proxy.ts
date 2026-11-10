@@ -20,8 +20,12 @@
 import { convexAuthNextjsMiddleware } from "@convex-dev/auth/nextjs/server";
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
 import { addCorsHeaders } from "@/lib/cors";
-import { CONVEX_AUTH_API_ROUTE } from "@/lib/auth/convex-auth-api-route";
+import {
+  CONVEX_AUTH_API_ROUTE,
+  isExactConvexAuthProxyPath,
+} from "@/lib/auth/convex-auth-api-route";
 import { redirectFailedCodeExchange } from "@/lib/auth/failed-code-exchange";
+import { sanitizeAuthProxyResponse } from "@/lib/auth/sanitize-proxy-error";
 import { isThemeShotsBlocked } from "@/lib/theme-shots-gate";
 
 const handleAuthProxy = convexAuthNextjsMiddleware(async (request) => {
@@ -49,7 +53,14 @@ export default async function proxy(request: NextRequest, event: NextFetchEvent)
     return new NextResponse(null, { status: 404 });
   }
   const response = await handleAuthProxy(request, event);
-  return redirectFailedCodeExchange(request, response);
+  const redirected = redirectFailedCodeExchange(request, response);
+  if (
+    redirected &&
+    isExactConvexAuthProxyPath(request.nextUrl.pathname)
+  ) {
+    return sanitizeAuthProxyResponse(redirected);
+  }
+  return redirected;
 }
 
 export const config = {

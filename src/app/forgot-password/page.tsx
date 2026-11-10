@@ -15,14 +15,16 @@ import {
   AUTH_TITLE,
   AUTH_TITLE_BLOCK,
 } from '@/components/layout/auth-density';
-import { ArrowLeft, KeyRound, Mail } from 'lucide-react';
+import { KeyRound, Mail } from 'lucide-react';
+import { AuthBackToLogin } from '@/components/auth/AuthBackToLogin';
 import {
-  generateRef,
+  FRIENDLY_MESSAGES,
   isNetworkError,
   normalizeEmail,
-  withRef,
 } from '@/lib/friendly-error';
 import { ErrorText } from '@/components/ui/error-ref';
+import { authErrorText, mapAuthError } from '@/lib/auth/map-error';
+import { PASSWORD_RESET_MAX_AGE_MINUTES } from '@/lib/auth/otp';
 
 const NETWORK_ERROR_MESSAGE =
   "We couldn't send the code. Check your connection and try again.";
@@ -46,14 +48,21 @@ export default function ForgotPasswordPage() {
       await signIn('password', { email: normalizedEmail, flow: 'reset' });
       setSuccess(true);
     } catch (err: unknown) {
-      // Log the raw error with a ref; never show raw error text.
-      const ref = generateRef();
-      console.warn(`[friendly-error] ref=${ref} context=forgot-password`, err);
-      if (isNetworkError(err)) {
-        setError(withRef(NETWORK_ERROR_MESSAGE, ref));
+      const mapped = mapAuthError(err, 'forgot');
+      if (isNetworkError(err) || mapped.message === FRIENDLY_MESSAGES.network) {
+        setError(authErrorText({ ...mapped, message: NETWORK_ERROR_MESSAGE, known: true }));
+      } else if (
+        mapped.message === FRIENDLY_MESSAGES.rateLimited ||
+        mapped.message.startsWith('Too many attempts')
+      ) {
+        setError(authErrorText({ ...mapped, known: true }));
+      } else if (!mapped.known) {
+        // Redacted plain Server Error is a real fault (Resend, keys), not a
+        // missing account. Show the generic copy and hide the Ref.
+        setError(authErrorText(mapped));
       } else {
-        // Unknown accounts (InvalidAccountId) and other server errors get the
-        // same neutral response so we never reveal whether an account exists.
+        // Unknown accounts (InvalidAccountId / INVALID_CREDENTIALS) get the
+        // same success screen so we never reveal whether an account exists.
         setSuccess(true);
       }
     } finally {
@@ -79,7 +88,7 @@ export default function ForgotPasswordPage() {
             Enter reset code
           </Link>
           <Link href="/login" className={AUTH_LINK_MUTED}>
-            Back to Login
+            Back to login
           </Link>
         </div>
       </AuthLayout>
@@ -89,14 +98,7 @@ export default function ForgotPasswordPage() {
   return (
     <AuthLayout
       variant="dark-split"
-      headerLeftAddon={
-        <Link
-          href="/login"
-          className={`flex items-center gap-1.5 ${AUTH_LINK_MUTED}`}
-        >
-          <ArrowLeft className="h-3.5 w-3.5" /> Back to Login
-        </Link>
-      }
+      headerLeftAddon={<AuthBackToLogin />}
     >
       <div className={`${AUTH_TITLE_BLOCK} text-center`}>
         <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
@@ -104,13 +106,13 @@ export default function ForgotPasswordPage() {
         </div>
         <h1 className={AUTH_TITLE}>Reset your password</h1>
         <p className={AUTH_SUBTITLE}>
-          Enter your email and we&apos;ll send an 8-digit code to reset your password.
+          Enter your email to get an 8-digit code to reset your password.
         </p>
       </div>
 
       {error && (
         <div className={AUTH_ERROR}>
-          <ErrorText text={error} />
+          <ErrorText text={error} issueGeneratedRef={false} />
         </div>
       )}
 
@@ -134,12 +136,12 @@ export default function ForgotPasswordPage() {
           disabled={loading}
           className={AUTH_SUBMIT}
         >
-          {loading ? 'Sending...' : 'Send Reset Code'}
+          {loading ? 'Sending...' : 'Send reset code'}
         </button>
       </form>
 
-      <p className="mt-3 text-center text-xs text-text-3 dark:text-dark-text-3">
-        The code expires in 15 minutes.
+      <p className={`mt-3 text-center ${AUTH_SUBTITLE}`}>
+        The code expires in {PASSWORD_RESET_MAX_AGE_MINUTES} minutes.
       </p>
     </AuthLayout>
   );

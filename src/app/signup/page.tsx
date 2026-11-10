@@ -21,8 +21,8 @@ import {
   AUTH_TRUST,
 } from '@/components/layout/auth-density';
 import { ArrowRight, Eye, EyeOff, Shield, Lock } from 'lucide-react';
-import { FRIENDLY_MESSAGES, toFriendlyMessage } from '@/lib/friendly-error';
 import { ErrorText } from '@/components/ui/error-ref';
+import { authErrorText, mapAuthError } from '@/lib/auth/map-error';
 import { didSignInComplete, verifyEmailPath } from '@/lib/auth/sign-in-result';
 
 function getPasswordStrength(pw: string) {
@@ -86,12 +86,7 @@ export default function SignUpPage() {
       router.push(verifyEmailPath(businessEmail));
       router.refresh();
     } catch (err) {
-      const message = toFriendlyMessage(err, FRIENDLY_MESSAGES.fallback, {
-        context: 'signup',
-      });
-      // Convex hides the reason in production, so an existing account can
-      // arrive as a generic server error. Never show raw text either way.
-      setError(message);
+      setError(authErrorText(mapAuthError(err, 'signup')));
       setLoading(false);
     }
   };
@@ -122,7 +117,7 @@ export default function SignUpPage() {
 
       {error && (
         <div id="signup-error" role="alert" className={AUTH_ERROR}>
-          <ErrorText text={error} />
+          <ErrorText text={error} issueGeneratedRef={false} />
         </div>
       )}
 

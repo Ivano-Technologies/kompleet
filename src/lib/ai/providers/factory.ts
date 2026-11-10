@@ -7,24 +7,30 @@
 import { AIProvider, ProviderConfig } from "./types";
 import { OpenAIProvider } from "./openai-provider";
 import { ClaudeProvider } from "./claude-provider";
-import { KimiProvider } from "./kimi-provider";
 import { FallbackProvider } from "./fallback-provider";
+
+type EnabledProvider = ProviderConfig["provider"];
 
 /**
  * Provider priority order — Claude first (owner decision 2026-08-03).
- * OpenAI and Kimi remain registered as fallbacks; rule-based FallbackProvider last.
+ * OpenAI remains registered as a fallback; rule-based FallbackProvider last.
+ * Moonshot / Kimi is not enabled and must not receive traffic.
  */
-const DEFAULT_PROVIDER_ORDER: Array<"openai" | "claude" | "kimi" | "fallback"> =
-  [
-    "claude",
-    "openai",
-    "kimi",
-    "fallback",
-  ];
+const DEFAULT_PROVIDER_ORDER: EnabledProvider[] = [
+  "claude",
+  "openai",
+  "fallback",
+];
 
 /** Default Claude model for bulk categorization (short classification). */
 const DEFAULT_CLAUDE_MODEL =
   process.env.ANTHROPIC_CATEGORIZE_MODEL || "claude-3-5-haiku-20241022";
+
+function isEnabledProvider(
+  value: string | undefined,
+): value is EnabledProvider {
+  return value === "openai" || value === "claude" || value === "fallback";
+}
 
 /**
  * Create a provider instance based on configuration
@@ -38,12 +44,12 @@ function createProvider(config: ProviderConfig): AIProvider {
         config.apiKey,
         config.model || DEFAULT_CLAUDE_MODEL,
       );
-    case "kimi":
-      return new KimiProvider(config.apiKey, config.model);
     case "fallback":
       return new FallbackProvider();
-    default:
-      throw new Error(`Unknown provider: ${config.provider}`);
+    default: {
+      const _exhaustive: never = config.provider;
+      throw new Error(`Unknown provider: ${_exhaustive}`);
+    }
   }
 }
 
@@ -51,15 +57,9 @@ function createProvider(config: ProviderConfig): AIProvider {
  * Get the primary AI provider based on environment configuration
  */
 export async function getPrimaryProvider(): Promise<AIProvider> {
-  // Check environment variable for preferred provider
-  const preferredProvider = process.env.AI_PROVIDER as
-    | "openai"
-    | "claude"
-    | "kimi"
-    | "fallback"
-    | undefined;
+  const preferredProvider = process.env.AI_PROVIDER;
 
-  if (preferredProvider) {
+  if (isEnabledProvider(preferredProvider)) {
     const provider = createProvider({ provider: preferredProvider });
     const isAvailable = await provider.isAvailable();
 
