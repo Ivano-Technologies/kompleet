@@ -6,6 +6,131 @@ import { DSR_EMAIL } from "@/lib/legal";
 
 const COOKIE_LINK = "text-primary underline underline-offset-2";
 
+type StorageRow = {
+  name: string;
+  purpose: string;
+  duration: string;
+};
+
+const STORAGE_ROWS: StorageRow[] = [
+  {
+    name: "__Host-__convexAuthJWT",
+    purpose:
+      "Cookie. Convex Auth session token. Keeps you signed in. HttpOnly. Strictly necessary. On localhost the name is __convexAuthJWT.",
+    duration:
+      "Session (until the browser session ends or you sign out). No max-age is configured.",
+  },
+  {
+    name: "__Host-__convexAuthRefreshToken",
+    purpose:
+      "Cookie. Convex Auth refresh token. Strictly necessary. On localhost the name is __convexAuthRefreshToken.",
+    duration:
+      "Session (until the browser session ends or you sign out). No max-age is configured.",
+  },
+  {
+    name: "__convexAuthServerStateFetchTime_*",
+    purpose:
+      "Local storage. Convex Auth sync timestamp for the current deployment. Strictly necessary. No consent needed.",
+    duration: "Until you sign out or clear site data",
+  },
+  {
+    name: "sentryReplaySession",
+    purpose:
+      "Session storage. Sentry replay buffer so the last ~60 seconds can be uploaded if an error occurs. Functional / strictly necessary for error diagnostics. No consent needed.",
+    duration: "Until the tab closes",
+  },
+  {
+    name: "kompleet-theme",
+    purpose:
+      "Local storage. Remembers light, dark, or system theme. Functional. No consent needed.",
+    duration: "Until you change theme or clear site data",
+  },
+  {
+    name: "kompleet_selected_year",
+    purpose:
+      "Local storage. Remembers the selected tax year in the dashboard. Functional. No consent needed.",
+    duration: "Until you change the year or clear site data",
+  },
+  {
+    name: COOKIE_CONSENT_STORAGE_KEY,
+    purpose:
+      "Local storage. Stores your analytics-cookie choice (granted or denied). The banner defaults to deny and does not set cookies before you choose.",
+    duration: "Until you change Cookie settings or clear site data",
+  },
+  {
+    name: "_ga, _ga_*",
+    purpose:
+      "Google Analytics cookies, set only if you accept in the banner and a measurement ID is configured. They are not set today: no measurement ID is configured.",
+    duration:
+      "Only if GA is enabled; then according to Google's cookie durations",
+  },
+];
+
+function StorageInventory({ rows }: { rows: StorageRow[] }) {
+  return (
+    <>
+      <ul className="mb-4 space-y-3 md:hidden">
+        {rows.map((row) => (
+          <li
+            key={row.name}
+            className="rounded-md border border-light-border p-3 dark:border-dark-border"
+          >
+            <p className="font-mono text-xs break-all text-light-text-primary dark:text-dark-text-primary">
+              {row.name}
+            </p>
+            <p className="mt-2 text-sm text-light-text-secondary dark:text-dark-text-secondary">
+              <span className="font-semibold text-light-text-primary dark:text-dark-text-primary">
+                Purpose.{" "}
+              </span>
+              {row.purpose}
+            </p>
+            <p className="mt-1 text-sm text-light-text-secondary dark:text-dark-text-secondary">
+              <span className="font-semibold text-light-text-primary dark:text-dark-text-primary">
+                Duration.{" "}
+              </span>
+              {row.duration}
+            </p>
+          </li>
+        ))}
+      </ul>
+      <div className="mb-4 hidden overflow-x-auto md:block">
+        <table className="w-full text-left text-sm text-light-text-secondary dark:text-dark-text-secondary">
+          <thead>
+            <tr>
+              <th className="border-b border-light-border py-2 pr-4 font-semibold text-light-text-primary dark:border-dark-border dark:text-dark-text-primary">
+                Name
+              </th>
+              <th className="border-b border-light-border py-2 pr-4 font-semibold text-light-text-primary dark:border-dark-border dark:text-dark-text-primary">
+                Purpose
+              </th>
+              <th className="border-b border-light-border py-2 font-semibold text-light-text-primary dark:border-dark-border dark:text-dark-text-primary">
+                Duration
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row, index) => {
+              const cellBorder =
+                index === rows.length - 1
+                  ? "py-2 align-top"
+                  : "border-b border-light-border py-2 align-top dark:border-dark-border";
+              return (
+                <tr key={row.name}>
+                  <td className={`${cellBorder} pr-4 font-mono text-xs`}>
+                    {row.name}
+                  </td>
+                  <td className={`${cellBorder} pr-4`}>{row.purpose}</td>
+                  <td className={cellBorder}>{row.duration}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </>
+  );
+}
+
 export const metadata: Metadata = {
   alternates: { canonical: "/cookies" },
   title: "Kompleet: Cookie Policy",
@@ -29,7 +154,7 @@ export default function CookiesPage() {
           Cookie Policy
         </h1>
         <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-8">
-          Last updated: 10 November 2026
+          Last updated 10 Nov 2026
         </p>
 
         <div className="prose prose-lg max-w-none">
@@ -39,9 +164,9 @@ export default function CookiesPage() {
             </h2>
             <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
               Cookies are small text files placed on your device when you visit
-              a website. Kompleet also uses the browser&apos;s local storage for
-              a few first-party preferences. This page lists only what Kompleet
-              actually sets.
+              a website. Kompleet also uses the browser&apos;s local storage and
+              session storage for a few first-party items. This page lists what
+              Kompleet actually sets.
             </p>
           </section>
 
@@ -50,99 +175,15 @@ export default function CookiesPage() {
               2. Cookies and storage we set
             </h2>
             <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              Essential authentication cookies are required to keep you signed
-              in. Theme and consent are stored in local storage, not cookies.
+              Essential authentication cookies and the functional storage below
+              are required for the product to work. They do not need cookie
+              consent. Theme, selected tax year, Convex Auth sync time, and the
+              Sentry replay session buffer are strictly necessary or functional.
               We do not set Vercel analytics cookies or Sentry cookies. We do
               not store a locale cookie or a dashboard-layout cookie.
             </p>
 
-            <div className="overflow-x-auto mb-4">
-              <table className="w-full text-left text-sm text-light-text-secondary dark:text-dark-text-secondary">
-                <thead>
-                  <tr>
-                    <th className="border-b border-light-border dark:border-dark-border py-2 pr-4 font-semibold text-light-text-primary dark:text-dark-text-primary">
-                      Name
-                    </th>
-                    <th className="border-b border-light-border dark:border-dark-border py-2 pr-4 font-semibold text-light-text-primary dark:text-dark-text-primary">
-                      Purpose
-                    </th>
-                    <th className="border-b border-light-border dark:border-dark-border py-2 font-semibold text-light-text-primary dark:text-dark-text-primary">
-                      Duration
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td className="border-b border-light-border dark:border-dark-border py-2 pr-4 align-top font-mono text-xs">
-                      __Host-__convexAuthJWT
-                    </td>
-                    <td className="border-b border-light-border dark:border-dark-border py-2 pr-4 align-top">
-                      Convex Auth session token. Keeps you signed in. HttpOnly.
-                      On localhost the name is{" "}
-                      <span className="font-mono text-xs">__convexAuthJWT</span>.
-                    </td>
-                    <td className="border-b border-light-border dark:border-dark-border py-2 align-top">
-                      Session (until the browser session ends or you sign out).
-                      No max-age is configured.
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="border-b border-light-border dark:border-dark-border py-2 pr-4 align-top font-mono text-xs">
-                      __Host-__convexAuthRefreshToken
-                    </td>
-                    <td className="border-b border-light-border dark:border-dark-border py-2 pr-4 align-top">
-                      Convex Auth refresh token. On localhost the name is{" "}
-                      <span className="font-mono text-xs">
-                        __convexAuthRefreshToken
-                      </span>
-                      .
-                    </td>
-                    <td className="border-b border-light-border dark:border-dark-border py-2 align-top">
-                      Session (until the browser session ends or you sign out).
-                      No max-age is configured.
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="border-b border-light-border dark:border-dark-border py-2 pr-4 align-top font-mono text-xs">
-                      kompleet-theme
-                    </td>
-                    <td className="border-b border-light-border dark:border-dark-border py-2 pr-4 align-top">
-                      Local storage. Remembers light, dark, or system theme.
-                    </td>
-                    <td className="border-b border-light-border dark:border-dark-border py-2 align-top">
-                      Until you change theme or clear site data
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="border-b border-light-border dark:border-dark-border py-2 pr-4 align-top font-mono text-xs">
-                      {COOKIE_CONSENT_STORAGE_KEY}
-                    </td>
-                    <td className="border-b border-light-border dark:border-dark-border py-2 pr-4 align-top">
-                      Local storage. Stores your analytics-cookie choice
-                      (granted or denied). The banner defaults to deny and does
-                      not set cookies before you choose.
-                    </td>
-                    <td className="border-b border-light-border dark:border-dark-border py-2 align-top">
-                      Until you change Cookie settings or clear site data
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="py-2 pr-4 align-top font-mono text-xs">
-                      _ga, _ga_*
-                    </td>
-                    <td className="py-2 pr-4 align-top">
-                      Google Analytics cookies, set only if you accept in the
-                      banner and a measurement ID is configured. They are not
-                      set today: no measurement ID is configured.
-                    </td>
-                    <td className="py-2 align-top">
-                      Only if GA is enabled; then according to Google&apos;s
-                      cookie durations
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+            <StorageInventory rows={STORAGE_ROWS} />
           </section>
 
           <section className="mb-8">

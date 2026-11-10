@@ -30,7 +30,7 @@ export default function TermsPage() {
             Terms of Service
           </h1>
         <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-8">
-          Last updated: 10 November 2026. Effective date: February 25, 2026.
+          Last updated 10 Nov 2026
         </p>
 
         <CompanyLegalNotice page="terms" />
@@ -228,10 +228,6 @@ export default function TermsPage() {
             </p>
             <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
               <li>Store and process your data to provide the Services</li>
-              <li>
-                Use aggregated, anonymized data for analytics and service
-                improvement
-              </li>
               <li>Display your calculation results and reports to you</li>
             </ul>
             <p className="text-light-text-secondary dark:text-dark-text-secondary">
@@ -356,35 +352,37 @@ export default function TermsPage() {
             </h2>
 
             <h3 className="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-3">
-              9.1 Free and Paid Services
+              9.1 Paid plans
             </h3>
             <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              KOMPLEET may offer both free and paid features. Pricing for paid
-              features will be clearly displayed before you subscribe or
-              purchase.
+              Kompleet is currently offered without paid plans. If and when paid
+              plans are offered, we will show the terms before you subscribe,
+              and we may use a payment processor. This notice will be updated
+              then.
             </p>
 
             <h3 className="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-3">
-              9.2 Payment Terms
+              9.2 If and when paid plans are offered
             </h3>
             <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              If you subscribe to paid services:
+              If you later subscribe to a paid plan:
             </p>
             <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
-              <li>You agree to pay all applicable fees</li>
+              <li>You agree to pay the fees shown at checkout</li>
               <li>Fees are non-refundable unless otherwise stated</li>
-              <li>We may change our pricing with 30 days' notice</li>
+              <li>We may change fees with 30 days&apos; notice</li>
               <li>
                 You are responsible for all taxes associated with your purchase
               </li>
             </ul>
 
             <h3 className="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-3">
-              9.3 Subscription Cancellation
+              9.3 Subscription cancellation
             </h3>
             <p className="text-light-text-secondary dark:text-dark-text-secondary">
-              You may cancel your subscription at any time. Cancellation will be
-              effective at the end of your current billing period.
+              If and when paid plans are offered, you may cancel a subscription
+              at any time. Cancellation will be effective at the end of your
+              current billing period.
             </p>
           </section>
 
@@ -455,7 +453,9 @@ export default function TermsPage() {
             </p>
             <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
               <li>Cloud infrastructure and email delivery providers</li>
-              <li>Payment processors</li>
+              <li>
+                Payment processors, if and when paid plans are offered
+              </li>
             </ul>
             <p className="text-light-text-secondary dark:text-dark-text-secondary">
               We are not responsible for the content, privacy policies, or

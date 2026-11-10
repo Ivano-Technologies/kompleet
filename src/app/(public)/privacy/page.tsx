@@ -37,7 +37,7 @@ export default function PrivacyPage() {
             Privacy Policy
           </h1>
         <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-8">
-          Last updated: 10 November 2026. Effective date: February 25, 2026.
+          Last updated 10 Nov 2026
         </p>
 
         <CompanyLegalNotice page="privacy" />
@@ -54,11 +54,6 @@ export default function PrivacyPage() {
               to protecting your personal information and your right to privacy.
               This Privacy Policy explains how we collect, use, disclose, and
               safeguard your information when you use Kompleet.
-            </p>
-            <p className="text-light-text-secondary dark:text-dark-text-secondary">
-              By using KOMPLEET, you agree to the collection and use of
-              information in accordance with this policy. If you do not agree
-              with our policies and practices, please do not use our services.
             </p>
           </section>
 
@@ -110,7 +105,7 @@ export default function PrivacyPage() {
             </p>
             <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
               <li>Device and browser information</li>
-              <li>IP address and location data</li>
+              <li>IP address (approximate location)</li>
               <li>Usage patterns and preferences</li>
               <li>Tax calculation history and saved reports</li>
             </ul>
@@ -169,6 +164,31 @@ export default function PrivacyPage() {
                     </td>
                     <td className="border-b border-light-border dark:border-dark-border py-2 align-top">
                       Legitimate interests
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="border-b border-light-border dark:border-dark-border py-2 pr-4 align-top">
+                      Sentry session-replay buffer (held in memory) and upload
+                      on error
+                    </td>
+                    <td className="border-b border-light-border dark:border-dark-border py-2 align-top">
+                      Legitimate interests
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="border-b border-light-border dark:border-dark-border py-2 pr-4 align-top">
+                      Contact form and support emails
+                    </td>
+                    <td className="border-b border-light-border dark:border-dark-border py-2 align-top">
+                      Legitimate interests (answering enquiries)
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="border-b border-light-border dark:border-dark-border py-2 pr-4 align-top">
+                      Weekly deadline reminder emails
+                    </td>
+                    <td className="border-b border-light-border dark:border-dark-border py-2 align-top">
+                      Performance of a contract
                     </td>
                   </tr>
                   <tr>
@@ -247,27 +267,41 @@ export default function PrivacyPage() {
             </p>
             <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
               <li>
-                <strong>Convex:</strong> application database, authentication,
-                and file storage
+                <strong>Convex, Inc.:</strong> application database,
+                authentication, and file storage (United States)
               </li>
               <li>
-                <strong>Vercel:</strong> application hosting. Production is
+                <strong>Vercel Inc.:</strong> application hosting. Production is
                 configured to run in region <strong>iad1</strong> (United
                 States)
               </li>
               <li>
-                <strong>Resend:</strong> transactional email (verification,
+                <strong>Resend, Inc.:</strong> transactional email (verification,
                 password reset, reminders, and contact form)
               </li>
               <li>
-                <strong>Sentry:</strong> error monitoring and session replay on
-                error (see section 7)
+                <strong>Functional Software, Inc. (Sentry):</strong> error
+                monitoring and session replay on error (United States; see
+                section 7)
+              </li>
+              <li>
+                <strong>Zoho Corporation:</strong> email hosting for the{" "}
+                {DSR_EMAIL} mailbox, where data-protection requests land (United
+                States data centre)
               </li>
             </ul>
             <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              These processors are outside Nigeria. Transfers are made with
-              appropriate safeguards required by the NDPA 2023, including
-              written contracts that require confidentiality and security.
+              We do not currently send your data to AI providers. We will update
+              this notice before enabling AI categorisation.
+            </p>
+            <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
+              Some of these providers store or process data outside Nigeria,
+              including in the United States. We transfer personal data only as
+              the NDPA allows (ss. 41 to 43) and the GAID, for example where the
+              destination has adequate protection, or where appropriate
+              safeguards (such as contractual data protection terms) are in
+              place, or with your consent after we explain the risks. You can
+              ask us for details of the safeguards for any transfer.
             </p>
             <p className="text-light-text-secondary dark:text-dark-text-secondary">
               We may also disclose information when required by law or in
@@ -282,10 +316,10 @@ export default function PrivacyPage() {
               7. Sentry Session Replay
             </h2>
             <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              We use Sentry to diagnose errors. We do not record sessions as a
-              matter of course. If an error occurs, Sentry may capture a session
-              replay of that visit so we can see what went wrong. In that
-              replay:
+              We use Sentry under legitimate interests to diagnose errors. On
+              every visit, Sentry holds a short replay buffer in memory (about
+              the last 60 seconds). That buffer is uploaded only if an error
+              occurs. We do not upload routine session recordings. In a replay:
             </p>
             <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
               <li>All on-screen text is masked</li>
@@ -328,6 +362,15 @@ export default function PrivacyPage() {
                 in a structured format
               </li>
               <li>
+                <strong>Restriction:</strong> Ask us to restrict how we process
+                your personal information
+              </li>
+              <li>
+                <strong>Automated decisions:</strong> Not to be subject to a
+                decision based solely on automated processing that significantly
+                affects you
+              </li>
+              <li>
                 <strong>Withdraw Consent:</strong> Withdraw your consent at any
                 time where processing is based on consent
               </li>
@@ -345,8 +388,21 @@ export default function PrivacyPage() {
               >
                 {DSR_EMAIL}
               </a>
-              . That is the only address for data-protection requests. We aim to
-              respond within {DSR_RESPONSE_DAYS} days.
+              . That is the only address for data-protection requests. Requests
+              are free of charge. We may ask for proof of identity before we
+              act. We aim to respond within {DSR_RESPONSE_DAYS} days, and we
+              will tell you if we need longer and why.
+            </p>
+            <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
+              You can also send us a Standard Notice to Address Grievance (SNAG)
+              using the form in Schedule 9 of the GAID, by email to{" "}
+              <a
+                href={`mailto:${DSR_EMAIL}?subject=SNAG`}
+                className={`inline-flex min-h-11 items-center ${PRIVACY_LINK}`}
+              >
+                {DSR_EMAIL}
+              </a>{" "}
+              with &quot;SNAG&quot; in the subject line.
             </p>
             <p className="text-light-text-secondary dark:text-dark-text-secondary">
               You have the right to complain to the Nigeria Data Protection
@@ -409,11 +465,53 @@ export default function PrivacyPage() {
                     </td>
                   </tr>
                   <tr>
-                    <td className="py-2 pr-4 align-top">
+                    <td className="border-b border-light-border dark:border-dark-border py-2 pr-4 align-top">
                       Cookie consent and theme preference (local storage)
                     </td>
-                    <td className="py-2 align-top">
+                    <td className="border-b border-light-border dark:border-dark-border py-2 align-top">
                       Until you change the setting or clear site data
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="border-b border-light-border dark:border-dark-border py-2 pr-4 align-top">
+                      Audit logs (including IP address)
+                    </td>
+                    <td className="border-b border-light-border dark:border-dark-border py-2 align-top">
+                      Until you erase your account, except a record that the
+                      account was erased
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="border-b border-light-border dark:border-dark-border py-2 pr-4 align-top">
+                      Sentry events and replays
+                    </td>
+                    <td className="border-b border-light-border dark:border-dark-border py-2 align-top">
+                      Sentry plan default
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="border-b border-light-border dark:border-dark-border py-2 pr-4 align-top">
+                      Support and contact emails (Zoho)
+                    </td>
+                    <td className="border-b border-light-border dark:border-dark-border py-2 align-top">
+                      24 months
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="border-b border-light-border dark:border-dark-border py-2 pr-4 align-top">
+                      Convex backups
+                    </td>
+                    <td className="border-b border-light-border dark:border-dark-border py-2 align-top">
+                      For as long as our backup provider retains them
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 pr-4 align-top">
+                      Auth email rate-limit rows (they store the email address)
+                    </td>
+                    <td className="py-2 align-top">
+                      Used to enforce send limits; they are not removed when you
+                      erase your account
                     </td>
                   </tr>
                 </tbody>
