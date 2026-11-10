@@ -5,6 +5,7 @@ import { useAuthActions } from "@convex-dev/auth/react";
 import { useRouter } from "next/navigation";
 import { FRIENDLY_MESSAGES, toFriendlyError, withRef } from "@/lib/friendly-error";
 import { ErrorText } from "@/components/ui/error-ref";
+import { TurnstileField } from "@/components/security/TurnstileField";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
@@ -62,6 +63,7 @@ export default function LoginForm() {
 
       {error && <p className="text-sm text-red-500"><ErrorText text={error} /></p>}
 
+      <TurnstileField action="signin" />
       <button
         type="submit"
         disabled={loading}

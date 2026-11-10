@@ -20,6 +20,7 @@ import { FRIENDLY_MESSAGES, toFriendlyError, withRef } from "@/lib/friendly-erro
 import { ErrorText } from "@/components/ui/error-ref";
 import { didSignInComplete, verifyEmailPath } from "@/lib/auth/sign-in-result";
 import { RECLAIM_SIGNUP_NOTE } from "@/lib/auth/copy";
+import { TurnstileField } from "@/components/security/TurnstileField";
 
 const inputClassName =
   "mt-1.5 h-11 w-full rounded-md border border-border bg-surface px-3 text-sm text-text-1 focus:border-primary focus:ring-2 focus:ring-primary/20";
@@ -207,6 +208,7 @@ export default function HeroAuthCard() {
             </button>
           </div>
         </div>
+        <TurnstileField action={mode === "signup" ? "signup" : "signin"} />
         <button
           type="submit"
           disabled={loading}

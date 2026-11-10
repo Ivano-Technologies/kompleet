@@ -25,6 +25,7 @@ import { FRIENDLY_MESSAGES, toFriendlyMessage } from '@/lib/friendly-error';
 import { ErrorText } from '@/components/ui/error-ref';
 import { RECLAIM_SIGNUP_NOTE } from '@/lib/auth/copy';
 import { didSignInComplete, verifyEmailPath } from '@/lib/auth/sign-in-result';
+import { TurnstileField } from '@/components/security/TurnstileField';
 
 function getPasswordStrength(pw: string) {
   const checks = { minLength: pw.length >= 8, hasNumber: /\d/.test(pw) };
@@ -249,6 +250,7 @@ export default function SignUpPage() {
           )}
         </div>
 
+        <TurnstileField action="signup" />
         <button
           type="submit"
           disabled={loading}

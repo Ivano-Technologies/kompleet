@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { getEmailFrom } from "@/lib/email-from";
 import { apiErrorBody } from "@/lib/friendly-error";
+import { assertHumanRequest, botGateResponse } from "@/lib/bot-protection";
 
 const CONTACT_EMAILS = {
   hi: "hi@ivanotechnologies.com",
@@ -26,7 +27,15 @@ function getRecipientForSubject(subject: string): string {
 async function handlePOST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { name, email, subject, message } = body;
+    const { name, email, subject, message, turnstileToken } = body;
+    const gate = await assertHumanRequest(request, {
+      turnstileToken:
+        typeof turnstileToken === "string" ? turnstileToken : null,
+    });
+    const blocked = botGateResponse(gate);
+    if (blocked) {
+      return blocked;
+    }
 
     if (!name || !email || !message) {
       return NextResponse.json({ ...apiErrorBody("Name, email, and message are required") },

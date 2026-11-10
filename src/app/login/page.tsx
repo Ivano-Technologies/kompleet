@@ -27,6 +27,7 @@ import {
 } from "@/lib/friendly-error";
 import { ErrorText } from "@/components/ui/error-ref";
 import { didSignInComplete, verifyEmailPath } from "@/lib/auth/sign-in-result";
+import { TurnstileField } from "@/components/security/TurnstileField";
 
 const RECLAIM_NOTE =
   "Already used Kompleet with this email? Sign up with the same address to keep your books.";
@@ -140,6 +141,7 @@ function LoginForm() {
             </button>
           </div>
         </div>
+        <TurnstileField action="signin" />
         <button type="submit" disabled={loading} className={AUTH_SUBMIT}>
           {loading ? "Signing in…" : "Sign in"}
         </button>

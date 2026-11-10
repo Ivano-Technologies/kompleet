@@ -25,6 +25,7 @@ export const CONTENT_SECURITY_POLICY_REPORT_ONLY = [
     "'unsafe-eval'",
     "https://www.googletagmanager.com",
     "https://www.google-analytics.com",
+    "https://challenges.cloudflare.com",
   ].join(" "),
   "style-src 'self' 'unsafe-inline'",
   [
@@ -60,7 +61,9 @@ export const CONTENT_SECURITY_POLICY_REPORT_ONLY = [
     "https://www.googletagmanager.com",
     "https://region1.google-analytics.com",
     "https://api.resend.com",
+    "https://challenges.cloudflare.com",
   ].join(" "),
+  "frame-src https://challenges.cloudflare.com",
   "worker-src 'self' blob:",
   "frame-ancestors 'none'",
   "base-uri 'self'",
