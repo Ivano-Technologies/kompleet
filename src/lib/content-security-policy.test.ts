@@ -12,7 +12,9 @@ describe("CSP report-only policy", () => {
     expect(CONTENT_SECURITY_POLICY_REPORT_ONLY).toContain(
       "https://*.convex.cloud",
     );
-    expect(CONTENT_SECURITY_POLICY_REPORT_ONLY).toContain("wss://*.convex.cloud");
+    expect(CONTENT_SECURITY_POLICY_REPORT_ONLY).toContain(
+      "wss://*.convex.cloud",
+    );
     expect(CONTENT_SECURITY_POLICY_REPORT_ONLY).toContain(
       "https://*.ingest.sentry.io",
     );
@@ -32,5 +34,9 @@ describe("CSP report-only policy", () => {
     expect(CONTENT_SECURITY_POLICY_REPORT_ONLY).not.toMatch(
       /report-uri|report-to/i,
     );
+  });
+
+  it("does not allow connect-src to api.moonshot.cn", () => {
+    expect(CONTENT_SECURITY_POLICY_REPORT_ONLY).not.toMatch(/moonshot/i);
   });
 });
