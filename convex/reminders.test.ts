@@ -137,10 +137,13 @@ describe("sendReminderEmail", () => {
 });
 
 describe("deadline reminder cron", () => {
-  it("schedules a daily Convex cron for the send action", () => {
+  it("schedules a weekly Monday Convex cron for the send action", () => {
     const source = readFileSync(resolve("convex/crons.ts"), "utf8");
     expect(source).toMatch(/cronJobs/);
-    expect(source).toMatch(/crons\.daily/);
+    expect(source).toMatch(/crons\.weekly/);
+    expect(source).not.toMatch(/crons\.daily/);
+    expect(source).toMatch(/dayOfWeek:\s*"monday"/);
+    expect(source).toMatch(/hourUTC:\s*7/);
     expect(source).toMatch(/internal\.reminders\.sendDueReminders/);
     const send = readFileSync(resolve("convex/reminders.ts"), "utf8");
     expect(send).toMatch(/reminderAppliesToEntity/);

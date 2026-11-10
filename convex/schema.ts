@@ -565,7 +565,7 @@ export default defineSchema({
 
   /**
    * Occupancy for deadline reminder emails. One row per user, form, year,
-   * and window (7, 3, or 1 days) so the daily cron sends each once.
+   * and window (7, 3, or 1 days) so the weekly Monday cron sends each once.
    * Erase deletes these with the rest of the caller's rows.
    */
   deadlineReminders: defineTable({
