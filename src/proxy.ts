@@ -9,8 +9,9 @@
  * 1. Convex Auth session cookies (refresh + exact `/api/auth` actions)
  * 2. CORS headers for mobile app cross-origin requests (not `/api/auth`)
  *
- * `convexAuthNextjsMiddleware` proxies POST `/api/auth` *before* this
- * handler runs. Do not add a catch-all under `/api/auth`.
+ * POST `/api/auth` is handled by `handleConvexAuthProxy` so `ConvexError.data`
+ * (not the redacted `.message`) reaches the client mapper. Do not add a
+ * catch-all under `/api/auth`.
  *
  * The library also exchanges any `?code=` itself. When that exchange fails
  * it redirects to the same URL without the code, so we send that one case
@@ -24,6 +25,7 @@ import {
   CONVEX_AUTH_API_ROUTE,
   isExactConvexAuthProxyPath,
 } from "@/lib/auth/convex-auth-api-route";
+import { handleConvexAuthProxy } from "@/lib/auth/convex-auth-proxy";
 import { redirectFailedCodeExchange } from "@/lib/auth/failed-code-exchange";
 import { sanitizeAuthProxyResponse } from "@/lib/auth/sanitize-proxy-error";
 import { isThemeShotsBlocked } from "@/lib/theme-shots-gate";
@@ -52,15 +54,11 @@ export default async function proxy(request: NextRequest, event: NextFetchEvent)
   ) {
     return new NextResponse(null, { status: 404 });
   }
-  const response = await handleAuthProxy(request, event);
-  const redirected = redirectFailedCodeExchange(request, response);
-  if (
-    redirected &&
-    isExactConvexAuthProxyPath(request.nextUrl.pathname)
-  ) {
-    return sanitizeAuthProxyResponse(redirected);
+  if (isExactConvexAuthProxyPath(request.nextUrl.pathname)) {
+    return sanitizeAuthProxyResponse(await handleConvexAuthProxy(request));
   }
-  return redirected;
+  const response = await handleAuthProxy(request, event);
+  return redirectFailedCodeExchange(request, response);
 }
 
 export const config = {

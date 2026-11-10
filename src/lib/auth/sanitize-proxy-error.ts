@@ -1,16 +1,13 @@
 /**
- * The Convex Auth Next.js proxy forwards `error.message` to the browser.
- * In local/dev Convex that string includes the server stack. Strip frames
- * so they never leave `/api/auth`. Kept local so Edge `src/proxy.ts` does
- * not import `friendly-error` (Sentry).
+ * Last-line sanitiser for `/api/auth` error JSON. The proxy already maps
+ * `ConvexError.data` to a safe `{code}` string; this still strips stacks from
+ * any leftover message and never forwards a redacted Request ID.
+ * Kept local so Edge `src/proxy.ts` does not import `friendly-error` (Sentry).
  */
+import { authProxyErrorBody } from "@/lib/auth/proxy-auth-error";
+
 export function sanitizeAuthProxyErrorMessage(message: string): string {
-  return message
-    .split("\n")
-    .filter((line) => !/^\s*at\s+\S/.test(line))
-    .join("\n")
-    .replace(/\n{2,}/g, "\n")
-    .trim();
+  return authProxyErrorBody(new Error(message)).error;
 }
 
 export async function sanitizeAuthProxyResponse(
@@ -32,10 +29,15 @@ export async function sanitizeAuthProxyResponse(
   ) {
     return response;
   }
-  const error = (body as { error: string }).error;
-  const stripped = sanitizeAuthProxyErrorMessage(error);
-  if (stripped === error) return response;
-  return new Response(JSON.stringify({ ...(body as object), error: stripped }), {
+  const current = body as { error: string; code?: unknown };
+  const rewritten = authProxyErrorBody(new Error(current.error));
+  const sameError = rewritten.error === current.error;
+  const sameCode =
+    rewritten.code === undefined
+      ? current.code === undefined
+      : current.code === rewritten.code;
+  if (sameError && sameCode) return response;
+  return new Response(JSON.stringify({ ...current, ...rewritten }), {
     status: response.status,
     statusText: response.statusText,
     headers: response.headers,
