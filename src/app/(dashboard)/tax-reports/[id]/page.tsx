@@ -183,6 +183,30 @@ export default function TaxReportDetailPage() {
         </p>
       </div>
 
+      {computation?.unverifiedRuleKeys?.length > 0 && (
+        <div
+          role="alert"
+          data-testid="unverified-rules-warning"
+          className="p-4 rounded-lg border border-amber-200 bg-amber-50"
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <AlertTriangle className="w-4 h-4 text-amber-600" />
+            <p className="text-sm font-medium text-amber-900">
+              Unverified tax rules
+            </p>
+          </div>
+          <p className="text-xs text-amber-800 leading-relaxed">
+            This report used tax rules that are not from the active verified
+            set. Figures may change after review:
+          </p>
+          <ul className="mt-2 list-disc list-inside text-xs text-amber-800 font-mono">
+            {computation.unverifiedRuleKeys.map((key: string) => (
+              <li key={key}>{key}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {/* Business Classification */}
       <div className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
         <h2 className="text-base font-semibold text-light-text-primary dark:text-dark-text-primary mb-3">
@@ -239,6 +263,14 @@ export default function TaxReportDetailPage() {
                   {
                     label: "Development Levy (4%)",
                     value: formatCurrency(report.development_levy),
+                  },
+                ]
+              : []),
+            ...(computation?.minimumEtrTopUp > 0
+              ? [
+                  {
+                    label: "Minimum ETR top-up",
+                    value: formatCurrency(computation.minimumEtrTopUp),
                   },
                 ]
               : []),

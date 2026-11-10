@@ -80,6 +80,75 @@ export function requireRule(
   return rule;
 }
 
+/**
+ * A rule is unverified for reporting when it is marked `unverified`, or when
+ * it was loaded from a non-active / unverified-candidate rule version.
+ */
+export function isUnverifiedUsedRule(
+  rule: LoadedRule,
+  bundle: RuleBundle,
+): boolean {
+  if (rule.confidenceLevel === "unverified") {
+    return true;
+  }
+  if (
+    bundle.unverifiedVersionId !== null &&
+    rule.ruleVersionId === bundle.unverifiedVersionId
+  ) {
+    return true;
+  }
+  if (
+    bundle.activeVersionId !== null &&
+    rule.ruleVersionId !== bundle.activeVersionId
+  ) {
+    return true;
+  }
+  return false;
+}
+
+/** Sorted `ruleType.ruleKey` list of used rules that should surface a warning. */
+export function unverifiedUsedRuleKeys(
+  bundle: RuleBundle,
+  usedKeys: Iterable<string>,
+): string[] {
+  const keys: string[] = [];
+  for (const key of usedKeys) {
+    const rule = bundle.rules.get(key);
+    if (rule && isUnverifiedUsedRule(rule, bundle)) {
+      keys.push(key);
+    }
+  }
+  return [...new Set(keys)].sort();
+}
+
+/**
+ * requireRule / getRulesByType wrapper that records which keys a computation
+ * actually touched, so unverified fallbacks can be listed on the result.
+ */
+export class TrackedRuleBundle {
+  readonly usedKeys = new Set<string>();
+
+  constructor(readonly bundle: RuleBundle) {}
+
+  require(ruleType: string, ruleKey: string): LoadedRule {
+    this.usedKeys.add(ruleMapKey(ruleType, ruleKey));
+    return requireRule(this.bundle, ruleType, ruleKey);
+  }
+
+  record(rule: LoadedRule): LoadedRule {
+    this.usedKeys.add(ruleMapKey(rule.ruleType, rule.ruleKey));
+    return rule;
+  }
+
+  rulesByType(ruleType: string): LoadedRule[] {
+    return getRulesByType(this.bundle, ruleType);
+  }
+
+  unverifiedUsedKeys(): string[] {
+    return unverifiedUsedRuleKeys(this.bundle, this.usedKeys);
+  }
+}
+
 export interface VatObligationCandidate {
   ruleKey: string;
   thresholdNgn: number;
