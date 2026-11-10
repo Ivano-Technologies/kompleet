@@ -12,8 +12,7 @@ vi.mock("next/link", () => ({
 }));
 
 describe("403 page", () => {
-  it("matches the 404: grey numeral, one teal primary action, a ref", () => {
-    vi.spyOn(console, "warn").mockImplementation(() => {});
+  it("matches the 404: grey numeral, one teal primary action, no support Ref", () => {
     render(<Forbidden />);
     const numeral = screen.getByText("403");
     expect(numeral.className).toContain("text-primary/10");
@@ -23,6 +22,6 @@ describe("403 page", () => {
     expect(links[0].textContent).toBe("Go to dashboard");
     expect(links[0].className).toContain("bg-primary-fill");
     expect(links[0].className).not.toContain("--primary");
-    expect(screen.getByTestId("error-ref")).toBeTruthy();
+    expect(screen.queryByTestId("error-ref")).not.toBeInTheDocument();
   });
 });

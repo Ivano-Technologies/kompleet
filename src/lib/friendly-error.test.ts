@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as Sentry from "@sentry/nextjs";
 import { AUTH_ERROR_CODES } from "../../convex/lib/authErrors";
+import { MissingTaxRuleError } from "@/lib/tax/errors";
 import {
   FRIENDLY_FALLBACK,
   FRIENDLY_MESSAGES,
@@ -22,6 +23,7 @@ import {
   splitRef,
   withRef,
   friendlyErrorBody,
+  friendlyWithNewRef,
   flushSentry,
   isConvexResourceLimitError,
   isStatementSizeLimitError,
@@ -281,6 +283,20 @@ describe("friendly-error", () => {
       expect(msg(new Error("Email not verified"))).toBe(
         FRIENDLY_MESSAGES.unverified,
       );
+      expect(msg(new Error("Confirm your email"))).toBe(
+        FRIENDLY_MESSAGES.unverified,
+      );
+      expect(msg(new Error("Email verification required"))).toBe(
+        FRIENDLY_MESSAGES.unverified,
+      );
+    });
+
+    it("does not treat tax-rule 'unverified-candidate' copy as email verification", () => {
+      const err = new Error(
+        'Missing tax rule "business_tax.capital_gains_integration". This figure has not been verified/seeded in the tax_rules table for the active (or unverified-candidate) rule version — refusing to fall back to a hardcoded rate.',
+      );
+      expect(msg(err)).toBe(FRIENDLY_FALLBACK);
+      expect(msg(err)).not.toBe(FRIENDLY_MESSAGES.unverified);
     });
 
     it("formats rate-limit wait copy", () => {
@@ -444,6 +460,19 @@ describe("friendly-error", () => {
       expect(out).not.toContain("vat.standard_rate");
     });
 
+    it("maps MissingTaxRuleError before email-verification wording, even when the message contains unverified-candidate", () => {
+      const err = new MissingTaxRuleError(
+        "business_tax",
+        "capital_gains_integration",
+      );
+      expect(err.message).toMatch(/unverified-candidate/);
+      const out = msg(err);
+      expect(out).toBe(FRIENDLY_MESSAGES.missingTaxRule);
+      expect(out).not.toBe(FRIENDLY_MESSAGES.unverified);
+      expect(out).not.toContain("unverified-candidate");
+      expect(out).not.toContain("capital_gains_integration");
+    });
+
     it("logs a stack-free detail with the same 8 character ref", () => {
       const err = new Error("boom");
       const { ref } = toFriendlyError(err);
@@ -462,9 +491,9 @@ describe("friendly-error", () => {
       expect(ref).toBe("ABCD2345");
     });
 
-    it("toFriendlyMessage appends a ref that splitRef reads back", () => {
-      const text = toFriendlyMessage(new Error("[Request ID: x] Server Error"));
-      const { message, ref } = splitRef(text);
+    it("toFriendlyMessage appends a ref only for unexpected errors", () => {
+      const unexpected = toFriendlyMessage(new Error("column foo does not exist"));
+      const { message, ref } = splitRef(unexpected);
       expect(message).toBe(FRIENDLY_FALLBACK);
       expect(ref).toMatch(/^[A-Z0-9]{8}$/);
       expect(splitRef(withRef("Hi.", "ZZZZ2222"))).toEqual({
@@ -472,6 +501,36 @@ describe("friendly-error", () => {
         ref: "ZZZZ2222",
       });
       expect(generateRef()).toMatch(/^[A-Z0-9]{8}$/);
+    });
+
+    it("omits the Ref from known and redacted errors", () => {
+      expect(toFriendlyMessage(new Error("Could not verify code"))).toBe(
+        FRIENDLY_MESSAGES.invalidCode,
+      );
+      expect(toFriendlyMessage(new Error("Could not verify code"))).not.toMatch(
+        /Ref:/,
+      );
+      const redacted = toFriendlyMessage(
+        new Error("[Request ID: x] Server Error"),
+      );
+      expect(redacted).toBe(FRIENDLY_FALLBACK);
+      expect(redacted).not.toMatch(/Ref:/);
+      expect(
+        toFriendlyMessage(new UserFacingError("Pick a tax year first.")),
+      ).toBe("Pick a tax year first.");
+    });
+
+    it("friendlyWithNewRef logs a ref but does not append it to known copy", () => {
+      const text = friendlyWithNewRef(
+        "We can't treat this rent as VAT exempt yet.",
+        "calculators:vat:rent-exemption",
+      );
+      expect(text).toBe("We can't treat this rent as VAT exempt yet.");
+      expect(text).not.toMatch(/Ref:/);
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringMatching(/^\[friendly-error\] ref=[A-Z0-9]{8} context=calculators:vat:rent-exemption$/),
+        "We can't treat this rent as VAT exempt yet.",
+      );
     });
 
     it("friendlyErrorBody returns { error, ref } for API routes", () => {

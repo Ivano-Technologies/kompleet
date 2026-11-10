@@ -34,13 +34,13 @@ interface Transaction {
   description: string;
   amount: number;
   transaction_type: "debit" | "credit";
-  balance?: number;
+  balance?: number | null;
   category?: {
     id: string;
     name: string;
     category_type: string;
   };
-  confidence_score?: number;
+  confidence_score?: number | null;
   is_reconciled: boolean;
 }
 
@@ -503,7 +503,7 @@ export default function TransactionsPage() {
                           {transaction.category ? (
                             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-success/10 text-success">
                               {transaction.category.name}
-                              {transaction.confidence_score !== undefined &&
+                              {transaction.confidence_score != null &&
                                 transaction.confidence_score < 100 && (
                                   <span className="ml-1 opacity-60">
                                     ({transaction.confidence_score}%)

@@ -19,7 +19,6 @@ import {
   AUTH_TITLE_BLOCK,
 } from "@/components/layout/auth-density";
 import { Eye, EyeOff } from "lucide-react";
-import { generateRef, withRef } from "@/lib/friendly-error";
 import { ErrorText } from "@/components/ui/error-ref";
 import { authErrorText, mapAuthError } from "@/lib/auth/map-error";
 import { didSignInComplete, verifyEmailPath } from "@/lib/auth/sign-in-result";
@@ -45,9 +44,7 @@ function LoginForm() {
           ? "This link has expired. Request a new one."
           : null;
     if (copy) {
-      const ref = generateRef();
-      console.warn(`[friendly-error] ref=${ref} context=login:${err}`);
-      setError(withRef(copy, ref));
+      setError(copy);
     }
   }, [searchParams]);
 
