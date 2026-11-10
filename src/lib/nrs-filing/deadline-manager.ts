@@ -1,7 +1,10 @@
 /**
  * Filing Deadline Manager
- * Manages tax filing deadlines for NRS returns
+ * Manages tax filing deadlines for NRS returns.
+ * Calendar dates come from convex/lib/deadlineCalendar.ts (one source of truth).
  */
+
+import { filingDeadlinesForTaxYear } from "../../../convex/lib/deadlineCalendar";
 
 export interface FilingDeadline {
   taxType: "PIT" | "CIT" | "VAT" | "WHT";
@@ -11,47 +14,32 @@ export interface FilingDeadline {
   legalReference: string;
 }
 
+function legalReferenceFor(formType: string): string {
+  if (formType === "PIT") return "NRS PIT return";
+  if (formType === "CIT") return "NRS CIT return";
+  return "NRS VAT return";
+}
+
+function taxTypeFor(formType: string): FilingDeadline["taxType"] {
+  if (formType === "PIT") return "PIT";
+  if (formType === "CIT") return "CIT";
+  return "VAT";
+}
+
 /**
  * Get filing deadlines for a given tax year
  */
 export function getFilingDeadlines(taxYear: number): FilingDeadline[] {
-  const deadlines: FilingDeadline[] = [];
-
-  // Personal Income Tax (PIT) - Annual
-  deadlines.push({
-    taxType: "PIT",
-    description: "Personal Income Tax Return",
-    dueDate: `${taxYear + 1}-03-31`, // March 31 of following year
-    frequency: "annual",
-    legalReference: "NRS PIT return",
+  return filingDeadlinesForTaxYear(taxYear).map((deadline) => {
+    const taxType = taxTypeFor(deadline.formType);
+    return {
+      taxType,
+      description: deadline.description,
+      dueDate: deadline.deadlineDate,
+      frequency: taxType === "VAT" ? "monthly" : "annual",
+      legalReference: legalReferenceFor(deadline.formType),
+    };
   });
-
-  // Corporate Income Tax (CIT) - Annual
-  deadlines.push({
-    taxType: "CIT",
-    description: "Corporate Income Tax Return",
-    dueDate: `${taxYear + 1}-06-30`, // June 30 of following year
-    frequency: "annual",
-    legalReference: "NRS CIT return",
-  });
-
-  // VAT - Monthly
-  for (let month = 1; month <= 12; month++) {
-    const monthStr = month.toString().padStart(2, "0");
-    const nextMonth = month === 12 ? 1 : month + 1;
-    const nextMonthStr = nextMonth.toString().padStart(2, "0");
-    const year = month === 12 ? taxYear + 1 : taxYear;
-
-    deadlines.push({
-      taxType: "VAT",
-      description: `VAT Return, ${getMonthName(month)} ${taxYear}`,
-      dueDate: `${year}-${nextMonthStr}-21`, // 21st of following month
-      frequency: "monthly",
-      legalReference: "NRS VAT return",
-    });
-  }
-
-  return deadlines;
 }
 
 /**
@@ -102,27 +90,6 @@ export function daysUntilDeadline(deadline: FilingDeadline): number {
   const diffTime = dueDate.getTime() - today.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   return diffDays;
-}
-
-/**
- * Get month name
- */
-function getMonthName(month: number): string {
-  const months = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December",
-  ];
-  return months[month - 1];
 }
 
 /**
