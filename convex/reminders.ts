@@ -189,7 +189,7 @@ export const listMine = query({
     const rows = await ctx.db
       .query("deadlineReminders")
       .withIndex("by_user_and_key", (q) => q.eq("userId", user._id))
-      .collect();
+      .take(200);
     rows.sort((a, b) => b.sentAt - a.sentAt);
     return rows.map((row) => ({
       formType: row.formType,

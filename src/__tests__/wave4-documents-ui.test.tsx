@@ -5,6 +5,19 @@ import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 
 const emptyQuery = vi.hoisted(() => ({ current: true }));
+const libraryFile = vi.hoisted(() => ({
+  id: "file-1",
+  storageId: "storage-1",
+  filename: "invoice-scan.jpg",
+  contentType: "image/jpeg",
+  size: 1_100_000,
+  uploadedAt: Date.UTC(2026, 8, 25),
+  source: "documents",
+  kind: "image" as const,
+  linkType: null,
+  linkId: null,
+  linkLabel: null,
+}));
 
 vi.mock("next/link", () => ({
   default: ({ href, children }: { href: string; children: ReactNode }) => (
@@ -14,24 +27,12 @@ vi.mock("next/link", () => ({
 
 vi.mock("convex/react", () => ({
   useMutation: () => vi.fn(),
-  useQuery: () =>
-    emptyQuery.current
-      ? []
-      : [
-          {
-            id: "file-1",
-            storageId: "storage-1",
-            filename: "invoice-scan.jpg",
-            contentType: "image/jpeg",
-            size: 1_100_000,
-            uploadedAt: Date.UTC(2026, 8, 25),
-            source: "documents",
-            kind: "image",
-            linkType: null,
-            linkId: null,
-            linkLabel: null,
-          },
-        ],
+  useQuery: () => !emptyQuery.current,
+  usePaginatedQuery: () => ({
+    results: emptyQuery.current ? [] : [libraryFile],
+    status: "Exhausted",
+    loadMore: vi.fn(),
+  }),
   useConvex: () => ({ query: vi.fn() }),
 }));
 

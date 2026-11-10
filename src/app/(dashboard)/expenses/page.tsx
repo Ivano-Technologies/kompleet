@@ -28,8 +28,10 @@ interface Category {
 export default function ExpensesPage() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [total, setTotal] = useState(0);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [isDone, setIsDone] = useState(true);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState({
     startDate: "",
@@ -37,13 +39,16 @@ export default function ExpensesPage() {
     categoryId: "",
   });
 
-  const fetchExpenses = useCallback(async () => {
-    setLoading(true);
+  const fetchExpenses = useCallback(async (cursor?: string | null) => {
+    const appending = Boolean(cursor);
+    if (appending) setLoadingMore(true);
+    else setLoading(true);
     setError(null);
     try {
       const params = new URLSearchParams({
         page: "1",
         limit: "100",
+        ...(cursor ? { cursor } : {}),
         ...(filters.startDate ? { startDate: filters.startDate } : {}),
         ...(filters.endDate ? { endDate: filters.endDate } : {}),
         ...(filters.categoryId ? { categoryId: filters.categoryId } : {}),
@@ -51,8 +56,10 @@ export default function ExpensesPage() {
       const res = await fetch(`/api/expenses?${params}`);
       const data = await res.json();
       if (res.ok) {
-        setExpenses(data.expenses ?? []);
-        setTotal(data.total ?? 0);
+        const rows = (data.expenses ?? []) as Expense[];
+        setExpenses((current) => (appending ? [...current, ...rows] : rows));
+        setNextCursor(data.nextCursor ?? null);
+        setIsDone(Boolean(data.isDone));
       } else {
         setError(apiErrorMessage(data, "We couldn't load your expenses. Please try again."));
       }
@@ -60,6 +67,7 @@ export default function ExpensesPage() {
       setError(toFriendlyMessage(err, "We couldn't load your expenses. Please try again."));
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   }, [filters.startDate, filters.endDate, filters.categoryId]);
 
@@ -185,9 +193,23 @@ export default function ExpensesPage() {
       </div>
 
       {!loading && expenses.length > 0 && (
-        <p className="text-sm text-muted-foreground">
-          Showing {expenses.length} of {total} expense(s).
-        </p>
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-sm text-muted-foreground">
+            {isDone
+              ? `Showing ${expenses.length} of ${expenses.length} expense(s).`
+              : `Showing ${expenses.length} expense(s).`}
+          </p>
+          {!isDone && nextCursor && (
+            <button
+              type="button"
+              className="text-sm font-medium text-primary"
+              disabled={loadingMore}
+              onClick={() => void fetchExpenses(nextCursor)}
+            >
+              {loadingMore ? "Loading…" : "Load more"}
+            </button>
+          )}
+        </div>
       )}
     </div>
   );

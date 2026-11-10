@@ -7,6 +7,7 @@ import {
 } from "@/lib/convex/server";
 import { apiErrorBody } from "@/lib/friendly-error";
 import { invoiceWithNetLineAmounts } from "@/lib/invoices/line-amounts";
+import { collectPagedItems, EXPORT_BATCH } from "@/lib/convex/collect-pages";
 
 async function handleGET(request: NextRequest) {
   try {
@@ -14,10 +15,21 @@ async function handleGET(request: NextRequest) {
     const status = request.nextUrl.searchParams.get("status") ?? undefined;
     const taxYearRaw = request.nextUrl.searchParams.get("taxYear");
     const taxYear = taxYearRaw ? Number(taxYearRaw) : undefined;
-    const invoices = await convex.query(api.invoices.listMine, {
-      status: status === "all" ? undefined : status,
-      taxYear: Number.isFinite(taxYear) ? taxYear : undefined,
-    });
+    const invoices = await collectPagedItems(
+      async (cursor) => {
+        const page = await convex.query(api.invoices.listMine, {
+          status: status === "all" ? undefined : status,
+          taxYear: Number.isFinite(taxYear) ? taxYear : undefined,
+          cursor,
+          limit: EXPORT_BATCH,
+        });
+        return {
+          items: page.invoices,
+          isDone: page.isDone,
+          nextCursor: page.nextCursor,
+        };
+      },
+    );
     // Stored line amounts are mixed (older full-form invoices include VAT); always send the pre-VAT net.
     return NextResponse.json({ invoices: invoices.map(invoiceWithNetLineAmounts) });
   } catch (error) {

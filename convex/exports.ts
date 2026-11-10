@@ -2,6 +2,12 @@ import { v } from "convex/values";
 import { internalMutation, mutation, query } from "./_generated/server";
 import { getCurrentUser } from "./lib/auth";
 import { newExternalId, toMs } from "./lib/ids";
+import {
+  cursorValidator,
+  listCursorReturns,
+  nextCursorOf,
+  paginationOptsFromArgs,
+} from "./lib/listPage";
 import { assertStorageAssignableToUser } from "./lib/storageAccess";
 
 const exportApi = v.object({
@@ -46,16 +52,26 @@ function toApi(row: {
 }
 
 export const listMine = query({
-  args: {},
-  returns: v.array(exportApi),
-  handler: async (ctx) => {
+  args: {
+    cursor: cursorValidator,
+    limit: v.optional(v.number()),
+  },
+  returns: v.object({
+    history: v.array(exportApi),
+    ...listCursorReturns,
+  }),
+  handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx);
-    const rows = await ctx.db
+    const result = await ctx.db
       .query("exportHistory")
       .withIndex("by_user", (q) => q.eq("userId", user._id))
-      .collect();
-    rows.sort((a, b) => b.createdAt - a.createdAt);
-    return rows.map(toApi);
+      .order("desc")
+      .paginate(paginationOptsFromArgs(args));
+    return {
+      history: result.page.map(toApi),
+      nextCursor: nextCursorOf(result),
+      isDone: result.isDone,
+    };
   },
 });
 

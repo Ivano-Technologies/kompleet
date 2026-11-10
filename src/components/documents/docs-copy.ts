@@ -52,6 +52,7 @@ export const DOCS_COPY = {
   deleteConfirm: "Delete",
   moreLabel: "Documents",
   detailCta: "Attach file",
+  loadMore: "Load more",
 } as const;
 
 export const DOCS_ACCEPT = ".pdf,.png,.jpg,.jpeg,.webp,.csv,.xlsx,.xls";

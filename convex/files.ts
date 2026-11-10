@@ -1,3 +1,4 @@
+import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
@@ -10,7 +11,6 @@ import {
 } from "./lib/storageAccess";
 
 const MAX_BYTES = 10 * 1024 * 1024;
-const LIBRARY_TAKE = 300;
 const SEARCH_SCAN = 80;
 
 const linkTypeValidator = v.union(
@@ -158,8 +158,10 @@ function matchesFilter(row: Doc<"uploadedFiles">, filter: FileFilter): boolean {
       return attached;
     case "unattached":
       return !attached;
-    default:
-      return true;
+    default: {
+      const _exhaustive: never = filter;
+      return _exhaustive;
+    }
   }
 }
 
@@ -305,22 +307,50 @@ export const saveFileMetadata = mutation({
   },
 });
 
+export async function listFilesHandler(
+  ctx: QueryCtx,
+  args: {
+    filter?: FileFilter;
+    paginationOpts: { numItems: number; cursor: string | null };
+  },
+) {
+  const user = await getCurrentUser(ctx);
+  const filter = args.filter ?? "all";
+  const result = await ctx.db
+    .query("uploadedFiles")
+    .withIndex("by_user_and_uploadedAt", (q) => q.eq("userId", user._id))
+    .order("desc")
+    .paginate(args.paginationOpts);
+  return {
+    page: result.page.filter((row) => matchesFilter(row, filter)).map(toApi),
+    isDone: result.isDone,
+    continueCursor: result.continueCursor,
+  };
+}
+
 export const listFiles = query({
   args: {
     filter: v.optional(filterValidator),
-    limit: v.optional(v.number()),
+    paginationOpts: paginationOptsValidator,
   },
-  returns: v.array(fileApi),
-  handler: async (ctx, args) => {
+  returns: v.object({
+    page: v.array(fileApi),
+    isDone: v.boolean(),
+    continueCursor: v.string(),
+  }),
+  handler: listFilesHandler,
+});
+
+export const hasAnyFiles = query({
+  args: {},
+  returns: v.boolean(),
+  handler: async (ctx) => {
     const user = await getCurrentUser(ctx);
-    const filter = args.filter ?? "all";
-    const limit = Math.min(Math.max(args.limit ?? LIBRARY_TAKE, 1), LIBRARY_TAKE);
-    const rows = await ctx.db
+    const row = await ctx.db
       .query("uploadedFiles")
-      .withIndex("by_user_and_uploadedAt", (q) => q.eq("userId", user._id))
-      .order("desc")
-      .take(LIBRARY_TAKE);
-    return rows.filter((row) => matchesFilter(row, filter)).slice(0, limit).map(toApi);
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .first();
+    return row !== null;
   },
 });
 

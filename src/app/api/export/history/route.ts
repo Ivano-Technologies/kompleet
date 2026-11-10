@@ -6,11 +6,24 @@ import {
   requireAuthedConvex,
 } from "@/lib/convex/server";
 import { apiErrorBody } from "@/lib/friendly-error";
+import { collectPagedItems, EXPORT_BATCH } from "@/lib/convex/collect-pages";
 
 async function handleGET(request: NextRequest) {
   try {
     const { convex } = await requireAuthedConvex(request);
-    const history = await convex.query(api.exports.listMine, {});
+    const history = await collectPagedItems(
+      async (cursor) => {
+        const page = await convex.query(api.exports.listMine, {
+          cursor,
+          limit: EXPORT_BATCH,
+        });
+        return {
+          items: page.history,
+          isDone: page.isDone,
+          nextCursor: page.nextCursor,
+        };
+      },
+    );
     return NextResponse.json({ history });
   } catch (error) {
     if (isUnauthorized(error)) {

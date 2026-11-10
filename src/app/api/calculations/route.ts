@@ -8,6 +8,7 @@ import { withRateLimit } from "@/lib/with-rate-limit";
 import { api } from "@/lib/convex/http";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 import { apiErrorBody } from "@/lib/friendly-error";
+import { collectPagedItems, EXPORT_BATCH } from "@/lib/convex/collect-pages";
 
 async function handleGET(request: NextRequest) {
   try {
@@ -19,7 +20,19 @@ async function handleGET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "50", 10);
     const offset = parseInt(searchParams.get("offset") || "0", 10);
 
-    let calculations = await convex.query(api.tax.listCalculations, {});
+    let calculations = await collectPagedItems(
+      async (cursor) => {
+        const page = await convex.query(api.tax.listCalculations, {
+          cursor,
+          limit: EXPORT_BATCH,
+        });
+        return {
+          items: page.calculations,
+          isDone: page.isDone,
+          nextCursor: page.nextCursor,
+        };
+      },
+    );
     if (tax_type && ["pit", "cit", "vat", "wht"].includes(tax_type)) {
       calculations = calculations.filter((c) => c.tax_type === tax_type);
     }
