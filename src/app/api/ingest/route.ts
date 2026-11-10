@@ -123,7 +123,10 @@ async function handlePOST(request: NextRequest) {
 export async function POST(request: NextRequest, context?: unknown) {
   try {
     await cookies();
-    return await withRateLimit(handlePOST)(request, context);
+    return await withRateLimit(handlePOST, { limit: 15, window: 60_000 })(
+      request,
+      context,
+    );
   } catch (error) {
     rethrowIfNextControlFlow(error);
     if (isUnauthorized(error)) {
