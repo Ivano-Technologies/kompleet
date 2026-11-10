@@ -1,11 +1,13 @@
 import {
   getAuthUserId,
+  invalidateSessions,
   modifyAccountCredentials,
   retrieveAccount,
 } from "@convex-dev/auth/server";
 import { v } from "convex/values";
 import { action } from "./_generated/server";
 import { internal } from "./_generated/api";
+import { passwordChangeNotice, sendSecurityEmail } from "./lib/authEmail";
 
 export const changePassword = action({
   args: {
@@ -40,6 +42,13 @@ export const changePassword = action({
     await modifyAccountCredentials(ctx, {
       provider: "password",
       account: { id: email, secret: args.newPassword },
+    });
+    await invalidateSessions(ctx, { userId });
+    const notice = passwordChangeNotice(email);
+    await sendSecurityEmail({
+      email,
+      purpose: "password-change",
+      ...notice,
     });
     return null;
   },

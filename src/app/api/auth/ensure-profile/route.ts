@@ -28,6 +28,10 @@ async function handlePOST(request: NextRequest) {
           ? user.user_metadata.full_name
           : undefined),
     });
+    const userAgent = request.headers.get("user-agent") ?? "";
+    await convex
+      .action(api.sessions.recordSignIn, { userAgent })
+      .catch(() => {});
     return NextResponse.json({ profile });
   } catch (error) {
     if (isUnauthorized(error)) {
