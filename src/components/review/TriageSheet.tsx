@@ -499,7 +499,7 @@ export function TriageSheet({
   );
 
   const toastBar = toast ? (
-    <div className="pointer-events-auto mx-4 mb-4 flex items-center justify-between gap-4 rounded-xl bg-primary px-4 py-3 text-sm font-medium text-white">
+    <div className="pointer-events-auto mx-4 mb-4 flex items-center justify-between gap-4 rounded-xl bg-primary-fill px-4 py-3 text-sm font-medium text-white">
       <span>{toast.message}</span>
       <button
         type="button"

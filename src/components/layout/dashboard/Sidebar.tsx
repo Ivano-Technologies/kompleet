@@ -235,7 +235,7 @@ export function Sidebar({
 
         <a
           href="/contact?subject=bug"
-          className="block text-center text-[10px] text-white/30 hover:text-white/50 mt-1.5 py-0.5 transition-colors"
+          className="block text-center text-[10px] text-white/70 hover:text-white mt-1.5 py-0.5 transition-colors"
           title="Report a bug"
         >
           Report a bug

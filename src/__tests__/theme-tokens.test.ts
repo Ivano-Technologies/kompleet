@@ -39,4 +39,15 @@ describe("theme colour tokens", () => {
     expect(globals).toMatch(/html\.dark[\s\S]*--link:\s*45 212 191;/);
     expect(globals).toMatch(/#2DD4BF/);
   });
+
+  it("keeps filled buttons on navy primary-fill, not the dark teal link token", () => {
+    const button = readFileSync(
+      resolve(process.cwd(), "src/components/ui/button.tsx"),
+      "utf8",
+    );
+    expect(button).toMatch(/bg-primary-fill text-white/);
+    expect(button).not.toMatch(/bg-primary text-white/);
+    expect(globals).toMatch(/\.btn-primary[\s\S]*?background-color:\s*rgb\(var\(--primary\)\)/);
+    expect(globals).toMatch(/--dark-text-4:\s*107 155 184;/);
+  });
 });

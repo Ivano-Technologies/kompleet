@@ -275,7 +275,7 @@ function InvoicesPageInner() {
                 onClick={() => setStatusFilter(s)}
                 className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
                   statusFilter === s
-                    ? "bg-primary-500 text-white"
+                    ? "bg-primary-fill text-white"
                     : "bg-light-background dark:bg-dark-background text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover"
                 }`}
               >

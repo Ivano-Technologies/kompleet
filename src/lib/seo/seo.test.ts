@@ -9,7 +9,14 @@ describe("kompleet SEO surfaces", () => {
     const rules = Array.isArray(r.rules) ? r.rules[0] : r.rules;
     expect(rules.allow).toBe("/");
     expect(rules.disallow).toEqual(
-      expect.arrayContaining(["/api/", "/app/", "/dashboard", "/login", "/auth/"]),
+      expect.arrayContaining([
+        "/dev",
+        "/api/",
+        "/app/",
+        "/dashboard",
+        "/login",
+        "/auth/",
+      ]),
     );
     // "/app" alone would also block /apple-touch-icon.png.
     expect(rules.disallow).not.toContain("/app");

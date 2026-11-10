@@ -27,6 +27,7 @@ export type PublicMarketingPath = (typeof PUBLIC_MARKETING_PATHS)[number];
  * rather than "/app", which would also match "/apple-touch-icon.png").
  */
 export const PRIVATE_ROUTE_PREFIXES = [
+  "/dev",
   "/api/",
   "/app$",
   "/app/",

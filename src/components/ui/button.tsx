@@ -18,7 +18,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           "shadow-outer-soft gradient-convex border border-black/5",
           "active:shadow-pressed active:gradient-concave active:translate-y-px",
           {
-            "bg-primary text-white hover:brightness-[0.98]":
+            "bg-primary-fill text-white hover:brightness-[0.98]":
               variant === "default",
             "bg-surface text-text-1 hover:bg-surface-2 dark:bg-dark-surface dark:text-dark-text-1 dark:hover:bg-dark-surface-2":
               variant === "outline",

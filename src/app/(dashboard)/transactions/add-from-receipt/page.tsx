@@ -364,7 +364,7 @@ export default function AddFromReceiptPage() {
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium hover:opacity-90 disabled:opacity-50 flex items-center gap-2"
+              className="px-4 py-2 rounded-lg bg-primary-fill text-white font-medium hover:opacity-90 disabled:opacity-50 flex items-center gap-2"
             >
               {loading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -394,7 +394,7 @@ export default function AddFromReceiptPage() {
             </button>
             <Link
               href="/transactions"
-              className="px-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium hover:opacity-90"
+              className="px-4 py-2 rounded-lg bg-primary-fill text-white font-medium hover:opacity-90"
             >
               Back to transactions
             </Link>
