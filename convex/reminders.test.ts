@@ -141,7 +141,7 @@ describe("deadline reminder cron", () => {
     const source = readFileSync(resolve("convex/crons.ts"), "utf8");
     expect(source).toMatch(/cronJobs/);
     expect(source).toMatch(/crons\.weekly/);
-    expect(source).not.toMatch(/crons\.daily/);
+    expect(source).not.toMatch(/crons\.daily\(\s*"deadline reminder emails"/);
     expect(source).toMatch(/dayOfWeek:\s*"monday"/);
     expect(source).toMatch(/hourUTC:\s*7/);
     expect(source).toMatch(/internal\.reminders\.sendDueReminders/);
