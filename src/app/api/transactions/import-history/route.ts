@@ -11,6 +11,7 @@ import {
   requireAuthedConvex,
 } from "@/lib/convex/server";
 import { apiErrorBody } from "@/lib/friendly-error";
+import { collectPagedItems, EXPORT_BATCH } from "@/lib/convex/collect-pages";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -25,7 +26,19 @@ async function handleGET(request: NextRequest) {
     const bankCode = searchParams.get("bankCode");
     const status = searchParams.get("status");
 
-    let sessions = await convex.query(api.imports.listMine, {});
+    let sessions = await collectPagedItems(
+      async (cursor) => {
+        const page = await convex.query(api.imports.listMine, {
+          cursor,
+          limit: EXPORT_BATCH,
+        });
+        return {
+          items: page.sessions,
+          isDone: page.isDone,
+          nextCursor: page.nextCursor,
+        };
+      },
+    );
     if (bankCode) {
       sessions = sessions.filter(
         (s) => (s.bank_code ?? "").toUpperCase() === bankCode.toUpperCase(),
@@ -41,11 +54,29 @@ async function handleGET(request: NextRequest) {
     const enrichedSessions = [];
     for (const session of page) {
       const [errors, duplicates] = await Promise.all([
-        convex.query(api.imports.listErrors, {
-          sessionExternalId: session.id,
+        collectPagedItems(async (cursor) => {
+          const page = await convex.query(api.imports.listErrors, {
+            sessionExternalId: session.id,
+            cursor,
+            limit: EXPORT_BATCH,
+          });
+          return {
+            items: page.errors,
+            isDone: page.isDone,
+            nextCursor: page.nextCursor,
+          };
         }),
-        convex.query(api.imports.listDuplicates, {
-          sessionExternalId: session.id,
+        collectPagedItems(async (cursor) => {
+          const page = await convex.query(api.imports.listDuplicates, {
+            sessionExternalId: session.id,
+            cursor,
+            limit: EXPORT_BATCH,
+          });
+          return {
+            items: page.duplicates,
+            isDone: page.isDone,
+            nextCursor: page.nextCursor,
+          };
         }),
       ]);
       enrichedSessions.push({

@@ -1,7 +1,18 @@
 import { v } from "convex/values";
-import { internalMutation, mutation, query } from "./_generated/server";
+import {
+  internalMutation,
+  mutation,
+  query,
+  type QueryCtx,
+} from "./_generated/server";
 import { getCurrentUser } from "./lib/auth";
 import { newExternalId, toMs } from "./lib/ids";
+import {
+  cursorValidator,
+  listCursorReturns,
+  nextCursorOf,
+  paginationOptsFromArgs,
+} from "./lib/listPage";
 import { assertStorageAssignableToUser } from "./lib/storageAccess";
 
 const expenseApi = v.object({
@@ -49,47 +60,66 @@ function toApi(row: {
   };
 }
 
+export async function listMineHandler(
+  ctx: QueryCtx,
+  args: {
+    startDate?: string;
+    endDate?: string;
+    categoryId?: string;
+    updatedSince?: string;
+    page?: number;
+    limit?: number;
+    cursor?: string | null;
+  },
+) {
+  const user = await getCurrentUser(ctx);
+  const paginationOpts = paginationOptsFromArgs(args);
+  const since = args.updatedSince ? Date.parse(args.updatedSince) : NaN;
+
+  const ranged = ctx.db.query("expenses").withIndex("by_user_and_date", (q) => {
+    const base = q.eq("userId", user._id);
+    if (args.startDate && args.endDate) {
+      return base.gte("date", args.startDate).lte("date", args.endDate);
+    }
+    if (args.startDate) return base.gte("date", args.startDate);
+    if (args.endDate) return base.lte("date", args.endDate);
+    return base;
+  });
+
+  const categorized = args.categoryId
+    ? ranged.filter((q) => q.eq(q.field("categoryExternalId"), args.categoryId))
+    : ranged;
+  const updated = Number.isNaN(since)
+    ? categorized
+    : categorized.filter((q) => q.gte(q.field("updatedAt"), since));
+
+  const result = await updated.order("desc").paginate(paginationOpts);
+  const expenses = result.page.map(toApi);
+  const startedAtStart = (args.cursor ?? null) === null;
+  return {
+    expenses,
+    total: startedAtStart && result.isDone ? expenses.length : expenses.length,
+    nextCursor: nextCursorOf(result),
+    isDone: result.isDone,
+  };
+}
+
 export const listMine = query({
   args: {
     startDate: v.optional(v.string()),
     endDate: v.optional(v.string()),
     categoryId: v.optional(v.string()),
     updatedSince: v.optional(v.string()),
-    page: v.number(),
-    limit: v.number(),
+    page: v.optional(v.number()),
+    limit: v.optional(v.number()),
+    cursor: cursorValidator,
   },
-  returns: v.object({ expenses: v.array(expenseApi), total: v.number() }),
-  handler: async (ctx, args) => {
-    const user = await getCurrentUser(ctx);
-    let rows = await ctx.db
-      .query("expenses")
-      .withIndex("by_user", (q) => q.eq("userId", user._id))
-      .collect();
-    if (args.startDate) {
-      rows = rows.filter((r) => r.date >= args.startDate!);
-    }
-    if (args.endDate) {
-      rows = rows.filter((r) => r.date <= args.endDate!);
-    }
-    if (args.categoryId) {
-      rows = rows.filter((r) => r.categoryExternalId === args.categoryId);
-    }
-    if (args.updatedSince) {
-      const since = Date.parse(args.updatedSince);
-      if (!Number.isNaN(since)) {
-        rows = rows.filter((r) => r.updatedAt >= since);
-      }
-    }
-    rows.sort((a, b) =>
-      a.date === b.date ? b.createdAt - a.createdAt : a.date < b.date ? 1 : -1,
-    );
-    const total = rows.length;
-    const start = (args.page - 1) * args.limit;
-    return {
-      expenses: rows.slice(start, start + args.limit).map(toApi),
-      total,
-    };
-  },
+  returns: v.object({
+    expenses: v.array(expenseApi),
+    total: v.number(),
+    ...listCursorReturns,
+  }),
+  handler: listMineHandler,
 });
 
 export const getMine = query({

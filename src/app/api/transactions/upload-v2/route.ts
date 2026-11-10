@@ -221,7 +221,6 @@ async function handlePOST(request: NextRequest) {
       }
 
       const existingPage = await convex.query(api.transactions.listMine, {
-        page: 1,
         limit: 500,
       });
       const existingTransactions = existingPage.transactions.map((t) => ({

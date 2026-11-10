@@ -6,8 +6,6 @@ import Link from "next/link";
 import {
   ArrowDown,
   ArrowUp,
-  ChevronLeft,
-  ChevronRight,
   Download,
   MoreVertical,
   Search,
@@ -24,6 +22,11 @@ import { TriageSheet, useTriageCount } from "@/components/review/TriageSheet";
 import { apiErrorMessage, toFriendlyMessage } from "@/lib/friendly-error";
 import { ErrorText } from "@/components/ui/error-ref";
 import { EmptyState } from "@/components/ui/empty-state";
+import {
+  ListCardFooter,
+  PageTurnButtons,
+  showingCount,
+} from "@/components/ui/list-pager";
 
 interface Transaction {
   id: string;
@@ -46,6 +49,8 @@ interface PaginationInfo {
   limit: number;
   total: number;
   totalPages: number;
+  nextCursor: string | null;
+  isDone: boolean;
 }
 
 export default function TransactionsPage() {
@@ -57,7 +62,10 @@ export default function TransactionsPage() {
     limit: 50,
     total: 0,
     totalPages: 0,
+    nextCursor: null,
+    isDone: true,
   });
+  const [cursors, setCursors] = useState<(string | null)[]>([null]);
   const [loading, setLoading] = useState(true);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [filters, setFilters] = useState({
@@ -74,12 +82,15 @@ export default function TransactionsPage() {
   const [triageOpen, setTriageOpen] = useState(false);
   const { counts, setCounts, refresh: refreshTriage } = useTriageCount();
 
+  const cursor = cursors[cursors.length - 1] ?? null;
+
   const fetchTransactions = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams({
-        page: pagination.page.toString(),
+        page: String(cursors.length),
         limit: pagination.limit.toString(),
+        ...(cursor ? { cursor } : {}),
         ...(filters.search ? { search: filters.search } : {}),
         ...(filters.type ? { type: filters.type } : {}),
         ...(filters.startDate ? { startDate: filters.startDate } : {}),
@@ -92,7 +103,14 @@ export default function TransactionsPage() {
       if (response.ok) {
         const rows = data.transactions as Transaction[];
         setTransactions(rows);
-        setPagination(data.pagination);
+        setPagination({
+          page: cursors.length,
+          limit: data.pagination.limit ?? pagination.limit,
+          total: data.pagination.total ?? rows.length,
+          totalPages: data.pagination.totalPages ?? cursors.length,
+          nextCursor: data.pagination.nextCursor ?? null,
+          isDone: Boolean(data.pagination.isDone),
+        });
         setError(null);
       } else {
         setError(apiErrorMessage(data, "We couldn't load your transactions. Please try again."));
@@ -102,8 +120,7 @@ export default function TransactionsPage() {
     } finally {
       setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pagination.page, filters]);
+  }, [cursor, cursors.length, filters, pagination.limit]);
 
   useEffect(() => {
     fetchTransactions();
@@ -215,7 +232,21 @@ export default function TransactionsPage() {
     }
   };
 
-  const isEmpty = !loading && pagination.total === 0 && !filters.search && !filters.type;
+  const knownTotal =
+    pagination.isDone && pagination.page === 1 ? pagination.total : null;
+  const isEmpty =
+    !loading &&
+    pagination.isDone &&
+    transactions.length === 0 &&
+    !filters.search &&
+    !filters.type &&
+    !filters.startDate &&
+    !filters.endDate;
+
+  const updateFilters = (patch: Partial<typeof filters>) => {
+    setFilters((current) => ({ ...current, ...patch }));
+    setCursors([null]);
+  };
 
   return (
     <div className="space-y-6">
@@ -234,9 +265,11 @@ export default function TransactionsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
           <h1 className="font-display text-2xl text-text-1">Books</h1>
-          <span className="text-xs font-medium text-text-3 bg-surface px-2.5 py-1 rounded-full border border-border">
-            {pagination.total.toLocaleString()} total
-          </span>
+          {knownTotal !== null && (
+            <span className="text-xs font-medium text-text-3 bg-surface px-2.5 py-1 rounded-full border border-border">
+              {knownTotal.toLocaleString()} total
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <button
@@ -330,13 +363,13 @@ export default function TransactionsPage() {
               type="text"
               placeholder="Search transactions..."
               value={filters.search}
-              onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+              onChange={(e) => updateFilters({ search: e.target.value })}
               className="w-full pl-10 pr-4 py-2.5 text-sm bg-surface border border-border rounded-lg text-text-1 placeholder-text-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             />
           </div>
           <select
             value={filters.type}
-            onChange={(e) => setFilters({ ...filters, type: e.target.value })}
+            onChange={(e) => updateFilters({ type: e.target.value })}
             className="px-3 py-2.5 text-sm bg-surface border border-border rounded-lg text-text-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
             <option value="">All Types</option>
@@ -346,15 +379,13 @@ export default function TransactionsPage() {
           <input
             type="date"
             value={filters.startDate}
-            onChange={(e) =>
-              setFilters({ ...filters, startDate: e.target.value })
-            }
+            onChange={(e) => updateFilters({ startDate: e.target.value })}
             className="px-3 py-2.5 text-sm bg-surface border border-border rounded-lg text-text-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           />
           <input
             type="date"
             value={filters.endDate}
-            onChange={(e) => setFilters({ ...filters, endDate: e.target.value })}
+            onChange={(e) => updateFilters({ endDate: e.target.value })}
             className="px-3 py-2.5 text-sm bg-surface border border-border rounded-lg text-text-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           />
         </div>
@@ -516,55 +547,28 @@ export default function TransactionsPage() {
                 </table>
               </div>
 
-              <div className="flex items-center justify-between px-5 py-3 border-t border-border">
-                <p className="text-xs text-text-3">
-                  Showing {(pagination.page - 1) * pagination.limit + 1} to{" "}
-                  {Math.min(pagination.page * pagination.limit, pagination.total)}{" "}
-                  of {pagination.total.toLocaleString()} entries
-                </p>
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() =>
-                      setPagination({ ...pagination, page: pagination.page - 1 })
-                    }
-                    disabled={pagination.page === 1}
-                    className="p-1.5 rounded-md hover:bg-surface-2 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-                  <span className="px-3 py-1 text-xs font-medium bg-primary text-white rounded-md">
-                    {pagination.page}
-                  </span>
-                  {pagination.totalPages > 1 &&
-                    pagination.page < pagination.totalPages && (
-                      <>
-                        {pagination.page < pagination.totalPages - 1 && (
-                          <span className="text-xs text-text-3 px-1">...</span>
-                        )}
-                        <button
-                          onClick={() =>
-                            setPagination({
-                              ...pagination,
-                              page: pagination.totalPages,
-                            })
-                          }
-                          className="px-3 py-1 text-xs rounded-md hover:bg-surface-2 transition-colors"
-                        >
-                          {pagination.totalPages}
-                        </button>
-                      </>
-                    )}
-                  <button
-                    onClick={() =>
-                      setPagination({ ...pagination, page: pagination.page + 1 })
-                    }
-                    disabled={pagination.page >= pagination.totalPages}
-                    className="p-1.5 rounded-md hover:bg-surface-2 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
+              <ListCardFooter
+                countLabel={showingCount(
+                  transactions.length,
+                  "transaction",
+                  "transactions",
+                )}
+              >
+                <PageTurnButtons
+                  pageLabel={String(pagination.page)}
+                  prevDisabled={pagination.page === 1}
+                  nextDisabled={pagination.isDone || !pagination.nextCursor}
+                  onPrev={() =>
+                    setCursors((stack) =>
+                      stack.length > 1 ? stack.slice(0, -1) : stack,
+                    )
+                  }
+                  onNext={() => {
+                    if (pagination.isDone || !pagination.nextCursor) return;
+                    setCursors((stack) => [...stack, pagination.nextCursor]);
+                  }}
+                />
+              </ListCardFooter>
             </>
           )}
         </div>

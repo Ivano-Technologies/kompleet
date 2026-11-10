@@ -4,6 +4,7 @@ import {
   computeHasRealBooks,
   isDemoBooksEnabled,
 } from "@/lib/dashboard/has-real-books";
+import { collectPagedItems, EXPORT_BATCH } from "@/lib/convex/collect-pages";
 import { api } from "@/lib/convex/http";
 import { requireAuthedConvex } from "@/lib/convex/server";
 import DashboardClient from "./DashboardClient";
@@ -62,14 +63,36 @@ export default async function DashboardPage({
         taxYear: currentYear - 1,
       }),
       getMonthlyIncomeExpenses(user.id, 8),
-      convex.query(api.invoices.listMine, { status: "sent" }),
-      convex.query(api.transactions.listMine, { page: 1, limit: 100 }),
-      convex.query(api.imports.listMine, {}),
+      collectPagedItems(async (cursor) => {
+        const page = await convex.query(api.invoices.listMine, {
+          status: "sent",
+          cursor,
+          limit: EXPORT_BATCH,
+        });
+        return {
+          items: page.invoices,
+          isDone: page.isDone,
+          nextCursor: page.nextCursor,
+        };
+      }),
+      convex.query(api.transactions.listMine, { limit: 100 }),
+      collectPagedItems(async (cursor) => {
+        const page = await convex.query(api.imports.listMine, {
+          cursor,
+          limit: EXPORT_BATCH,
+        });
+        return {
+          items: page.sessions,
+          isDone: page.isDone,
+          nextCursor: page.nextCursor,
+        };
+      }),
     ]);
 
   const hasRealBooks = computeHasRealBooks({
     sessions: importSessions,
-    transactionCount: booksPage.total,
+    transactionCount:
+      booksPage.transactions.length || (booksPage.isDone ? 0 : 1),
     demoMode,
   });
 

@@ -8,6 +8,7 @@ import {
 } from "@/lib/convex/server";
 import { z } from "zod";
 import { apiErrorBody } from "@/lib/friendly-error";
+import { readNumberedPage } from "@/lib/convex/collect-pages";
 
 export const runtime = "nodejs";
 
@@ -25,6 +26,7 @@ const getQuerySchema = z.object({
   search: z.string().max(200).optional(),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(50),
+  cursor: z.string().min(1).optional(),
 });
 
 const deleteBodySchema = z.object({
@@ -71,23 +73,41 @@ async function handleGET(request: NextRequest): Promise<NextResponse> {
     }
 
     const filters = parsed.data;
-    const result = await convex.query(api.transactions.listMine, {
-      startDate: filters.startDate,
-      endDate: filters.endDate,
-      categoryId: filters.categoryId,
-      type: filters.type,
-      search: filters.search,
-      page: filters.page,
-      limit: filters.limit,
-    });
+    const page = await readNumberedPage(
+      async (cursor) => {
+        const result = await convex.query(api.transactions.listMine, {
+          startDate: filters.startDate,
+          endDate: filters.endDate,
+          categoryId: filters.categoryId,
+          type: filters.type,
+          search: filters.search,
+          cursor,
+          limit: filters.limit,
+        });
+        return {
+          items: result.transactions,
+          isDone: result.isDone,
+          nextCursor: result.nextCursor,
+        };
+      },
+      { page: filters.page, cursor: filters.cursor },
+    );
+
+    const knownTotal =
+      page.isDone && filters.page === 1 && !filters.cursor
+        ? page.items.length
+        : page.items.length;
+    const totalPages = page.isDone ? filters.page : filters.page + 1;
 
     return NextResponse.json({
-      transactions: result.transactions,
+      transactions: page.items,
       pagination: {
         page: filters.page,
         limit: filters.limit,
-        total: result.total,
-        totalPages: Math.ceil(result.total / filters.limit),
+        total: knownTotal,
+        totalPages,
+        nextCursor: page.nextCursor,
+        isDone: page.isDone,
       },
     });
   } catch (error) {

@@ -2,6 +2,12 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { getCurrentUser } from "./lib/auth";
 import { newExternalId } from "./lib/ids";
+import {
+  cursorValidator,
+  listCursorReturns,
+  nextCursorOf,
+  paginationOptsFromArgs,
+} from "./lib/listPage";
 
 const formApi = v.object({
   id: v.string(),
@@ -43,27 +49,36 @@ export const listMine = query({
     formType: v.optional(v.string()),
     taxYear: v.optional(v.number()),
     status: v.optional(v.string()),
+    cursor: cursorValidator,
+    limit: v.optional(v.number()),
   },
-  returns: v.array(formApi),
+  returns: v.object({
+    forms: v.array(formApi),
+    ...listCursorReturns,
+  }),
   handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx);
-    const rows = await ctx.db
+    const indexed = ctx.db
       .query("nrsForms")
-      .withIndex("by_user", (q) => q.eq("userId", user._id))
-      .collect();
-    rows.sort((a, b) => b.createdAt - a.createdAt);
-    const out = [];
-    for (const row of rows) {
+      .withIndex("by_user", (q) => q.eq("userId", user._id));
+    const byType = args.formType
+      ? indexed.filter((q) => q.eq(q.field("formType"), args.formType))
+      : indexed;
+    const byYear =
+      args.taxYear !== undefined
+        ? byType.filter((q) => q.eq(q.field("taxYear"), args.taxYear))
+        : byType;
+    const result = await byYear.order("desc").paginate(paginationOptsFromArgs(args));
+    const forms = [];
+    for (const row of result.page) {
       const payload = readPayload(row.payload);
       const status = payload.status ?? "generated";
-      if (args.formType && row.formType !== args.formType) continue;
-      if (args.taxYear !== undefined && row.taxYear !== args.taxYear) continue;
       if (args.status && status !== args.status) continue;
       const statuses = await ctx.db
         .query("formFilingStatuses")
         .withIndex("by_form", (q) => q.eq("formId", row._id))
-        .collect();
-      out.push({
+        .take(20);
+      forms.push({
         id: row.externalId,
         user_id: row.userExternalId,
         form_type: row.formType,
@@ -80,7 +95,11 @@ export const listMine = query({
         })),
       });
     }
-    return out;
+    return {
+      forms,
+      nextCursor: nextCursorOf(result),
+      isDone: result.isDone,
+    };
   },
 });
 

@@ -2,6 +2,12 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { getCurrentUser } from "./lib/auth";
 import { newExternalId } from "./lib/ids";
+import {
+  cursorValidator,
+  listCursorReturns,
+  nextCursorOf,
+  paginationOptsFromArgs,
+} from "./lib/listPage";
 
 const statementApi = v.object({
   id: v.string(),
@@ -34,25 +40,31 @@ export const listMine = query({
   args: {
     statementType: v.optional(v.string()),
     taxYear: v.optional(v.number()),
+    cursor: cursorValidator,
+    limit: v.optional(v.number()),
   },
-  returns: v.array(statementApi),
+  returns: v.object({
+    statements: v.array(statementApi),
+    ...listCursorReturns,
+  }),
   handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx);
-    const rows = await ctx.db
+    const indexed = ctx.db
       .query("financialStatements")
-      .withIndex("by_user", (q) => q.eq("userId", user._id))
-      .collect();
-    const filtered = rows.filter((r) => {
-      if (args.statementType && r.statementType !== args.statementType) {
-        return false;
-      }
-      if (args.taxYear !== undefined && r.taxYear !== args.taxYear) {
-        return false;
-      }
-      return true;
-    });
-    filtered.sort((a, b) => b.createdAt - a.createdAt);
-    return filtered.map(toApi);
+      .withIndex("by_user", (q) => q.eq("userId", user._id));
+    const byType = args.statementType
+      ? indexed.filter((q) => q.eq(q.field("statementType"), args.statementType))
+      : indexed;
+    const byYear =
+      args.taxYear !== undefined
+        ? byType.filter((q) => q.eq(q.field("taxYear"), args.taxYear))
+        : byType;
+    const result = await byYear.order("desc").paginate(paginationOptsFromArgs(args));
+    return {
+      statements: result.page.map(toApi),
+      nextCursor: nextCursorOf(result),
+      isDone: result.isDone,
+    };
   },
 });
 
