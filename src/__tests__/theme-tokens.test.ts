@@ -18,6 +18,9 @@ describe("theme colour tokens", () => {
     expect(config).not.toMatch(/bg:\s*"#080F18"/);
     expect(config).not.toMatch(/surface:\s*"#FFFDF8"/);
     expect(config).not.toMatch(/DEFAULT:\s*"#0F1E2E"/);
+    expect(config).toMatch(/DEFAULT:\s*rgb\("--link"\)/);
+    expect(config).toMatch(/fill:\s*rgb\("--primary"\)/);
+    expect(config).toMatch(/link:\s*rgb\("--link"\)/);
   });
 
   it("keeps light cream channels and remaps html.dark to brand navy", () => {
@@ -29,5 +32,11 @@ describe("theme colour tokens", () => {
     expect(globals).toMatch(/#162438 cards/);
     expect(globals).toMatch(/html\.dark[\s\S]*--background:\s*var\(--dark-bg\)/);
     expect(globals).toMatch(/@custom-variant dark/);
+  });
+
+  it("points dark-mode links and text-buttons at teal-400, not navy", () => {
+    expect(globals).toMatch(/--link:\s*11 58 92;/);
+    expect(globals).toMatch(/html\.dark[\s\S]*--link:\s*45 212 191;/);
+    expect(globals).toMatch(/#2DD4BF/);
   });
 });

@@ -234,30 +234,42 @@ export default function DashboardClient({
       <div className="grid lg:grid-cols-2 gap-4">
         <Card className="p-5 rounded-xl">
           <h3 className="font-semibold text-base text-text-1">Revenue trend</h3>
-          <div className="h-56 mt-4">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="mt-4 h-56 w-full min-w-0">
+            <ResponsiveContainer width="100%" height={224} minWidth={1}>
               <BarChart data={revenueData}>
                 <CartesianGrid
                   strokeDasharray="3 3"
-                  className="stroke-border"
+                  stroke="rgb(var(--border))"
                   vertical={false}
                 />
-                <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+                <XAxis
+                  dataKey="month"
+                  tick={{ fontSize: 12, fill: "rgb(var(--text-tertiary))" }}
+                  axisLine={{ stroke: "rgb(var(--border))" }}
+                  tickLine={false}
+                />
                 <YAxis
                   tickFormatter={(v) => `₦${formatNaira(Number(v))}`}
-                  tick={{ fontSize: 12 }}
+                  tick={{ fontSize: 12, fill: "rgb(var(--text-tertiary))" }}
+                  axisLine={false}
+                  tickLine={false}
                   width={48}
                 />
                 <Tooltip
                   formatter={(v) => [`₦${Number(v).toLocaleString()}`, ""]}
                   contentStyle={{
-                    backgroundColor: "#FFFDF8",
-                    border: "1px solid #DDD5C8",
+                    backgroundColor: "rgb(var(--surface))",
+                    border: "1px solid rgb(var(--border))",
                     borderRadius: 8,
                     fontSize: 12,
+                    color: "rgb(var(--text-primary))",
                   }}
                 />
-                <Bar dataKey="revenue" fill="#0B3A5C" radius={[4, 4, 0, 0]} />
+                <Bar
+                  dataKey="revenue"
+                  fill="rgb(var(--accent))"
+                  radius={[4, 4, 0, 0]}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>

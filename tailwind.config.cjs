@@ -17,10 +17,14 @@ module.exports = {
     extend: {
       colors: {
         primary: {
-          DEFAULT: "#0B3A5C",
+          // DEFAULT follows --link so text-primary / text-button links switch
+          // to teal in dark. Fills that must stay navy use primary-fill / deep.
+          DEFAULT: rgb("--link"),
+          fill: rgb("--primary"),
           deep: "#072A45",
           mid: "#1B6CA8",
         },
+        link: rgb("--link"),
         accent: {
           DEFAULT: "#0D9488",
           hover: "#0F766E",

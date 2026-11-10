@@ -34,12 +34,14 @@
 :root {
   /* Option C teal lock — do not reintroduce sky-blue drift, lime, or amber */
   --primary: 11 58 92;
-  /* #0B3A5C */
+  /* #0B3A5C navy fill — does not switch */
   --primary-rgb: 11, 58, 92;
   --primary-deep: 7 42 69;
   /* #072A45 */
   --accent: 13 148 136;
   /* #0D9488 */
+  --link: 11 58 92;
+  /* #0B3A5C light links / text-buttons */
   --charcoal: 255 255 255;
   /* #FFFFFF — on-teal button text */
 
@@ -102,6 +104,9 @@ html.dark,
   --text-secondary: var(--dark-text-2);
   --text-tertiary: var(--dark-text-3);
   --text-4: var(--dark-text-4);
+  /* Links and text-buttons: teal-400 on navy (9.1:1), not navy-on-navy. */
+  --link: 45 212 191;
+  /* #2DD4BF */
 }
 
 /* Base Styles */

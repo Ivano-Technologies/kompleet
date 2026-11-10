@@ -114,7 +114,7 @@ export function Sidebar({
   );
 
   const sidebarContent = (
-    <div className="flex flex-col h-full bg-gradient-to-b from-primary-deep to-primary">
+    <div className="flex flex-col h-full bg-gradient-to-b from-primary-deep to-primary-fill">
       <div className="flex items-center p-5 border-b border-white/10">
         <BrandLockup
           href="/dashboard"

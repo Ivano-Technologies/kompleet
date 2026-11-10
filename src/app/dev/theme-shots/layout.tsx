@@ -1,13 +1,14 @@
 import { notFound } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
+import { isThemeShotsBlocked } from "@/lib/theme-shots-gate";
 import { ThemeShotStamp } from "./ThemeShotStamp";
 
 /**
  * Localhost-only mocked DashboardShell harness for theme evidence shots.
- * Production builds 404 so this never ships.
+ * 404 when NODE_ENV or VERCEL_ENV is production so this never ships.
  */
 export default function ThemeShotsLayout({ children }: { children: ReactNode }) {
-  if (process.env.NODE_ENV === "production") {
+  if (isThemeShotsBlocked()) {
     notFound();
   }
 

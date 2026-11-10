@@ -121,3 +121,32 @@ describe("proxy: ?code= exchange", () => {
     expect(response.headers.get("x-middleware-next")).toBe("1");
   });
 });
+
+describe("proxy: theme-shot harness", () => {
+  const previousVercelEnv = process.env.VERCEL_ENV;
+
+  beforeEach(() => {
+    fetchAction.mockReset();
+  });
+  afterEach(() => {
+    if (previousVercelEnv === undefined) {
+      delete process.env.VERCEL_ENV;
+    } else {
+      process.env.VERCEL_ENV = previousVercelEnv;
+    }
+    requestContext.current = null;
+  });
+
+  it("404s /dev/theme-shots when VERCEL_ENV is production", async () => {
+    process.env.VERCEL_ENV = "production";
+    const response = await run("/dev/theme-shots/dashboard");
+    expect(response.status).toBe(404);
+    expect(fetchAction).not.toHaveBeenCalled();
+  });
+
+  it("lets /dev/theme-shots through outside production", async () => {
+    const response = await run("/dev/theme-shots/dashboard");
+    expect(response.status).not.toBe(404);
+    expect(response.headers.get("x-middleware-next")).toBe("1");
+  });
+});
