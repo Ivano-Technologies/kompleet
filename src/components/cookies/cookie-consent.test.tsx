@@ -192,6 +192,16 @@ describe("Google Analytics cookie consent", () => {
     ).toBe("0px");
   });
 
+  it("stays below settings dialogs and scrolls at a 390-wide viewport", () => {
+    const banner = readFileSync(
+      resolve(process.cwd(), "src/components/cookies/CookieConsentBanner.tsx"),
+      "utf8",
+    );
+    expect(banner).toMatch(/\bz-40\b/);
+    expect(banner).toMatch(/max-h-\[40vh\]/);
+    expect(banner).toMatch(/overflow-y-auto/);
+  });
+
   it("keeps Decline and Accept equal width on one row at a narrow width", async () => {
     renderConsentUi();
 

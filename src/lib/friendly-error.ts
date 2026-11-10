@@ -174,6 +174,21 @@ export const USER_MESSAGE_ALLOWLIST: Record<string, string> = {
   "Email is required": "Email is required.",
   "Only draft invoices can be deleted": "Only draft invoices can be deleted.",
   "Invoice is immutable": "Issued invoices can't be changed.",
+  "You can't change this invoice.": "You can't change this invoice.",
+  "This invoice number is already used.":
+    "This invoice number is already used.",
+  "This invoice can't be changed.": "This invoice can't be changed.",
+  "Only issued invoices can be marked paid.":
+    "Only issued invoices can be marked paid.",
+  "Only issued invoices can be cancelled.":
+    "Only issued invoices can be cancelled.",
+  "This invoice is already marked paid.":
+    "This invoice is already marked paid.",
+  "This invoice is already cancelled.": "This invoice is already cancelled.",
+  "Add a reason to cancel this invoice.":
+    "Add a reason to cancel this invoice.",
+  "Enter the paid date as YYYY-MM-DD.": "Enter the paid date as YYYY-MM-DD.",
+  "Enter an invoice number.": "Enter an invoice number.",
   "Quantity can't be negative.": "Quantity can't be negative.",
   "Unit price can't be negative.": "Unit price can't be negative.",
   "Discount can't be more than the line total.":

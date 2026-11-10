@@ -275,13 +275,20 @@ export default defineSchema({
     notes: v.optional(v.string()),
     isImmutable: v.boolean(),
     issuedAt: v.optional(v.number()),
+    paidAt: v.optional(v.number()),
+    paidOn: v.optional(v.string()),
+    paidNote: v.optional(v.string()),
+    paidMethod: v.optional(v.string()),
+    cancelledAt: v.optional(v.number()),
+    cancelReason: v.optional(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
     .index("by_externalId", ["externalId"])
     .index("by_user", ["userId"])
     .index("by_client", ["clientId"])
-    .index("by_user_and_status", ["userId", "status"]),
+    .index("by_user_and_status", ["userId", "status"])
+    .index("by_user_and_invoiceNumber", ["userId", "invoiceNumber"]),
 
   invoiceSequences: defineTable({
     clientId: v.optional(v.id("clients")),
@@ -289,7 +296,9 @@ export default defineSchema({
     userId: v.optional(v.id("users")),
     taxYear: v.number(),
     nextNumber: v.number(),
-  }).index("by_client_and_year", ["clientExternalId", "taxYear"]),
+  })
+    .index("by_client_and_year", ["clientExternalId", "taxYear"])
+    .index("by_user_and_year", ["userId", "taxYear"]),
 
   invoiceArchives: defineTable({
     externalId: v.string(),

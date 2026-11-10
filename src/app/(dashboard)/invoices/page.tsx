@@ -13,7 +13,7 @@ import {
 import { NewInvoiceSheet } from "@/components/invoices/NewInvoiceSheet";
 import { InvoiceDropZone } from "@/components/invoices/InvoiceDropZone";
 import { InvoicePreview } from "@/components/invoices/InvoicePreview";
-import { INV_COPY } from "@/components/invoices/invoice-copy";
+import { INV_COPY, INV_STATUS_LABEL } from "@/components/invoices/invoice-copy";
 import { BIZ_COPY } from "@/components/settings/profile-copy";
 import {
   attachInvoiceClient,
@@ -154,21 +154,13 @@ function InvoicesPageInner() {
       "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
   };
 
-  const statusLabels: Record<string, string> = {
-    draft: "Draft",
-    issued: "Awaiting Payment",
-    paid: "Paid",
-    cancelled: "Cancelled",
-    archived: "Archived",
-  };
-
   const StatusBadge = ({ status }: { status: string }) => (
     <span
       className={`px-2 py-0.5 rounded-full text-xs font-medium ${
         statusStyles[status] || statusStyles.draft
       }`}
     >
-      {statusLabels[status] || status}
+      {INV_STATUS_LABEL[status] || status}
     </span>
   );
 
@@ -238,11 +230,11 @@ function InvoicesPageInner() {
 
   return (
     <div
-      className="flex -m-4 lg:-m-6"
+      className="flex min-w-0 overflow-x-hidden -m-4 lg:-m-6"
       style={{ minHeight: "calc(100vh - 3.5rem)" }}
     >
       {/* Left Sidebar - Invoice List */}
-      <div className="w-80 lg:w-96 bg-light-surface dark:bg-dark-surface border-r border-light-border dark:border-dark-border flex flex-col flex-shrink-0">
+      <div className="flex min-w-0 w-full md:w-80 lg:w-96 flex-col bg-light-surface dark:bg-dark-surface md:flex-shrink-0 md:border-r border-light-border dark:border-dark-border">
         {/* Header */}
         <div className="p-5 border-b border-light-border dark:border-dark-border">
           <div className="flex items-center justify-between mb-1">
@@ -272,7 +264,7 @@ function InvoicesPageInner() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search invoices..."
-              className="w-full pl-9 pr-3 py-2 text-sm bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border rounded-lg text-light-text-primary dark:text-dark-text-primary placeholder-light-text-tertiary dark:placeholder-dark-text-tertiary focus:outline-none focus:border-primary-500 transition-colors"
+              className="w-full !pl-10 pr-3 py-2 text-sm bg-light-background dark:bg-dark-background border border-light-border dark:border-dark-border rounded-lg text-light-text-primary dark:text-dark-text-primary placeholder-light-text-tertiary dark:placeholder-dark-text-tertiary focus:outline-none focus:border-primary-500 transition-colors"
             />
           </div>
           <div className="flex gap-1.5 flex-wrap">
@@ -286,7 +278,7 @@ function InvoicesPageInner() {
                     : "bg-light-background dark:bg-dark-background text-light-text-secondary dark:text-dark-text-secondary hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover"
                 }`}
               >
-                {s === "all" ? "All" : statusLabels[s]}
+                {s === "all" ? INV_COPY.statusAll : INV_STATUS_LABEL[s]}
               </button>
             ))}
           </div>
@@ -299,7 +291,7 @@ function InvoicesPageInner() {
         )}
 
         {/* Invoice List */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden px-4">
           {loading ? (
             <div className="p-8 text-center">
               <div className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
@@ -318,7 +310,12 @@ function InvoicesPageInner() {
               {filteredInvoices.map((invoice) => (
                 <button
                   key={invoice.id}
-                  onClick={() => setSelectedInvoice(invoice)}
+                  onClick={() => {
+                    setSelectedInvoice(invoice);
+                    if (window.matchMedia("(max-width: 767px)").matches) {
+                      router.push(`/invoices/${invoice.id}`);
+                    }
+                  }}
                   className={`w-full p-4 text-left hover:bg-light-surface-hover dark:hover:bg-dark-surface-hover transition-colors ${
                     selectedInvoice?.id === invoice.id
                       ? "bg-primary-500/5 dark:bg-primary-500/10 border-l-2 border-primary-500"
@@ -356,7 +353,13 @@ function InvoicesPageInner() {
                         },
                       )}
                     </span>
-                    <span className="font-semibold text-sm text-light-text-primary dark:text-dark-text-primary">
+                    <span
+                      className={`min-w-0 truncate font-semibold text-sm ${
+                        invoice.status === "cancelled"
+                          ? "text-light-text-tertiary dark:text-dark-text-tertiary line-through"
+                          : "text-light-text-primary dark:text-dark-text-primary"
+                      }`}
+                    >
                       ₦{invoice.total_amount.toLocaleString("en-NG")}
                     </span>
                   </div>
@@ -368,7 +371,7 @@ function InvoicesPageInner() {
       </div>
 
       {/* Right Panel - Invoice Preview */}
-      <div className="flex-1 overflow-y-auto bg-light-background dark:bg-dark-background">
+      <div className="hidden min-w-0 md:flex flex-1 overflow-x-hidden overflow-y-auto bg-light-background dark:bg-dark-background">
         {selectedInvoice ? (
           <div className="max-w-3xl mx-auto p-6 lg:p-8">
             {/* Action Bar */}
