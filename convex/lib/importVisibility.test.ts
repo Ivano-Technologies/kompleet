@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   IMPORT_ORPHAN_POLICY,
+  isImportDuplicateVisible,
   isImportLedgerVisible,
   ledgerRowsForDisplay,
 } from "./importVisibility";
@@ -41,5 +42,19 @@ describe("import ledger visibility", () => {
     expect(
       ledgerRowsForDisplay(rows, new Set(["sess-done"])).map((r) => r.id),
     ).toEqual(["legacy", "done"]);
+  });
+
+  it("hides duplicate candidates whose import session is not completed", () => {
+    const completed = new Set<string>(["sess-done"]);
+    expect(
+      isImportDuplicateVisible({ sessionExternalId: "sess-done" }, completed),
+    ).toBe(true);
+    expect(
+      isImportDuplicateVisible(
+        { sessionExternalId: "sess-processing" },
+        completed,
+      ),
+    ).toBe(false);
+    expect(isImportDuplicateVisible({}, completed)).toBe(true);
   });
 });

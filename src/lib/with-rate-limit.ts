@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { rateLimitAsync, getIdentifier } from "./rate-limit";
-import { apiErrorBody, flushSentry } from "./friendly-error";
+import {
+  apiErrorBody,
+  flushSentry,
+  SENTRY_FLUSH_ERROR_MS,
+  SENTRY_FLUSH_SUCCESS_MS,
+} from "./friendly-error";
 
 interface RateLimitOptions {
   limit?: number; // requests per window
@@ -68,11 +73,15 @@ export function withRateLimit<T extends Request | NextRequest = Request>(
       } catch (error) {
         console.error("Failed to attach rate-limit headers:", error);
       }
+      if (response.status >= 400) {
+        await flushSentry(SENTRY_FLUSH_ERROR_MS);
+      } else {
+        await flushSentry(SENTRY_FLUSH_SUCCESS_MS);
+      }
       return response;
-    } finally {
-      // Serverless responses freeze the isolate; flush so captureException
-      // from toFriendlyError actually reaches Sentry.
-      await flushSentry();
+    } catch (error) {
+      await flushSentry(SENTRY_FLUSH_ERROR_MS);
+      throw error;
     }
   };
 }

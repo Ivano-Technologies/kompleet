@@ -9,6 +9,11 @@
  * that session stay attached to the failed session — they are not ledger
  * rows. Retry is a full re-import of the file. If rollback itself fails,
  * leftover rows may remain; duplicate detection on retry still runs.
+ *
+ * After every write succeeds, the caller retries
+ * `updateSession({ status: "completed", completed: true })`. If that stamp
+ * still fails, the session stays "processing" (not "failed") so a later
+ * completed update on the same session id can unhide the rows.
  */
 import {
   IMPORT_DUPLICATE_BATCH_SIZE,
@@ -130,4 +135,32 @@ export async function markImportSessionFailed(
   } catch (error) {
     console.error("Failed to mark import session as failed", error);
   }
+}
+
+export const IMPORT_SESSION_COMPLETE_ATTEMPTS = 3;
+
+/**
+ * Stamp the session completed after every write has already succeeded.
+ * Retries a transient `updateSession({ completed: true })`. If it still
+ * fails, leave the session in "processing" so a later call to
+ * `imports.updateSession({ status: "completed", completed: true })` on the
+ * same session id can unhide the rows. Never mark failed from this path —
+ * the writes already landed.
+ */
+export async function completeImportSessionWithRetry(
+  complete: () => Promise<unknown>,
+  attempts: number = IMPORT_SESSION_COMPLETE_ATTEMPTS,
+): Promise<{ completed: boolean; error?: unknown }> {
+  let lastError: unknown;
+  const tries = Math.max(1, attempts);
+  for (let i = 0; i < tries; i++) {
+    try {
+      await complete();
+      return { completed: true };
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  console.error("Failed to mark import session completed", lastError);
+  return { completed: false, error: lastError };
 }

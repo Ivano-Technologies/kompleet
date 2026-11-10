@@ -71,12 +71,19 @@ export function isStatementSizeLimitError(err: unknown): boolean {
   return false;
 }
 
+/** Short flush on success so a serverless freeze does not wait 5s. */
+export const SENTRY_FLUSH_SUCCESS_MS = 500;
+/** Full flush on error paths so captureException reaches Sentry. */
+export const SENTRY_FLUSH_ERROR_MS = 5000;
+
 /**
  * Await pending Sentry envelopes before a serverless response ends.
  * Empty queue resolves immediately; failures are swallowed so flush never
  * masks the original error.
  */
-export async function flushSentry(timeoutMs = 5000): Promise<boolean> {
+export async function flushSentry(
+  timeoutMs = SENTRY_FLUSH_ERROR_MS,
+): Promise<boolean> {
   try {
     await ensureServerSentry();
     const client = Sentry.getClient?.();

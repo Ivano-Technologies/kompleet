@@ -1,4 +1,5 @@
 import { ConvexError, v } from "convex/values";
+import type { Doc } from "./_generated/dataModel";
 import {
   internalMutation,
   mutation,
@@ -14,13 +15,15 @@ import {
 import { newExternalId, toMs } from "./lib/ids";
 import {
   cursorValidator,
+  LIST_VISIBLE_SCAN_MAX,
   listCursorReturns,
   matchesSearch,
-  nextCursorOf,
   paginationOptsFromArgs,
 } from "./lib/listPage";
 import { transactionTriageReason } from "./lib/triage";
 import {
+  completedImportSessionIds,
+  isImportDuplicateVisible,
   isImportLedgerVisible,
   ledgerRowsForDisplay,
 } from "./lib/importVisibility";
@@ -155,21 +158,6 @@ async function toApi(
   };
 }
 
-async function completedImportSessionIds(
-  ctx: QueryCtx | MutationCtx,
-  userId: import("./_generated/dataModel").Id<"users">,
-) {
-  const sessions = await ctx.db
-    .query("importSessions")
-    .withIndex("by_user", (q) => q.eq("userId", userId))
-    .collect();
-  const completed = new Set<string>();
-  for (const session of sessions) {
-    if (session.status === "completed") completed.add(session.externalId);
-  }
-  return completed;
-}
-
 export const listMineArgs = {
   startDate: v.optional(v.string()),
   endDate: v.optional(v.string()),
@@ -208,44 +196,72 @@ export async function listMineHandler(
     ? null
     : await completedImportSessionIds(ctx, user._id);
 
-  const ranged = ctx.db.query("transactions").withIndex("by_user_and_date", (q) => {
-    const base = q.eq("userId", user._id);
-    if (args.startDate && args.endDate) {
-      return base
-        .gte("transactionDate", args.startDate)
-        .lte("transactionDate", args.endDate);
+  const pageSize = paginationOpts.numItems;
+  const visible: Doc<"transactions">[] = [];
+  let cursor: string | null = paginationOpts.cursor;
+  let isDone = false;
+  let scanned = 0;
+  let continueCursor = cursor;
+
+  while (
+    visible.length < pageSize &&
+    !isDone &&
+    scanned < LIST_VISIBLE_SCAN_MAX
+  ) {
+    const remaining = pageSize - visible.length;
+    const ranged = ctx.db
+      .query("transactions")
+      .withIndex("by_user_and_date", (q) => {
+        const base = q.eq("userId", user._id);
+        if (args.startDate && args.endDate) {
+          return base
+            .gte("transactionDate", args.startDate)
+            .lte("transactionDate", args.endDate);
+        }
+        if (args.startDate) return base.gte("transactionDate", args.startDate);
+        if (args.endDate) return base.lte("transactionDate", args.endDate);
+        return base;
+      });
+
+    const typed = args.type
+      ? ranged.filter((q) => q.eq(q.field("transactionType"), args.type))
+      : ranged;
+    const categorized = args.categoryId
+      ? typed.filter((q) =>
+          q.eq(q.field("categoryExternalId"), args.categoryId),
+        )
+      : typed;
+
+    const result = await categorized.order("desc").paginate({
+      numItems: remaining,
+      cursor,
+    });
+    scanned += result.page.length;
+    let page = args.search
+      ? result.page.filter((r) => matchesSearch(r.description, args.search))
+      : result.page;
+    if (completedSessions) {
+      page = ledgerRowsForDisplay(page, completedSessions);
     }
-    if (args.startDate) return base.gte("transactionDate", args.startDate);
-    if (args.endDate) return base.lte("transactionDate", args.endDate);
-    return base;
-  });
-
-  const typed = args.type
-    ? ranged.filter((q) => q.eq(q.field("transactionType"), args.type))
-    : ranged;
-  const categorized = args.categoryId
-    ? typed.filter((q) => q.eq(q.field("categoryExternalId"), args.categoryId))
-    : typed;
-
-  const result = await categorized.order("desc").paginate(paginationOpts);
-  let rows = args.search
-    ? result.page.filter((r) => matchesSearch(r.description, args.search))
-    : result.page;
-  if (completedSessions) {
-    rows = ledgerRowsForDisplay(rows, completedSessions);
+    visible.push(...page);
+    isDone = result.isDone;
+    continueCursor = result.continueCursor;
+    cursor = result.continueCursor;
+    if (result.page.length === 0) {
+      isDone = true;
+      break;
+    }
   }
 
   const transactions = [];
-  for (const row of rows) {
+  for (const row of visible) {
     transactions.push(await toApi(ctx, row));
   }
 
-  const isDone = result.isDone;
-  const startedAtStart = (args.cursor ?? null) === null;
   return {
     transactions,
-    total: startedAtStart && isDone ? transactions.length : transactions.length,
-    nextCursor: nextCursorOf(result),
+    total: transactions.length,
+    nextCursor: isDone ? null : continueCursor,
     isDone,
   };
 }
@@ -510,31 +526,48 @@ export const createManyMine = mutation({
   handler: createManyMineHandler,
 });
 
-export const updateMine = mutation({
-  args: {
-    externalId: v.string(),
-    description: v.optional(v.string()),
-    amount: v.optional(v.number()),
-    transactionType: v.optional(
-      v.union(v.literal("debit"), v.literal("credit")),
-    ),
-    transactionDate: v.optional(v.string()),
-    categoryExternalId: v.optional(v.union(v.string(), v.null())),
-    notes: v.optional(v.string()),
-    isReconciled: v.optional(v.boolean()),
-    confidenceScore: v.optional(v.union(v.number(), v.null())),
-    triageIgnoredAt: v.optional(v.union(v.number(), v.null())),
-  },
-  returns: transactionApi,
-  handler: async (ctx, args) => {
+async function loadOwnedVisibleTransaction(
+  ctx: QueryCtx | MutationCtx,
+  userId: Doc<"users">["_id"],
+  externalId: string,
+) {
+  const row = await ctx.db
+    .query("transactions")
+    .withIndex("by_externalId", (q) => q.eq("externalId", externalId))
+    .unique();
+  if (!row || row.userId !== userId) {
+    throw new Error("Transaction not found");
+  }
+  const completedSessions = await completedImportSessionIds(ctx, userId);
+  if (!isImportLedgerVisible(row, completedSessions)) {
+    throw new Error("Transaction not found");
+  }
+  return row;
+}
+
+export type UpdateMineArgs = {
+  externalId: string;
+  description?: string;
+  amount?: number;
+  transactionType?: "debit" | "credit";
+  transactionDate?: string;
+  categoryExternalId?: string | null;
+  notes?: string;
+  isReconciled?: boolean;
+  confidenceScore?: number | null;
+  triageIgnoredAt?: number | null;
+};
+
+export async function updateMineHandler(
+  ctx: MutationCtx,
+  args: UpdateMineArgs,
+) {
     const user = await getCurrentUser(ctx);
-    const row = await ctx.db
-      .query("transactions")
-      .withIndex("by_externalId", (q) => q.eq("externalId", args.externalId))
-      .unique();
-    if (!row || row.userId !== user._id) {
-      throw new Error("Transaction not found");
-    }
+    const row = await loadOwnedVisibleTransaction(
+      ctx,
+      user._id,
+      args.externalId,
+    );
     let categoryId = row.categoryId;
     let categoryExternalId = row.categoryExternalId;
     if (args.categoryExternalId === null) {
@@ -574,7 +607,25 @@ export const updateMine = mutation({
     const updated = await ctx.db.get(row._id);
     if (!updated) throw new Error("Transaction not found");
     return await toApi(ctx, updated);
+}
+
+export const updateMine = mutation({
+  args: {
+    externalId: v.string(),
+    description: v.optional(v.string()),
+    amount: v.optional(v.number()),
+    transactionType: v.optional(
+      v.union(v.literal("debit"), v.literal("credit")),
+    ),
+    transactionDate: v.optional(v.string()),
+    categoryExternalId: v.optional(v.union(v.string(), v.null())),
+    notes: v.optional(v.string()),
+    isReconciled: v.optional(v.boolean()),
+    confidenceScore: v.optional(v.union(v.number(), v.null())),
+    triageIgnoredAt: v.optional(v.union(v.number(), v.null())),
   },
+  returns: transactionApi,
+  handler: updateMineHandler,
 });
 
 export async function removeMineHandler(
@@ -719,7 +770,7 @@ function duplicatePayloadFields(payload: unknown): {
   };
 }
 
-async function collectTriage(ctx: QueryCtx | MutationCtx) {
+export async function collectTriage(ctx: QueryCtx | MutationCtx) {
   const user = await getCurrentUser(ctx);
   const rows = await ctx.db
     .query("transactions")
@@ -772,6 +823,7 @@ async function collectTriage(ctx: QueryCtx | MutationCtx) {
   let duplicateSuspect = 0;
   for (const row of duplicates) {
     if ((row.status ?? "pending") !== "pending") continue;
+    if (!isImportDuplicateVisible(row, completedSessions)) continue;
     const fields = duplicatePayloadFields(row.payload);
     if (!fields) continue;
     duplicateSuspect += 1;
@@ -833,22 +885,17 @@ export const countTriageMine = query({
   },
 });
 
-export const applyTriageMine = mutation({
-  args: {
-    kind: v.union(v.literal("transaction"), v.literal("duplicate")),
-    id: v.string(),
-    action: v.union(
-      v.literal("categorise"),
-      v.literal("confirm"),
-      v.literal("ignore"),
-    ),
-    categoryExternalId: v.optional(v.string()),
-  },
-  returns: v.object({
-    snapshot: triageSnapshot,
-    createdTransactionId: v.union(v.string(), v.null()),
-  }),
-  handler: async (ctx, args) => {
+export type ApplyTriageMineArgs = {
+  kind: "transaction" | "duplicate";
+  id: string;
+  action: "categorise" | "confirm" | "ignore";
+  categoryExternalId?: string;
+};
+
+export async function applyTriageMineHandler(
+  ctx: MutationCtx,
+  args: ApplyTriageMineArgs,
+) {
     const user = await getCurrentUser(ctx);
     if (args.kind === "duplicate") {
       const row = await ctx.db
@@ -856,6 +903,10 @@ export const applyTriageMine = mutation({
         .withIndex("by_externalId", (q) => q.eq("externalId", args.id))
         .unique();
       if (!row || row.userId !== user._id) {
+        throw new Error("Duplicate not found");
+      }
+      const completedSessions = await completedImportSessionIds(ctx, user._id);
+      if (!isImportDuplicateVisible(row, completedSessions)) {
         throw new Error("Duplicate not found");
       }
       const snapshot = {
@@ -896,13 +947,7 @@ export const applyTriageMine = mutation({
       return { snapshot, createdTransactionId: null };
     }
 
-    const row = await ctx.db
-      .query("transactions")
-      .withIndex("by_externalId", (q) => q.eq("externalId", args.id))
-      .unique();
-    if (!row || row.userId !== user._id) {
-      throw new Error("Transaction not found");
-    }
+    const row = await loadOwnedVisibleTransaction(ctx, user._id, args.id);
     const snapshot = {
       kind: "transaction" as const,
       id: row.externalId,
@@ -942,13 +987,35 @@ export const applyTriageMine = mutation({
       return { snapshot, createdTransactionId: null };
     }
 
-    await ctx.db.patch(row._id, {
-      confidenceScore: 100,
-      triageIgnoredAt: undefined,
-      updatedAt: Date.now(),
-    });
-    return { snapshot, createdTransactionId: null };
+    if (args.action === "confirm") {
+      await ctx.db.patch(row._id, {
+        confidenceScore: 100,
+        triageIgnoredAt: undefined,
+        updatedAt: Date.now(),
+      });
+      return { snapshot, createdTransactionId: null };
+    }
+
+    const _exhaustive: never = args.action;
+    throw new Error(`Unsupported triage action: ${_exhaustive}`);
+}
+
+export const applyTriageMine = mutation({
+  args: {
+    kind: v.union(v.literal("transaction"), v.literal("duplicate")),
+    id: v.string(),
+    action: v.union(
+      v.literal("categorise"),
+      v.literal("confirm"),
+      v.literal("ignore"),
+    ),
+    categoryExternalId: v.optional(v.string()),
   },
+  returns: v.object({
+    snapshot: triageSnapshot,
+    createdTransactionId: v.union(v.string(), v.null()),
+  }),
+  handler: applyTriageMineHandler,
 });
 
 export const undoTriageMine = mutation({

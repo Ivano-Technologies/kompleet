@@ -1,9 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   IMPORT_DUPLICATE_BATCH_SIZE,
+  IMPORT_SESSION_COMPLETE_ATTEMPTS,
   IMPORT_WRITE_BATCH_SIZE,
   ImportPersistError,
   chunkRows,
+  completeImportSessionWithRetry,
   markImportSessionFailed,
   persistImportedTransactions,
   rollbackWrittenIds,
@@ -134,6 +136,31 @@ describe("markImportSessionFailed", () => {
         throw new Error("Import session not found");
       }),
     ).resolves.toBeUndefined();
+    warn.mockRestore();
+  });
+});
+
+describe("completeImportSessionWithRetry", () => {
+  it("retries a thrown completed update and succeeds", async () => {
+    const complete = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("transient"))
+      .mockResolvedValueOnce({ status: "completed" });
+    await expect(completeImportSessionWithRetry(complete)).resolves.toEqual({
+      completed: true,
+    });
+    expect(complete).toHaveBeenCalledTimes(2);
+  });
+
+  it("leaves the session recoverable when every completed update throws", async () => {
+    const warn = vi.spyOn(console, "error").mockImplementation(() => {});
+    const markFailed = vi.fn();
+    const complete = vi.fn().mockRejectedValue(new Error("still down"));
+    const result = await completeImportSessionWithRetry(complete);
+    expect(result.completed).toBe(false);
+    expect(result.error).toBeInstanceOf(Error);
+    expect(complete).toHaveBeenCalledTimes(IMPORT_SESSION_COMPLETE_ATTEMPTS);
+    expect(markFailed).not.toHaveBeenCalled();
     warn.mockRestore();
   });
 });

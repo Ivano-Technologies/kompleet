@@ -9,6 +9,9 @@
  * duplicate-detection set. Missing importSessionExternalId (legacy / manual
  * rows) stays visible — additive, no backfill.
  */
+import type { Id } from "../_generated/dataModel";
+import type { MutationCtx, QueryCtx } from "../_generated/server";
+
 export const IMPORT_ORPHAN_POLICY = "stay-hidden" as const;
 
 export function isImportLedgerVisible(
@@ -19,6 +22,16 @@ export function isImportLedgerVisible(
   return completedSessionExternalIds.has(row.importSessionExternalId);
 }
 
+export function isImportDuplicateVisible(
+  row: { sessionExternalId?: string },
+  completedSessionExternalIds: ReadonlySet<string>,
+): boolean {
+  return isImportLedgerVisible(
+    { importSessionExternalId: row.sessionExternalId },
+    completedSessionExternalIds,
+  );
+}
+
 export function ledgerRowsForDisplay<T extends { importSessionExternalId?: string }>(
   rows: T[],
   completedSessionExternalIds: ReadonlySet<string>,
@@ -26,4 +39,19 @@ export function ledgerRowsForDisplay<T extends { importSessionExternalId?: strin
   return rows.filter((row) =>
     isImportLedgerVisible(row, completedSessionExternalIds),
   );
+}
+
+export async function completedImportSessionIds(
+  ctx: QueryCtx | MutationCtx,
+  userId: Id<"users">,
+): Promise<Set<string>> {
+  const sessions = await ctx.db
+    .query("importSessions")
+    .withIndex("by_user", (q) => q.eq("userId", userId))
+    .collect();
+  const completed = new Set<string>();
+  for (const session of sessions) {
+    if (session.status === "completed") completed.add(session.externalId);
+  }
+  return completed;
 }

@@ -31,13 +31,13 @@ import {
 import {
   apiErrorBody,
   FRIENDLY_MESSAGES,
-  flushSentry,
   isStatementSizeLimitError,
   toFriendlyErrorAndFlush,
   userFacingError,
 } from "@/lib/friendly-error";
 import {
   ImportPersistError,
+  completeImportSessionWithRetry,
   markImportSessionFailed,
   persistImportedTransactions,
 } from "@/lib/transaction-import/import-persist";
@@ -302,16 +302,17 @@ async function handlePOST(request: NextRequest) {
           convex.mutation(api.transactions.removeMine, { externalIds: ids }),
       });
 
-      await convex.mutation(api.imports.updateSession, {
-        externalId: session.id,
-        status: "completed",
-        transactionsImported: imported.imported,
-        totalAmount: transactionsToImport.reduce((sum, t) => sum + t.amount, 0),
-        errorsCount: parseResult.errors.length,
-        completed: true,
-      });
+      const finalized = await completeImportSessionWithRetry(() =>
+        convex.mutation(api.imports.updateSession, {
+          externalId: session.id,
+          status: "completed",
+          transactionsImported: imported.imported,
+          totalAmount: transactionsToImport.reduce((sum, t) => sum + t.amount, 0),
+          errorsCount: parseResult.errors.length,
+          completed: true,
+        }),
+      );
 
-      await flushSentry();
       return NextResponse.json({
         success: true,
         sessionId: session.id,
@@ -319,6 +320,8 @@ async function handlePOST(request: NextRequest) {
         duplicates: highConfidenceDuplicates.length,
         pendingReview: duplicates.length - highConfidenceDuplicates.length,
         errors: parseResult.errors.length,
+        sessionStatus: finalized.completed ? "completed" : "processing",
+        needsFinalize: !finalized.completed,
         balanceValidation: {
           valid: balanceValidation.valid,
           openingBalance: balanceValidation.openingBalance,

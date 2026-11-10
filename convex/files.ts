@@ -6,6 +6,11 @@ import { mutation, query } from "./_generated/server";
 import { getCurrentUser } from "./lib/auth";
 import { newExternalId } from "./lib/ids";
 import {
+  completedImportSessionIds,
+  isImportLedgerVisible,
+  ledgerRowsForDisplay,
+} from "./lib/importVisibility";
+import {
   assertStorageAssignableToUser,
   userCanAccessStorageId,
 } from "./lib/storageAccess";
@@ -188,7 +193,7 @@ async function getOwnedFile(
   return row;
 }
 
-async function resolveLinkLabel(
+export async function resolveLinkLabel(
   ctx: QueryCtx | MutationCtx,
   userId: Doc<"users">["_id"],
   linkType: LinkType,
@@ -200,6 +205,10 @@ async function resolveLinkLabel(
       .withIndex("by_externalId", (q) => q.eq("externalId", linkId))
       .unique();
     if (!row || row.userId !== userId) {
+      throw new Error("Transaction not found");
+    }
+    const completedSessions = await completedImportSessionIds(ctx, userId);
+    if (!isImportLedgerVisible(row, completedSessions)) {
       throw new Error("Transaction not found");
     }
     return row.description;
@@ -492,14 +501,14 @@ export const deleteFile = mutation({
   },
 });
 
-export const searchLinkTargets = query({
+export async function searchLinkTargetsHandler(
+  ctx: QueryCtx,
   args: {
-    linkType: linkTypeValidator,
-    search: v.optional(v.string()),
-    limit: v.optional(v.number()),
+    linkType: LinkType;
+    search?: string;
+    limit?: number;
   },
-  returns: v.array(linkTargetApi),
-  handler: async (ctx, args) => {
+) {
     const user = await getCurrentUser(ctx);
     const limit = Math.min(Math.max(args.limit ?? 5, 1), 20);
     const needle = args.search?.trim().toLowerCase() ?? "";
@@ -510,9 +519,11 @@ export const searchLinkTargets = query({
         .withIndex("by_user_and_date", (q) => q.eq("userId", user._id))
         .order("desc")
         .take(SEARCH_SCAN);
+      const completedSessions = await completedImportSessionIds(ctx, user._id);
+      const visible = ledgerRowsForDisplay(rows, completedSessions);
       const matched = needle
-        ? rows.filter((row) => row.description.toLowerCase().includes(needle))
-        : rows;
+        ? visible.filter((row) => row.description.toLowerCase().includes(needle))
+        : visible;
       return matched.slice(0, limit).map((row) => ({
         id: row.externalId,
         label: row.description,
@@ -546,24 +557,38 @@ export const searchLinkTargets = query({
       }));
     }
 
-    const rows = await ctx.db
-      .query("expenses")
-      .withIndex("by_user_and_date", (q) => q.eq("userId", user._id))
-      .order("desc")
-      .take(SEARCH_SCAN);
-    const matched = needle
-      ? rows.filter((row) => {
-          const vendor = (row.vendor ?? "").toLowerCase();
-          const notes = (row.notes ?? "").toLowerCase();
-          return vendor.includes(needle) || notes.includes(needle);
-        })
-      : rows;
-    return matched.slice(0, limit).map((row) => ({
-      id: row.externalId,
-      label: row.vendor?.trim() || "Expense",
-      amount: row.amount,
-      date: row.date,
-      href: hrefFor("expense", row.externalId),
-    }));
+    if (args.linkType === "expense") {
+      const rows = await ctx.db
+        .query("expenses")
+        .withIndex("by_user_and_date", (q) => q.eq("userId", user._id))
+        .order("desc")
+        .take(SEARCH_SCAN);
+      const matched = needle
+        ? rows.filter((row) => {
+            const vendor = (row.vendor ?? "").toLowerCase();
+            const notes = (row.notes ?? "").toLowerCase();
+            return vendor.includes(needle) || notes.includes(needle);
+          })
+        : rows;
+      return matched.slice(0, limit).map((row) => ({
+        id: row.externalId,
+        label: row.vendor?.trim() || "Expense",
+        amount: row.amount,
+        date: row.date,
+        href: hrefFor("expense", row.externalId),
+      }));
+    }
+
+    const _exhaustive: never = args.linkType;
+    throw new Error(`Unsupported link type: ${_exhaustive}`);
+}
+
+export const searchLinkTargets = query({
+  args: {
+    linkType: linkTypeValidator,
+    search: v.optional(v.string()),
+    limit: v.optional(v.number()),
   },
+  returns: v.array(linkTargetApi),
+  handler: searchLinkTargetsHandler,
 });

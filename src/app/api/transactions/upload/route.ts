@@ -14,9 +14,10 @@ import {
 } from "@/lib/transaction-import/bank-adapter";
 import { resolveBankCode } from "@/lib/transaction-import/bank-configs";
 import { normalizeTransactions } from "@/lib/transaction-import/normalizer";
-import { flushSentry, toFriendlyErrorAndFlush } from "@/lib/friendly-error";
+import { toFriendlyErrorAndFlush } from "@/lib/friendly-error";
 import {
   ImportPersistError,
+  completeImportSessionWithRetry,
   markImportSessionFailed,
   persistImportedTransactions,
 } from "@/lib/transaction-import/import-persist";
@@ -30,6 +31,8 @@ interface UploadResponse {
   imported: number;
   duplicates: number;
   errors: number;
+  sessionStatus?: "completed" | "processing";
+  needsFinalize?: boolean;
 }
 
 async function handlePOST(
@@ -136,23 +139,22 @@ async function handlePOST(
         removeMany: (ids) =>
           convex.mutation(api.transactions.removeMine, { externalIds: ids }),
       });
-      try {
-        await convex.mutation(api.imports.updateSession, {
+      const finalized = await completeImportSessionWithRetry(() =>
+        convex.mutation(api.imports.updateSession, {
           externalId: session.id,
           status: "completed",
           transactionsImported: imported.imported,
           completed: true,
-        });
-      } catch (sessionError) {
-        console.error("Failed to mark import session completed", sessionError);
-      }
-      await flushSentry();
+        }),
+      );
       return NextResponse.json({
         success: true,
         message: `Successfully imported ${imported.imported} transactions`,
         imported: imported.imported,
         duplicates: 0,
         errors: parseResult.errors.length,
+        sessionStatus: finalized.completed ? "completed" : "processing",
+        needsFinalize: !finalized.completed,
       });
     } catch (persistError) {
       await markImportSessionFailed(() =>

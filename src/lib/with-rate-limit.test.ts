@@ -141,7 +141,7 @@ describe("withRateLimit", () => {
     expect(response.headers.get("X-RateLimit-Limit")).toBe("60");
   });
 
-  it("flushes Sentry before returning a handler response", async () => {
+  it("flushes Sentry with a short timeout on success", async () => {
     mockedRateLimit.mockResolvedValue({
       success: true,
       remaining: 59,
@@ -152,7 +152,32 @@ describe("withRateLimit", () => {
       .mockResolvedValue(new Response(JSON.stringify({ ok: true })));
     const wrappedHandler = withRateLimit(handler);
     await wrappedHandler(createMockRequest());
-    expect(Sentry.flush).toHaveBeenCalled();
+    expect(Sentry.flush).toHaveBeenCalledWith(500);
+  });
+
+  it("flushes Sentry with a long timeout on handler error statuses", async () => {
+    mockedRateLimit.mockResolvedValue({
+      success: true,
+      remaining: 59,
+      reset: new Date(Date.now() + 60000),
+    });
+    const handler = vi
+      .fn()
+      .mockResolvedValue(new Response("nope", { status: 500 }));
+    const wrappedHandler = withRateLimit(handler);
+    await wrappedHandler(createMockRequest());
+    expect(Sentry.flush).toHaveBeenCalledWith(5000);
+  });
+
+  it("does not flush Sentry for a 429 rate-limit response", async () => {
+    mockedRateLimit.mockResolvedValue({
+      success: false,
+      remaining: 0,
+      reset: new Date(Date.now() + 30000),
+    });
+    const wrappedHandler = withRateLimit(vi.fn());
+    await wrappedHandler(createMockRequest());
+    expect(Sentry.flush).not.toHaveBeenCalled();
   });
 
   it("passes context to handler", async () => {
