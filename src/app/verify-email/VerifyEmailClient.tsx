@@ -26,6 +26,12 @@ import {
 import { ErrorText } from "@/components/ui/error-ref";
 import { RECLAIM_SIGNUP_NOTE } from "@/lib/auth/copy";
 import { didSignInComplete } from "@/lib/auth/sign-in-result";
+import {
+  isTotpInvalidError,
+  isTwoFactorRequiredError,
+  secondFactorArgs,
+} from "@/lib/auth/totp-sign-in";
+import { TotpChallengeField } from "@/components/auth/TotpChallengeField";
 
 const RESEND_COOLDOWN_SECONDS = 60;
 
@@ -46,6 +52,8 @@ export default function VerifyEmailClient() {
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
   const [cooldown, setCooldown] = useState(0);
+  const [secondFactor, setSecondFactor] = useState("");
+  const [needsTotp, setNeedsTotp] = useState(false);
   const router = useRouter();
   const { signIn } = useAuthActions();
 
@@ -68,6 +76,7 @@ export default function VerifyEmailClient() {
         email: normalizedEmail,
         code: code.trim(),
         flow: "email-verification",
+        ...secondFactorArgs(secondFactor),
       });
       if (!didSignInComplete(result)) {
         setError(FRIENDLY_MESSAGES.invalidCode);
@@ -85,6 +94,12 @@ export default function VerifyEmailClient() {
       const { message, ref } = toFriendlyError(err, FRIENDLY_MESSAGES.fallback, {
         context: "verify-email",
       });
+      if (isTwoFactorRequiredError(err) || isTotpInvalidError(err)) {
+        setNeedsTotp(true);
+        setError(withRef(message, ref));
+        setLoading(false);
+        return;
+      }
       setError(
         withRef(
           message === FRIENDLY_MESSAGES.invalidCredentials
@@ -177,6 +192,13 @@ export default function VerifyEmailClient() {
             className={AUTH_INPUT}
           />
         </div>
+        {needsTotp ? (
+          <TotpChallengeField
+            value={secondFactor}
+            onChange={setSecondFactor}
+            autoFocus
+          />
+        ) : null}
         <button type="submit" disabled={loading} className={AUTH_SUBMIT}>
           {loading ? "Verifying…" : "Verify email"}
         </button>

@@ -25,6 +25,12 @@ import {
   withRef,
 } from '@/lib/friendly-error';
 import { ErrorText } from '@/components/ui/error-ref';
+import {
+  isTotpInvalidError,
+  isTwoFactorRequiredError,
+  secondFactorArgs,
+} from '@/lib/auth/totp-sign-in';
+import { TotpChallengeField } from '@/components/auth/TotpChallengeField';
 
 const headerLeftAddon = (
   <Link
@@ -45,6 +51,8 @@ export default function ResetPasswordClient() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [secondFactor, setSecondFactor] = useState('');
+  const [needsTotp, setNeedsTotp] = useState(false);
   const router = useRouter();
   const { signIn } = useAuthActions();
 
@@ -71,6 +79,7 @@ export default function ResetPasswordClient() {
         code: code.trim(),
         newPassword: password,
         flow: 'reset-verification',
+        ...secondFactorArgs(secondFactor),
       });
       setSuccess(true);
       setTimeout(() => {
@@ -81,6 +90,12 @@ export default function ResetPasswordClient() {
       const { message, ref } = toFriendlyError(err, FRIENDLY_MESSAGES.fallback, {
         context: 'reset-password',
       });
+      if (isTwoFactorRequiredError(err) || isTotpInvalidError(err)) {
+        setNeedsTotp(true);
+        setError(withRef(message, ref));
+        setLoading(false);
+        return;
+      }
       // In the reset flow an unknown account or bad secret means the code is wrong.
       setError(
         withRef(
@@ -198,6 +213,13 @@ export default function ResetPasswordClient() {
             className={AUTH_INPUT}
           />
         </div>
+        {needsTotp ? (
+          <TotpChallengeField
+            value={secondFactor}
+            onChange={setSecondFactor}
+            autoFocus
+          />
+        ) : null}
         <button
           type="submit"
           disabled={loading}

@@ -37,6 +37,7 @@ import type { SettingsSection } from "./settings-types";
 import { BusinessProfileSection } from "@/components/settings/BusinessProfileSection";
 import { ClientsSection } from "@/components/settings/ClientsSection";
 import { DeleteAccountDialog } from "@/components/settings/DeleteAccountDialog";
+import { TotpEnrollCard } from "@/components/settings/TotpEnrollCard";
 import { DELETE_ACCOUNT_PHRASE } from "@/lib/account-deletion";
 import { apiErrorMessage, toFriendlyMessage, userFacingError } from "@/lib/friendly-error";
 import { ErrorText } from "@/components/ui/error-ref";
@@ -96,7 +97,6 @@ export function SettingsModal({
     bio: "",
     avatar: "",
   });
-  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [showPasswordChange, setShowPasswordChange] = useState(false);
   const [passwordForm, setPasswordForm] = useState({
     current: "",
@@ -558,6 +558,8 @@ export function SettingsModal({
                     </div>
                   )}
                 </div>
+
+                <TotpEnrollCard />
 
                 <div className="p-4 rounded-xl border-2 border-red-200 dark:border-red-800/30 bg-light-background dark:bg-dark-background">
                   <h2 className="text-sm font-semibold text-red-600 dark:text-red-400 mb-1">

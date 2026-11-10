@@ -27,6 +27,12 @@ import {
 } from "@/lib/friendly-error";
 import { ErrorText } from "@/components/ui/error-ref";
 import { didSignInComplete, verifyEmailPath } from "@/lib/auth/sign-in-result";
+import {
+  isTotpInvalidError,
+  isTwoFactorRequiredError,
+  secondFactorArgs,
+} from "@/lib/auth/totp-sign-in";
+import { TotpChallengeField } from "@/components/auth/TotpChallengeField";
 
 const RECLAIM_NOTE =
   "Already used Kompleet with this email? Sign up with the same address to keep your books.";
@@ -37,6 +43,8 @@ function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [secondFactor, setSecondFactor] = useState("");
+  const [needsTotp, setNeedsTotp] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirectTo") || "/dashboard";
@@ -63,7 +71,12 @@ function LoginForm() {
     setError(null);
     setLoading(true);
     try {
-      const result = await signIn("password", { email, password, flow: "signIn" });
+      const result = await signIn("password", {
+        email,
+        password,
+        flow: "signIn",
+        ...secondFactorArgs(secondFactor),
+      });
       if (!didSignInComplete(result)) {
         router.push(verifyEmailPath(email));
         router.refresh();
@@ -76,6 +89,12 @@ function LoginForm() {
       const { message, ref } = toFriendlyError(err, FRIENDLY_MESSAGES.fallback, {
         context: "login",
       });
+      if (isTwoFactorRequiredError(err) || isTotpInvalidError(err)) {
+        setNeedsTotp(true);
+        setError(withRef(message, ref));
+        setLoading(false);
+        return;
+      }
       setError(
         withRef(
           message === FRIENDLY_MESSAGES.network || message === FRIENDLY_MESSAGES.rateLimited
@@ -140,6 +159,13 @@ function LoginForm() {
             </button>
           </div>
         </div>
+        {needsTotp ? (
+          <TotpChallengeField
+            value={secondFactor}
+            onChange={setSecondFactor}
+            autoFocus
+          />
+        ) : null}
         <button type="submit" disabled={loading} className={AUTH_SUBMIT}>
           {loading ? "Signing in…" : "Sign in"}
         </button>

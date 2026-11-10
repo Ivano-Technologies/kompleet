@@ -563,6 +563,18 @@ export default defineSchema({
     createdAt: v.number(),
   }).index("by_email", ["email"]),
 
+  totpFactors: defineTable({
+    userId: v.id("users"),
+    encryptedSecret: v.string(),
+    enabled: v.boolean(),
+    pending: v.boolean(),
+    recoveryCodeHashes: v.array(v.string()),
+    failedCount: v.number(),
+    windowStartedAt: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }).index("by_user", ["userId"]),
+
   /**
    * Occupancy for deadline reminder emails. One row per user, form, year,
    * and window (7, 3, or 1 days) so the daily cron sends each once.

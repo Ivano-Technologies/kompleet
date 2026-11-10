@@ -52,6 +52,7 @@ import type * as reminders from "../reminders.js";
 import type * as reports from "../reports.js";
 import type * as tax from "../tax.js";
 import type * as tenancy from "../tenancy.js";
+import type * as totp from "../totp.js";
 import type * as transactions from "../transactions.js";
 import type * as users from "../users.js";
 import type * as year from "../year.js";
@@ -107,6 +108,7 @@ declare const fullApi: ApiFromModules<{
   reports: typeof reports;
   tax: typeof tax;
   tenancy: typeof tenancy;
+  totp: typeof totp;
   transactions: typeof transactions;
   users: typeof users;
   year: typeof year;
