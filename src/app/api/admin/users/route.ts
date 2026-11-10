@@ -4,6 +4,7 @@ import type { Role } from "@/lib/auth/rbac";
 import { api } from "@/lib/convex/http";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 import { friendlyErrorBody, apiErrorBody } from "@/lib/friendly-error";
+import { withRateLimit } from "@/lib/with-rate-limit";
 
 const VALID_ROLES: Role[] = [
   "owner",
@@ -17,7 +18,7 @@ const VALID_ROLES: Role[] = [
  * GET /api/admin/users — List Convex app users.
  * Roles are not stored on the Convex users table; listed role is "user".
  */
-export async function GET(request: NextRequest) {
+async function handleGET(request: NextRequest) {
   try {
     const { convex } = await requireAuthedConvex(request);
     const users = await convex.query(api.users.listAll, {});
@@ -46,7 +47,7 @@ export async function GET(request: NextRequest) {
  * PATCH /api/admin/users — role writes are OUT of Phase 3.
  * Convex users schema has no role field; do not invent one.
  */
-export async function PATCH(request: NextRequest) {
+async function handlePATCH(request: NextRequest) {
   try {
     await requireAuthedConvex(request);
     const body = await request.json();
@@ -75,3 +76,6 @@ export async function PATCH(request: NextRequest) {
     );
   }
 }
+
+export const GET = withRateLimit(handleGET, { limit: 60 });
+export const PATCH = withRateLimit(handlePATCH, { limit: 20 });

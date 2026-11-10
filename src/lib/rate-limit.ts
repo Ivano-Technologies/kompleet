@@ -1,10 +1,7 @@
 /**
- * In-memory rate limiter using sliding window algorithm
- *
- * For production with multiple servers, consider:
- * - Upstash Redis (@upstash/ratelimit)
- * - Vercel KV
- * - Redis with ioredis
+ * Rate limiter. Uses Upstash Redis when UPSTASH_REDIS_REST_URL and
+ * UPSTASH_REDIS_REST_TOKEN are already set (no new env in this PR).
+ * Falls back to a per-instance in-memory map otherwise.
  */
 
 interface RateLimitEntry {
@@ -39,13 +36,79 @@ setInterval(
   5 * 60 * 1000,
 );
 
+export function upstashRateLimitConfigured(): boolean {
+  return Boolean(
+    process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN,
+  );
+}
+
+async function rateLimitUpstash(
+  identifier: string,
+  limit: number,
+  windowMs: number,
+): Promise<RateLimitResult> {
+  const base = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!base || !token) {
+    return rateLimit(identifier, { limit, window: windowMs });
+  }
+
+  const key = `rl:${identifier}`;
+  const windowSec = Math.max(1, Math.ceil(windowMs / 1000));
+  const response = await fetch(`${base.replace(/\/$/, "")}/pipeline`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify([
+      ["INCR", key],
+      ["EXPIRE", key, String(windowSec), "NX"],
+      ["PTTL", key],
+    ]),
+  });
+
+  if (!response.ok) {
+    return rateLimit(identifier, { limit, window: windowMs });
+  }
+
+  const rows = (await response.json()) as { result?: number }[];
+  const count = Number(rows[0]?.result ?? 0);
+  const pttl = Number(rows[2]?.result ?? windowMs);
+  const resetMs = Date.now() + (pttl > 0 ? pttl : windowMs);
+
+  if (count > limit) {
+    return { success: false, remaining: 0, reset: new Date(resetMs) };
+  }
+
+  return {
+    success: true,
+    remaining: Math.max(0, limit - count),
+    reset: new Date(resetMs),
+  };
+}
+
 /**
- * Rate limit a request by identifier (user ID or IP address)
- *
- * @param identifier - Unique identifier (user ID, IP address, etc.)
- * @param options - Rate limit configuration
- * @returns Rate limit result with success flag, remaining requests, and reset time
+ * Shared-store rate limit when Upstash is configured; otherwise in-memory.
  */
+export async function rateLimitAsync(
+  identifier: string,
+  options: RateLimitOptions = {},
+): Promise<RateLimitResult> {
+  const limit =
+    options.limit ??
+    parseInt(process.env.RATE_LIMIT_REQUESTS_PER_MINUTE ?? "60", 10);
+  const window = options.window ?? 60 * 1000;
+  if (upstashRateLimitConfigured()) {
+    try {
+      return await rateLimitUpstash(identifier, limit, window);
+    } catch {
+      return rateLimit(identifier, options);
+    }
+  }
+  return rateLimit(identifier, options);
+}
+
 export function rateLimit(
   identifier: string,
   options: RateLimitOptions = {},

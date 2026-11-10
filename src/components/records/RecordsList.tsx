@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { Inbox } from "lucide-react";
 import type { FinancialRecord } from "@/types/api";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface RecordsListProps {
   records: FinancialRecord[];
@@ -69,7 +71,13 @@ export function RecordsList({ records, onEdit, onDelete }: RecordsListProps) {
         </button>
       </div>
 
-      {/* Records Table */}
+      {filteredRecords.length === 0 ? (
+        <EmptyState
+          icon={Inbox}
+          title="No records found"
+          description="Add income or expenses, or change the type filter."
+        />
+      ) : (
       <div className="bg-light-surface dark:bg-dark-surface rounded-lg border border-light-border dark:border-dark-border overflow-hidden">
         <table className="w-full">
           <thead className="bg-light-background dark:bg-dark-background border-b border-light-border dark:border-dark-border">
@@ -95,17 +103,7 @@ export function RecordsList({ records, onEdit, onDelete }: RecordsListProps) {
             </tr>
           </thead>
           <tbody className="divide-y divide-light-border dark:divide-dark-border">
-            {filteredRecords.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={6}
-                  className="px-6 py-12 text-center text-light-text-tertiary dark:text-dark-text-tertiary"
-                >
-                  No records found
-                </td>
-              </tr>
-            ) : (
-              filteredRecords.map((record) => (
+            {filteredRecords.map((record) => (
                 <tr
                   key={record.id}
                   className="hover:bg-light-background dark:bg-dark-background"
@@ -156,11 +154,11 @@ export function RecordsList({ records, onEdit, onDelete }: RecordsListProps) {
                     </div>
                   </td>
                 </tr>
-              ))
-            )}
+              ))}
           </tbody>
         </table>
       </div>
+      )}
     </div>
   );
 }

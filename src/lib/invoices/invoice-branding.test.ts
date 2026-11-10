@@ -64,6 +64,15 @@ describe("IVA-185 issued snapshot vs live draft", () => {
     expect(sender.logoUrl).toBe(snapshot.logoUrl);
   });
 
+  it("paid and cancelled invoices keep the snapshot", () => {
+    expect(
+      resolveInvoiceSender({ status: "paid", is_immutable: true, sender: snapshot }, live).name,
+    ).toBe("Old Name Ltd");
+    expect(
+      resolveInvoiceSender({ status: "cancelled", is_immutable: true, sender: snapshot }, live).name,
+    ).toBe("Old Name Ltd");
+  });
+
   it("drafts use the live profile", () => {
     const sender = resolveInvoiceSender({ status: "draft", sender: snapshot }, live);
     expect(sender.name).toBe("New Name Ltd");

@@ -18,6 +18,7 @@ import {
   CONVEX_AUTH_API_ROUTE,
   isExactConvexAuthProxyPath,
 } from "@/lib/auth/convex-auth-api-route";
+import { withRateLimit } from "@/lib/with-rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -43,10 +44,12 @@ async function handleConvexAuthProxy(request: NextRequest): Promise<Response> {
   );
 }
 
-export function POST(request: NextRequest): Promise<Response> {
-  return handleConvexAuthProxy(request);
-}
+export const POST = withRateLimit(handleConvexAuthProxy, {
+  limit: 30,
+  window: 60_000,
+});
 
-export function GET(request: NextRequest): Promise<Response> {
-  return handleConvexAuthProxy(request);
-}
+export const GET = withRateLimit(handleConvexAuthProxy, {
+  limit: 60,
+  window: 60_000,
+});

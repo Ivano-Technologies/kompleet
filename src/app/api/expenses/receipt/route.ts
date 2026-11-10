@@ -11,8 +11,9 @@ import {
 import { uploadToConvexStorage } from "@/lib/convex/store-file";
 import type { Id } from "../../../../../convex/_generated/dataModel";
 import { toFriendlyError, apiErrorBody } from "@/lib/friendly-error";
+import { withRateLimit } from "@/lib/with-rate-limit";
 
-export async function POST(request: NextRequest) {
+async function handlePOST(request: NextRequest) {
   try {
     const { convex } = await requireAuthedConvex(request);
     const formData = await request.formData();
@@ -54,3 +55,5 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: message, ref }, { status });
   }
 }
+
+export const POST = withRateLimit(handlePOST, { limit: 20 });
