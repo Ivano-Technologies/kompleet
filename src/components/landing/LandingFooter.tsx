@@ -6,7 +6,8 @@ import { COMPANY_LEGAL } from "@/lib/legal";
 const COLUMN_HEADING =
   "mb-3 flex h-5 items-center text-sm font-semibold text-text-1";
 const COLUMN_LINKS = "space-y-3 text-sm text-text-2";
-const COLUMN_LINK = "hover:text-text-1";
+const COLUMN_LINK =
+  "inline-flex min-h-11 min-w-11 items-center hover:text-text-1";
 
 export default function LandingFooter() {
   return (
@@ -22,7 +23,7 @@ export default function LandingFooter() {
             </p>
           </div>
           <div>
-            <h4 className={COLUMN_HEADING}>Product</h4>
+            <h2 className={COLUMN_HEADING}>Product</h2>
             <ul className={COLUMN_LINKS}>
               <li>
                 <Link href="/privacy" className={COLUMN_LINK}>
@@ -37,7 +38,7 @@ export default function LandingFooter() {
             </ul>
           </div>
           <div>
-            <h4 className={COLUMN_HEADING}>Company</h4>
+            <h2 className={COLUMN_HEADING}>Company</h2>
             <ul className={COLUMN_LINKS}>
               <li>
                 <Link href="/about" className={COLUMN_LINK}>
@@ -57,7 +58,7 @@ export default function LandingFooter() {
             </ul>
           </div>
           <div>
-            <h4 className={COLUMN_HEADING}>Resources</h4>
+            <h2 className={COLUMN_HEADING}>Resources</h2>
             <ul className={COLUMN_LINKS}>
               <li>
                 <Link href="/help" className={COLUMN_LINK}>
@@ -72,7 +73,7 @@ export default function LandingFooter() {
             </ul>
           </div>
           <div>
-            <h4 className={COLUMN_HEADING}>Legal</h4>
+            <h2 className={COLUMN_HEADING}>Legal</h2>
             <ul className={COLUMN_LINKS}>
               <li>
                 <a href={COMPANY_LEGAL.privacy} className={COLUMN_LINK}>
@@ -108,12 +109,19 @@ export default function LandingFooter() {
             className="flex flex-wrap items-center gap-6"
             aria-label="Legal and contact"
           >
-            <Link href="/terms">Terms of Service</Link>
-            <Link href="/privacy">Privacy Policy</Link>
-            <a href="mailto:hi@ivanotechnologies.com">
+            <Link href="/terms" className={COLUMN_LINK}>
+              Terms of Service
+            </Link>
+            <Link href="/privacy" className={COLUMN_LINK}>
+              Privacy Policy
+            </Link>
+            <a href="mailto:hi@ivanotechnologies.com" className={COLUMN_LINK}>
               hi@ivanotechnologies.com
             </a>
-            <a href="mailto:support@ivanotechnologies.com">
+            <a
+              href="mailto:support@ivanotechnologies.com"
+              className={COLUMN_LINK}
+            >
               support@ivanotechnologies.com
             </a>
           </nav>

@@ -75,12 +75,13 @@ test.describe("Auth flow", () => {
     ).toBeVisible();
   });
 
-  test("signup creates an account and offers the dashboard", async ({
-    page,
-  }) => {
+  test("signup sends the user to verify their email", async ({ page }) => {
     const email = `e2e-${runId()}@example.test`;
 
     await page.goto("/signup");
+    await expect(page.getByTestId("reclaim-note")).toHaveText(
+      "Already used Kompleet with this email? Sign up with the same address to keep your books.",
+    );
 
     await fillHydrated(
       page.getByPlaceholder(SIGNUP_SELECTORS.firstName, { exact: true }),
@@ -105,15 +106,16 @@ test.describe("Auth flow", () => {
 
     await page.getByRole("button", { name: SIGNUP_SELECTORS.submit }).click();
 
+    await expect(page).toHaveURL(/\/verify-email/);
     await expect(
-      page.getByRole("heading", { name: "Account Created!" }),
+      page.getByRole("heading", { name: "Check your email" }),
     ).toBeVisible();
     await expect(
-      page.getByRole("link", { name: "Go to Dashboard" }),
+      page.getByRole("button", { name: "Verify email" }),
     ).toBeVisible();
-
-    await page.getByRole("link", { name: "Go to Dashboard" }).click();
-    await expect(page).toHaveURL(/\/dashboard/);
+    await expect(page.getByRole("link", { name: "Go to Dashboard" })).toHaveCount(
+      0,
+    );
   });
 
   test("legacy auth callback without a code lands on login", async ({

@@ -26,6 +26,7 @@ import {
   withRef,
 } from "@/lib/friendly-error";
 import { ErrorText } from "@/components/ui/error-ref";
+import { didSignInComplete, verifyEmailPath } from "@/lib/auth/sign-in-result";
 
 const RECLAIM_NOTE =
   "Already used Kompleet with this email? Sign up with the same address to keep your books.";
@@ -62,7 +63,12 @@ function LoginForm() {
     setError(null);
     setLoading(true);
     try {
-      await signIn("password", { email, password, flow: "signIn" });
+      const result = await signIn("password", { email, password, flow: "signIn" });
+      if (!didSignInComplete(result)) {
+        router.push(verifyEmailPath(email));
+        router.refresh();
+        return;
+      }
       await fetch("/api/auth/ensure-profile", { method: "POST" }).catch(() => {});
       router.push(redirectTo);
       router.refresh();

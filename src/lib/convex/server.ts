@@ -10,6 +10,7 @@ import {
   getConvexAccessToken,
 } from "@/lib/auth/session";
 import type { CompatUser } from "@/lib/auth/compat-user";
+import { isCompatEmailVerified } from "@/lib/auth/email-verified";
 
 export { api };
 
@@ -46,6 +47,9 @@ export async function requireAuthedConvex(
   const authed = await getAuthedConvex(request);
   if (!authed) {
     throw new ConvexUnauthorizedError();
+  }
+  if (!isCompatEmailVerified(authed.user)) {
+    throw new ConvexUnauthorizedError("Email is not verified");
   }
   return authed;
 }

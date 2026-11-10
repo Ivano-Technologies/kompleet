@@ -2,10 +2,14 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { SkipToContent } from "@/components/a11y/SkipToContent";
 import { BrandLockup } from "@/components/brand/BrandLockup";
 import { HERO_AUTH_ID, requestHeroAuth } from "@/components/landing/hero-auth";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Menu, Moon, Sun, X } from "lucide-react";
+
+const ACCENT_CTA =
+  "rounded-md bg-accent-hover text-sm font-bold text-charcoal hover:bg-[#115E59]";
 
 const NAV_LINKS = [
   { href: "/about", label: "About" },
@@ -30,25 +34,34 @@ export default function LandingNav({ heroAuth = false }: LandingNavProps) {
     }
   };
 
+  const themeLabel =
+    theme === "light" ? "Switch to dark mode" : "Switch to light mode";
+
   return (
-    <nav className="sticky top-0 z-50 border-b border-border bg-bg/90 backdrop-blur-md">
+    <>
+      <SkipToContent />
+      <nav
+        className="sticky top-0 z-50 border-b border-border bg-bg/90 backdrop-blur-md"
+        aria-label="Primary"
+      >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <BrandLockup href="/" size="lg" />
+        <BrandLockup href="/" size="lg" linkClassName="min-h-11" />
 
         <div className="hidden flex-1 items-center justify-end gap-5 md:flex">
           {NAV_LINKS.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="text-sm font-medium text-text-2 transition-colors hover:text-text-1"
+              className="inline-flex min-h-11 items-center text-sm font-medium text-text-2 transition-colors hover:text-text-1"
             >
               {link.label}
             </Link>
           ))}
           <button
+            type="button"
             onClick={toggleTheme}
-            className="rounded-md border border-border p-2 hover:bg-surface"
-            aria-label="Toggle theme"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-border hover:bg-surface"
+            aria-label={themeLabel}
           >
             {theme === "light" ? (
               <Moon className="h-4 w-4 text-text-2" />
@@ -59,14 +72,14 @@ export default function LandingNav({ heroAuth = false }: LandingNavProps) {
           <Link
             href={signInHref}
             onClick={handleSignInClick}
-            className="text-sm font-semibold text-text-1 transition-colors hover:text-primary"
+            className="inline-flex min-h-11 items-center text-sm font-semibold text-text-1 transition-colors hover:text-primary"
           >
             Sign in
           </Link>
           {heroAuth ? null : (
             <Link
               href="/signup"
-              className="rounded-md bg-accent px-4 py-2 text-sm font-bold text-charcoal hover:bg-accent-hover"
+              className={`${ACCENT_CTA} inline-flex min-h-11 items-center px-4`}
             >
               Get started
             </Link>
@@ -74,9 +87,12 @@ export default function LandingNav({ heroAuth = false }: LandingNavProps) {
         </div>
 
         <button
-          className="p-2 md:hidden"
+          type="button"
+          className="inline-flex h-11 w-11 shrink-0 items-center justify-center md:hidden"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          aria-label="Toggle mobile menu"
+          aria-expanded={mobileMenuOpen}
+          aria-controls="landing-mobile-nav"
+          aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
         >
           {mobileMenuOpen ? (
             <X className="h-5 w-5" />
@@ -87,21 +103,25 @@ export default function LandingNav({ heroAuth = false }: LandingNavProps) {
       </div>
 
       {mobileMenuOpen && (
-        <div className="space-y-3 border-t border-border bg-bg px-4 py-4 md:hidden">
+        <div
+          id="landing-mobile-nav"
+          className="space-y-3 border-t border-border bg-bg px-4 py-4 md:hidden"
+        >
           {NAV_LINKS.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="block py-2 text-sm font-medium text-text-1"
+              className="flex min-h-11 items-center text-sm font-medium text-text-1"
               onClick={() => setMobileMenuOpen(false)}
             >
               {link.label}
             </Link>
           ))}
           <button
+            type="button"
             onClick={toggleTheme}
-            className="flex w-full items-center justify-center gap-2 rounded-md border border-border p-2 hover:bg-surface"
-            aria-label="Toggle theme"
+            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-md border border-border hover:bg-surface"
+            aria-label={themeLabel}
           >
             {theme === "light" ? (
               <Moon className="h-4 w-4" />
@@ -116,14 +136,14 @@ export default function LandingNav({ heroAuth = false }: LandingNavProps) {
             <Link
               href={signInHref}
               onClick={handleSignInClick}
-              className="flex-1 px-4 py-2 text-center text-sm font-semibold text-text-1"
+              className="flex min-h-11 flex-1 items-center justify-center px-4 text-center text-sm font-semibold text-text-1"
             >
               Sign in
             </Link>
             {heroAuth ? null : (
               <Link
                 href="/signup"
-                className="flex-1 rounded-md bg-accent px-4 py-2 text-center text-sm font-bold text-charcoal hover:bg-accent-hover"
+                className={`${ACCENT_CTA} flex min-h-11 flex-1 items-center justify-center px-4 text-center`}
               >
                 Get started
               </Link>
@@ -131,6 +151,7 @@ export default function LandingNav({ heroAuth = false }: LandingNavProps) {
           </div>
         </div>
       )}
-    </nav>
+      </nav>
+    </>
   );
 }

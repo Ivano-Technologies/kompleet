@@ -106,6 +106,19 @@ describe("IVA-72 landing copy", () => {
     ).toBe(false);
   });
 
+  it("drops naira demo amounts from the landing workflow illustrations", () => {
+    const flow = readFileSync(
+      resolve(process.cwd(), "public/assets/illustrations/bookkeeping-flow.svg"),
+      "utf8",
+    );
+    const flowMobile = readFileSync(
+      resolve(process.cwd(), "public/assets/illustrations/bookkeeping-flow-mobile.svg"),
+      "utf8",
+    );
+    expect(flow).not.toMatch(/₦\d/);
+    expect(flowMobile).not.toMatch(/₦\d/);
+  });
+
   it("removes the Product Proof band from the homepage", () => {
     expect(landing).not.toMatch(/Product proof/i);
     expect(landing).not.toMatch(/Real tooling, labeled demo data/);
@@ -137,8 +150,8 @@ describe("IVA-72 landing copy", () => {
 
   it("keeps the hero compact so auth fits above the fold", () => {
     const hero = landing.slice(
-      landing.indexOf("<header>"),
-      landing.indexOf("</header>"),
+      landing.indexOf('<section aria-labelledby="landing-hero-heading">'),
+      landing.indexOf("</section>"),
     );
     expect(hero).toMatch(/lg:h-\[calc\(100svh-4rem\)\]/);
     expect(hero).toMatch(/py-6/);
@@ -283,7 +296,7 @@ describe("IVA-72 landing copy", () => {
     expect(heroAuthCard).toMatch(/flow: mode === "signup" \? "signUp" : "signIn"/);
     expect(heroAuthCard).toMatch(/border-border bg-surface/);
     expect(heroAuthCard).toMatch(/shadow-2/);
-    expect(heroAuthCard).toMatch(/bg-accent[\s\S]*text-white/);
+    expect(heroAuthCard).toMatch(/bg-accent-hover[\s\S]*text-charcoal/);
     expect(heroAuthCard).not.toMatch(/shadow-primary|teal glow|shadow-accent/);
     expect(heroAuthCard).toMatch(/text-primary/);
     expect(heroAuth).toMatch(/HERO_AUTH_ID/);

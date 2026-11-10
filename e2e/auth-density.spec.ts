@@ -5,7 +5,7 @@ const AUTH_ROUTES = [
   { path: "/login", cta: /Sign in/ },
   { path: "/forgot-password", cta: /Send Reset Code/ },
   { path: "/reset-password", cta: /Update Password/ },
-  { path: "/verify-email", cta: /Go to Login/ },
+  { path: "/verify-email", cta: /Verify email/ },
 ] as const;
 
 async function pageOverflows(page: Page): Promise<boolean> {
