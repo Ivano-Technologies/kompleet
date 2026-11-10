@@ -23,8 +23,17 @@ const ROLE_OPTIONS = [
     description: "Read + reports/calculations, no data edits",
   },
   { value: "user", label: "User", description: "Standard access, no admin" },
-  { value: "viewer", label: "Viewer", description: "Read-only access" },
+  { value: "viewer", label: "Viewer", description: "Read only access" },
 ] as const;
+
+/** Empty copy must match /api/admin/users: listAll of existing accounts, no invite, PATCH 501. */
+export const TEAM_EMPTY_COPY = {
+  title: "No team members yet",
+  description:
+    "Accounts appear here after someone creates one. This page cannot send invitations, and roles cannot be changed yet.",
+  intro:
+    "People with a Kompleet account appear here. Role changes are not available yet.",
+} as const;
 
 interface TeamUser {
   id: string;
@@ -134,7 +143,7 @@ export default function TeamManagementPage() {
           </h1>
         </div>
         <p className="text-sm text-[rgb(var(--text-secondary))]">
-          Manage user roles and access rights
+          {TEAM_EMPTY_COPY.intro}
         </p>
         <p className="text-sm text-[rgb(var(--text-tertiary))]">
           {users.length} users
@@ -181,9 +190,8 @@ export default function TeamManagementPage() {
       {users.length === 0 ? (
         <EmptyState
           icon={Users}
-          title="No team members yet"
-          description="When people sign up they will appear here so you can set their role."
-          action={{ label: "Invite member", href: "/signup" }}
+          title={TEAM_EMPTY_COPY.title}
+          description={TEAM_EMPTY_COPY.description}
         />
       ) : (
       <>

@@ -71,7 +71,16 @@ describe("IVA-289 hardening", () => {
       'heroSub: "Detects the bank and updates your books."',
     );
     expect(statements).not.toMatch(/We'll detect the bank/);
-    expect(team).toContain('label: "Invite member"');
-    expect(team).toContain('href: "/signup"');
+    expect(team).toContain('title: "No team members yet"');
+    expect(team).toContain(
+      "This page cannot send invitations, and roles cannot be changed yet.",
+    );
+    expect(team).not.toMatch(/Invite member/);
+    expect(team).not.toMatch(/href: "\/signup"/);
+    expect(team).not.toMatch(/action=\{\{/);
+    expect(team).not.toMatch(/set their role/);
+    expect(team).not.toMatch(/Manage user roles/);
+    expect(team).not.toMatch(/We'll/);
+    expect(team).not.toMatch(/[\u2013\u2014]/);
   });
 });
