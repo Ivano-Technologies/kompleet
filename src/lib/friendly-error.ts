@@ -53,6 +53,25 @@ export function isConvexResourceLimitError(err: unknown): boolean {
 }
 
 /**
+ * True only for a real Convex size/limit fault or our typed too-long
+ * ConvexError. A redacted "[Request ID] Server Error" is not a size limit.
+ */
+export function isStatementSizeLimitError(err: unknown): boolean {
+  if (isConvexResourceLimitError(err)) return true;
+  if (isConvexError(err)) {
+    if (err.data === STATEMENT_TOO_LONG_MESSAGE) return true;
+    if (
+      err.data &&
+      typeof err.data === "object" &&
+      (err.data as { message?: unknown }).message === STATEMENT_TOO_LONG_MESSAGE
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
  * Await pending Sentry envelopes before a serverless response ends.
  * Empty queue resolves immediately; failures are swallowed so flush never
  * masks the original error.

@@ -14,12 +14,10 @@ import {
 } from "@/lib/transaction-import/bank-adapter";
 import { resolveBankCode } from "@/lib/transaction-import/bank-configs";
 import { normalizeTransactions } from "@/lib/transaction-import/normalizer";
-import {
-  FRIENDLY_MESSAGES,
-  toFriendlyErrorAndFlush,
-} from "@/lib/friendly-error";
+import { flushSentry, toFriendlyErrorAndFlush } from "@/lib/friendly-error";
 import {
   ImportPersistError,
+  markImportSessionFailed,
   persistImportedTransactions,
 } from "@/lib/transaction-import/import-persist";
 
@@ -113,29 +111,58 @@ async function handlePOST(
       parseResult.transactions,
       bankCode,
     );
-    const imported = await persistImportedTransactions({
-      items: normalized.map((t) => ({
-        transactionDate: t.date,
-        description: t.merchant,
-        amount: t.amount,
-        transactionType: t.type,
-        balance: t.balance,
-        reference: t.reference,
-        source: `${bankCode}_import`,
-      })),
-      createMany: (items) =>
-        convex.mutation(api.transactions.createManyMine, { items }),
-      removeMany: (ids) =>
-        convex.mutation(api.transactions.removeMine, { externalIds: ids }),
+    const session = await convex.mutation(api.imports.createSession, {
+      fileName: file.name,
+      fileSize: file.size,
+      bankCode,
+      status: "processing",
     });
-
-    return NextResponse.json({
-      success: true,
-      message: `Successfully imported ${imported.imported} transactions`,
-      imported: imported.imported,
-      duplicates: 0,
-      errors: parseResult.errors.length,
-    });
+    try {
+      const imported = await persistImportedTransactions({
+        items: normalized.map((t) => ({
+          transactionDate: t.date,
+          description: t.merchant,
+          amount: t.amount,
+          transactionType: t.type,
+          balance: t.balance,
+          reference: t.reference,
+          source: `${bankCode}_import`,
+        })),
+        createMany: (items) =>
+          convex.mutation(api.transactions.createManyMine, {
+            items,
+            importSessionExternalId: session.id,
+          }),
+        removeMany: (ids) =>
+          convex.mutation(api.transactions.removeMine, { externalIds: ids }),
+      });
+      try {
+        await convex.mutation(api.imports.updateSession, {
+          externalId: session.id,
+          status: "completed",
+          transactionsImported: imported.imported,
+          completed: true,
+        });
+      } catch (sessionError) {
+        console.error("Failed to mark import session completed", sessionError);
+      }
+      await flushSentry();
+      return NextResponse.json({
+        success: true,
+        message: `Successfully imported ${imported.imported} transactions`,
+        imported: imported.imported,
+        duplicates: 0,
+        errors: parseResult.errors.length,
+      });
+    } catch (persistError) {
+      await markImportSessionFailed(() =>
+        convex.mutation(api.imports.updateSession, {
+          externalId: session.id,
+          status: "failed",
+        }),
+      );
+      throw persistError;
+    }
   } catch (error) {
     if (isUnauthorized(error)) {
       return NextResponse.json(
@@ -155,13 +182,7 @@ async function handlePOST(
     const { message } = await toFriendlyErrorAndFlush(
       persistError,
       "Import didn't complete. Please try again.",
-      {
-        context: "import:upload",
-        redactedFallback:
-          error instanceof ImportPersistError
-            ? FRIENDLY_MESSAGES.statementTooLong
-            : undefined,
-      },
+      { context: "import:upload" },
     );
     return NextResponse.json(
       {

@@ -1,16 +1,7 @@
 // next.config.mjs
 import { withSentryConfig } from "@sentry/nextjs";
 import { CONTENT_SECURITY_POLICY } from "./src/lib/content-security-policy.mjs";
-
-// Public write-only ingest key (same class as NEXT_PUBLIC_SENTRY_DSN).
-// Vercel currently injects that env only on production, so preview builds
-// inlined `undefined` and server events never left the isolate.
-const KOMPLEET_SENTRY_DSN = [
-  "https://",
-  "2c7f7c0e30121b2a971bdff94a3c0452",
-  "@o4510868646920192.ingest.de.sentry.io/",
-  "4510871367516240",
-].join("");
+import { KOMPLEET_PUBLIC_SENTRY_DSN } from "./src/lib/sentry/public-dsn.mjs";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -20,7 +11,7 @@ const nextConfig = {
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     NEXT_PUBLIC_SENTRY_DSN:
-      process.env.NEXT_PUBLIC_SENTRY_DSN || KOMPLEET_SENTRY_DSN,
+      process.env.NEXT_PUBLIC_SENTRY_DSN || KOMPLEET_PUBLIC_SENTRY_DSN,
   },
 
   poweredByHeader: false,

@@ -276,6 +276,82 @@ describe("Convex list pagination", () => {
     ]);
   });
 
+  it("hides mid-import rows until the session is completed", async () => {
+    const rows = [
+      txn(1, { description: "legacy visible" }),
+      txn(2, {
+        description: "processing hidden",
+        importSessionExternalId: "sess-mid",
+      }),
+      txn(3, {
+        description: "completed visible",
+        importSessionExternalId: "sess-done",
+      }),
+    ];
+    const ctx = fakeCtx({
+      transactions: rows,
+      categories: [],
+      importSessions: [
+        {
+          _id: "importSessions:mid",
+          externalId: "sess-mid",
+          userId: USER._id,
+          status: "processing",
+          createdAt: Date.now() - 2 * 60 * 60 * 1000,
+        },
+        {
+          _id: "importSessions:done",
+          externalId: "sess-done",
+          userId: USER._id,
+          status: "completed",
+          createdAt: Date.now() - 86_400_000,
+        },
+      ],
+    });
+    const page = await listTransactions(ctx as never, { limit: 10 });
+    expect(page.transactions.map((row) => row.description)).toEqual([
+      "completed visible",
+      "legacy visible",
+    ]);
+
+    const including = await listTransactions(ctx as never, {
+      limit: 10,
+      includePendingImports: true,
+    });
+    expect(including.transactions.map((row) => row.description)).toEqual([
+      "completed visible",
+      "processing hidden",
+      "legacy visible",
+    ]);
+  });
+
+  it("keeps an orphaned processing session hidden", async () => {
+    const rows = [
+      txn(1, {
+        description: "killed import leftover",
+        importSessionExternalId: "sess-orphan",
+      }),
+      txn(2, { description: "manual row" }),
+    ];
+    const ctx = fakeCtx({
+      transactions: rows,
+      categories: [],
+      importSessions: [
+        {
+          _id: "importSessions:orphan",
+          externalId: "sess-orphan",
+          userId: USER._id,
+          status: "processing",
+          createdAt: 1,
+        },
+      ],
+    });
+    const page = await listTransactions(ctx as never, { limit: 10 });
+    expect(page.transactions.map((row) => row.description)).toEqual([
+      "manual row",
+    ]);
+  });
+
   it("expenses: category filter and cursor paging", async () => {
     const cat = "cat-rent";
     const rows = [

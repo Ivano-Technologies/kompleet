@@ -31,12 +31,14 @@ import {
 import {
   apiErrorBody,
   FRIENDLY_MESSAGES,
-  isConvexResourceLimitError,
+  flushSentry,
+  isStatementSizeLimitError,
   toFriendlyErrorAndFlush,
   userFacingError,
 } from "@/lib/friendly-error";
 import {
   ImportPersistError,
+  markImportSessionFailed,
   persistImportedTransactions,
 } from "@/lib/transaction-import/import-persist";
 
@@ -186,11 +188,13 @@ async function handlePOST(request: NextRequest) {
       }
 
       if (parseResult.transactions.length === 0) {
-        await convex.mutation(api.imports.updateSession, {
-          externalId: session.id,
-          status: "failed",
-          errorsCount: parseResult.errors.length,
-        });
+        await markImportSessionFailed(() =>
+          convex.mutation(api.imports.updateSession, {
+            externalId: session.id,
+            status: "failed",
+            errorsCount: parseResult.errors.length,
+          }),
+        );
 
         const firstError = parseResult.errors[0];
         const detectedBankCode = parseResult.detectedBankCode ?? null;
@@ -233,6 +237,7 @@ async function handlePOST(request: NextRequest) {
 
       const { transactions: existingRows } = await listAllTransactionsMine(
         convex,
+        { includePendingImports: true },
       );
       const existingTransactions = existingRows.map((t) => ({
         id: t.id,
@@ -284,7 +289,10 @@ async function handlePOST(request: NextRequest) {
         })),
         duplicates: duplicateCandidates,
         createMany: (items) =>
-          convex.mutation(api.transactions.createManyMine, { items }),
+          convex.mutation(api.transactions.createManyMine, {
+            items,
+            importSessionExternalId: session.id,
+          }),
         addDuplicates: (candidates) =>
           convex.mutation(api.imports.addDuplicates, {
             sessionExternalId: session.id,
@@ -303,6 +311,7 @@ async function handlePOST(request: NextRequest) {
         completed: true,
       });
 
+      await flushSentry();
       return NextResponse.json({
         success: true,
         sessionId: session.id,
@@ -319,10 +328,12 @@ async function handlePOST(request: NextRequest) {
       });
     } catch (error) {
       console.error("Import error:", error);
-      await convex.mutation(api.imports.updateSession, {
-        externalId: session.id,
-        status: "failed",
-      });
+      await markImportSessionFailed(() =>
+        convex.mutation(api.imports.updateSession, {
+          externalId: session.id,
+          status: "failed",
+        }),
+      );
       const persistError =
         error instanceof ImportPersistError ? error.cause : error;
       // Raw text is only used to classify the failure, never returned.
@@ -331,16 +342,10 @@ async function handlePOST(request: NextRequest) {
       const { message: errMsg, ref } = await toFriendlyErrorAndFlush(
         persistError,
         "Import didn't complete. Please try again.",
-        {
-          context: "import:upload-v2",
-          redactedFallback:
-            error instanceof ImportPersistError
-              ? FRIENDLY_MESSAGES.statementTooLong
-              : undefined,
-        },
+        { context: "import:upload-v2" },
       );
       const sizeLimited =
-        isConvexResourceLimitError(persistError) ||
+        isStatementSizeLimitError(persistError) ||
         errMsg === FRIENDLY_MESSAGES.statementTooLong;
       return NextResponse.json(
         {

@@ -4,6 +4,7 @@ import {
   IMPORT_WRITE_BATCH_SIZE,
   ImportPersistError,
   chunkRows,
+  markImportSessionFailed,
   persistImportedTransactions,
   rollbackWrittenIds,
   type ImportPersistItem,
@@ -122,6 +123,18 @@ describe("persistImportedTransactions", () => {
     const persist = error as ImportPersistError;
     expect(persist.rolledBack).toBe(false);
     expect(persist.leftoverIds).toHaveLength(IMPORT_WRITE_BATCH_SIZE);
+  });
+});
+
+describe("markImportSessionFailed", () => {
+  it("swallows a thrown updateSession so the caller can still return", async () => {
+    const warn = vi.spyOn(console, "error").mockImplementation(() => {});
+    await expect(
+      markImportSessionFailed(async () => {
+        throw new Error("Import session not found");
+      }),
+    ).resolves.toBeUndefined();
+    warn.mockRestore();
   });
 });
 

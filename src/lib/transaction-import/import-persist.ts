@@ -121,3 +121,13 @@ export async function persistImportedTransactions(args: {
 
   return { imported: ids.length, ids };
 }
+
+export async function markImportSessionFailed(
+  updateSession: (status: "failed") => Promise<unknown>,
+): Promise<void> {
+  try {
+    await updateSession("failed");
+  } catch (error) {
+    console.error("Failed to mark import session as failed", error);
+  }
+}

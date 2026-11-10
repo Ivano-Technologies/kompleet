@@ -15,8 +15,9 @@
  * "completed"; any failure marks it "failed". Duplicate candidate rows
  * already stored for that session are left attached to the failed session
  * (they are not ledger rows). A retry is a full re-import of the file.
- * If rollback itself fails, leftover rows may remain; duplicate detection
- * on retry still runs against existing transactions.
+ * If rollback itself fails, leftover rows stay stamped with the session id
+ * and remain hidden from the ledger (orphan policy: stay-hidden). Duplicate
+ * detection on retry still runs via includePendingImports.
  */
 
 export const IMPORT_WRITE_BATCH_SIZE = 400;

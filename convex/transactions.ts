@@ -20,6 +20,10 @@ import {
   paginationOptsFromArgs,
 } from "./lib/listPage";
 import { transactionTriageReason } from "./lib/triage";
+import {
+  isImportLedgerVisible,
+  ledgerRowsForDisplay,
+} from "./lib/importVisibility";
 
 const categoryEmbed = v.union(
   v.object({
@@ -151,6 +155,21 @@ async function toApi(
   };
 }
 
+async function completedImportSessionIds(
+  ctx: QueryCtx | MutationCtx,
+  userId: import("./_generated/dataModel").Id<"users">,
+) {
+  const sessions = await ctx.db
+    .query("importSessions")
+    .withIndex("by_user", (q) => q.eq("userId", userId))
+    .collect();
+  const completed = new Set<string>();
+  for (const session of sessions) {
+    if (session.status === "completed") completed.add(session.externalId);
+  }
+  return completed;
+}
+
 export const listMineArgs = {
   startDate: v.optional(v.string()),
   endDate: v.optional(v.string()),
@@ -160,6 +179,7 @@ export const listMineArgs = {
   page: v.optional(v.number()),
   limit: v.optional(v.number()),
   cursor: cursorValidator,
+  includePendingImports: v.optional(v.boolean()),
 };
 
 export const listMineReturns = v.object({
@@ -179,10 +199,14 @@ export async function listMineHandler(
     page?: number;
     limit?: number;
     cursor?: string | null;
+    includePendingImports?: boolean;
   },
 ) {
   const user = await getCurrentUser(ctx);
   const paginationOpts = paginationOptsFromArgs(args);
+  const completedSessions = args.includePendingImports
+    ? null
+    : await completedImportSessionIds(ctx, user._id);
 
   const ranged = ctx.db.query("transactions").withIndex("by_user_and_date", (q) => {
     const base = q.eq("userId", user._id);
@@ -204,9 +228,12 @@ export async function listMineHandler(
     : typed;
 
   const result = await categorized.order("desc").paginate(paginationOpts);
-  const rows = args.search
+  let rows = args.search
     ? result.page.filter((r) => matchesSearch(r.description, args.search))
     : result.page;
+  if (completedSessions) {
+    rows = ledgerRowsForDisplay(rows, completedSessions);
+  }
 
   const transactions = [];
   for (const row of rows) {
@@ -239,6 +266,8 @@ export const getMine = query({
       .withIndex("by_externalId", (q) => q.eq("externalId", args.externalId))
       .unique();
     if (!row || row.userId !== user._id) return null;
+    const completedSessions = await completedImportSessionIds(ctx, user._id);
+    if (!isImportLedgerVisible(row, completedSessions)) return null;
     return await toApi(ctx, row);
   },
 });
@@ -257,7 +286,10 @@ export const totalsForYear = query({
       .withIndex("by_user", (q) => q.eq("userId", user._id))
       .collect();
     const yearPrefix = String(args.taxYear);
-    const inYear = rows.filter((r) => r.transactionDate.startsWith(yearPrefix));
+    const completedSessions = await completedImportSessionIds(ctx, user._id);
+    const inYear = ledgerRowsForDisplay(rows, completedSessions).filter((r) =>
+      r.transactionDate.startsWith(yearPrefix),
+    );
     let income = 0;
     let expenses = 0;
     for (const row of inYear) {
@@ -285,7 +317,8 @@ export const summaryForPeriod = query({
       .query("transactions")
       .withIndex("by_user", (q) => q.eq("userId", user._id))
       .collect();
-    const inPeriod = rows.filter(
+    const completedSessions = await completedImportSessionIds(ctx, user._id);
+    const inPeriod = ledgerRowsForDisplay(rows, completedSessions).filter(
       (row) =>
         row.transactionDate >= args.startDate &&
         row.transactionDate <= args.endDate,
@@ -331,8 +364,10 @@ export const monthlyTotals = query({
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
       buckets.push({ month: key, income: 0, expenses: 0 });
     }
+    const completedSessions = await completedImportSessionIds(ctx, user._id);
+    const visible = ledgerRowsForDisplay(rows, completedSessions);
     const index = new Map(buckets.map((b, i) => [b.month, i]));
-    for (const row of rows) {
+    for (const row of visible) {
       const key = row.transactionDate.slice(0, 7);
       const i = index.get(key);
       if (i === undefined) continue;
@@ -420,7 +455,7 @@ export type CreateManyMineItem = {
  */
 export async function createManyMineHandler(
   ctx: MutationCtx,
-  args: { items: CreateManyMineItem[] },
+  args: { items: CreateManyMineItem[]; importSessionExternalId?: string },
 ) {
   if (args.items.length > IMPORT_WRITE_BATCH_MAX) {
     throw new ConvexError(STATEMENT_TOO_LONG_MESSAGE);
@@ -442,6 +477,9 @@ export async function createManyMineHandler(
       source: item.source,
       reference: item.reference,
       isReconciled: false,
+      ...(args.importSessionExternalId
+        ? { importSessionExternalId: args.importSessionExternalId }
+        : {}),
       createdAt: now,
       updatedAt: now,
     });
@@ -463,6 +501,7 @@ export const createManyMine = mutation({
         reference: v.optional(v.string()),
       }),
     ),
+    importSessionExternalId: v.optional(v.string()),
   },
   returns: v.object({
     ids: v.array(v.string()),
@@ -690,6 +729,8 @@ async function collectTriage(ctx: QueryCtx | MutationCtx) {
     .query("duplicateCandidates")
     .withIndex("by_user", (q) => q.eq("userId", user._id))
     .collect();
+  const completedSessions = await completedImportSessionIds(ctx, user._id);
+  const visibleRows = ledgerRowsForDisplay(rows, completedSessions);
 
   const items: Array<{
     id: string;
@@ -707,7 +748,7 @@ async function collectTriage(ctx: QueryCtx | MutationCtx) {
 
   let uncategorised = 0;
   let lowConfidence = 0;
-  for (const row of rows) {
+  for (const row of visibleRows) {
     const reason = transactionTriageReason(row);
     if (!reason) continue;
     if (reason === "uncategorised") uncategorised += 1;
@@ -998,7 +1039,9 @@ export const ignoreLowConfidenceMine = mutation({
       createdTransactionId: null;
     }> = [];
     const now = Date.now();
-    for (const row of rows) {
+    const completedSessions = await completedImportSessionIds(ctx, user._id);
+    const visible = ledgerRowsForDisplay(rows, completedSessions);
+    for (const row of visible) {
       if (transactionTriageReason(row) !== "low_confidence") continue;
       snapshots.push({
         kind: "transaction",

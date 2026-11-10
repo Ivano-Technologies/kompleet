@@ -158,6 +158,20 @@ describe("createManyMine against local Convex", () => {
     getCurrentUser.mockResolvedValue(USER);
   });
 
+  it("stamps imported rows with the session id", async () => {
+    const ctx = localConvex();
+    const result = await createManyMineHandler(ctx as never, {
+      items: syntheticItems(2),
+      importSessionExternalId: "sess-1",
+    });
+    expect(result.count).toBe(2);
+    expect(
+      ctx.tables.transactions.every(
+        (row) => row.importSessionExternalId === "sess-1",
+      ),
+    ).toBe(true);
+  });
+
   it("inserts a batch without a per-row get and stays under the read cap", async () => {
     const ctx = localConvex();
     const items = syntheticItems(IMPORT_WRITE_BATCH_SIZE);

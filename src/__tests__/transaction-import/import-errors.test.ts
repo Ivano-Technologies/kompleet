@@ -138,6 +138,24 @@ describe("IVA-83 import error taxonomy", () => {
           "Too many documents read in a single function execution (limit: 4096 documents).",
       }).code,
     ).toBe("ERR_SIZE_LIMIT");
+    expect(
+      classifyImportFailure({
+        status: 500,
+        error: "[Request ID: abc] Server Error",
+      }).code,
+    ).toBe("ERR_UNKNOWN");
+    expect(
+      classifyImportFailure({
+        status: 500,
+        error: "Import session not found",
+      }).code,
+    ).not.toBe("ERR_SIZE_LIMIT");
+    expect(
+      classifyImportFailure({
+        status: 500,
+        error: "this timeout took too long",
+      }).code,
+    ).not.toBe("ERR_SIZE_LIMIT");
   });
 
   it("network/upload views toast; parse/format/bank stay inline-only", () => {

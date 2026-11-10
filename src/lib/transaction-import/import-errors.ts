@@ -271,15 +271,17 @@ export function classifyImportFailure(
     return { code: "ERR_UNSUPPORTED_FORMAT" };
   }
   if (
-    text.includes("too large") ||
-    text.includes("too long") ||
+    text.includes("this statement is too long") ||
+    text.includes("shorter date range") ||
     text.includes("file size") ||
     text.includes("exceeds maximum") ||
     text.includes("too many reads") ||
     text.includes("too many writes") ||
     text.includes("too many documents") ||
-    text.includes("shorter date range") ||
-    text.includes("array is too long")
+    text.includes("too many bytes") ||
+    text.includes("array is too long") ||
+    text.includes("value is too large") ||
+    text.includes("data is too large")
   ) {
     return { code: "ERR_SIZE_LIMIT" };
   }

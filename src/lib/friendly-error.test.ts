@@ -24,6 +24,7 @@ import {
   friendlyErrorBody,
   flushSentry,
   isConvexResourceLimitError,
+  isStatementSizeLimitError,
   userFacingError,
 } from "@/lib/friendly-error";
 
@@ -348,6 +349,26 @@ describe("friendly-error", () => {
       );
       expect(msg(new Error("column foo does not exist"), "fallback")).toBe(
         "fallback",
+      );
+    });
+
+    it("does not remap a redacted persist Server Error to the too-long copy", () => {
+      const redacted = new Error("[Request ID: abc] Server Error");
+      expect(isStatementSizeLimitError(redacted)).toBe(false);
+      expect(isConvexResourceLimitError(redacted)).toBe(false);
+      expect(msg(redacted, "Import didn't complete. Please try again.")).toBe(
+        "Import didn't complete. Please try again.",
+      );
+      expect(msg(redacted, "Import didn't complete. Please try again.")).not.toBe(
+        FRIENDLY_MESSAGES.statementTooLong,
+      );
+    });
+
+    it("maps a typed ConvexError too-long payload to the statement copy", () => {
+      const typed = new FakeConvexError(FRIENDLY_MESSAGES.statementTooLong);
+      expect(isStatementSizeLimitError(typed)).toBe(true);
+      expect(msg(typed, "Import didn't complete. Please try again.")).toBe(
+        FRIENDLY_MESSAGES.statementTooLong,
       );
     });
 
