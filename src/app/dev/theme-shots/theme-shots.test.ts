@@ -31,7 +31,8 @@ describe("theme-shot harness", () => {
     expect(dashboard).toMatch(/ada@example.com/);
     expect(dashboard).toMatch(/DashboardClient/);
     expect(dashboard).toMatch(/month: "Jul"/);
-    expect(dashboardClient).toMatch(/height=\{224\}/);
+    expect(dashboardClient).toMatch(/function RevenueTrendChart/);
+    expect(dashboardClient).toMatch(/aria-label="Revenue trend"/);
     expect(dashboardClient).toMatch(/fill="rgb\(var\(--accent\)\)"/);
     expect(books).toMatch(/DashboardShell/);
     expect(books).toMatch(/!pl-10/);
