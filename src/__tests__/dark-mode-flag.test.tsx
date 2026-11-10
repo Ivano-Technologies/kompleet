@@ -40,8 +40,13 @@ describe("DARK_MODE_ENABLED gate", () => {
   it("does not use next-themes or a system default at runtime", () => {
     const provider = read("src/contexts/ThemeContext.tsx");
     const layout = read("src/app/layout.tsx");
+    const pkg = read("package.json");
+    expect(pkg).not.toMatch(/next-themes/);
     expect(provider).not.toMatch(/next-themes/);
     expect(layout).not.toMatch(/next-themes|forcedTheme/);
+    expect(layout).toMatch(
+      /dangerouslySetInnerHTML=\{\{ __html: THEME_BOOT_SCRIPT \}\}/,
+    );
     expect(provider).toMatch(/DARK_MODE_ENABLED \? "system" : "light"/);
     expect(resolveTheme("dark")).toBe("light");
     expect(resolveTheme("system")).toBe("light");
