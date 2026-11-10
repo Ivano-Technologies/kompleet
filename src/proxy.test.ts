@@ -9,6 +9,7 @@ import { ConvexError } from "convex/values";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest, type NextFetchEvent } from "next/server";
 import { AUTH_ERROR_CODES } from "../convex/lib/authErrors";
+import { COMPANY_LEGAL } from "@/lib/legal";
 
 const { fetchAction, requestContext } = vi.hoisted(() => ({
   fetchAction: vi.fn(),
@@ -219,6 +220,19 @@ describe("proxy: ?code= exchange", () => {
     expect(response.status).toBe(400);
     const body = (await response.json()) as { error: string };
     expect(body.error).toBe("Invalid request");
+  });
+});
+
+describe("proxy: company refunds", () => {
+  it("308s /refunds and /refunds/ to the company policy in one hop", async () => {
+    for (const path of ["/refunds", "/refunds/"]) {
+      const response = await run(path);
+      expect(response.status).toBe(308);
+      expect(response.headers.get("location")).toBe(COMPANY_LEGAL.refunds);
+      expect(response.headers.get("location")).not.toBe(
+        `${ORIGIN}${path === "/refunds/" ? "/refunds" : "/refunds/"}`,
+      );
+    }
   });
 });
 

@@ -11,10 +11,10 @@ export const metadata: Metadata = {
   description: "Kompleet pricing.",
 };
 
-const lifetimeIncluded = [
+const included = [
   "All current features",
   "One payment, no monthly or annual fees",
-  "Lifetime access for one named user",
+  "Access for one named user",
   "Future improvements to the core features",
 ];
 
@@ -65,14 +65,14 @@ export default function PricingPage() {
                 Founding users
               </span>
               <h2 className="font-display mb-2 text-3xl font-bold sm:text-4xl">
-                Lifetime access
+                Founding access
               </h2>
               <p className="mb-8 text-sm text-text-2 dark:text-dark-text-2">
                 One-off founding payment. The price is shown at checkout.
               </p>
             </div>
 
-            <PlanFeatureList features={lifetimeIncluded} />
+            <PlanFeatureList features={included} />
 
             <Link
               href="/signup"
@@ -95,8 +95,8 @@ export default function PricingPage() {
         <div className="mx-auto max-w-2xl rounded-xl border border-border bg-surface p-8 text-center dark:border-dark-border dark:bg-dark-surface">
           <h3 className="font-display mb-3 text-xl font-bold">Later access</h3>
           <p className="text-sm leading-relaxed text-text-2 dark:text-dark-text-2">
-            A one-off lifetime plan is coming soon. We will email testers
-            before charging anyone. No price is published yet.
+            We will email testers before charging anyone. No price is published
+            yet.
           </p>
           <div className="mt-6">
             <CompanyLegalLinks />
