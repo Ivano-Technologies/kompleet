@@ -267,10 +267,11 @@ export function SettingsModal({
           onOpenChange(false);
         }}
       >
-        <div className="flex flex-col md:flex-row h-full sm:min-h-[85vh] max-h-[90vh] sm:max-h-[85vh]">
-          {/* Left: section nav — opaque background for visibility in light and dark theme */}
+        <div className="flex min-w-0 w-full flex-col md:flex-row h-full sm:min-h-[85vh] max-h-[90vh] sm:max-h-[85vh] overflow-hidden">
+          {/* Left: section nav. pr-14 keeps the close control off the scrolling tabs at 390. */}
+          <div className="relative min-w-0 w-full md:w-52 md:shrink-0 border-b md:border-b-0 md:border-r border-light-border dark:border-dark-border bg-white dark:bg-dark-background pr-14 md:pr-0 overflow-hidden">
           <nav
-            className="flex md:flex-col md:w-52 shrink-0 border-b md:border-b-0 md:border-r border-light-border dark:border-dark-border bg-white dark:bg-dark-background p-2 pr-14 md:pr-2 gap-0.5 overflow-x-auto md:overflow-y-auto scroll-pr-14 md:scroll-pr-0"
+            className="flex min-w-0 w-full md:flex-col p-2 gap-0.5 overflow-x-auto md:overflow-y-auto"
             aria-label="Settings sections"
           >
             {navSections.map(({ id, label, icon: Icon }) => (
@@ -289,8 +290,8 @@ export function SettingsModal({
                 {label}
               </button>
             ))}
-            <span className="w-10 shrink-0 md:hidden" aria-hidden="true" />
           </nav>
+          </div>
 
           {/* Right: content — fixed min height so modal size stays consistent when switching tabs */}
           <div className="flex-1 overflow-y-auto p-4 md:p-6 min-h-0 sm:min-h-[70vh]">

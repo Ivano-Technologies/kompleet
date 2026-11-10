@@ -51,8 +51,8 @@ describe("IVA-288 account deletion", () => {
     const modal = read("src/components/layout/dashboard/SettingsModal.tsx");
     expect(modal).toMatch(/w-\[calc\(100vw-2rem\)\] max-w-full/);
     expect(modal).toMatch(/overflow-x-auto md:overflow-y-auto/);
-    expect(modal).toMatch(/pr-14 md:pr-2/);
-    expect(modal).toMatch(/scroll-pr-14/);
+    expect(modal).toMatch(/pr-14 md:pr-0/);
+    expect(modal).toMatch(/md:w-52 md:shrink-0/);
   });
 
   it("stacks the Delete button under danger zone copy on narrow screens", () => {
