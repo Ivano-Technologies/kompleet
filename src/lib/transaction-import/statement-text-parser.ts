@@ -7,9 +7,10 @@
  * and succeeds. This module repairs wraps and groups multi-line rows.
  *
  * GTB (Guaranty Trust Bank) PDFs add three extra artefacts: leading `'0` /
- * `'00` fragments on fields, page-footer address/phone lines merged into the
- * last narration on a page, and Debit/Credit/Balance columns that pdfjs can
- * emit in the wrong order. Those are stripped and reconciled here.
+ * `'00` fragments on fields, page-footer blocks merged into the last
+ * narration on a page, and Debit/Credit/Balance columns that pdfjs can emit
+ * in the wrong order. GTB-only cleanup is gated on statement detection so
+ * other banks' narrations are left intact.
  */
 
 import {
@@ -31,7 +32,8 @@ const PERIOD_RE = new RegExp(
   `${DATE_TOKEN}\\s+to\\s+${DATE_TOKEN}`,
   "i",
 );
-const REFERENCE_RE = /\b\d{12,}\b|\b[A-Z]{2,}\d{10,}\b/;
+const REFERENCE_RE = /\b\d{12,}\b/;
+const GTB_REFERENCE_RE = /\b\d{12,}\b|\b[A-Z]{2,}\d{10,}\b/;
 const DEBIT_HINT =
   /stamp\s*duty|sms|charge|charges|levy|commission|vat|fee|debit|withdrawal|\bdr\b/i;
 const CREDIT_HINT =
@@ -48,20 +50,26 @@ interface StatementRow {
   raw: string;
 }
 
+export interface StatementExtractOptions {
+  bankName?: string;
+}
+
 const YEAR_LEAD_LINE_RE =
   /^((?:20|19)\d{2})(?:\s+((?:20|19)\d{2}))?(?:\s+(.*))?$/;
 
-const GTB_FOOTER_PATTERNS: RegExp[] = [
-  /plot\s+\d+,?\s*akin\s+adesola\s+street(?:,?\s*victoria\s+island)?(?:,?\s*lagos)?/gi,
-  /victoria\s+island,?\s*lagos/gi,
-  /p\.?\s*o\.?\s*box\s+\d+(?:,?\s*victoria\s+island)?(?:,?\s*lagos)?/gi,
-  /tel(?:ephone)?\s*:/gi,
-  /0700[-\s]?gtbank(?:\s*\(\s*0700[-\s]?\d+\s*\))?/gi,
-  /\+234[\s-]*1[\s-]*448[\s-]*\d{3,4}/gi,
-  /\b0?1[-\s]?448[-\s]?\d{4}\b/gi,
-  /(?:www\.)?gtbank\.com/gi,
-  /guaranty\s+trust\s+bank(?:\s+plc)?(?:\s*,?\s*r\.?c\.?\s*\d+)?/gi,
-];
+/**
+ * Newer GTB head-office footer, as a single contiguous block (Plot 635,
+ * Akin Adesola … optional tel / 0700-GTBANK / +234 / website / plc line).
+ */
+const GTB_HEAD_OFFICE_FOOTER_BLOCK_RE =
+  /plot\s+\d+,?\s*akin\s+adesola\s+street,?\s*victoria\s+island,?\s*lagos(?:[\s,;:]+(?:tel:?\s*)?(?:0700[-\s]?gtbank(?:\s*\(\s*0700[-\s]?\d+\s*\))?|\+234[\s-]*1[\s-]*448[\s-]*\d{3,4}|(?:www\.)?gtbank\.com|guaranty\s+trust\s+bank\s+plc(?:\s*rc\s*\d+)?))*/gi;
+
+/**
+ * 2016–2021 GTB email footer, from "This is a computer generated" through
+ * "your local branch.", plus a trailing lone page number when present.
+ */
+const GTB_LEGACY_FOOTER_BLOCK_RE =
+  /this is a computer generated(?:\s+email)?\.?\s*please address all enquiries to\s+guaranty trust bank plc systems and control group\s+178,?\s*awolowo road,?\s*ikoyi\.?\s*p\.?\s*o\.?\s*box\s+\d+,?\s*victoria island,?\s*lagos,?\s*nigeria\.?\s*phone\s+0?1[-\s]?2694276\s*\|?\s*fax\s+0?1[-\s]?2694276(?:\s+or the customer information unit of your local branch\.?)?(?:\n\s*\d{1,3}\s*(?=\n|$))?/gi;
 
 function incompleteMonDateRe(): RegExp {
   return /(\d{1,2}-[A-Za-z]{3})-(?!\s*(?:20|19)\d{2})/g;
@@ -130,22 +138,22 @@ export function stripLeadingQuoteZeroFragments(value: string): string {
 }
 
 /**
- * GTB page footers (head-office address and contact numbers) sit on the
- * same Y-band as the last row, so pdfjs concatenates them into narration.
+ * Remove GTB page footers only as whole contiguous blocks, never by eating
+ * address or phone tokens out of a real narration.
  */
 export function stripMergedPageFooter(value: string): string {
-  let cleaned = value;
-  for (const pattern of GTB_FOOTER_PATTERNS) {
-    pattern.lastIndex = 0;
-    cleaned = cleaned.replace(pattern, " ");
-  }
-  return cleaned.replace(/[^\S\r\n]{2,}/g, " ").replace(/[ \t]+\n/g, "\n");
+  GTB_HEAD_OFFICE_FOOTER_BLOCK_RE.lastIndex = 0;
+  GTB_LEGACY_FOOTER_BLOCK_RE.lastIndex = 0;
+  return value
+    .replace(GTB_HEAD_OFFICE_FOOTER_BLOCK_RE, " ")
+    .replace(GTB_LEGACY_FOOTER_BLOCK_RE, " ")
+    .replace(/[^\S\r\n]{2,}/g, " ")
+    .replace(/[ \t]+\n/g, "\n");
 }
 
-function cleanParsedField(value: string): string {
-  return stripMergedPageFooter(stripLeadingQuoteZeroFragments(value))
-    .replace(/\s+/g, " ")
-    .trim();
+function cleanParsedField(value: string, applyGtb: boolean): string {
+  const stripped = applyGtb ? stripLeadingQuoteZeroFragments(value) : value;
+  return stripped.replace(/\s+/g, " ").trim();
 }
 
 export function looksLikeUbaTableStatement(text: string): boolean {
@@ -157,23 +165,55 @@ export function looksLikeUbaTableStatement(text: string): boolean {
   return (hasTransDate && hasNarration && hasAmountCols && hasBalance) || hasUba;
 }
 
+/**
+ * Letterhead only: lines before the first posted (dated) row. A transfer
+ * "TO GUARANTY TRUST BANK PLC/…" in another bank's narration must not
+ * trigger GTB artefact cleanup.
+ */
+function statementLetterhead(text: string): string {
+  const lines = text.split(/\r?\n/);
+  const header: string[] = [];
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (
+      DATE_AT_START_RE.test(trimmed) &&
+      !/opening\s+balance/i.test(trimmed)
+    ) {
+      break;
+    }
+    header.push(line);
+    if (header.join("\n").length >= 1500) break;
+  }
+  return header.join("\n");
+}
+
+function headerHasGtbIssuer(header: string): boolean {
+  if (/\bgtbank\b/i.test(header)) return true;
+  // Letterhead "Guaranty Trust Bank", not "TO/FROM GUARANTY TRUST BANK".
+  return /(?<!to\s)(?<!from\s)guaranty\s+trust\s+bank/i.test(header);
+}
+
 export function looksLikeGtbTableStatement(text: string): boolean {
-  const hasGtb = /guaranty\s+trust|\bgtbank\b|\bgtb\b/i.test(text);
+  const header = statementLetterhead(text);
+  if (!headerHasGtbIssuer(header)) return false;
+  if (/united bank.{0,20}africa/i.test(header)) return false;
   const hasAmountCols = /debit/i.test(text) && /credit/i.test(text);
   const hasBalance = /balance/i.test(text);
   const hasDateCol = /(?:trans(?:action)?\s*)?date/i.test(text);
-  return hasGtb && hasAmountCols && hasBalance && hasDateCol;
+  return hasAmountCols && hasBalance && hasDateCol;
 }
 
-function isGtbFooterLine(trimmed: string): boolean {
-  if (/akin\s+adesola/i.test(trimmed)) return true;
-  if (/victoria\s+island/i.test(trimmed) && /lagos/i.test(trimmed)) return true;
-  if (/0700[-\s]?gtbank/i.test(trimmed)) return true;
-  if (/^(?:www\.)?gtbank\.com$/i.test(trimmed)) return true;
-  if (/^guaranty\s+trust\s+bank/i.test(trimmed)) return true;
-  if (/^tel(?:ephone)?\s*:/i.test(trimmed)) return true;
-  if (/^\+234[\s-]*1[\s-]*448/i.test(trimmed)) return true;
-  return false;
+function isGtbBankHint(bankName?: string): boolean {
+  if (!bankName) return false;
+  const trimmed = bankName.trim();
+  return /gtbank|guaranty\s+trust/i.test(trimmed) || /^gtb$/i.test(trimmed);
+}
+
+function shouldApplyGtbCleanup(
+  text: string,
+  bankName?: string,
+): boolean {
+  return looksLikeGtbTableStatement(text) || isGtbBankHint(bankName);
 }
 
 function isNoiseLine(line: string): boolean {
@@ -203,7 +243,6 @@ function isNoiseLine(line: string): boolean {
   }
   if (PERIOD_RE.test(trimmed)) return true;
   if (/^[a-z]{3}\s+\d{1,2},\s+\d{4}\s+to\s+/i.test(trimmed)) return true;
-  if (isGtbFooterLine(trimmed)) return true;
   return false;
 }
 
@@ -344,11 +383,19 @@ function resolveAmountAndBalance(
     return { amount: Math.max(debit, credit), balance: last };
   }
 
+  // No opening row: two tokens in swapped order print the large balance first.
+  if (last > 0 && secondLast > last * 10) {
+    return { amount: last, balance: secondLast };
+  }
+
   return { amount: secondLast, balance: last };
 }
 
-function parseRowBlock(lines: string[]): StatementRow | null {
-  const joined = cleanParsedField(lines.join(" "));
+function parseRowBlock(
+  lines: string[],
+  applyGtb: boolean,
+): StatementRow | null {
+  const joined = cleanParsedField(lines.join(" "), applyGtb);
   if (!joined) return null;
 
   const dateTokens = joined.match(DATE_TOKEN_RE) ?? [];
@@ -364,15 +411,16 @@ function parseRowBlock(lines: string[]): StatementRow | null {
   }
   remainder = remainder.replace(MONEY_RE, " ");
 
-  const refMatch = remainder.match(REFERENCE_RE);
+  const referenceRe = applyGtb ? GTB_REFERENCE_RE : REFERENCE_RE;
+  const refMatch = remainder.match(referenceRe);
   const reference = refMatch?.[0]
-    ? cleanParsedField(refMatch[0])
+    ? cleanParsedField(refMatch[0], applyGtb)
     : undefined;
   if (refMatch?.[0]) {
     remainder = remainder.replace(refMatch[0], " ");
   }
 
-  const merchant = cleanParsedField(remainder);
+  const merchant = cleanParsedField(remainder, applyGtb);
   if (!merchant) return null;
 
   const provisional = resolveAmountAndBalance(amounts, undefined);
@@ -441,15 +489,19 @@ function classifyType(
 /**
  * Extract transactions from repaired statement text (UBA/GTB-style tables).
  * Skips opening/closing balance rows; uses running balance for DR/CR.
+ * GTB artefact cleanup runs only when the text (or bank hint) is GTB.
  */
 export function extractStructuredStatementTransactions(
   text: string,
+  options?: StatementExtractOptions,
 ): ParsedTransaction[] {
-  const repaired = stripMergedPageFooter(
-    stripLeadingQuoteZeroFragments(repairWrappedStatementDates(text)),
-  );
-  const rows = collectRowBlocks(repaired)
-    .map((block) => parseRowBlock(block))
+  const repaired = repairWrappedStatementDates(text);
+  const applyGtb = shouldApplyGtbCleanup(repaired, options?.bankName);
+  const prepared = applyGtb
+    ? stripMergedPageFooter(stripLeadingQuoteZeroFragments(repaired))
+    : repaired;
+  const rows = collectRowBlocks(prepared)
+    .map((block) => parseRowBlock(block, applyGtb))
     .filter((row): row is StatementRow => row !== null);
 
   const transactions: ParsedTransaction[] = [];
