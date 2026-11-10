@@ -7,11 +7,13 @@ function read(rel: string): string {
 }
 
 describe("IVA-289 hardening", () => {
-  it("ships CSP as Report-Only and names GA, Sentry, Convex", () => {
+  it("ships static security headers from the shared module and leaves CSP to the proxy", () => {
     const config = read("next.config.mjs");
-    expect(config).toContain('key: "Content-Security-Policy-Report-Only"');
-    expect(config).not.toContain('key: "Content-Security-Policy"');
-    expect(config).toMatch(/content-security-policy\.mjs/);
+    expect(config).toMatch(/STATIC_SECURITY_HEADERS/);
+    expect(config).toMatch(/security-headers\.mjs/);
+    expect(config).not.toContain("Content-Security-Policy-Report-Only");
+    expect(read("src/proxy.ts")).toMatch(/applySecurityHeaders/);
+    expect(read("src/proxy.ts")).toMatch(/createNonce/);
   });
 
   it("does not read NEXT_PUBLIC_OPEN_AI_API_KEY in categorize or parsers", () => {

@@ -1,6 +1,6 @@
 // next.config.mjs
 import { withSentryConfig } from "@sentry/nextjs";
-import { CONTENT_SECURITY_POLICY_REPORT_ONLY } from "./src/lib/content-security-policy.mjs";
+import { STATIC_SECURITY_HEADERS } from "./src/lib/security-headers.mjs";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -47,24 +47,10 @@ const nextConfig = {
     return [
       {
         source: "/(.*)",
-        headers: [
-          { key: "X-Content-Type-Options", value: "nosniff" },
-          { key: "X-Frame-Options", value: "DENY" },
-          { key: "X-XSS-Protection", value: "1; mode=block" },
-          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-          {
-            key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=()",
-          },
-          {
-            key: "Strict-Transport-Security",
-            value: "max-age=31536000; includeSubDomains",
-          },
-          {
-            key: "Content-Security-Policy-Report-Only",
-            value: CONTENT_SECURITY_POLICY_REPORT_ONLY,
-          },
-        ],
+        // CSP is set per-request in src/proxy.ts (nonce + strict-dynamic).
+        // A second static CSP here would AND with the nonce policy and break
+        // Next.js inline runtime scripts.
+        headers: STATIC_SECURITY_HEADERS,
       },
     ];
   },

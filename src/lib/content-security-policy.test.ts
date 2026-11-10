@@ -1,35 +1,20 @@
 import { describe, expect, it } from "vitest";
-import { CONTENT_SECURITY_POLICY_REPORT_ONLY } from "./content-security-policy.mjs";
+import { buildContentSecurityPolicy } from "./content-security-policy.mjs";
 
-describe("CSP report-only policy", () => {
+describe("CSP enforcing policy (re-export)", () => {
   it("allows GA, Sentry ingest, Convex, and the /monitoring tunnel via 'self'", () => {
-    expect(CONTENT_SECURITY_POLICY_REPORT_ONLY).toContain(
-      "https://www.googletagmanager.com",
-    );
-    expect(CONTENT_SECURITY_POLICY_REPORT_ONLY).toContain(
-      "https://www.google-analytics.com",
-    );
-    expect(CONTENT_SECURITY_POLICY_REPORT_ONLY).toContain(
-      "https://*.convex.cloud",
-    );
-    expect(CONTENT_SECURITY_POLICY_REPORT_ONLY).toContain("wss://*.convex.cloud");
-    expect(CONTENT_SECURITY_POLICY_REPORT_ONLY).toContain(
-      "https://*.ingest.sentry.io",
-    );
-    expect(CONTENT_SECURITY_POLICY_REPORT_ONLY).toContain(
-      "https://*.ingest.us.sentry.io",
-    );
-    expect(CONTENT_SECURITY_POLICY_REPORT_ONLY).toContain("connect-src 'self'");
-  });
-
-  it("does not enforce the policy (report-only first)", () => {
-    expect(CONTENT_SECURITY_POLICY_REPORT_ONLY).not.toMatch(
-      /upgrade-insecure-requests/i,
-    );
+    const csp = buildContentSecurityPolicy({ nonce: "compat", isDev: false });
+    expect(csp).toContain("https://www.googletagmanager.com");
+    expect(csp).toContain("https://www.google-analytics.com");
+    expect(csp).toContain("https://*.convex.cloud");
+    expect(csp).toContain("wss://*.convex.cloud");
+    expect(csp).toContain("https://*.ingest.sentry.io");
+    expect(csp).toContain("https://*.ingest.us.sentry.io");
+    expect(csp).toContain("connect-src 'self'");
   });
 
   it("omits report-uri because no CSP report endpoint exists", () => {
-    expect(CONTENT_SECURITY_POLICY_REPORT_ONLY).not.toMatch(
+    expect(buildContentSecurityPolicy({ nonce: "compat" })).not.toMatch(
       /report-uri|report-to/i,
     );
   });

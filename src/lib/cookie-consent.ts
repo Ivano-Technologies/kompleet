@@ -102,6 +102,8 @@ export function loadGoogleAnalytics(measurementId: string): void {
   script.async = true;
   script.src = gtagScriptUrl(measurementId);
   script.dataset.kompleetGa = "1";
+  // Created from the nonce'd Next.js bundle, so CSP3 `'strict-dynamic'`
+  // allows it. Host allowlists in script-src cover CSP2 browsers.
   document.head.appendChild(script);
 }
 
