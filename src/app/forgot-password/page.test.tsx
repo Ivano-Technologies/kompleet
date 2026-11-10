@@ -92,7 +92,7 @@ describe("ForgotPasswordPage", () => {
     render(<ForgotPasswordPage />);
     expect(
       screen.getByText(
-        /Existing users can also reclaim by signing up with the same email\./,
+        /The code expires in 15 minutes\./,
       ),
     ).toBeInTheDocument();
   });

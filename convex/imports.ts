@@ -2,6 +2,13 @@ import { v } from "convex/values";
 import { internalMutation, mutation, query } from "./_generated/server";
 import { getCurrentUser } from "./lib/auth";
 import { newExternalId, toMs } from "./lib/ids";
+import {
+  cursorValidator,
+  listCursorReturns,
+  nextCursorOf,
+  paginationOptsFromArgs,
+} from "./lib/listPage";
+import { assertStorageAssignableToUser } from "./lib/storageAccess";
 
 const sessionApi = v.object({
   id: v.string(),
@@ -95,6 +102,7 @@ export const attachStorage = mutation({
     if (!row || row.userId !== user._id) {
       throw new Error("Import session not found");
     }
+    await assertStorageAssignableToUser(ctx, user, args.storageId);
     await ctx.db.patch(row._id, { storageId: args.storageId });
     const updated = await ctx.db.get(row._id);
     if (!updated) throw new Error("Import session not found");
@@ -136,16 +144,26 @@ export const updateSession = mutation({
 });
 
 export const listMine = query({
-  args: {},
-  returns: v.array(sessionApi),
-  handler: async (ctx) => {
+  args: {
+    cursor: cursorValidator,
+    limit: v.optional(v.number()),
+  },
+  returns: v.object({
+    sessions: v.array(sessionApi),
+    ...listCursorReturns,
+  }),
+  handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx);
-    const rows = await ctx.db
+    const result = await ctx.db
       .query("importSessions")
       .withIndex("by_user", (q) => q.eq("userId", user._id))
-      .collect();
-    rows.sort((a, b) => b.createdAt - a.createdAt);
-    return rows.map(toSessionApi);
+      .order("desc")
+      .paginate(paginationOptsFromArgs(args));
+    return {
+      sessions: result.page.map(toSessionApi),
+      nextCursor: nextCursorOf(result),
+      isDone: result.isDone,
+    };
   },
 });
 
@@ -190,8 +208,15 @@ export const addErrors = mutation({
 });
 
 export const listErrors = query({
-  args: { sessionExternalId: v.string() },
-  returns: v.array(v.any()),
+  args: {
+    sessionExternalId: v.string(),
+    cursor: cursorValidator,
+    limit: v.optional(v.number()),
+  },
+  returns: v.object({
+    errors: v.array(v.any()),
+    ...listCursorReturns,
+  }),
   handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx);
     const session = await ctx.db
@@ -200,20 +225,27 @@ export const listErrors = query({
         q.eq("externalId", args.sessionExternalId),
       )
       .unique();
-    if (!session || session.userId !== user._id) return [];
-    const rows = await ctx.db
+    if (!session || session.userId !== user._id) {
+      return { errors: [], nextCursor: null, isDone: true };
+    }
+    const result = await ctx.db
       .query("importErrors")
       .withIndex("by_session", (q) => q.eq("sessionId", session._id))
-      .collect();
-    return rows.map((r) => ({
-      id: r.externalId,
-      session_id: r.sessionExternalId,
-      row_number: r.rowNumber ?? null,
-      error_type: r.errorType ?? null,
-      error_message: r.errorMessage ?? null,
-      raw_data: r.rawData ?? null,
-      created_at: new Date(r.createdAt).toISOString(),
-    }));
+      .order("desc")
+      .paginate(paginationOptsFromArgs(args));
+    return {
+      errors: result.page.map((r) => ({
+        id: r.externalId,
+        session_id: r.sessionExternalId,
+        row_number: r.rowNumber ?? null,
+        error_type: r.errorType ?? null,
+        error_message: r.errorMessage ?? null,
+        raw_data: r.rawData ?? null,
+        created_at: new Date(r.createdAt).toISOString(),
+      })),
+      nextCursor: nextCursorOf(result),
+      isDone: result.isDone,
+    };
   },
 });
 
@@ -253,36 +285,44 @@ export const listDuplicates = query({
   args: {
     sessionExternalId: v.optional(v.string()),
     status: v.optional(v.string()),
+    cursor: cursorValidator,
+    limit: v.optional(v.number()),
   },
-  returns: v.array(v.any()),
+  returns: v.object({
+    duplicates: v.array(v.any()),
+    ...listCursorReturns,
+  }),
   handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx);
-    const rows = await ctx.db
+    const indexed = ctx.db
       .query("duplicateCandidates")
-      .withIndex("by_user", (q) => q.eq("userId", user._id))
-      .collect();
-    let filtered = args.sessionExternalId
-      ? rows.filter((r) => r.sessionExternalId === args.sessionExternalId)
-      : rows;
-    if (args.status) {
-      filtered = filtered.filter(
-        (r) => (r.status ?? "pending") === args.status,
-      );
-    }
-    filtered.sort((a, b) => b.createdAt - a.createdAt);
-    return filtered.map((r) => {
-      const payload =
-        typeof r.payload === "object" && r.payload !== null
-          ? (r.payload as Record<string, unknown>)
-          : {};
-      return {
-        id: r.externalId,
-        session_id: r.sessionExternalId,
-        ...payload,
-        // Row status must win over payload.status from addDuplicates.
-        status: r.status ?? "pending",
-      };
-    });
+      .withIndex("by_user", (q) => q.eq("userId", user._id));
+    const scoped = args.sessionExternalId
+      ? indexed.filter((q) =>
+          q.eq(q.field("sessionExternalId"), args.sessionExternalId),
+        )
+      : indexed;
+    const result = await scoped.order("desc").paginate(paginationOptsFromArgs(args));
+    const filtered = args.status
+      ? result.page.filter((r) => (r.status ?? "pending") === args.status)
+      : result.page;
+    return {
+      duplicates: filtered.map((r) => {
+        const payload =
+          typeof r.payload === "object" && r.payload !== null
+            ? (r.payload as Record<string, unknown>)
+            : {};
+        return {
+          id: r.externalId,
+          session_id: r.sessionExternalId,
+          ...payload,
+          // Row status must win over payload.status from addDuplicates.
+          status: r.status ?? "pending",
+        };
+      }),
+      nextCursor: nextCursorOf(result),
+      isDone: result.isDone,
+    };
   },
 });
 

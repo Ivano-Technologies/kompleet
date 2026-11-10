@@ -1,12 +1,16 @@
+import { paginationOptsValidator } from "convex/server";
 import { v } from "convex/values";
-import type { Doc } from "./_generated/dataModel";
+import type { Doc, Id } from "./_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "./_generated/server";
 import { mutation, query } from "./_generated/server";
 import { getCurrentUser } from "./lib/auth";
 import { newExternalId } from "./lib/ids";
+import {
+  assertStorageAssignableToUser,
+  userCanAccessStorageId,
+} from "./lib/storageAccess";
 
 const MAX_BYTES = 10 * 1024 * 1024;
-const LIBRARY_TAKE = 300;
 const SEARCH_SCAN = 80;
 
 const linkTypeValidator = v.union(
@@ -154,8 +158,10 @@ function matchesFilter(row: Doc<"uploadedFiles">, filter: FileFilter): boolean {
       return attached;
     case "unattached":
       return !attached;
-    default:
-      return true;
+    default: {
+      const _exhaustive: never = filter;
+      return _exhaustive;
+    }
   }
 }
 
@@ -233,13 +239,20 @@ export const generateUploadUrl = mutation({
   },
 });
 
+export async function getUrlHandler(
+  ctx: QueryCtx,
+  args: { storageId: Id<"_storage"> },
+) {
+  const user = await getCurrentUser(ctx);
+  const allowed = await userCanAccessStorageId(ctx, user, args.storageId);
+  if (!allowed) return null;
+  return await ctx.storage.getUrl(args.storageId);
+}
+
 export const getUrl = query({
   args: { storageId: v.id("_storage") },
   returns: v.union(v.string(), v.null()),
-  handler: async (ctx, args) => {
-    await getCurrentUser(ctx);
-    return await ctx.storage.getUrl(args.storageId);
-  },
+  handler: getUrlHandler,
 });
 
 export const saveFileMetadata = mutation({
@@ -255,6 +268,7 @@ export const saveFileMetadata = mutation({
   returns: fileApi,
   handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx);
+    await assertStorageAssignableToUser(ctx, user, args.storageId);
     assertAllowedUpload(args.filename, args.size);
 
     let linkType = args.linkType;
@@ -293,22 +307,50 @@ export const saveFileMetadata = mutation({
   },
 });
 
+export async function listFilesHandler(
+  ctx: QueryCtx,
+  args: {
+    filter?: FileFilter;
+    paginationOpts: { numItems: number; cursor: string | null };
+  },
+) {
+  const user = await getCurrentUser(ctx);
+  const filter = args.filter ?? "all";
+  const result = await ctx.db
+    .query("uploadedFiles")
+    .withIndex("by_user_and_uploadedAt", (q) => q.eq("userId", user._id))
+    .order("desc")
+    .paginate(args.paginationOpts);
+  return {
+    page: result.page.filter((row) => matchesFilter(row, filter)).map(toApi),
+    isDone: result.isDone,
+    continueCursor: result.continueCursor,
+  };
+}
+
 export const listFiles = query({
   args: {
     filter: v.optional(filterValidator),
-    limit: v.optional(v.number()),
+    paginationOpts: paginationOptsValidator,
   },
-  returns: v.array(fileApi),
-  handler: async (ctx, args) => {
+  returns: v.object({
+    page: v.array(fileApi),
+    isDone: v.boolean(),
+    continueCursor: v.string(),
+  }),
+  handler: listFilesHandler,
+});
+
+export const hasAnyFiles = query({
+  args: {},
+  returns: v.boolean(),
+  handler: async (ctx) => {
     const user = await getCurrentUser(ctx);
-    const filter = args.filter ?? "all";
-    const limit = Math.min(Math.max(args.limit ?? LIBRARY_TAKE, 1), LIBRARY_TAKE);
-    const rows = await ctx.db
+    const row = await ctx.db
       .query("uploadedFiles")
-      .withIndex("by_user_and_uploadedAt", (q) => q.eq("userId", user._id))
-      .order("desc")
-      .take(LIBRARY_TAKE);
-    return rows.filter((row) => matchesFilter(row, filter)).slice(0, limit).map(toApi);
+      .withIndex("by_user", (q) => q.eq("userId", user._id))
+      .first();
+    return row !== null;
   },
 });
 

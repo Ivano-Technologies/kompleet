@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { SkipToContent } from "@/components/a11y/SkipToContent";
+import { CompanyLegalNotice } from "@/components/legal/CompanyLegalNotice";
+
+const PRIVACY_LINK = "text-primary underline underline-offset-2";
 
 export const metadata: Metadata = {
   title: "Kompleet: Privacy Policy",
@@ -11,10 +15,11 @@ export const metadata: Metadata = {
 export default function PrivacyPage() {
   return (
     <div data-marketing className="min-h-screen bg-bg dark:bg-dark-bg py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
+      <SkipToContent />
+      <main id="main-content" className="max-w-4xl mx-auto">
         <Link
           href="/"
-          className="text-sm text-primary hover:underline dark:text-dark-text-2 mb-6 inline-block"
+          className={`mb-6 inline-flex min-h-11 items-center text-sm ${PRIVACY_LINK} dark:text-dark-text-2`}
         >
           &larr; Back to Home
         </Link>
@@ -23,8 +28,10 @@ export default function PrivacyPage() {
             Privacy Policy
           </h1>
         <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-8">
-          Last updated: February 25, 2026. Effective date: February 25, 2026.
+          Last updated: 10 November 2026. Effective date: February 25, 2026.
         </p>
+
+        <CompanyLegalNotice page="privacy" />
 
         <div className="prose prose-lg max-w-none">
           <section className="mb-8">
@@ -155,8 +162,7 @@ export default function PrivacyPage() {
               </li>
             </ul>
             <p className="text-light-text-secondary dark:text-dark-text-secondary">
-              Your data is stored on secure servers provided by Supabase in the
-              EU (Ireland). We do not claim Nigerian data residency. We may use
+              We do not claim Nigerian data residency. We may use
               third-party OCR and document processing services to extract data
               from uploaded documents; such processors are bound by appropriate
               data protection terms.
@@ -232,7 +238,7 @@ export default function PrivacyPage() {
               To exercise any of these rights, please contact us at{" "}
               <a
                 href="mailto:support@ivanotechnologies.com"
-                className="text-primary hover:underline"
+                className={`inline-flex min-h-11 items-center ${PRIVACY_LINK}`}
               >
                 support@ivanotechnologies.com
               </a>
@@ -290,10 +296,6 @@ export default function PrivacyPage() {
             <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
               <li>
                 <strong>Google OAuth:</strong> For authentication services
-              </li>
-              <li>
-                <strong>Supabase:</strong> For database, authentication, and
-                cloud storage
               </li>
               <li>
                 <strong>OCR / document processing:</strong> To extract data from
@@ -361,17 +363,17 @@ export default function PrivacyPage() {
                 Email:{" "}
                 <a
                   href="mailto:support@ivanotechnologies.com"
-                  className="text-primary hover:underline"
-                >
-                  support@ivanotechnologies.com
-                </a>
-              </p>
-              <p className="text-light-text-secondary dark:text-dark-text-secondary mb-2">
-                Website:{" "}
-                <a
-                  href="https://techivano.com"
-                  className="text-primary hover:underline"
-                >
+                className={`inline-flex min-h-11 items-center ${PRIVACY_LINK}`}
+              >
+                support@ivanotechnologies.com
+              </a>
+            </p>
+            <p className="text-light-text-secondary dark:text-dark-text-secondary mb-2">
+              Website:{" "}
+              <a
+                href="https://techivano.com"
+                className={`inline-flex min-h-11 items-center ${PRIVACY_LINK}`}
+              >
                   https://techivano.com
                 </a>
               </p>
@@ -400,7 +402,7 @@ export default function PrivacyPage() {
             </p>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

@@ -12,11 +12,12 @@ tax calculation, receipt OCR, and data export.
 | Spec | Money path | External calls stubbed? |
 | --- | --- | --- |
 | ~~`auth-layout.spec.ts`~~ | Deleted — asserted header/nav/theme toggle `AuthLayout` does not render | — |
-| `auth-flow.spec.ts` | signup → verify prompt → login → protected-route redirects | Supabase `POST /auth/v1/signup` is intercepted so runs never create real accounts |
+| `auth-flow.spec.ts` | signup → verify email → login → protected-route redirects | Isolated Convex; AUTH_E2E_OTP is the secret used to read the stored OTP when Resend is unset |
 | `statement-upload.spec.ts` | CSV bank statement → parse → transactions in the ledger | No — hits `POST /api/transactions/upload-v2` and the real GTBank adapter |
 | `tax-calculation.spec.ts` | PIT calculation → save → calculation history | No — hits `/api/tax-rules`, `/api/calculations/save`, `/api/calculations` |
 | `expense-ocr.spec.ts` | receipt → OCR → prefilled expense → review queue | `POST /api/expenses/ocr` and `POST /api/ai/categorize` are intercepted (Tesseract output is slow and non-deterministic) |
 | `export.spec.ts` | transactions/reports → CSV, XLSX, PDF downloads | No — asserts the real `Content-Disposition` and file magic bytes |
+| `cookie-consent.spec.ts` | cookie banner, stored Decline/Accept, company legal URLs | Opts out of the default stored Decline; asserts gtag.js is never injected without a measurement id |
 
 Fixtures live in `e2e/fixtures/`:
 
@@ -54,6 +55,7 @@ shell. Never add them to a file that is tracked by git.
 The account must be **email-confirmed** — `requireAuth()` in
 `src/app/(dashboard)/layout.tsx` bounces unverified users to `/verify-email`, so
 an unconfirmed user makes every authenticated spec fail on the login step.
+Isolated CI Convex sets `AUTH_E2E_OTP` (8 digits) because Resend is unset. That value is a read secret, not the code: each signup gets a unique OTP (Convex Auth looks codes up by hash) and Playwright reads it from Convex.
 
 `login()` also waits for `POST /api/auth/ensure-profile` so Convex has a
 `users` row (`externalId` = Supabase auth id) before money-path specs hit
@@ -126,6 +128,13 @@ pnpm exec playwright show-report          # open the last HTML report
 
 The `e2e` job in `.github/workflows/ci.yml` installs Chromium and runs
 `pnpm test:e2e` on pushes and pull requests targeting `main` and `dev`.
+It uses Node 22 so the isolated Convex backend can deploy `"use node"`
+actions (IVA-235) and is a required CI gate. Playwright reports are
+retained for 3 days.
+
+Money-path specs seed `kompleet.cookie-consent.v1=denied` in Playwright
+storage so the cookie banner does not intercept bottom-of-page clicks.
+`cookie-consent.spec.ts` uses empty storage to assert first-visit behaviour.
 
 Configure it in **Settings → Secrets and variables → Actions**:
 

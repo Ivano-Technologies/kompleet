@@ -1,8 +1,44 @@
 import { v } from "convex/values";
-import { internalMutation, mutation, query } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
+import type { MutationCtx } from "./_generated/server";
+import { internalMutation, mutation, query } from "./_generated/server";
+import {
+  cursorValidator,
+  listCursorReturns,
+  nextCursorOf,
+  paginationOptsFromArgs,
+} from "./lib/listPage";
 import { getCurrentUser, getUserByExternalId } from "./lib/auth";
+import { throwForbidden } from "./lib/errors";
 import { assertDocumentWorkerToken } from "./lib/workerAuth";
+
+export async function appendHandler(
+  ctx: MutationCtx,
+  args: {
+    action: string;
+    resourceType?: string;
+    entityType?: string;
+    entityId?: string;
+    ipAddress?: string;
+    userAgent?: string;
+    metadata?: unknown;
+  },
+) {
+  const user = await getCurrentUser(ctx);
+  const id = await ctx.db.insert("auditLogs", {
+    userId: user._id,
+    userExternalId: user.externalId,
+    action: args.action,
+    resourceType: args.resourceType,
+    entityType: args.entityType,
+    entityId: args.entityId,
+    ipAddress: args.ipAddress,
+    userAgent: args.userAgent,
+    metadata: args.metadata,
+    createdAt: Date.now(),
+  });
+  return String(id);
+}
 
 export const append = mutation({
   args: {
@@ -15,29 +51,7 @@ export const append = mutation({
     metadata: v.optional(v.any()),
   },
   returns: v.union(v.string(), v.null()),
-  handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) return null;
-    let user;
-    try {
-      user = await getCurrentUser(ctx);
-    } catch {
-      user = null;
-    }
-    const id = await ctx.db.insert("auditLogs", {
-      userId: user?._id,
-      userExternalId: user?.externalId,
-      action: args.action,
-      resourceType: args.resourceType,
-      entityType: args.entityType,
-      entityId: args.entityId,
-      ipAddress: args.ipAddress,
-      userAgent: args.userAgent,
-      metadata: args.metadata,
-      createdAt: Date.now(),
-    });
-    return String(id);
-  },
+  handler: appendHandler,
 });
 
 export const appendForWorker = mutation({
@@ -95,41 +109,56 @@ export const appendInternal = internalMutation({
 });
 
 export const listMine = query({
-  args: {},
-  returns: v.array(v.any()),
-  handler: async (ctx) => {
+  args: {
+    cursor: cursorValidator,
+    limit: v.optional(v.number()),
+  },
+  returns: v.object({
+    logs: v.array(v.any()),
+    ...listCursorReturns,
+  }),
+  handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx);
-    const rows = await ctx.db
+    const result = await ctx.db
       .query("auditLogs")
       .withIndex("by_userExternalId", (q) =>
         q.eq("userExternalId", user.externalId),
       )
-      .collect();
-    rows.sort((a, b) => b.createdAt - a.createdAt);
-    return rows.map((r) => ({
-      id: r._id,
-      user_id: r.userExternalId ?? null,
-      action: r.action,
-      resource_type: r.resourceType ?? null,
-      entity_type: r.entityType ?? null,
-      entity_id: r.entityId ?? null,
-      metadata: r.metadata ?? null,
-      created_at: new Date(r.createdAt).toISOString(),
-    }));
+      .order("desc")
+      .paginate(paginationOptsFromArgs(args));
+    return {
+      logs: result.page.map((r) => ({
+        id: r._id,
+        user_id: r.userExternalId ?? null,
+        action: r.action,
+        resource_type: r.resourceType ?? null,
+        entity_type: r.entityType ?? null,
+        entity_id: r.entityId ?? null,
+        metadata: r.metadata ?? null,
+        created_at: new Date(r.createdAt).toISOString(),
+      })),
+      nextCursor: nextCursorOf(result),
+      isDone: result.isDone,
+    };
   },
 });
+
+export async function removeMineHandler(
+  ctx: MutationCtx,
+  args: { id: Id<"auditLogs"> },
+) {
+  const user = await getCurrentUser(ctx);
+  const row = await ctx.db.get(args.id);
+  if (!row) throw new Error("Audit log not found");
+  const owns =
+    row.userExternalId === user.externalId || row.userId === user._id;
+  if (!owns) throwForbidden();
+  await ctx.db.delete(args.id);
+  return null;
+}
 
 export const removeMine = mutation({
   args: { id: v.id("auditLogs") },
   returns: v.null(),
-  handler: async (ctx, args) => {
-    const user = await getCurrentUser(ctx);
-    const row = await ctx.db.get(args.id as Id<"auditLogs">);
-    if (!row) throw new Error("Audit log not found");
-    if (row.userExternalId !== user.externalId) {
-      throw new Error("Unauthorized");
-    }
-    await ctx.db.delete(args.id);
-    return null;
-  },
+  handler: removeMineHandler,
 });

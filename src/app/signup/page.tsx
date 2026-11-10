@@ -14,16 +14,17 @@ import {
   AUTH_LABEL,
   AUTH_LINK,
   AUTH_SUBMIT,
-  AUTH_SUBTITLE,
   AUTH_SUBTITLE_FOLD,
   AUTH_TERMS,
   AUTH_TITLE,
   AUTH_TITLE_BLOCK,
   AUTH_TRUST,
 } from '@/components/layout/auth-density';
-import { ArrowRight, CheckCircle2, Eye, EyeOff, Shield, Lock } from 'lucide-react';
+import { ArrowRight, Eye, EyeOff, Shield, Lock } from 'lucide-react';
 import { FRIENDLY_MESSAGES, toFriendlyMessage } from '@/lib/friendly-error';
 import { ErrorText } from '@/components/ui/error-ref';
+import { RECLAIM_SIGNUP_NOTE } from '@/lib/auth/copy';
+import { didSignInComplete, verifyEmailPath } from '@/lib/auth/sign-in-result';
 
 function getPasswordStrength(pw: string) {
   const checks = { minLength: pw.length >= 8, hasNumber: /\d/.test(pw) };
@@ -44,7 +45,6 @@ export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
   const strength = getPasswordStrength(password);
   const { signIn } = useAuthActions();
   const router = useRouter();
@@ -67,19 +67,24 @@ export default function SignUpPage() {
 
     try {
       const fullName = `${firstName} ${lastName}`.trim();
-      await signIn('password', {
+      const result = await signIn('password', {
         email: businessEmail,
         password,
         flow: 'signUp',
         name: fullName,
         companyName: businessName,
       });
-      await fetch('/api/auth/ensure-profile', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: businessEmail, fullName }),
-      }).catch(() => {});
-      setSuccess(true);
+      if (didSignInComplete(result)) {
+        await fetch('/api/auth/ensure-profile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: businessEmail, fullName }),
+        }).catch(() => {});
+        router.push('/dashboard');
+        router.refresh();
+        return;
+      }
+      router.push(verifyEmailPath(businessEmail));
       router.refresh();
     } catch (err) {
       const message = toFriendlyMessage(err, FRIENDLY_MESSAGES.fallback, {
@@ -91,25 +96,6 @@ export default function SignUpPage() {
       setLoading(false);
     }
   };
-
-  if (success) {
-    return (
-      <AuthLayout variant="dark-split">
-        <div className="space-y-4 text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-success/10">
-            <CheckCircle2 className="h-6 w-6 text-success dark:text-success-dark" />
-          </div>
-          <h1 className={AUTH_TITLE}>Account Created!</h1>
-          <p className={AUTH_SUBTITLE}>
-            Your account is ready. Existing Kompleet data for this email stays attached.
-          </p>
-          <Link href="/dashboard" className="bg-primary text-white font-bold text-sm py-2.5 px-6 rounded-md block w-full text-center hover:bg-primary-deep transition-colors">
-            Go to Dashboard
-          </Link>
-        </div>
-      </AuthLayout>
-    );
-  }
 
   return (
     <AuthLayout
@@ -133,10 +119,16 @@ export default function SignUpPage() {
         <p className={AUTH_SUBTITLE_FOLD}>
           Track your spending, handle invoices, and avoid surprises.
         </p>
+        <p
+          data-testid="reclaim-note"
+          className="mt-2 text-xs tracking-normal [word-spacing:0.12em] text-text-3 dark:text-dark-text-3"
+        >
+          {RECLAIM_SIGNUP_NOTE}
+        </p>
       </div>
 
       {error && (
-        <div className={AUTH_ERROR}>
+        <div id="signup-error" role="alert" className={AUTH_ERROR}>
           <ErrorText text={error} />
         </div>
       )}
@@ -144,79 +136,100 @@ export default function SignUpPage() {
       <form onSubmit={handleSubmit} className={AUTH_FORM}>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className={AUTH_LABEL}>
+            <label htmlFor="signup-first-name" className={AUTH_LABEL}>
               First Name
             </label>
             <input
+              id="signup-first-name"
               type="text"
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
               required
               placeholder="e.g. Tunde"
+              autoComplete="given-name"
+              aria-invalid={Boolean(error)}
+              aria-describedby={error ? "signup-error" : undefined}
               className={AUTH_INPUT}
             />
           </div>
           <div>
-            <label className={AUTH_LABEL}>
+            <label htmlFor="signup-last-name" className={AUTH_LABEL}>
               Last Name
             </label>
             <input
+              id="signup-last-name"
               type="text"
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
               required
               placeholder="e.g. Balogun"
+              autoComplete="family-name"
+              aria-invalid={Boolean(error)}
+              aria-describedby={error ? "signup-error" : undefined}
               className={AUTH_INPUT}
             />
           </div>
         </div>
 
         <div>
-          <label className={AUTH_LABEL}>
+          <label htmlFor="signup-business-name" className={AUTH_LABEL}>
             Business Name
           </label>
           <input
+            id="signup-business-name"
             type="text"
             value={businessName}
             onChange={(e) => setBusinessName(e.target.value)}
             required
             placeholder="e.g. Tunde Ventures Ltd"
+            autoComplete="organization"
+            aria-invalid={Boolean(error)}
+            aria-describedby={error ? "signup-error" : undefined}
             className={AUTH_INPUT}
           />
         </div>
 
         <div>
-          <label className={AUTH_LABEL}>
+          <label htmlFor="signup-business-email" className={AUTH_LABEL}>
             Business Email
           </label>
           <input
+            id="signup-business-email"
             type="email"
             value={businessEmail}
             onChange={(e) => setBusinessEmail(e.target.value)}
             required
             placeholder="name@company.ng"
+            autoComplete="email"
+            aria-invalid={Boolean(error)}
+            aria-describedby={error ? "signup-error" : undefined}
             className={AUTH_INPUT}
           />
         </div>
 
         <div>
-          <label className={AUTH_LABEL}>
+          <label htmlFor="signup-password" className={AUTH_LABEL}>
             Password
           </label>
           <div className="relative mt-1">
             <input
+              id="signup-password"
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={8}
               placeholder="Minimum 8 characters"
+              autoComplete="new-password"
+              aria-invalid={Boolean(error)}
+              aria-describedby={error ? "signup-error" : undefined}
               className={AUTH_INPUT_WITH_TOGGLE}
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-text-3 hover:text-text-1 dark:text-dark-text-3 dark:hover:text-dark-text-1"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              className="absolute right-0 top-0 flex h-11 w-11 items-center justify-center text-text-3 hover:text-text-1 dark:text-dark-text-3 dark:hover:text-dark-text-1"
             >
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
@@ -241,22 +254,22 @@ export default function SignUpPage() {
           disabled={loading}
           className={AUTH_SUBMIT}
         >
-          {loading ? 'Creating account…' : 'Create Free Account'}
+          {loading ? 'Creating account…' : 'Create account'}
           {!loading && <ArrowRight className="w-4 h-4" />}
         </button>
       </form>
 
       <p className={AUTH_TERMS}>
         By signing up, you agree to our{' '}
-        <Link href="/terms" className={AUTH_LINK}>Terms of Service</Link>
+        <Link href="/terms" className={`${AUTH_LINK} underline underline-offset-2`}>Terms of Service</Link>
         {' '}and{' '}
-        <Link href="/privacy" className={AUTH_LINK}>Privacy Policy</Link>
+        <Link href="/privacy" className={`${AUTH_LINK} underline underline-offset-2`}>Privacy Policy</Link>
       </p>
 
       <div className={AUTH_TRUST}>
         <span className="inline-flex items-center gap-1.5">
           <Shield className="h-3 w-3" />
-          NDPR
+          Encrypted at rest
         </span>
         <span aria-hidden="true">·</span>
         <span className="inline-flex items-center gap-1.5">

@@ -2,7 +2,7 @@
 
 **KOMPLEET** is a financial management platform for Nigerian businesses and individuals, built around the Nigeria Tax Act 2025/2026.
 
-Live: [ivanotechnologies.com](https://ivanotechnologies.com)
+Live: [kompleet.techivano.com](https://kompleet.techivano.com)
 
 ## Overview
 
@@ -25,13 +25,13 @@ Live: [ivanotechnologies.com](https://ivanotechnologies.com)
 
 ## IVA-60 (leave Path B — Auth + Storage on Convex)
 
-Kezie (via CoS, 2026-09-24): keep Convex as the app DB, and move **Auth and Storage** onto Convex. Production `NEXT_PUBLIC_CONVEX_URL` stays **OFF** until Kezie says so.
+Kezie (via CoS, 2026-09-24): keep Convex as the app DB, and move **Auth and Storage** onto Convex. Production `NEXT_PUBLIC_CONVEX_URL` is `https://wooden-toucan-837.convex.cloud` (prod, since IVA-183 on 17 Oct 2026). Preview and Development use `shiny-cricket-316`.
 
 - Web auth: `@convex-dev/auth` Password provider. See [docs/convex-auth-storage.md](docs/convex-auth-storage.md).
 - Identity remap: existing Convex `users` rows are linked **by email**. `supabaseUserId` / old `externalId` stay as migration aids.
 - Existing passwords **cannot** be ported. The ~5 live users sign up again with the **same email** (new password) to reclaim transactions.
 - File uploads write to Convex storage. Supabase buckets had 0 objects — backfill skipped (`scripts/backfill-supabase-storage-to-convex.mjs`).
-- Do **not** tear down the Supabase project. Do **not** set Production `NEXT_PUBLIC_CONVEX_URL`. Do **not** run `npx convex deploy` except for production.
+- Do **not** tear down the Supabase project. Do **not** run `npx convex deploy` except for production.
 
 ## Setup
 
@@ -115,8 +115,9 @@ kompleet-platform/
 
 ## Development vs production Convex
 
-- Development: `npx convex dev` (or `CONVEX_AGENT_MODE=anonymous` for cloud agents)
-- Production only: `npx convex deploy` — never use this to “try it out”
+- Development / Preview: `shiny-cricket-316` via `npx convex dev` (or `CONVEX_AGENT_MODE=anonymous` for cloud agents)
+- Production: `wooden-toucan-837` (`https://wooden-toucan-837.convex.cloud`). Prod deploys only with Kezie's OK.
+- The Vercel build (`pnpm build`) does not run `convex deploy`; each promote that touches `convex/` needs a manual prod deploy. Never use `npx convex deploy` to “try it out”.
 
 ## Testing
 

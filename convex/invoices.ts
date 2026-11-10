@@ -1,5 +1,6 @@
 import { ConvexError, v } from "convex/values";
-import { mutation, query, type MutationCtx } from "./_generated/server";
+import type { Doc, Id } from "./_generated/dataModel";
+import { mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
 import { getCurrentUser, userCanAccessClient } from "./lib/auth";
 import {
   hasLineItems,
@@ -8,11 +9,32 @@ import {
   priceInvoiceLines,
 } from "./lib/invoiceAmounts";
 import {
+  allocateNextInvoiceNumber,
+  assertInvoiceNumberAvailable,
+} from "./lib/invoiceNumbers";
+import {
+  assertCanArchive,
+  assertCanCancel,
+  assertCanMarkPaid,
+  assertNotLocked,
+  isLockedInvoice,
+  resolvePaidOn,
+} from "./lib/invoiceStatus";
+import {
   ADD_ITEM_BEFORE_ISSUE,
   ALREADY_ISSUED,
+  CANCEL_REASON_REQUIRED,
+  FORBIDDEN,
+  FORBIDDEN_MESSAGE,
   STATUS_VIA_UPDATE,
 } from "./lib/lineAmounts";
 import { newExternalId } from "./lib/ids";
+import {
+  cursorValidator,
+  listCursorReturns,
+  nextCursorOf,
+  paginationOptsFromArgs,
+} from "./lib/listPage";
 import {
   customerInfoFromParty,
   loadBusinessProfile,
@@ -39,6 +61,12 @@ const invoiceApi = v.object({
   status: v.string(),
   notes: v.union(v.string(), v.null()),
   is_immutable: v.boolean(),
+  paid_at: v.union(v.string(), v.null()),
+  paid_on: v.union(v.string(), v.null()),
+  paid_note: v.union(v.string(), v.null()),
+  paid_method: v.union(v.string(), v.null()),
+  cancelled_at: v.union(v.string(), v.null()),
+  cancel_reason: v.union(v.string(), v.null()),
   created_at: v.string(),
   updated_at: v.string(),
 });
@@ -63,6 +91,12 @@ function toApi(
     status: string;
     notes?: string;
     isImmutable: boolean;
+    paidAt?: number;
+    paidOn?: string;
+    paidNote?: string;
+    paidMethod?: string;
+    cancelledAt?: number;
+    cancelReason?: string;
     createdAt: number;
     updatedAt: number;
   },
@@ -87,6 +121,14 @@ function toApi(
     status: row.status,
     notes: row.notes ?? null,
     is_immutable: row.isImmutable,
+    paid_at: row.paidAt ? new Date(row.paidAt).toISOString() : null,
+    paid_on: row.paidOn ?? null,
+    paid_note: row.paidNote ?? null,
+    paid_method: row.paidMethod ?? null,
+    cancelled_at: row.cancelledAt
+      ? new Date(row.cancelledAt).toISOString()
+      : null,
+    cancel_reason: row.cancelReason ?? null,
     created_at: new Date(row.createdAt).toISOString(),
     updated_at: new Date(row.updatedAt).toISOString(),
   };
@@ -114,12 +156,22 @@ async function hydrateInvoice(
     status: string;
     notes?: string;
     isImmutable: boolean;
+    paidAt?: number;
+    paidOn?: string;
+    paidNote?: string;
+    paidMethod?: string;
+    cancelledAt?: number;
+    cancelReason?: string;
     createdAt: number;
     updatedAt: number;
   },
   user: Awaited<ReturnType<typeof getCurrentUser>>,
 ) {
-  const issued = row.isImmutable || row.status === "issued" || row.status === "paid";
+  const issued =
+    isLockedInvoice(row) ||
+    row.status === "issued" ||
+    row.status === "paid" ||
+    row.status === "cancelled";
   if (issued) {
     return toApi(row, {
       customerInfo: row.customerInfo,
@@ -141,29 +193,54 @@ async function hydrateInvoice(
   return toApi(row, { customerInfo, sender });
 }
 
+export async function listMineHandler(
+  ctx: QueryCtx,
+  args: {
+    status?: string;
+    taxYear?: number;
+    cursor?: string | null;
+    limit?: number;
+  },
+) {
+  const user = await getCurrentUser(ctx);
+  const paginationOpts = paginationOptsFromArgs(args);
+  const indexed = args.status
+    ? ctx.db
+        .query("invoices")
+        .withIndex("by_user_and_status", (q) =>
+          q.eq("userId", user._id).eq("status", args.status!),
+        )
+    : ctx.db
+        .query("invoices")
+        .withIndex("by_user", (q) => q.eq("userId", user._id));
+  const filtered =
+    args.taxYear !== undefined
+      ? indexed.filter((q) => q.eq(q.field("taxYear"), args.taxYear))
+      : indexed;
+  const result = await filtered.order("desc").paginate(paginationOpts);
+  const invoices = [];
+  for (const row of result.page) {
+    invoices.push(await hydrateInvoice(ctx, row, user));
+  }
+  return {
+    invoices,
+    nextCursor: nextCursorOf(result),
+    isDone: result.isDone,
+  };
+}
+
 export const listMine = query({
   args: {
     status: v.optional(v.string()),
     taxYear: v.optional(v.number()),
+    cursor: cursorValidator,
+    limit: v.optional(v.number()),
   },
-  returns: v.array(invoiceApi),
-  handler: async (ctx, args) => {
-    const user = await getCurrentUser(ctx);
-    const rows = await ctx.db
-      .query("invoices")
-      .withIndex("by_user", (q) => q.eq("userId", user._id))
-      .collect();
-    const filtered = rows.filter((r) => {
-      if (args.status && r.status !== args.status) return false;
-      if (args.taxYear !== undefined && r.taxYear !== args.taxYear) return false;
-      return true;
-    });
-    const out = [];
-    for (const row of filtered) {
-      out.push(await hydrateInvoice(ctx, row, user));
-    }
-    return out;
-  },
+  returns: v.object({
+    invoices: v.array(invoiceApi),
+    ...listCursorReturns,
+  }),
+  handler: listMineHandler,
 });
 
 export const getMine = query({
@@ -180,32 +257,63 @@ export const getMine = query({
   },
 });
 
+async function loadOwnedInvoice(
+  ctx: MutationCtx,
+  externalId: string,
+  user: Doc<"users">,
+) {
+  const row = await ctx.db
+    .query("invoices")
+    .withIndex("by_externalId", (q) => q.eq("externalId", externalId))
+    .unique();
+  if (!row) throw new Error("Invoice not found");
+  if (row.userId !== user._id) {
+    throw new ConvexError({ code: FORBIDDEN, message: FORBIDDEN_MESSAGE });
+  }
+  return row;
+}
+
+async function writeStatusAudit(
+  ctx: MutationCtx,
+  args: {
+    invoiceId: Id<"invoices">;
+    clientId?: Id<"clients">;
+    userId: Id<"users">;
+    action: string;
+    from: string;
+    to: string;
+    createdAt: number;
+    details?: Record<string, unknown>;
+  },
+) {
+  await ctx.db.insert("invoiceAuditLogs", {
+    invoiceId: args.invoiceId,
+    clientId: args.clientId,
+    userId: args.userId,
+    action: args.action,
+    details: { from: args.from, to: args.to, ...args.details },
+    createdAt: args.createdAt,
+  });
+}
+
+export async function nextNumberHandler(
+  ctx: MutationCtx,
+  args: { clientExternalId?: string; taxYear: number },
+) {
+  const user = await getCurrentUser(ctx);
+  // clientExternalId is ignored: sequences are owner-scoped so one seller
+  // cannot bump another seller's counter.
+  void args.clientExternalId;
+  return await allocateNextInvoiceNumber(ctx, user._id, args.taxYear);
+}
+
 export const nextNumber = mutation({
   args: {
     clientExternalId: v.optional(v.string()),
     taxYear: v.number(),
   },
   returns: v.string(),
-  handler: async (ctx, args) => {
-    await getCurrentUser(ctx);
-    const existing = await ctx.db
-      .query("invoiceSequences")
-      .withIndex("by_client_and_year", (q) =>
-        q.eq("clientExternalId", args.clientExternalId).eq("taxYear", args.taxYear),
-      )
-      .unique();
-    const next = (existing?.nextNumber ?? 1);
-    if (existing) {
-      await ctx.db.patch(existing._id, { nextNumber: next + 1 });
-    } else {
-      await ctx.db.insert("invoiceSequences", {
-        clientExternalId: args.clientExternalId,
-        taxYear: args.taxYear,
-        nextNumber: next + 1,
-      });
-    }
-    return `INV-${args.taxYear}-${String(next).padStart(4, "0")}`;
-  },
+  handler: nextNumberHandler,
 });
 
 type CreateMineArgs = {
@@ -260,29 +368,9 @@ export async function createMineHandler(ctx: MutationCtx, args: CreateMineArgs) 
     }
   }
   const year = args.taxYear ?? new Date().getFullYear();
-  const invoiceNumber =
-    args.invoiceNumber ??
-    (await (async () => {
-      const existing = await ctx.db
-        .query("invoiceSequences")
-        .withIndex("by_client_and_year", (q) =>
-          q
-            .eq("clientExternalId", args.clientExternalId)
-            .eq("taxYear", year),
-        )
-        .unique();
-      const next = existing?.nextNumber ?? 1;
-      if (existing) {
-        await ctx.db.patch(existing._id, { nextNumber: next + 1 });
-      } else {
-        await ctx.db.insert("invoiceSequences", {
-          clientExternalId: args.clientExternalId,
-          taxYear: year,
-          nextNumber: next + 1,
-        });
-      }
-      return `INV-${year}-${String(next).padStart(4, "0")}`;
-    })());
+  const invoiceNumber = args.invoiceNumber
+    ? await assertInvoiceNumberAvailable(ctx, user._id, args.invoiceNumber)
+    : await allocateNextInvoiceNumber(ctx, user._id, year);
   const now = Date.now();
   const externalId = newExternalId();
   await ctx.db.insert("invoices", {
@@ -298,7 +386,7 @@ export async function createMineHandler(ctx: MutationCtx, args: CreateMineArgs) 
     taxYear: year,
     customerInfo: args.customerInfo,
     ...amountFields,
-    status: args.status ?? "draft",
+    status: "draft",
     notes: args.notes,
     isImmutable: false,
     createdAt: now,
@@ -346,16 +434,21 @@ type UpdateMineArgs = {
 
 export async function updateMineHandler(ctx: MutationCtx, args: UpdateMineArgs) {
   const user = await getCurrentUser(ctx);
-  const row = await ctx.db
-    .query("invoices")
-    .withIndex("by_externalId", (q) => q.eq("externalId", args.externalId))
-    .unique();
-  if (!row || row.userId !== user._id) throw new Error("Invoice not found");
-  if (row.isImmutable) throw new Error("Invoice is immutable");
+  const row = await loadOwnedInvoice(ctx, args.externalId, user);
+  assertNotLocked(row);
   const patch = (args.patch ?? {}) as Record<string, unknown>;
   // Status transitions to issued (or any other status) only go through issueMine.
   if ("status" in patch) {
     throw new ConvexError(STATUS_VIA_UPDATE);
+  }
+  let invoiceNumber = row.invoiceNumber;
+  if (typeof patch.invoiceNumber === "string") {
+    invoiceNumber = await assertInvoiceNumberAvailable(
+      ctx,
+      user._id,
+      patch.invoiceNumber,
+      row._id,
+    );
   }
   // IVA-190: only reprice when the patch includes lines. Title, notes and
   // client edits leave stored totals alone, including empty-line drafts.
@@ -402,6 +495,7 @@ export async function updateMineHandler(ctx: MutationCtx, args: UpdateMineArgs) 
   await ctx.db.patch(row._id, {
     notes: typeof patch.notes === "string" ? patch.notes : row.notes,
     title: typeof patch.title === "string" ? patch.title : row.title,
+    invoiceNumber,
     clientId,
     clientExternalId,
     customerInfo,
@@ -419,6 +513,7 @@ export const updateMine = mutation({
     patch: v.object({
       title: v.optional(v.string()),
       notes: v.optional(v.string()),
+      invoiceNumber: v.optional(v.string()),
       clientExternalId: v.optional(v.union(v.string(), v.null())),
       lineItems: v.optional(v.any()),
       line_items: v.optional(v.any()),
@@ -433,14 +528,19 @@ export async function issueMineHandler(
   args: { externalId: string },
 ) {
   const user = await getCurrentUser(ctx);
-  const row = await ctx.db
-    .query("invoices")
-    .withIndex("by_externalId", (q) => q.eq("externalId", args.externalId))
-    .unique();
-  if (!row || row.userId !== user._id) throw new Error("Invoice not found");
+  const row = await loadOwnedInvoice(ctx, args.externalId, user);
   if (row.isImmutable || row.status === "issued" || row.status === "paid") {
     throw new ConvexError(ALREADY_ISSUED);
   }
+  if (row.status === "cancelled") {
+    throw new ConvexError(ALREADY_ISSUED);
+  }
+  await assertInvoiceNumberAvailable(
+    ctx,
+    user._id,
+    row.invoiceNumber,
+    row._id,
+  );
 
   if (!row.clientId) {
     throw new Error("Select a client before issuing");
@@ -463,6 +563,7 @@ export async function issueMineHandler(
   const customerInfo = customerInfoFromParty(partyFromClient(client));
   const priced = priceInvoiceLines(row.lineItems);
   const now = Date.now();
+  const fromStatus = row.status;
   await ctx.db.patch(row._id, {
     status: "issued",
     isImmutable: true,
@@ -477,17 +578,122 @@ export async function issueMineHandler(
     totalAmount: priced.totalAmount,
     amountDue: priced.totalAmount,
   });
-  await ctx.db.insert("invoiceAuditLogs", {
+  await writeStatusAudit(ctx, {
     invoiceId: row._id,
     clientId: row.clientId,
     userId: user._id,
     action: "issue",
+    from: fromStatus,
+    to: "issued",
     createdAt: now,
   });
   const updated = await ctx.db.get(row._id);
   if (!updated) throw new Error("Invoice not found");
   return await hydrateInvoice(ctx, updated, user);
 }
+
+type MarkPaidArgs = {
+  externalId: string;
+  paidOn?: string;
+  note?: string;
+  method?: string;
+};
+
+export async function markPaidMineHandler(ctx: MutationCtx, args: MarkPaidArgs) {
+  const user = await getCurrentUser(ctx);
+  const row = await loadOwnedInvoice(ctx, args.externalId, user);
+  assertCanMarkPaid(row);
+  const paid = resolvePaidOn(args.paidOn);
+  const note = args.note?.trim() || undefined;
+  const method = args.method?.trim() || undefined;
+  const now = Date.now();
+  const fromStatus = row.status;
+  await ctx.db.patch(row._id, {
+    status: "paid",
+    isImmutable: true,
+    paidAt: paid.paidAt,
+    paidOn: paid.paidOn,
+    paidNote: note,
+    paidMethod: method,
+    amountDue: 0,
+    updatedAt: now,
+  });
+  await writeStatusAudit(ctx, {
+    invoiceId: row._id,
+    clientId: row.clientId,
+    userId: user._id,
+    action: "paid",
+    from: fromStatus,
+    to: "paid",
+    createdAt: now,
+    details: {
+      paidAt: paid.paidAt,
+      paidOn: paid.paidOn,
+      note,
+      method,
+    },
+  });
+  const updated = await ctx.db.get(row._id);
+  if (!updated) throw new Error("Invoice not found");
+  return await hydrateInvoice(ctx, updated, user);
+}
+
+export const markPaidMine = mutation({
+  args: {
+    externalId: v.string(),
+    paidOn: v.optional(v.string()),
+    note: v.optional(v.string()),
+    method: v.optional(v.string()),
+  },
+  returns: invoiceApi,
+  handler: markPaidMineHandler,
+});
+
+type CancelMineArgs = {
+  externalId: string;
+  reason: string;
+};
+
+export async function cancelMineHandler(ctx: MutationCtx, args: CancelMineArgs) {
+  const user = await getCurrentUser(ctx);
+  const row = await loadOwnedInvoice(ctx, args.externalId, user);
+  assertCanCancel(row);
+  const reason = args.reason.trim();
+  if (!reason) {
+    throw new ConvexError(CANCEL_REASON_REQUIRED);
+  }
+  const now = Date.now();
+  const fromStatus = row.status;
+  await ctx.db.patch(row._id, {
+    status: "cancelled",
+    isImmutable: true,
+    cancelledAt: now,
+    cancelReason: reason,
+    updatedAt: now,
+  });
+  await writeStatusAudit(ctx, {
+    invoiceId: row._id,
+    clientId: row.clientId,
+    userId: user._id,
+    action: "cancelled",
+    from: fromStatus,
+    to: "cancelled",
+    createdAt: now,
+    details: { reason },
+  });
+  const updated = await ctx.db.get(row._id);
+  if (!updated) throw new Error("Invoice not found");
+  return await hydrateInvoice(ctx, updated, user);
+}
+
+export const cancelMine = mutation({
+  args: {
+    externalId: v.string(),
+    reason: v.string(),
+  },
+  returns: invoiceApi,
+  handler: cancelMineHandler,
+});
 
 export const issueMine = mutation({
   args: { externalId: v.string() },
@@ -500,12 +706,8 @@ export const removeMine = mutation({
   returns: v.null(),
   handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx);
-    const row = await ctx.db
-      .query("invoices")
-      .withIndex("by_externalId", (q) => q.eq("externalId", args.externalId))
-      .unique();
-    if (!row || row.userId !== user._id) throw new Error("Invoice not found");
-    if (row.isImmutable || row.status !== "draft") {
+    const row = await loadOwnedInvoice(ctx, args.externalId, user);
+    if (isLockedInvoice(row) || row.status !== "draft") {
       throw new Error("Only draft invoices can be deleted");
     }
     await ctx.db.delete(row._id);
@@ -546,6 +748,54 @@ export const getSigningKeys = query({
   },
 });
 
+type ArchiveMineArgs = {
+  externalId: string;
+  reason?: string;
+};
+
+export async function archiveMineHandler(
+  ctx: MutationCtx,
+  args: ArchiveMineArgs,
+) {
+  const user = await getCurrentUser(ctx);
+  const row = await loadOwnedInvoice(ctx, args.externalId, user);
+  assertCanArchive(row);
+  const existing = await ctx.db
+    .query("invoiceArchives")
+    .withIndex("by_invoice", (q) => q.eq("invoiceId", row._id))
+    .first();
+  if (existing) {
+    return { success: true, archive_id: existing.externalId };
+  }
+  const now = Date.now();
+  const externalId = newExternalId();
+  await ctx.db.insert("invoiceArchives", {
+    externalId,
+    invoiceId: row._id,
+    clientId: row.clientId,
+    snapshot: {
+      invoice: toApi(row),
+      reason: args.reason ?? "Manual archive",
+      archivedAt: now,
+    },
+    createdAt: now,
+  });
+  await ctx.db.patch(row._id, {
+    status: "archived",
+    isImmutable: true,
+    updatedAt: now,
+  });
+  await ctx.db.insert("invoiceAuditLogs", {
+    invoiceId: row._id,
+    clientId: row.clientId,
+    userId: user._id,
+    action: "archived",
+    details: { reason: args.reason ?? "Manual archive" },
+    createdAt: now,
+  });
+  return { success: true, archive_id: externalId };
+}
+
 export const archiveMine = mutation({
   args: {
     externalId: v.string(),
@@ -555,48 +805,7 @@ export const archiveMine = mutation({
     success: v.boolean(),
     archive_id: v.union(v.string(), v.null()),
   }),
-  handler: async (ctx, args) => {
-    const user = await getCurrentUser(ctx);
-    const row = await ctx.db
-      .query("invoices")
-      .withIndex("by_externalId", (q) => q.eq("externalId", args.externalId))
-      .unique();
-    if (!row || row.userId !== user._id) throw new Error("Invoice not found");
-    const existing = await ctx.db
-      .query("invoiceArchives")
-      .withIndex("by_invoice", (q) => q.eq("invoiceId", row._id))
-      .first();
-    if (existing) {
-      return { success: true, archive_id: existing.externalId };
-    }
-    const now = Date.now();
-    const externalId = newExternalId();
-    await ctx.db.insert("invoiceArchives", {
-      externalId,
-      invoiceId: row._id,
-      clientId: row.clientId,
-      snapshot: {
-        invoice: toApi(row),
-        reason: args.reason ?? "Manual archive",
-        archivedAt: now,
-      },
-      createdAt: now,
-    });
-    await ctx.db.patch(row._id, {
-      status: "archived",
-      isImmutable: true,
-      updatedAt: now,
-    });
-    await ctx.db.insert("invoiceAuditLogs", {
-      invoiceId: row._id,
-      clientId: row.clientId,
-      userId: user._id,
-      action: "archived",
-      details: { reason: args.reason ?? "Manual archive" },
-      createdAt: now,
-    });
-    return { success: true, archive_id: externalId };
-  },
+  handler: archiveMineHandler,
 });
 
 export const getArchiveMine = query({
@@ -620,34 +829,45 @@ export const getArchiveMine = query({
 });
 
 export const listArchivesMine = query({
-  args: {},
-  returns: v.array(
-    v.object({
-      id: v.string(),
-      created_at: v.string(),
-      snapshot: v.any(),
-    }),
-  ),
-  handler: async (ctx) => {
+  args: {
+    cursor: cursorValidator,
+    limit: v.optional(v.number()),
+  },
+  returns: v.object({
+    archives: v.array(
+      v.object({
+        id: v.string(),
+        created_at: v.string(),
+        snapshot: v.any(),
+      }),
+    ),
+    ...listCursorReturns,
+  }),
+  handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx);
-    const invoices = await ctx.db
+    const result = await ctx.db
       .query("invoices")
       .withIndex("by_user", (q) => q.eq("userId", user._id))
-      .collect();
-    const out = [];
-    for (const invoice of invoices) {
+      .order("desc")
+      .paginate(paginationOptsFromArgs(args));
+    const archives = [];
+    for (const invoice of result.page) {
       const archive = await ctx.db
         .query("invoiceArchives")
         .withIndex("by_invoice", (q) => q.eq("invoiceId", invoice._id))
         .first();
       if (!archive) continue;
-      out.push({
+      archives.push({
         id: archive.externalId,
         created_at: new Date(archive.createdAt).toISOString(),
         snapshot: archive.snapshot,
       });
     }
-    return out;
+    return {
+      archives,
+      nextCursor: nextCursorOf(result),
+      isDone: result.isDone,
+    };
   },
 });
 

@@ -6,14 +6,19 @@ on:
   push:
     branches: [main, dev]
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 env:
   NODE_OPTIONS: --max-old-space-size=4096
 
 jobs:
-  # This repository is PUBLIC by deliberate choice. Any credential that reaches
-  # a commit is world-readable within seconds, so secret scanning blocks the
-  # pipeline ahead of every other job.
-  secrets:
+  # Job id must not be `secrets` — that name is reserved (same as the secrets
+  # context) and GitHub can skip the job entirely. `build` used to `needs:
+  # secrets`, so when secret-scan never started, build never started either.
+  # Jobs are independent so a scheduler drop of one does not skip the rest.
+  secret_scan:
     name: secret-scan
     runs-on: ubuntu-latest
     steps:
@@ -76,7 +81,6 @@ jobs:
 
   build:
     name: build
-    needs: secrets
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
@@ -199,14 +203,13 @@ jobs:
 
   e2e:
     name: e2e
-    # Advisory only. A red Playwright job was blocking the keep-alive
-    # production fix (two free-tier pauses). The unit suite is the gate
-    # (RLS-negative retired with the supabase/ tree in IVA-64 Phase 5).
-    # Revisit when there is a stable seeded test environment. Do not
-    # delete specs — the passing tests still cover route protection.
-    continue-on-error: true
+    # IVA-235: Node 22 is required so isolated Convex can deploy "use node"
+    # actions. This job is a required gate (not advisory).
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    permissions:
+      contents: read
+      actions: write
     env:
       CI: "true"
       NODE_OPTIONS: --max-old-space-size=4096
@@ -217,7 +220,10 @@ jobs:
 
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
-          node-version: 20
+          # IVA-235: Convex local backend needs Node 22 or 24 for "use node"
+          # actions (convex/backfill.ts). Node 20 fails provision with
+          # DeploymentNotConfiguredForNodeActions.
+          node-version: 22
           cache: pnpm
 
       - name: Cache pnpm store
@@ -276,6 +282,31 @@ jobs:
           NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000' }}
           # Set by the provision step (GITHUB_ENV) or the repo variable.
           NEXT_PUBLIC_CONVEX_URL: ${{ env.NEXT_PUBLIC_CONVEX_URL || vars.NEXT_PUBLIC_CONVEX_URL }}
+          # Isolated Convex has no Resend key. Read secret for stored OTPs;
+          # must match scripts/ci-provision-convex.sh. Not the verification code.
+          AUTH_E2E_OTP: "42424242"
+
+      - name: Prune old Playwright report artifacts
+        if: always()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # IVA-235: GitHub Actions artifact quota was full on main@2f9df16.
+          ids="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/actions/artifacts" \
+            --jq '.artifacts[] | select(.name | startswith("playwright-report-")) | .id' || true)"
+          if [[ -z "${ids}" ]]; then
+            echo "No playwright-report artifacts to prune"
+            exit 0
+          fi
+          count=0
+          while IFS= read -r id; do
+            [[ -z "${id}" ]] && continue
+            gh api -X DELETE "repos/${GITHUB_REPOSITORY}/actions/artifacts/${id}" >/dev/null
+            count=$((count + 1))
+          done <<< "${ids}"
+          echo "Deleted ${count} old Playwright report artifacts"
 
       - name: Upload Playwright report
         if: always()
@@ -286,5 +317,5 @@ jobs:
           path: |
             playwright-report/
             test-results/
-          retention-days: 7
+          retention-days: 3
           if-no-files-found: ignore

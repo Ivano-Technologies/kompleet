@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { api } from "@/lib/convex/http";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 import { apiErrorBody } from "@/lib/friendly-error";
+import { withRateLimit } from "@/lib/with-rate-limit";
 
 async function handlePOST(request: NextRequest) {
   try {
@@ -24,4 +25,4 @@ async function handlePOST(request: NextRequest) {
   }
 }
 
-export const POST = handlePOST;
+export const POST = withRateLimit(handlePOST, { limit: 20 });

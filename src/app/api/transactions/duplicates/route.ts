@@ -9,6 +9,7 @@ import { withRateLimit } from "@/lib/with-rate-limit";
 import { api } from "@/lib/convex/http";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 import { apiErrorBody } from "@/lib/friendly-error";
+import { collectPagedItems, EXPORT_BATCH } from "@/lib/convex/collect-pages";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -18,9 +19,18 @@ async function handleGET(request: NextRequest): Promise<Response> {
     const { convex } = await requireAuthedConvex(request);
 
     const sessionId = request.nextUrl.searchParams.get("sessionId");
-    const duplicates = await convex.query(api.imports.listDuplicates, {
-      sessionExternalId: sessionId ?? undefined,
-      status: "pending",
+    const duplicates = await collectPagedItems(async (cursor) => {
+      const page = await convex.query(api.imports.listDuplicates, {
+        sessionExternalId: sessionId ?? undefined,
+        status: "pending",
+        cursor,
+        limit: EXPORT_BATCH,
+      });
+      return {
+        items: page.duplicates,
+        isDone: page.isDone,
+        nextCursor: page.nextCursor,
+      };
     });
 
     return NextResponse.json({

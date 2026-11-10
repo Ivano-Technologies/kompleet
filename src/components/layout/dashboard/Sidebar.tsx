@@ -221,7 +221,6 @@ export function Sidebar({
             <p className="text-sm font-semibold text-white truncate">
               {userEmail || "User"}
             </p>
-            <p className="text-xs text-white/35">Free Beta</p>
           </div>
         </Link>
 

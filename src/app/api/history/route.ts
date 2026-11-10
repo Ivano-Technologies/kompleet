@@ -3,6 +3,7 @@ import { withRateLimit } from "@/lib/with-rate-limit";
 import { api } from "@/lib/convex/http";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 import { apiErrorBody } from "@/lib/friendly-error";
+import { collectPagedItems, EXPORT_BATCH } from "@/lib/convex/collect-pages";
 
 async function handleGET(request: NextRequest) {
   try {
@@ -15,7 +16,19 @@ async function handleGET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "20", 10);
     const offset = parseInt(searchParams.get("offset") || "0", 10);
 
-    const logs = await convex.query(api.audit.listMine, {});
+    const logs = await collectPagedItems(
+      async (cursor) => {
+        const page = await convex.query(api.audit.listMine, {
+          cursor,
+          limit: EXPORT_BATCH,
+        });
+        return {
+          items: page.logs,
+          isDone: page.isDone,
+          nextCursor: page.nextCursor,
+        };
+      },
+    );
     let filtered = logs.filter((item) => {
       const meta =
         item.metadata && typeof item.metadata === "object"

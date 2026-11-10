@@ -6,8 +6,9 @@ import {
 } from "@/lib/convex/server";
 import { uploadToConvexStorage } from "@/lib/convex/store-file";
 import { apiErrorBody } from "@/lib/friendly-error";
+import { withRateLimit } from "@/lib/with-rate-limit";
 
-export async function POST(request: NextRequest) {
+async function handlePOST(request: NextRequest) {
   try {
     const { convex } = await requireAuthedConvex(request);
     const formData = await request.formData();
@@ -38,3 +39,5 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ...apiErrorBody("Failed to upload avatar") }, { status: 500 });
   }
 }
+
+export const POST = withRateLimit(handlePOST, { limit: 10 });

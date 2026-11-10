@@ -34,7 +34,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .then(async (res) => {
         if (!res.ok) return;
         const body = (await res.json()) as {
-          profile?: { id: string; email: string; full_name: string | null; company_name: string | null };
+          profile?: {
+            id: string;
+            email: string;
+            full_name: string | null;
+            company_name: string | null;
+            platform_role?: string | null;
+          };
         };
         if (body.profile) {
           const { profileToCompatUser } = await import("@/lib/auth/compat-user");

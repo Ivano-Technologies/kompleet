@@ -4,8 +4,18 @@ import {
   internalQuery,
   mutation,
   query,
+  type MutationCtx,
+  type QueryCtx,
 } from "./_generated/server";
-import { getCurrentUser, getCurrentUserOrNull, supabaseSubject } from "./lib/auth";
+import {
+  getCurrentUser,
+  getCurrentUserOrNull,
+  isPlatformAdmin,
+  platformRoleOf,
+  supabaseSubject,
+} from "./lib/auth";
+import { throwForbidden } from "./lib/errors";
+import { assertStorageAssignableToUser } from "./lib/storageAccess";
 import type { Id } from "./_generated/dataModel";
 import { toMs } from "./lib/ids";
 
@@ -28,6 +38,13 @@ const userApi = v.object({
   last_login_at: v.union(v.string(), v.null()),
   created_at: v.string(),
   updated_at: v.string(),
+  platform_role: v.union(
+    v.literal("owner"),
+    v.literal("admin"),
+    v.literal("tax_consultant"),
+    v.literal("user"),
+    v.literal("viewer"),
+  ),
 });
 
 function toApi(user: {
@@ -49,6 +66,7 @@ function toApi(user: {
   lastLoginAt?: number;
   createdAt: number;
   updatedAt: number;
+  platformRole?: "owner" | "admin" | "tax_consultant" | "user" | "viewer";
 }) {
   return {
     id: user.externalId,
@@ -75,7 +93,95 @@ function toApi(user: {
       : null,
     created_at: new Date(user.createdAt).toISOString(),
     updated_at: new Date(user.updatedAt).toISOString(),
+    platform_role: platformRoleOf(user),
   };
+}
+
+/**
+ * Client-supplied `args.email` is not proof of ownership. Only the verified
+ * identity email may be written onto a users row.
+ */
+export function verifiedIdentityEmail(identity: {
+  email?: unknown;
+  emailVerified?: unknown;
+}): string {
+  const email =
+    typeof identity.email === "string" ? identity.email.trim().toLowerCase() : "";
+  const verified =
+    identity.emailVerified === true || identity.emailVerified === "true";
+  if (!verified || !email) return "";
+  return email;
+}
+
+type EnsureCurrentArgs = {
+  email?: string;
+  fullName?: string;
+};
+
+export async function ensureCurrentHandler(
+  ctx: MutationCtx,
+  args: EnsureCurrentArgs,
+) {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) {
+    throw new Error("Not authenticated");
+  }
+  const now = Date.now();
+  // Client-supplied args.email is untrusted (ensure-profile body). Ignore it.
+  const verifiedEmail = verifiedIdentityEmail(identity);
+  const existing = await getCurrentUserOrNull(ctx);
+  if (existing) {
+    await ctx.db.patch(existing._id, {
+      tokenIdentifier: identity.tokenIdentifier,
+      ...(verifiedEmail ? { email: verifiedEmail } : {}),
+      fullName: args.fullName ?? existing.fullName,
+      lastLoginAt: now,
+      updatedAt: now,
+    });
+    const updated = await ctx.db.get(existing._id);
+    if (!updated) throw new Error("User not found");
+    return toApi(updated);
+  }
+  const byEmail = verifiedEmail
+    ? await ctx.db
+        .query("users")
+        .withIndex("email", (q) => q.eq("email", verifiedEmail))
+        .unique()
+    : null;
+  if (byEmail && !byEmail.deletedAt) {
+    await ctx.db.patch(byEmail._id, {
+      tokenIdentifier: identity.tokenIdentifier,
+      email: verifiedEmail,
+      fullName: args.fullName ?? byEmail.fullName,
+      supabaseUserId: byEmail.supabaseUserId ?? byEmail.externalId,
+      lastLoginAt: now,
+      updatedAt: now,
+    });
+    const updated = await ctx.db.get(byEmail._id);
+    if (!updated) throw new Error("User not found");
+    return toApi(updated);
+  }
+  const externalId = supabaseSubject(identity);
+  await ctx.db.insert("users", {
+    externalId,
+    tokenIdentifier: identity.tokenIdentifier,
+    email: verifiedEmail,
+    fullName: args.fullName,
+    phone: "",
+    entityType: "individual",
+    defaultCurrency: "NGN",
+    fiscalYearStart: 1,
+    onboardingCompleted: false,
+    lastLoginAt: now,
+    createdAt: now,
+    updatedAt: now,
+  });
+  const created = await ctx.db
+    .query("users")
+    .withIndex("by_externalId", (q) => q.eq("externalId", externalId))
+    .unique();
+  if (!created) throw new Error("User not found");
+  return toApi(created);
 }
 
 export const ensureCurrent = mutation({
@@ -85,68 +191,7 @@ export const ensureCurrent = mutation({
   },
   returns: userApi,
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Not authenticated");
-    }
-    const now = Date.now();
-    const existing = await getCurrentUserOrNull(ctx);
-    if (existing) {
-      await ctx.db.patch(existing._id, {
-        tokenIdentifier: identity.tokenIdentifier,
-        email: args.email ?? existing.email,
-        fullName: args.fullName ?? existing.fullName,
-        lastLoginAt: now,
-        updatedAt: now,
-      });
-      const updated = await ctx.db.get(existing._id);
-      if (!updated) throw new Error("User not found");
-      return toApi(updated);
-    }
-    const email =
-      args.email ??
-      (typeof identity.email === "string" ? identity.email : "") ??
-      "";
-    const byEmail = email
-      ? await ctx.db
-          .query("users")
-          .withIndex("email", (q) => q.eq("email", email.toLowerCase()))
-          .unique()
-      : null;
-    if (byEmail && !byEmail.deletedAt) {
-      await ctx.db.patch(byEmail._id, {
-        tokenIdentifier: identity.tokenIdentifier,
-        email,
-        fullName: args.fullName ?? byEmail.fullName,
-        supabaseUserId: byEmail.supabaseUserId ?? byEmail.externalId,
-        lastLoginAt: now,
-        updatedAt: now,
-      });
-      const updated = await ctx.db.get(byEmail._id);
-      if (!updated) throw new Error("User not found");
-      return toApi(updated);
-    }
-    const externalId = supabaseSubject(identity);
-    await ctx.db.insert("users", {
-      externalId,
-      tokenIdentifier: identity.tokenIdentifier,
-      email,
-      fullName: args.fullName,
-      phone: "",
-      entityType: "individual",
-      defaultCurrency: "NGN",
-      fiscalYearStart: 1,
-      onboardingCompleted: false,
-      lastLoginAt: now,
-      createdAt: now,
-      updatedAt: now,
-    });
-    const created = await ctx.db
-      .query("users")
-      .withIndex("by_externalId", (q) => q.eq("externalId", externalId))
-      .unique();
-    if (!created) throw new Error("User not found");
-    return toApi(created);
+    return await ensureCurrentHandler(ctx, args);
   },
 });
 
@@ -179,6 +224,7 @@ export const updateMine = mutation({
   returns: userApi,
   handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx);
+    await assertStorageAssignableToUser(ctx, user, args.avatarStorageId);
     await ctx.db.patch(user._id, {
       fullName: args.fullName ?? user.fullName,
       name: args.fullName ?? user.name,
@@ -200,25 +246,17 @@ export const updateMine = mutation({
   },
 });
 
-export const softDeleteMine = mutation({
-  args: {},
-  returns: v.null(),
-  handler: async (ctx) => {
-    const user = await getCurrentUser(ctx);
-    const now = Date.now();
-    await ctx.db.patch(user._id, { deletedAt: now, updatedAt: now });
-    return null;
-  },
-});
+export async function listAllHandler(ctx: QueryCtx) {
+  const me = await getCurrentUser(ctx);
+  if (!isPlatformAdmin(me)) throwForbidden();
+  const rows = await ctx.db.query("users").take(200);
+  return rows.filter((user) => !user.deletedAt).map(toApi);
+}
 
 export const listAll = query({
   args: {},
   returns: v.array(userApi),
-  handler: async (ctx) => {
-    await getCurrentUser(ctx);
-    const rows = await ctx.db.query("users").take(200);
-    return rows.filter((user) => !user.deletedAt).map(toApi);
-  },
+  handler: listAllHandler,
 });
 
 export const getEmailInternal = internalQuery({
@@ -261,6 +299,15 @@ export const upsertFromBackfill = internalMutation({
     rcNumber: v.optional(v.string()),
     companyAddress: v.optional(v.string()),
     subscriptionTier: v.optional(v.string()),
+    platformRole: v.optional(
+      v.union(
+        v.literal("owner"),
+        v.literal("admin"),
+        v.literal("tax_consultant"),
+        v.literal("user"),
+        v.literal("viewer"),
+      ),
+    ),
     subscriptionExpiresAt: v.optional(v.string()),
     defaultCurrency: v.optional(v.string()),
     fiscalYearStart: v.optional(v.number()),
@@ -287,6 +334,7 @@ export const upsertFromBackfill = internalMutation({
       rcNumber: args.rcNumber,
       companyAddress: args.companyAddress,
       subscriptionTier: args.subscriptionTier,
+      platformRole: args.platformRole,
       subscriptionExpiresAt: toMs(args.subscriptionExpiresAt),
       defaultCurrency: args.defaultCurrency ?? "NGN",
       fiscalYearStart: args.fiscalYearStart ?? 1,
@@ -305,5 +353,34 @@ export const upsertFromBackfill = internalMutation({
       ...fields,
     });
     return args.externalId;
+  },
+});
+
+/** Dashboard / ops: grant owner or admin after deploy. Not callable from the client. */
+export const setPlatformRole = internalMutation({
+  args: {
+    userExternalId: v.string(),
+    platformRole: v.union(
+      v.literal("owner"),
+      v.literal("admin"),
+      v.literal("tax_consultant"),
+      v.literal("user"),
+      v.literal("viewer"),
+    ),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_externalId", (q) =>
+        q.eq("externalId", args.userExternalId),
+      )
+      .unique();
+    if (!user || user.deletedAt) throw new Error("User not found");
+    await ctx.db.patch(user._id, {
+      platformRole: args.platformRole,
+      updatedAt: Date.now(),
+    });
+    return null;
   },
 });

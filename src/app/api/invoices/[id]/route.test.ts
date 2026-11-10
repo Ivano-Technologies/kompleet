@@ -51,7 +51,15 @@ describe("IVA-185 invoice API line amounts", () => {
   });
 
   it("GET /api/invoices returns pre-VAT line amounts", async () => {
-    requireAuthedConvex.mockResolvedValue({ convex: { query: vi.fn().mockResolvedValue([legacy]) } });
+    requireAuthedConvex.mockResolvedValue({
+      convex: {
+        query: vi.fn().mockResolvedValue({
+          invoices: [legacy],
+          isDone: true,
+          nextCursor: null,
+        }),
+      },
+    });
     const res = await LIST(new NextRequest("http://localhost/api/invoices"));
     const body = (await res.json()) as { invoices: Array<typeof legacy> };
     expect(body.invoices[0]!.line_items.map((line: Line) => line.amount)).toEqual([850000, 50000]);

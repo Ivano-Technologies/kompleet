@@ -58,6 +58,9 @@
   /* #3D4A55 */
   --text-tertiary: 107 114 128;
   /* #6B7280 */
+
+  /* Space reserved while the cookie banner is open (ResizeObserver). */
+  --cookie-banner-height: 0px;
 }
 
 /* Dark Theme */
@@ -92,6 +95,10 @@ body {
   overflow-x: hidden;
 }
 
+html {
+  scroll-padding-bottom: var(--cookie-banner-height, 0px);
+}
+
 /* IVA-86: one vertical scroll owner while the authenticated shell is mounted */
 html.dashboard-shell-scroll-lock,
 html.dashboard-shell-scroll-lock body {
@@ -114,6 +121,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.6;
   letter-spacing: -0.01em;
+  padding-bottom: var(--cookie-banner-height, 0px);
 }
 
 /* Brand teal for toggles and form controls when on/checked */
@@ -126,6 +134,42 @@ input[type="checkbox"]:checked {
 *:focus-visible {
   outline: 2px solid rgb(var(--primary));
   outline-offset: 2px;
+}
+
+.skip-to-content {
+  position: absolute;
+  left: 0.75rem;
+  top: 0.75rem;
+  z-index: 100;
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  background: #fffdf8;
+  color: #0d1b2a;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transform: translateY(-8rem);
+}
+
+.skip-to-content:focus {
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:focus-within {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Base layers - design system 2026 */

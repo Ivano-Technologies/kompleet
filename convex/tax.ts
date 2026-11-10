@@ -1,7 +1,23 @@
 import { v } from "convex/values";
-import { internalMutation, mutation, query } from "./_generated/server";
-import { getCurrentUser, getCurrentUserOrNull } from "./lib/auth";
+import {
+  internalMutation,
+  mutation,
+  query,
+  type MutationCtx,
+} from "./_generated/server";
+import {
+  getCurrentUser,
+  getCurrentUserOrNull,
+  isPlatformAdmin,
+} from "./lib/auth";
+import { throwForbidden } from "./lib/errors";
 import { newExternalId, toMs } from "./lib/ids";
+import {
+  cursorValidator,
+  listCursorReturns,
+  nextCursorOf,
+  paginationOptsFromArgs,
+} from "./lib/listPage";
 
 export const listRuleVersions = query({
   args: {},
@@ -138,30 +154,41 @@ export const listSources = query({
 });
 
 export const listCalculations = query({
-  args: {},
-  returns: v.array(v.any()),
-  handler: async (ctx) => {
+  args: {
+    cursor: cursorValidator,
+    limit: v.optional(v.number()),
+  },
+  returns: v.object({
+    calculations: v.array(v.any()),
+    ...listCursorReturns,
+  }),
+  handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx);
-    const rows = await ctx.db
+    const result = await ctx.db
       .query("taxCalculations")
       .withIndex("by_user", (q) => q.eq("userId", user._id))
-      .collect();
-    return rows.map((r) => ({
-      id: r.externalId,
-      user_id: r.userExternalId,
-      tax_type: r.taxType,
-      tax_year: r.taxYear,
-      calculation_date: r.calculationDate,
-      input_data: r.inputData,
-      gross_amount: r.grossAmount,
-      deductions: r.deductions,
-      taxable_amount: r.taxableAmount,
-      tax_due: r.taxDue,
-      effective_rate: r.effectiveRate ?? null,
-      breakdown: r.breakdown,
-      is_final: r.isFinal,
-      created_at: new Date(r.createdAt).toISOString(),
-    }));
+      .order("desc")
+      .paginate(paginationOptsFromArgs(args));
+    return {
+      calculations: result.page.map((r) => ({
+        id: r.externalId,
+        user_id: r.userExternalId,
+        tax_type: r.taxType,
+        tax_year: r.taxYear,
+        calculation_date: r.calculationDate,
+        input_data: r.inputData,
+        gross_amount: r.grossAmount,
+        deductions: r.deductions,
+        taxable_amount: r.taxableAmount,
+        tax_due: r.taxDue,
+        effective_rate: r.effectiveRate ?? null,
+        breakdown: r.breakdown,
+        is_final: r.isFinal,
+        created_at: new Date(r.createdAt).toISOString(),
+      })),
+      nextCursor: nextCursorOf(result),
+      isDone: result.isDone,
+    };
   },
 });
 
@@ -572,6 +599,31 @@ export const deleteReport = mutation({
   },
 });
 
+export async function touchSourcesHandler(
+  ctx: MutationCtx,
+  args: { sourceExternalId?: string },
+) {
+  const me = await getCurrentUser(ctx);
+  if (!isPlatformAdmin(me)) throwForbidden();
+  const now = Date.now();
+  if (args.sourceExternalId) {
+    const row = await ctx.db
+      .query("sources")
+      .withIndex("by_externalId", (q) =>
+        q.eq("externalId", args.sourceExternalId!),
+      )
+      .unique();
+    if (!row) throw new Error("Source not found");
+    await ctx.db.patch(row._id, { updatedAt: now });
+    return { ok: true, checked: 1, sourceId: row.externalId };
+  }
+  const rows = await ctx.db.query("sources").collect();
+  for (const row of rows) {
+    await ctx.db.patch(row._id, { updatedAt: now });
+  }
+  return { ok: true, checked: "all" as const };
+}
+
 export const touchSources = mutation({
   args: { sourceExternalId: v.optional(v.string()) },
   returns: v.object({
@@ -579,26 +631,7 @@ export const touchSources = mutation({
     checked: v.union(v.number(), v.literal("all")),
     sourceId: v.optional(v.string()),
   }),
-  handler: async (ctx, args) => {
-    await getCurrentUser(ctx);
-    const now = Date.now();
-    if (args.sourceExternalId) {
-      const row = await ctx.db
-        .query("sources")
-        .withIndex("by_externalId", (q) =>
-          q.eq("externalId", args.sourceExternalId!),
-        )
-        .unique();
-      if (!row) throw new Error("Source not found");
-      await ctx.db.patch(row._id, { updatedAt: now });
-      return { ok: true, checked: 1, sourceId: row.externalId };
-    }
-    const rows = await ctx.db.query("sources").collect();
-    for (const row of rows) {
-      await ctx.db.patch(row._id, { updatedAt: now });
-    }
-    return { ok: true, checked: "all" as const };
-  },
+  handler: touchSourcesHandler,
 });
 
 export const upsertSourceFromBackfill = internalMutation({

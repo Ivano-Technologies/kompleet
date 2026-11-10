@@ -3,14 +3,15 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 // Mock the rate-limit module
 vi.mock("./rate-limit", () => ({
   rateLimit: vi.fn(),
+  rateLimitAsync: vi.fn(),
   getIdentifier: vi.fn(() => "127.0.0.1"),
 }));
 
 import { withRateLimit } from "./with-rate-limit";
-import { rateLimit, getIdentifier } from "./rate-limit";
+import { rateLimitAsync, getIdentifier } from "./rate-limit";
 import { NextRequest, NextResponse } from "next/server";
 
-const mockedRateLimit = vi.mocked(rateLimit);
+const mockedRateLimit = vi.mocked(rateLimitAsync);
 const mockedGetIdentifier = vi.mocked(getIdentifier);
 
 function createMockRequest(url = "http://localhost/api/test"): NextRequest {
@@ -23,7 +24,7 @@ describe("withRateLimit", () => {
   });
 
   it("calls the handler when rate limit is not exceeded", async () => {
-    mockedRateLimit.mockReturnValue({
+    mockedRateLimit.mockResolvedValue({
       success: true,
       remaining: 59,
       reset: new Date(Date.now() + 60000),
@@ -44,7 +45,7 @@ describe("withRateLimit", () => {
   });
 
   it("returns 429 when rate limit is exceeded", async () => {
-    mockedRateLimit.mockReturnValue({
+    mockedRateLimit.mockResolvedValue({
       success: false,
       remaining: 0,
       reset: new Date(Date.now() + 30000),
@@ -63,7 +64,7 @@ describe("withRateLimit", () => {
   });
 
   it("sets rate limit headers on successful responses", async () => {
-    mockedRateLimit.mockReturnValue({
+    mockedRateLimit.mockResolvedValue({
       success: true,
       remaining: 45,
       reset: new Date("2025-01-01T00:00:00Z"),
@@ -81,7 +82,7 @@ describe("withRateLimit", () => {
   });
 
   it("passes custom options to rateLimit", async () => {
-    mockedRateLimit.mockReturnValue({
+    mockedRateLimit.mockResolvedValue({
       success: true,
       remaining: 4,
       reset: new Date(Date.now() + 60000),
@@ -99,7 +100,7 @@ describe("withRateLimit", () => {
 
   it("includes Retry-After header on 429 responses", async () => {
     const resetTime = new Date(Date.now() + 45000);
-    mockedRateLimit.mockReturnValue({
+    mockedRateLimit.mockResolvedValue({
       success: false,
       remaining: 0,
       reset: resetTime,
@@ -115,7 +116,7 @@ describe("withRateLimit", () => {
   });
 
   it("does not clone NextResponse.json (body stays readable)", async () => {
-    mockedRateLimit.mockReturnValue({
+    mockedRateLimit.mockResolvedValue({
       success: true,
       remaining: 59,
       reset: new Date(Date.now() + 60000),
@@ -133,7 +134,7 @@ describe("withRateLimit", () => {
   });
 
   it("passes context to handler", async () => {
-    mockedRateLimit.mockReturnValue({
+    mockedRateLimit.mockResolvedValue({
       success: true,
       remaining: 59,
       reset: new Date(Date.now() + 60000),

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { CompanyLegalNotice } from "@/components/legal/CompanyLegalNotice";
 
 export const metadata: Metadata = {
   title: "Kompleet: Terms of Service",
@@ -25,6 +26,8 @@ export default function TermsPage() {
         <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-8">
           Last updated: February 25, 2026. Effective date: February 25, 2026.
         </p>
+
+        <CompanyLegalNotice page="terms" />
 
         <div className="prose prose-lg max-w-none">
           <section className="mb-8">

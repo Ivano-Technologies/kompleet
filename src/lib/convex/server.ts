@@ -3,13 +3,14 @@
  * (mobile / API clients).
  */
 import type { ConvexHttpClient } from "convex/browser";
-import { isConvexAuthError } from "./errors";
+import { isConvexAuthError, isConvexForbiddenError } from "./errors";
 import { api, createConvexHttpClient } from "./http";
 import {
   getCompatUser,
   getConvexAccessToken,
 } from "@/lib/auth/session";
 import type { CompatUser } from "@/lib/auth/compat-user";
+import { isCompatEmailVerified } from "@/lib/auth/email-verified";
 
 export { api };
 
@@ -47,6 +48,9 @@ export async function requireAuthedConvex(
   if (!authed) {
     throw new ConvexUnauthorizedError();
   }
+  if (!isCompatEmailVerified(authed.user)) {
+    throw new ConvexUnauthorizedError("Email is not verified");
+  }
   return authed;
 }
 
@@ -65,8 +69,13 @@ export function isUnauthorized(error: unknown): boolean {
   return error instanceof ConvexUnauthorizedError || isConvexAuthError(error);
 }
 
+export function isForbidden(error: unknown): boolean {
+  return isConvexForbiddenError(error);
+}
+
 export {
   isConvexArgumentExtraField,
   isConvexAuthError,
+  isConvexForbiddenError,
   isConvexFunctionMissing,
 } from "./errors";

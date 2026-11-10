@@ -149,14 +149,14 @@ describe("IVA-213 reminder emails", () => {
       description: "PIT",
     });
     const one = generate1DayReminderEmail("Ada Okonkwo", {
-      formType: "VAT_Q1",
+      formType: "VAT_03",
       taxYear: 2026,
       deadlineDate: "2026-04-21",
       daysRemaining: 1,
-      description: "VAT Q1",
+      description: "VAT March",
     });
     expect(three.subject).toBe("Your PIT filing deadline is in 3 days");
-    expect(one.subject).toBe("Your Q1 VAT return is due tomorrow");
+    expect(one.subject).toBe("Your March VAT return is due tomorrow");
     expect(three.html).toContain("Due in 3 days");
     expect(one.html).toContain("Due tomorrow");
     expect(three.html).toContain("Hi Ada,");
@@ -165,9 +165,9 @@ describe("IVA-213 reminder emails", () => {
     );
     expect(three.html).not.toMatch(/personal income tax for personal/i);
     expect(one.html).toContain(
-      "Your VAT return for Q1 2026 is due on 21 Apr 2026.",
+      "Your VAT return for March 2026 is due on 21 Apr 2026.",
     );
-    expect(one.html).not.toContain("Q1 VAT return for Q1");
+    expect(one.html).not.toContain("March VAT return for March");
     expect(one.html).toContain(">VAT return<");
     expect(three.html).toContain("31 Mar 2027");
     expect(three.html).toContain("Open Kompleet");

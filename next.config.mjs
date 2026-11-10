@@ -1,5 +1,6 @@
 // next.config.mjs
 import { withSentryConfig } from "@sentry/nextjs";
+import { CONTENT_SECURITY_POLICY_REPORT_ONLY } from "./src/lib/content-security-policy.mjs";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -15,6 +16,11 @@ const nextConfig = {
 
   async redirects() {
     return [
+      {
+        source: "/pricing",
+        destination: "/signup",
+        permanent: false,
+      },
       {
         source: "/dashboard/overview",
         destination: "/dashboard",
@@ -53,6 +59,10 @@ const nextConfig = {
           {
             key: "Strict-Transport-Security",
             value: "max-age=31536000; includeSubDomains",
+          },
+          {
+            key: "Content-Security-Policy-Report-Only",
+            value: CONTENT_SECURITY_POLICY_REPORT_ONLY,
           },
         ],
       },

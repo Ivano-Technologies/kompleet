@@ -8,8 +8,9 @@ import {
   requireAuthedConvex,
 } from "@/lib/convex/server";
 import { friendlyErrorBody, apiErrorBody } from "@/lib/friendly-error";
+import { withRateLimit } from "@/lib/with-rate-limit";
 
-export async function GET(request: NextRequest) {
+async function handleGET(request: NextRequest) {
   try {
     const { convex } = await requireAuthedConvex(request);
     const categories = await convex.query(api.expenses.listCategories, {});
@@ -24,3 +25,5 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+export const GET = withRateLimit(handleGET);

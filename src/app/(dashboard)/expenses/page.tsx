@@ -2,10 +2,15 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { Wallet, Plus, Search, ChevronRight } from "lucide-react";
+import { Wallet, ChevronRight } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { apiErrorMessage, toFriendlyMessage } from "@/lib/friendly-error";
 import { ErrorText } from "@/components/ui/error-ref";
+import {
+  ListCardFooter,
+  LoadMoreButton,
+  showingCount,
+} from "@/components/ui/list-pager";
 
 interface Expense {
   id: string;
@@ -28,8 +33,10 @@ interface Category {
 export default function ExpensesPage() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [total, setTotal] = useState(0);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [isDone, setIsDone] = useState(true);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState({
     startDate: "",
@@ -37,13 +44,16 @@ export default function ExpensesPage() {
     categoryId: "",
   });
 
-  const fetchExpenses = useCallback(async () => {
-    setLoading(true);
+  const fetchExpenses = useCallback(async (cursor?: string | null) => {
+    const appending = Boolean(cursor);
+    if (appending) setLoadingMore(true);
+    else setLoading(true);
     setError(null);
     try {
       const params = new URLSearchParams({
         page: "1",
         limit: "100",
+        ...(cursor ? { cursor } : {}),
         ...(filters.startDate ? { startDate: filters.startDate } : {}),
         ...(filters.endDate ? { endDate: filters.endDate } : {}),
         ...(filters.categoryId ? { categoryId: filters.categoryId } : {}),
@@ -51,8 +61,10 @@ export default function ExpensesPage() {
       const res = await fetch(`/api/expenses?${params}`);
       const data = await res.json();
       if (res.ok) {
-        setExpenses(data.expenses ?? []);
-        setTotal(data.total ?? 0);
+        const rows = (data.expenses ?? []) as Expense[];
+        setExpenses((current) => (appending ? [...current, ...rows] : rows));
+        setNextCursor(data.nextCursor ?? null);
+        setIsDone(Boolean(data.isDone));
       } else {
         setError(apiErrorMessage(data, "We couldn't load your expenses. Please try again."));
       }
@@ -60,6 +72,7 @@ export default function ExpensesPage() {
       setError(toFriendlyMessage(err, "We couldn't load your expenses. Please try again."));
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   }, [filters.startDate, filters.endDate, filters.categoryId]);
 
@@ -153,42 +166,52 @@ export default function ExpensesPage() {
             />
           </div>
         ) : (
-          <ul className="divide-y divide-border">
-            {expenses.map((exp) => (
-              <li key={exp.id}>
-                <Link
-                  href={`/expenses/${exp.id}`}
-                  className="flex items-center justify-between gap-4 p-4 hover:bg-muted/50 transition-colors"
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium text-foreground truncate">
-                      {exp.vendor || "No vendor"}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {formatDate(exp.date)}
-                      {getCategoryName(exp.category_id)
-                        ? ` · ${getCategoryName(exp.category_id)}`
-                        : ""}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className="font-semibold text-primary">
-                      {formatCurrency(exp.amount, exp.currency)}
-                    </span>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <>
+            <ul className="divide-y divide-border">
+              {expenses.map((exp) => (
+                <li key={exp.id}>
+                  <Link
+                    href={`/expenses/${exp.id}`}
+                    className="flex items-center justify-between gap-4 p-4 hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-foreground truncate">
+                        {exp.vendor || "No vendor"}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {formatDate(exp.date)}
+                        {getCategoryName(exp.category_id)
+                          ? ` · ${getCategoryName(exp.category_id)}`
+                          : ""}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="font-semibold text-primary">
+                        {formatCurrency(exp.amount, exp.currency)}
+                      </span>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <ListCardFooter
+              countLabel={showingCount(
+                expenses.length,
+                "expense",
+                "expenses",
+              )}
+            >
+              {!isDone && nextCursor ? (
+                <LoadMoreButton
+                  loading={loadingMore}
+                  onClick={() => void fetchExpenses(nextCursor)}
+                />
+              ) : null}
+            </ListCardFooter>
+          </>
         )}
       </div>
-
-      {!loading && expenses.length > 0 && (
-        <p className="text-sm text-muted-foreground">
-          Showing {expenses.length} of {total} expense(s).
-        </p>
-      )}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 # Convex Auth + Storage cutover (IVA-60)
 
-**Decision lock (Kezie via CoS, 2026-09-24):** leave Path B. App DB stays on Convex (`shiny-cricket-316`). Move web **Auth** and **Storage** fully onto Convex. Do **not** enable Production Vercel `NEXT_PUBLIC_CONVEX_URL`.
+**Decision lock (Kezie via CoS, 2026-09-24; prod cutover IVA-183, 17 Oct 2026):** leave Path B. App DB, Auth and Storage are on Convex. Production is `wooden-toucan-837` (`https://wooden-toucan-837.convex.cloud`) at https://kompleet.techivano.com. Preview and Development use `shiny-cricket-316`.
 
 ## What changed
 
@@ -15,14 +15,14 @@ Supabase JWT verification remains in `convex/auth.config.ts` so the Expo app can
 
 ## Environment
 
-### Next.js (Vercel Preview / Development only)
+### Next.js (Vercel)
 
 ```
 NEXT_PUBLIC_CONVEX_URL=https://shiny-cricket-316.convex.cloud
 NEXT_PUBLIC_SITE_URL=https://kompleet-git-dev-techivano.vercel.app
 ```
 
-Leave **Production** `NEXT_PUBLIC_CONVEX_URL` unset.
+Production `NEXT_PUBLIC_CONVEX_URL` is `https://wooden-toucan-837.convex.cloud` (set since IVA-183 on 17 Oct 2026). Preview and Development stay on `shiny-cricket-316`.
 
 Supabase URL / keys stay set for leftover Postgres + keep-alive. They are not the live web auth source.
 
@@ -55,7 +55,9 @@ If the cloud agent cannot log in, CoS/Shipping: `npx convex login`, select team 
 1. Open `/signup`.
 2. Enter the **same email** already on the Convex `users` row.
 3. Choose a new password (min 8 characters, one number).
-4. `createOrUpdateUser` links the new Convex Auth account to that profile. Transactions stay attached via `userId`.
+4. Enter the 8 digit email code. `createOrUpdateUser` links the new Convex Auth account to that profile only after the code succeeds. Transactions stay attached via `userId`.
+
+Accounts that already had a password before email verification shipped are treated as verified (no one time prompt). New signups must verify.
 
 Do **not** invent credentials. After reclaim, `/forgot-password` works if `AUTH_RESEND_KEY` is set (8-digit code → `/reset-password`). If Resend is unset, the reset code is written to Convex logs for a one-time CoS handoff.
 
@@ -78,7 +80,7 @@ npx convex run users:listEmailsInternal
 
 ## Out of scope
 
-- Production Convex URL
+- Further Production Convex URL changes (prod is `wooden-toucan-837` at kompleet.techivano.com since IVA-183)
 - Supabase project teardown
 - Mobile Auth/Storage cutover
 - JUO campaign repos

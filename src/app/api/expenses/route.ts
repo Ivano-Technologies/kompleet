@@ -10,6 +10,8 @@ import {
   requireAuthedConvex,
 } from "@/lib/convex/server";
 import { friendlyErrorBody, apiErrorBody } from "@/lib/friendly-error";
+import { withRateLimit } from "@/lib/with-rate-limit";
+import { readNumberedPage } from "@/lib/convex/collect-pages";
 
 const querySchema = z.object({
   startDate: z
@@ -24,6 +26,7 @@ const querySchema = z.object({
   updatedSince: z.string().optional(),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(50),
+  cursor: z.string().min(1).optional(),
 });
 
 const postBodySchema = z.object({
@@ -38,7 +41,7 @@ const postBodySchema = z.object({
   notes: z.string().max(2000).nullable().optional(),
 });
 
-export async function GET(request: NextRequest) {
+async function handleGET(request: NextRequest) {
   try {
     const { convex } = await requireAuthedConvex(request);
 
@@ -50,29 +53,42 @@ export async function GET(request: NextRequest) {
       updatedSince: sp.get("updatedSince") ?? undefined,
       page: sp.get("page") ?? undefined,
       limit: sp.get("limit") ?? undefined,
+      cursor: sp.get("cursor") ?? undefined,
     });
     if (!parsed.success) {
       return NextResponse.json({ ...apiErrorBody("Invalid query"), details: parsed.error.flatten() },
         { status: 400 },
       );
     }
-    const { startDate, endDate, categoryId, updatedSince, page, limit } =
+    const { startDate, endDate, categoryId, updatedSince, page, limit, cursor } =
       parsed.data;
 
-    const result = await convex.query(api.expenses.listMine, {
-      startDate,
-      endDate,
-      categoryId,
-      updatedSince,
-      page,
-      limit,
-    });
+    const result = await readNumberedPage(
+      async (pageCursor) => {
+        const listed = await convex.query(api.expenses.listMine, {
+          startDate,
+          endDate,
+          categoryId,
+          updatedSince,
+          cursor: pageCursor,
+          limit,
+        });
+        return {
+          items: listed.expenses,
+          isDone: listed.isDone,
+          nextCursor: listed.nextCursor,
+        };
+      },
+      { page, cursor },
+    );
 
     return NextResponse.json({
-      expenses: result.expenses,
-      total: result.total,
+      expenses: result.items,
+      total: result.isDone && page === 1 && !cursor ? result.items.length : result.items.length,
       page,
       limit,
+      nextCursor: result.nextCursor,
+      isDone: result.isDone,
     });
   } catch (err) {
     if (isUnauthorized(err)) {
@@ -85,7 +101,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest) {
+async function handlePOST(request: NextRequest) {
   try {
     const { convex } = await requireAuthedConvex(request);
 
@@ -120,3 +136,6 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const GET = withRateLimit(handleGET);
+export const POST = withRateLimit(handlePOST, { limit: 60 });

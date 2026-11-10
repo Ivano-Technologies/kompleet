@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/cookies" },
   title: "Kompleet: Cookie Policy",
   description:
-    "Cookie Policy for KOMPLEET: how we use cookies and similar technologies.",
+    "Cookie Policy for Kompleet: how we use cookies and similar technologies.",
 };
 
 export default function CookiesPage() {
@@ -23,7 +23,7 @@ export default function CookiesPage() {
           Cookie Policy
         </h1>
         <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-8">
-          Last updated: February 12, 2026
+          Last updated: 10 November 2026
         </p>
 
         <div className="prose prose-lg max-w-none">
@@ -43,7 +43,7 @@ export default function CookiesPage() {
               2. How We Use Cookies
             </h2>
             <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              KOMPLEET uses cookies for the following purposes:
+              Kompleet uses cookies for the following purposes:
             </p>
 
             <h3 className="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-3">
@@ -86,9 +86,10 @@ export default function CookiesPage() {
               2.3 Analytics Cookies
             </h3>
             <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              We use analytics to understand how visitors interact with our
-              platform, helping us improve the user experience. Analytics data
-              is aggregated and anonymized.
+              Google Analytics is off until you accept analytics cookies in the
+              cookie banner. If you decline, we do not load GA or set its
+              cookies. You can change that later from Cookie settings in the
+              footer. Analytics data is aggregated and anonymized.
             </p>
           </section>
 
@@ -100,9 +101,6 @@ export default function CookiesPage() {
               Some cookies are placed by third-party services we use:
             </p>
             <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
-              <li>
-                <strong>Supabase:</strong> Authentication and session management
-              </li>
               <li>
                 <strong>Vercel:</strong> Performance monitoring and analytics
               </li>
@@ -129,7 +127,7 @@ export default function CookiesPage() {
             </ul>
             <p className="text-light-text-secondary dark:text-dark-text-secondary">
               Please note that disabling essential cookies will prevent you from
-              using KOMPLEET, as they are required for authentication and
+              using Kompleet, as they are required for authentication and
               security.
             </p>
           </section>
@@ -141,7 +139,7 @@ export default function CookiesPage() {
             <p className="text-light-text-secondary dark:text-dark-text-secondary">
               We may update this Cookie Policy from time to time. Changes will
               be posted on this page with an updated date. Your continued use of
-              KOMPLEET after changes constitutes acceptance of the updated
+              Kompleet after changes constitutes acceptance of the updated
               policy.
             </p>
           </section>
@@ -153,10 +151,10 @@ export default function CookiesPage() {
             <p className="text-light-text-secondary dark:text-dark-text-secondary">
               If you have questions about our use of cookies, contact us at{" "}
               <a
-                href="mailto:help@ivanotechnologies.com"
+                href="mailto:support@ivanotechnologies.com"
                 className="text-primary hover:underline"
               >
-                help@ivanotechnologies.com
+                support@ivanotechnologies.com
               </a>
               .
             </p>

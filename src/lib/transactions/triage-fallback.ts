@@ -1,5 +1,6 @@
 import type { ConvexHttpClient } from "convex/browser";
 import { api } from "@/lib/convex/http";
+import { collectPagedItems, EXPORT_BATCH } from "@/lib/convex/collect-pages";
 import { listAllTransactionsMine } from "@/lib/convex/money-lists";
 import {
   suggestCategory,
@@ -219,7 +220,18 @@ export async function listTriageFallback(
 }> {
   const [ledger, duplicates, categories] = await Promise.all([
     listAllTransactionsMine(convex),
-    convex.query(api.imports.listDuplicates, { status: "pending" }),
+    collectPagedItems(async (cursor) => {
+      const page = await convex.query(api.imports.listDuplicates, {
+        status: "pending",
+        cursor,
+        limit: EXPORT_BATCH,
+      });
+      return {
+        items: page.duplicates,
+        isDone: page.isDone,
+        nextCursor: page.nextCursor,
+      };
+    }),
     convex.query(api.categories.list, {}),
   ]);
 

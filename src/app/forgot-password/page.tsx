@@ -139,7 +139,7 @@ export default function ForgotPasswordPage() {
       </form>
 
       <p className="mt-3 text-center text-xs text-text-3 dark:text-dark-text-3">
-        The code expires in 15 minutes. Existing users can also reclaim by signing up with the same email.
+        The code expires in 15 minutes.
       </p>
     </AuthLayout>
   );

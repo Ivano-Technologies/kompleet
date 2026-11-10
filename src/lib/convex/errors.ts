@@ -27,3 +27,24 @@ export function isConvexAuthError(error: unknown): boolean {
     )
   );
 }
+
+function convexErrorData(error: unknown): unknown {
+  if (error && typeof error === "object" && "data" in error) {
+    return (error as { data: unknown }).data;
+  }
+  return undefined;
+}
+
+export function isConvexForbiddenError(error: unknown): boolean {
+  const data = convexErrorData(error);
+  if (data === "FORBIDDEN") return true;
+  if (
+    data &&
+    typeof data === "object" &&
+    "message" in data &&
+    (data as { message?: unknown }).message === "FORBIDDEN"
+  ) {
+    return true;
+  }
+  return error instanceof Error && /\bFORBIDDEN\b/.test(error.message);
+}
