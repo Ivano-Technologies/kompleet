@@ -162,8 +162,7 @@ export default function PrivacyPage() {
               </li>
             </ul>
             <p className="text-light-text-secondary dark:text-dark-text-secondary">
-              Your data is stored on secure servers provided by Supabase in the
-              EU (Ireland). We do not claim Nigerian data residency. We may use
+              We do not claim Nigerian data residency. We may use
               third-party OCR and document processing services to extract data
               from uploaded documents; such processors are bound by appropriate
               data protection terms.
@@ -297,10 +296,6 @@ export default function PrivacyPage() {
             <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
               <li>
                 <strong>Google OAuth:</strong> For authentication services
-              </li>
-              <li>
-                <strong>Supabase:</strong> For database, authentication, and
-                cloud storage
               </li>
               <li>
                 <strong>OCR / document processing:</strong> To extract data from

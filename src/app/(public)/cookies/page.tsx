@@ -102,9 +102,6 @@ export default function CookiesPage() {
             </p>
             <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
               <li>
-                <strong>Supabase:</strong> Authentication and session management
-              </li>
-              <li>
                 <strong>Vercel:</strong> Performance monitoring and analytics
               </li>
               <li>
