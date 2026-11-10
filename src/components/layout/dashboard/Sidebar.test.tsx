@@ -32,5 +32,18 @@ describe("sidebar account name", () => {
     );
     expect(screen.getByText("Audit Test")).toBeInTheDocument();
     expect(screen.getByText("audit@fixture.test")).toBeInTheDocument();
+    expect(screen.getByText("audit@fixture.test")).toHaveClass("text-white/60");
+  });
+
+  it("shows a long full name in the sidebar footer", () => {
+    render(
+      <Sidebar
+        userEmail="chukwuemeka@fixture.test"
+        userDisplayName="Chukwuemeka Okonkwo-Adebayo"
+        isMobileOpen={false}
+        onMobileClose={() => undefined}
+      />,
+    );
+    expect(screen.getByText("Chukwuemeka Okonkwo-Adebayo")).toBeInTheDocument();
   });
 });

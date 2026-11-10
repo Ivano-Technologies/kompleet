@@ -19,6 +19,7 @@ import { AttachFileButton } from "@/components/documents/AttachFileButton";
 import { InvoicePreview } from "@/components/invoices/InvoicePreview";
 import { INV_COPY, INV_STATUS_LABEL } from "@/components/invoices/invoice-copy";
 import { CancelInvoiceDialog, MarkPaidDialog } from "@/components/invoices/InvoiceStatusDialogs";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { BIZ_COPY } from "@/components/settings/profile-copy";
 import {
   attachInvoiceClient,
@@ -27,7 +28,10 @@ import {
   markInvoicePaid,
   sendInvoiceEmail,
 } from "@/components/invoices/invoice-actions";
-import { invoiceRecipientEmail } from "@/lib/invoices/invoice-email";
+import {
+  invoiceBusinessName,
+  invoiceRecipientEmail,
+} from "@/lib/invoices/invoice-email";
 import type { InvoiceClient } from "@/components/invoices/CustomerCombobox";
 import {
   hasLegalName,
@@ -54,6 +58,7 @@ export default function InvoiceDetailPage() {
   const [notice, setNotice] = useState<string | null>(null);
   const [paidOpen, setPaidOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
+  const [sendOpen, setSendOpen] = useState(false);
   const [statusBusy, setStatusBusy] = useState(false);
   const [statusError, setStatusError] = useState("");
 
@@ -145,6 +150,33 @@ export default function InvoiceDetailPage() {
       notifyError(message);
     } finally {
       setStatusBusy(false);
+    }
+  };
+
+  const handleSendInvoice = async () => {
+    if (!invoice) return;
+    const to = invoiceRecipientEmail(invoice.customer_info);
+    if (!to) {
+      notifyError(INV_COPY.emailNeedsAddress);
+      return;
+    }
+    if (!invoiceBusinessName(invoice.sender)) {
+      notifyError(INV_COPY.emailNeedsBusinessName);
+      return;
+    }
+    setSending(true);
+    try {
+      const result = await sendInvoiceEmail(invoice.id);
+      if (result.sent && result.to) {
+        setSendOpen(false);
+        setNotice(INV_COPY.emailSent(result.to));
+      } else {
+        notifyError(result.error || INV_COPY.emailNotSent);
+      }
+    } catch (err) {
+      notifyError(toFriendlyMessage(err, INV_COPY.emailNotSent));
+    } finally {
+      setSending(false);
     }
   };
 
@@ -280,30 +312,18 @@ export default function InvoiceDetailPage() {
               type="button"
               className="btn-primary disabled:opacity-45"
               disabled={
-                sending || !invoiceRecipientEmail(invoice.customer_info)
+                sending ||
+                !invoiceRecipientEmail(invoice.customer_info) ||
+                !invoiceBusinessName(invoice.sender)
               }
               title={
-                invoiceRecipientEmail(invoice.customer_info)
-                  ? undefined
-                  : INV_COPY.emailNeedsAddress
+                !invoiceBusinessName(invoice.sender)
+                  ? INV_COPY.emailNeedsBusinessName
+                  : invoiceRecipientEmail(invoice.customer_info)
+                    ? undefined
+                    : INV_COPY.emailNeedsAddress
               }
-              onClick={async () => {
-                setSending(true);
-                try {
-                  const result = await sendInvoiceEmail(invoice.id);
-                  if (result.sent && result.to) {
-                    setNotice(INV_COPY.emailSent(result.to));
-                  } else {
-                    notifyError(result.error || INV_COPY.emailNotSent);
-                  }
-                } catch (err) {
-                  notifyError(
-                    toFriendlyMessage(err, INV_COPY.emailNotSent),
-                  );
-                } finally {
-                  setSending(false);
-                }
-              }}
+              onClick={() => setSendOpen(true)}
             >
               <Send size={16} />
               {sending ? "Sending…" : INV_COPY.sendInvoice}
@@ -503,6 +523,20 @@ export default function InvoiceDetailPage() {
           onConfirm={(reason) => void handleCancelInvoice(reason)}
         />
       )}
+      {sendOpen && invoiceRecipientEmail(invoice.customer_info) ? (
+        <ConfirmDialog
+          title={INV_COPY.sendConfirmTitle(
+            invoice.invoice_number,
+            invoiceRecipientEmail(invoice.customer_info) ?? "",
+          )}
+          hint={INV_COPY.sendConfirmHint}
+          confirmLabel={sending ? "Sending…" : INV_COPY.sendInvoice}
+          cancelLabel={INV_COPY.sendConfirmCancel}
+          busy={sending}
+          onCancel={() => setSendOpen(false)}
+          onConfirm={() => void handleSendInvoice()}
+        />
+      ) : null}
     </div>
   );
 }

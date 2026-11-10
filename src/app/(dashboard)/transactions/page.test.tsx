@@ -194,7 +194,6 @@ describe("books row actions menu", () => {
         category: sales,
       }),
     ]);
-    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
     const user = userEvent.setup();
     render(<TransactionsPage />);
     await waitFor(() => {
@@ -209,6 +208,7 @@ describe("books row actions menu", () => {
     expect(
       screen.getByRole("menuitem", { name: "Categorise" }),
     ).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: "Edit" })).toHaveFocus();
 
     await user.click(screen.getByRole("menuitem", { name: "Edit" }));
     expect(push).toHaveBeenCalledWith("/transactions/txn-menu-1?edit=1");
@@ -217,7 +217,12 @@ describe("books row actions menu", () => {
       screen.getByRole("button", { name: "Transaction actions" }),
     );
     await user.click(screen.getByRole("menuitem", { name: "Delete" }));
-    expect(confirmSpy).toHaveBeenCalled();
+    expect(
+      screen.getByRole("dialog", {
+        name: "Are you sure you want to delete this transaction?",
+      }),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Delete" }));
     await waitFor(() => {
       expect(vi.mocked(fetch).mock.calls.some(([url, init]) =>
         String(url) === "/api/transactions/txn-menu-1" &&
@@ -243,6 +248,28 @@ describe("books row actions menu", () => {
         categoryId: "cat-sales",
       });
     });
-    confirmSpy.mockRestore();
+  });
+
+  it("closes the row menu on Escape and outside click", async () => {
+    mockList([
+      row({
+        id: "txn-menu-2",
+        description: "Audit escape row — made-up",
+      }),
+    ]);
+    const user = userEvent.setup();
+    render(<TransactionsPage />);
+    await waitFor(() => {
+      expect(screen.getByText("Audit escape row — made-up")).toBeInTheDocument();
+    });
+    await user.click(screen.getByRole("button", { name: "Transaction actions" }));
+    expect(screen.getByRole("menuitem", { name: "Edit" })).toBeInTheDocument();
+    await user.keyboard("{Escape}");
+    expect(screen.queryByRole("menuitem", { name: "Edit" })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Transaction actions" }));
+    expect(screen.getByRole("menuitem", { name: "Edit" })).toBeInTheDocument();
+    await user.click(screen.getByRole("heading", { name: "Books" }));
+    expect(screen.queryByRole("menuitem", { name: "Edit" })).not.toBeInTheDocument();
   });
 });

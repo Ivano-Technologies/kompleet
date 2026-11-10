@@ -225,7 +225,7 @@ export function Sidebar({
               {sidebarName}
             </p>
             {userDisplayName?.trim() && userEmail && userEmail !== sidebarName ? (
-              <p className="text-xs text-white/45 truncate">{userEmail}</p>
+              <p className="text-xs text-white/60 truncate">{userEmail}</p>
             ) : null}
           </div>
         </Link>

@@ -1,3 +1,5 @@
+import { INVOICE_EMAIL_NEEDS_BUSINESS } from "@/lib/invoices/invoice-email";
+
 export const INV_COPY = {
   title: "Invoices",
   ctaNew: "New",
@@ -21,12 +23,17 @@ export const INV_COPY = {
   quickDescPlaceholder: "Optional one-liner",
   quickSaveDraft: "Save draft",
   quickIssue: "Issue",
-  openInvoice: "Open",
+  openInvoice: "View invoice",
   sendInvoice: "Send",
+  sendConfirmTitle: (invoiceNumber: string, email: string) =>
+    `Send ${invoiceNumber} to ${email}?`,
+  sendConfirmHint: "We'll email this invoice to the client.",
+  sendConfirmCancel: "Cancel",
   issueToast: "Invoice issued.",
   emailSent: (email: string) => `Invoice emailed to ${email}.`,
   emailNotSent: "We couldn't send the invoice email. Download the PDF and share it instead.",
   emailNeedsAddress: "Add a client email before sending.",
+  emailNeedsBusinessName: INVOICE_EMAIL_NEEDS_BUSINESS,
   emailNeedsIssued: "Issue the invoice before sending.",
   fullLink: "Need line items / discounts? Full form",
   clientCreate: (name: string) => `Create “${name}”`,
