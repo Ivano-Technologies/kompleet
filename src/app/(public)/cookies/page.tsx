@@ -23,7 +23,7 @@ export default function CookiesPage() {
           Cookie Policy
         </h1>
         <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-8">
-          Last updated: February 12, 2026
+          Last updated: 10 November 2026
         </p>
 
         <div className="prose prose-lg max-w-none">

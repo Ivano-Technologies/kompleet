@@ -27,4 +27,14 @@ describe("IVA-292 legal processor copy", () => {
     expect(privacy).toMatch(/We do not claim Nigerian data residency/);
     expect(privacy).toMatch(/third-party OCR and document processing/);
   });
+
+  it("sets Last updated to 10 November 2026 and keeps original Effective dates", () => {
+    expect(privacy).toMatch(
+      /Last updated: 10 November 2026\. Effective date: February 25, 2026\./,
+    );
+    expect(privacy).not.toMatch(/Last updated: February/);
+    expect(cookies).toMatch(/Last updated: 10 November 2026/);
+    expect(cookies).not.toMatch(/Last updated: February/);
+    expect(cookies).not.toMatch(/Effective date:/);
+  });
 });
