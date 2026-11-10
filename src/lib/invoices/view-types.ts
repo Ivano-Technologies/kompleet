@@ -44,6 +44,12 @@ export interface InvoiceView {
   invoice_date: string;
   due_date?: string | null;
   issued_at?: string | null;
+  paid_at?: string | null;
+  paid_on?: string | null;
+  paid_note?: string | null;
+  paid_method?: string | null;
+  cancelled_at?: string | null;
+  cancel_reason?: string | null;
   total_amount: number;
   subtotal: number;
   vat_amount: number;

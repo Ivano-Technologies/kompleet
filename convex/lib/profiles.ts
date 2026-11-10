@@ -306,10 +306,11 @@ export async function clientHasIssuedInvoices(
     .collect();
   return invoices.some(
     (invoice) =>
-      invoice.status === "issued" ||
-      invoice.status === "paid" ||
-      invoice.status === "archived" ||
-      invoice.isImmutable,
+    invoice.status === "issued" ||
+    invoice.status === "paid" ||
+    invoice.status === "cancelled" ||
+    invoice.status === "archived" ||
+    invoice.isImmutable,
   );
 }
 

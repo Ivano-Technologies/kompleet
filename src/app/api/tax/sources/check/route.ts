@@ -9,6 +9,7 @@ import { withAuth } from "@/lib/auth/with-auth";
 import { api } from "@/lib/convex/http";
 import { isForbidden, requireAuthedConvex } from "@/lib/convex/server";
 import { apiErrorBody } from "@/lib/friendly-error";
+import { withRateLimit } from "@/lib/with-rate-limit";
 
 async function handlePOST(request: NextRequest) {
   try {
@@ -30,6 +31,9 @@ async function handlePOST(request: NextRequest) {
   }
 }
 
-export const POST = withAuth(handlePOST, {
-  requiredPermission: "admin:manage_rules",
-});
+export const POST = withRateLimit(
+  withAuth(handlePOST, {
+    requiredPermission: "admin:manage_rules",
+  }),
+  { limit: 20 },
+);

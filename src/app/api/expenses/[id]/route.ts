@@ -11,6 +11,7 @@ import {
   requireAuthedConvex,
 } from "@/lib/convex/server";
 import { toFriendlyError, friendlyErrorBody, apiErrorBody } from "@/lib/friendly-error";
+import { withRateLimit } from "@/lib/with-rate-limit";
 
 const patchBodySchema = z.object({
   date: z
@@ -27,7 +28,7 @@ const patchBodySchema = z.object({
   notes: z.string().max(2000).nullable().optional(),
 });
 
-export async function GET(
+async function handleGET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
@@ -51,7 +52,7 @@ export async function GET(
   }
 }
 
-export async function PATCH(
+async function handlePATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
@@ -93,7 +94,7 @@ export async function PATCH(
   }
 }
 
-export async function DELETE(
+async function handleDELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
@@ -112,3 +113,7 @@ export async function DELETE(
     );
   }
 }
+
+export const GET = withRateLimit(handleGET);
+export const PATCH = withRateLimit(handlePATCH);
+export const DELETE = withRateLimit(handleDELETE);

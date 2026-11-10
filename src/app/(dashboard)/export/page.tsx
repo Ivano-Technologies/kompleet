@@ -5,6 +5,8 @@ import { useYear } from "@/contexts/year-context";
 import { YearSelector } from "@/components/year-selector";
 import { notifyError } from "@/components/ui/error-toast";
 import { apiErrorMessage, toFriendlyMessage } from "@/lib/friendly-error";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Download } from "lucide-react";
 
 interface ExportHistory {
   id: string;
@@ -272,9 +274,11 @@ export default function ExportCenterPage() {
         </h2>
         <div className="mt-4 overflow-x-auto">
           {exportHistory.length === 0 ? (
-            <p className="text-sm text-light-text-tertiary dark:text-dark-text-tertiary">
-              No exports yet
-            </p>
+            <EmptyState
+              icon={Download}
+              title="No exports yet"
+              description="Generate a CSV, Excel, or statement export and it will show up here."
+            />
           ) : (
             <table className="min-w-full divide-y divide-light-border dark:divide-dark-border">
               <thead>

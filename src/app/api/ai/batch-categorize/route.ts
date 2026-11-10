@@ -10,6 +10,7 @@ import { api } from "@/lib/convex/http";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 import { z } from "zod";
 import { apiErrorBody } from "@/lib/friendly-error";
+import { serverOpenAiApiKey } from "@/lib/openai-api-key";
 
 const batchCategorizeSchema = z.object({
   transactions: z
@@ -61,10 +62,7 @@ async function handlePOST(request: NextRequest) {
       if (r.confidenceScore < 70) needsLLM.push(i);
     });
 
-    const apiKey =
-      process.env.OPENAI_API_KEY ||
-      process.env.OPEN_AI_API_KEY ||
-      process.env.NEXT_PUBLIC_OPEN_AI_API_KEY;
+    const apiKey = serverOpenAiApiKey();
     const llmResults: Record<
       number,
       {

@@ -23,6 +23,7 @@ import { DROP_COPY } from "@/components/import/statement-copy";
 import { TriageSheet, useTriageCount } from "@/components/review/TriageSheet";
 import { apiErrorMessage, toFriendlyMessage } from "@/lib/friendly-error";
 import { ErrorText } from "@/components/ui/error-ref";
+import { EmptyState } from "@/components/ui/empty-state";
 
 interface Transaction {
   id: string;
@@ -382,8 +383,12 @@ export default function TransactionsPage() {
               <p className="text-sm text-text-3">Loading transactions...</p>
             </div>
           ) : transactions.length === 0 ? (
-            <div className="p-10 text-center text-sm text-text-3">
-              No transactions match these filters.
+            <div className="p-6">
+              <EmptyState
+                icon={Search}
+                title="No transactions match these filters"
+                description="Try a different search, type, or date range."
+              />
             </div>
           ) : (
             <>
