@@ -90,21 +90,23 @@ async function main() {
         await page.goto(urlFor("invoices"), { waitUntil: "domcontentloaded" });
         await waitReady(page, "INV-001");
         if (vp.width < 768) {
-          await page.getByRole("button", { name: "View invoice" }).evaluate((btn) => {
-            let node = btn.parentElement;
-            while (node && node !== document.body) {
-              const style = getComputedStyle(node);
-              if (style.display === "none") {
-                node.style.setProperty("display", "flex", "important");
-                node.style.setProperty("position", "fixed");
-                node.style.setProperty("inset", "0");
-                node.style.setProperty("z-index", "40");
-                node.style.setProperty("background", "white");
-                node.style.setProperty("overflow", "auto");
+          await page
+            .getByRole("button", { name: "View invoice", includeHidden: true })
+            .evaluate((btn) => {
+              let node = btn.parentElement;
+              while (node && node !== document.body) {
+                const style = getComputedStyle(node);
+                if (style.display === "none") {
+                  node.style.setProperty("display", "flex", "important");
+                  node.style.setProperty("position", "fixed");
+                  node.style.setProperty("inset", "0");
+                  node.style.setProperty("z-index", "40");
+                  node.style.setProperty("background", "white");
+                  node.style.setProperty("overflow", "auto");
+                }
+                node = node.parentElement;
               }
-              node = node.parentElement;
-            }
-          });
+            });
         }
         await page.getByRole("button", { name: "View invoice" }).waitFor({
           state: "visible",
