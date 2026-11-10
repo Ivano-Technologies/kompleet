@@ -118,6 +118,15 @@ describe("friendly-error", () => {
       );
     });
 
+    it("maps authenticator second-factor errors", () => {
+      expect(msg(new Error(convexWrap("TWO_FACTOR_REQUIRED")))).toBe(
+        FRIENDLY_MESSAGES.twoFactorRequired,
+      );
+      expect(
+        msg(new FakeConvexError({ message: FRIENDLY_MESSAGES.totpInvalid })),
+      ).toBe(FRIENDLY_MESSAGES.totpInvalid);
+    });
+
     it("maps rate limits", () => {
       expect(msg(new Error("Rate limit exceeded"))).toBe(
         FRIENDLY_MESSAGES.rateLimited,

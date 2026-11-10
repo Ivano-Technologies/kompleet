@@ -15,6 +15,11 @@
  * and flake e2e on expected user errors.
  */
 import * as Sentry from "@sentry/nextjs";
+import {
+  TOTP_INVALID_MESSAGE,
+  TOTP_REQUIRED_MESSAGE,
+  TOTP_UNAVAILABLE,
+} from "../../convex/lib/totp";
 
 export const FRIENDLY_FALLBACK = "Something went wrong. Please try again.";
 
@@ -29,6 +34,8 @@ export const FRIENDLY_MESSAGES = {
   unauthorized: "Your session has expired. Please sign in again.",
   missingTaxRule:
     "This tax figure hasn't been verified yet, so we can't calculate it right now. Please try again later.",
+  twoFactorRequired: TOTP_REQUIRED_MESSAGE,
+  totpInvalid: TOTP_INVALID_MESSAGE,
 } as const;
 
 /** An error whose message is written for end users and is safe to display. */
@@ -214,6 +221,10 @@ export const USER_MESSAGE_ALLOWLIST: Record<string, string> = {
   "Type delete my account to confirm.":
     "Type delete my account to confirm.",
   "Your account has been deleted.": "Your account has been deleted.",
+  [TOTP_UNAVAILABLE]: TOTP_UNAVAILABLE,
+  "Two-factor authentication is already on.":
+    "Two-factor authentication is already on.",
+  "Start authenticator setup first.": "Start authenticator setup first.",
 };
 
 const NOT_FOUND_PATTERN =
@@ -251,6 +262,20 @@ function mapKnown(err: unknown, text: string): string | null {
     )
   ) {
     return FRIENDLY_MESSAGES.accountExists;
+  }
+  if (
+    /TWO_FACTOR_REQUIRED|enter the 6-digit code from your authenticator/i.test(
+      text,
+    )
+  ) {
+    return FRIENDLY_MESSAGES.twoFactorRequired;
+  }
+  if (
+    /TOTP_INVALID|authenticator code doesn't match/i.test(
+      text,
+    )
+  ) {
+    return FRIENDLY_MESSAGES.totpInvalid;
   }
   if (
     /invalid.*code|code.*(invalid|expired)|could not verify code|InvalidVerificationCode|expired.*(code|token|link)/i.test(

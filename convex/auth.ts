@@ -19,17 +19,31 @@ import {
 
 type PasswordProvider = ReturnType<typeof Password>;
 
+type AuthGuardCtx = {
+  runMutation: (fn: unknown, args: Record<string, unknown>) => Promise<unknown>;
+};
+
+function totpArgs(params: Record<string, unknown>): Record<string, string> {
+  const totpCode =
+    typeof params.totpCode === "string" ? params.totpCode.trim() : "";
+  const recoveryCode =
+    typeof params.recoveryCode === "string" ? params.recoveryCode.trim() : "";
+  return {
+    ...(totpCode ? { totpCode } : {}),
+    ...(recoveryCode ? { recoveryCode } : {}),
+  };
+}
+
+function hasVerificationCode(params: Record<string, unknown>): boolean {
+  return typeof params.code === "string" && params.code.trim().length > 0;
+}
+
 function withPasswordAuthGuards(provider: PasswordProvider): PasswordProvider {
   const withOptions = provider as PasswordProvider & {
     options?: {
       authorize?: (
         params: Record<string, unknown>,
-        ctx: {
-          runMutation: (
-            fn: typeof internal.authLegacy.trustLegacyPasswordAccount,
-            args: { email: string },
-          ) => Promise<null>;
-        },
+        ctx: AuthGuardCtx,
       ) => Promise<unknown>;
     };
   };
@@ -46,11 +60,19 @@ function withPasswordAuthGuards(provider: PasswordProvider): PasswordProvider {
           email,
         });
       }
+      const completingEmailVerification =
+        params.flow === "email-verification" && hasVerificationCode(params);
+      if (
+        (params.flow === "reset-verification" || completingEmailVerification) &&
+        email
+      ) {
+        await ctx.runMutation(internal.totp.assertSatisfiedByEmail, {
+          email,
+          ...totpArgs(params),
+        });
+      }
       const resendWithoutCode =
-        params.flow === "email-verification" &&
-        (params.code === undefined ||
-          params.code === null ||
-          params.code === "");
+        params.flow === "email-verification" && !hasVerificationCode(params);
       if (resendWithoutCode && email) {
         const allowed = await consumeAuthEmailSend(ctx, {
           email,
@@ -66,7 +88,17 @@ function withPasswordAuthGuards(provider: PasswordProvider): PasswordProvider {
           throw error;
         }
       }
-      return inner(params, ctx);
+      const result = await inner(params, ctx);
+      if (params.flow === "signIn" && result && typeof result === "object") {
+        const userId = (result as { userId?: unknown }).userId;
+        if (typeof userId === "string") {
+          await ctx.runMutation(internal.totp.assertSatisfied, {
+            userId,
+            ...totpArgs(params),
+          });
+        }
+      }
+      return result;
     },
   };
   return provider;

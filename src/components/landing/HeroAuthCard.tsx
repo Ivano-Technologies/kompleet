@@ -19,6 +19,12 @@ import {
 import { FRIENDLY_MESSAGES, toFriendlyError, withRef } from "@/lib/friendly-error";
 import { ErrorText } from "@/components/ui/error-ref";
 import { didSignInComplete, verifyEmailPath } from "@/lib/auth/sign-in-result";
+import {
+  isTotpInvalidError,
+  isTwoFactorRequiredError,
+  secondFactorArgs,
+} from "@/lib/auth/totp-sign-in";
+import { TotpChallengeField } from "@/components/auth/TotpChallengeField";
 import { RECLAIM_SIGNUP_NOTE } from "@/lib/auth/copy";
 
 const inputClassName =
@@ -41,6 +47,8 @@ export default function HeroAuthCard() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [secondFactor, setSecondFactor] = useState("");
+  const [needsTotp, setNeedsTotp] = useState(false);
   const emailRef = useRef<HTMLInputElement>(null);
   const { signIn } = useAuthActions();
   const router = useRouter();
@@ -93,6 +101,7 @@ export default function HeroAuthCard() {
         email,
         password,
         flow: mode === "signup" ? "signUp" : "signIn",
+        ...(mode === "signin" ? secondFactorArgs(secondFactor) : {}),
       });
       if (!didSignInComplete(result)) {
         router.push(verifyEmailPath(email));
@@ -110,6 +119,12 @@ export default function HeroAuthCard() {
       const { message, ref } = toFriendlyError(err, FRIENDLY_MESSAGES.fallback, {
         context: `hero-auth:${mode}`,
       });
+      if (isTwoFactorRequiredError(err) || isTotpInvalidError(err)) {
+        setNeedsTotp(true);
+        setError(withRef(message, ref));
+        setLoading(false);
+        return;
+      }
       const signInMismatch =
         mode === "signin" &&
         message !== FRIENDLY_MESSAGES.network &&
@@ -207,6 +222,15 @@ export default function HeroAuthCard() {
             </button>
           </div>
         </div>
+        {mode === "signin" && needsTotp ? (
+          <div className="mt-3">
+            <TotpChallengeField
+              value={secondFactor}
+              onChange={setSecondFactor}
+              autoFocus
+            />
+          </div>
+        ) : null}
         <button
           type="submit"
           disabled={loading}
