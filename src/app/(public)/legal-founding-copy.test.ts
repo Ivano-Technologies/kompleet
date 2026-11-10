@@ -28,6 +28,15 @@ describe("founding-access copy on legal and pricing pages", () => {
     expect(cookies).toMatch(/Kompleet uses cookies/);
   });
 
+  it("keeps Terms §17 in sentence case and renders it uppercase", () => {
+    expect(terms).toMatch(
+      /By using Kompleet, you acknowledge that you have read, understood,/,
+    );
+    expect(terms).not.toMatch(/BY USING Kompleet/);
+    const ack = terms.slice(terms.indexOf("17. Acknowledgment"));
+    expect(ack).toMatch(/className="uppercase /);
+  });
+
   it("does not keep a current-access ₦0 plan card on /pricing", () => {
     expect(pricing).not.toMatch(/data-plan="current"/);
     expect(pricing).not.toMatch(/Current access/);

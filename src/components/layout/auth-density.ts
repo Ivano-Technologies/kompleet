@@ -32,7 +32,7 @@ export const AUTH_ERROR =
   "mb-3 rounded-md border border-error/30 bg-error-bg p-2.5 text-sm text-error dark:bg-error-darkBg dark:text-error-dark";
 
 export const AUTH_SUCCESS =
-  "mb-3 rounded-md border border-green-200 bg-green-50 p-2.5 text-sm text-green-700 dark:border-green-800 dark:bg-green-900/20 dark:text-green-400";
+  "mb-3 rounded-md border border-success/30 bg-success/10 p-2.5 text-sm text-success";
 
 export const AUTH_FORM = "space-y-3";
 

@@ -610,9 +610,9 @@ export default function TermsPage() {
             <h2 className="text-2xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">
               17. Acknowledgment
             </h2>
-            <p className="text-light-text-secondary dark:text-dark-text-secondary">
-              BY USING Kompleet, YOU ACKNOWLEDGE THAT YOU HAVE READ, UNDERSTOOD,
-              AND AGREE TO BE BOUND BY THESE TERMS OF SERVICE.
+            <p className="uppercase text-light-text-secondary dark:text-dark-text-secondary">
+              By using Kompleet, you acknowledge that you have read, understood,
+              and agree to be bound by these Terms of Service.
             </p>
           </section>
         </div>
