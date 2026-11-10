@@ -6,6 +6,7 @@ import { SkipToContent } from "@/components/a11y/SkipToContent";
 import { BrandLockup } from "@/components/brand/BrandLockup";
 import { HERO_AUTH_ID, requestHeroAuth } from "@/components/landing/hero-auth";
 import { useTheme } from "@/contexts/ThemeContext";
+import { DARK_MODE_ENABLED } from "@/lib/theme-boot";
 import { Menu, Moon, Sun, X } from "lucide-react";
 
 const ACCENT_CTA =
@@ -57,6 +58,7 @@ export default function LandingNav({ heroAuth = false }: LandingNavProps) {
               {link.label}
             </Link>
           ))}
+          {DARK_MODE_ENABLED ? (
           <button
             type="button"
             onClick={toggleTheme}
@@ -69,6 +71,7 @@ export default function LandingNav({ heroAuth = false }: LandingNavProps) {
               <Sun className="h-4 w-4 text-dark-text-2" />
             )}
           </button>
+          ) : null}
           <Link
             href={signInHref}
             onClick={handleSignInClick}
@@ -117,6 +120,7 @@ export default function LandingNav({ heroAuth = false }: LandingNavProps) {
               {link.label}
             </Link>
           ))}
+          {DARK_MODE_ENABLED ? (
           <button
             type="button"
             onClick={toggleTheme}
@@ -132,6 +136,7 @@ export default function LandingNav({ heroAuth = false }: LandingNavProps) {
               {resolvedTheme === "light" ? "Dark mode" : "Light mode"}
             </span>
           </button>
+          ) : null}
           <div className="flex gap-2 pt-2">
             <Link
               href={signInHref}

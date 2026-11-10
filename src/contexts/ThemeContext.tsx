@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { THEME_STORAGE_KEY } from "@/lib/theme-boot";
+import { DARK_MODE_ENABLED, THEME_STORAGE_KEY } from "@/lib/theme-boot";
 
 type Theme = "light" | "dark" | "system";
 
@@ -23,18 +23,18 @@ function getSystemPreference(): "light" | "dark" {
 }
 
 export function resolveTheme(theme: Theme): "light" | "dark" {
+  if (!DARK_MODE_ENABLED) return "light";
   if (theme === "system") return getSystemPreference();
   return theme;
 }
 
 function applyThemeClass(theme: Theme) {
-  document.documentElement.classList.toggle(
-    "dark",
-    resolveTheme(theme) === "dark",
-  );
+  const dark = DARK_MODE_ENABLED && resolveTheme(theme) === "dark";
+  document.documentElement.classList.toggle("dark", dark);
 }
 
 function readStoredTheme(): Theme {
+  if (!DARK_MODE_ENABLED) return "light";
   const stored = localStorage.getItem(THEME_STORAGE_KEY);
   if (stored === "light" || stored === "dark" || stored === "system") {
     return stored;
@@ -43,10 +43,19 @@ function readStoredTheme(): Theme {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("system");
+  const [theme, setThemeState] = useState<Theme>(
+    DARK_MODE_ENABLED ? "system" : "light",
+  );
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    if (!DARK_MODE_ENABLED) {
+      localStorage.removeItem(THEME_STORAGE_KEY);
+      document.documentElement.classList.remove("dark");
+      setThemeState("light");
+      setMounted(true);
+      return;
+    }
     const initial = readStoredTheme();
     setThemeState(initial);
     applyThemeClass(initial);
@@ -54,7 +63,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (!mounted) return;
+    if (!DARK_MODE_ENABLED || !mounted) return;
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
     const handler = () => {
       if (theme === "system") {
@@ -66,6 +75,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [mounted, theme]);
 
   const setTheme = (newTheme: Theme) => {
+    if (!DARK_MODE_ENABLED) {
+      setThemeState("light");
+      localStorage.removeItem(THEME_STORAGE_KEY);
+      document.documentElement.classList.remove("dark");
+      return;
+    }
     setThemeState(newTheme);
     localStorage.setItem(THEME_STORAGE_KEY, newTheme);
     applyThemeClass(newTheme);
@@ -87,7 +102,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 }
 
 const defaultThemeContext: ThemeContextType = {
-  theme: "system",
+  theme: DARK_MODE_ENABLED ? "system" : "light",
   resolvedTheme: "light",
   toggleTheme: () => {},
   setTheme: () => {},

@@ -56,6 +56,12 @@ describe("theme colour tokens", () => {
     expect(globals).toMatch(/#2DD4BF/);
   });
 
+  it("keeps light --link and --primary at navy #0B3A5C", () => {
+    expect(globals).toMatch(/--primary:\s*11 58 92;/);
+    expect(globals).toMatch(/--link:\s*11 58 92;/);
+    expect(globals).toMatch(/#0B3A5C light links \/ text-buttons/);
+  });
+
   it("keeps filled buttons on --primary-fill teal, not --link or navy --primary", () => {
     const button = readFileSync(
       resolve(process.cwd(), "src/components/ui/button.tsx"),

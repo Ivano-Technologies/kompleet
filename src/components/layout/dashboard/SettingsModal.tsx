@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useTheme } from "@/contexts/ThemeContext";
+import { DARK_MODE_ENABLED } from "@/lib/theme-boot";
 import {
   X,
   Settings as SettingsIcon,
@@ -670,6 +671,7 @@ export function SettingsModal({
                     <option>GBP (British Pound)</option>
                   </select>
                 </div>
+                {DARK_MODE_ENABLED ? (
                 <div className="p-4 rounded-xl border border-light-border dark:border-dark-border bg-light-background dark:bg-dark-background">
                   <label className="block text-sm font-semibold text-light-text-primary dark:text-dark-text-primary mb-2">
                     Theme
@@ -718,6 +720,7 @@ export function SettingsModal({
                     ))}
                   </div>
                 </div>
+                ) : null}
               </div>
             )}
 
