@@ -32,6 +32,10 @@ describe("IVA-288 account deletion", () => {
     expect(users).not.toMatch(/softDeleteMine/);
     const erase = read("convex/lib/eraseAccount.ts");
     expect(erase).toMatch(/deadlineReminders/);
+    expect(erase).toMatch(/uploadedFiles/);
+    expect(erase).toMatch(/ctx\.storage\.delete/);
+    const crons = read("convex/crons.ts");
+    expect(crons).toMatch(/internal\.retention\.purgeExpired/);
   });
 
   it("nests the confirm in the settings portal and traps focus", () => {
