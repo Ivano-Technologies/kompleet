@@ -10,6 +10,7 @@ import { api } from "@/lib/convex/http";
 import { isUnauthorized, requireAuthedConvex } from "@/lib/convex/server";
 import { z } from "zod";
 import { apiErrorBody } from "@/lib/friendly-error";
+import { serverOpenAiApiKey } from "@/lib/openai-api-key";
 
 const categorizeSchema = z.object({
   merchant: z.string().min(1, "Merchant is required").max(500),
@@ -59,10 +60,7 @@ async function handlePOST(request: NextRequest) {
       });
     }
 
-    const apiKey =
-      process.env.OPENAI_API_KEY ||
-      process.env.OPEN_AI_API_KEY ||
-      process.env.NEXT_PUBLIC_OPEN_AI_API_KEY;
+    const apiKey = serverOpenAiApiKey();
     if (!apiKey) {
       return NextResponse.json({
         category: rulesResult.categoryName || "Uncategorized",
@@ -104,10 +102,7 @@ async function handlePOST(request: NextRequest) {
 export const POST = withRateLimit(handlePOST, { limit: 30 });
 
 async function handleGET() {
-  const apiKey =
-    process.env.OPENAI_API_KEY ||
-    process.env.OPEN_AI_API_KEY ||
-    process.env.NEXT_PUBLIC_OPEN_AI_API_KEY;
+  const apiKey = serverOpenAiApiKey();
   return NextResponse.json({
     status: apiKey ? "operational" : "degraded",
     provider: apiKey ? "openai (gpt-4o-mini)" : "rules-only",

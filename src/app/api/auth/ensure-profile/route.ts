@@ -5,12 +5,13 @@ import {
   requireAuthedConvex,
 } from "@/lib/convex/server";
 import { apiErrorBody } from "@/lib/friendly-error";
+import { withRateLimit } from "@/lib/with-rate-limit";
 
 /**
  * Bootstrap / refresh the Convex users row after Convex Auth login/signup.
  * Idempotent. Remaps existing profiles by email.
  */
-export async function POST(request: NextRequest) {
+async function handlePOST(request: NextRequest) {
   try {
     const { convex, user } = await requireAuthedConvex(request);
     let body: { email?: string; fullName?: string } = {};
@@ -38,3 +39,8 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+// Auth-required bootstrap: login, signup, verify-email, AuthContext, and
+// the e2e helper all POST this on a session. 20/min 429s a normal dashboard
+// tour and CI (one worker, many logins in the same window).
+export const POST = withRateLimit(handlePOST, { limit: 120, window: 60_000 });

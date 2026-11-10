@@ -15,6 +15,7 @@ import {
   drawExportMark,
   EXPORT_HEADER_GREY_RGB,
 } from "@/lib/export-chrome";
+import { withRateLimit } from "@/lib/with-rate-limit";
 
 const FORMATS = ["csv", "pdf", "excel"] as const;
 type ExportFormat = (typeof FORMATS)[number];
@@ -29,7 +30,7 @@ interface ExpenseExportRow {
   notes: string;
 }
 
-export async function GET(request: NextRequest) {
+async function handleGET(request: NextRequest) {
   try {
     const { convex } = await requireAuthedConvex(request);
 
@@ -165,3 +166,5 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+export const GET = withRateLimit(handleGET, { limit: 20 });

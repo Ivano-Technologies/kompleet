@@ -15,7 +15,8 @@ describe("Expense Sprint 4 – Reports, Export & Sync", () => {
       );
       expect(fs.existsSync(routePath)).toBe(true);
       const content = fs.readFileSync(routePath, "utf-8");
-      expect(content).toMatch(/export async function GET/);
+      expect(content).toMatch(/export (async function GET|const GET)/);
+      expect(content).toMatch(/withRateLimit/);
       expect(content).toMatch(/startDate|endDate|format/);
       expect(content).toMatch(/csv|pdf|excel/);
     });

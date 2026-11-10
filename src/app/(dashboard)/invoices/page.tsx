@@ -29,6 +29,7 @@ import {
 import { onBusinessProfileChanged } from "@/lib/invoices/profile-events";
 import { toFriendlyMessage } from "@/lib/friendly-error";
 import { ErrorText } from "@/components/ui/error-ref";
+import { EmptyState } from "@/components/ui/empty-state";
 
 type Invoice = InvoiceView;
 
@@ -300,10 +301,20 @@ function InvoicesPageInner() {
               </p>
             </div>
           ) : filteredInvoices.length === 0 ? (
-            <div className="p-4 text-sm text-text-3">
-              {searchQuery || statusFilter !== "all"
-                ? "No invoices match these filters."
-                : INV_COPY.emptyTitle}
+            <div className="p-4">
+              <EmptyState
+                icon={FileText}
+                title={
+                  searchQuery || statusFilter !== "all"
+                    ? "No invoices match these filters"
+                    : INV_COPY.emptyTitle
+                }
+                description={
+                  searchQuery || statusFilter !== "all"
+                    ? "Clear the search or status filter to see your invoices."
+                    : undefined
+                }
+              />
             </div>
           ) : (
             <div className="divide-y divide-light-border/50 dark:divide-dark-border/50">
