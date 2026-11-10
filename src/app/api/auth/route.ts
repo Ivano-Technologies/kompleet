@@ -19,6 +19,7 @@ import {
   isExactConvexAuthProxyPath,
 } from "@/lib/auth/convex-auth-api-route";
 import { withRateLimit } from "@/lib/with-rate-limit";
+import { assertHumanRequest, botGateResponse } from "@/lib/bot-protection";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -31,6 +32,14 @@ async function handleConvexAuthProxy(request: NextRequest): Promise<Response> {
   const pathname = new URL(request.url).pathname;
   if (!isExactConvexAuthProxyPath(pathname)) {
     return Response.json({ error: "Not found" }, { status: 404 });
+  }
+
+  if (request.method === "POST") {
+    const gate = await assertHumanRequest(request);
+    const blocked = botGateResponse(gate);
+    if (blocked) {
+      return blocked;
+    }
   }
 
   const result = await proxyAuth(request, {} as NextFetchEvent);

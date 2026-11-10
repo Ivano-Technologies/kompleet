@@ -10,6 +10,7 @@ import { ConvexAuthClientProvider } from "@/components/providers/ConvexAuthClien
 import { ErrorToaster } from "@/components/ui/error-toast";
 import { AuthLinkErrorRedirect } from "@/components/auth/AuthLinkErrorRedirect";
 import { CookieConsentProvider } from "@/components/cookies/CookieConsentProvider";
+import { TurnstileAuthBridge } from "@/components/security/TurnstileAuthBridge";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -78,13 +79,15 @@ export default function RootLayout({
         </head>
         <body className="font-body">
           <ConvexAuthClientProvider>
-            <ThemeProvider>
-              <CookieConsentProvider>
-                <YearProvider>{children}</YearProvider>
-                <ErrorToaster />
-                <AuthLinkErrorRedirect />
-              </CookieConsentProvider>
-            </ThemeProvider>
+            <TurnstileAuthBridge>
+              <ThemeProvider>
+                <CookieConsentProvider>
+                  <YearProvider>{children}</YearProvider>
+                  <ErrorToaster />
+                  <AuthLinkErrorRedirect />
+                </CookieConsentProvider>
+              </ThemeProvider>
+            </TurnstileAuthBridge>
           </ConvexAuthClientProvider>
         </body>
       </html>

@@ -25,6 +25,7 @@ import {
   withRef,
 } from '@/lib/friendly-error';
 import { ErrorText } from '@/components/ui/error-ref';
+import { TurnstileField } from '@/components/security/TurnstileField';
 
 const headerLeftAddon = (
   <Link
@@ -198,6 +199,7 @@ export default function ResetPasswordClient() {
             className={AUTH_INPUT}
           />
         </div>
+        <TurnstileField action="password-reset" />
         <button
           type="submit"
           disabled={loading}

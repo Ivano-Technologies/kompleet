@@ -23,6 +23,7 @@ import {
   withRef,
 } from '@/lib/friendly-error';
 import { ErrorText } from '@/components/ui/error-ref';
+import { TurnstileField } from '@/components/security/TurnstileField';
 
 const NETWORK_ERROR_MESSAGE =
   "We couldn't send the code. Check your connection and try again.";
@@ -129,6 +130,7 @@ export default function ForgotPasswordPage() {
             className={AUTH_INPUT}
           />
         </div>
+        <TurnstileField action="password-reset" />
         <button
           type="submit"
           disabled={loading}

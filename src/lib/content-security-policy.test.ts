@@ -20,6 +20,12 @@ describe("CSP report-only policy", () => {
       "https://*.ingest.us.sentry.io",
     );
     expect(CONTENT_SECURITY_POLICY_REPORT_ONLY).toContain("connect-src 'self'");
+    expect(CONTENT_SECURITY_POLICY_REPORT_ONLY).toContain(
+      "https://challenges.cloudflare.com",
+    );
+    expect(CONTENT_SECURITY_POLICY_REPORT_ONLY).toContain(
+      "frame-src https://challenges.cloudflare.com",
+    );
   });
 
   it("does not enforce the policy (report-only first)", () => {

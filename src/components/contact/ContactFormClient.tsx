@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { apiErrorMessage } from "@/lib/friendly-error";
 import { ErrorText } from "@/components/ui/error-ref";
+import { TurnstileField } from "@/components/security/TurnstileField";
+import { getPendingTurnstileToken } from "@/lib/turnstile-fetch";
 
 export default function ContactFormClient() {
   const [status, setStatus] = useState<"idle" | "sending" | "success" | "error">(
@@ -19,6 +21,7 @@ export default function ContactFormClient() {
       email: formData.get("email"),
       subject: formData.get("subject"),
       message: formData.get("message"),
+      turnstileToken: getPendingTurnstileToken(),
     };
 
     setStatus("sending");
@@ -124,6 +127,7 @@ export default function ContactFormClient() {
       {status === "error" && (
         <p className="text-sm text-red-600 dark:text-red-400"><ErrorText text={errorMessage} /></p>
       )}
+      <TurnstileField action="contact" />
       <button
         type="submit"
         disabled={status === "sending"}

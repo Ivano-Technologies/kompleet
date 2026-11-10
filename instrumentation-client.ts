@@ -1,6 +1,16 @@
 // instrumentation-client.ts
 import * as Sentry from "@sentry/nextjs";
+import { initBotId } from "botid/client/core";
 import { shouldDropStaleHostFailedFetch } from "./src/lib/sentry/drop-stale-host-fetch";
+
+if (process.env.NEXT_PUBLIC_BOTID_ENABLED === "true") {
+  initBotId({
+    protect: [
+      { path: "/api/auth", method: "POST" },
+      { path: "/api/contact", method: "POST" },
+    ],
+  });
+}
 
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
