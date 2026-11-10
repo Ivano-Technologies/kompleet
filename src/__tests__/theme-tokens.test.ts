@@ -23,8 +23,10 @@ describe("theme colour tokens", () => {
   it("keeps light cream channels and remaps html.dark to brand navy", () => {
     expect(globals).toMatch(/--background:\s*244 241 235;/);
     expect(globals).toMatch(/--surface:\s*255 253 248;/);
-    expect(globals).toMatch(/--dark-bg:\s*8 15 24;/);
-    expect(globals).toMatch(/--dark-surface:\s*15 30 46;/);
+    expect(globals).toMatch(/--dark-bg:\s*15 30 46;/);
+    expect(globals).toMatch(/--dark-surface:\s*22 36 56;/);
+    expect(globals).toMatch(/#0F1E2E page/);
+    expect(globals).toMatch(/#162438 cards/);
     expect(globals).toMatch(/html\.dark[\s\S]*--background:\s*var\(--dark-bg\)/);
     expect(globals).toMatch(/@custom-variant dark/);
   });

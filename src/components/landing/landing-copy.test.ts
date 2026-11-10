@@ -263,6 +263,9 @@ describe("IVA-72 landing copy", () => {
     expect(appSidebar).toMatch(/tone="inverse"/);
     expect(authLayout).toMatch(/tone="auto"/);
     expect(authLayout).toMatch(/markHeight=\{20\}/);
+    expect(landingNav).toMatch(/tone="auto"/);
+    expect(landingFooter).toMatch(/tone="auto"/);
+    expect(heroAuthCard).toMatch(/AUTH_LINK/);
   });
 
   it("locks Ceoruse wordmark, Clash headlines, and Montserrat body", () => {
@@ -298,7 +301,7 @@ describe("IVA-72 landing copy", () => {
     expect(heroAuthCard).toMatch(/shadow-2/);
     expect(heroAuthCard).toMatch(/bg-accent-hover[\s\S]*text-charcoal/);
     expect(heroAuthCard).not.toMatch(/shadow-primary|teal glow|shadow-accent/);
-    expect(heroAuthCard).toMatch(/text-primary/);
+    expect(heroAuthCard).toMatch(/AUTH_LINK/);
     expect(heroAuth).toMatch(/HERO_AUTH_ID/);
     expect(landingNav).toMatch(/heroAuth/);
     expect(landingNav).toMatch(/requestHeroAuth/);

@@ -16,7 +16,7 @@ export default function LandingFooter() {
         <div className="mb-10 grid grid-cols-2 gap-8 md:grid-cols-5">
           <div className="col-span-2 md:col-span-1">
             <div className="mb-3 flex h-5 items-center">
-              <BrandLockup size="sm" />
+              <BrandLockup size="sm" tone="auto" />
             </div>
             <p className="text-sm leading-relaxed text-text-2">
               Simple bookkeeping and invoicing for Nigerian SMEs.

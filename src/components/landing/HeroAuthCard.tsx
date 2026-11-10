@@ -19,6 +19,7 @@ import {
 import { FRIENDLY_MESSAGES, toFriendlyError, withRef } from "@/lib/friendly-error";
 import { ErrorText } from "@/components/ui/error-ref";
 import { didSignInComplete, verifyEmailPath } from "@/lib/auth/sign-in-result";
+import { AUTH_LINK } from "@/components/layout/auth-density";
 import { RECLAIM_SIGNUP_NOTE } from "@/lib/auth/copy";
 
 const inputClassName =
@@ -236,7 +237,7 @@ export default function HeroAuthCard() {
               <button
                 type="button"
                 onClick={focusSignIn}
-                className="inline-flex min-h-11 items-center font-semibold text-primary underline underline-offset-2"
+                className={`inline-flex min-h-11 items-center underline underline-offset-2 ${AUTH_LINK}`}
               >
                 Sign in
               </button>
@@ -250,7 +251,7 @@ export default function HeroAuthCard() {
                   setMode("signup");
                   setError(null);
                 }}
-                className="inline-flex min-h-11 items-center font-semibold text-primary underline underline-offset-2"
+                className={`inline-flex min-h-11 items-center underline underline-offset-2 ${AUTH_LINK}`}
               >
                 Get started
               </button>

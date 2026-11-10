@@ -45,7 +45,7 @@ export default function LandingNav({ heroAuth = false }: LandingNavProps) {
         aria-label="Primary"
       >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <BrandLockup href="/" size="lg" linkClassName="min-h-11" />
+        <BrandLockup href="/" size="lg" tone="auto" linkClassName="min-h-11" />
 
         <div className="hidden flex-1 items-center justify-end gap-5 md:flex">
           {NAV_LINKS.map((link) => (

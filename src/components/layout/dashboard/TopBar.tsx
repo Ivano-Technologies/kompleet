@@ -8,6 +8,8 @@ import type { SettingsSection } from "./settings-types";
 
 const pageTitles: Record<string, string> = {
   "/dashboard": "Dashboard",
+  "/dev/theme-shots/dashboard": "Dashboard",
+  "/dev/theme-shots/books": "Books",
   "/transactions": "Books",
   "/transactions/upload": "Advanced import",
   "/transactions/review": "Quick check",
