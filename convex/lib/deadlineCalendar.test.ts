@@ -89,18 +89,14 @@ describe("dueRemindersAt", () => {
     expect(one.map((d) => d.daysRemaining)).toEqual([1]);
 
     const dueDay = dueRemindersAt(Date.parse("2027-03-31T08:00:00.000Z"));
-    expect(dueDay.filter((d) => d.formType === "PIT")).toEqual([
-      expect.objectContaining({
-        formType: "PIT",
-        daysRemaining: 1,
-      }),
-    ]);
+    expect(dueDay.filter((d) => d.formType === "PIT")).toEqual([]);
   });
 
   it("catches up a missed window with only the lowest due tier", () => {
     expect(lowestDueTier(5)).toBe(7);
     expect(lowestDueTier(2)).toBe(3);
-    expect(lowestDueTier(0)).toBe(1);
+    expect(lowestDueTier(1)).toBe(1);
+    expect(lowestDueTier(0)).toBe(null);
     expect(lowestDueTier(-1)).toBe(null);
     expect(lowestDueTier(8)).toBe(null);
 
@@ -142,6 +138,19 @@ describe("dueRemindersAt", () => {
     );
   });
 
+  it("does not re-fire a 7-day deadline as 1-day on the following Monday", () => {
+    // Monday 24 Mar 2027: PIT due 31 Mar is exactly 7 days out.
+    const firstMonday = dueRemindersAt(Date.parse("2027-03-24T07:00:00.000Z"));
+    expect(
+      firstMonday.find((row) => row.formType === "PIT")?.daysRemaining,
+    ).toBe(7);
+
+    // Next Monday is the due day (0 days left). That is not a 1-day nudge.
+    // The 1-day template is only for deadlines 1 calendar day out.
+    const dueMonday = dueRemindersAt(Date.parse("2027-03-31T07:00:00.000Z"));
+    expect(dueMonday.filter((row) => row.formType === "PIT")).toEqual([]);
+  });
+
   it("covers every coming-week deadline from a Monday 07:00 UTC run", () => {
     const monday = Date.parse("2026-04-20T07:00:00.000Z");
     expect(new Date(monday).getUTCDay()).toBe(1);
@@ -162,7 +171,7 @@ describe("dueRemindersAt", () => {
     for (const year of [2025, 2026, 2027]) {
       for (const deadline of filingDeadlinesForTaxYear(year)) {
         const daysLeft = calendarDaysUntil(deadline.deadlineDate, todayIso);
-        if (daysLeft >= 0 && daysLeft <= 7) {
+        if (daysLeft >= 1 && daysLeft <= 7) {
           expect(due).toEqual(
             expect.arrayContaining([
               expect.objectContaining({

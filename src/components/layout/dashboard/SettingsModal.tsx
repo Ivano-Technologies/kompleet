@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useTheme } from "@/contexts/ThemeContext";
+import { DARK_MODE_ENABLED } from "@/lib/theme-boot";
 import {
   X,
   Settings as SettingsIcon,
@@ -612,7 +613,7 @@ export function SettingsModal({
                     />
                   </div>
                   <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
-                    Email me 7, 3 and 1 days before a filing deadline.
+                    Email me once per filing deadline, 7, 3 or 1 days before it is due.
                   </p>
                 </div>
               </div>
@@ -670,6 +671,7 @@ export function SettingsModal({
                     <option>GBP (British Pound)</option>
                   </select>
                 </div>
+                {DARK_MODE_ENABLED ? (
                 <div className="p-4 rounded-xl border border-light-border dark:border-dark-border bg-light-background dark:bg-dark-background">
                   <label className="block text-sm font-semibold text-light-text-primary dark:text-dark-text-primary mb-2">
                     Theme
@@ -718,6 +720,7 @@ export function SettingsModal({
                     ))}
                   </div>
                 </div>
+                ) : null}
               </div>
             )}
 

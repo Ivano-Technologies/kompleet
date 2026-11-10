@@ -7,10 +7,10 @@ function read(rel: string): string {
 }
 
 describe("IVA-289 hardening", () => {
-  it("ships CSP as Report-Only and names GA, Sentry, Convex", () => {
+  it("ships an enforced CSP and names GA, Sentry, Convex", () => {
     const config = read("next.config.mjs");
-    expect(config).toContain('key: "Content-Security-Policy-Report-Only"');
-    expect(config).not.toContain('key: "Content-Security-Policy"');
+    expect(config).toContain('key: "Content-Security-Policy"');
+    expect(config).not.toContain('key: "Content-Security-Policy-Report-Only"');
     expect(config).toMatch(/content-security-policy\.mjs/);
   });
 
@@ -85,5 +85,10 @@ describe("IVA-289 hardening", () => {
     expect(team).not.toMatch(/Manage user roles/);
     expect(team).not.toMatch(/We'll/);
     expect(team).not.toMatch(/[\u2013\u2014]/);
+  });
+
+  it("does not use secrets in GitHub Actions if conditions", () => {
+    const release = read(".github/workflows/release.yml");
+    expect(release).not.toMatch(/^\s+if:.*secrets\./m);
   });
 });

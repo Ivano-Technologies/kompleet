@@ -4,10 +4,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, Bell, ChevronRight, Sun, Moon } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
+import { DARK_MODE_ENABLED } from "@/lib/theme-boot";
 import type { SettingsSection } from "./settings-types";
 
 const pageTitles: Record<string, string> = {
   "/dashboard": "Dashboard",
+  "/dev/theme-shots/dashboard": "Dashboard",
+  "/dev/theme-shots/books": "Books",
   "/transactions": "Books",
   "/transactions/upload": "Advanced import",
   "/transactions/review": "Quick check",
@@ -67,7 +70,7 @@ interface TopBarProps {
 
 export function TopBar({ onMenuToggle, onOpenSettings }: TopBarProps) {
   const pathname = usePathname();
-  const { theme, resolvedTheme, toggleTheme } = useTheme();
+  const { resolvedTheme, toggleTheme } = useTheme();
   const breadcrumbs = getBreadcrumbs(pathname || "/dashboard");
   const pageTitle = pageTitles[pathname || ""] || "Dashboard";
 
@@ -123,6 +126,7 @@ export function TopBar({ onMenuToggle, onOpenSettings }: TopBarProps) {
 
         {/* Right: Theme toggle + Notifications/Settings */}
         <div className="flex items-center gap-1">
+          {DARK_MODE_ENABLED ? (
           <button
             type="button"
             onClick={toggleTheme}
@@ -131,6 +135,7 @@ export function TopBar({ onMenuToggle, onOpenSettings }: TopBarProps) {
           >
             {resolvedTheme === "light" ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
           </button>
+          ) : null}
           {onOpenSettings && (
             <button
               type="button"

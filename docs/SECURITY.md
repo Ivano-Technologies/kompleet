@@ -227,6 +227,12 @@ These tests verify that:
 
 ---
 
+## Content Security Policy
+
+The app ships an **enforced** `Content-Security-Policy` header (`src/lib/content-security-policy.mjs`). Browser `connect-src` is limited to Convex (HTTPS + WSS), Sentry ingest (plus the same-origin `/monitoring` tunnel), Google Analytics after cookie consent, and Vercel insights if the host injects them. `*.supabase.co` and `api.resend.com` are not in the browser policy: Resend is server-side only.
+
+Further tightening (script nonces, dropping `'unsafe-eval'`) waits on a Chief production PASS. There is still no CSP report collector, so the policy has no `report-uri`.
+
 ## Reporting Security Issues
 
 If you discover a security vulnerability, please report it to the security team immediately. Do not create a public GitHub issue.

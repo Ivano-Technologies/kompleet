@@ -21,7 +21,7 @@ describe("403 page", () => {
     const links = screen.getAllByRole("link");
     expect(links).toHaveLength(1);
     expect(links[0].textContent).toBe("Go to dashboard");
-    expect(links[0].className).toContain("bg-accent");
+    expect(links[0].className).toContain("bg-primary-fill");
     expect(links[0].className).not.toContain("--primary");
     expect(screen.getByTestId("error-ref")).toBeTruthy();
   });

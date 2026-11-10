@@ -166,7 +166,7 @@ export function TransactionUpload() {
       <button
         onClick={handleUpload}
         disabled={!file || !selectedBank || uploading}
-        className="w-full px-6 py-3 bg-primary text-background font-semibold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 transition-opacity"
+        className="w-full px-6 py-3 bg-primary-fill text-white font-semibold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 transition-opacity"
       >
         {uploading ? "Uploading..." : "Upload and Import"}
       </button>

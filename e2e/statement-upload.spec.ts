@@ -18,7 +18,12 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { test, expect, type Page } from "@playwright/test";
-import { login, requireTestCredentials, runId } from "./helpers/auth";
+import {
+  fillHydrated,
+  login,
+  requireTestCredentials,
+  runId,
+} from "./helpers/auth";
 
 const UPLOAD_SELECTORS = {
   bankSelect: 'select:has(option[value="GTB"])',
@@ -107,9 +112,22 @@ test.describe("Bank statement upload", () => {
     await expect(page).toHaveURL(/\/transactions/);
     await expect(page.getByRole("heading", { name: "Books", level: 1 })).toBeVisible();
 
-    await page
-      .getByPlaceholder(UPLOAD_SELECTORS.searchInput, { exact: true })
-      .fill(marker);
+    const search = page.getByPlaceholder(UPLOAD_SELECTORS.searchInput, {
+      exact: true,
+    });
+    await expect(search).toBeVisible();
+    const searchResponse = page.waitForResponse((response) => {
+      if (
+        response.request().method() !== "GET" ||
+        !response.url().includes("/api/transactions")
+      ) {
+        return false;
+      }
+      const url = new URL(response.url());
+      return url.searchParams.get("search") === marker;
+    });
+    await fillHydrated(search, marker);
+    await searchResponse;
     await expect(page.getByText(new RegExp(marker, "i")).first()).toBeVisible();
     await expect(
       page.getByText(new RegExp(`Kompleet Fixture ${marker}`, "i")).first(),

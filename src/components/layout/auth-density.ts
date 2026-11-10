@@ -3,20 +3,19 @@ export const AUTH_LABEL =
   "text-xs font-bold uppercase tracking-wider text-text-2 dark:text-dark-text-2";
 
 export const AUTH_INPUT =
-  "mt-1 h-11 w-full rounded-md border border-border bg-surface px-3 text-sm text-text-1 focus:border-primary focus:ring-2 focus:ring-primary/20";
+  "mt-1 h-11 w-full rounded-md border border-border bg-surface px-3 text-sm text-text-1 placeholder:text-text-3 focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-dark-border dark:bg-dark-surface dark:text-dark-text-1 dark:placeholder:text-dark-text-3";
 
 export const AUTH_INPUT_BARE =
-  "h-11 w-full rounded-md border border-border bg-surface px-3 text-sm text-text-1 focus:border-primary focus:ring-2 focus:ring-primary/20";
+  "h-11 w-full rounded-md border border-border bg-surface px-3 text-sm text-text-1 placeholder:text-text-3 focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-dark-border dark:bg-dark-surface dark:text-dark-text-1 dark:placeholder:text-dark-text-3";
 
 export const AUTH_INPUT_WITH_TOGGLE = `${AUTH_INPUT_BARE} pr-11`;
 
 /**
- * Auth CTA. White on accent (#0D9488) is only 3.74:1, so the resting fill is
- * the accent-hover teal (#0F766E, 5.47:1) and hover goes one step deeper
- * (#115E59, 7.58:1). Same fill in light and dark.
+ * Auth CTA. Uses --primary-fill (#0F766E, 5.47:1 with white), hover one step
+ * lighter (#108078, 4.79:1), focus ring --link, disabled 50% like Verify email.
  */
 export const AUTH_SUBMIT =
-  "flex h-11 w-full items-center justify-center gap-2 rounded-md bg-accent-hover text-sm font-bold text-charcoal hover:bg-[#115E59] disabled:opacity-50";
+  "flex h-11 w-full items-center justify-center gap-2 rounded-md bg-primary-fill text-sm font-bold text-white hover:bg-primary-fill-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-link disabled:opacity-50";
 
 /**
  * Inline auth link. Primary navy (#0B3A5C) is 11.6:1 on the light card but

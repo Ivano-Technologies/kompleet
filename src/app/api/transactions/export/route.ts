@@ -19,6 +19,7 @@ const exportQuerySchema = z.object({
     .regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format")
     .optional(),
   type: z.enum(["debit", "credit"]).optional(),
+  search: z.string().max(200).optional(),
 });
 
 function csvEscape(value: string): string {
@@ -39,20 +40,15 @@ async function handleGET(request: NextRequest) {
       );
     }
 
-    const { format, startDate, endDate, type } = parsed.data;
-    const { transactions, total } = await listAllTransactionsMine(convex, {
+    const { format, startDate, endDate, type, search } = parsed.data;
+    // collectPagedItems already caps at EXPORT_MAX (50_000). A second check
+    // against `total` was unreachable: total is the collected length.
+    const { transactions } = await listAllTransactionsMine(convex, {
       startDate,
       endDate,
       type,
+      search,
     });
-
-    const MAX_EXPORT = 50000;
-    if (total > MAX_EXPORT) {
-      return NextResponse.json({ ...apiErrorBody(`Export limited to ${MAX_EXPORT.toLocaleString()} transactions. Please use date filters to narrow your results.`),
-        },
-        { status: 400 },
-      );
-    }
 
     if (format === "json") {
       return NextResponse.json({ transactions });

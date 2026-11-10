@@ -264,7 +264,7 @@ export default function ExpenseDetailPage() {
           <button
             onClick={onSave}
             disabled={saving}
-            className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-white font-medium hover:bg-primary/90 disabled:opacity-70"
+            className="inline-flex items-center gap-2 rounded-lg bg-primary-fill px-4 py-2 text-white font-medium hover:bg-primary-fill-hover focus-visible:ring-2 focus-visible:ring-link disabled:opacity-50"
           >
             <Save className="h-4 w-4" /> {saving ? "Saving…" : "Save"}
           </button>

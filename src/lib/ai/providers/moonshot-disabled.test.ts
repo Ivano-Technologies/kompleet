@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { CONTENT_SECURITY_POLICY_REPORT_ONLY } from "@/lib/content-security-policy.mjs";
+import { CONTENT_SECURITY_POLICY } from "@/lib/content-security-policy.mjs";
 import { getPrimaryProvider, getProviderWithFallback } from "./factory";
 
 const SRC_ROOT = join(process.cwd(), "src");
@@ -43,9 +43,9 @@ describe("Moonshot / Kimi is hard-disabled", () => {
   });
 
   it("does not list api.moonshot.cn in CSP connect-src", () => {
-    expect(CONTENT_SECURITY_POLICY_REPORT_ONLY).not.toMatch(/moonshot/i);
-    expect(CONTENT_SECURITY_POLICY_REPORT_ONLY).not.toMatch(/kimi/i);
-    expect(CONTENT_SECURITY_POLICY_REPORT_ONLY).toContain("connect-src 'self'");
+    expect(CONTENT_SECURITY_POLICY).not.toMatch(/moonshot/i);
+    expect(CONTENT_SECURITY_POLICY).not.toMatch(/kimi/i);
+    expect(CONTENT_SECURITY_POLICY).toContain("connect-src 'self'");
   });
 
   it("contains no runtime Moonshot host or env-name references under src/", () => {

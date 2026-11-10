@@ -14,7 +14,7 @@ export default function ContactPage() {
   return (
     <div
       data-marketing
-      className="flex min-h-screen flex-col bg-bg text-text-1"
+      className="flex min-h-screen flex-col bg-bg text-text-1 dark:bg-dark-bg dark:text-dark-text-1"
     >
       <LandingNav />
 
@@ -33,7 +33,7 @@ export default function ContactPage() {
 
         <div className="grid gap-12 md:grid-cols-3">
           <div className="md:col-span-2">
-            <div className="rounded-xl border border-border bg-surface p-8 shadow-1">
+            <div className="rounded-xl border border-border bg-surface p-8 shadow-1 dark:border-dark-border dark:bg-dark-surface">
               <ContactFormClient />
             </div>
           </div>

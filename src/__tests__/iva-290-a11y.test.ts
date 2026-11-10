@@ -43,9 +43,9 @@ describe("IVA-290 marketing accessibility", () => {
   it("underlines privacy links and uses AA accent fills", () => {
     expect(privacy).toMatch(/underline underline-offset-2/);
     expect(privacy).not.toMatch(/hover:underline/);
-    expect(hero).toMatch(/bg-accent-hover/);
-    expect(landing).toMatch(/bg-accent-hover/);
-    expect(pricing).toMatch(/bg-accent-hover/);
+    expect(hero).toMatch(/AUTH_SUBMIT/);
+    expect(landing).toMatch(/bg-primary-fill/);
+    expect(pricing).toMatch(/bg-primary-fill/);
   });
 
   it("keeps a visible focus ring and reduced motion", () => {

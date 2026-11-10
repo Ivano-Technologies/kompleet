@@ -13,6 +13,7 @@ import {
   isUnauthorized,
   requireAuthedConvex,
 } from "@/lib/convex/server";
+import { listAllTransactionsMine } from "@/lib/convex/money-lists";
 import { uploadToConvexStorage } from "@/lib/convex/store-file";
 import {
   parseBankStatement,
@@ -220,10 +221,10 @@ async function handlePOST(request: NextRequest) {
         console.warn("Balance validation failed:", balanceValidation.errors);
       }
 
-      const existingPage = await convex.query(api.transactions.listMine, {
-        limit: 500,
-      });
-      const existingTransactions = existingPage.transactions.map((t) => ({
+      const { transactions: existingRows } = await listAllTransactionsMine(
+        convex,
+      );
+      const existingTransactions = existingRows.map((t) => ({
         id: t.id,
         date: t.transaction_date,
         merchant: t.description,
