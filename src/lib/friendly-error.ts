@@ -15,6 +15,12 @@
  * and flake e2e on expected user errors.
  */
 import * as Sentry from "@sentry/nextjs";
+import {
+  AUTH_ERROR_CODES,
+  isAuthErrorData,
+  retryAfterSecondsFromData,
+  type AuthErrorCode,
+} from "../../convex/lib/authErrors";
 
 export const FRIENDLY_FALLBACK = "Something went wrong. Please try again.";
 
@@ -23,9 +29,11 @@ export const FRIENDLY_MESSAGES = {
   invalidCredentials: "That email or password doesn't match. Check and try again.",
   accountExists:
     "An account with this email already exists. Try signing in or reset your password.",
-  invalidCode: "This code is invalid or has expired. Request a new one.",
+  invalidCode: "That code is invalid or expired. Check it or request a new one.",
   network: "We couldn't reach Kompleet. Check your connection and try again.",
   rateLimited: "Too many attempts. Please wait a moment and try again.",
+  unverified:
+    "Confirm your email before signing in. Check your inbox for the code.",
   unauthorized: "Your session has expired. Please sign in again.",
   missingTaxRule:
     "This tax figure hasn't been verified yet, so we can't calculate it right now. Please try again later.",
@@ -139,10 +147,67 @@ function isConvexError(err: unknown): err is { data: unknown } {
   );
 }
 
+/** True when Convex redacted a plain Error to "[Request ID] Server Error". */
+export function isRedactedConvexServerError(err: unknown): boolean {
+  const raw = rawText(err);
+  const message = err instanceof Error ? err.message : raw;
+  if (!/server error|request id/i.test(raw) && !/server error|request id/i.test(message)) {
+    return false;
+  }
+  const stripped = stripErrorWrappers(message);
+  return stripped.length === 0 || /^server error\.?$/i.test(stripped);
+}
+
+export function rateLimitedMessage(retryAfterSeconds?: number | null): string {
+  if (retryAfterSeconds == null || retryAfterSeconds < 1) {
+    return FRIENDLY_MESSAGES.rateLimited;
+  }
+  if (retryAfterSeconds >= 3600) {
+    const hours = Math.max(1, Math.round(retryAfterSeconds / 3600));
+    if (hours <= 1) {
+      return "Too many attempts. Please wait an hour and try again.";
+    }
+    return `Too many attempts. Please wait ${hours} hours and try again.`;
+  }
+  if (retryAfterSeconds < 60) {
+    const seconds = Math.ceil(retryAfterSeconds);
+    return `Too many attempts. Please wait ${seconds} second${seconds === 1 ? "" : "s"} and try again.`;
+  }
+  const minutes = Math.ceil(retryAfterSeconds / 60);
+  if (minutes === 1) {
+    return "Too many attempts. Please wait a minute and try again.";
+  }
+  return `Too many attempts. Please wait ${minutes} minutes and try again.`;
+}
+
+function messageForAuthCode(
+  code: AuthErrorCode,
+  retryAfterSeconds: number | null,
+): string {
+  switch (code) {
+    case AUTH_ERROR_CODES.INVALID_CODE:
+    case AUTH_ERROR_CODES.EXPIRED_CODE:
+      return FRIENDLY_MESSAGES.invalidCode;
+    case AUTH_ERROR_CODES.TOO_MANY_ATTEMPTS:
+    case AUTH_ERROR_CODES.RATE_LIMITED:
+      return rateLimitedMessage(retryAfterSeconds);
+    case AUTH_ERROR_CODES.INVALID_CREDENTIALS:
+      return FRIENDLY_MESSAGES.invalidCredentials;
+    case AUTH_ERROR_CODES.ACCOUNT_EXISTS:
+      return FRIENDLY_MESSAGES.accountExists;
+    default: {
+      const _exhaustive: never = code;
+      return _exhaustive;
+    }
+  }
+}
+
 function deliberateMessage(err: unknown): string | null {
   if (err instanceof UserFacingError) return err.message.trim() || null;
   if (isConvexError(err)) {
     const { data } = err;
+    // Typed auth codes are mapped in mapKnown (wait time lives on the code).
+    if (isAuthErrorData(data)) return null;
     if (typeof data === "string") return stripErrorWrappers(data) || null;
     if (data && typeof data === "object") {
       const m = (data as { message?: unknown }).message;
@@ -237,7 +302,20 @@ function allowlisted(text: string): string | null {
 const PASSWORD_RULE_PATTERN = /^password (must|should)\b[^\n]{0,120}$/i;
 
 function mapKnown(err: unknown, text: string): string | null {
+  if (isConvexError(err) && isAuthErrorData(err.data)) {
+    return messageForAuthCode(
+      err.data.code,
+      retryAfterSecondsFromData(err.data),
+    );
+  }
   if (isNetworkError(err)) return FRIENDLY_MESSAGES.network;
+  if (
+    /unverified|email not verified|confirm your email|verification required/i.test(
+      text,
+    )
+  ) {
+    return FRIENDLY_MESSAGES.unverified;
+  }
   if (
     /rate.?limit|too many (requests|attempts)|\b429\b|TooManyFailedAttempts/i.test(
       text,
@@ -291,6 +369,11 @@ export interface FriendlyMessageOptions {
   silent?: boolean;
   /** Short label for the log line, e.g. "invoices:issue". */
   context?: string;
+  /**
+   * When Convex redacts a plain Error to "[Request ID] Server Error", map it
+   * to this copy instead of the generic fallback (verify/reset/login/signup).
+   */
+  redactedFallback?: string;
 }
 
 export interface FriendlyError {
@@ -298,6 +381,8 @@ export interface FriendlyError {
   message: string;
   /** 8 character support reference, logged next to the raw error. */
   ref: string;
+  /** True for expected user mistakes. Those must not create Sentry events. */
+  known: boolean;
 }
 
 /**
@@ -317,11 +402,20 @@ export function toFriendlyError(
   const text = stripErrorWrappers(
     deliberate ?? (err instanceof Error ? err.message : rawText(err)),
   );
-  const known = deliberate ? null : mapKnown(err, text);
-  const message = deliberate ?? known ?? (fallback || FRIENDLY_FALLBACK);
+  const mapped = deliberate ? null : mapKnown(err, text);
+  const redacted =
+    !deliberate &&
+    !mapped &&
+    options.redactedFallback &&
+    isRedactedConvexServerError(err)
+      ? options.redactedFallback
+      : null;
+  const knownCopy = deliberate ?? mapped ?? redacted;
+  const message = knownCopy ?? (fallback || FRIENDLY_FALLBACK);
+  const known = knownCopy != null;
 
   let ref: string | null = err instanceof UserFacingError && err.ref ? err.ref : null;
-  if (!ref && !deliberate && !known && !options.silent) {
+  if (!ref && !known && !options.silent) {
     try {
       ref = refFromEventId(
         Sentry.captureException(err, {
@@ -340,7 +434,7 @@ export function toFriendlyError(
       err,
     );
   }
-  return { message, ref };
+  return { message, ref, known };
 }
 
 /**

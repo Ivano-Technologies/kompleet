@@ -1,11 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import * as Sentry from "@sentry/nextjs";
+import { AUTH_ERROR_CODES } from "../../convex/lib/authErrors";
 import {
   FRIENDLY_FALLBACK,
   FRIENDLY_MESSAGES,
   UserFacingError,
   apiErrorMessage,
   isNetworkError,
+  isRedactedConvexServerError,
   normalizeEmail,
+  rateLimitedMessage,
   responseError,
   stripErrorWrappers,
   toFriendlyMessage,
@@ -40,6 +44,7 @@ describe("friendly-error", () => {
   beforeEach(() => {
     errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    vi.mocked(Sentry.captureException).mockClear();
   });
   afterEach(() => {
     errorSpy.mockRestore();
@@ -106,6 +111,82 @@ describe("friendly-error", () => {
       );
       expect(msg(new Error("Could not verify code"))).toBe(
         FRIENDLY_MESSAGES.invalidCode,
+      );
+    });
+
+    it("maps typed ConvexError auth codes, including wait time", () => {
+      expect(
+        msg(new FakeConvexError({ code: AUTH_ERROR_CODES.INVALID_CODE })),
+      ).toBe(FRIENDLY_MESSAGES.invalidCode);
+      expect(
+        msg(new FakeConvexError({ code: AUTH_ERROR_CODES.EXPIRED_CODE })),
+      ).toBe(FRIENDLY_MESSAGES.invalidCode);
+      expect(
+        msg(new FakeConvexError({ code: AUTH_ERROR_CODES.ACCOUNT_EXISTS })),
+      ).toBe(FRIENDLY_MESSAGES.accountExists);
+      expect(
+        msg(new FakeConvexError({ code: AUTH_ERROR_CODES.INVALID_CREDENTIALS })),
+      ).toBe(FRIENDLY_MESSAGES.invalidCredentials);
+      expect(
+        msg(
+          new FakeConvexError({
+            code: AUTH_ERROR_CODES.RATE_LIMITED,
+            retryAfterSeconds: 47,
+          }),
+        ),
+      ).toBe("Too many attempts. Please wait 47 seconds and try again.");
+      expect(
+        msg(
+          new FakeConvexError({
+            code: AUTH_ERROR_CODES.TOO_MANY_ATTEMPTS,
+            retryAfterSeconds: 3600,
+          }),
+        ),
+      ).toBe("Too many attempts. Please wait an hour and try again.");
+    });
+
+    it("maps a redacted Server Error to the caller fallback on verify/reset", () => {
+      const err = new Error("[Request ID: abc] Server Error");
+      expect(isRedactedConvexServerError(err)).toBe(true);
+      expect(
+        msg(err, FRIENDLY_FALLBACK, {
+          redactedFallback: FRIENDLY_MESSAGES.invalidCode,
+        }),
+      ).toBe(FRIENDLY_MESSAGES.invalidCode);
+      expect(Sentry.captureException).not.toHaveBeenCalled();
+    });
+
+    it("does not report expected auth errors to Sentry", () => {
+      const result = toFriendlyError(new Error("Could not verify code"));
+      expect(result.known).toBe(true);
+      expect(result.message).toBe(FRIENDLY_MESSAGES.invalidCode);
+      expect(Sentry.captureException).not.toHaveBeenCalled();
+    });
+
+    it("reports unexpected errors to Sentry", () => {
+      const err = new Error("[Request ID: abc] Server Error");
+      const result = toFriendlyError(err);
+      expect(result.known).toBe(false);
+      expect(result.message).toBe(FRIENDLY_FALLBACK);
+      expect(Sentry.captureException).toHaveBeenCalledWith(
+        err,
+        expect.anything(),
+      );
+    });
+
+    it("maps an unverified account", () => {
+      expect(msg(new Error("Email not verified"))).toBe(
+        FRIENDLY_MESSAGES.unverified,
+      );
+    });
+
+    it("formats rate-limit wait copy", () => {
+      expect(rateLimitedMessage(null)).toBe(FRIENDLY_MESSAGES.rateLimited);
+      expect(rateLimitedMessage(1)).toBe(
+        "Too many attempts. Please wait 1 second and try again.",
+      );
+      expect(rateLimitedMessage(90)).toBe(
+        "Too many attempts. Please wait 2 minutes and try again.",
       );
     });
 

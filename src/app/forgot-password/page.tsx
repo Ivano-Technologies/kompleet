@@ -17,12 +17,14 @@ import {
 } from '@/components/layout/auth-density';
 import { ArrowLeft, KeyRound, Mail } from 'lucide-react';
 import {
-  generateRef,
+  FRIENDLY_MESSAGES,
   isNetworkError,
+  isRedactedConvexServerError,
   normalizeEmail,
-  withRef,
 } from '@/lib/friendly-error';
 import { ErrorText } from '@/components/ui/error-ref';
+import { authErrorText, mapAuthError } from '@/lib/auth/map-error';
+import { PASSWORD_RESET_MAX_AGE_MINUTES } from '@/lib/auth/otp';
 
 const NETWORK_ERROR_MESSAGE =
   "We couldn't send the code. Check your connection and try again.";
@@ -46,14 +48,20 @@ export default function ForgotPasswordPage() {
       await signIn('password', { email: normalizedEmail, flow: 'reset' });
       setSuccess(true);
     } catch (err: unknown) {
-      // Log the raw error with a ref; never show raw error text.
-      const ref = generateRef();
-      console.warn(`[friendly-error] ref=${ref} context=forgot-password`, err);
-      if (isNetworkError(err)) {
-        setError(withRef(NETWORK_ERROR_MESSAGE, ref));
+      const mapped = mapAuthError(err, 'forgot');
+      if (isNetworkError(err) || mapped.message === FRIENDLY_MESSAGES.network) {
+        setError(authErrorText({ ...mapped, message: NETWORK_ERROR_MESSAGE, known: true }));
+      } else if (
+        mapped.message === FRIENDLY_MESSAGES.rateLimited ||
+        mapped.message.startsWith('Too many attempts')
+      ) {
+        setError(authErrorText({ ...mapped, known: true }));
+      } else if (!mapped.known && !isRedactedConvexServerError(err)) {
+        setError(authErrorText(mapped));
       } else {
-        // Unknown accounts (InvalidAccountId) and other server errors get the
-        // same neutral response so we never reveal whether an account exists.
+        // Unknown accounts (InvalidAccountId, including the prod-redacted
+        // Server Error) get the same success screen so we never reveal
+        // whether an account exists.
         setSuccess(true);
       }
     } finally {
@@ -110,7 +118,7 @@ export default function ForgotPasswordPage() {
 
       {error && (
         <div className={AUTH_ERROR}>
-          <ErrorText text={error} />
+          <ErrorText text={error} issueGeneratedRef={false} />
         </div>
       )}
 
@@ -139,7 +147,7 @@ export default function ForgotPasswordPage() {
       </form>
 
       <p className="mt-3 text-center text-xs text-text-3 dark:text-dark-text-3">
-        The code expires in 15 minutes.
+        The code expires in {PASSWORD_RESET_MAX_AGE_MINUTES} minutes.
       </p>
     </AuthLayout>
   );

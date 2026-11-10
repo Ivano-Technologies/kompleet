@@ -18,13 +18,14 @@ import {
   AUTH_TITLE_BLOCK,
 } from '@/components/layout/auth-density';
 import { CheckCircle2, Eye, EyeOff, KeyRound } from 'lucide-react';
-import {
-  FRIENDLY_MESSAGES,
-  normalizeEmail,
-  toFriendlyError,
-  withRef,
-} from '@/lib/friendly-error';
+import { FRIENDLY_MESSAGES, normalizeEmail } from '@/lib/friendly-error';
 import { ErrorText } from '@/components/ui/error-ref';
+import { authErrorText, mapAuthError } from '@/lib/auth/map-error';
+import {
+  AUTH_OTP_LENGTH,
+  isCompleteAuthOtp,
+  sanitiseAuthOtp,
+} from '@/lib/auth/otp';
 
 const headerLeftAddon = (
   <Link
@@ -47,9 +48,13 @@ export default function ResetPasswordClient() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { signIn } = useAuthActions();
+  const canSubmit = isCompleteAuthOtp(code);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const digits = sanitiseAuthOtp(code);
+    setCode(digits);
+    if (!isCompleteAuthOtp(digits)) return;
     setError(null);
     setLoading(true);
 
@@ -68,7 +73,7 @@ export default function ResetPasswordClient() {
     try {
       await signIn('password', {
         email: normalizeEmail(email),
-        code: code.trim(),
+        code: digits,
         newPassword: password,
         flow: 'reset-verification',
       });
@@ -78,16 +83,12 @@ export default function ResetPasswordClient() {
         router.refresh();
       }, 1500);
     } catch (err) {
-      const { message, ref } = toFriendlyError(err, FRIENDLY_MESSAGES.fallback, {
-        context: 'reset-password',
-      });
-      // In the reset flow an unknown account or bad secret means the code is wrong.
+      const mapped = mapAuthError(err, 'reset');
       setError(
-        withRef(
-          message === FRIENDLY_MESSAGES.invalidCredentials
-            ? FRIENDLY_MESSAGES.invalidCode
-            : message,
-          ref,
+        authErrorText(
+          mapped.message === FRIENDLY_MESSAGES.invalidCredentials
+            ? { ...mapped, message: FRIENDLY_MESSAGES.invalidCode, known: true }
+            : mapped,
         ),
       );
       setLoading(false);
@@ -124,7 +125,7 @@ export default function ResetPasswordClient() {
 
       {error && (
         <div className={AUTH_ERROR}>
-          <ErrorText text={error} />
+          <ErrorText text={error} issueGeneratedRef={false} />
         </div>
       )}
 
@@ -150,10 +151,16 @@ export default function ResetPasswordClient() {
             id="code"
             type="text"
             inputMode="numeric"
+            autoComplete="one-time-code"
+            pattern={`\\d{${AUTH_OTP_LENGTH}}`}
+            maxLength={AUTH_OTP_LENGTH}
             value={code}
-            onChange={(e) => setCode(e.target.value)}
+            onChange={(e) => setCode(sanitiseAuthOtp(e.target.value))}
+            onPaste={(e) => {
+              e.preventDefault();
+              setCode(sanitiseAuthOtp(e.clipboardData.getData('text')));
+            }}
             required
-            minLength={6}
             placeholder="8-digit code"
             className={AUTH_INPUT}
           />
@@ -200,7 +207,7 @@ export default function ResetPasswordClient() {
         </div>
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || !canSubmit}
           className={AUTH_SUBMIT}
         >
           {loading ? 'Updating...' : 'Update Password'}

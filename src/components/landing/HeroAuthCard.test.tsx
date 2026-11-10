@@ -4,7 +4,6 @@ import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 import HeroAuthCard from "@/components/landing/HeroAuthCard";
 import { requestHeroAuth } from "@/components/landing/hero-auth";
-import { RECLAIM_SIGNUP_NOTE } from "@/lib/auth/copy";
 
 const signIn = vi.fn();
 const push = vi.fn();
@@ -38,7 +37,7 @@ describe("HeroAuthCard", () => {
     expect(
       screen.queryByText("Free during beta. No credit card required."),
     ).not.toBeInTheDocument();
-    expect(screen.getByTestId("reclaim-note").textContent).toBe(RECLAIM_SIGNUP_NOTE);
+    expect(screen.queryByText(/Already used Kompleet/)).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Sign in" }));
 
@@ -64,8 +63,6 @@ describe("HeroAuthCard", () => {
         "submit",
       );
     });
-    expect(screen.getByTestId("reclaim-note").textContent).toBe(
-      "Already used Kompleet with this email? Sign up with the same address to keep your books.",
-    );
+    expect(screen.queryByText(/Already used Kompleet/)).not.toBeInTheDocument();
   });
 });

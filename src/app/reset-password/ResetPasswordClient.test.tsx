@@ -1,8 +1,10 @@
-import { render, screen } from "@testing-library/react";
+import { createEvent, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import ResetPasswordClient from "@/app/reset-password/ResetPasswordClient";
+import { FRIENDLY_MESSAGES } from "@/lib/friendly-error";
+import * as Sentry from "@sentry/nextjs";
 
 const signIn = vi.fn();
 
@@ -35,7 +37,19 @@ async function submit() {
 describe("ResetPasswordClient", () => {
   beforeEach(() => {
     signIn.mockReset();
+    vi.mocked(Sentry.captureException).mockClear();
     vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+  });
+
+  it("strips punctuation on paste", () => {
+    render(<ResetPasswordClient />);
+    const input = screen.getByLabelText("Reset code");
+    const paste = createEvent.paste(input, {
+      clipboardData: { getData: () => "85118942." },
+    });
+    fireEvent(input, paste);
+    expect(input).toHaveValue("85118942");
   });
 
   it("maps an invalid code to friendly text", async () => {
@@ -44,29 +58,29 @@ describe("ResetPasswordClient", () => {
     );
     await submit();
     expect(
-      await screen.findByText(
-        "This code is invalid or has expired. Request a new one.",
-      ),
+      await screen.findByText(FRIENDLY_MESSAGES.invalidCode),
     ).toBeInTheDocument();
     expect(screen.queryByText(/Request ID/)).not.toBeInTheDocument();
+    expect(screen.queryByTestId("error-ref")).not.toBeInTheDocument();
+    expect(Sentry.captureException).not.toHaveBeenCalled();
   });
 
   it("maps an unknown account to the invalid code message", async () => {
     signIn.mockRejectedValueOnce(new Error("InvalidAccountId"));
     await submit();
     expect(
-      await screen.findByText(
-        "This code is invalid or has expired. Request a new one.",
-      ),
+      await screen.findByText(FRIENDLY_MESSAGES.invalidCode),
     ).toBeInTheDocument();
   });
 
-  it("shows a generic message for anything else", async () => {
+  it("maps a redacted Server Error to the invalid-or-expired message", async () => {
     signIn.mockRejectedValueOnce(new Error("[Request ID: abc] Server Error"));
     await submit();
     expect(
-      await screen.findByText("Something went wrong. Please try again."),
+      await screen.findByText(FRIENDLY_MESSAGES.invalidCode),
     ).toBeInTheDocument();
+    expect(screen.queryByText("Something went wrong. Please try again.")).not.toBeInTheDocument();
+    expect(Sentry.captureException).not.toHaveBeenCalled();
   });
 
   it("normalises the email", async () => {

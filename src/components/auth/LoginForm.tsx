@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { useRouter } from "next/navigation";
-import { FRIENDLY_MESSAGES, toFriendlyError, withRef } from "@/lib/friendly-error";
+import { FRIENDLY_MESSAGES } from "@/lib/friendly-error";
 import { ErrorText } from "@/components/ui/error-ref";
+import { authErrorText, mapAuthError } from "@/lib/auth/map-error";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
@@ -24,15 +25,16 @@ export default function LoginForm() {
       router.push("/dashboard");
       router.refresh();
     } catch (err) {
-      const { message, ref } = toFriendlyError(err, FRIENDLY_MESSAGES.fallback, {
-        context: "login-form",
-      });
+      const mapped = mapAuthError(err, "login");
+      const keepMessage =
+        mapped.message === FRIENDLY_MESSAGES.network ||
+        mapped.message.startsWith("Too many attempts") ||
+        mapped.message === FRIENDLY_MESSAGES.unverified;
       setError(
-        withRef(
-          message === FRIENDLY_MESSAGES.network || message === FRIENDLY_MESSAGES.rateLimited
-            ? message
-            : FRIENDLY_MESSAGES.invalidCredentials,
-          ref,
+        authErrorText(
+          keepMessage
+            ? mapped
+            : { ...mapped, message: FRIENDLY_MESSAGES.invalidCredentials, known: true },
         ),
       );
     }
@@ -60,7 +62,11 @@ export default function LoginForm() {
         className="w-full rounded border px-3 py-2"
       />
 
-      {error && <p className="text-sm text-red-500"><ErrorText text={error} /></p>}
+      {error && (
+        <p className="text-sm text-red-500">
+          <ErrorText text={error} issueGeneratedRef={false} />
+        </p>
+      )}
 
       <button
         type="submit"

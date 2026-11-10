@@ -35,6 +35,7 @@ async function submit(email: string) {
 describe("ForgotPasswordPage", () => {
   beforeEach(() => {
     signIn.mockReset();
+    vi.spyOn(console, "warn").mockImplementation(() => {});
   });
 
   it("shows the neutral success screen when the account does not exist", async () => {
@@ -47,11 +48,15 @@ describe("ForgotPasswordPage", () => {
     expect(screen.queryByText(/InvalidAccountId/)).not.toBeInTheDocument();
   });
 
-  it("shows the neutral success screen for unknown errors", async () => {
+  it("shows a generic message with a Ref for unexpected send failures", async () => {
     signIn.mockRejectedValueOnce("something odd");
     await submit("user@example.com");
 
-    expect(await screen.findByText("Check Your Email")).toBeInTheDocument();
+    expect(
+      await screen.findByText("Something went wrong. Please try again."),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("error-ref")).toBeInTheDocument();
+    expect(screen.queryByText("Check Your Email")).not.toBeInTheDocument();
   });
 
   it("shows the success screen when the request succeeds", async () => {
@@ -88,12 +93,19 @@ describe("ForgotPasswordPage", () => {
     expect(await screen.findByText("jane.doe@example.com")).toBeInTheDocument();
   });
 
-  it("keeps the footer note unchanged", () => {
+  it("says the reset code lasts 60 minutes", () => {
     render(<ForgotPasswordPage />);
     expect(
-      screen.getByText(
-        /The code expires in 15 minutes\./,
-      ),
+      screen.getByText(/The code expires in 60 minutes\./),
     ).toBeInTheDocument();
+  });
+
+  it("shows a wait message when sending is rate limited", async () => {
+    signIn.mockRejectedValueOnce(new Error("Too many attempts"));
+    await submit("user@example.com");
+    expect(
+      await screen.findByText("Too many attempts. Please wait a moment and try again."),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Check Your Email")).not.toBeInTheDocument();
   });
 });

@@ -16,10 +16,10 @@ import {
   HERO_AUTH_ID,
   type HeroAuthMode,
 } from "@/components/landing/hero-auth";
-import { FRIENDLY_MESSAGES, toFriendlyError, withRef } from "@/lib/friendly-error";
+import { FRIENDLY_MESSAGES } from "@/lib/friendly-error";
 import { ErrorText } from "@/components/ui/error-ref";
+import { authErrorText, mapAuthError } from "@/lib/auth/map-error";
 import { didSignInComplete, verifyEmailPath } from "@/lib/auth/sign-in-result";
-import { RECLAIM_SIGNUP_NOTE } from "@/lib/auth/copy";
 
 const inputClassName =
   "mt-1.5 h-11 w-full rounded-md border border-border bg-surface px-3 text-sm text-text-1 focus:border-primary focus:ring-2 focus:ring-primary/20";
@@ -107,14 +107,19 @@ export default function HeroAuthCard() {
       router.push("/dashboard");
       router.refresh();
     } catch (err) {
-      const { message, ref } = toFriendlyError(err, FRIENDLY_MESSAGES.fallback, {
-        context: `hero-auth:${mode}`,
-      });
+      const mapped = mapAuthError(err, mode === "signup" ? "signup" : "login");
       const signInMismatch =
         mode === "signin" &&
-        message !== FRIENDLY_MESSAGES.network &&
-        message !== FRIENDLY_MESSAGES.rateLimited;
-      setError(withRef(signInMismatch ? FRIENDLY_MESSAGES.invalidCredentials : message, ref));
+        mapped.message !== FRIENDLY_MESSAGES.network &&
+        !mapped.message.startsWith("Too many attempts") &&
+        mapped.message !== FRIENDLY_MESSAGES.unverified;
+      setError(
+        authErrorText(
+          signInMismatch
+            ? { ...mapped, message: FRIENDLY_MESSAGES.invalidCredentials, known: true }
+            : mapped,
+        ),
+      );
       setLoading(false);
     }
   };
@@ -136,7 +141,7 @@ export default function HeroAuthCard() {
             role="alert"
             className="mb-3 rounded-md border border-error/30 bg-error-bg p-2.5 text-sm text-error"
           >
-            <ErrorText text={error} />
+            <ErrorText text={error} issueGeneratedRef={false} />
           </div>
         ) : null}
         <div>
@@ -220,15 +225,6 @@ export default function HeroAuthCard() {
               ? "Get started"
               : "Sign in"}
         </button>
-        {mode === "signin" ? (
-          <p data-testid="reclaim-note" className="mt-2 text-center text-xs tracking-normal [word-spacing:0.12em] text-text-3">
-            {"Already used Kompleet with this email? Sign up with the same address to keep your books."}
-          </p>
-        ) : (
-          <p data-testid="reclaim-note" className="mt-2 text-center text-xs tracking-normal [word-spacing:0.12em] text-text-3">
-            {RECLAIM_SIGNUP_NOTE}
-          </p>
-        )}
         <p className="mt-3 text-center text-sm text-text-2">
           {mode === "signup" ? (
             <>

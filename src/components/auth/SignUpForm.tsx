@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { useRouter } from "next/navigation";
-import { toFriendlyMessage } from "@/lib/friendly-error";
 import { ErrorText } from "@/components/ui/error-ref";
+import { authErrorText, mapAuthError } from "@/lib/auth/map-error";
 import { didSignInComplete, verifyEmailPath } from "@/lib/auth/sign-in-result";
 
 export default function SignUpForm() {
@@ -33,7 +33,7 @@ export default function SignUpForm() {
       router.push(verifyEmailPath(email));
       router.refresh();
     } catch (err) {
-      setError(toFriendlyMessage(err, "Sign up failed. Please try again."));
+      setError(authErrorText(mapAuthError(err, "signup")));
     }
 
     setLoading(false);
@@ -59,7 +59,11 @@ export default function SignUpForm() {
         className="w-full rounded border px-3 py-2"
       />
 
-      {error && <p className="text-sm text-red-500"><ErrorText text={error} /></p>}
+      {error && (
+        <p className="text-sm text-red-500">
+          <ErrorText text={error} issueGeneratedRef={false} />
+        </p>
+      )}
       {success && (
         <p className="text-sm text-green-600">Account created.</p>
       )}

@@ -33,7 +33,7 @@ describe("LoginPage", () => {
     vi.spyOn(console, "warn").mockImplementation(() => {});
   });
 
-  it("shows the exact mismatch copy, a logged ref and the reclaim note on its own line", async () => {
+  it("shows the exact mismatch copy without a support Ref", async () => {
     const raw = new Error("[Request ID: abc] Server Error\nUncaught Error: InvalidAccountId");
     signIn.mockRejectedValueOnce(raw);
     const user = userEvent.setup();
@@ -47,21 +47,9 @@ describe("LoginPage", () => {
       await screen.findByText("That email or password doesn't match. Check and try again."),
     ).toBeInTheDocument();
     expect(screen.queryByText(/Request ID|InvalidAccountId/)).not.toBeInTheDocument();
-
-    const ref = screen.getByTestId("error-ref").textContent ?? "";
-    expect(ref).toMatch(/^Ref: [A-Z0-9]{8}$/);
-    expect(console.warn).toHaveBeenCalledWith(
-      expect.stringContaining(`ref=${ref.slice(5)}`),
-      raw,
-    );
+    expect(screen.queryByTestId("error-ref")).not.toBeInTheDocument();
+    expect(screen.queryByText(/Already used Kompleet/)).not.toBeInTheDocument();
     expect(console.error).not.toHaveBeenCalled();
-
-    const note = screen.getByTestId("reclaim-note");
-    expect(note.tagName).toBe("P");
-    expect(note.className).toMatch(/text-xs/);
-    expect(note.textContent).toBe(
-      "Already used Kompleet with this email? Sign up with the same address to keep your books.",
-    );
   });
 
   it("shows the exact expired-link copy with a ref logged as a warning", () => {
