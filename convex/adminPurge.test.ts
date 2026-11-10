@@ -873,6 +873,65 @@ describe("adminPurge", () => {
         "confirm must be",
       );
     });
+
+    it("treats a sequence with only nextNumber and taxYear as an orphan", async () => {
+      const db = fakeDb();
+      seedKeeper(db);
+      seedKeeperStorage(db);
+      seedExactOrphans(db, { sequences: 0 });
+      db.tables.invoiceSequences.push({
+        _id: "invoiceSequences:unlinked",
+        taxYear: 2026,
+        nextNumber: 4,
+      });
+      const result = await runPurgeOrphans(db, true);
+      expect(result).toMatchObject({
+        dryRun: true,
+        orphanInvoiceSequenceIds: ["invoiceSequences:unlinked"],
+      });
+    });
+
+    it("does not treat a keeper-client sequence as an orphan", async () => {
+      const db = fakeDb();
+      seedReadyOrphans(db);
+      db.tables.invoiceSequences.push({
+        _id: "invoiceSequences:keeper-ext-only",
+        clientExternalId: KEEPER_CLIENT_EXT,
+        taxYear: 2026,
+        nextNumber: 9,
+      });
+      const result = await runPurgeOrphans(db, true);
+      if (!("orphanInvoiceSequenceIds" in result)) {
+        throw new Error("expected dry-run shape");
+      }
+      expect(result.orphanInvoiceSequenceIds).toEqual([
+        "invoiceSequences:orphan-0",
+      ]);
+      expect(result.orphanInvoiceSequenceIds).not.toContain(
+        "invoiceSequences:keeper-ext-only",
+      );
+    });
+
+    it("does not treat a userId-only sequence as an orphan", async () => {
+      const db = fakeDb();
+      seedReadyOrphans(db);
+      db.tables.invoiceSequences.push({
+        _id: "invoiceSequences:userid-only",
+        userId: "nn7syntheticuserid00000000000001",
+        taxYear: 2026,
+        nextNumber: 3,
+      });
+      const result = await runPurgeOrphans(db, true);
+      if (!("orphanInvoiceSequenceIds" in result)) {
+        throw new Error("expected dry-run shape");
+      }
+      expect(result.orphanInvoiceSequenceIds).toEqual([
+        "invoiceSequences:orphan-0",
+      ]);
+      expect(result.orphanInvoiceSequenceIds).not.toContain(
+        "invoiceSequences:userid-only",
+      );
+    });
   });
 
   describe("makeKeeperOwnerSuperAdmin", () => {
