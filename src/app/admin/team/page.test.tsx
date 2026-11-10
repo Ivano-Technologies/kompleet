@@ -35,8 +35,8 @@ describe("admin team empty state", () => {
       expect(screen.getByText(TEAM_EMPTY_COPY.title)).toBeTruthy();
     });
 
-    expect(screen.getByText(TEAM_EMPTY_COPY.description)).toBeTruthy();
-    expect(screen.getByText(TEAM_EMPTY_COPY.intro)).toBeTruthy();
+    expect(screen.getAllByText(TEAM_EMPTY_COPY.description).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(TEAM_EMPTY_COPY.intro).length).toBeGreaterThan(0);
     expect(screen.queryByRole("link", { name: "Invite member" })).toBeNull();
     expect(screen.queryByText("/signup")).toBeNull();
     expect(document.querySelector('a[href="/signup"]')).toBeNull();
@@ -50,9 +50,14 @@ describe("admin team empty state", () => {
     expect(api).toContain("api.users.listAll");
     expect(api).toContain("status: 501");
     expect(api).not.toMatch(/invite/i);
+    expect(TEAM_EMPTY_COPY.title).toBe("No accounts to display.");
     expect(TEAM_EMPTY_COPY.description).toContain("cannot send invitations");
     expect(TEAM_EMPTY_COPY.description).toContain("roles cannot be changed yet");
-    expect(TEAM_EMPTY_COPY.intro).toContain("Role changes are not available yet");
+    expect(TEAM_EMPTY_COPY.intro).toContain("cannot send invitations");
+    expect(TEAM_EMPTY_COPY.intro).toContain("roles cannot be changed yet");
+    expect(TEAM_EMPTY_COPY.title).not.toMatch(/team members/i);
+    expect(TEAM_EMPTY_COPY.description).not.toMatch(/creates one|appear here|sign up/i);
+    expect(TEAM_EMPTY_COPY.intro).not.toMatch(/creates one|appear here|sign up/i);
     expect(TEAM_EMPTY_COPY.description).not.toMatch(/[\u2013\u2014]/);
     expect(TEAM_EMPTY_COPY.title).not.toMatch(/[\u2013\u2014]/);
     expect(TEAM_EMPTY_COPY.intro).not.toMatch(/[\u2013\u2014]/);

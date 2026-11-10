@@ -26,13 +26,17 @@ const ROLE_OPTIONS = [
   { value: "viewer", label: "Viewer", description: "Read only access" },
 ] as const;
 
-/** Empty copy must match /api/admin/users: listAll of existing accounts, no invite, PATCH 501. */
+/**
+ * Empty copy: users.listAll is ctx.db.query("users").take(200) with no
+ * business filter. Do not say this is a team or that signup joins it.
+ * GET /api/admin/users has no invite; PATCH returns 501.
+ */
 export const TEAM_EMPTY_COPY = {
-  title: "No team members yet",
+  title: "No accounts to display.",
   description:
-    "Accounts appear here after someone creates one. This page cannot send invitations, and roles cannot be changed yet.",
+    "This page cannot send invitations, and roles cannot be changed yet.",
   intro:
-    "People with a Kompleet account appear here. Role changes are not available yet.",
+    "This page cannot send invitations, and roles cannot be changed yet.",
 } as const;
 
 interface TeamUser {

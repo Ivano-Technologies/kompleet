@@ -71,10 +71,13 @@ describe("IVA-289 hardening", () => {
       'heroSub: "Detects the bank and updates your books."',
     );
     expect(statements).not.toMatch(/We'll detect the bank/);
-    expect(team).toContain('title: "No team members yet"');
+    expect(team).toContain('title: "No accounts to display."');
     expect(team).toContain(
       "This page cannot send invitations, and roles cannot be changed yet.",
     );
+    expect(team).not.toMatch(/No team members yet/);
+    expect(team).not.toMatch(/creates one/);
+    expect(team).not.toMatch(/appear here/);
     expect(team).not.toMatch(/Invite member/);
     expect(team).not.toMatch(/href: "\/signup"/);
     expect(team).not.toMatch(/action=\{\{/);
