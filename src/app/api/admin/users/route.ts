@@ -8,6 +8,7 @@ import {
   requireAuthedConvex,
 } from "@/lib/convex/server";
 import { friendlyErrorBody, apiErrorBody } from "@/lib/friendly-error";
+import { withRateLimit } from "@/lib/with-rate-limit";
 
 const VALID_ROLES: Role[] = [
   "owner",
@@ -25,7 +26,7 @@ function forbiddenResponse() {
  * GET /api/admin/users — List Convex app users.
  * Server-side admin check lives in `users:listAll` (owner/admin).
  */
-export async function GET(request: NextRequest) {
+async function handleGET(request: NextRequest) {
   try {
     const { convex } = await requireAuthedConvex(request);
     const users = await convex.query(api.users.listAll, {});
@@ -57,7 +58,7 @@ export async function GET(request: NextRequest) {
  * PATCH /api/admin/users — role writes stay 501 for clients.
  * Grant roles with Convex internal `users:setPlatformRole` after deploy.
  */
-export async function PATCH(request: NextRequest) {
+async function handlePATCH(request: NextRequest) {
   try {
     const { convex } = await requireAuthedConvex(request);
     await convex.query(api.users.listAll, {});
@@ -89,3 +90,6 @@ export async function PATCH(request: NextRequest) {
     );
   }
 }
+
+export const GET = withRateLimit(handleGET, { limit: 60 });
+export const PATCH = withRateLimit(handlePATCH, { limit: 20 });

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Users, Shield, ChevronDown, Check, AlertCircle } from "lucide-react";
 import { apiErrorMessage, toFriendlyMessage } from "@/lib/friendly-error";
 import { ErrorText } from "@/components/ui/error-ref";
+import { EmptyState } from "@/components/ui/empty-state";
 
 const ROLE_OPTIONS = [
   {
@@ -22,8 +23,21 @@ const ROLE_OPTIONS = [
     description: "Read + reports/calculations, no data edits",
   },
   { value: "user", label: "User", description: "Standard access, no admin" },
-  { value: "viewer", label: "Viewer", description: "Read-only access" },
+  { value: "viewer", label: "Viewer", description: "Read only access" },
 ] as const;
+
+/**
+ * Empty copy: users.listAll is ctx.db.query("users").take(200) with no
+ * business filter. Do not say this is a team or that signup joins it.
+ * GET /api/admin/users has no invite; PATCH returns 501.
+ */
+export const TEAM_EMPTY_COPY = {
+  title: "No accounts to display.",
+  description:
+    "This page cannot send invitations, and roles cannot be changed yet.",
+  intro:
+    "This page cannot send invitations, and roles cannot be changed yet.",
+} as const;
 
 interface TeamUser {
   id: string;
@@ -133,7 +147,7 @@ export default function TeamManagementPage() {
           </h1>
         </div>
         <p className="text-sm text-[rgb(var(--text-secondary))]">
-          Manage user roles and access rights
+          {TEAM_EMPTY_COPY.intro}
         </p>
         <p className="text-sm text-[rgb(var(--text-tertiary))]">
           {users.length} users
@@ -177,6 +191,14 @@ export default function TeamManagementPage() {
         </div>
       </div>
 
+      {users.length === 0 ? (
+        <EmptyState
+          icon={Users}
+          title={TEAM_EMPTY_COPY.title}
+          description={TEAM_EMPTY_COPY.description}
+        />
+      ) : (
+      <>
       <div className="space-y-3 sm:hidden">
         {users.map((u) => (
           <div
@@ -287,6 +309,8 @@ export default function TeamManagementPage() {
           </tbody>
         </table>
       </div>
+      </>
+      )}
     </div>
   );
 }

@@ -6,8 +6,20 @@ import { ConvexError } from "convex/values";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   ADD_ITEM_BEFORE_ISSUE,
+  ALREADY_CANCELLED,
   ALREADY_ISSUED,
+  ALREADY_PAID,
+  CANNOT_ARCHIVE_PAID_OR_CANCELLED,
+  CANCEL_REASON_REQUIRED,
   DISCOUNT_TOO_BIG,
+  DUPLICATE_INVOICE_NUMBER,
+  FORBIDDEN,
+  FORBIDDEN_MESSAGE,
+  INVOICE_LOCKED,
+  INVALID_INVOICE_NUMBER,
+  INVALID_PAID_ON,
+  ONLY_ISSUED_CAN_BE_CANCELLED,
+  ONLY_ISSUED_CAN_BE_PAID,
   STATUS_VIA_UPDATE,
   INVALID_QUANTITY,
   INVALID_UNIT_PRICE,
@@ -33,12 +45,26 @@ vi.mock("./lib/profiles", async (importOriginal) => {
   };
 });
 
-import { createMineHandler, issueMineHandler, updateMineHandler } from "./invoices";
+import {
+  archiveMineHandler,
+  cancelMineHandler,
+  createMineHandler,
+  issueMineHandler,
+  markPaidMineHandler,
+  nextNumberHandler,
+  updateMineHandler,
+} from "./invoices";
 
 const USER = {
   _id: "users:1",
   externalId: "u1",
   email: "ada@example.com",
+};
+
+const USER2 = {
+  _id: "users:2",
+  externalId: "u2",
+  email: "bolu@example.com",
 };
 
 const PROFILE = {
@@ -64,6 +90,7 @@ function fakeDb() {
     invoices: [],
     invoiceSequences: [],
     invoiceAuditLogs: [],
+    invoiceArchives: [],
     clients: [],
   };
   let nextId = 1;
@@ -515,6 +542,9 @@ describe("IVA-190 dead invoice helpers", () => {
     expect(source).toMatch(/STATUS_VIA_UPDATE/);
     expect(source).toMatch(/patch: v\.object\(\{/);
     expect(source).not.toMatch(/patch: v\.any\(\)/);
+    expect(source).toMatch(/allocateNextInvoiceNumber/);
+    expect(source).toMatch(/assertInvoiceNumberAvailable/);
+    expect(source).not.toMatch(/by_client_and_year/);
   });
 
   it("invoice updateMine callers do not send status", () => {
@@ -528,3 +558,433 @@ describe("IVA-190 dead invoice helpers", () => {
     expect(call).not.toMatch(/\bstatus\b/);
   });
 });
+
+describe("invoice paid, cancelled, uniqueness and nextNumber", () => {
+  beforeEach(() => {
+    getCurrentUser.mockReset().mockResolvedValue(USER);
+    userCanAccessClient.mockReset().mockResolvedValue(true);
+    loadBusinessProfile.mockReset().mockResolvedValue(PROFILE);
+  });
+
+  async function seedIssued(
+    db: ReturnType<typeof fakeDb>["db"],
+    tables: ReturnType<typeof fakeDb>["tables"],
+    invoiceNumber = "INV-2026-0100",
+  ) {
+    tables.clients.push({
+      _id: "clients:1",
+      externalId: "c1",
+      legalName: "Acme Ltd",
+      addressLine1: "1 Marina",
+      city: "Lagos",
+      country: "NG",
+    });
+    await createMineHandler(ctxOf(db), {
+      invoiceNumber,
+      clientExternalId: "c1",
+      lineItems: [{ description: "Catering", quantity: 1, unit_price: 100, vat_rate: 0 }],
+    });
+    const row = tables.invoices[0]!;
+    await issueMineHandler(ctxOf(db), { externalId: row.externalId as string });
+    return tables.invoices[0]!;
+  }
+
+  it("marks an issued invoice paid with a paid date, lock and audit row", async () => {
+    const { db, tables } = fakeDb();
+    const row = await seedIssued(db, tables);
+    const paid = await markPaidMineHandler(ctxOf(db), {
+      externalId: row.externalId as string,
+      paidOn: "2026-11-08",
+      note: "Bank transfer",
+      method: "transfer",
+    });
+
+    expect(paid.status).toBe("paid");
+    expect(paid.is_immutable).toBe(true);
+    expect(paid.paid_on).toBe("2026-11-08");
+    expect(paid.paid_note).toBe("Bank transfer");
+    expect(paid.paid_method).toBe("transfer");
+    expect(paid.amount_due).toBe(0);
+    expect(tables.invoices[0]!.status).toBe("paid");
+    expect(tables.invoices[0]!.isImmutable).toBe(true);
+
+    const audit = tables.invoiceAuditLogs.filter((log) => log.action === "paid");
+    expect(audit).toHaveLength(1);
+    expect(audit[0]!.userId).toBe(USER._id);
+    expect(audit[0]!.details).toMatchObject({
+      from: "issued",
+      to: "paid",
+      paidOn: "2026-11-08",
+      note: "Bank transfer",
+      method: "transfer",
+    });
+    expect(typeof audit[0]!.createdAt).toBe("number");
+  });
+
+  it("defaults paidOn to today when the caller omits a date", async () => {
+    const { db, tables } = fakeDb();
+    const row = await seedIssued(db, tables);
+    const paid = await markPaidMineHandler(ctxOf(db), {
+      externalId: row.externalId as string,
+    });
+    expect(paid.paid_on).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(paid.status).toBe("paid");
+  });
+
+  it("cancels an issued invoice with a reason, lock and audit row", async () => {
+    const { db, tables } = fakeDb();
+    const row = await seedIssued(db, tables);
+    const cancelled = await cancelMineHandler(ctxOf(db), {
+      externalId: row.externalId as string,
+      reason: "Client withdrew",
+    });
+
+    expect(cancelled.status).toBe("cancelled");
+    expect(cancelled.is_immutable).toBe(true);
+    expect(cancelled.cancel_reason).toBe("Client withdrew");
+
+    const audit = tables.invoiceAuditLogs.filter((log) => log.action === "cancelled");
+    expect(audit).toHaveLength(1);
+    expect(audit[0]!.userId).toBe(USER._id);
+    expect(audit[0]!.details).toMatchObject({
+      from: "issued",
+      to: "cancelled",
+      reason: "Client withdrew",
+    });
+  });
+
+  it("rejects marking a draft paid", async () => {
+    const { db, tables } = fakeDb();
+    await createMineHandler(ctxOf(db), {
+      invoiceNumber: "INV-2026-0200",
+      lineItems: [{ description: "Draft", quantity: 1, unit_price: 10, vat_rate: 0 }],
+    });
+    await expect(
+      markPaidMineHandler(ctxOf(db), {
+        externalId: tables.invoices[0]!.externalId as string,
+      }),
+    ).rejects.toMatchObject({ name: "ConvexError", data: ONLY_ISSUED_CAN_BE_PAID });
+    expect(tables.invoices[0]!.status).toBe("draft");
+  });
+
+  it("rejects cancelling a draft", async () => {
+    const { db, tables } = fakeDb();
+    await createMineHandler(ctxOf(db), { invoiceNumber: "INV-2026-0201" });
+    await expect(
+      cancelMineHandler(ctxOf(db), {
+        externalId: tables.invoices[0]!.externalId as string,
+        reason: "Changed my mind",
+      }),
+    ).rejects.toMatchObject({
+      name: "ConvexError",
+      data: ONLY_ISSUED_CAN_BE_CANCELLED,
+    });
+  });
+
+  it("rejects an empty cancel reason", async () => {
+    const { db, tables } = fakeDb();
+    const row = await seedIssued(db, tables);
+    await expect(
+      cancelMineHandler(ctxOf(db), {
+        externalId: row.externalId as string,
+        reason: "   ",
+      }),
+    ).rejects.toMatchObject({ name: "ConvexError", data: CANCEL_REASON_REQUIRED });
+  });
+
+  it("locks paid and cancelled invoices against further edits and transitions", async () => {
+    const { db, tables } = fakeDb();
+    const paidRow = await seedIssued(db, tables, "INV-2026-0300");
+    await markPaidMineHandler(ctxOf(db), {
+      externalId: paidRow.externalId as string,
+      paidOn: "2026-11-01",
+    });
+
+    await expect(
+      updateMineHandler(ctxOf(db), {
+        externalId: paidRow.externalId as string,
+        patch: { title: "Nope" },
+      }),
+    ).rejects.toMatchObject({ name: "ConvexError", data: INVOICE_LOCKED });
+    await expect(
+      markPaidMineHandler(ctxOf(db), {
+        externalId: paidRow.externalId as string,
+      }),
+    ).rejects.toMatchObject({ name: "ConvexError", data: ALREADY_PAID });
+    await expect(
+      cancelMineHandler(ctxOf(db), {
+        externalId: paidRow.externalId as string,
+        reason: "Too late",
+      }),
+    ).rejects.toMatchObject({ name: "ConvexError", data: ALREADY_PAID });
+
+    const { db: db2, tables: tables2 } = fakeDb();
+    const cancelledRow = await seedIssued(db2, tables2, "INV-2026-0301");
+    await cancelMineHandler(ctxOf(db2), {
+      externalId: cancelledRow.externalId as string,
+      reason: "Wrong client",
+    });
+    await expect(
+      updateMineHandler(ctxOf(db2), {
+        externalId: cancelledRow.externalId as string,
+        patch: { notes: "Nope" },
+      }),
+    ).rejects.toMatchObject({ name: "ConvexError", data: INVOICE_LOCKED });
+    await expect(
+      markPaidMineHandler(ctxOf(db2), {
+        externalId: cancelledRow.externalId as string,
+      }),
+    ).rejects.toMatchObject({ name: "ConvexError", data: ALREADY_CANCELLED });
+    await expect(
+      cancelMineHandler(ctxOf(db2), {
+        externalId: cancelledRow.externalId as string,
+        reason: "Again",
+      }),
+    ).rejects.toMatchObject({ name: "ConvexError", data: ALREADY_CANCELLED });
+  });
+
+  it("rejects a non-owner with FORBIDDEN on paid and cancel", async () => {
+    const { db, tables } = fakeDb();
+    const row = await seedIssued(db, tables);
+    getCurrentUser.mockResolvedValue(USER2);
+
+    await expect(
+      markPaidMineHandler(ctxOf(db), {
+        externalId: row.externalId as string,
+      }),
+    ).rejects.toMatchObject({
+      name: "ConvexError",
+      data: { code: FORBIDDEN, message: FORBIDDEN_MESSAGE },
+    });
+    await expect(
+      cancelMineHandler(ctxOf(db), {
+        externalId: row.externalId as string,
+        reason: "Not mine",
+      }),
+    ).rejects.toMatchObject({
+      name: "ConvexError",
+      data: { code: FORBIDDEN, message: FORBIDDEN_MESSAGE },
+    });
+    expect(tables.invoices[0]!.status).toBe("issued");
+  });
+
+  it("rejects a duplicate invoice number regardless of case", async () => {
+    const { db } = fakeDb();
+    await createMineHandler(ctxOf(db), { invoiceNumber: "INV-2026-0400" });
+    await expect(
+      createMineHandler(ctxOf(db), { invoiceNumber: "inv-2026-0400" }),
+    ).rejects.toMatchObject({
+      name: "ConvexError",
+      data: DUPLICATE_INVOICE_NUMBER,
+    });
+  });
+
+  it("rejects a caller-supplied number that fails IRN charset or length", async () => {
+    const { db } = fakeDb();
+    await expect(
+      createMineHandler(ctxOf(db), { invoiceNumber: "INV 2026 0400" }),
+    ).rejects.toMatchObject({
+      name: "ConvexError",
+      data: INVALID_INVOICE_NUMBER,
+    });
+    await expect(
+      createMineHandler(ctxOf(db), { invoiceNumber: "#INV-1" }),
+    ).rejects.toMatchObject({
+      name: "ConvexError",
+      data: INVALID_INVOICE_NUMBER,
+    });
+    await expect(
+      createMineHandler(ctxOf(db), { invoiceNumber: `INV-${"A".repeat(62)}` }),
+    ).rejects.toMatchObject({
+      name: "ConvexError",
+      data: INVALID_INVOICE_NUMBER,
+    });
+  });
+
+  it("rejects a duplicate invoice number for the same seller on create, update and issue", async () => {
+    const { db, tables } = fakeDb();
+    await createMineHandler(ctxOf(db), { invoiceNumber: "INV-2026-0400" });
+    await expect(
+      createMineHandler(ctxOf(db), { invoiceNumber: "INV-2026-0400" }),
+    ).rejects.toMatchObject({
+      name: "ConvexError",
+      data: DUPLICATE_INVOICE_NUMBER,
+    });
+
+    await createMineHandler(ctxOf(db), { invoiceNumber: "INV-2026-0401" });
+    await expect(
+      updateMineHandler(ctxOf(db), {
+        externalId: tables.invoices[1]!.externalId as string,
+        patch: { invoiceNumber: "INV-2026-0400" },
+      }),
+    ).rejects.toMatchObject({
+      name: "ConvexError",
+      data: DUPLICATE_INVOICE_NUMBER,
+    });
+
+    tables.invoices.push({
+      _id: "invoices:legacy",
+      externalId: "legacy-dup",
+      userId: USER._id,
+      userExternalId: USER.externalId,
+      invoiceNumber: "INV-2026-0400",
+      status: "draft",
+      isImmutable: false,
+      lineItems: [{ description: "Dup", quantity: 1, unit_price: 10, vat_rate: 0 }],
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+    tables.clients.push({
+      _id: "clients:1",
+      externalId: "c1",
+      legalName: "Acme Ltd",
+    });
+    tables.invoices[2]!.clientId = "clients:1";
+    await expect(
+      issueMineHandler(ctxOf(db), { externalId: "legacy-dup" }),
+    ).rejects.toMatchObject({
+      name: "ConvexError",
+      data: DUPLICATE_INVOICE_NUMBER,
+    });
+  });
+
+  it("allows the same invoice number for a different seller", async () => {
+    const { db } = fakeDb();
+    await createMineHandler(ctxOf(db), { invoiceNumber: "INV-2026-0500" });
+    getCurrentUser.mockResolvedValue(USER2);
+    const other = await createMineHandler(ctxOf(db), {
+      invoiceNumber: "INV-2026-0500",
+    });
+    expect(other.invoice_number).toBe("INV-2026-0500");
+    expect(other.user_id).toBe(USER2.externalId);
+  });
+
+  it("scopes nextNumber to the owner and skips numbers already used", async () => {
+    const { db, tables } = fakeDb();
+    tables.invoiceSequences.push({
+      _id: "invoiceSequences:legacy",
+      clientExternalId: "other-client",
+      taxYear: 2026,
+      nextNumber: 99,
+    });
+
+    const first = await nextNumberHandler(ctxOf(db), {
+      clientExternalId: "other-client",
+      taxYear: 2026,
+    });
+    expect(first).toBe("INV-2026-0001");
+    expect(tables.invoiceSequences.find((row) => row._id === "invoiceSequences:legacy")!.nextNumber).toBe(99);
+
+    const ownerSeq = tables.invoiceSequences.find((row) => row.userId === USER._id)!;
+    expect(ownerSeq.nextNumber).toBe(2);
+
+    const second = await nextNumberHandler(ctxOf(db), { taxYear: 2026 });
+    expect(second).toBe("INV-2026-0002");
+    expect(ownerSeq.nextNumber).toBe(3);
+    expect(tables.invoiceSequences.filter((row) => row.userId === USER._id)).toHaveLength(1);
+
+    getCurrentUser.mockResolvedValue(USER2);
+    const other = await nextNumberHandler(ctxOf(db), { taxYear: 2026 });
+    expect(other).toBe("INV-2026-0001");
+    expect(tables.invoiceSequences.find((row) => row.userId === USER._id)!.nextNumber).toBe(3);
+  });
+
+  it("nextNumber skips a caller-supplied number already held by this seller", async () => {
+    const { db } = fakeDb();
+    await createMineHandler(ctxOf(db), { invoiceNumber: "INV-2026-0001", taxYear: 2026 });
+    const next = await nextNumberHandler(ctxOf(db), { taxYear: 2026 });
+    expect(next).toBe("INV-2026-0002");
+  });
+
+  it("nextNumber does not hand the same number to two sequential callers", async () => {
+    const { db } = fakeDb();
+    const first = await nextNumberHandler(ctxOf(db), { taxYear: 2026 });
+    const second = await nextNumberHandler(ctxOf(db), { taxYear: 2026 });
+    expect(first).toBe("INV-2026-0001");
+    expect(second).toBe("INV-2026-0002");
+    expect(first).not.toBe(second);
+  });
+
+  it("occupies the sequence row so concurrent nextNumber retries", () => {
+    const source = readFileSync(
+      resolve(process.cwd(), "convex/lib/invoiceNumbers.ts"),
+      "utf8",
+    );
+    expect(source).toMatch(
+      /await ctx\.db\.patch\(existing\._id, \{ nextNumber: next \}\)/,
+    );
+    expect(source).toMatch(
+      /await ctx\.db\.patch\(sequenceId, \{ nextNumber: next \+ 1 \}\)/,
+    );
+  });
+
+  it("refuses to archive paid or cancelled invoices", async () => {
+    const { db, tables } = fakeDb();
+    const paidRow = await seedIssued(db, tables, "INV-2026-0600");
+    await markPaidMineHandler(ctxOf(db), {
+      externalId: paidRow.externalId as string,
+      paidOn: "2026-11-01",
+    });
+    await expect(
+      archiveMineHandler(ctxOf(db), {
+        externalId: paidRow.externalId as string,
+      }),
+    ).rejects.toMatchObject({
+      name: "ConvexError",
+      data: CANNOT_ARCHIVE_PAID_OR_CANCELLED,
+    });
+    expect(tables.invoices[0]!.status).toBe("paid");
+
+    const { db: db2, tables: tables2 } = fakeDb();
+    const cancelledRow = await seedIssued(db2, tables2, "INV-2026-0601");
+    await cancelMineHandler(ctxOf(db2), {
+      externalId: cancelledRow.externalId as string,
+      reason: "Wrong client",
+    });
+    await expect(
+      archiveMineHandler(ctxOf(db2), {
+        externalId: cancelledRow.externalId as string,
+      }),
+    ).rejects.toMatchObject({
+      name: "ConvexError",
+      data: CANNOT_ARCHIVE_PAID_OR_CANCELLED,
+    });
+    expect(tables2.invoices[0]!.status).toBe("cancelled");
+  });
+
+  it("uses sentence case copy for paid and cancelled actions", () => {
+    const copy = readFileSync(
+      resolve(process.cwd(), "src/components/invoices/invoice-copy.ts"),
+      "utf8",
+    );
+    const detail = readFileSync(
+      resolve(process.cwd(), "src/app/(dashboard)/invoices/[id]/page.tsx"),
+      "utf8",
+    );
+    const list = readFileSync(
+      resolve(process.cwd(), "src/app/(dashboard)/invoices/page.tsx"),
+      "utf8",
+    );
+    expect(copy).toMatch(/markPaid: "Mark as paid"/);
+    expect(copy).toMatch(/cancelInvoice: "Cancel invoice"/);
+    expect(copy).toMatch(/statusPaid: "Paid"/);
+    expect(copy).toMatch(/statusCancelled: "Cancelled"/);
+    expect(copy).not.toMatch(/[\u2013\u2014]/);
+    expect(detail).toMatch(/INV_COPY\.markPaid/);
+    expect(detail).toMatch(/INV_COPY\.cancelInvoice/);
+    expect(list).toMatch(/\["all", "draft", "issued", "paid", "cancelled"\]/);
+    expect(list).toMatch(/INV_STATUS_LABEL/);
+  });
+
+  it("rejects an invalid paidOn date", async () => {
+    const { db, tables } = fakeDb();
+    const row = await seedIssued(db, tables);
+    await expect(
+      markPaidMineHandler(ctxOf(db), {
+        externalId: row.externalId as string,
+        paidOn: "08/11/2026",
+      }),
+    ).rejects.toMatchObject({ name: "ConvexError", data: INVALID_PAID_ON });
+  });
+});
+

@@ -182,6 +182,7 @@ export function isIssuedInvoice(invoice: {
   return (
     invoice.status === "issued" ||
     invoice.status === "paid" ||
+    invoice.status === "cancelled" ||
     invoice.status === "archived" ||
     Boolean(invoice.is_immutable)
   );

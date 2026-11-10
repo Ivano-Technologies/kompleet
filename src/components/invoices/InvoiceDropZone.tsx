@@ -117,7 +117,11 @@ export function InvoiceDropZone({
               {busy ? INV_COPY.dropProgress : INV_COPY.dropTitle}
             </p>
             <p className="text-xs text-text-3 mt-0.5">
-              {fileName && busy ? fileName : INV_COPY.dropSub}
+              {fileName && busy
+                ? fileName
+                : compact
+                  ? INV_COPY.emptyDropSub
+                  : INV_COPY.dropSub}
             </p>
           </div>
         </div>

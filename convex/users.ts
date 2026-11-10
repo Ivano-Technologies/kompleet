@@ -246,17 +246,6 @@ export const updateMine = mutation({
   },
 });
 
-export const softDeleteMine = mutation({
-  args: {},
-  returns: v.null(),
-  handler: async (ctx) => {
-    const user = await getCurrentUser(ctx);
-    const now = Date.now();
-    await ctx.db.patch(user._id, { deletedAt: now, updatedAt: now });
-    return null;
-  },
-});
-
 export async function listAllHandler(ctx: QueryCtx) {
   const me = await getCurrentUser(ctx);
   if (!isPlatformAdmin(me)) throwForbidden();

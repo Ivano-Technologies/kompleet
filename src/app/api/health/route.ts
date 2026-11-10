@@ -9,8 +9,9 @@
  */
 
 import { NextResponse } from "next/server";
+import { withRateLimit } from "@/lib/with-rate-limit";
 
-export async function GET() {
+async function handleGET() {
   try {
     // Basic health check - app is running
     const health = {
@@ -32,6 +33,8 @@ export async function GET() {
     );
   }
 }
+
+export const GET = withRateLimit(handleGET, { limit: 120, window: 60_000 });
 
 // Disable caching for health checks
 export const dynamic = "force-dynamic";

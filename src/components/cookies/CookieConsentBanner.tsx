@@ -44,7 +44,7 @@ export function CookieConsentBanner() {
       role="dialog"
       aria-labelledby="cookie-consent-title"
       aria-describedby="cookie-consent-copy"
-      className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-surface p-4 shadow-1 sm:p-6"
+      className="fixed inset-x-0 bottom-0 z-40 max-h-[40vh] overflow-y-auto border-t border-border bg-surface p-4 shadow-1 sm:p-6"
     >
       <div className="mx-auto flex max-w-7xl flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="max-w-2xl">

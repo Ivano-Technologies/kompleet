@@ -2,7 +2,8 @@
  * Delete Account API
  * POST /api/auth/delete-account
  *
- * Soft-deletes the Convex profile. Does not pause or delete the Supabase project.
+ * Erases or anonymises the caller's personal data. Issued invoices are kept
+ * as tax records with buyer and seller fields replaced.
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -14,10 +15,11 @@ import {
   requireAuthedConvex,
 } from "@/lib/convex/server";
 import { apiErrorBody } from "@/lib/friendly-error";
+import { DELETE_ACCOUNT_PHRASE } from "@/lib/account-deletion";
 
 const deleteAccountSchema = z.object({
-  confirmText: z.literal("DELETE", {
-    error: "You must type DELETE to confirm",
+  confirmText: z.literal(DELETE_ACCOUNT_PHRASE, {
+    error: "Type delete my account to confirm.",
   }),
 });
 
@@ -29,16 +31,22 @@ async function handlePOST(request: NextRequest) {
     const parsed = deleteAccountSchema.safeParse(body);
 
     if (!parsed.success) {
-      return NextResponse.json({ ...apiErrorBody("Invalid input"), details: parsed.error.flatten() },
+      return NextResponse.json(
+        {
+          ...apiErrorBody("Type delete my account to confirm."),
+          details: parsed.error.flatten(),
+        },
         { status: 400 },
       );
     }
 
-    await convex.mutation(api.users.softDeleteMine, {});
+    await convex.mutation(api.accountDeletion.eraseMine, {
+      confirmText: parsed.data.confirmText,
+    });
 
     return NextResponse.json({
       success: true,
-      message: "Account deleted successfully",
+      message: "Your account has been deleted.",
     });
   } catch (error) {
     if (isUnauthorized(error)) {

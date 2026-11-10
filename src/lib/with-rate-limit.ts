@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { rateLimit, getIdentifier } from "./rate-limit";
+import { rateLimitAsync, getIdentifier } from "./rate-limit";
 import { apiErrorBody } from "./friendly-error";
 
 interface RateLimitOptions {
@@ -30,7 +30,7 @@ export function withRateLimit<T extends Request | NextRequest = Request>(
     // Bucket per IP + method + path. A shared IP counter lets chatty routes
     // (e.g. GET /api/year/available on every layout) 429 unrelated POSTs.
     const identifier = `${getIdentifier(request)}:${request.method}:${new URL(request.url).pathname}`;
-    const result = rateLimit(identifier, options);
+    const result = await rateLimitAsync(identifier, options);
 
     // Add rate limit headers
     const headers = new Headers();

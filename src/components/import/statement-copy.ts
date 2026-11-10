@@ -1,6 +1,6 @@
 export const DROP_COPY = {
   heroTitle: "Drop your bank statement (CSV, Excel, or PDF)",
-  heroSub: "We'll detect the bank and update your books.",
+  heroSub: "Detects the bank and updates your books.",
   heroChoose: "Choose file",
   booksDocsHint: "Receipts & other files go in Documents.",
   booksDocsLink: "Documents",
@@ -9,10 +9,10 @@ export const DROP_COPY = {
   whyBody:
     "Your statement is how books start. We read the file, detect the bank, and post income and expenses so dashboards, invoices, and tax have real numbers, not a form you retype.",
   stripTitle: "Drop another statement to update books",
-  stripSub: "We'll detect the bank and update your books.",
+  stripSub: "Detects the bank and updates your books.",
   stripChoose: "Choose file",
   booksStripTitle: "Drop bank statement (CSV, Excel, or PDF)",
-  booksStripSub: "We'll detect the bank and update your books.",
+  booksStripSub: "Detects the bank and updates your books.",
   ctaImport: "Drop statement",
   ctaImportShort: "Import",
   ctaExport: "Export",

@@ -175,6 +175,20 @@ describe("friendly-error", () => {
       expect(
         msg(new FakeConvexError("This update can't change the invoice status.")),
       ).toBe("This update can't change the invoice status.");
+      expect(
+        msg(new FakeConvexError("This invoice number is already used.")),
+      ).toBe("This invoice number is already used.");
+      expect(
+        msg(new FakeConvexError("Only issued invoices can be marked paid.")),
+      ).toBe("Only issued invoices can be marked paid.");
+      expect(
+        msg(
+          new FakeConvexError({
+            code: "FORBIDDEN",
+            message: "You can't change this invoice.",
+          }),
+        ),
+      ).toBe("You can't change this invoice.");
     });
 
     it("maps missing tax rules without leaking rule keys", () => {
