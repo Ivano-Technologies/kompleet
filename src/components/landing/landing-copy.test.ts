@@ -373,6 +373,10 @@ describe("IVA-72 landing copy", () => {
     expect(landing).not.toMatch(/What ships today|Capability, not a wish list/);
     expect(landing).not.toMatch(/Free during beta/);
     expect(heroAuthCard).not.toMatch(/Free during beta/);
+    expect(landing).not.toMatch(/Free Beta/);
+    expect(landingNav).not.toMatch(/Free Beta/);
+    expect(landingFooter).not.toMatch(/Free Beta/);
+    expect(heroAuthCard).not.toMatch(/Free Beta/);
     expect(landing).toMatch(/md:pt-20/);
   });
 
