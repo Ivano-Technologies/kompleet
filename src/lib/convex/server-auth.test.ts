@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ConvexUnauthorizedError, isUnauthorized } from "./server";
+import { ConvexUnauthorizedError, isForbidden, isUnauthorized } from "./server";
 
 describe("isUnauthorized", () => {
   it("matches ConvexUnauthorizedError", () => {
@@ -16,5 +16,11 @@ describe("isUnauthorized", () => {
     expect(
       isUnauthorized(new Error("REDIS_URL is required for document queueing.")),
     ).toBe(false);
+  });
+
+  it("matches FORBIDDEN as forbidden, not unauthorized", () => {
+    const error = Object.assign(new Error("FORBIDDEN"), { data: "FORBIDDEN" });
+    expect(isForbidden(error)).toBe(true);
+    expect(isUnauthorized(error)).toBe(false);
   });
 });

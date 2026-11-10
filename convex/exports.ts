@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { internalMutation, mutation, query } from "./_generated/server";
 import { getCurrentUser } from "./lib/auth";
 import { newExternalId, toMs } from "./lib/ids";
+import { assertStorageAssignableToUser } from "./lib/storageAccess";
 
 const exportApi = v.object({
   id: v.string(),
@@ -70,6 +71,7 @@ export const createMine = mutation({
   returns: exportApi,
   handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx);
+    await assertStorageAssignableToUser(ctx, user, args.storageId);
     const now = Date.now();
     const externalId = newExternalId();
     await ctx.db.insert("exportHistory", {

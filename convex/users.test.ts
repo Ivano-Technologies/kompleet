@@ -1,18 +1,58 @@
 /** @vitest-environment node */
 
+import { ConvexError } from "convex/values";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const getCurrentUser = vi.fn();
+const getCurrentUserOrNull = vi.fn();
+
+vi.mock("./lib/auth", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./lib/auth")>();
+  return {
+    ...actual,
+    getCurrentUser: (...args: unknown[]) => getCurrentUser(...args),
+    getCurrentUserOrNull: (...args: unknown[]) => getCurrentUserOrNull(...args),
+  };
+});
+
 import {
   ensureCurrentHandler,
+  listAllHandler,
   verifiedIdentityEmail,
 } from "./users";
 
-const getCurrentUserOrNull = vi.fn();
+const OWNER = {
+  _id: "users:owner",
+  externalId: "owner-1",
+  email: "owner@example.com",
+  phone: "",
+  entityType: "individual" as const,
+  defaultCurrency: "NGN",
+  fiscalYearStart: 1,
+  onboardingCompleted: true,
+  platformRole: "owner" as const,
+  createdAt: 1,
+  updatedAt: 1,
+};
 
-vi.mock("./lib/auth", () => ({
-  getCurrentUserOrNull: (...args: unknown[]) => getCurrentUserOrNull(...args),
-  getCurrentUser: vi.fn(),
-  supabaseSubject: (identity: { subject: string }) => identity.subject,
-}));
+const MEMBER = {
+  _id: "users:member",
+  externalId: "user-1",
+  email: "ada@example.com",
+  fullName: "Ada",
+  phone: "0800",
+  entityType: "individual" as const,
+  tin: "123",
+  companyName: "Ada Foods",
+  rcNumber: "RC1",
+  companyAddress: "Lagos",
+  defaultCurrency: "NGN",
+  fiscalYearStart: 1,
+  onboardingCompleted: true,
+  platformRole: "user" as const,
+  createdAt: 1,
+  updatedAt: 1,
+};
 
 const VICTIM = {
   _id: "users:victim",
@@ -34,6 +74,7 @@ function fakeDb(seed: Array<Record<string, unknown>> = []) {
   };
   let nextId = seed.length + 1;
   const queryTable = (table: string) => ({
+    take: async (n: number) => (tables[table] ?? []).slice(0, n),
     withIndex: (
       _name: string,
       build?: (q: { eq: (field: string, value: unknown) => unknown }) => void,
@@ -96,6 +137,54 @@ function ctxOf(
     auth: { getUserIdentity: async () => identity },
   } as never;
 }
+
+describe("users:listAll", () => {
+  beforeEach(() => {
+    getCurrentUser.mockReset();
+  });
+
+  it("throws FORBIDDEN for a signed-in non-admin", async () => {
+    getCurrentUser.mockResolvedValue(MEMBER);
+    await expect(
+      listAllHandler({ db: fakeDb([OWNER, MEMBER]).db } as never),
+    ).rejects.toMatchObject({ name: "ConvexError", data: "FORBIDDEN" });
+  });
+
+  it("returns profiles for an owner, omitting deleted users", async () => {
+    getCurrentUser.mockResolvedValue(OWNER);
+    const deleted = { ...MEMBER, _id: "users:gone", deletedAt: 9 };
+    const result = await listAllHandler({
+      db: fakeDb([OWNER, MEMBER, deleted]).db,
+    } as never);
+    expect(result.map((row) => row.id).sort()).toEqual(["owner-1", "user-1"]);
+    const ada = result.find((row) => row.id === "user-1");
+    expect(ada).toMatchObject({
+      email: "ada@example.com",
+      full_name: "Ada",
+      phone: "0800",
+      tin: "123",
+      company_name: "Ada Foods",
+      rc_number: "RC1",
+      company_address: "Lagos",
+      platform_role: "user",
+    });
+  });
+
+  it("returns profiles for an admin", async () => {
+    getCurrentUser.mockResolvedValue({ ...OWNER, platformRole: "admin" });
+    const result = await listAllHandler({
+      db: fakeDb([OWNER, MEMBER]).db,
+    } as never);
+    expect(result).toHaveLength(2);
+  });
+
+  it("throws ConvexError rather than a plain Error", async () => {
+    getCurrentUser.mockResolvedValue(MEMBER);
+    await expect(
+      listAllHandler({ db: fakeDb([]).db } as never),
+    ).rejects.toBeInstanceOf(ConvexError);
+  });
+});
 
 describe("verifiedIdentityEmail", () => {
   it("returns empty when the identity email is not verified", () => {

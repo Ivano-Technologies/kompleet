@@ -6,7 +6,7 @@
 
 export interface Deadline {
   id: string;
-  form_type: "PIT" | "CIT" | "VAT_Q1" | "VAT_Q2" | "VAT_Q3" | "VAT_Q4";
+  form_type: "PIT" | "CIT" | `VAT_${string}`;
   tax_year: number;
   deadline_date: string;
   description: string;

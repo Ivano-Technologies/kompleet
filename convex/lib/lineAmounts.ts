@@ -87,6 +87,48 @@ export const ADD_ITEM_BEFORE_ISSUE = "Add at least one item before issuing this 
 /** Friendly copy when updateMine is asked to change status. */
 export const STATUS_VIA_UPDATE = "This update can't change the invoice status.";
 
+/** Non-owner mutation on someone else's invoice. */
+export const FORBIDDEN = "FORBIDDEN";
+
+/** User-facing copy for FORBIDDEN (ConvexError data.code). */
+export const FORBIDDEN_MESSAGE = "You can't change this invoice.";
+
+/** Caller-supplied invoice number already used by this seller. */
+export const DUPLICATE_INVOICE_NUMBER = "This invoice number is already used.";
+
+/** Paid, cancelled, issued, or otherwise locked invoices cannot be edited. */
+export const INVOICE_LOCKED = "This invoice can't be changed.";
+
+/** Mark paid is only valid from issued. */
+export const ONLY_ISSUED_CAN_BE_PAID = "Only issued invoices can be marked paid.";
+
+/** Cancel is only valid from issued. */
+export const ONLY_ISSUED_CAN_BE_CANCELLED =
+  "Only issued invoices can be cancelled.";
+
+/** Paid is terminal. */
+export const ALREADY_PAID = "This invoice is already marked paid.";
+
+/** Cancelled is terminal. */
+export const ALREADY_CANCELLED = "This invoice is already cancelled.";
+
+/** Cancel requires a reason. */
+export const CANCEL_REASON_REQUIRED = "Add a reason to cancel this invoice.";
+
+/** Paid-on date must be YYYY-MM-DD. */
+export const INVALID_PAID_ON = "Enter the paid date as YYYY-MM-DD.";
+
+/** Empty caller-supplied invoice number. */
+export const EMPTY_INVOICE_NUMBER = "Enter an invoice number.";
+
+/** Caller-supplied invoice number failed charset or length checks. */
+export const INVALID_INVOICE_NUMBER =
+  "Enter an invoice number using letters, numbers, hyphens or slashes only.";
+
+/** Paid and cancelled invoices stay in those statuses. */
+export const CANNOT_ARCHIVE_PAID_OR_CANCELLED =
+  "Paid and cancelled invoices can't be archived.";
+
 /** quantity x rate, before discount and VAT. Rate is limited to 2 decimals. */
 export function lineGrossAmount(item: LineInput): number {
   return num(item.quantity) * roundMoney(num(item.unit_price));

@@ -108,6 +108,8 @@ describe("IVA-185 line discount clamp", () => {
       ALREADY_ISSUED,
       ADD_ITEM_BEFORE_ISSUE,
       STATUS_VIA_UPDATE,
+      DUPLICATE_INVOICE_NUMBER,
+      ONLY_ISSUED_CAN_BE_PAID,
     } = await import("./line-amounts");
     expect(VAT_RATE_RANGE).toBe("VAT rate must be between 0% and 100%.");
     expect(INVALID_QUANTITY).toBe("Enter a number for quantity.");
@@ -115,6 +117,8 @@ describe("IVA-185 line discount clamp", () => {
     expect(ALREADY_ISSUED).toBe("This invoice has already been issued.");
     expect(ADD_ITEM_BEFORE_ISSUE).toBe("Add at least one item before issuing this invoice.");
     expect(STATUS_VIA_UPDATE).toBe("This update can't change the invoice status.");
+    expect(DUPLICATE_INVOICE_NUMBER).toBe("This invoice number is already used.");
+    expect(ONLY_ISSUED_CAN_BE_PAID).toBe("Only issued invoices can be marked paid.");
   });
 
   it("the full form shows the friendly discount copy", async () => {

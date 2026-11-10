@@ -15,6 +15,19 @@ export interface CompatUser {
   };
 }
 
+function platformRoleFromProfile(role: unknown): string {
+  switch (role) {
+    case "owner":
+    case "admin":
+    case "tax_consultant":
+    case "user":
+    case "viewer":
+      return role;
+    default:
+      return "user";
+  }
+}
+
 export function profileToCompatUser(
   profile: {
     id: string;
@@ -22,6 +35,7 @@ export function profileToCompatUser(
     full_name: string | null;
     company_name: string | null;
     created_at?: string;
+    platform_role?: string | null;
   },
   verification?: {
     verified: boolean;
@@ -47,7 +61,10 @@ export function profileToCompatUser(
     created_at: createdAt,
     aud: "authenticated",
     role: "authenticated",
-    app_metadata: { role: "user", provider: "convex" },
+    app_metadata: {
+      role: platformRoleFromProfile(profile.platform_role),
+      provider: "convex",
+    },
     user_metadata: {
       full_name: profile.full_name ?? undefined,
       first_name: firstName,

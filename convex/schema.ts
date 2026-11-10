@@ -36,7 +36,19 @@ export default defineSchema({
     defaultCurrency: v.string(),
     fiscalYearStart: v.number(),
     onboardingCompleted: v.boolean(),
+    // IVA-287: opt out of deadline reminder emails. Missing means on.
+    reminderEmailEnabled: v.optional(v.boolean()),
     avatarStorageId: v.optional(v.id("_storage")),
+    // Existing RBAC model (src/lib/auth/rbac.ts). Missing means "user".
+    platformRole: v.optional(
+      v.union(
+        v.literal("owner"),
+        v.literal("admin"),
+        v.literal("tax_consultant"),
+        v.literal("user"),
+        v.literal("viewer"),
+      ),
+    ),
     deletedAt: v.optional(v.number()),
     lastLoginAt: v.optional(v.number()),
     createdAt: v.number(),
@@ -46,7 +58,9 @@ export default defineSchema({
     .index("phone", ["phone"])
     .index("by_externalId", ["externalId"])
     .index("by_tokenIdentifier", ["tokenIdentifier"])
-    .index("by_supabaseUserId", ["supabaseUserId"]),
+    .index("by_supabaseUserId", ["supabaseUserId"])
+    .index("by_avatarStorageId", ["avatarStorageId"])
+    .index("by_platformRole", ["platformRole"]),
 
   firms: defineTable({
     externalId: v.string(),
@@ -172,7 +186,8 @@ export default defineSchema({
     createdAt: v.number(),
   })
     .index("by_externalId", ["externalId"])
-    .index("by_user", ["userId"]),
+    .index("by_user", ["userId"])
+    .index("by_storageId", ["storageId"]),
 
   importErrors: defineTable({
     externalId: v.string(),
@@ -215,7 +230,8 @@ export default defineSchema({
     createdAt: v.number(),
   })
     .index("by_externalId", ["externalId"])
-    .index("by_user", ["userId"]),
+    .index("by_user", ["userId"])
+    .index("by_storageId", ["storageId"]),
 
   expenseCategories: defineTable({
     externalId: v.string(),
@@ -249,7 +265,8 @@ export default defineSchema({
   })
     .index("by_externalId", ["externalId"])
     .index("by_user", ["userId"])
-    .index("by_user_and_date", ["userId", "date"]),
+    .index("by_user_and_date", ["userId", "date"])
+    .index("by_receiptStorageId", ["receiptStorageId"]),
 
   invoices: defineTable({
     externalId: v.string(),
@@ -275,13 +292,20 @@ export default defineSchema({
     notes: v.optional(v.string()),
     isImmutable: v.boolean(),
     issuedAt: v.optional(v.number()),
+    paidAt: v.optional(v.number()),
+    paidOn: v.optional(v.string()),
+    paidNote: v.optional(v.string()),
+    paidMethod: v.optional(v.string()),
+    cancelledAt: v.optional(v.number()),
+    cancelReason: v.optional(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
     .index("by_externalId", ["externalId"])
     .index("by_user", ["userId"])
     .index("by_client", ["clientId"])
-    .index("by_user_and_status", ["userId", "status"]),
+    .index("by_user_and_status", ["userId", "status"])
+    .index("by_user_and_invoiceNumber", ["userId", "invoiceNumber"]),
 
   invoiceSequences: defineTable({
     clientId: v.optional(v.id("clients")),
@@ -289,7 +313,9 @@ export default defineSchema({
     userId: v.optional(v.id("users")),
     taxYear: v.number(),
     nextNumber: v.number(),
-  }).index("by_client_and_year", ["clientExternalId", "taxYear"]),
+  })
+    .index("by_client_and_year", ["clientExternalId", "taxYear"])
+    .index("by_user_and_year", ["userId", "taxYear"]),
 
   invoiceArchives: defineTable({
     externalId: v.string(),
@@ -400,7 +426,8 @@ export default defineSchema({
     .index("by_status_and_processingStartedAt", [
       "status",
       "processingStartedAt",
-    ]),
+    ])
+    .index("by_storageId", ["storageId"]),
 
   /**
    * Wave 4 Documents library (IVA-75). Distinct from `documents`
@@ -436,7 +463,8 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_user_and_uploadedAt", ["userId", "uploadedAt"])
     .index("by_user_and_linkType", ["userId", "linkType"])
-    .index("by_link", ["linkType", "linkId"]),
+    .index("by_link", ["linkType", "linkId"])
+    .index("by_storageId", ["storageId"]),
 
   auditLogs: defineTable({
     userId: v.optional(v.id("users")),
@@ -534,4 +562,23 @@ export default defineSchema({
     ),
     createdAt: v.number(),
   }).index("by_email", ["email"]),
+
+  /**
+   * Occupancy for deadline reminder emails. One row per user, form, year,
+   * and window (7, 3, or 1 days) so the daily cron sends each once.
+   * Erase deletes these with the rest of the caller's rows.
+   */
+  deadlineReminders: defineTable({
+    userId: v.id("users"),
+    formType: v.string(),
+    taxYear: v.number(),
+    daysRemaining: v.number(),
+    deadlineDate: v.string(),
+    sentAt: v.number(),
+  }).index("by_user_and_key", [
+    "userId",
+    "formType",
+    "taxYear",
+    "daysRemaining",
+  ]),
 });

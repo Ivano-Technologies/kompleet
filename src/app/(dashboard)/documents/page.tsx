@@ -29,6 +29,7 @@ import {
 } from "@/components/documents/file-kind";
 import { useLibraryUpload } from "@/components/documents/use-library-upload";
 import { cn } from "@/lib/utils";
+import { EmptyState } from "@/components/ui/empty-state";
 
 const FILTERS: { id: DocsFilter; label: string }[] = [
   { id: "all", label: DOCS_COPY.filterAll },
@@ -235,7 +236,13 @@ function FileList({
   const rows = useMemo(() => files, [files]);
 
   if (rows.length === 0) {
-    return <p className="text-sm text-text-3">No files match this filter.</p>;
+    return (
+      <EmptyState
+        icon={FileText}
+        title="No files match this filter"
+        description="Try another file type, or upload a document to get started."
+      />
+    );
   }
 
   return (

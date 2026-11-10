@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as accountDeletion from "../accountDeletion.js";
 import type * as accounts from "../accounts.js";
 import type * as audit from "../audit.js";
 import type * as auth from "../auth.js";
@@ -17,6 +18,7 @@ import type * as authStatus from "../authStatus.js";
 import type * as backfill from "../backfill.js";
 import type * as backfillCounts from "../backfillCounts.js";
 import type * as categories from "../categories.js";
+import type * as crons from "../crons.js";
 import type * as documents from "../documents.js";
 import type * as e2eOtp from "../e2eOtp.js";
 import type * as emailVerification from "../emailVerification.js";
@@ -32,13 +34,21 @@ import type * as lib_auth from "../lib/auth.js";
 import type * as lib_authEmail from "../lib/authEmail.js";
 import type * as lib_authResendLimit from "../lib/authResendLimit.js";
 import type * as lib_createOrUpdateUser from "../lib/createOrUpdateUser.js";
+import type * as lib_deadlineCalendar from "../lib/deadlineCalendar.js";
 import type * as lib_emailVerified from "../lib/emailVerified.js";
+import type * as lib_eraseAccount from "../lib/eraseAccount.js";
+import type * as lib_errors from "../lib/errors.js";
 import type * as lib_ids from "../lib/ids.js";
 import type * as lib_imageMeta from "../lib/imageMeta.js";
+import type * as lib_invoiceAmounts from "../lib/invoiceAmounts.js";
+import type * as lib_lineAmounts from "../lib/lineAmounts.js";
 import type * as lib_profiles from "../lib/profiles.js";
+import type * as lib_reminderEmail from "../lib/reminderEmail.js";
+import type * as lib_storageAccess from "../lib/storageAccess.js";
 import type * as lib_triage from "../lib/triage.js";
 import type * as lib_workerAuth from "../lib/workerAuth.js";
 import type * as passwordReset from "../passwordReset.js";
+import type * as reminders from "../reminders.js";
 import type * as reports from "../reports.js";
 import type * as tax from "../tax.js";
 import type * as tenancy from "../tenancy.js";
@@ -53,6 +63,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  accountDeletion: typeof accountDeletion;
   accounts: typeof accounts;
   audit: typeof audit;
   auth: typeof auth;
@@ -62,6 +73,7 @@ declare const fullApi: ApiFromModules<{
   backfill: typeof backfill;
   backfillCounts: typeof backfillCounts;
   categories: typeof categories;
+  crons: typeof crons;
   documents: typeof documents;
   e2eOtp: typeof e2eOtp;
   emailVerification: typeof emailVerification;
@@ -77,13 +89,21 @@ declare const fullApi: ApiFromModules<{
   "lib/authEmail": typeof lib_authEmail;
   "lib/authResendLimit": typeof lib_authResendLimit;
   "lib/createOrUpdateUser": typeof lib_createOrUpdateUser;
+  "lib/deadlineCalendar": typeof lib_deadlineCalendar;
   "lib/emailVerified": typeof lib_emailVerified;
+  "lib/eraseAccount": typeof lib_eraseAccount;
+  "lib/errors": typeof lib_errors;
   "lib/ids": typeof lib_ids;
   "lib/imageMeta": typeof lib_imageMeta;
+  "lib/invoiceAmounts": typeof lib_invoiceAmounts;
+  "lib/lineAmounts": typeof lib_lineAmounts;
   "lib/profiles": typeof lib_profiles;
+  "lib/reminderEmail": typeof lib_reminderEmail;
+  "lib/storageAccess": typeof lib_storageAccess;
   "lib/triage": typeof lib_triage;
   "lib/workerAuth": typeof lib_workerAuth;
   passwordReset: typeof passwordReset;
+  reminders: typeof reminders;
   reports: typeof reports;
   tax: typeof tax;
   tenancy: typeof tenancy;

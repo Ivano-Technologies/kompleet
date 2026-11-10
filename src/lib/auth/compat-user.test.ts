@@ -10,6 +10,25 @@ const profile = {
 };
 
 describe("profileToCompatUser", () => {
+  it("maps owner and admin platform roles into app_metadata", () => {
+    expect(
+      profileToCompatUser({ ...profile, platform_role: "owner" }).app_metadata
+        .role,
+    ).toBe("owner");
+    expect(
+      profileToCompatUser({ ...profile, platform_role: "admin" }).app_metadata
+        .role,
+    ).toBe("admin");
+  });
+
+  it("defaults missing or unknown roles to user", () => {
+    expect(profileToCompatUser(profile).app_metadata.role).toBe("user");
+    expect(
+      profileToCompatUser({ ...profile, platform_role: "superuser" })
+        .app_metadata.role,
+    ).toBe("user");
+  });
+
   it("does not lock users out when verification status is unknown", () => {
     const user = profileToCompatUser(profile);
     expect(user.email_confirmed_at).toBe(profile.created_at);

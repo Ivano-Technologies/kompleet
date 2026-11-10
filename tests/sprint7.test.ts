@@ -78,6 +78,7 @@ import {
   validateVATForm,
 } from "../src/lib/form-prefill";
 import { calculateDeadlineStatus } from "../src/lib/deadline-service";
+import { getFilingDeadlines } from "../src/lib/nrs-filing/deadline-manager";
 import {
   generate7DayReminderEmail,
   generate3DayReminderEmail,
@@ -333,25 +334,11 @@ describe("Sprint 7: Filing Deadline Management", () => {
       expect(expectedDeadline.getFullYear()).toBe(2027);
     });
 
-    it("should calculate VAT quarterly deadlines correctly", () => {
-      // VAT deadline: 21 days after quarter end
-      const taxYear = 2026;
-
-      // Q1: March 31 + 21 days = April 21
-      const q1End = new Date(taxYear, 2, 31);
-      const q1Deadline = new Date(q1End);
-      q1Deadline.setDate(q1Deadline.getDate() + 21);
-
-      expect(q1Deadline.getMonth()).toBe(3); // April
-      expect(q1Deadline.getDate()).toBe(21);
-
-      // Q2: June 30 + 21 days = July 21
-      const q2End = new Date(taxYear, 5, 30);
-      const q2Deadline = new Date(q2End);
-      q2Deadline.setDate(q2Deadline.getDate() + 21);
-
-      expect(q2Deadline.getMonth()).toBe(6); // July
-      expect(q2Deadline.getDate()).toBe(21);
+    it("should calculate VAT monthly deadlines correctly", () => {
+      const vat = getFilingDeadlines(2026).filter((d) => d.taxType === "VAT");
+      expect(vat).toHaveLength(12);
+      expect(vat[2]?.dueDate).toBe("2026-04-21");
+      expect(vat[11]?.dueDate).toBe("2027-01-21");
     });
   });
 
@@ -408,16 +395,16 @@ describe("Sprint 7: Filing Deadline Management", () => {
 
     it("should generate 1-day reminder email", () => {
       const deadline = {
-        formType: "VAT_Q1",
+        formType: "VAT_03",
         taxYear: 2026,
         deadlineDate: "2026-04-21",
         daysRemaining: 1,
-        description: "VAT Return Q1 for 2026",
+        description: "VAT Return, March 2026",
       };
 
       const email = generate1DayReminderEmail("Test Business", deadline);
 
-      expect(email.subject).toBe("Your Q1 VAT return is due tomorrow");
+      expect(email.subject).toBe("Your March VAT return is due tomorrow");
       expect(email.html).toContain("Hi Test,");
       expect(email.html).toContain("Due tomorrow");
       expect(email.html).toContain("21 Apr 2026");

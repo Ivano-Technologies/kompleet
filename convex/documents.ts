@@ -9,6 +9,7 @@ import {
 } from "./_generated/server";
 import { getCurrentUser, getUserByExternalId } from "./lib/auth";
 import { newExternalId, toMs } from "./lib/ids";
+import { assertStorageAssignableToUser } from "./lib/storageAccess";
 import { assertDocumentWorkerToken } from "./lib/workerAuth";
 
 const documentApi = v.object({
@@ -177,6 +178,7 @@ export const createMine = mutation({
       const existing = await getByExternalId(ctx, args.externalId);
       if (existing && existing.userId === user._id) return toApi(existing);
     }
+    await assertStorageAssignableToUser(ctx, user, args.storageId);
     const now = Date.now();
     const externalId = args.externalId ?? newExternalId();
     await ctx.db.insert("documents", {
