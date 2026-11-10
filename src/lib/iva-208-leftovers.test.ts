@@ -118,7 +118,7 @@ describe("IVA-208 leftovers", () => {
     const three = generate3DayReminderEmail("Ada Okonkwo", { ...deadline, daysRemaining: 3 });
     const one = generate1DayReminderEmail("Ada Okonkwo", {
       ...deadline,
-      formType: "VAT_Q1",
+      formType: "VAT_03",
       daysRemaining: 1,
     });
     for (const email of [three, one]) {
@@ -127,7 +127,7 @@ describe("IVA-208 leftovers", () => {
       expect(email.text).not.toMatch(EMOJI);
     }
     expect(three.subject).toBe("Your PIT filing deadline is in 3 days");
-    expect(one.subject).toBe("Your Q1 VAT return is due tomorrow");
+    expect(one.subject).toBe("Your March VAT return is due tomorrow");
   });
 
   it("user-facing UI, email templates and PDF generators have no FIRS or Tax Act copy", () => {
