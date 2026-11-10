@@ -23,7 +23,7 @@ export default function CookiesPage() {
           Cookie Policy
         </h1>
         <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-8">
-          Last updated: February 12, 2026
+          Last updated: 10 November 2026
         </p>
 
         <div className="prose prose-lg max-w-none">
@@ -101,9 +101,6 @@ export default function CookiesPage() {
               Some cookies are placed by third-party services we use:
             </p>
             <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
-              <li>
-                <strong>Supabase:</strong> Authentication and session management
-              </li>
               <li>
                 <strong>Vercel:</strong> Performance monitoring and analytics
               </li>

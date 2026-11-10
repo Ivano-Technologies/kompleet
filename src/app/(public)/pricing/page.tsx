@@ -8,8 +8,7 @@ import { Check } from "lucide-react";
 export const metadata: Metadata = {
   alternates: { canonical: "/pricing" },
   title: "Kompleet: Pricing",
-  description:
-    "KOMPLEET is free during beta. A one-off lifetime plan is coming soon.",
+  description: "Kompleet pricing.",
 };
 
 const included = [
@@ -19,11 +18,11 @@ const included = [
   "CSV and PDF exports",
   "P&L and balance sheet reports",
   "Transaction categorization",
-  "Email support during beta",
+  "Email support",
 ];
 
 const lifetimeIncluded = [
-  "Everything in Beta access",
+  "All current features",
   "One payment, no monthly or annual fees",
   "Lifetime access for one named user",
   "Future improvements to the core features",
@@ -61,7 +60,7 @@ export default function PricingPage() {
             Pricing
           </p>
           <h1 className="font-display mb-4 text-4xl font-bold md:text-5xl">
-            Free during beta
+            Pricing
           </h1>
           <p className="mx-auto max-w-2xl text-base text-text-2 dark:text-dark-text-2">
             A one-off lifetime plan is coming soon.
@@ -69,10 +68,10 @@ export default function PricingPage() {
         </div>
 
         <div className="mx-auto mb-12 grid max-w-5xl grid-cols-1 gap-6 md:grid-cols-2">
-          <div data-plan="beta" className={PLAN_CARD}>
+          <div data-plan="current" className={PLAN_CARD}>
             <div className="text-center">
               <span className="mb-4 inline-flex items-center rounded-full border border-border bg-surface-2 px-3 py-1 text-xs font-bold uppercase tracking-wider text-text-2 dark:border-dark-border dark:bg-dark-surface-2 dark:text-dark-text-2">
-                Beta access
+                Current access
               </span>
               <h2 className="font-display mb-2 text-4xl font-bold">₦0</h2>
               <p className="mb-8 text-sm text-text-2 dark:text-dark-text-2">
@@ -116,7 +115,7 @@ export default function PricingPage() {
         </div>
 
         <div className="mx-auto max-w-2xl rounded-xl border border-border bg-surface p-8 text-center dark:border-dark-border dark:bg-dark-surface">
-          <h3 className="font-display mb-3 text-xl font-bold">After beta</h3>
+          <h3 className="font-display mb-3 text-xl font-bold">Later access</h3>
           <p className="text-sm leading-relaxed text-text-2 dark:text-dark-text-2">
             A one-off lifetime plan is coming soon. We will email testers
             before charging anyone. No price is published yet.
