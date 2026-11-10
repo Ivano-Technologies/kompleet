@@ -3,9 +3,11 @@ import { internal } from "./_generated/api";
 
 const crons = cronJobs();
 
-crons.daily(
+// Monday 07:00 UTC = 08:00 WAT. dueRemindersAt's 0–7 day catch-up covers
+// every deadline in the coming week so mid-week dues are not skipped.
+crons.weekly(
   "deadline reminder emails",
-  { hourUTC: 7, minuteUTC: 0 },
+  { dayOfWeek: "monday", hourUTC: 7, minuteUTC: 0 },
   internal.reminders.sendDueReminders,
 );
 

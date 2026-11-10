@@ -28,6 +28,9 @@ describe("IVA-287 reminder emails and year migration", () => {
     const cron = read("convex/crons.ts");
     const send = read("convex/reminders.ts");
     expect(cron).toMatch(/internal\.reminders\.sendDueReminders/);
+    expect(cron).toMatch(/crons\.weekly/);
+    expect(cron).toMatch(/dayOfWeek:\s*"monday"/);
+    expect(cron).toMatch(/hourUTC:\s*7/);
     expect(send).toMatch(/AUTH_RESEND_KEY/);
     expect(send).toMatch(/RESEND_API_KEY/);
   });
