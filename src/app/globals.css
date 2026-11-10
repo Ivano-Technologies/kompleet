@@ -34,10 +34,14 @@
 :root {
   /* Option C teal lock — do not reintroduce sky-blue drift, lime, or amber */
   --primary: 11 58 92;
-  /* #0B3A5C navy fill — does not switch */
+  /* #0B3A5C navy fill — does not switch (sidebars) */
   --primary-rgb: 11, 58, 92;
   --primary-deep: 7 42 69;
   /* #072A45 */
+  --primary-fill: 15 118 110;
+  /* #0F766E teal CTA — 5.47:1 with white; decoupled from --link */
+  --primary-fill-hover: 16 128 120;
+  /* #108078 one step lighter — 4.79:1 with white */
   --accent: 13 148 136;
   /* #0D9488 */
   --link: 11 58 92;
@@ -107,6 +111,12 @@ html.dark,
   /* Links and text-buttons: teal-400 on navy (9.1:1), not navy-on-navy. */
   --link: 45 212 191;
   /* #2DD4BF */
+  /* CTA fill stays teal in dark so buttons read on navy page/cards.
+     Navy --primary is for sidebars only. */
+  --primary-fill: 15 118 110;
+  /* #0F766E 5.47:1 */
+  --primary-fill-hover: 16 128 120;
+  /* #108078 4.79:1 */
 }
 
 /* Base Styles */
@@ -346,9 +356,9 @@ html.dark .solid-nav {
    ======================================== */
 
 .btn-primary {
-  /* Navy fill (--primary / primary-fill), not --link teal. White on
-     #0B3A5C is 11.84:1 in light and dark; white on teal-400 is 1.86:1. */
-  background-color: rgb(var(--primary));
+  /* Teal CTA (--primary-fill), not --link and not navy --primary.
+     White on #0F766E is 5.47:1 in light and dark. */
+  background-color: rgb(var(--primary-fill));
   color: #ffffff;
   font-weight: 700;
   padding: 12px 24px;
@@ -359,12 +369,17 @@ html.dark .solid-nav {
 }
 
 .btn-primary:hover {
-  background-color: rgb(var(--primary-deep));
+  background-color: rgb(var(--primary-fill-hover));
 }
 
 .btn-primary:focus-visible {
-  outline: 2px solid #0b3a5c;
+  outline: 2px solid rgb(var(--link));
   outline-offset: 2px;
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .btn-secondary {

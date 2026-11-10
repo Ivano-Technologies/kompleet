@@ -118,7 +118,7 @@ export default function HelpPage() {
           <p className="mb-4 text-text-2">Write to support from the contact page.</p>
           <Link
             href="/contact"
-            className="inline-block rounded-md bg-primary-fill px-6 py-3 text-sm font-bold text-white hover:bg-primary-deep"
+            className="inline-block rounded-md bg-primary-fill px-6 py-3 text-sm font-bold text-white hover:bg-primary-fill-hover focus-visible:ring-2 focus-visible:ring-link disabled:opacity-50"
           >
             Contact support
           </Link>

@@ -164,7 +164,7 @@ export default function FilingHistory() {
           <button
             onClick={exportHistory}
             disabled={filings.length === 0}
-            className="px-4 py-2 bg-primary-fill text-white rounded-lg hover:bg-primary-deep transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            className="px-4 py-2 bg-primary-fill text-white rounded-lg hover:bg-primary-fill-hover focus-visible:ring-2 focus-visible:ring-link transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             <Download className="w-4 h-4" />
             Export CSV
@@ -292,7 +292,7 @@ export default function FilingHistory() {
 
                 <button
                   onClick={() => handleDownload(filing)}
-                  className="px-4 py-2 bg-primary-fill text-white rounded-lg hover:bg-primary-deep transition-colors flex items-center gap-2"
+                  className="px-4 py-2 bg-primary-fill text-white rounded-lg hover:bg-primary-fill-hover focus-visible:ring-2 focus-visible:ring-link transition-colors flex items-center gap-2"
                 >
                   <Download className="w-4 h-4" />
                   Download

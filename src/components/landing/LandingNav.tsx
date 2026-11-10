@@ -9,7 +9,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import { Menu, Moon, Sun, X } from "lucide-react";
 
 const ACCENT_CTA =
-  "rounded-md bg-accent-hover text-sm font-bold text-charcoal hover:bg-[#115E59]";
+  "rounded-md bg-primary-fill text-sm font-bold text-white hover:bg-primary-fill-hover focus-visible:ring-2 focus-visible:ring-link disabled:opacity-50";
 
 const NAV_LINKS = [
   { href: "/about", label: "About" },

@@ -299,7 +299,7 @@ describe("IVA-72 landing copy", () => {
     expect(heroAuthCard).toMatch(/flow: mode === "signup" \? "signUp" : "signIn"/);
     expect(heroAuthCard).toMatch(/border-border bg-surface/);
     expect(heroAuthCard).toMatch(/shadow-2/);
-    expect(heroAuthCard).toMatch(/bg-accent-hover[\s\S]*text-charcoal/);
+    expect(heroAuthCard).toMatch(/AUTH_SUBMIT/);
     expect(heroAuthCard).not.toMatch(/shadow-primary|teal glow|shadow-accent/);
     expect(heroAuthCard).toMatch(/AUTH_LINK/);
     expect(heroAuth).toMatch(/HERO_AUTH_ID/);

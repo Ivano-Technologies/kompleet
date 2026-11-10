@@ -18,9 +18,14 @@ module.exports = {
       colors: {
         primary: {
           // DEFAULT follows --link so text-primary / text-button links switch
-          // to teal in dark. Fills that must stay navy use primary-fill / deep.
+          // to teal-400 in dark. CTA fills use --primary-fill (teal #0F766E).
+          // Sidebars stay navy via primary-navy / primary-deep.
           DEFAULT: rgb("--link"),
-          fill: rgb("--primary"),
+          fill: {
+            DEFAULT: rgb("--primary-fill"),
+            hover: rgb("--primary-fill-hover"),
+          },
+          navy: rgb("--primary"),
           deep: "#072A45",
           mid: "#1B6CA8",
         },

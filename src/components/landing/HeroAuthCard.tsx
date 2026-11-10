@@ -19,7 +19,7 @@ import {
 import { FRIENDLY_MESSAGES, toFriendlyError, withRef } from "@/lib/friendly-error";
 import { ErrorText } from "@/components/ui/error-ref";
 import { didSignInComplete, verifyEmailPath } from "@/lib/auth/sign-in-result";
-import { AUTH_LINK } from "@/components/layout/auth-density";
+import { AUTH_LINK, AUTH_SUBMIT } from "@/components/layout/auth-density";
 
 const inputClassName =
   "mt-1.5 h-11 w-full rounded-md border border-border bg-surface px-3 text-sm text-text-1 placeholder:text-text-3 focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-dark-border dark:bg-dark-surface dark:text-dark-text-1 dark:placeholder:text-dark-text-3";
@@ -210,7 +210,7 @@ export default function HeroAuthCard() {
         <button
           type="submit"
           disabled={loading}
-          className="mt-4 h-11 w-full rounded-md bg-accent-hover text-sm font-bold text-charcoal hover:bg-[#115E59] disabled:opacity-50"
+          className={`mt-4 ${AUTH_SUBMIT}`}
         >
           {loading
             ? mode === "signup"

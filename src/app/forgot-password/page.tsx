@@ -74,7 +74,7 @@ export default function ForgotPasswordPage() {
           </p>
           <Link
             href={`/reset-password?email=${encodeURIComponent(email)}`}
-            className="flex h-11 w-full items-center justify-center rounded-md bg-accent-hover text-sm font-bold text-charcoal hover:bg-[#115E59]"
+            className={AUTH_SUBMIT}
           >
             Enter reset code
           </Link>

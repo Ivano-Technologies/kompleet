@@ -156,7 +156,7 @@ function TriageRowCard({
             type="button"
             disabled={busy}
             onClick={() => setPickerOpen((open) => !open)}
-            className="rounded-[10px] bg-accent px-3.5 py-2 text-sm font-semibold text-white hover:bg-accent-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50"
+            className="rounded-[10px] bg-primary-fill px-3.5 py-2 text-sm font-semibold text-white hover:bg-primary-fill-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-link disabled:opacity-50"
           >
             {TRIAGE_COPY.categorise}
           </button>
@@ -167,7 +167,7 @@ function TriageRowCard({
             onClick={() => void onAction("confirm", row)}
             className={
               primaryTeal
-                ? "rounded-[10px] bg-accent px-3.5 py-2 text-sm font-semibold text-white hover:bg-accent-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50"
+                ? "rounded-[10px] bg-primary-fill px-3.5 py-2 text-sm font-semibold text-white hover:bg-primary-fill-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-link disabled:opacity-50"
                 : "rounded-[10px] border border-border bg-surface px-3.5 py-2 text-sm font-semibold text-primary hover:bg-surface-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:opacity-50"
             }
           >

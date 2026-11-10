@@ -33,7 +33,9 @@ describe("theme colour tokens", () => {
     expect(config).not.toMatch(/surface:\s*"#FFFDF8"/);
     expect(config).not.toMatch(/DEFAULT:\s*"#0F1E2E"/);
     expect(config).toMatch(/DEFAULT:\s*rgb\("--link"\)/);
-    expect(config).toMatch(/fill:\s*rgb\("--primary"\)/);
+    expect(config).toMatch(/DEFAULT:\s*rgb\("--primary-fill"\)/);
+    expect(config).toMatch(/hover:\s*rgb\("--primary-fill-hover"\)/);
+    expect(config).toMatch(/navy:\s*rgb\("--primary"\)/);
     expect(config).toMatch(/link:\s*rgb\("--link"\)/);
   });
 
@@ -54,14 +56,21 @@ describe("theme colour tokens", () => {
     expect(globals).toMatch(/#2DD4BF/);
   });
 
-  it("keeps filled buttons on navy primary-fill, not the dark teal link token", () => {
+  it("keeps filled buttons on --primary-fill teal, not --link or navy --primary", () => {
     const button = readFileSync(
       resolve(process.cwd(), "src/components/ui/button.tsx"),
       "utf8",
     );
-    expect(button).toMatch(/bg-primary-fill text-white/);
+    expect(button).toMatch(/bg-primary-fill text-white hover:bg-primary-fill-hover/);
+    expect(button).toMatch(/focus-visible:ring-link/);
+    expect(button).toMatch(/disabled:opacity-50/);
     expect(button).not.toMatch(/bg-primary text-white/);
-    expect(globals).toMatch(/\.btn-primary[\s\S]*?background-color:\s*rgb\(var\(--primary\)\)/);
+    expect(globals).toMatch(/--primary-fill:\s*15 118 110;/);
+    expect(globals).toMatch(/--primary-fill-hover:\s*16 128 120;/);
+    expect(globals).toMatch(/html\.dark[\s\S]*--primary-fill:\s*15 118 110;/);
+    expect(globals).toMatch(/\.btn-primary[\s\S]*?background-color:\s*rgb\(var\(--primary-fill\)\)/);
+    expect(globals).toMatch(/\.btn-primary:focus-visible[\s\S]*?rgb\(var\(--link\)\)/);
+    expect(globals).toMatch(/\.btn-primary:disabled[\s\S]*?opacity:\s*0\.5/);
     expect(globals).toMatch(/--dark-text-4:\s*107 155 184;/);
   });
 

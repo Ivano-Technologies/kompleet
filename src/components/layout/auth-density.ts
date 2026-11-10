@@ -11,12 +11,11 @@ export const AUTH_INPUT_BARE =
 export const AUTH_INPUT_WITH_TOGGLE = `${AUTH_INPUT_BARE} pr-11`;
 
 /**
- * Auth CTA. White on accent (#0D9488) is only 3.74:1, so the resting fill is
- * the accent-hover teal (#0F766E, 5.47:1) and hover goes one step deeper
- * (#115E59, 7.58:1). Same fill in light and dark.
+ * Auth CTA. Uses --primary-fill (#0F766E, 5.47:1 with white), hover one step
+ * lighter (#108078, 4.79:1), focus ring --link, disabled 50% like Verify email.
  */
 export const AUTH_SUBMIT =
-  "flex h-11 w-full items-center justify-center gap-2 rounded-md bg-accent-hover text-sm font-bold text-charcoal hover:bg-[#115E59] disabled:opacity-50";
+  "flex h-11 w-full items-center justify-center gap-2 rounded-md bg-primary-fill text-sm font-bold text-white hover:bg-primary-fill-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-link disabled:opacity-50";
 
 /**
  * Inline auth link. Primary navy (#0B3A5C) is 11.6:1 on the light card but

@@ -93,7 +93,7 @@ export default function HomePage() {
           </h2>
           <Link
             href="/signup"
-            className="mt-8 inline-flex min-h-11 items-center rounded-md bg-accent-hover px-8 py-4 text-base font-bold text-charcoal hover:bg-[#115E59]"
+            className="mt-8 inline-flex min-h-11 items-center rounded-md bg-primary-fill px-8 py-4 text-base font-bold text-white hover:bg-primary-fill-hover focus-visible:ring-2 focus-visible:ring-link disabled:opacity-50"
           >
             Get started
           </Link>

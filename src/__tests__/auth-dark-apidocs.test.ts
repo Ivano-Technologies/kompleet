@@ -24,7 +24,7 @@ describe("auth dark mode contrast", () => {
   });
 
   it("uses a CTA fill that clears 4.5:1 with white text", () => {
-    expect(density).toMatch(/AUTH_SUBMIT =\s*"[^"]*bg-accent-hover/);
+    expect(density).toMatch(/AUTH_SUBMIT =\s*"[^"]*bg-primary-fill/);
     expect(density).toMatch(/AUTH_LINK =\s*"[^"]*dark:text-teal-400/);
   });
 });
