@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { getEmailFrom } from "@/lib/email-from";
+import { escapeHtml } from "@/lib/escape-html";
 import { apiErrorBody } from "@/lib/friendly-error";
 
 const CONTACT_EMAILS = {
@@ -44,6 +45,10 @@ async function handlePOST(request: NextRequest) {
       feedback: "Feedback",
     };
     const subjectLabel = subjectLabels[subjectKey] ?? "General Inquiry";
+    const safeName = escapeHtml(name);
+    const safeEmail = escapeHtml(email);
+    const safeMessage = escapeHtml(message);
+    const safeSubjectLabel = escapeHtml(subjectLabel);
 
     const resendApiKey = process.env.RESEND_API_KEY;
     if (!resendApiKey) {
@@ -56,11 +61,11 @@ async function handlePOST(request: NextRequest) {
 <html>
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
   <h2 style="color: #10b981;">Contact Form Submission</h2>
-  <p><strong>From:</strong> ${name} &lt;${email}&gt;</p>
-  <p><strong>Subject:</strong> ${subjectLabel}</p>
+  <p><strong>From:</strong> ${safeName} &lt;${safeEmail}&gt;</p>
+  <p><strong>Subject:</strong> ${safeSubjectLabel}</p>
   <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
   <p><strong>Message:</strong></p>
-  <p style="white-space: pre-wrap;">${String(message).replace(/</g, "&lt;")}</p>
+  <p style="white-space: pre-wrap;">${safeMessage}</p>
 </body>
 </html>`;
 
