@@ -739,7 +739,11 @@ async function buildOrphanPlan(ctx: MutationCtx) {
       !clientExt.has(row.clientExternalId);
     const idGone =
       typeof row.clientId === "string" && !clientIds.has(row.clientId);
-    return extGone || idGone;
+    const unlinked =
+      row.userId === undefined &&
+      row.clientId === undefined &&
+      row.clientExternalId === undefined;
+    return extGone || idGone || unlinked;
   });
   if (orphanSequences.length !== EXPECTED_ORPHAN_SEQUENCES) {
     refuseCount(
