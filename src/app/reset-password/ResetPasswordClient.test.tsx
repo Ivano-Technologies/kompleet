@@ -96,14 +96,15 @@ describe("ResetPasswordClient", () => {
     ).toBeInTheDocument();
   });
 
-  it("maps a redacted Server Error to the invalid-or-expired message", async () => {
+  it("maps a redacted Server Error to the generic message without a Ref", async () => {
     signIn.mockRejectedValueOnce(new Error("[Request ID: abc] Server Error"));
     await submit();
     expect(
-      await screen.findByText(FRIENDLY_MESSAGES.invalidCode),
+      await screen.findByText(FRIENDLY_MESSAGES.fallback),
     ).toBeInTheDocument();
-    expect(screen.queryByText("Something went wrong. Please try again.")).not.toBeInTheDocument();
-    expect(Sentry.captureException).not.toHaveBeenCalled();
+    expect(screen.queryByText(FRIENDLY_MESSAGES.invalidCode)).not.toBeInTheDocument();
+    expect(screen.queryByTestId("error-ref")).not.toBeInTheDocument();
+    expect(Sentry.captureException).toHaveBeenCalled();
   });
 
   it("normalises the email", async () => {

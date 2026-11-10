@@ -20,7 +20,6 @@ import { AuthBackToLogin } from '@/components/auth/AuthBackToLogin';
 import {
   FRIENDLY_MESSAGES,
   isNetworkError,
-  isRedactedConvexServerError,
   normalizeEmail,
 } from '@/lib/friendly-error';
 import { ErrorText } from '@/components/ui/error-ref';
@@ -57,12 +56,13 @@ export default function ForgotPasswordPage() {
         mapped.message.startsWith('Too many attempts')
       ) {
         setError(authErrorText({ ...mapped, known: true }));
-      } else if (!mapped.known && !isRedactedConvexServerError(err)) {
+      } else if (!mapped.known) {
+        // Redacted plain Server Error is a real fault (Resend, keys), not a
+        // missing account. Show the generic copy and hide the Ref.
         setError(authErrorText(mapped));
       } else {
-        // Unknown accounts (InvalidAccountId, including the prod-redacted
-        // Server Error) get the same success screen so we never reveal
-        // whether an account exists.
+        // Unknown accounts (InvalidAccountId / INVALID_CREDENTIALS) get the
+        // same success screen so we never reveal whether an account exists.
         setSuccess(true);
       }
     } finally {

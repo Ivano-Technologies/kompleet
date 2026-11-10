@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import * as Sentry from "@sentry/nextjs";
 import LoginPage from "@/app/login/page";
 
 const signIn = vi.fn();
@@ -29,6 +30,7 @@ describe("LoginPage", () => {
     vi.restoreAllMocks();
     signIn.mockReset();
     search = new URLSearchParams("");
+    vi.mocked(Sentry.captureException).mockClear();
     vi.spyOn(console, "error").mockImplementation(() => {});
     vi.spyOn(console, "warn").mockImplementation(() => {});
   });
@@ -50,6 +52,30 @@ describe("LoginPage", () => {
     expect(screen.queryByTestId("error-ref")).not.toBeInTheDocument();
     expect(screen.queryByText(/Already used Kompleet/)).not.toBeInTheDocument();
     expect(console.error).not.toHaveBeenCalled();
+  });
+
+  it("masks a proxied TOO_MANY_ATTEMPTS as doesn't match without Sentry or a Ref", async () => {
+    signIn.mockRejectedValueOnce(
+      new Error(
+        `[Request ID: 7f3a9c1e2b] Server Error\nUncaught ConvexError: ${JSON.stringify({
+          code: "TOO_MANY_ATTEMPTS",
+          retryAfterSeconds: 3600,
+        })}`,
+      ),
+    );
+    const user = userEvent.setup();
+    render(<LoginPage />);
+    const inputs = document.querySelectorAll("input");
+    await user.type(inputs[0] as HTMLInputElement, "jane@example.com");
+    await user.type(inputs[1] as HTMLInputElement, "wrongpass1");
+    await user.click(screen.getByRole("button", { name: "Sign in" }));
+
+    expect(
+      await screen.findByText("That email or password doesn't match. Check and try again."),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/Too many attempts/)).not.toBeInTheDocument();
+    expect(screen.queryByTestId("error-ref")).not.toBeInTheDocument();
+    expect(Sentry.captureException).not.toHaveBeenCalled();
   });
 
   it("shows the exact expired-link copy with a ref logged as a warning", () => {

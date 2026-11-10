@@ -19,7 +19,7 @@ import {
   AUTH_TITLE_BLOCK,
 } from "@/components/layout/auth-density";
 import { Eye, EyeOff } from "lucide-react";
-import { FRIENDLY_MESSAGES, generateRef, withRef } from "@/lib/friendly-error";
+import { generateRef, withRef } from "@/lib/friendly-error";
 import { ErrorText } from "@/components/ui/error-ref";
 import { authErrorText, mapAuthError } from "@/lib/auth/map-error";
 import { didSignInComplete, verifyEmailPath } from "@/lib/auth/sign-in-result";
@@ -66,19 +66,7 @@ function LoginForm() {
       router.push(redirectTo);
       router.refresh();
     } catch (err) {
-      const mapped = mapAuthError(err, "login");
-      const keepMessage =
-        mapped.message === FRIENDLY_MESSAGES.network ||
-        mapped.message.startsWith("Too many attempts") ||
-        mapped.message === FRIENDLY_MESSAGES.unverified;
-      const next = keepMessage
-        ? mapped
-        : {
-            ...mapped,
-            message: FRIENDLY_MESSAGES.invalidCredentials,
-            known: true,
-          };
-      setError(authErrorText(next));
+      setError(authErrorText(mapAuthError(err, "login")));
       setLoading(false);
     }
   };

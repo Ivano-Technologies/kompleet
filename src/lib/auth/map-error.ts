@@ -1,10 +1,12 @@
 import {
   FRIENDLY_FALLBACK,
   FRIENDLY_MESSAGES,
+  authErrorDataFromUnknown,
   toFriendlyError,
   withRef,
   type FriendlyError,
 } from "@/lib/friendly-error";
+import { AUTH_ERROR_CODES } from "../../../convex/lib/authErrors";
 
 export type AuthErrorSurface =
   | "login"
@@ -14,27 +16,45 @@ export type AuthErrorSurface =
   | "reset"
   | "forgot";
 
-const REDACTED_FALLBACK: Record<AuthErrorSurface, string | undefined> = {
-  login: FRIENDLY_MESSAGES.invalidCredentials,
-  signup: FRIENDLY_MESSAGES.accountExists,
-  verify: FRIENDLY_MESSAGES.invalidCode,
-  "verify-resend": undefined,
-  reset: FRIENDLY_MESSAGES.invalidCode,
-  forgot: undefined,
-};
-
 /** Map an auth:signIn throw to copy. Known user errors omit the support Ref. */
 export function mapAuthError(
   err: unknown,
   surface: AuthErrorSurface,
 ): FriendlyError {
-  return toFriendlyError(err, FRIENDLY_FALLBACK, {
+  const result = toFriendlyError(err, FRIENDLY_FALLBACK, {
     context: `auth:${surface}`,
-    redactedFallback: REDACTED_FALLBACK[surface],
   });
+
+  if (surface !== "login") return result;
+
+  const data = authErrorDataFromUnknown(err);
+  if (data?.code === AUTH_ERROR_CODES.TOO_MANY_ATTEMPTS) {
+    return {
+      ...result,
+      message: FRIENDLY_MESSAGES.invalidCredentials,
+    };
+  }
+
+  if (
+    result.hideRef ||
+    result.message === FRIENDLY_MESSAGES.network ||
+    result.message === FRIENDLY_MESSAGES.unverified ||
+    result.message.startsWith("Too many attempts")
+  ) {
+    return result;
+  }
+
+  return {
+    ...result,
+    message: FRIENDLY_MESSAGES.invalidCredentials,
+    known: true,
+    hideRef: true,
+  };
 }
 
-/** Banner text: Ref only for unexpected failures. */
+/** Banner text: Ref only for unexpected failures that are not redacted faults. */
 export function authErrorText(result: FriendlyError): string {
-  return result.known ? result.message : withRef(result.message, result.ref);
+  return result.known || result.hideRef
+    ? result.message
+    : withRef(result.message, result.ref);
 }

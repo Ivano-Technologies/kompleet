@@ -16,7 +16,6 @@ import {
   HERO_AUTH_ID,
   type HeroAuthMode,
 } from "@/components/landing/hero-auth";
-import { FRIENDLY_MESSAGES } from "@/lib/friendly-error";
 import { ErrorText } from "@/components/ui/error-ref";
 import { authErrorText, mapAuthError } from "@/lib/auth/map-error";
 import { didSignInComplete, verifyEmailPath } from "@/lib/auth/sign-in-result";
@@ -107,18 +106,8 @@ export default function HeroAuthCard() {
       router.push("/dashboard");
       router.refresh();
     } catch (err) {
-      const mapped = mapAuthError(err, mode === "signup" ? "signup" : "login");
-      const signInMismatch =
-        mode === "signin" &&
-        mapped.message !== FRIENDLY_MESSAGES.network &&
-        !mapped.message.startsWith("Too many attempts") &&
-        mapped.message !== FRIENDLY_MESSAGES.unverified;
       setError(
-        authErrorText(
-          signInMismatch
-            ? { ...mapped, message: FRIENDLY_MESSAGES.invalidCredentials, known: true }
-            : mapped,
-        ),
+        authErrorText(mapAuthError(err, mode === "signup" ? "signup" : "login")),
       );
       setLoading(false);
     }

@@ -2,7 +2,9 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import * as Sentry from "@sentry/nextjs";
 import ForgotPasswordPage from "@/app/forgot-password/page";
+import { FRIENDLY_MESSAGES } from "@/lib/friendly-error";
 
 const signIn = vi.fn();
 
@@ -46,6 +48,7 @@ async function submit(email: string) {
 describe("ForgotPasswordPage", () => {
   beforeEach(() => {
     signIn.mockReset();
+    vi.mocked(Sentry.captureException).mockClear();
     vi.spyOn(console, "warn").mockImplementation(() => {});
   });
 
@@ -135,5 +138,16 @@ describe("ForgotPasswordPage", () => {
       await screen.findByText("Too many attempts. Please wait a moment and try again."),
     ).toBeInTheDocument();
     expect(screen.queryByText("Check Your Email")).not.toBeInTheDocument();
+  });
+
+  it("shows the generic message without a Ref for a redacted Server Error", async () => {
+    signIn.mockRejectedValueOnce(new Error("[Request ID: abc] Server Error"));
+    await submit("user@example.com");
+    expect(
+      await screen.findByText(FRIENDLY_MESSAGES.fallback),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Check Your Email")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("error-ref")).not.toBeInTheDocument();
+    expect(Sentry.captureException).toHaveBeenCalled();
   });
 });

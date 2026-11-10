@@ -141,17 +141,17 @@ describe("VerifyEmailClient", () => {
     expect(push).not.toHaveBeenCalled();
   });
 
-  it("maps a redacted Server Error from verify to the invalid-or-expired message", async () => {
+  it("maps a redacted Server Error from verify to the generic message without a Ref", async () => {
     signIn.mockRejectedValueOnce(new Error("[Request ID: abc] Server Error"));
     const user = userEvent.setup();
     render(<VerifyEmailClient />);
     await user.type(screen.getByLabelText("Verification code"), "00000000");
     await user.click(screen.getByRole("button", { name: "Verify email" }));
     expect(
-      await screen.findByText(FRIENDLY_MESSAGES.invalidCode),
+      await screen.findByText(FRIENDLY_MESSAGES.fallback),
     ).toBeInTheDocument();
-    expect(screen.queryByText(/Something went wrong/)).not.toBeInTheDocument();
+    expect(screen.queryByText(FRIENDLY_MESSAGES.invalidCode)).not.toBeInTheDocument();
     expect(screen.queryByTestId("error-ref")).not.toBeInTheDocument();
-    expect(Sentry.captureException).not.toHaveBeenCalled();
+    expect(Sentry.captureException).toHaveBeenCalled();
   });
 });

@@ -18,6 +18,7 @@ import {
   CONVEX_AUTH_API_ROUTE,
   isExactConvexAuthProxyPath,
 } from "@/lib/auth/convex-auth-api-route";
+import { sanitizeAuthProxyResponse } from "@/lib/auth/sanitize-proxy-error";
 import { withRateLimit } from "@/lib/with-rate-limit";
 
 export const runtime = "nodejs";
@@ -35,7 +36,7 @@ async function handleConvexAuthProxy(request: NextRequest): Promise<Response> {
 
   const result = await proxyAuth(request, {} as NextFetchEvent);
   if (result) {
-    return result;
+    return sanitizeAuthProxyResponse(result);
   }
 
   return Response.json(

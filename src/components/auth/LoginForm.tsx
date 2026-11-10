@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { useRouter } from "next/navigation";
-import { FRIENDLY_MESSAGES } from "@/lib/friendly-error";
 import { ErrorText } from "@/components/ui/error-ref";
 import { authErrorText, mapAuthError } from "@/lib/auth/map-error";
 
@@ -25,18 +24,7 @@ export default function LoginForm() {
       router.push("/dashboard");
       router.refresh();
     } catch (err) {
-      const mapped = mapAuthError(err, "login");
-      const keepMessage =
-        mapped.message === FRIENDLY_MESSAGES.network ||
-        mapped.message.startsWith("Too many attempts") ||
-        mapped.message === FRIENDLY_MESSAGES.unverified;
-      setError(
-        authErrorText(
-          keepMessage
-            ? mapped
-            : { ...mapped, message: FRIENDLY_MESSAGES.invalidCredentials, known: true },
-        ),
-      );
+      setError(authErrorText(mapAuthError(err, "login")));
     }
 
     setLoading(false);
