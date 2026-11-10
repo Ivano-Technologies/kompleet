@@ -171,8 +171,8 @@ export default function CategoriesPage() {
           </div>
           <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
             {canEditCategories
-              ? "Manage transaction categories and keywords for auto-categorization"
-              : "Transaction categories and keywords used for auto-categorization"}
+              ? "Manage transaction categories used to organise your books"
+              : "Transaction categories used to organise your books"}
           </p>
         </div>
         <Link

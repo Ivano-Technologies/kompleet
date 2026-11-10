@@ -5,6 +5,7 @@ import { useAuthActions } from '@convex-dev/auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { AuthLayout } from '@/components/layout/AuthLayout';
+import { joinPersonName } from '@/lib/names';
 import {
   AUTH_ERROR,
   AUTH_EYEBROW,
@@ -65,7 +66,7 @@ export default function SignUpPage() {
     }
 
     try {
-      const fullName = `${firstName} ${lastName}`.trim();
+      const fullName = joinPersonName(firstName, lastName);
       const result = await signIn('password', {
         email: businessEmail,
         password,

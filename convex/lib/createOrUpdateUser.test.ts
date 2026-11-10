@@ -3,6 +3,7 @@
 import { describe, expect, it } from "vitest";
 import {
   createOrUpdateAuthUser,
+  mergeStoredFullName,
   profileEmailIsVerified,
   type AuthUserDoc,
   type CreateOrUpdateUserCtx,
@@ -53,6 +54,15 @@ const OLD_USER: AuthUserDoc = {
   externalId: "ext-old",
   supabaseUserId: undefined,
 };
+
+describe("mergeStoredFullName", () => {
+  it("keeps an existing full name and upgrades a first-name-only leftover", () => {
+    expect(mergeStoredFullName("Audit Test", "Audit")).toBe("Audit Test");
+    expect(mergeStoredFullName("Audit", "Audit Test")).toBe("Audit Test");
+    expect(mergeStoredFullName(undefined, "Audit Test")).toBe("Audit Test");
+    expect(mergeStoredFullName("Audit", undefined)).toBe("Audit");
+  });
+});
 
 describe("profileEmailIsVerified", () => {
   it("treats verification as verified unless emailVerified is false", () => {
@@ -130,6 +140,30 @@ describe("createOrUpdateAuthUser", () => {
     expect(rows[0]?.emailVerificationTime).toBe(now);
     expect(rows[1]?.deletedAt).toBe(now);
     expect(rows[1]?.email).toMatch(/^reclaimed\+/);
+  });
+
+  it("upgrades a first-name-only fullName when signup sends first + last", async () => {
+    const firstOnly: AuthUserDoc = {
+      ...OLD_USER,
+      name: "Audit",
+      fullName: "Audit",
+    };
+    const { ctx, rows } = fakeCtx([firstOnly]);
+    await createOrUpdateAuthUser(
+      ctx,
+      {
+        existingUserId: firstOnly._id,
+        type: "credentials",
+        profile: {
+          email: "ada@example.com",
+          name: "Audit Test",
+          emailVerified: true,
+        },
+      },
+      1_700_000_000_000,
+    );
+    expect(rows[0]?.name).toBe("Audit Test");
+    expect(rows[0]?.fullName).toBe("Audit Test");
   });
 
   it("inserts a new unverified user when the email is new", async () => {

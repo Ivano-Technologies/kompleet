@@ -7,6 +7,7 @@ import {
   ArrowLeft,
   Download,
   Edit,
+  Send,
   XCircle,
   Lock,
   ShieldCheck,
@@ -24,7 +25,9 @@ import {
   cancelInvoice,
   issueInvoice,
   markInvoicePaid,
+  sendInvoiceEmail,
 } from "@/components/invoices/invoice-actions";
+import { invoiceRecipientEmail } from "@/lib/invoices/invoice-email";
 import type { InvoiceClient } from "@/components/invoices/CustomerCombobox";
 import {
   hasLegalName,
@@ -47,6 +50,8 @@ export default function InvoiceDetailPage() {
   const [profile, setProfile] = useState<BusinessProfile | null>(null);
   const [clients, setClients] = useState<InvoiceClient[]>([]);
   const [issuing, setIssuing] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
   const [paidOpen, setPaidOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [statusBusy, setStatusBusy] = useState(false);
@@ -78,6 +83,12 @@ export default function InvoiceDetailPage() {
   useEffect(() => {
     fetchInvoice();
   }, [fetchInvoice]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("issued") === "1") setNotice(INV_COPY.issueToast);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -252,6 +263,7 @@ export default function InvoiceDetailPage() {
                 setIssuing(true);
                 try {
                   await issueInvoice(invoice.id);
+                  setNotice(INV_COPY.issueToast);
                   await fetchInvoice();
                 } catch (err) {
                   notifyError(toFriendlyMessage(err, "We couldn't issue this invoice. Please try again."));
@@ -263,6 +275,40 @@ export default function InvoiceDetailPage() {
               Issue
             </button>
           )}
+          {(invoice.status === "issued" || invoice.status === "paid") && (
+            <button
+              type="button"
+              className="btn-primary disabled:opacity-45"
+              disabled={
+                sending || !invoiceRecipientEmail(invoice.customer_info)
+              }
+              title={
+                invoiceRecipientEmail(invoice.customer_info)
+                  ? undefined
+                  : INV_COPY.emailNeedsAddress
+              }
+              onClick={async () => {
+                setSending(true);
+                try {
+                  const result = await sendInvoiceEmail(invoice.id);
+                  if (result.sent && result.to) {
+                    setNotice(INV_COPY.emailSent(result.to));
+                  } else {
+                    notifyError(result.error || INV_COPY.emailNotSent);
+                  }
+                } catch (err) {
+                  notifyError(
+                    toFriendlyMessage(err, INV_COPY.emailNotSent),
+                  );
+                } finally {
+                  setSending(false);
+                }
+              }}
+            >
+              <Send size={16} />
+              {sending ? "Sending…" : INV_COPY.sendInvoice}
+            </button>
+          )}
           {invoice.is_immutable && (
             <span className="px-4 py-2 bg-yellow-100 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 rounded-full text-sm font-medium flex items-center gap-2">
               <Lock size={16} />
@@ -271,6 +317,15 @@ export default function InvoiceDetailPage() {
           )}
         </div>
       </div>
+
+      {notice ? (
+        <p
+          role="status"
+          className="mb-4 rounded-lg border border-success/30 bg-success/10 px-3 py-2 text-sm text-success"
+        >
+          {notice}
+        </p>
+      ) : null}
 
       {/* Actions */}
       <div className="flex gap-4 mb-8 flex-wrap">

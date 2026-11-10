@@ -8,6 +8,13 @@ const source = readFileSync(
 );
 
 describe("/categories Edit affordance", () => {
+  it("does not promise auto-categorisation keywords on the subheading", () => {
+    expect(source).toContain("Manage transaction categories used to organise your books");
+    expect(source).toContain("Transaction categories used to organise your books");
+    expect(source).not.toMatch(/keywords used for auto-categorization/i);
+    expect(source).not.toMatch(/keywords for auto-categorization/i);
+  });
+
   it("gates Edit behind admin:manage_rules so non-admins never see it", () => {
     expect(source).toContain('hasPermission(role, "admin:manage_rules")');
     expect(source).toContain("canEditCategories");

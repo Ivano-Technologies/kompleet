@@ -7,7 +7,7 @@ import {
   Plus,
   Search,
   FileText,
-  Send,
+  Eye,
   Download,
 } from "lucide-react";
 import { NewInvoiceSheet } from "@/components/invoices/NewInvoiceSheet";
@@ -409,20 +409,11 @@ function InvoicesPageInner() {
               <div className="flex items-center gap-2">
                 <StatusBadge status={selectedInvoice.status} />
                 <button
+                  type="button"
                   onClick={() => router.push(`/invoices/${selectedInvoice.id}`)}
-                  className="btn-primary text-sm px-3 py-2 flex items-center gap-1.5 disabled:opacity-45"
-                  disabled={
-                    !selectedInvoice.client_id || !hasLegalName(profile ?? { legalName: "" })
-                  }
-                  title={
-                    !selectedInvoice.client_id
-                      ? INV_COPY.billtoRequired
-                      : !hasLegalName(profile ?? { legalName: "" })
-                        ? BIZ_COPY.blockLegalName
-                        : undefined
-                  }
+                  className="btn-primary text-sm px-3 py-2 flex items-center gap-1.5"
                 >
-                  <Send className="w-3.5 h-3.5" /> Send
+                  <Eye className="w-3.5 h-3.5" /> {INV_COPY.openInvoice}
                 </button>
                 <button
                   onClick={() =>

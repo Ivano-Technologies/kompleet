@@ -16,6 +16,7 @@ vi.mock("./lib/auth", async (importOriginal) => {
 });
 
 import {
+  apiFullName,
   ensureCurrentHandler,
   listAllHandler,
   verifiedIdentityEmail,
@@ -186,6 +187,16 @@ describe("users:listAll", () => {
   });
 });
 
+describe("apiFullName", () => {
+  it("returns fullName, then name, so existing first-name-only rows still work", () => {
+    expect(apiFullName({ fullName: "Audit Test", name: "Audit" })).toBe(
+      "Audit Test",
+    );
+    expect(apiFullName({ name: "Audit Test" })).toBe("Audit Test");
+    expect(apiFullName({ fullName: "  ", name: "" })).toBeNull();
+  });
+});
+
 describe("verifiedIdentityEmail", () => {
   it("returns empty when the identity email is not verified", () => {
     expect(
@@ -273,6 +284,31 @@ describe("ensureCurrentHandler", () => {
     expect(tables.users).toHaveLength(1);
     expect(tables.users[0]?.email).toBe("me@example.com");
     expect(result.email).toBe("me@example.com");
+  });
+
+  it("returns name as full_name when fullName is missing", async () => {
+    const sessionUser = {
+      ...VICTIM,
+      _id: "users:me",
+      email: "me@example.com",
+      tokenIdentifier: "iss|me",
+      fullName: undefined,
+      name: "Audit Test",
+    };
+    getCurrentUserOrNull.mockResolvedValue(sessionUser);
+    const { db } = fakeDb([sessionUser]);
+
+    const result = await ensureCurrentHandler(
+      ctxOf(db, {
+        tokenIdentifier: "iss|me",
+        subject: "me",
+        email: "me@example.com",
+        emailVerified: true,
+      }),
+      {},
+    );
+
+    expect(result.full_name).toBe("Audit Test");
   });
 
   it("sets and reclaims the email after the identity is verified", async () => {

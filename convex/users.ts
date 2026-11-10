@@ -47,9 +47,18 @@ const userApi = v.object({
   ),
 });
 
+export function apiFullName(user: {
+  fullName?: string;
+  name?: string;
+}): string | null {
+  const value = user.fullName?.trim() || user.name?.trim() || "";
+  return value || null;
+}
+
 function toApi(user: {
   externalId: string;
   email: string;
+  name?: string;
   fullName?: string;
   phone: string;
   entityType: "individual" | "company";
@@ -71,7 +80,7 @@ function toApi(user: {
   return {
     id: user.externalId,
     email: user.email,
-    full_name: user.fullName ?? null,
+    full_name: apiFullName(user),
     phone: user.phone,
     entity_type: user.entityType,
     tin: user.tin ?? null,
@@ -134,7 +143,7 @@ export async function ensureCurrentHandler(
     await ctx.db.patch(existing._id, {
       tokenIdentifier: identity.tokenIdentifier,
       ...(verifiedEmail ? { email: verifiedEmail } : {}),
-      fullName: args.fullName ?? existing.fullName,
+      fullName: args.fullName?.trim() || existing.fullName || existing.name,
       lastLoginAt: now,
       updatedAt: now,
     });
@@ -152,7 +161,7 @@ export async function ensureCurrentHandler(
     await ctx.db.patch(byEmail._id, {
       tokenIdentifier: identity.tokenIdentifier,
       email: verifiedEmail,
-      fullName: args.fullName ?? byEmail.fullName,
+      fullName: args.fullName?.trim() || byEmail.fullName || byEmail.name,
       supabaseUserId: byEmail.supabaseUserId ?? byEmail.externalId,
       lastLoginAt: now,
       updatedAt: now,
