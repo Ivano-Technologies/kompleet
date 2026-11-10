@@ -24,11 +24,15 @@ export function formatInvoiceNaira(amount: number): string {
   })}`;
 }
 
+export const INVOICE_EMAIL_REPLY_PROMPT =
+  "Reply to this email if you have questions.";
+
 export function invoiceEmailTemplate(input: {
   invoiceNumber: string;
   totalAmount: number;
   businessName: string;
   attachedPdf?: boolean;
+  includeReplyPrompt?: boolean;
 }): EmailTemplate {
   const business = input.businessName.trim();
   if (!business) {
@@ -37,7 +41,9 @@ export function invoiceEmailTemplate(input: {
   const total = formatInvoiceNaira(input.totalAmount);
   const ready = `Invoice ${input.invoiceNumber} for ${total} from ${business} is ready.`;
   const pdfLine = input.attachedPdf ? " The invoice PDF is attached." : "";
-  const reply = " Reply to this email if you have questions.";
+  const reply = input.includeReplyPrompt
+    ? ` ${INVOICE_EMAIL_REPLY_PROMPT}`
+    : "";
   const body = `${ready}${pdfLine}${reply}`;
   const subject = `Invoice ${input.invoiceNumber} from ${business}`;
   const html = `<p>Invoice <strong>${escapeHtml(input.invoiceNumber)}</strong> for <strong>${escapeHtml(total)}</strong> from <strong>${escapeHtml(business)}</strong> is ready.${input.attachedPdf ? " The invoice PDF is attached." : ""}${reply}</p>`;

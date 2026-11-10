@@ -42,6 +42,15 @@ const issued = {
   sender: { name: "Test Traders Ltd" },
 };
 
+const owner = { email: "owner@fixture.test" };
+
+function authed(invoice: unknown = issued, user: { email?: string } | undefined = owner) {
+  requireAuthedConvex.mockResolvedValue({
+    user,
+    convex: { query: vi.fn().mockResolvedValue(invoice) },
+  });
+}
+
 describe("POST /api/invoices/[id]/send", () => {
   beforeEach(() => {
     requireAuthedConvex.mockReset();
@@ -55,9 +64,7 @@ describe("POST /api/invoices/[id]/send", () => {
     const pdf = Buffer.from("%PDF-fixture");
     generateInvoicePDF.mockResolvedValue(pdf);
     sendEmail.mockResolvedValue(true);
-    requireAuthedConvex.mockResolvedValue({
-      convex: { query: vi.fn().mockResolvedValue(issued) },
-    });
+    authed();
     const res = await POST(
       new Request("http://localhost/api/invoices/inv-fixture-1/send", {
         method: "POST",
@@ -80,17 +87,62 @@ describe("POST /api/invoices/[id]/send", () => {
     expect(to).toBe("ada@x.com");
     expect(template.subject).toBe("Invoice INV-001 from Test Traders Ltd");
     expect(template.text).toContain("The invoice PDF is attached.");
+    expect(template.text).toContain("Reply to this email if you have questions.");
     expect(template.text).not.toMatch(/your supplier|Kompleet/i);
     expect(attachments[0]?.filename).toBe("INV-001.pdf");
     expect(attachments[0]?.content).toBe(pdf.toString("base64"));
+    expect(sendEmail.mock.calls[0][3]).toBe("owner@fixture.test");
+  });
+
+  it("sets replyTo to the owner's account email", async () => {
+    generateInvoicePDF.mockResolvedValue(Buffer.from("%PDF-fixture"));
+    sendEmail.mockResolvedValue(true);
+    authed();
+    await POST(
+      new Request("http://localhost/api/invoices/inv-fixture-1/send", {
+        method: "POST",
+      }) as never,
+      { params: Promise.resolve({ id: "inv-fixture-1" }) },
+    );
+    const [, template, , replyTo] = sendEmail.mock.calls[0] as [
+      string,
+      { text: string },
+      unknown,
+      string | undefined,
+    ];
+    expect(replyTo).toBe("owner@fixture.test");
+    expect(template.text).toContain("Reply to this email if you have questions.");
+  });
+
+  it("drops the reply sentence when the owner has no valid email", async () => {
+    generateInvoicePDF.mockRejectedValue(new Error("pdf failed"));
+    sendEmail.mockResolvedValue(true);
+    authed(issued, { email: "" });
+    const res = await POST(
+      new Request("http://localhost/api/invoices/inv-fixture-1/send", {
+        method: "POST",
+      }) as never,
+      { params: Promise.resolve({ id: "inv-fixture-1" }) },
+    );
+    expect(res.status).toBe(200);
+    const [, template, attachments, replyTo] = sendEmail.mock.calls[0] as [
+      string,
+      { text: string },
+      unknown,
+      string | undefined,
+    ];
+    expect(replyTo).toBeUndefined();
+    expect(attachments).toBeUndefined();
+    expect(template.text).toBe(
+      "Invoice INV-001 for ₦80,625.00 from Test Traders Ltd is ready.",
+    );
+    expect(template.text).not.toContain("Reply to this email");
   });
 
   it("still sends the honest body when PDF generation fails", async () => {
     generateInvoicePDF.mockRejectedValue(new Error("pdf failed"));
     sendEmail.mockResolvedValue(true);
-    requireAuthedConvex.mockResolvedValue({
-      convex: { query: vi.fn().mockResolvedValue(issued) },
-    });
+    authed();
     const res = await POST(
       new Request("http://localhost/api/invoices/inv-fixture-1/send", {
         method: "POST",
@@ -105,14 +157,11 @@ describe("POST /api/invoices/[id]/send", () => {
       "Invoice INV-001 for ₦80,625.00 from Test Traders Ltd is ready. Reply to this email if you have questions.",
     );
     expect(sendEmail.mock.calls[0][2]).toBeUndefined();
+    expect(sendEmail.mock.calls[0][3]).toBe("owner@fixture.test");
   });
 
   it("blocks send when the invoice has no business name", async () => {
-    requireAuthedConvex.mockResolvedValue({
-      convex: {
-        query: vi.fn().mockResolvedValue({ ...issued, sender: { name: "" } }),
-      },
-    });
+    authed({ ...issued, sender: { name: "" } });
     const res = await POST(
       new Request("http://localhost/api/invoices/inv-fixture-1/send", {
         method: "POST",
@@ -129,9 +178,7 @@ describe("POST /api/invoices/[id]/send", () => {
   it("does not claim a send when the mail key is unset", async () => {
     generateInvoicePDF.mockResolvedValue(Buffer.from("%PDF-fixture"));
     sendEmail.mockResolvedValue(false);
-    requireAuthedConvex.mockResolvedValue({
-      convex: { query: vi.fn().mockResolvedValue(issued) },
-    });
+    authed();
     const res = await POST(
       new Request("http://localhost/api/invoices/inv-fixture-1/send", {
         method: "POST",
@@ -144,11 +191,7 @@ describe("POST /api/invoices/[id]/send", () => {
   });
 
   it("rejects drafts instead of sending", async () => {
-    requireAuthedConvex.mockResolvedValue({
-      convex: {
-        query: vi.fn().mockResolvedValue({ ...issued, status: "draft" }),
-      },
-    });
+    authed({ ...issued, status: "draft" });
     const res = await POST(
       new Request("http://localhost/api/invoices/inv-fixture-1/send", {
         method: "POST",

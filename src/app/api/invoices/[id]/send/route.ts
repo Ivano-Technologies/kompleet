@@ -12,6 +12,7 @@ import {
   isUnauthorized,
   requireAuthedConvex,
 } from "@/lib/convex/server";
+import { contactReplyTo } from "@/lib/contact-email";
 import { sendEmail } from "@/lib/email-service";
 import { generateInvoicePDF } from "@/lib/invoice-service";
 import { toFriendlyError, apiErrorBody } from "@/lib/friendly-error";
@@ -45,7 +46,7 @@ function pdfFilename(invoiceNumber: string): string {
 async function handlePOST(request: NextRequest, context: RouteContext) {
   try {
     const { id } = await context.params;
-    const { convex } = await requireAuthedConvex(request);
+    const { convex, user } = await requireAuthedConvex(request);
     const invoice = await convex.query(api.invoices.getMine, {
       externalId: id,
     });
@@ -79,6 +80,7 @@ async function handlePOST(request: NextRequest, context: RouteContext) {
       );
     }
     const pdf = await tryInvoicePdf(id, request);
+    const replyTo = contactReplyTo(user?.email);
     const sent = await sendEmail(
       to,
       invoiceEmailTemplate({
@@ -86,6 +88,7 @@ async function handlePOST(request: NextRequest, context: RouteContext) {
         totalAmount: invoice.total_amount ?? 0,
         businessName,
         attachedPdf: Boolean(pdf),
+        includeReplyPrompt: Boolean(replyTo),
       }),
       pdf
         ? [
@@ -95,6 +98,7 @@ async function handlePOST(request: NextRequest, context: RouteContext) {
             },
           ]
         : undefined,
+      replyTo,
     );
     return NextResponse.json({
       sent,

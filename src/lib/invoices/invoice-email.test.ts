@@ -3,6 +3,7 @@
 import { describe, expect, it } from "vitest";
 import {
   INVOICE_EMAIL_NEEDS_BUSINESS,
+  INVOICE_EMAIL_REPLY_PROMPT,
   formatInvoiceNaira,
   invoiceBusinessName,
   invoiceEmailTemplate,
@@ -39,9 +40,10 @@ describe("invoice email helpers", () => {
       invoiceNumber: "INV-001",
       totalAmount: 80_625,
       businessName: "Test Traders Ltd",
+      includeReplyPrompt: true,
     });
     expect(template.text).toBe(
-      "Invoice INV-001 for ₦80,625.00 from Test Traders Ltd is ready. Reply to this email if you have questions.",
+      `Invoice INV-001 for ₦80,625.00 from Test Traders Ltd is ready. ${INVOICE_EMAIL_REPLY_PROMPT}`,
     );
     expect(template.subject).toBe("Invoice INV-001 from Test Traders Ltd");
     expect(template.html).toContain("INV-001");
@@ -51,15 +53,30 @@ describe("invoice email helpers", () => {
     expect(formatInvoiceNaira(80_625)).toBe("₦80,625.00");
   });
 
+  it("omits the reply sentence when there is no owner reply-to", () => {
+    const template = invoiceEmailTemplate({
+      invoiceNumber: "INV-001",
+      totalAmount: 80_625,
+      businessName: "Test Traders Ltd",
+      attachedPdf: true,
+    });
+    expect(template.text).toBe(
+      "Invoice INV-001 for ₦80,625.00 from Test Traders Ltd is ready. The invoice PDF is attached.",
+    );
+    expect(template.text).not.toContain(INVOICE_EMAIL_REPLY_PROMPT);
+    expect(template.html).not.toContain(INVOICE_EMAIL_REPLY_PROMPT);
+  });
+
   it("mentions the PDF only when one is attached", () => {
     const withPdf = invoiceEmailTemplate({
       invoiceNumber: "INV-001",
       totalAmount: 80_625,
       businessName: "Test Traders Ltd",
       attachedPdf: true,
+      includeReplyPrompt: true,
     });
     expect(withPdf.text).toContain("The invoice PDF is attached.");
-    expect(withPdf.text).toContain("Reply to this email if you have questions.");
+    expect(withPdf.text).toContain(INVOICE_EMAIL_REPLY_PROMPT);
     expect(withPdf.text).not.toMatch(/your supplier|Open the invoice in Kompleet/i);
   });
 });
