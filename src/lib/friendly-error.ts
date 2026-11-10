@@ -452,8 +452,11 @@ function mapKnown(err: unknown, text: string): string | null {
     return FRIENDLY_MESSAGES.statementTooLong;
   }
   if (isNetworkError(err)) return FRIENDLY_MESSAGES.network;
+  if ((err as { name?: unknown })?.name === "MissingTaxRuleError") {
+    return FRIENDLY_MESSAGES.missingTaxRule;
+  }
   if (
-    /unverified|email not verified|confirm your email|verification required/i.test(
+    /email not verified|confirm your email|email.{0,40}verification required|unverified email|email (is )?unverified/i.test(
       text,
     )
   ) {
@@ -486,9 +489,6 @@ function mapKnown(err: unknown, text: string): string | null {
     )
   ) {
     return FRIENDLY_MESSAGES.invalidCredentials;
-  }
-  if ((err as { name?: unknown })?.name === "MissingTaxRuleError") {
-    return FRIENDLY_MESSAGES.missingTaxRule;
   }
   if (
     (err as { name?: unknown })?.name === "ConvexUnauthorizedError" ||
