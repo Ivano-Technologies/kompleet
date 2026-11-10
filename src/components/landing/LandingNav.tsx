@@ -12,8 +12,6 @@ const ACCENT_CTA =
   "rounded-md bg-accent-hover text-sm font-bold text-charcoal hover:bg-[#115E59]";
 
 const NAV_LINKS = [
-  { href: "/#features", label: "Features" },
-  { href: "/pricing", label: "Pricing" },
   { href: "/about", label: "About" },
   { href: "/contact", label: "Contact" },
 ] as const;

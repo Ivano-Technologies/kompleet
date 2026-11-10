@@ -25,7 +25,10 @@ describe("IVA-290 marketing accessibility", () => {
 
   it("keeps heading order without skipping to h4", () => {
     expect(footer).not.toMatch(/<h4\b/);
-    expect(footer).toMatch(/<h2 className="mb-4 text-sm font-semibold/);
+    expect(footer).toMatch(/<h2 className=\{COLUMN_HEADING\}/);
+    expect(footer).toMatch(
+      /COLUMN_HEADING =\s*"mb-3 flex h-5 items-center text-sm font-semibold text-text-1"/,
+    );
     expect(landing).not.toMatch(/<header>/);
   });
 

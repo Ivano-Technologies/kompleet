@@ -19,7 +19,8 @@ describe("kompleet SEO surfaces", () => {
   it("sitemap lists only public marketing pages on the production host", () => {
     const urls = sitemap().map((entry) => entry.url);
     expect(urls[0]).toBe("https://kompleet.techivano.com");
-    expect(urls).toContain("https://kompleet.techivano.com/pricing");
+    expect(urls).not.toContain("https://kompleet.techivano.com/pricing");
+    expect(urls).toContain("https://kompleet.techivano.com/about");
     for (const url of urls) {
       expect(new URL(url).origin).toBe("https://kompleet.techivano.com");
       expect(url).not.toMatch(/\/(dashboard|login|signup|app|api|admin)(\/|$)/);

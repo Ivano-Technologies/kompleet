@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/cookies" },
   title: "Kompleet: Cookie Policy",
   description:
-    "Cookie Policy for KOMPLEET: how we use cookies and similar technologies.",
+    "Cookie Policy for Kompleet: how we use cookies and similar technologies.",
 };
 
 export default function CookiesPage() {
@@ -43,7 +43,7 @@ export default function CookiesPage() {
               2. How We Use Cookies
             </h2>
             <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              KOMPLEET uses cookies for the following purposes:
+              Kompleet uses cookies for the following purposes:
             </p>
 
             <h3 className="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-3">
@@ -130,7 +130,7 @@ export default function CookiesPage() {
             </ul>
             <p className="text-light-text-secondary dark:text-dark-text-secondary">
               Please note that disabling essential cookies will prevent you from
-              using KOMPLEET, as they are required for authentication and
+              using Kompleet, as they are required for authentication and
               security.
             </p>
           </section>
@@ -142,7 +142,7 @@ export default function CookiesPage() {
             <p className="text-light-text-secondary dark:text-dark-text-secondary">
               We may update this Cookie Policy from time to time. Changes will
               be posted on this page with an updated date. Your continued use of
-              KOMPLEET after changes constitutes acceptance of the updated
+              Kompleet after changes constitutes acceptance of the updated
               policy.
             </p>
           </section>
@@ -154,10 +154,10 @@ export default function CookiesPage() {
             <p className="text-light-text-secondary dark:text-dark-text-secondary">
               If you have questions about our use of cookies, contact us at{" "}
               <a
-                href="mailto:help@ivanotechnologies.com"
+                href="mailto:support@ivanotechnologies.com"
                 className="text-primary hover:underline"
               >
-                help@ivanotechnologies.com
+                support@ivanotechnologies.com
               </a>
               .
             </p>
