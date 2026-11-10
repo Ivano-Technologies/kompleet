@@ -69,4 +69,52 @@ describe("POST /api/contact staff email", () => {
     expect(payload.html).not.toMatch(/<script>/);
     expect(payload.html).not.toMatch(/<b>there<\/b>/);
   });
+
+  it("strips CR/LF and other controls from the Subject name", async () => {
+    const res = await POST(
+      contactRequest({
+        name: "Ada\r\nBcc: evil@x.com",
+        email: "ada@example.com",
+        subject: "general",
+        message: "Hello",
+      }),
+    );
+    expect(res.status).toBe(200);
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const payload = JSON.parse(String(init.body)) as { subject: string };
+    expect(payload.subject).toBe("[Contact] General Inquiry from AdaBcc: evil@x.com");
+    expect(payload.subject).not.toMatch(/[\r\n]/);
+  });
+
+  it("omits replyTo when the address is invalid after stripping CR/LF", async () => {
+    const res = await POST(
+      contactRequest({
+        name: "Ada",
+        email: "ada@example.com\r\nBcc: evil@x.com",
+        subject: "general",
+        message: "Hello",
+      }),
+    );
+    expect(res.status).toBe(200);
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const payload = JSON.parse(String(init.body)) as {
+      replyTo?: string;
+    };
+    expect(payload.replyTo).toBeUndefined();
+  });
+
+  it("keeps a valid replyTo after stripping trailing CR/LF", async () => {
+    const res = await POST(
+      contactRequest({
+        name: "Ada",
+        email: "ada@example.com\r\n",
+        subject: "general",
+        message: "Hello",
+      }),
+    );
+    expect(res.status).toBe(200);
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const payload = JSON.parse(String(init.body)) as { replyTo?: string };
+    expect(payload.replyTo).toBe("ada@example.com");
+  });
 });
