@@ -196,6 +196,9 @@ export const USER_MESSAGE_ALLOWLIST: Record<string, string> = {
   "Passwords do not match": "Passwords do not match.",
   "Used on invoices":
     "This client is used on invoices, so it can't be removed.",
+  "Type delete my account to confirm.":
+    "Type delete my account to confirm.",
+  "Your account has been deleted.": "Your account has been deleted.",
 };
 
 const NOT_FOUND_PATTERN =
