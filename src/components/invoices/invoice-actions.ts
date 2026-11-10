@@ -67,6 +67,39 @@ export async function issueInvoice(invoiceId: string): Promise<void> {
   }
 }
 
+export async function markInvoicePaid(
+  invoiceId: string,
+  input: { paidOn?: string; note?: string; method?: string } = {},
+): Promise<void> {
+  const response = await fetch(`/api/invoices/${invoiceId}/paid`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({
+      paid_on: input.paidOn,
+      note: input.note,
+      method: input.method,
+    }),
+  });
+  if (!response.ok) {
+    const body = (await response.json().catch(() => ({}))) as { error?: string };
+    throw new Error(body.error || "Failed to mark invoice paid");
+  }
+}
+
+export async function cancelInvoice(invoiceId: string, reason: string): Promise<void> {
+  const response = await fetch(`/api/invoices/${invoiceId}/cancel`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify({ reason }),
+  });
+  if (!response.ok) {
+    const body = (await response.json().catch(() => ({}))) as { error?: string };
+    throw new Error(body.error || "Failed to cancel invoice");
+  }
+}
+
 export async function attachInvoiceClient(
   invoiceId: string,
   clientId: string,
