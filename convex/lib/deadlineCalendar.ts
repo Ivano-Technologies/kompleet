@@ -111,6 +111,8 @@ export function isReminderWindow(days: number): days is ReminderWindow {
 /**
  * Catch-up window: send when days left is at most 7, 3 or 1, using only the
  * lowest due tier so a late cron does not fire several emails at once.
+ * The weekly Monday job relies on this 0–7 day span to cover every deadline
+ * due in the coming week, not only those that land on an exact 7/3/1 mark.
  */
 export function lowestDueTier(daysLeft: number): ReminderWindow | null {
   if (!Number.isFinite(daysLeft) || daysLeft < 0) return null;
@@ -127,8 +129,9 @@ export function isReminderEmailEnabled(
 }
 
 /**
- * Deadlines whose due date is 7, 3 or 1 calendar days from `nowMs`, catching
- * up a missed exact-day window with only the lowest due tier.
+ * Deadlines due within the next 7 calendar days of `nowMs` (the coming week
+ * from the Monday 07:00 UTC cron). Exact 7, 3 and 1 day marks catch up to
+ * the lowest due tier so a weekly run does not skip mid-week dues.
  * Looks at last year, this year and next year so year boundaries are covered.
  */
 export function dueRemindersAt(nowMs: number): DueReminder[] {

@@ -141,6 +141,69 @@ describe("dueRemindersAt", () => {
       "2027-03-24",
     );
   });
+
+  it("covers every coming-week deadline from a Monday 07:00 UTC run", () => {
+    const monday = Date.parse("2026-04-20T07:00:00.000Z");
+    expect(new Date(monday).getUTCDay()).toBe(1);
+
+    const due = dueRemindersAt(monday);
+    expect(due).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          formType: "VAT_03",
+          taxYear: 2026,
+          deadlineDate: "2026-04-21",
+          daysRemaining: 1,
+        }),
+      ]),
+    );
+
+    const todayIso = utcTodayIso(monday);
+    for (const year of [2025, 2026, 2027]) {
+      for (const deadline of filingDeadlinesForTaxYear(year)) {
+        const daysLeft = calendarDaysUntil(deadline.deadlineDate, todayIso);
+        if (daysLeft >= 0 && daysLeft <= 7) {
+          expect(due).toEqual(
+            expect.arrayContaining([
+              expect.objectContaining({
+                formType: deadline.formType,
+                deadlineDate: deadline.deadlineDate,
+                daysRemaining: lowestDueTier(daysLeft),
+              }),
+            ]),
+          );
+        } else {
+          expect(
+            due.some(
+              (row) =>
+                row.formType === deadline.formType &&
+                row.deadlineDate === deadline.deadlineDate,
+            ),
+          ).toBe(false);
+        }
+      }
+    }
+  });
+
+  it("does not skip mid-week deadlines that miss the exact 7/3/1 day marks", () => {
+    // Monday 16 Mar 2026; PIT 2025 is due 31 Mar 2026 (15 days — next week).
+    // VAT_02 is due 21 Mar 2026, which is Saturday (5 days out).
+    const monday = Date.parse("2026-03-16T07:00:00.000Z");
+    expect(new Date(monday).getUTCDay()).toBe(1);
+    const due = dueRemindersAt(monday);
+    expect(due).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          formType: "VAT_02",
+          taxYear: 2026,
+          deadlineDate: "2026-03-21",
+          daysRemaining: 7,
+        }),
+      ]),
+    );
+    expect(calendarDaysUntil("2026-03-21", "2026-03-16")).toBe(5);
+    expect(due.some((row) => row.formType === "PIT")).toBe(false);
+  });
 });
 
 describe("isReminderEmailEnabled", () => {
