@@ -24,7 +24,7 @@ export default function TermsPage() {
             Terms of Service
           </h1>
         <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-8">
-          Last updated: February 25, 2026. Effective date: February 25, 2026.
+          Last updated: 10 November 2026. Effective date: February 25, 2026.
         </p>
 
         <CompanyLegalNotice page="terms" />

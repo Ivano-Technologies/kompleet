@@ -10,6 +10,10 @@ const cookies = readFileSync(
   resolve(process.cwd(), "src/app/(public)/cookies/page.tsx"),
   "utf8",
 );
+const terms = readFileSync(
+  resolve(process.cwd(), "src/app/(public)/terms/page.tsx"),
+  "utf8",
+);
 
 describe("IVA-292 legal processor copy", () => {
   it("does not claim Supabase storage, auth, or cookies", () => {
@@ -36,5 +40,9 @@ describe("IVA-292 legal processor copy", () => {
     expect(cookies).toMatch(/Last updated: 10 November 2026/);
     expect(cookies).not.toMatch(/Last updated: February/);
     expect(cookies).not.toMatch(/Effective date:/);
+    expect(terms).toMatch(
+      /Last updated: 10 November 2026\. Effective date: February 25, 2026\./,
+    );
+    expect(terms).not.toMatch(/Last updated: February/);
   });
 });

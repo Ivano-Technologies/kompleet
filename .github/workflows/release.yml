@@ -74,16 +74,30 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      # GitHub rejects `secrets.*` in `if:` (unrecognized named-value → 0s fail
+      # on every push). Map the webhook to env and skip when it is unset.
       - name: Notify Slack (Success)
-        if: success() && github.ref_type == 'tag' && secrets.SLACK_WEBHOOK_URL != ''
+        if: success() && github.ref_type == 'tag'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
+          if [ -z "$SLACK_WEBHOOK_URL" ]; then
+            echo "Slack webhook not configured; skipping."
+            exit 0
+          fi
           curl -X POST -H 'Content-type: application/json' \
             --data "{\"text\":\"Production build succeeded for ${{ github.ref_name }}\"}" \
-            ${{ secrets.SLACK_WEBHOOK_URL }}
+            "$SLACK_WEBHOOK_URL"
 
       - name: Notify Slack (Failure)
-        if: failure() && github.ref_type == 'tag' && secrets.SLACK_WEBHOOK_URL != ''
+        if: failure() && github.ref_type == 'tag'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
+          if [ -z "$SLACK_WEBHOOK_URL" ]; then
+            echo "Slack webhook not configured; skipping."
+            exit 0
+          fi
           curl -X POST -H 'Content-type: application/json' \
             --data "{\"text\":\"Production build failed for ${{ github.ref_name }}\"}" \
-            ${{ secrets.SLACK_WEBHOOK_URL }}
+            "$SLACK_WEBHOOK_URL"

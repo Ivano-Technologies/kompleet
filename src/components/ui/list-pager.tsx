@@ -54,7 +54,7 @@ export function PageTurnButtons({
         <ChevronLeft className="w-5 h-5" aria-hidden />
       </button>
       {pageLabel ? (
-        <span className="px-3 py-1 text-xs font-medium bg-primary text-white rounded-md min-h-11 inline-flex items-center">
+        <span className="px-3 py-1 text-xs font-medium bg-primary-fill text-white rounded-md min-h-11 inline-flex items-center">
           {pageLabel}
         </span>
       ) : null}

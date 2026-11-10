@@ -11,12 +11,12 @@ const COLUMN_LINK =
 
 export default function LandingFooter() {
   return (
-    <footer className="border-t border-border bg-surface py-12">
+    <footer className="border-t border-border bg-surface py-12 dark:border-dark-border dark:bg-dark-surface">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-10 grid grid-cols-2 gap-8 md:grid-cols-5">
           <div className="col-span-2 md:col-span-1">
             <div className="mb-3 flex h-5 items-center">
-              <BrandLockup size="sm" />
+              <BrandLockup size="sm" tone="auto" />
             </div>
             <p className="text-sm leading-relaxed text-text-2">
               Simple bookkeeping and invoicing for Nigerian SMEs.

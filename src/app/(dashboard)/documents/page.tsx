@@ -154,7 +154,7 @@ export default function DocumentsPage() {
                 className={cn(
                   "px-3 py-1.5 rounded-full text-sm font-medium border transition-colors",
                   filter === item.id
-                    ? "bg-primary text-white border-primary"
+                    ? "bg-primary-fill text-white border-primary-fill"
                     : "bg-surface text-text-2 border-border hover:border-border-hover",
                 )}
               >

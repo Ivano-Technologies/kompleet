@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @config "../../tailwind.config.cjs";
 @source "../../src/**/*.{js,ts,jsx,tsx,mdx}";
+/* Class strategy: follow html.dark from the theme toggle, not prefers-color-scheme. */
+@custom-variant dark (&:where(.dark, .dark *));
 
 /* KOMPLEET Design System 2026 - Approved 27 Feb 2026 */
 
@@ -32,15 +34,22 @@
 :root {
   /* Option C teal lock — do not reintroduce sky-blue drift, lime, or amber */
   --primary: 11 58 92;
-  /* #0B3A5C */
+  /* #0B3A5C navy fill — does not switch (sidebars) */
   --primary-rgb: 11, 58, 92;
   --primary-deep: 7 42 69;
   /* #072A45 */
+  --primary-fill: 15 118 110;
+  /* #0F766E teal CTA — 5.47:1 with white; decoupled from --link */
+  --primary-fill-hover: 16 128 120;
+  /* #108078 one step lighter — 4.79:1 with white */
   --accent: 13 148 136;
   /* #0D9488 */
+  --link: 11 58 92;
+  /* #0B3A5C light links / text-buttons */
   --charcoal: 255 255 255;
   /* #FFFFFF — on-teal button text */
 
+  /* Light channels — cream stone. html.dark remaps these to --dark-*. */
   --background: 244 241 235;
   /* #F4F1EB warm stone */
   --surface: 255 253 248;
@@ -58,30 +67,56 @@
   /* #3D4A55 */
   --text-tertiary: 107 114 128;
   /* #6B7280 */
+  --text-4: 156 163 175;
+  /* #9CA3AF */
+
+  /* Brand navy dark surfaces. Page is #0F1E2E (readable navy, not near-black
+     #080F18). Cards sit one step lighter at #162438. */
+  --dark-bg: 15 30 46;
+  /* #0F1E2E page */
+  --dark-surface: 22 36 56;
+  /* #162438 cards */
+  --dark-surface-2: 28 51 77;
+  /* #1C334D nested wells */
+  --dark-border: 36 58 82;
+  /* #243A52 */
+  --dark-border-hover: 48 74 104;
+  /* #244060 */
+  --dark-text-1: 240 249 255;
+  /* #F0F9FF */
+  --dark-text-2: 186 216 245;
+  /* #BAD8F5 */
+  --dark-text-3: 123 168 204;
+  /* #7BA8CC */
+  --dark-text-4: 107 155 184;
+  /* #6B9BB8 — 5.63:1 on page #0F1E2E, 5.21:1 on card #162438 */
 
   /* Space reserved while the cookie banner is open (ResizeObserver). */
   --cookie-banner-height: 0px;
 }
 
-/* Dark Theme */
+/* Dark Theme — brand navy palette, not the old slate. */
 html.dark,
 :root.dark {
-  --background: 32 41 47;
-  /* #20292F */
-  --surface: 43 55 63;
-  /* #2B373F */
-  --surface-hover: 51 63 71;
-  /* #333F47 */
-  --border: 56 65 71;
-  /* #384147 */
-  --border-hover: 72 81 87;
-  /* #485157 */
-  --text-primary: 227 241 255;
-  /* #E3F1FF */
-  --text-secondary: 186 216 245;
-  /* #BAD8F5 */
-  --text-tertiary: 147 197 235;
-  /* #93C5EB */
+  --background: var(--dark-bg);
+  --surface: var(--dark-surface);
+  --surface-2: var(--dark-surface-2);
+  --surface-hover: var(--dark-surface-2);
+  --border: var(--dark-border);
+  --border-hover: var(--dark-border-hover);
+  --text-primary: var(--dark-text-1);
+  --text-secondary: var(--dark-text-2);
+  --text-tertiary: var(--dark-text-3);
+  --text-4: var(--dark-text-4);
+  /* Links and text-buttons: teal-400 on navy (9.1:1), not navy-on-navy. */
+  --link: 45 212 191;
+  /* #2DD4BF */
+  /* CTA fill stays teal in dark so buttons read on navy page/cards.
+     Navy --primary is for sidebars only. */
+  --primary-fill: 15 118 110;
+  /* #0F766E 5.47:1 */
+  --primary-fill-hover: 16 128 120;
+  /* #108078 4.79:1 */
 }
 
 /* Base Styles */
@@ -321,7 +356,9 @@ html.dark .solid-nav {
    ======================================== */
 
 .btn-primary {
-  background-color: #0d9488;
+  /* Teal CTA (--primary-fill), not --link and not navy --primary.
+     White on #0F766E is 5.47:1 in light and dark. */
+  background-color: rgb(var(--primary-fill));
   color: #ffffff;
   font-weight: 700;
   padding: 12px 24px;
@@ -332,12 +369,17 @@ html.dark .solid-nav {
 }
 
 .btn-primary:hover {
-  background-color: #0f766e;
+  background-color: rgb(var(--primary-fill-hover));
 }
 
 .btn-primary:focus-visible {
-  outline: 2px solid #0b3a5c;
+  outline: 2px solid rgb(var(--link));
   outline-offset: 2px;
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .btn-secondary {

@@ -1,6 +1,6 @@
 // next.config.mjs
 import { withSentryConfig } from "@sentry/nextjs";
-import { CONTENT_SECURITY_POLICY_REPORT_ONLY } from "./src/lib/content-security-policy.mjs";
+import { CONTENT_SECURITY_POLICY } from "./src/lib/content-security-policy.mjs";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -61,8 +61,8 @@ const nextConfig = {
             value: "max-age=31536000; includeSubDomains",
           },
           {
-            key: "Content-Security-Policy-Report-Only",
-            value: CONTENT_SECURITY_POLICY_REPORT_ONLY,
+            key: "Content-Security-Policy",
+            value: CONTENT_SECURITY_POLICY,
           },
         ],
       },

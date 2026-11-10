@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { DARK_MODE_ENABLED, THEME_STORAGE_KEY } from "@/lib/theme-boot";
 
 type Theme = "light" | "dark" | "system";
 
@@ -21,38 +22,52 @@ function getSystemPreference(): "light" | "dark" {
     : "light";
 }
 
-function resolveTheme(theme: Theme): "light" | "dark" {
+export function resolveTheme(theme: Theme): "light" | "dark" {
+  if (!DARK_MODE_ENABLED) return "light";
   if (theme === "system") return getSystemPreference();
   return theme;
 }
 
+function applyThemeClass(theme: Theme) {
+  const dark = DARK_MODE_ENABLED && resolveTheme(theme) === "dark";
+  document.documentElement.classList.toggle("dark", dark);
+}
+
+function readStoredTheme(): Theme {
+  if (!DARK_MODE_ENABLED) return "light";
+  const stored = localStorage.getItem(THEME_STORAGE_KEY);
+  if (stored === "light" || stored === "dark" || stored === "system") {
+    return stored;
+  }
+  return "system";
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("system");
+  const [theme, setThemeState] = useState<Theme>(
+    DARK_MODE_ENABLED ? "system" : "light",
+  );
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    if (!DARK_MODE_ENABLED) {
+      localStorage.removeItem(THEME_STORAGE_KEY);
+      document.documentElement.classList.remove("dark");
+      setThemeState("light");
+      setMounted(true);
+      return;
+    }
+    const initial = readStoredTheme();
+    setThemeState(initial);
+    applyThemeClass(initial);
     setMounted(true);
-    return () => setMounted(false);
   }, []);
 
   useEffect(() => {
-    if (!mounted) return;
-    const storedTheme = localStorage.getItem("kompleet-theme") as Theme | null;
-    const initial: Theme =
-      storedTheme === "light" || storedTheme === "dark" || storedTheme === "system"
-        ? storedTheme
-        : "system";
-    setThemeState(initial);
-    document.documentElement.classList.toggle("dark", resolveTheme(initial) === "dark");
-  }, [mounted]);
-
-  // Listen for OS-level preference changes when theme is "system"
-  useEffect(() => {
-    if (!mounted) return;
+    if (!DARK_MODE_ENABLED || !mounted) return;
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
     const handler = () => {
       if (theme === "system") {
-        document.documentElement.classList.toggle("dark", mq.matches);
+        applyThemeClass("system");
       }
     };
     mq.addEventListener("change", handler);
@@ -60,37 +75,34 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [mounted, theme]);
 
   const setTheme = (newTheme: Theme) => {
+    if (!DARK_MODE_ENABLED) {
+      setThemeState("light");
+      localStorage.removeItem(THEME_STORAGE_KEY);
+      document.documentElement.classList.remove("dark");
+      return;
+    }
     setThemeState(newTheme);
-    localStorage.setItem("kompleet-theme", newTheme);
-    document.documentElement.classList.toggle(
-      "dark",
-      resolveTheme(newTheme) === "dark"
-    );
+    localStorage.setItem(THEME_STORAGE_KEY, newTheme);
+    applyThemeClass(newTheme);
   };
-
-  const toggleTheme = () => {
-    const next: Theme =
-      theme === "light" ? "dark" : theme === "dark" ? "system" : "light";
-    setTheme(next);
-  };
-
-  // Prevent flash of unstyled content
-  if (!mounted) {
-    return <>{children}</>;
-  }
 
   const resolved = resolveTheme(theme);
 
+  const toggleTheme = () => {
+    setTheme(resolved === "dark" ? "light" : "dark");
+  };
+
   return (
-    <ThemeContext.Provider value={{ theme, resolvedTheme: resolved, toggleTheme, setTheme }}>
+    <ThemeContext.Provider
+      value={{ theme, resolvedTheme: resolved, toggleTheme, setTheme }}
+    >
       {children}
     </ThemeContext.Provider>
   );
 }
 
-// Safe defaults for SSR/pre-rendering — does NOT throw when used outside ThemeProvider
 const defaultThemeContext: ThemeContextType = {
-  theme: "system",
+  theme: DARK_MODE_ENABLED ? "system" : "light",
   resolvedTheme: "light",
   toggleTheme: () => {},
   setTheme: () => {},
@@ -98,7 +110,6 @@ const defaultThemeContext: ThemeContextType = {
 
 export function useTheme(): ThemeContextType {
   const context = useContext(ThemeContext);
-  // Return safe defaults during SSR/pre-rendering instead of throwing
   if (context === undefined) {
     return defaultThemeContext;
   }

@@ -1,22 +1,21 @@
 /**
- * Content-Security-Policy-Report-Only for Kompleet.
+ * Enforced Content-Security-Policy for Kompleet.
  *
- * Report-only first: a strict enforcing CSP would break GA (after consent),
- * the Sentry tunnel at /monitoring, Convex websocket traffic, and Next.js
- * inline hydration scripts. Tighten to enforcing after Chief prod PASS.
+ * Report-only was the first cut (IVA-289). After dropping unused
+ * connect-src hosts (*.supabase.co, api.resend.com — Resend is server-side
+ * only) the remaining origins are the ones the browser actually talks to:
+ * Convex HTTP + WebSocket, Sentry ingest (+ same-origin /monitoring tunnel),
+ * Google Analytics after cookie consent, Vercel insights if the host injects
+ * them, and blob/data for uploads and workers.
  *
- * Allowed third parties (audit IVA-289):
- * - Google Analytics / gtag (after cookie consent)
- * - Sentry via same-origin `/monitoring` plus ingest hosts
- * - Convex (HTTP + WebSocket)
- * - Resend is server-side only (api.resend.com) — not needed in script-src
+ * Tighten further (nonces, drop unsafe-eval) after a Chief prod PASS.
  *
  * No report-uri / report-to: there is no existing CSP report collector
  * (no /api/csp-report or equivalent). Pointing report-uri at a missing
  * route would 404 every browser report.
  */
 
-export const CONTENT_SECURITY_POLICY_REPORT_ONLY = [
+export const CONTENT_SECURITY_POLICY = [
   "default-src 'self'",
   [
     "script-src",
@@ -25,6 +24,7 @@ export const CONTENT_SECURITY_POLICY_REPORT_ONLY = [
     "'unsafe-eval'",
     "https://www.googletagmanager.com",
     "https://www.google-analytics.com",
+    "https://va.vercel-scripts.com",
   ].join(" "),
   "style-src 'self' 'unsafe-inline'",
   [
@@ -45,12 +45,11 @@ export const CONTENT_SECURITY_POLICY_REPORT_ONLY = [
   [
     "connect-src",
     "'self'",
+    "blob:",
     "https://*.convex.cloud",
     "wss://*.convex.cloud",
     "https://*.convex.site",
     "wss://*.convex.site",
-    "https://*.supabase.co",
-    "wss://*.supabase.co",
     "https://*.ingest.sentry.io",
     "https://*.ingest.us.sentry.io",
     "https://*.ingest.de.sentry.io",
@@ -59,7 +58,9 @@ export const CONTENT_SECURITY_POLICY_REPORT_ONLY = [
     "https://*.google-analytics.com",
     "https://www.googletagmanager.com",
     "https://region1.google-analytics.com",
-    "https://api.resend.com",
+    "https://vitals.vercel-insights.com",
+    "https://*.vercel-insights.com",
+    "https://va.vercel-scripts.com",
   ].join(" "),
   "worker-src 'self' blob:",
   "frame-ancestors 'none'",

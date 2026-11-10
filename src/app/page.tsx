@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function HomePage() {
   return (
-    <div data-marketing className="bg-bg text-text-1">
+    <div data-marketing className="bg-bg text-text-1 dark:bg-dark-bg dark:text-dark-text-1">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(kompleetJsonLd()) }}
@@ -22,7 +22,7 @@ export default function HomePage() {
       <main id="main-content">
       <section aria-labelledby="landing-hero-heading">
         <div className="grid lg:h-[calc(100svh-4rem)] lg:grid-cols-[minmax(0,46fr)_minmax(0,54fr)]">
-          <div className="flex flex-col justify-center bg-bg px-6 py-6 sm:px-10 lg:px-12 lg:py-8 xl:px-16">
+          <div className="flex flex-col justify-center bg-bg px-6 py-6 sm:px-10 lg:px-12 lg:py-8 xl:px-16 dark:bg-dark-bg">
             <div className="mx-auto w-full max-w-lg space-y-4">
               <h1
                 id="landing-hero-heading"
@@ -77,7 +77,7 @@ export default function HomePage() {
               alt="Bookkeeping flow from bank import to sorted expenses, an invoice and a monthly report"
               width={1440}
               height={480}
-              className="h-auto w-full rounded-xl border border-border"
+              className="h-auto w-full rounded-xl border border-border dark:border-dark-border"
             />
           </picture>
           <p className="mt-6 text-center text-sm text-text-2">
@@ -93,7 +93,7 @@ export default function HomePage() {
           </h2>
           <Link
             href="/signup"
-            className="mt-8 inline-flex min-h-11 items-center rounded-md bg-accent-hover px-8 py-4 text-base font-bold text-charcoal hover:bg-[#115E59]"
+            className="mt-8 inline-flex min-h-11 items-center rounded-md bg-primary-fill px-8 py-4 text-base font-bold text-white hover:bg-primary-fill-hover focus-visible:ring-2 focus-visible:ring-link disabled:opacity-50"
           >
             Get started
           </Link>
