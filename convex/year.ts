@@ -10,7 +10,7 @@ export const listMine = query({
     const rows = await ctx.db
       .query("userTaxYears")
       .withIndex("by_user", (q) => q.eq("userId", user._id))
-      .collect();
+      .take(100);
     const years = Array.from(new Set(rows.map((r) => r.taxYear)));
     years.sort((a, b) => b - a);
     return years;

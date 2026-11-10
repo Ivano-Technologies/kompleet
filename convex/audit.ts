@@ -2,6 +2,12 @@ import { v } from "convex/values";
 import type { Id } from "./_generated/dataModel";
 import type { MutationCtx } from "./_generated/server";
 import { internalMutation, mutation, query } from "./_generated/server";
+import {
+  cursorValidator,
+  listCursorReturns,
+  nextCursorOf,
+  paginationOptsFromArgs,
+} from "./lib/listPage";
 import { getCurrentUser, getUserByExternalId } from "./lib/auth";
 import { throwForbidden } from "./lib/errors";
 import { assertDocumentWorkerToken } from "./lib/workerAuth";
@@ -103,27 +109,37 @@ export const appendInternal = internalMutation({
 });
 
 export const listMine = query({
-  args: {},
-  returns: v.array(v.any()),
-  handler: async (ctx) => {
+  args: {
+    cursor: cursorValidator,
+    limit: v.optional(v.number()),
+  },
+  returns: v.object({
+    logs: v.array(v.any()),
+    ...listCursorReturns,
+  }),
+  handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx);
-    const rows = await ctx.db
+    const result = await ctx.db
       .query("auditLogs")
       .withIndex("by_userExternalId", (q) =>
         q.eq("userExternalId", user.externalId),
       )
-      .collect();
-    rows.sort((a, b) => b.createdAt - a.createdAt);
-    return rows.map((r) => ({
-      id: r._id,
-      user_id: r.userExternalId ?? null,
-      action: r.action,
-      resource_type: r.resourceType ?? null,
-      entity_type: r.entityType ?? null,
-      entity_id: r.entityId ?? null,
-      metadata: r.metadata ?? null,
-      created_at: new Date(r.createdAt).toISOString(),
-    }));
+      .order("desc")
+      .paginate(paginationOptsFromArgs(args));
+    return {
+      logs: result.page.map((r) => ({
+        id: r._id,
+        user_id: r.userExternalId ?? null,
+        action: r.action,
+        resource_type: r.resourceType ?? null,
+        entity_type: r.entityType ?? null,
+        entity_id: r.entityId ?? null,
+        metadata: r.metadata ?? null,
+        created_at: new Date(r.createdAt).toISOString(),
+      })),
+      nextCursor: nextCursorOf(result),
+      isDone: result.isDone,
+    };
   },
 });
 

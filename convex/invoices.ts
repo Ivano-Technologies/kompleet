@@ -1,6 +1,6 @@
 import { ConvexError, v } from "convex/values";
 import type { Doc, Id } from "./_generated/dataModel";
-import { mutation, query, type MutationCtx } from "./_generated/server";
+import { mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
 import { getCurrentUser, userCanAccessClient } from "./lib/auth";
 import {
   hasLineItems,
@@ -29,6 +29,12 @@ import {
   STATUS_VIA_UPDATE,
 } from "./lib/lineAmounts";
 import { newExternalId } from "./lib/ids";
+import {
+  cursorValidator,
+  listCursorReturns,
+  nextCursorOf,
+  paginationOptsFromArgs,
+} from "./lib/listPage";
 import {
   customerInfoFromParty,
   loadBusinessProfile,
@@ -187,29 +193,54 @@ async function hydrateInvoice(
   return toApi(row, { customerInfo, sender });
 }
 
+export async function listMineHandler(
+  ctx: QueryCtx,
+  args: {
+    status?: string;
+    taxYear?: number;
+    cursor?: string | null;
+    limit?: number;
+  },
+) {
+  const user = await getCurrentUser(ctx);
+  const paginationOpts = paginationOptsFromArgs(args);
+  const indexed = args.status
+    ? ctx.db
+        .query("invoices")
+        .withIndex("by_user_and_status", (q) =>
+          q.eq("userId", user._id).eq("status", args.status!),
+        )
+    : ctx.db
+        .query("invoices")
+        .withIndex("by_user", (q) => q.eq("userId", user._id));
+  const filtered =
+    args.taxYear !== undefined
+      ? indexed.filter((q) => q.eq(q.field("taxYear"), args.taxYear))
+      : indexed;
+  const result = await filtered.order("desc").paginate(paginationOpts);
+  const invoices = [];
+  for (const row of result.page) {
+    invoices.push(await hydrateInvoice(ctx, row, user));
+  }
+  return {
+    invoices,
+    nextCursor: nextCursorOf(result),
+    isDone: result.isDone,
+  };
+}
+
 export const listMine = query({
   args: {
     status: v.optional(v.string()),
     taxYear: v.optional(v.number()),
+    cursor: cursorValidator,
+    limit: v.optional(v.number()),
   },
-  returns: v.array(invoiceApi),
-  handler: async (ctx, args) => {
-    const user = await getCurrentUser(ctx);
-    const rows = await ctx.db
-      .query("invoices")
-      .withIndex("by_user", (q) => q.eq("userId", user._id))
-      .collect();
-    const filtered = rows.filter((r) => {
-      if (args.status && r.status !== args.status) return false;
-      if (args.taxYear !== undefined && r.taxYear !== args.taxYear) return false;
-      return true;
-    });
-    const out = [];
-    for (const row of filtered) {
-      out.push(await hydrateInvoice(ctx, row, user));
-    }
-    return out;
-  },
+  returns: v.object({
+    invoices: v.array(invoiceApi),
+    ...listCursorReturns,
+  }),
+  handler: listMineHandler,
 });
 
 export const getMine = query({
@@ -798,34 +829,45 @@ export const getArchiveMine = query({
 });
 
 export const listArchivesMine = query({
-  args: {},
-  returns: v.array(
-    v.object({
-      id: v.string(),
-      created_at: v.string(),
-      snapshot: v.any(),
-    }),
-  ),
-  handler: async (ctx) => {
+  args: {
+    cursor: cursorValidator,
+    limit: v.optional(v.number()),
+  },
+  returns: v.object({
+    archives: v.array(
+      v.object({
+        id: v.string(),
+        created_at: v.string(),
+        snapshot: v.any(),
+      }),
+    ),
+    ...listCursorReturns,
+  }),
+  handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx);
-    const invoices = await ctx.db
+    const result = await ctx.db
       .query("invoices")
       .withIndex("by_user", (q) => q.eq("userId", user._id))
-      .collect();
-    const out = [];
-    for (const invoice of invoices) {
+      .order("desc")
+      .paginate(paginationOptsFromArgs(args));
+    const archives = [];
+    for (const invoice of result.page) {
       const archive = await ctx.db
         .query("invoiceArchives")
         .withIndex("by_invoice", (q) => q.eq("invoiceId", invoice._id))
         .first();
       if (!archive) continue;
-      out.push({
+      archives.push({
         id: archive.externalId,
         created_at: new Date(archive.createdAt).toISOString(),
         snapshot: archive.snapshot,
       });
     }
-    return out;
+    return {
+      archives,
+      nextCursor: nextCursorOf(result),
+      isDone: result.isDone,
+    };
   },
 });
 

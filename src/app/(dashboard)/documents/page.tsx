@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { useConvex, useMutation, useQuery } from "convex/react";
+import { useConvex, useMutation, usePaginatedQuery, useQuery } from "convex/react";
 import {
   FileSpreadsheet,
   FileText,
@@ -30,6 +30,11 @@ import {
 import { useLibraryUpload } from "@/components/documents/use-library-upload";
 import { cn } from "@/lib/utils";
 import { EmptyState } from "@/components/ui/empty-state";
+import {
+  ListCardFooter,
+  LoadMoreButton,
+  showingCount,
+} from "@/components/ui/list-pager";
 
 const FILTERS: { id: DocsFilter; label: string }[] = [
   { id: "all", label: DOCS_COPY.filterAll },
@@ -44,7 +49,12 @@ const HUB_INPUT_ID = "documents-hub-input";
 
 export default function DocumentsPage() {
   const [filter, setFilter] = useState<DocsFilter>("all");
-  const files = useQuery(api.files.listFiles, { filter });
+  const { results: files, status, loadMore } = usePaginatedQuery(
+    api.files.listFiles,
+    { filter },
+    { initialNumItems: 50 },
+  );
+  const hasFiles = useQuery(api.files.hasAnyFiles);
   const convex = useConvex();
   const deleteFile = useMutation(api.files.deleteFile);
   const { upload, uploading, progress, fileName } = useLibraryUpload();
@@ -65,8 +75,7 @@ export default function DocumentsPage() {
   } | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  const allFiles = useQuery(api.files.listFiles, { filter: "all" });
-  const isEmpty = allFiles !== undefined && allFiles.length === 0;
+  const isEmpty = hasFiles === false;
 
   const handleUpload = async (file: File) => {
     const saved = await upload(file, { source: "documents" });
@@ -115,7 +124,7 @@ export default function DocumentsPage() {
         </button>
       </div>
 
-      {allFiles === undefined || isEmpty ? (
+      {hasFiles === undefined || isEmpty ? (
         <FileDropZone
           variant="hero"
           inputId={HUB_INPUT_ID}
@@ -154,7 +163,10 @@ export default function DocumentsPage() {
             ))}
           </div>
           <FileList
-            files={files ?? []}
+            files={files}
+            canLoadMore={status === "CanLoadMore"}
+            loadingMore={status === "LoadingMore"}
+            onLoadMore={() => loadMore(50)}
             menuId={menuId}
             onMenu={setMenuId}
             onPreview={setPreviewFile}
@@ -218,6 +230,9 @@ export default function DocumentsPage() {
 
 function FileList({
   files,
+  canLoadMore,
+  loadingMore,
+  onLoadMore,
   menuId,
   onMenu,
   onPreview,
@@ -226,6 +241,9 @@ function FileList({
   onDownload,
 }: {
   files: LibraryFile[];
+  canLoadMore: boolean;
+  loadingMore: boolean;
+  onLoadMore: () => void;
   menuId: string | null;
   onMenu: (id: string | null) => void;
   onPreview: (file: LibraryFile) => void;
@@ -246,8 +264,9 @@ function FileList({
   }
 
   return (
-    <div className="divide-y divide-border rounded-xl border border-border bg-surface">
-      {rows.map((file) => (
+    <div className="rounded-xl border border-border bg-surface overflow-hidden">
+      <div className="divide-y divide-border">
+        {rows.map((file) => (
         <div
           key={file.id}
           className="flex flex-col sm:flex-row sm:items-center gap-3 px-4 py-3"
@@ -359,7 +378,15 @@ function FileList({
             </div>
           </div>
         </div>
-      ))}
+        ))}
+      </div>
+      <ListCardFooter
+        countLabel={showingCount(rows.length, "file", "files")}
+      >
+        {canLoadMore || loadingMore ? (
+          <LoadMoreButton loading={loadingMore} onClick={onLoadMore} />
+        ) : null}
+      </ListCardFooter>
     </div>
   );
 }

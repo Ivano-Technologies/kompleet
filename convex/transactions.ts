@@ -8,6 +8,13 @@ import {
 } from "./_generated/server";
 import { getCurrentUser } from "./lib/auth";
 import { newExternalId, toMs } from "./lib/ids";
+import {
+  cursorValidator,
+  listCursorReturns,
+  matchesSearch,
+  nextCursorOf,
+  paginationOptsFromArgs,
+} from "./lib/listPage";
 import { transactionTriageReason } from "./lib/triage";
 
 const categoryEmbed = v.union(
@@ -140,63 +147,82 @@ async function toApi(
   };
 }
 
-export const listMine = query({
-  args: {
-    startDate: v.optional(v.string()),
-    endDate: v.optional(v.string()),
-    categoryId: v.optional(v.string()),
-    type: v.optional(v.union(v.literal("debit"), v.literal("credit"))),
-    search: v.optional(v.string()),
-    page: v.number(),
-    limit: v.number(),
-  },
-  returns: v.object({
-    transactions: v.array(transactionApi),
-    total: v.number(),
-  }),
-  handler: async (ctx, args) => {
-    const user = await getCurrentUser(ctx);
-    const rows = await ctx.db
-      .query("transactions")
-      .withIndex("by_user", (q) => q.eq("userId", user._id))
-      .collect();
+export const listMineArgs = {
+  startDate: v.optional(v.string()),
+  endDate: v.optional(v.string()),
+  categoryId: v.optional(v.string()),
+  type: v.optional(v.union(v.literal("debit"), v.literal("credit"))),
+  search: v.optional(v.string()),
+  page: v.optional(v.number()),
+  limit: v.optional(v.number()),
+  cursor: cursorValidator,
+};
 
-    let filtered = rows;
-    if (args.startDate) {
-      filtered = filtered.filter((r) => r.transactionDate >= args.startDate!);
-    }
-    if (args.endDate) {
-      filtered = filtered.filter((r) => r.transactionDate <= args.endDate!);
-    }
-    if (args.categoryId) {
-      filtered = filtered.filter(
-        (r) => r.categoryExternalId === args.categoryId,
-      );
-    }
-    if (args.type) {
-      filtered = filtered.filter((r) => r.transactionType === args.type);
-    }
-    if (args.search) {
-      const needle = args.search.toLowerCase();
-      filtered = filtered.filter((r) =>
-        r.description.toLowerCase().includes(needle),
-      );
-    }
-    filtered.sort((a, b) => {
-      if (a.transactionDate !== b.transactionDate) {
-        return a.transactionDate < b.transactionDate ? 1 : -1;
-      }
-      return b.createdAt - a.createdAt;
-    });
-    const total = filtered.length;
-    const start = (args.page - 1) * args.limit;
-    const page = filtered.slice(start, start + args.limit);
-    const transactions = [];
-    for (const row of page) {
-      transactions.push(await toApi(ctx, row));
-    }
-    return { transactions, total };
+export const listMineReturns = v.object({
+  transactions: v.array(transactionApi),
+  total: v.number(),
+  ...listCursorReturns,
+});
+
+export async function listMineHandler(
+  ctx: QueryCtx,
+  args: {
+    startDate?: string;
+    endDate?: string;
+    categoryId?: string;
+    type?: "debit" | "credit";
+    search?: string;
+    page?: number;
+    limit?: number;
+    cursor?: string | null;
   },
+) {
+  const user = await getCurrentUser(ctx);
+  const paginationOpts = paginationOptsFromArgs(args);
+
+  const ranged = ctx.db.query("transactions").withIndex("by_user_and_date", (q) => {
+    const base = q.eq("userId", user._id);
+    if (args.startDate && args.endDate) {
+      return base
+        .gte("transactionDate", args.startDate)
+        .lte("transactionDate", args.endDate);
+    }
+    if (args.startDate) return base.gte("transactionDate", args.startDate);
+    if (args.endDate) return base.lte("transactionDate", args.endDate);
+    return base;
+  });
+
+  const typed = args.type
+    ? ranged.filter((q) => q.eq(q.field("transactionType"), args.type))
+    : ranged;
+  const categorized = args.categoryId
+    ? typed.filter((q) => q.eq(q.field("categoryExternalId"), args.categoryId))
+    : typed;
+
+  const result = await categorized.order("desc").paginate(paginationOpts);
+  const rows = args.search
+    ? result.page.filter((r) => matchesSearch(r.description, args.search))
+    : result.page;
+
+  const transactions = [];
+  for (const row of rows) {
+    transactions.push(await toApi(ctx, row));
+  }
+
+  const isDone = result.isDone;
+  const startedAtStart = (args.cursor ?? null) === null;
+  return {
+    transactions,
+    total: startedAtStart && isDone ? transactions.length : transactions.length,
+    nextCursor: nextCursorOf(result),
+    isDone,
+  };
+}
+
+export const listMine = query({
+  args: listMineArgs,
+  returns: listMineReturns,
+  handler: listMineHandler,
 });
 
 export const getMine = query({
