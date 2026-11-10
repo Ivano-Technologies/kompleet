@@ -1,11 +1,7 @@
 import Link from "next/link";
 import { LogIn, ShieldAlert } from "lucide-react";
-import { ErrorRef } from "@/components/ui/error-ref";
-import { generateRef } from "@/lib/friendly-error";
 
 export default function Unauthorized() {
-  const ref = generateRef();
-  console.warn(`[friendly-error] ref=${ref} context=page:401`);
   return (
     <div className="min-h-screen bg-[rgb(var(--background))] text-[rgb(var(--text-primary))] flex items-center justify-center px-4">
       <div className="flex flex-col items-center gap-6 max-w-md text-center">
@@ -20,7 +16,6 @@ export default function Unauthorized() {
           <p className="text-sm text-[rgb(var(--text-secondary))]">
             Sign in to see this page.
           </p>
-          <ErrorRef value={ref} />
         </div>
         <Link
           href="/login"

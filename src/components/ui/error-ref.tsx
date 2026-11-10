@@ -23,21 +23,20 @@ export function ErrorRef({
 }
 
 /**
- * Render a friendly error string with its muted ref line. A trailing
- * "Ref: XXXXXXXX" (from `toFriendlyMessage` or `apiErrorMessage`) is reused;
- * otherwise (e.g. an input error we set ourselves) a ref is issued and
- * logged with the message, so every error a user sees has a ref.
+ * Render a friendly error string. A trailing "Ref: XXXXXXXX" from
+ * `toFriendlyMessage` (unexpected errors only) is shown as a muted line.
+ * Known/expected copy has no embedded ref and none is generated.
  */
 export function ErrorText({
   text,
   refClassName,
   context = "ui",
-  issueGeneratedRef = true,
+  issueGeneratedRef = false,
 }: {
   text: string | null | undefined;
   refClassName?: string;
   context?: string;
-  /** When false, only an embedded "Ref: XXXXXXXX" is shown. Auth known errors use this. */
+  /** When true, generate a Ref for plain text that has none. Default false. */
   issueGeneratedRef?: boolean;
 }) {
   const { message, ref: embedded } = splitRef(text ?? "");

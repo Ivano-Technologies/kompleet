@@ -43,6 +43,19 @@ const nextConfig = {
         destination: "/tax?tab=reports",
         permanent: false,
       },
+      // Finding C2: /refunds 404s on kompleet.techivano.com; company policy is live.
+      {
+        source: "/refunds",
+        destination: "https://www.ivanotechnologies.com/refunds",
+        permanent: true,
+      },
+      // Finding 12: footer "Security" already points at Kompleet /privacy
+      // (Data Storage and Security). Keep that label; 308 typed /security URLs.
+      {
+        source: "/security",
+        destination: "/privacy",
+        permanent: true,
+      },
     ];
   },
 
