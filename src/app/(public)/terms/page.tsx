@@ -37,13 +37,13 @@ export default function TermsPage() {
               1. Agreement to Terms
             </h2>
             <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              Welcome to KOMPLEET, a bookkeeping and invoicing platform operated
+              Welcome to Kompleet, a bookkeeping and invoicing platform operated
               by Ivano Technologies Ltd ("Company," "we," "us," or "our"). These
               Terms of Service ("Terms") govern your access to and use of our
               website, platform, and services (collectively, the "Services").
             </p>
             <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              By accessing or using KOMPLEET, you agree to be bound by these
+              By accessing or using Kompleet, you agree to be bound by these
               Terms and our Privacy Policy. If you do not agree to these Terms,
               you may not access or use our Services.
             </p>
@@ -59,7 +59,7 @@ export default function TermsPage() {
               2. Description of Services
             </h2>
             <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              KOMPLEET provides bookkeeping, invoicing, and calculation tools
+              Kompleet provides bookkeeping, invoicing, and calculation tools
               designed to help individuals and businesses in Nigeria:
             </p>
             <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
@@ -80,7 +80,7 @@ export default function TermsPage() {
             <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
               Our Services are provided for informational and calculation
               purposes only and do not constitute professional tax advice, legal
-              advice, or accounting services. KOMPLEET is not a substitute for
+              advice, or accounting services. Kompleet is not a substitute for
               professional tax or legal advice from a qualified advisor.
             </p>
             <p className="text-light-text-secondary dark:text-dark-text-secondary">
@@ -100,7 +100,7 @@ export default function TermsPage() {
               3.1 Account Creation
             </h3>
             <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              To access certain features of KOMPLEET, you must create an account
+              To access certain features of Kompleet, you must create an account
               by providing:
             </p>
             <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
@@ -132,7 +132,7 @@ export default function TermsPage() {
             </h3>
             <p className="text-light-text-secondary dark:text-dark-text-secondary">
               You must be at least 18 years old and have the legal capacity to
-              enter into binding contracts to use KOMPLEET. By creating an
+              enter into binding contracts to use Kompleet. By creating an
               account, you represent and warrant that you meet these
               requirements.
             </p>
@@ -147,7 +147,7 @@ export default function TermsPage() {
               4.1 Permitted Use
             </h3>
             <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              You may use KOMPLEET only for lawful purposes and in accordance
+              You may use Kompleet only for lawful purposes and in accordance
               with these Terms. You agree to use the Services:
             </p>
             <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
@@ -200,7 +200,7 @@ export default function TermsPage() {
               5.1 Our Property
             </h3>
             <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              All content, features, and functionality of KOMPLEET, including
+              All content, features, and functionality of Kompleet, including
               but not limited to:
             </p>
             <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
@@ -221,7 +221,7 @@ export default function TermsPage() {
             </h3>
             <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
               You retain ownership of any data, information, or content you
-              submit to KOMPLEET ("User Content"). By submitting User Content,
+              submit to Kompleet ("User Content"). By submitting User Content,
               you grant us a limited license to:
             </p>
             <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
@@ -247,7 +247,7 @@ export default function TermsPage() {
               6.1 No Professional Advice
             </h3>
             <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              <strong>IMPORTANT:</strong> KOMPLEET provides tax calculation
+              <strong>IMPORTANT:</strong> Kompleet provides tax calculation
               tools and information for general guidance only. Our Services are
               not a substitute for professional tax, legal, or accounting
               advice. Our Services do not constitute:
@@ -289,8 +289,8 @@ export default function TermsPage() {
             </h3>
             <p className="text-light-text-secondary dark:text-dark-text-secondary">
               We provide the Services on an "AS IS" and "AS AVAILABLE" basis. We
-              do not guarantee that the Services will be uninterrupted,
-              error-free, or free from viruses or other harmful components.
+              do not guarantee that the Services will be uninterrupted, without
+              errors, viruses, or other harmful components.
             </p>
           </section>
 
@@ -324,7 +324,7 @@ export default function TermsPage() {
               </li>
             </ul>
             <p className="text-light-text-secondary dark:text-dark-text-secondary">
-              You acknowledge that you use KOMPLEET at your own risk and are
+              You acknowledge that you use Kompleet at your own risk and are
               solely responsible for your tax obligations.
             </p>
           </section>
@@ -344,7 +344,7 @@ export default function TermsPage() {
               <li>Your violation of these Terms</li>
               <li>Your violation of any applicable laws or regulations</li>
               <li>Your infringement of any third-party rights</li>
-              <li>Any User Content you submit to KOMPLEET</li>
+              <li>Any User Content you submit to Kompleet</li>
             </ul>
           </section>
 
@@ -354,22 +354,21 @@ export default function TermsPage() {
             </h2>
 
             <h3 className="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-3">
-              9.1 Free and Paid Services
+              9.1 Access
             </h3>
             <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              KOMPLEET may offer both free and paid features. Pricing for paid
-              features will be clearly displayed before you subscribe or
-              purchase.
+              Access to Kompleet is through a one-off founding payment. The
+              price is shown at checkout.
             </p>
 
             <h3 className="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-3">
               9.2 Payment Terms
             </h3>
             <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              If you subscribe to paid services:
+              When you complete a founding payment:
             </p>
             <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
-              <li>You agree to pay all applicable fees</li>
+              <li>You agree to pay the amount shown at checkout</li>
               <li>
                 Fees follow the Ivano Technologies Ltd refund policy, which
                 provides a 14-day refund window. See{" "}
@@ -377,22 +376,29 @@ export default function TermsPage() {
                   href={COMPANY_LEGAL.refunds}
                   className="font-medium text-primary underline underline-offset-2"
                 >
-                  {COMPANY_LEGAL.refunds.replace(/^https:\/\//, "")}
+                  Refund Policy
                 </a>
                 .
               </li>
-              <li>We may change our pricing with 30 days' notice</li>
               <li>
                 You are responsible for all taxes associated with your purchase
               </li>
             </ul>
 
             <h3 className="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-3">
-              9.3 Subscription Cancellation
+              9.3 Account cancellation
             </h3>
             <p className="text-light-text-secondary dark:text-dark-text-secondary">
-              You may cancel your subscription at any time. Cancellation will be
-              effective at the end of your current billing period.
+              You may delete your account at any time using the account
+              deletion feature in your settings, or by contacting support.
+              Founding payments follow the 14-day refund window in the{" "}
+              <a
+                href={COMPANY_LEGAL.refunds}
+                className="font-medium text-primary underline underline-offset-2"
+              >
+                Refund Policy
+              </a>
+              .
             </p>
           </section>
 
@@ -458,7 +464,7 @@ export default function TermsPage() {
               12. Third-Party Services
             </h2>
             <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              KOMPLEET may integrate with or link to third-party services,
+              Kompleet may integrate with or link to third-party services,
               including:
             </p>
             <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
@@ -522,7 +528,7 @@ export default function TermsPage() {
             <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
               These Terms, together with our Privacy Policy, constitute the
               entire agreement between you and Ivano Technologies Ltd regarding
-              the use of KOMPLEET.
+              the use of Kompleet.
             </p>
 
             <h3 className="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-3">
@@ -580,7 +586,7 @@ export default function TermsPage() {
               <li>Provide you with an opportunity to review the changes</li>
             </ul>
             <p className="text-light-text-secondary dark:text-dark-text-secondary">
-              Your continued use of KOMPLEET after any changes constitutes your
+              Your continued use of Kompleet after any changes constitutes your
               acceptance of the new Terms. If you do not agree to the modified
               Terms, you must stop using the Services.
             </p>
@@ -604,9 +610,9 @@ export default function TermsPage() {
             <h2 className="text-2xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">
               17. Acknowledgment
             </h2>
-            <p className="text-light-text-secondary dark:text-dark-text-secondary">
-              BY USING KOMPLEET, YOU ACKNOWLEDGE THAT YOU HAVE READ, UNDERSTOOD,
-              AND AGREE TO BE BOUND BY THESE TERMS OF SERVICE.
+            <p className="uppercase text-light-text-secondary dark:text-dark-text-secondary">
+              By using Kompleet, you acknowledge that you have read, understood,
+              and agree to be bound by these Terms of Service.
             </p>
           </section>
         </div>

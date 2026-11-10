@@ -44,17 +44,23 @@ const nextConfig = {
         permanent: false,
       },
       // Finding C2: /refunds 404s on kompleet.techivano.com; company policy is live.
+      // List /refunds/ first so a trailing slash is one hop, not slash-strip then 308.
+      {
+        source: "/refunds/",
+        destination: "https://www.ivanotechnologies.com/refunds",
+        permanent: true,
+      },
       {
         source: "/refunds",
         destination: "https://www.ivanotechnologies.com/refunds",
         permanent: true,
       },
       // Finding 12: footer "Security" already points at Kompleet /privacy
-      // (Data Storage and Security). Keep that label; 308 typed /security URLs.
+      // (Data Storage and Security). Keep that label; temporary redirect for typed /security URLs.
       {
         source: "/security",
         destination: "/privacy",
-        permanent: true,
+        permanent: false,
       },
     ];
   },

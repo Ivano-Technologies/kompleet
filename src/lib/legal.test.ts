@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { NextRequest } from "next/server";
 import {
   COMPANY_LEGAL,
   COOKIE_POLICY_SOURCE_OF_TRUTH,
@@ -13,6 +14,7 @@ import {
   OPERATOR_WEBSITE_HREF,
   companyLegalUrl,
 } from "@/lib/legal";
+import { redirectCompanyRefunds } from "@/lib/refunds-redirect";
 
 describe("company legal URLs", () => {
   it("points Terms, Privacy and Refunds at ivanotechnologies.com", () => {
@@ -55,19 +57,36 @@ describe("company legal URLs", () => {
     expect(COOKIE_POLICY_SOURCE_OF_TRUTH).toMatch(/source of truth/);
   });
 
-  it("308s /refunds to the company policy and /security to Kompleet /privacy", () => {
+  it("308s /refunds and /refunds/ to the company policy in one hop", () => {
+    const proxy = readFileSync(resolve(process.cwd(), "src/proxy.ts"), "utf8");
+    const body = proxy.slice(proxy.indexOf("export default async function proxy"));
+    expect(body.indexOf("redirectCompanyRefunds")).toBeGreaterThan(-1);
+    expect(body.indexOf("redirectCompanyRefunds")).toBeLessThan(
+      body.indexOf("isThemeShotsBlocked"),
+    );
+
+    for (const path of ["/refunds", "/refunds/"] as const) {
+      const request = new NextRequest(`https://kompleet.test${path}`);
+      const response = redirectCompanyRefunds(request);
+      expect(response, path).not.toBeNull();
+      expect(response!.status, path).toBe(308);
+      expect(response!.headers.get("location"), path).toBe(COMPANY_LEGAL.refunds);
+      expect(response!.headers.get("location"), path).not.toMatch(
+        /https:\/\/kompleet\.test\/refunds\/?$/,
+      );
+    }
+  });
+
+  it("307s /security to Kompleet /privacy", () => {
     const config = readFileSync(
       resolve(process.cwd(), "next.config.mjs"),
       "utf8",
     );
     expect(config).toMatch(
-      /source: "\/refunds",\s*destination: "https:\/\/www\.ivanotechnologies\.com\/refunds",\s*permanent: true,/,
+      /source: "\/security",\s*destination: "\/privacy",\s*permanent: false,/,
     );
-    expect(config).toMatch(
+    expect(config).not.toMatch(
       /source: "\/security",\s*destination: "\/privacy",\s*permanent: true,/,
-    );
-    expect(COMPANY_LEGAL.refunds).toBe(
-      "https://www.ivanotechnologies.com/refunds",
     );
   });
 
@@ -79,5 +98,10 @@ describe("company legal URLs", () => {
     expect(terms).not.toMatch(/non-refundable/i);
     expect(terms).toMatch(/14-day refund window/);
     expect(terms).toMatch(/COMPANY_LEGAL\.refunds/);
+    expect(terms).toMatch(/one-off founding payment/);
+    expect(terms).toMatch(/price is shown at checkout/);
+    expect(terms).toMatch(/>\s*Refund Policy\s*</);
+    expect(terms).not.toMatch(/COMPANY_LEGAL\.refunds\.replace/);
+    expect(terms).not.toMatch(/9\.1 Free and Paid/);
   });
 });

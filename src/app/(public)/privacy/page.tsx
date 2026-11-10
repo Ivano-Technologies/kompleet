@@ -40,14 +40,14 @@ export default function PrivacyPage() {
               1. Introduction
             </h2>
             <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              Welcome to KOMPLEET ("we," "our," or "us"). We are committed to
+              Welcome to Kompleet ("we," "our," or "us"). We are committed to
               protecting your personal information and your right to privacy.
               This Privacy Policy explains how we collect, use, disclose, and
               safeguard your information when you use our bookkeeping and
               invoicing platform.
             </p>
             <p className="text-light-text-secondary dark:text-dark-text-secondary">
-              By using KOMPLEET, you agree to the collection and use of
+              By using Kompleet, you agree to the collection and use of
               information in accordance with this policy. If you do not agree
               with our policies and practices, please do not use our services.
             </p>
@@ -312,7 +312,7 @@ export default function PrivacyPage() {
               10. Children's Privacy
             </h2>
             <p className="text-light-text-secondary dark:text-dark-text-secondary">
-              KOMPLEET is not intended for use by individuals under the age of
+              Kompleet is not intended for use by individuals under the age of
               18. We do not knowingly collect personal information from
               children. If you believe we have collected information from a
               child, please contact us immediately.
@@ -336,7 +336,7 @@ export default function PrivacyPage() {
               </li>
             </ul>
             <p className="text-light-text-secondary dark:text-dark-text-secondary">
-              Your continued use of KOMPLEET after any changes indicates your
+              Your continued use of Kompleet after any changes indicates your
               acceptance of the updated Privacy Policy.
             </p>
           </section>

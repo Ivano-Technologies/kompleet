@@ -507,6 +507,58 @@ function mapKnown(err: unknown, text: string): string | null {
   return null;
 }
 
+const EXPECTED_HTTP_AND_AUTH_COPY = [
+  "Page not found",
+  "The page you're looking for doesn't exist or has been moved.",
+  "Please sign in",
+  "Sign in to see this page.",
+  "No access",
+  "Your account doesn't have access to this page. Ask your workspace owner for access.",
+  "We couldn't sign you in. Please try again.",
+  "This link has expired. Request a new one.",
+] as const;
+
+/**
+ * True for known/expected user-facing copy that must not mint a support Ref
+ * when rendered as plain text (validation, 401/403/404, known auth codes).
+ */
+export function isExpectedUiErrorMessage(text: string): boolean {
+  const { message } = splitRef(text);
+  const copy = message.trim();
+  if (!copy) return true;
+  if (copy === FRIENDLY_FALLBACK) return false;
+
+  for (const [key, value] of Object.entries(FRIENDLY_MESSAGES)) {
+    if (key !== "fallback" && value === copy) return true;
+  }
+  if (copy.startsWith("Too many attempts")) return true;
+
+  for (const known of EXPECTED_HTTP_AND_AUTH_COPY) {
+    if (copy === known) return true;
+  }
+
+  if (allowlisted(copy)) return true;
+  if (mapKnown({}, copy) != null) return true;
+  if (PASSWORD_RULE_PATTERN.test(copy)) return true;
+
+  if (
+    /^We couldn't find this \w+/i.test(copy) &&
+    !/please try again/i.test(copy)
+  ) {
+    return true;
+  }
+
+  if (
+    /please try again/i.test(copy) ||
+    /something went wrong/i.test(copy) ||
+    /contact support/i.test(copy)
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
 export interface FriendlyMessageOptions {
   /** Skip console/Sentry logging (e.g. in tight loops). Default false. */
   silent?: boolean;

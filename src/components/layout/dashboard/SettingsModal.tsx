@@ -270,7 +270,7 @@ export function SettingsModal({
       setDeleteDialogOpen(false);
       onOpenChange(false);
       await signOut();
-      router.push("/login");
+      router.replace("/login?deleted=1");
     } catch (err) {
       setDeleteError(toFriendlyMessage(err, "Something went wrong. Please try again."));
     } finally {
