@@ -3,10 +3,10 @@ export const AUTH_LABEL =
   "text-xs font-bold uppercase tracking-wider text-text-2 dark:text-dark-text-2";
 
 export const AUTH_INPUT =
-  "mt-1 h-11 w-full rounded-md border border-border bg-surface px-3 text-sm text-text-1 focus:border-primary focus:ring-2 focus:ring-primary/20";
+  "mt-1 h-11 w-full rounded-md border border-border bg-surface px-3 text-sm text-text-1 placeholder:text-text-3 focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-dark-border dark:bg-dark-surface dark:text-dark-text-1 dark:placeholder:text-dark-text-3";
 
 export const AUTH_INPUT_BARE =
-  "h-11 w-full rounded-md border border-border bg-surface px-3 text-sm text-text-1 focus:border-primary focus:ring-2 focus:ring-primary/20";
+  "h-11 w-full rounded-md border border-border bg-surface px-3 text-sm text-text-1 placeholder:text-text-3 focus:border-primary focus:ring-2 focus:ring-primary/20 dark:border-dark-border dark:bg-dark-surface dark:text-dark-text-1 dark:placeholder:text-dark-text-3";
 
 export const AUTH_INPUT_WITH_TOGGLE = `${AUTH_INPUT_BARE} pr-11`;
 

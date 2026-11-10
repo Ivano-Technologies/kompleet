@@ -22,7 +22,7 @@ type LandingNavProps = {
 };
 
 export default function LandingNav({ heroAuth = false }: LandingNavProps) {
-  const { theme, toggleTheme } = useTheme();
+  const { resolvedTheme, toggleTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const signInHref = heroAuth ? `#${HERO_AUTH_ID}` : "/login";
@@ -35,13 +35,13 @@ export default function LandingNav({ heroAuth = false }: LandingNavProps) {
   };
 
   const themeLabel =
-    theme === "light" ? "Switch to dark mode" : "Switch to light mode";
+    resolvedTheme === "light" ? "Switch to dark mode" : "Switch to light mode";
 
   return (
     <>
       <SkipToContent />
       <nav
-        className="sticky top-0 z-50 border-b border-border bg-bg/90 backdrop-blur-md"
+        className="sticky top-0 z-50 border-b border-border bg-bg/90 backdrop-blur-md dark:border-dark-border dark:bg-dark-bg/90"
         aria-label="Primary"
       >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -60,10 +60,10 @@ export default function LandingNav({ heroAuth = false }: LandingNavProps) {
           <button
             type="button"
             onClick={toggleTheme}
-            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-border hover:bg-surface"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-border hover:bg-surface dark:border-dark-border dark:hover:bg-dark-surface"
             aria-label={themeLabel}
           >
-            {theme === "light" ? (
+            {resolvedTheme === "light" ? (
               <Moon className="h-4 w-4 text-text-2" />
             ) : (
               <Sun className="h-4 w-4 text-dark-text-2" />
@@ -105,7 +105,7 @@ export default function LandingNav({ heroAuth = false }: LandingNavProps) {
       {mobileMenuOpen && (
         <div
           id="landing-mobile-nav"
-          className="space-y-3 border-t border-border bg-bg px-4 py-4 md:hidden"
+          className="space-y-3 border-t border-border bg-bg px-4 py-4 md:hidden dark:border-dark-border dark:bg-dark-bg"
         >
           {NAV_LINKS.map((link) => (
             <Link
@@ -120,16 +120,16 @@ export default function LandingNav({ heroAuth = false }: LandingNavProps) {
           <button
             type="button"
             onClick={toggleTheme}
-            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-md border border-border hover:bg-surface"
+            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-md border border-border hover:bg-surface dark:border-dark-border dark:hover:bg-dark-surface"
             aria-label={themeLabel}
           >
-            {theme === "light" ? (
+            {resolvedTheme === "light" ? (
               <Moon className="h-4 w-4" />
             ) : (
               <Sun className="h-4 w-4" />
             )}
             <span className="text-sm font-medium">
-              {theme === "light" ? "Dark mode" : "Light mode"}
+              {resolvedTheme === "light" ? "Dark mode" : "Light mode"}
             </span>
           </button>
           <div className="flex gap-2 pt-2">

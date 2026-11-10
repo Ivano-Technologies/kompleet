@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <div data-marketing className="flex min-h-screen flex-col bg-bg text-text-1">
+    <div data-marketing className="flex min-h-screen flex-col bg-bg text-text-1 dark:bg-dark-bg dark:text-dark-text-1">
       <LandingNav />
       <main className="mx-auto w-full max-w-4xl flex-1 px-6 py-16">
         <p className="mb-3 text-xs font-bold uppercase tracking-widest text-primary">
@@ -21,7 +21,7 @@ export default function AboutPage() {
         <h1 className="font-display mb-6 text-4xl font-bold md:text-5xl">
           Built for Nigerian books
         </h1>
-        <div className="space-y-6 rounded-xl border border-border bg-surface p-8">
+        <div className="space-y-6 rounded-xl border border-border bg-surface p-8 dark:border-dark-border dark:bg-dark-surface">
           <p className="text-base leading-relaxed text-text-2">
             Kompleet is bookkeeping and invoicing software for Nigerian small
             and medium enterprises. Import statements from 11 local banks,
@@ -35,7 +35,7 @@ export default function AboutPage() {
         </div>
 
         <div className="mt-8 grid gap-6 md:grid-cols-2">
-          <div className="rounded-xl border border-border bg-surface p-8">
+          <div className="rounded-xl border border-border bg-surface p-8 dark:border-dark-border dark:bg-dark-surface">
             <h2 className="font-display mb-3 text-2xl font-semibold">
               Why Nigeria
             </h2>
@@ -44,7 +44,7 @@ export default function AboutPage() {
               businesses invoice are built into the product.
             </p>
           </div>
-          <div className="rounded-xl border border-border bg-surface p-8">
+          <div className="rounded-xl border border-border bg-surface p-8 dark:border-dark-border dark:bg-dark-surface">
             <h2 className="font-display mb-3 text-2xl font-semibold">
               Built by
             </h2>
@@ -55,7 +55,7 @@ export default function AboutPage() {
           </div>
         </div>
 
-        <div className="mt-8 rounded-xl border border-border bg-surface p-8 text-center">
+        <div className="mt-8 rounded-xl border border-border bg-surface p-8 dark:border-dark-border dark:bg-dark-surface text-center">
           <h3 className="font-display mb-2 text-lg font-semibold">
             Start with your books
           </h3>

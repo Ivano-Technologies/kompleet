@@ -612,7 +612,7 @@ export function SettingsModal({
                     />
                   </div>
                   <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
-                    Email me 7, 3 and 1 days before a filing deadline.
+                    Email me once per filing deadline, 7, 3 or 1 days before it is due.
                   </p>
                 </div>
               </div>

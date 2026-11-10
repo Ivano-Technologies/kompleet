@@ -65,7 +65,7 @@ const topics = [
 
 export default function HelpPage() {
   return (
-    <div data-marketing className="flex min-h-screen flex-col bg-bg text-text-1">
+    <div data-marketing className="flex min-h-screen flex-col bg-bg text-text-1 dark:bg-dark-bg dark:text-dark-text-1">
       <LandingNav />
       <main className="mx-auto w-full max-w-4xl flex-1 px-6 py-16">
         <div className="mb-12 text-center">
@@ -79,7 +79,7 @@ export default function HelpPage() {
           {topics.map((topic) => (
             <div
               key={topic.title}
-              className="rounded-xl border border-border bg-surface p-6"
+              className="rounded-xl border border-border bg-surface p-6 dark:border-dark-border dark:bg-dark-surface"
             >
               <h3 className="mb-2 font-semibold text-text-1">{topic.title}</h3>
               <p className="text-sm text-text-2">{topic.body}</p>
@@ -94,7 +94,7 @@ export default function HelpPage() {
           ))}
         </div>
 
-        <div className="rounded-xl border border-border bg-surface p-8">
+        <div className="rounded-xl border border-border bg-surface p-8 dark:border-dark-border dark:bg-dark-surface">
           <h2 className="font-display mb-8 text-2xl font-semibold">
             Frequently asked questions
           </h2>
@@ -102,7 +102,7 @@ export default function HelpPage() {
             {faqs.map((faq) => (
               <div
                 key={faq.question}
-                className="border-b border-border pb-6 last:border-0 last:pb-0"
+                className="border-b border-border pb-6 last:border-0 last:pb-0 dark:border-dark-border"
               >
                 <h3 className="mb-2 text-lg font-medium text-text-1">
                   {faq.question}
@@ -113,7 +113,7 @@ export default function HelpPage() {
           </div>
         </div>
 
-        <div className="mt-8 rounded-xl border border-border bg-surface p-8 text-center">
+        <div className="mt-8 rounded-xl border border-border bg-surface p-8 text-center dark:border-dark-border dark:bg-dark-surface">
           <h3 className="mb-2 text-lg font-semibold">Still need help?</h3>
           <p className="mb-4 text-text-2">Write to support from the contact page.</p>
           <Link

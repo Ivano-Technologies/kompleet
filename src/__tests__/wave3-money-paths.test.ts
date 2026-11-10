@@ -105,6 +105,26 @@ describe("IVA-79 Tax generate from books + Filing PDF", () => {
     expect(filing).not.toMatch(/href="\/tax-reports\/generate"/);
   });
 
+  it("keeps Books search padding, Amount on 390, and export honouring search", () => {
+    expect(books).toMatch(/!pl-10/);
+    expect(books).toMatch(/whitespace-nowrap w-\[1%\]/);
+    expect(books).toMatch(/tabular-nums/);
+    expect(books).toMatch(/fetchGeneration/);
+    expect(books).toMatch(/filters\.search \? \{ search: filters\.search \}/);
+    const exportRoute = read("src/app/api/transactions/export/route.ts");
+    expect(exportRoute).toMatch(/search: z\.string\(\)\.max\(200\)\.optional\(\)/);
+    expect(exportRoute).toMatch(/search,/);
+    expect(exportRoute).not.toMatch(/MAX_EXPORT/);
+    expect(exportRoute).not.toMatch(/totalPages/);
+    const listRoute = read("src/app/api/transactions/route.ts");
+    expect(listRoute).not.toMatch(/totalPages/);
+    const aggregation = read("src/lib/dashboard/data-aggregation.ts");
+    expect(aggregation).not.toMatch(/maxItems:\s*500/);
+    const upload = read("src/app/api/transactions/upload-v2/route.ts");
+    expect(upload).toMatch(/listAllTransactionsMine/);
+    expect(upload).not.toMatch(/limit:\s*500/);
+  });
+
   it("keeps Wave 2 sidebar IA and Option C tokens", () => {
     expect(nav).toMatch(/label: "Books"/);
     expect(nav).toMatch(/label: "Invoices"/);

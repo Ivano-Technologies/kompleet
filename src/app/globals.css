@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @config "../../tailwind.config.cjs";
 @source "../../src/**/*.{js,ts,jsx,tsx,mdx}";
+/* Class strategy: follow html.dark from the theme toggle, not prefers-color-scheme. */
+@custom-variant dark (&:where(.dark, .dark *));
 
 /* KOMPLEET Design System 2026 - Approved 27 Feb 2026 */
 
@@ -58,30 +60,38 @@
   /* #3D4A55 */
   --text-tertiary: 107 114 128;
   /* #6B7280 */
+  --text-4: 156 163 175;
+  /* #9CA3AF */
+  --surface-2: 235 230 220;
+  /* #EBE6DC */
 
   /* Space reserved while the cookie banner is open (ResizeObserver). */
   --cookie-banner-height: 0px;
 }
 
-/* Dark Theme */
+/* Dark Theme — brand navy palette (tailwind dark-* tokens), not the old slate. */
 html.dark,
 :root.dark {
-  --background: 32 41 47;
-  /* #20292F */
-  --surface: 43 55 63;
-  /* #2B373F */
-  --surface-hover: 51 63 71;
-  /* #333F47 */
-  --border: 56 65 71;
-  /* #384147 */
-  --border-hover: 72 81 87;
-  /* #485157 */
-  --text-primary: 227 241 255;
-  /* #E3F1FF */
+  --background: 8 15 24;
+  /* #080F18 */
+  --surface: 15 30 46;
+  /* #0F1E2E */
+  --surface-2: 22 36 56;
+  /* #162438 */
+  --surface-hover: 22 36 56;
+  /* #162438 */
+  --border: 26 48 80;
+  /* #1A3050 */
+  --border-hover: 36 64 96;
+  /* #244060 */
+  --text-primary: 240 249 255;
+  /* #F0F9FF */
   --text-secondary: 186 216 245;
   /* #BAD8F5 */
-  --text-tertiary: 147 197 235;
-  /* #93C5EB */
+  --text-tertiary: 123 168 204;
+  /* #7BA8CC */
+  --text-4: 74 122 155;
+  /* #4A7A9B */
 }
 
 /* Base Styles */

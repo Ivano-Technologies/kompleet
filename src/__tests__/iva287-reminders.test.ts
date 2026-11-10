@@ -8,7 +8,7 @@ describe("IVA-287 reminder emails and year migration", () => {
   it("settings only claims deadline emails that persist", () => {
     const modal = read("src/components/layout/dashboard/SettingsModal.tsx");
     expect(modal).toMatch(/Deadline emails/);
-    expect(modal).toMatch(/Email me 7, 3 and 1 days before a filing deadline/);
+    expect(modal).toMatch(/Email me once per filing deadline, 7, 3 or 1 days before it is due/);
     expect(modal).toMatch(/\/api\/notifications\/preferences/);
     expect(modal).not.toMatch(/Push notifications/);
     expect(modal).not.toMatch(/Marketing emails/);

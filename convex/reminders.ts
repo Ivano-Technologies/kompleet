@@ -126,6 +126,20 @@ export async function sendReminderEmail(
   }
 }
 
+function reminderOccupancy(
+  ctx: QueryCtx | MutationCtx,
+  args: { userId: Id<"users">; formType: string; taxYear: number },
+) {
+  return ctx.db
+    .query("deadlineReminders")
+    .withIndex("by_user_and_key", (q) =>
+      q
+        .eq("userId", args.userId)
+        .eq("formType", args.formType)
+        .eq("taxYear", args.taxYear),
+    );
+}
+
 export async function claimSendHandler(
   ctx: MutationCtx,
   args: {
@@ -137,16 +151,7 @@ export async function claimSendHandler(
     now: number;
   },
 ): Promise<boolean> {
-  const existing = await ctx.db
-    .query("deadlineReminders")
-    .withIndex("by_user_and_key", (q) =>
-      q
-        .eq("userId", args.userId)
-        .eq("formType", args.formType)
-        .eq("taxYear", args.taxYear)
-        .eq("daysRemaining", args.daysRemaining),
-    )
-    .unique();
+  const existing = await reminderOccupancy(ctx, args).first();
   if (existing) return false;
   await ctx.db.insert("deadlineReminders", {
     userId: args.userId,
@@ -245,19 +250,10 @@ export async function wasSentHandler(
     userId: Id<"users">;
     formType: string;
     taxYear: number;
-    daysRemaining: number;
+    daysRemaining?: number;
   },
 ): Promise<boolean> {
-  const existing = await ctx.db
-    .query("deadlineReminders")
-    .withIndex("by_user_and_key", (q) =>
-      q
-        .eq("userId", args.userId)
-        .eq("formType", args.formType)
-        .eq("taxYear", args.taxYear)
-        .eq("daysRemaining", args.daysRemaining),
-    )
-    .unique();
+  const existing = await reminderOccupancy(ctx, args).first();
   return existing !== null;
 }
 
@@ -266,7 +262,7 @@ export const wasSent = internalQuery({
     userId: v.id("users"),
     formType: v.string(),
     taxYear: v.number(),
-    daysRemaining: v.number(),
+    daysRemaining: v.optional(v.number()),
   },
   returns: v.boolean(),
   handler: async (ctx, args) => wasSentHandler(ctx, args),
@@ -281,16 +277,11 @@ export async function releaseSendHandler(
     daysRemaining: number;
   },
 ): Promise<null> {
-  const existing = await ctx.db
-    .query("deadlineReminders")
-    .withIndex("by_user_and_key", (q) =>
-      q
-        .eq("userId", args.userId)
-        .eq("formType", args.formType)
-        .eq("taxYear", args.taxYear)
-        .eq("daysRemaining", args.daysRemaining),
-    )
-    .unique();
+  const existing = await reminderOccupancy(ctx, {
+    userId: args.userId,
+    formType: args.formType,
+    taxYear: args.taxYear,
+  }).first();
   if (existing) await ctx.db.delete(existing._id);
   return null;
 }
@@ -313,7 +304,7 @@ export type SendDueRemindersDeps = {
     userId: Id<"users">;
     formType: string;
     taxYear: number;
-    daysRemaining: number;
+    daysRemaining?: number;
   }) => Promise<boolean>;
   recordSend: (args: {
     userId: Id<"users">;
@@ -349,7 +340,6 @@ export async function sendDueRemindersHandler(
             userId: user.userId,
             formType: reminder.formType,
             taxYear: reminder.taxYear,
-            daysRemaining: reminder.daysRemaining,
           });
           if (already) continue;
           const template = reminderTemplate(reminder.daysRemaining, user.name, {
@@ -406,7 +396,7 @@ export const sendDueReminders = internalAction({
       userId: Id<"users">;
       formType: string;
       taxYear: number;
-      daysRemaining: number;
+      daysRemaining?: number;
     }): Promise<boolean> => ctx.runQuery(internal.reminders.wasSent, args);
     const recordSend = async (args: {
       userId: Id<"users">;

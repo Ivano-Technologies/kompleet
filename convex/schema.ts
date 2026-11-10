@@ -463,6 +463,11 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_user_and_uploadedAt", ["userId", "uploadedAt"])
     .index("by_user_and_linkType", ["userId", "linkType"])
+    .index("by_user_and_linkType_and_uploadedAt", [
+      "userId",
+      "linkType",
+      "uploadedAt",
+    ])
     .index("by_link", ["linkType", "linkId"])
     .index("by_storageId", ["storageId"]),
 
@@ -564,8 +569,9 @@ export default defineSchema({
   }).index("by_email", ["email"]),
 
   /**
-   * Occupancy for deadline reminder emails. One row per user, form, year,
-   * and window (7, 3, or 1 days) so the weekly Monday cron sends each once.
+   * Occupancy for deadline reminder emails. One row per user, form and tax
+   * year. The weekly Monday cron sends a single 7/3/1-day template per
+   * deadline; daysRemaining records which template went out, not a second send.
    * Erase deletes these with the rest of the caller's rows.
    */
   deadlineReminders: defineTable({

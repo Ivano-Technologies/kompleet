@@ -37,6 +37,7 @@ function fakeDb() {
         );
       return {
         unique: async () => match()[0] ?? null,
+        first: async () => match()[0] ?? null,
         collect: async () => match(),
       };
     },
@@ -82,13 +83,13 @@ describe("claimSendHandler", () => {
     expect(db.tables.deadlineReminders).toHaveLength(1);
   });
 
-  it("allows the same deadline at a different window", async () => {
+  it("rejects a second window for the same deadline", async () => {
     const db = fakeDb();
     await expect(claimSendHandler(asCtx(db), CLAIM)).resolves.toBe(true);
     await expect(
-      claimSendHandler(asCtx(db), { ...CLAIM, daysRemaining: 3 }),
-    ).resolves.toBe(true);
-    expect(db.tables.deadlineReminders).toHaveLength(2);
+      claimSendHandler(asCtx(db), { ...CLAIM, daysRemaining: 1 }),
+    ).resolves.toBe(false);
+    expect(db.tables.deadlineReminders).toHaveLength(1);
   });
 
   it("scopes occupancy per user", async () => {
@@ -200,5 +201,38 @@ describe("deadline reminder cron", () => {
     expect(sendEmail).toHaveBeenCalledTimes(2);
     expect(error).toHaveBeenCalled();
     error.mockRestore();
+  });
+
+  it("skips a 1-day template when the same deadline already occupied", async () => {
+    const sendEmail = vi.fn(async () => true);
+    const result = await sendDueRemindersHandler({
+      now: Date.parse("2027-03-30T08:00:00.000Z"),
+      due: [
+        {
+          formType: "PIT",
+          taxYear: 2026,
+          deadlineDate: "2027-03-31",
+          description: "Personal Income Tax Return",
+          daysRemaining: 1,
+        },
+      ],
+      listPage: async () => ({
+        isDone: true,
+        continueCursor: "",
+        page: [
+          {
+            userId: "users:1" as never,
+            email: "a@example.com",
+            name: "A",
+            entityType: "individual",
+          },
+        ],
+      }),
+      wasSent: async () => true,
+      recordSend: async () => true,
+      sendEmail,
+    });
+    expect(result.claimed).toBe(0);
+    expect(sendEmail).not.toHaveBeenCalled();
   });
 });

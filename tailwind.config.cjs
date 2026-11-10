@@ -25,20 +25,23 @@ module.exports = {
           dk: "#252E32",
         },
 
-        bg: "#F4F1EB",
+        // Semantic tokens follow html.dark CSS variables so landing/auth
+        // surfaces pick up the toggle even without a dark: class. Native
+        // form controls in globals.css already read the same variables.
+        bg: "rgb(var(--background) / <alpha-value>)",
         surface: {
-          DEFAULT: "#FFFDF8",
-          2: "#EBE6DC",
+          DEFAULT: "rgb(var(--surface) / <alpha-value>)",
+          2: "rgb(var(--surface-2) / <alpha-value>)",
         },
         border: {
-          DEFAULT: "#DDD5C8",
-          hover: "#C9BFAE",
+          DEFAULT: "rgb(var(--border) / <alpha-value>)",
+          hover: "rgb(var(--border-hover) / <alpha-value>)",
         },
         text: {
-          1: "#0D1B2A",
-          2: "#3D4A55",
-          3: "#6B7280",
-          4: "#9CA3AF",
+          1: "rgb(var(--text-primary) / <alpha-value>)",
+          2: "rgb(var(--text-secondary) / <alpha-value>)",
+          3: "rgb(var(--text-tertiary) / <alpha-value>)",
+          4: "rgb(var(--text-4) / <alpha-value>)",
         },
 
         // Aliases so leftover light-* utility classes on legal/help resolve
