@@ -108,10 +108,11 @@ kompleet-platform/
 
 ## What stays on Supabase (do not delete the project)
 
-- Keep-alive (`GET /api/health/db` → PostgREST `tax_rules`, no supabase-js)
 - Optional `NEXT_PUBLIC_SUPABASE_*` / service-role for Phase 6 backfill + teardown
 - CI `security-advisors` (baseline not bumped here)
 - Hosted project `frlcvkmjuhnjcicwywrh` until CoS + Kezie go (IVA-65)
+
+`GET /api/health` is app liveness only. The PostgREST keep-alive (`/api/health/db` and `.github/workflows/keepalive.yml`) has been removed.
 
 ## Development vs production Convex
 

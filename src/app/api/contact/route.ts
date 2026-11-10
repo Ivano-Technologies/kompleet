@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withRateLimit } from "@/lib/with-rate-limit";
 import { getEmailFrom } from "@/lib/email-from";
+import {
+  contactReplyTo,
+  contactSubjectName,
+  stripHeaderControls,
+} from "@/lib/contact-email";
 import { escapeHtml } from "@/lib/escape-html";
 import { apiErrorBody } from "@/lib/friendly-error";
 
@@ -45,8 +50,10 @@ async function handlePOST(request: NextRequest) {
       feedback: "Feedback",
     };
     const subjectLabel = subjectLabels[subjectKey] ?? "General Inquiry";
-    const safeName = escapeHtml(name);
-    const safeEmail = escapeHtml(email);
+    const headerName = contactSubjectName(name);
+    const replyTo = contactReplyTo(email);
+    const safeName = escapeHtml(headerName);
+    const safeEmail = escapeHtml(replyTo ?? stripHeaderControls(email));
     const safeMessage = escapeHtml(message);
     const safeSubjectLabel = escapeHtml(subjectLabel);
 
@@ -78,8 +85,8 @@ async function handlePOST(request: NextRequest) {
       body: JSON.stringify({
         from: getEmailFrom(),
         to: [recipient],
-        replyTo: email,
-        subject: `[Contact] ${subjectLabel} from ${name}`,
+        ...(replyTo ? { replyTo } : {}),
+        subject: `[Contact] ${subjectLabel} from ${headerName}`,
         html,
       }),
     });
