@@ -83,7 +83,7 @@ export default function ThemeShotBooksPage() {
                     <td className="px-2.5 sm:px-5 py-3.5 text-text-2 text-xs whitespace-nowrap">
                       {row.date}
                     </td>
-                    <td className="px-2.5 sm:px-5 py-3.5 min-w-0">
+                    <td className="px-2.5 sm:px-5 py-3.5 min-w-0 max-w-0">
                       <div className="flex items-center gap-2.5 min-w-0">
                         <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
                           {row.credit ? (

@@ -108,6 +108,7 @@ describe("IVA-79 Tax generate from books + Filing PDF", () => {
   it("keeps Books search padding, Amount on 390, and export honouring search", () => {
     expect(books).toMatch(/!pl-10/);
     expect(books).toMatch(/whitespace-nowrap w-\[1%\]/);
+    expect(books).toMatch(/min-w-0 max-w-0/);
     expect(books).toMatch(/tabular-nums/);
     expect(books).toMatch(/fetchGeneration/);
     expect(books).toMatch(/filters\.search \? \{ search: filters\.search \}/);
