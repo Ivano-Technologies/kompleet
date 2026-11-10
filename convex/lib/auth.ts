@@ -1,6 +1,57 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
 import type { Doc, Id } from "../_generated/dataModel";
 import type { MutationCtx, QueryCtx } from "../_generated/server";
+import { throwForbidden } from "./errors";
+
+/** Matches `Role` in src/lib/auth/rbac.ts. Stored on users.platformRole. */
+export type PlatformRole =
+  | "owner"
+  | "admin"
+  | "tax_consultant"
+  | "user"
+  | "viewer";
+
+export function platformRoleOf(
+  user: Pick<Doc<"users">, "platformRole"> | null | undefined,
+): PlatformRole {
+  const role = user?.platformRole;
+  switch (role) {
+    case "owner":
+    case "admin":
+    case "tax_consultant":
+    case "user":
+    case "viewer":
+      return role;
+    case undefined:
+      return "user";
+    default: {
+      const _exhaustive: never = role;
+      return _exhaustive;
+    }
+  }
+}
+
+export function isPlatformAdminRole(role: PlatformRole): boolean {
+  switch (role) {
+    case "owner":
+    case "admin":
+      return true;
+    case "tax_consultant":
+    case "user":
+    case "viewer":
+      return false;
+    default: {
+      const _exhaustive: never = role;
+      return _exhaustive;
+    }
+  }
+}
+
+export function isPlatformAdmin(
+  user: Pick<Doc<"users">, "platformRole"> | null | undefined,
+): boolean {
+  return isPlatformAdminRole(platformRoleOf(user));
+}
 
 export function supabaseSubject(identity: {
   subject: string;
@@ -98,6 +149,17 @@ export async function requireOwnedUser(
   const me = await getCurrentUser(ctx);
   if (me._id !== userId) {
     throw new Error("Unauthorized");
+  }
+  return me;
+}
+
+/** Owner and admin (admin:access). Throws ConvexError FORBIDDEN otherwise. */
+export async function requireAdmin(
+  ctx: QueryCtx | MutationCtx,
+): Promise<Doc<"users">> {
+  const me = await getCurrentUser(ctx);
+  if (!isPlatformAdmin(me)) {
+    throwForbidden();
   }
   return me;
 }

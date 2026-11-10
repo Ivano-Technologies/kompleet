@@ -2,6 +2,7 @@ import { v } from "convex/values";
 import { internalMutation, mutation, query } from "./_generated/server";
 import { getCurrentUser } from "./lib/auth";
 import { newExternalId, toMs } from "./lib/ids";
+import { assertStorageAssignableToUser } from "./lib/storageAccess";
 
 const expenseApi = v.object({
   id: v.string(),
@@ -121,6 +122,7 @@ export const createMine = mutation({
   returns: expenseApi,
   handler: async (ctx, args) => {
     const user = await getCurrentUser(ctx);
+    await assertStorageAssignableToUser(ctx, user, args.receiptStorageId);
     if (args.externalId) {
       const existing = await ctx.db
         .query("expenses")
@@ -192,6 +194,7 @@ export const updateMine = mutation({
       .withIndex("by_externalId", (q) => q.eq("externalId", args.externalId))
       .unique();
     if (!row || row.userId !== user._id) throw new Error("Expense not found");
+    await assertStorageAssignableToUser(ctx, user, args.receiptStorageId);
     await ctx.db.patch(row._id, {
       date: args.date ?? row.date,
       amount: args.amount ?? row.amount,
