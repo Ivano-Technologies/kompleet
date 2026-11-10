@@ -14,6 +14,13 @@ import {
 } from "@/lib/transaction-import/bank-adapter";
 import { resolveBankCode } from "@/lib/transaction-import/bank-configs";
 import { normalizeTransactions } from "@/lib/transaction-import/normalizer";
+import { toFriendlyErrorAndFlush } from "@/lib/friendly-error";
+import {
+  ImportPersistError,
+  completeImportSessionWithRetry,
+  markImportSessionFailed,
+  persistImportedTransactions,
+} from "@/lib/transaction-import/import-persist";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -24,6 +31,8 @@ interface UploadResponse {
   imported: number;
   duplicates: number;
   errors: number;
+  sessionStatus?: "completed" | "processing";
+  needsFinalize?: boolean;
 }
 
 async function handlePOST(
@@ -105,9 +114,14 @@ async function handlePOST(
       parseResult.transactions,
       bankCode,
     );
-    const importedTransactions = await convex.mutation(
-      api.transactions.createManyMine,
-      {
+    const session = await convex.mutation(api.imports.createSession, {
+      fileName: file.name,
+      fileSize: file.size,
+      bankCode,
+      status: "processing",
+    });
+    try {
+      const imported = await persistImportedTransactions({
         items: normalized.map((t) => ({
           transactionDate: t.date,
           description: t.merchant,
@@ -117,16 +131,40 @@ async function handlePOST(
           reference: t.reference,
           source: `${bankCode}_import`,
         })),
-      },
-    );
-
-    return NextResponse.json({
-      success: true,
-      message: `Successfully imported ${importedTransactions.length} transactions`,
-      imported: importedTransactions.length,
-      duplicates: 0,
-      errors: parseResult.errors.length,
-    });
+        createMany: (items) =>
+          convex.mutation(api.transactions.createManyMine, {
+            items,
+            importSessionExternalId: session.id,
+          }),
+        removeMany: (ids) =>
+          convex.mutation(api.transactions.removeMine, { externalIds: ids }),
+      });
+      const finalized = await completeImportSessionWithRetry(() =>
+        convex.mutation(api.imports.updateSession, {
+          externalId: session.id,
+          status: "completed",
+          transactionsImported: imported.imported,
+          completed: true,
+        }),
+      );
+      return NextResponse.json({
+        success: true,
+        message: `Successfully imported ${imported.imported} transactions`,
+        imported: imported.imported,
+        duplicates: 0,
+        errors: parseResult.errors.length,
+        sessionStatus: finalized.completed ? "completed" : "processing",
+        needsFinalize: !finalized.completed,
+      });
+    } catch (persistError) {
+      await markImportSessionFailed(() =>
+        convex.mutation(api.imports.updateSession, {
+          externalId: session.id,
+          status: "failed",
+        }),
+      );
+      throw persistError;
+    }
   } catch (error) {
     if (isUnauthorized(error)) {
       return NextResponse.json(
@@ -141,10 +179,17 @@ async function handlePOST(
       );
     }
     console.error("Upload error:", error);
+    const persistError =
+      error instanceof ImportPersistError ? error.cause : error;
+    const { message } = await toFriendlyErrorAndFlush(
+      persistError,
+      "Import didn't complete. Please try again.",
+      { context: "import:upload" },
+    );
     return NextResponse.json(
       {
         success: false,
-        message: error instanceof Error ? error.message : "Upload failed",
+        message,
         imported: 0,
         duplicates: 0,
         errors: 0,

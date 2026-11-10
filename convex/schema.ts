@@ -162,13 +162,17 @@ export default defineSchema({
     notes: v.optional(v.string()),
     isReconciled: v.boolean(),
     triageIgnoredAt: v.optional(v.number()),
+    // Additive: missing means visible (legacy / manual rows). Rows stamped
+    // during import stay hidden until this session is status=completed.
+    importSessionExternalId: v.optional(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
     .index("by_externalId", ["externalId"])
     .index("by_user", ["userId"])
     .index("by_user_and_date", ["userId", "transactionDate"])
-    .index("by_userExternalId", ["userExternalId"]),
+    .index("by_userExternalId", ["userExternalId"])
+    .index("by_importSessionExternalId", ["importSessionExternalId"]),
 
   importSessions: defineTable({
     externalId: v.string(),

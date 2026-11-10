@@ -25,7 +25,12 @@ vi.mock("./lib/profiles", async (importOriginal) => {
 
 import { listMineHandler as listExpenses } from "./expenses";
 import { listMineHandler as listInvoices } from "./invoices";
-import { listMineHandler as listTransactions } from "./transactions";
+import {
+  applyTriageMineHandler,
+  collectTriage,
+  listMineHandler as listTransactions,
+  updateMineHandler,
+} from "./transactions";
 
 const USER = {
   _id: "users:1",
@@ -122,6 +127,17 @@ function fakeCtx(tables: Record<string, Array<Record<string, unknown>>>) {
           if (found) return found;
         }
         return null;
+      },
+      patch: async (id: string, fields: Record<string, unknown>) => {
+        for (const rows of Object.values(tables)) {
+          const found = rows.find((row) => row._id === id);
+          if (found) Object.assign(found, fields);
+        }
+      },
+      insert: async (table: string, doc: Record<string, unknown>) => {
+        const id = `${table}:${(tables[table] ?? []).length}`;
+        (tables[table] ??= []).push({ _id: id, ...doc });
+        return id;
       },
       query: (table: string) => ({
         withIndex: (
@@ -274,6 +290,248 @@ describe("Convex list pagination", () => {
       "GTBank transfer",
       "GTBank salary",
     ]);
+  });
+
+  it("hides mid-import rows until the session is completed", async () => {
+    const rows = [
+      txn(1, { description: "legacy visible" }),
+      txn(2, {
+        description: "processing hidden",
+        importSessionExternalId: "sess-mid",
+      }),
+      txn(3, {
+        description: "completed visible",
+        importSessionExternalId: "sess-done",
+      }),
+    ];
+    const ctx = fakeCtx({
+      transactions: rows,
+      categories: [],
+      importSessions: [
+        {
+          _id: "importSessions:mid",
+          externalId: "sess-mid",
+          userId: USER._id,
+          status: "processing",
+          createdAt: Date.now() - 2 * 60 * 60 * 1000,
+        },
+        {
+          _id: "importSessions:done",
+          externalId: "sess-done",
+          userId: USER._id,
+          status: "completed",
+          createdAt: Date.now() - 86_400_000,
+        },
+      ],
+    });
+    const page = await listTransactions(ctx as never, { limit: 10 });
+    expect(page.transactions.map((row) => row.description)).toEqual([
+      "completed visible",
+      "legacy visible",
+    ]);
+
+    const including = await listTransactions(ctx as never, {
+      limit: 10,
+      includePendingImports: true,
+    });
+    expect(including.transactions.map((row) => row.description)).toEqual([
+      "completed visible",
+      "processing hidden",
+      "legacy visible",
+    ]);
+  });
+
+  it("keeps an orphaned processing session hidden", async () => {
+    const rows = [
+      txn(1, {
+        description: "killed import leftover",
+        importSessionExternalId: "sess-orphan",
+      }),
+      txn(2, { description: "manual row" }),
+    ];
+    const ctx = fakeCtx({
+      transactions: rows,
+      categories: [],
+      importSessions: [
+        {
+          _id: "importSessions:orphan",
+          externalId: "sess-orphan",
+          userId: USER._id,
+          status: "processing",
+          createdAt: 1,
+        },
+      ],
+    });
+    const page = await listTransactions(ctx as never, { limit: 10 });
+    expect(page.transactions.map((row) => row.description)).toEqual([
+      "manual row",
+    ]);
+  });
+
+  it("keeps paging past hidden in-flight rows until the visible page is full", async () => {
+    const rows = [
+      txn(1, {
+        transactionDate: "2026-01-01",
+        description: "visible-a",
+      }),
+      txn(2, {
+        transactionDate: "2026-01-02",
+        description: "visible-b",
+      }),
+      txn(3, {
+        transactionDate: "2026-01-03",
+        description: "hidden-a",
+        importSessionExternalId: "sess-mid",
+      }),
+      txn(4, {
+        transactionDate: "2026-01-04",
+        description: "hidden-b",
+        importSessionExternalId: "sess-mid",
+      }),
+    ];
+    const ctx = fakeCtx({
+      transactions: rows,
+      categories: [],
+      importSessions: [
+        {
+          _id: "importSessions:mid",
+          externalId: "sess-mid",
+          userId: USER._id,
+          status: "processing",
+          createdAt: Date.now(),
+        },
+      ],
+    });
+    const page = await listTransactions(ctx as never, { limit: 2 });
+    expect(page.transactions.map((row) => row.description)).toEqual([
+      "visible-b",
+      "visible-a",
+    ]);
+    expect(page.transactions).toHaveLength(2);
+    expect(page.isDone).toBe(true);
+  });
+
+  it("blocks updateMine and applyTriageMine on hidden import ids", async () => {
+    const hidden = txn(1, {
+      description: "hidden in-flight",
+      importSessionExternalId: "sess-mid",
+    });
+    const visible = txn(2, { description: "legacy visible" });
+    const ctx = fakeCtx({
+      transactions: [hidden, visible],
+      categories: [],
+      importSessions: [
+        {
+          _id: "importSessions:mid",
+          externalId: "sess-mid",
+          userId: USER._id,
+          status: "processing",
+          createdAt: Date.now(),
+        },
+      ],
+      duplicateCandidates: [],
+    });
+    await expect(
+      updateMineHandler(ctx as never, {
+        externalId: hidden.externalId,
+        notes: "should not stick",
+      }),
+    ).rejects.toThrow("Transaction not found");
+    expect((hidden as Record<string, unknown>).notes).toBeUndefined();
+
+    await expect(
+      applyTriageMineHandler(ctx as never, {
+        kind: "transaction",
+        id: hidden.externalId,
+        action: "ignore",
+      }),
+    ).rejects.toThrow("Transaction not found");
+    expect((hidden as Record<string, unknown>).triageIgnoredAt).toBeUndefined();
+
+    const updated = await updateMineHandler(ctx as never, {
+      externalId: visible.externalId,
+      notes: "ok",
+    });
+    expect(updated.notes).toBe("ok");
+  });
+
+  it("hides duplicate candidates from an in-flight import in triage", async () => {
+    const ctx = fakeCtx({
+      transactions: [
+        txn(1, {
+          description: "legacy visible",
+          categoryId: "cat:1",
+          categoryExternalId: "cat-1",
+          confidenceScore: 100,
+        }),
+      ],
+      categories: [
+        {
+          _id: "cat:1",
+          externalId: "cat-1",
+          name: "Office",
+          categoryType: "expense",
+          taxTreatment: "deductible",
+        },
+      ],
+      importSessions: [
+        {
+          _id: "importSessions:mid",
+          externalId: "sess-mid",
+          userId: USER._id,
+          status: "processing",
+          createdAt: Date.now(),
+        },
+        {
+          _id: "importSessions:done",
+          externalId: "sess-done",
+          userId: USER._id,
+          status: "completed",
+          createdAt: Date.now(),
+        },
+      ],
+      duplicateCandidates: [
+        {
+          _id: "dup:mid",
+          externalId: "dup-mid",
+          userId: USER._id,
+          sessionExternalId: "sess-mid",
+          status: "pending",
+          createdAt: 10,
+          payload: {
+            merchant: "in-flight dup",
+            amount: 12,
+            date: "2026-01-02",
+            type: "debit",
+          },
+        },
+        {
+          _id: "dup:done",
+          externalId: "dup-done",
+          userId: USER._id,
+          sessionExternalId: "sess-done",
+          status: "pending",
+          createdAt: 11,
+          payload: {
+            merchant: "completed dup",
+            amount: 15,
+            date: "2026-01-03",
+            type: "debit",
+          },
+        },
+      ],
+    });
+    const triage = await collectTriage(ctx as never);
+    expect(triage.items.map((row) => row.id)).toEqual(["dup-done"]);
+    expect(triage.counts.duplicateSuspect).toBe(1);
+
+    await expect(
+      applyTriageMineHandler(ctx as never, {
+        kind: "duplicate",
+        id: "dup-mid",
+        action: "ignore",
+      }),
+    ).rejects.toThrow("Duplicate not found");
   });
 
   it("expenses: category filter and cursor paging", async () => {

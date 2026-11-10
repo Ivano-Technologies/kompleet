@@ -8,6 +8,7 @@ type TransactionFilters = {
   type?: "debit" | "credit";
   search?: string;
   categoryId?: string;
+  includePendingImports?: boolean;
 };
 
 type ExpenseFilters = {
@@ -31,6 +32,7 @@ export async function listAllTransactionsMine(
         type: filters.type,
         search: filters.search,
         categoryId: filters.categoryId,
+        includePendingImports: filters.includePendingImports,
         cursor,
         limit: batch,
       });

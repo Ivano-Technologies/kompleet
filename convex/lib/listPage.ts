@@ -3,6 +3,13 @@ import { v } from "convex/values";
 /** Max rows a Convex list query will paginate in one call (exports use 500). */
 export const LIST_LIMIT_MAX = 500;
 export const LIST_LIMIT_DEFAULT = 50;
+/**
+ * Max underlying transaction rows listMine will scan while skipping hidden
+ * in-flight import rows. Stays under Convex's 4,096-read cap after session
+ * collection. If the cap hits before the page is full, isDone is false and
+ * the client can continue from nextCursor.
+ */
+export const LIST_VISIBLE_SCAN_MAX = 2500;
 export const API_LIMIT_MAX = 100;
 export const EXPORT_BATCH = 500;
 export const EXPORT_MAX = 50_000;

@@ -1,6 +1,7 @@
 // next.config.mjs
 import { withSentryConfig } from "@sentry/nextjs";
 import { CONTENT_SECURITY_POLICY } from "./src/lib/content-security-policy.mjs";
+import { KOMPLEET_PUBLIC_SENTRY_DSN } from "./src/lib/sentry/public-dsn.mjs";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -9,6 +10,8 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    NEXT_PUBLIC_SENTRY_DSN:
+      process.env.NEXT_PUBLIC_SENTRY_DSN || KOMPLEET_PUBLIC_SENTRY_DSN,
   },
 
   poweredByHeader: false,
