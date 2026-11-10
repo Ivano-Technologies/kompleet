@@ -35,6 +35,16 @@ describe("DARK_MODE_ENABLED gate", () => {
     expect(THEME_BOOT_SCRIPT).not.toMatch(/prefers-color-scheme/);
     expect(THEME_BOOT_SCRIPT).not.toMatch(/matchMedia/);
     expect(THEME_BOOT_SCRIPT_WHEN_ENABLED).toMatch(/classList\.toggle\("dark"/);
+    const quotedKey = `"${THEME_STORAGE_KEY}"`;
+    expect(THEME_BOOT_SCRIPT_WHEN_ENABLED).toContain(
+      `localStorage.getItem(${quotedKey})`,
+    );
+    expect(THEME_BOOT_SCRIPT_WHEN_DISABLED).toContain(
+      `localStorage.removeItem(${quotedKey})`,
+    );
+    expect(read("src/lib/theme-boot.ts")).not.toMatch(
+      /JSON\.stringify\(THEME_STORAGE_KEY\)/,
+    );
   });
 
   it("does not use next-themes or a system default at runtime", () => {
