@@ -60,7 +60,8 @@ export default defineSchema({
     .index("by_tokenIdentifier", ["tokenIdentifier"])
     .index("by_supabaseUserId", ["supabaseUserId"])
     .index("by_avatarStorageId", ["avatarStorageId"])
-    .index("by_platformRole", ["platformRole"]),
+    .index("by_platformRole", ["platformRole"])
+    .index("by_deletedAt", ["deletedAt"]),
 
   firms: defineTable({
     externalId: v.string(),

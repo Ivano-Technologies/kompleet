@@ -11,4 +11,10 @@ crons.weekly(
   internal.reminders.sendDueReminders,
 );
 
+crons.daily(
+  "purge expired auth and retention data",
+  { hourUTC: 3, minuteUTC: 0 },
+  internal.retention.purgeExpired,
+);
+
 export default crons;

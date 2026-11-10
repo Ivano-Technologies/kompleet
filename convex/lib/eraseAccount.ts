@@ -122,7 +122,7 @@ async function deleteByUserId(
   await deleteRows(ctx, filingAuditLogs);
 }
 
-async function deleteInvoiceTree(
+export async function deleteInvoiceTree(
   ctx: MutationCtx,
   invoiceId: Id<"invoices">,
 ) {
