@@ -27,7 +27,17 @@ import {
   classifyImportFailure,
   type ImportErrorCode,
 } from "@/lib/transaction-import/import-errors";
-import { apiErrorBody, toFriendlyError, userFacingError } from "@/lib/friendly-error";
+import {
+  apiErrorBody,
+  FRIENDLY_MESSAGES,
+  isConvexResourceLimitError,
+  toFriendlyErrorAndFlush,
+  userFacingError,
+} from "@/lib/friendly-error";
+import {
+  ImportPersistError,
+  persistImportedTransactions,
+} from "@/lib/transaction-import/import-persist";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -239,18 +249,13 @@ async function handlePOST(request: NextRequest) {
         normalizedTransactions,
       );
 
-      if (duplicates.length > 0) {
-        await convex.mutation(api.imports.addDuplicates, {
-          sessionExternalId: session.id,
-          candidates: duplicates.map((dup) => ({
-            existing_transaction_id: dup.existingTransaction.id,
-            new_transaction_data: dup.newTransaction,
-            similarity_score: dup.similarityScore,
-            match_factors: dup.matchFactors,
-            status: "pending",
-          })),
-        });
-      }
+      const duplicateCandidates = duplicates.map((dup) => ({
+        existing_transaction_id: dup.existingTransaction.id,
+        new_transaction_data: dup.newTransaction,
+        similarity_score: dup.similarityScore,
+        match_factors: dup.matchFactors,
+        status: "pending",
+      }));
 
       const highConfidenceDuplicates = duplicates.filter(
         (d) => d.similarityScore >= 0.95,
@@ -265,25 +270,33 @@ async function handlePOST(request: NextRequest) {
           ),
       );
 
-      const importedTransactions = await convex.mutation(
-        api.transactions.createManyMine,
-        {
-          items: transactionsToImport.map((t) => ({
-            transactionDate: t.date,
-            description: t.merchant,
-            amount: t.amount,
-            transactionType: t.type,
-            balance: t.balance,
-            reference: t.reference,
-            source: `${bankCode}_import`,
-          })),
-        },
-      );
+      // Session stays "processing" until every chunk succeeds.
+      const imported = await persistImportedTransactions({
+        items: transactionsToImport.map((t) => ({
+          transactionDate: t.date,
+          description: t.merchant,
+          amount: t.amount,
+          transactionType: t.type,
+          balance: t.balance,
+          reference: t.reference,
+          source: `${bankCode}_import`,
+        })),
+        duplicates: duplicateCandidates,
+        createMany: (items) =>
+          convex.mutation(api.transactions.createManyMine, { items }),
+        addDuplicates: (candidates) =>
+          convex.mutation(api.imports.addDuplicates, {
+            sessionExternalId: session.id,
+            candidates,
+          }),
+        removeMany: (ids) =>
+          convex.mutation(api.transactions.removeMine, { externalIds: ids }),
+      });
 
       await convex.mutation(api.imports.updateSession, {
         externalId: session.id,
         status: "completed",
-        transactionsImported: importedTransactions.length,
+        transactionsImported: imported.imported,
         totalAmount: transactionsToImport.reduce((sum, t) => sum + t.amount, 0),
         errorsCount: parseResult.errors.length,
         completed: true,
@@ -292,7 +305,7 @@ async function handlePOST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         sessionId: session.id,
-        imported: importedTransactions.length,
+        imported: imported.imported,
         duplicates: highConfidenceDuplicates.length,
         pendingReview: duplicates.length - highConfidenceDuplicates.length,
         errors: parseResult.errors.length,
@@ -309,9 +322,25 @@ async function handlePOST(request: NextRequest) {
         externalId: session.id,
         status: "failed",
       });
+      const persistError =
+        error instanceof ImportPersistError ? error.cause : error;
       // Raw text is only used to classify the failure, never returned.
-      const rawMsg = error instanceof Error ? error.message : "Unknown error";
-      const { message: errMsg, ref } = toFriendlyError(error, "Import didn't complete. Please try again.");
+      const rawMsg =
+        persistError instanceof Error ? persistError.message : "Unknown error";
+      const { message: errMsg, ref } = await toFriendlyErrorAndFlush(
+        persistError,
+        "Import didn't complete. Please try again.",
+        {
+          context: "import:upload-v2",
+          redactedFallback:
+            error instanceof ImportPersistError
+              ? FRIENDLY_MESSAGES.statementTooLong
+              : undefined,
+        },
+      );
+      const sizeLimited =
+        isConvexResourceLimitError(persistError) ||
+        errMsg === FRIENDLY_MESSAGES.statementTooLong;
       return NextResponse.json(
         {
           error: errMsg,
@@ -320,6 +349,7 @@ async function handlePOST(request: NextRequest) {
           ...errorPayload({
             status: 500,
             error: rawMsg,
+            errorCode: sizeLimited ? "ERR_SIZE_LIMIT" : undefined,
             requestedBankCode: bankCode,
             fileName: file.name,
           }),
@@ -337,7 +367,11 @@ async function handlePOST(request: NextRequest) {
       );
     }
     console.error("Upload error:", error);
-    const { message, ref } = toFriendlyError(error, "Import didn't complete. Please try again.");
+    const { message, ref } = await toFriendlyErrorAndFlush(
+      error,
+      "Import didn't complete. Please try again.",
+      { context: "import:upload-v2" },
+    );
     return NextResponse.json(
       {
         error: message,

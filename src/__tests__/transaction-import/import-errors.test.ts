@@ -125,6 +125,19 @@ describe("IVA-83 import error taxonomy", () => {
     expect(
       classifyImportFailure({ status: 500, error: "boom" }).code,
     ).toBe("ERR_UNKNOWN");
+    expect(
+      classifyImportFailure({
+        status: 500,
+        error: "This statement is too long. Try a shorter date range.",
+      }).code,
+    ).toBe("ERR_SIZE_LIMIT");
+    expect(
+      classifyImportFailure({
+        status: 500,
+        error:
+          "Too many documents read in a single function execution (limit: 4096 documents).",
+      }).code,
+    ).toBe("ERR_SIZE_LIMIT");
   });
 
   it("network/upload views toast; parse/format/bank stay inline-only", () => {

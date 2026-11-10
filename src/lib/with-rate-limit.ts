@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { rateLimitAsync, getIdentifier } from "./rate-limit";
-import { apiErrorBody } from "./friendly-error";
+import { apiErrorBody, flushSentry } from "./friendly-error";
 
 interface RateLimitOptions {
   limit?: number; // requests per window
@@ -27,46 +27,52 @@ export function withRateLimit<T extends Request | NextRequest = Request>(
   options: RateLimitOptions = {},
 ): (request: T, context?: any) => Promise<Response> {
   return async (request: T, context?: any) => {
-    // Bucket per IP + method + path. A shared IP counter lets chatty routes
-    // (e.g. GET /api/year/available on every layout) 429 unrelated POSTs.
-    const identifier = `${getIdentifier(request)}:${request.method}:${new URL(request.url).pathname}`;
-    const result = await rateLimitAsync(identifier, options);
-
-    // Add rate limit headers
-    const headers = new Headers();
-    headers.set("X-RateLimit-Limit", String(options.limit ?? 60));
-    headers.set("X-RateLimit-Remaining", String(result.remaining));
-    headers.set("X-RateLimit-Reset", result.reset.toISOString());
-
-    if (!result.success) {
-      const retryAfter = Math.ceil(
-        (result.reset.getTime() - Date.now()) / 1000,
-      );
-      headers.set("Retry-After", String(retryAfter));
-
-      return NextResponse.json(
-        {
-          ...apiErrorBody("Too many attempts. Please wait a moment and try again."),
-          message: `Rate limit exceeded. Please try again in ${retryAfter} seconds.`,
-          retryAfter,
-        },
-        {
-          status: 429,
-          headers,
-        },
-      );
-    }
-
-    // Execute the handler. Do not rebuild Response — Next.js 16 + cookies()
-    // 500s when a Route Handler that read cookies returns a cloned body.
-    const response = await handler(request, context);
     try {
-      headers.forEach((value, key) => {
-        response.headers.set(key, value);
-      });
-    } catch (error) {
-      console.error("Failed to attach rate-limit headers:", error);
+      // Bucket per IP + method + path. A shared IP counter lets chatty routes
+      // (e.g. GET /api/year/available on every layout) 429 unrelated POSTs.
+      const identifier = `${getIdentifier(request)}:${request.method}:${new URL(request.url).pathname}`;
+      const result = await rateLimitAsync(identifier, options);
+
+      // Add rate limit headers
+      const headers = new Headers();
+      headers.set("X-RateLimit-Limit", String(options.limit ?? 60));
+      headers.set("X-RateLimit-Remaining", String(result.remaining));
+      headers.set("X-RateLimit-Reset", result.reset.toISOString());
+
+      if (!result.success) {
+        const retryAfter = Math.ceil(
+          (result.reset.getTime() - Date.now()) / 1000,
+        );
+        headers.set("Retry-After", String(retryAfter));
+
+        return NextResponse.json(
+          {
+            ...apiErrorBody("Too many attempts. Please wait a moment and try again."),
+            message: `Rate limit exceeded. Please try again in ${retryAfter} seconds.`,
+            retryAfter,
+          },
+          {
+            status: 429,
+            headers,
+          },
+        );
+      }
+
+      // Execute the handler. Do not rebuild Response — Next.js 16 + cookies()
+      // 500s when a Route Handler that read cookies returns a cloned body.
+      const response = await handler(request, context);
+      try {
+        headers.forEach((value, key) => {
+          response.headers.set(key, value);
+        });
+      } catch (error) {
+        console.error("Failed to attach rate-limit headers:", error);
+      }
+      return response;
+    } finally {
+      // Serverless responses freeze the isolate; flush so captureException
+      // from toFriendlyError actually reaches Sentry.
+      await flushSentry();
     }
-    return response;
   };
 }

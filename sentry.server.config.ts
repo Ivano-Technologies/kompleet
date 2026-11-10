@@ -10,8 +10,11 @@ Sentry.init({
   // Enable structured logs
   enableLogs: true,
 
-  // Environment
-  environment: process.env.NODE_ENV,
+  // Environment. Prefer Vercel env so preview events are distinct from prod.
+  environment: process.env.VERCEL_ENV || process.env.NODE_ENV,
+
+  // Give flush() a bounded wait when API routes await it before responding.
+  shutdownTimeout: 2000,
 
   // Pino integration: capture Pino logs as Sentry logs + errors
   // KOMPLEET already uses Pino — this bridges them

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getCompatUser } from "@/lib/auth/session";
 import { isCompatEmailVerified } from "@/lib/auth/email-verified";
+import { flushSentry } from "@/lib/friendly-error";
 import { hasPermission, type Permission, type Role } from "./rbac";
 
 interface AuthOptions {
@@ -128,6 +129,8 @@ export function withAuth<T extends Request | NextRequest = Request>(
         { error: "Internal server error" },
         { status: 500 },
       );
+    } finally {
+      await flushSentry();
     }
   };
 }

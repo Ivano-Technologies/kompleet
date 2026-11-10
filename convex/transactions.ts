@@ -1,4 +1,4 @@
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import {
   internalMutation,
   mutation,
@@ -7,6 +7,10 @@ import {
   type QueryCtx,
 } from "./_generated/server";
 import { getCurrentUser } from "./lib/auth";
+import {
+  IMPORT_WRITE_BATCH_MAX,
+  STATEMENT_TOO_LONG_MESSAGE,
+} from "./lib/importWrite";
 import { newExternalId, toMs } from "./lib/ids";
 import {
   cursorValidator,
@@ -398,6 +402,54 @@ export const createMine = mutation({
   },
 });
 
+export type CreateManyMineItem = {
+  description: string;
+  amount: number;
+  transactionType: "debit" | "credit";
+  transactionDate: string;
+  balance?: number;
+  source?: string;
+  reference?: string;
+};
+
+/**
+ * Insert a batch of the current user's transactions.
+ * Callers must chunk to IMPORT_WRITE_BATCH_SIZE (max IMPORT_WRITE_BATCH_MAX).
+ * Returns generated external ids only — no per-row get/hydrate, so a 400-row
+ * batch stays well under Convex's 4,096-read / 8,192-array caps.
+ */
+export async function createManyMineHandler(
+  ctx: MutationCtx,
+  args: { items: CreateManyMineItem[] },
+) {
+  if (args.items.length > IMPORT_WRITE_BATCH_MAX) {
+    throw new ConvexError(STATEMENT_TOO_LONG_MESSAGE);
+  }
+  const user = await getCurrentUser(ctx);
+  const now = Date.now();
+  const ids: string[] = [];
+  for (const item of args.items) {
+    const externalId = newExternalId();
+    await ctx.db.insert("transactions", {
+      externalId,
+      userId: user._id,
+      userExternalId: user.externalId,
+      transactionDate: item.transactionDate,
+      description: item.description,
+      amount: item.amount,
+      transactionType: item.transactionType,
+      balance: item.balance,
+      source: item.source,
+      reference: item.reference,
+      isReconciled: false,
+      createdAt: now,
+      updatedAt: now,
+    });
+    ids.push(externalId);
+  }
+  return { ids, count: ids.length };
+}
+
 export const createManyMine = mutation({
   args: {
     items: v.array(
@@ -412,36 +464,11 @@ export const createManyMine = mutation({
       }),
     ),
   },
-  returns: v.array(transactionApi),
-  handler: async (ctx, args) => {
-    const user = await getCurrentUser(ctx);
-    const now = Date.now();
-    const created = [];
-    for (const item of args.items) {
-      const externalId = newExternalId();
-      await ctx.db.insert("transactions", {
-        externalId,
-        userId: user._id,
-        userExternalId: user.externalId,
-        transactionDate: item.transactionDate,
-        description: item.description,
-        amount: item.amount,
-        transactionType: item.transactionType,
-        balance: item.balance,
-        source: item.source,
-        reference: item.reference,
-        isReconciled: false,
-        createdAt: now,
-        updatedAt: now,
-      });
-      const row = await ctx.db
-        .query("transactions")
-        .withIndex("by_externalId", (q) => q.eq("externalId", externalId))
-        .unique();
-      if (row) created.push(await toApi(ctx, row));
-    }
-    return created;
-  },
+  returns: v.object({
+    ids: v.array(v.string()),
+    count: v.number(),
+  }),
+  handler: createManyMineHandler,
 });
 
 export const updateMine = mutation({
@@ -511,24 +538,32 @@ export const updateMine = mutation({
   },
 });
 
+export async function removeMineHandler(
+  ctx: MutationCtx,
+  args: { externalIds: string[] },
+) {
+  if (args.externalIds.length > IMPORT_WRITE_BATCH_MAX) {
+    throw new ConvexError(STATEMENT_TOO_LONG_MESSAGE);
+  }
+  const user = await getCurrentUser(ctx);
+  let removed = 0;
+  for (const externalId of args.externalIds) {
+    const row = await ctx.db
+      .query("transactions")
+      .withIndex("by_externalId", (q) => q.eq("externalId", externalId))
+      .unique();
+    if (row && row.userId === user._id) {
+      await ctx.db.delete(row._id);
+      removed += 1;
+    }
+  }
+  return removed;
+}
+
 export const removeMine = mutation({
   args: { externalIds: v.array(v.string()) },
   returns: v.number(),
-  handler: async (ctx, args) => {
-    const user = await getCurrentUser(ctx);
-    let removed = 0;
-    for (const externalId of args.externalIds) {
-      const row = await ctx.db
-        .query("transactions")
-        .withIndex("by_externalId", (q) => q.eq("externalId", externalId))
-        .unique();
-      if (row && row.userId === user._id) {
-        await ctx.db.delete(row._id);
-        removed += 1;
-      }
-    }
-    return removed;
-  },
+  handler: removeMineHandler,
 });
 
 export const upsertFromBackfill = internalMutation({

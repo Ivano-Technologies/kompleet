@@ -22,6 +22,7 @@ import {
   type AuthErrorCode,
   type AuthErrorData,
 } from "../../convex/lib/authErrors";
+import { STATEMENT_TOO_LONG_MESSAGE } from "../../convex/lib/importWrite";
 
 export const FRIENDLY_FALLBACK = "Something went wrong. Please try again.";
 
@@ -38,7 +39,46 @@ export const FRIENDLY_MESSAGES = {
   unauthorized: "Your session has expired. Please sign in again.",
   missingTaxRule:
     "This tax figure hasn't been verified yet, so we can't calculate it right now. Please try again later.",
+  statementTooLong: STATEMENT_TOO_LONG_MESSAGE,
 } as const;
+
+const CONVEX_LIMIT_PATTERN =
+  /too many (bytes|documents|reads|writes)|array.{0,40}(too (long|large)|length)|value is too large|data is too large|exceeded.{0,80}(read|write|byte|array|size) limit|write size|read size|4096 documents|8192 array/i;
+
+/** True for Convex platform read/write/array/size limit errors. */
+export function isConvexResourceLimitError(err: unknown): boolean {
+  const text = `${rawText(err)} ${err instanceof Error ? err.message : ""} ${stripErrorWrappers(err instanceof Error ? err.message : rawText(err))}`;
+  return CONVEX_LIMIT_PATTERN.test(text);
+}
+
+/**
+ * Await pending Sentry envelopes before a serverless response ends.
+ * Empty queue resolves immediately; failures are swallowed so flush never
+ * masks the original error.
+ */
+export async function flushSentry(timeoutMs = 2000): Promise<boolean> {
+  try {
+    if (typeof Sentry.flush !== "function") return false;
+    const flushed = await Sentry.flush(timeoutMs);
+    return flushed !== false;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Friendly copy plus a support ref, then wait for Sentry to send the event.
+ * Use on server error paths instead of `toFriendlyError` alone.
+ */
+export async function toFriendlyErrorAndFlush(
+  err: unknown,
+  fallback: string = FRIENDLY_FALLBACK,
+  options: FriendlyMessageOptions = {},
+): Promise<FriendlyError> {
+  const result = toFriendlyError(err, fallback, options);
+  await flushSentry();
+  return result;
+}
 
 /** An error whose message is written for end users and is safe to display. */
 export class UserFacingError extends Error {
@@ -344,6 +384,8 @@ export const USER_MESSAGE_ALLOWLIST: Record<string, string> = {
   "Type delete my account to confirm.":
     "Type delete my account to confirm.",
   "Your account has been deleted.": "Your account has been deleted.",
+  "This statement is too long. Try a shorter date range.":
+    "This statement is too long. Try a shorter date range.",
 };
 
 const NOT_FOUND_PATTERN =
@@ -370,6 +412,9 @@ function mapKnown(err: unknown, text: string): string | null {
   const typed = authErrorDataFromUnknown(err);
   if (typed) {
     return messageForAuthCode(typed.code, retryAfterSecondsFromData(typed));
+  }
+  if (isConvexResourceLimitError(err) || CONVEX_LIMIT_PATTERN.test(text)) {
+    return FRIENDLY_MESSAGES.statementTooLong;
   }
   if (isNetworkError(err)) return FRIENDLY_MESSAGES.network;
   if (
@@ -605,6 +650,18 @@ export function friendlyErrorBody(
   options: FriendlyMessageOptions = {},
 ): { error: string; ref: string } {
   const { message, ref } = toFriendlyError(err, fallback, options);
+  return { error: message, ref };
+}
+
+/**
+ * Async API error body that flushes Sentry before the caller returns a response.
+ */
+export async function friendlyErrorBodyAndFlush(
+  err: unknown,
+  fallback: string = FRIENDLY_FALLBACK,
+  options: FriendlyMessageOptions = {},
+): Promise<{ error: string; ref: string }> {
+  const { message, ref } = await toFriendlyErrorAndFlush(err, fallback, options);
   return { error: message, ref };
 }
 

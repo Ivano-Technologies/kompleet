@@ -14,6 +14,14 @@ import {
 } from "@/lib/transaction-import/bank-adapter";
 import { resolveBankCode } from "@/lib/transaction-import/bank-configs";
 import { normalizeTransactions } from "@/lib/transaction-import/normalizer";
+import {
+  FRIENDLY_MESSAGES,
+  toFriendlyErrorAndFlush,
+} from "@/lib/friendly-error";
+import {
+  ImportPersistError,
+  persistImportedTransactions,
+} from "@/lib/transaction-import/import-persist";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -105,25 +113,26 @@ async function handlePOST(
       parseResult.transactions,
       bankCode,
     );
-    const importedTransactions = await convex.mutation(
-      api.transactions.createManyMine,
-      {
-        items: normalized.map((t) => ({
-          transactionDate: t.date,
-          description: t.merchant,
-          amount: t.amount,
-          transactionType: t.type,
-          balance: t.balance,
-          reference: t.reference,
-          source: `${bankCode}_import`,
-        })),
-      },
-    );
+    const imported = await persistImportedTransactions({
+      items: normalized.map((t) => ({
+        transactionDate: t.date,
+        description: t.merchant,
+        amount: t.amount,
+        transactionType: t.type,
+        balance: t.balance,
+        reference: t.reference,
+        source: `${bankCode}_import`,
+      })),
+      createMany: (items) =>
+        convex.mutation(api.transactions.createManyMine, { items }),
+      removeMany: (ids) =>
+        convex.mutation(api.transactions.removeMine, { externalIds: ids }),
+    });
 
     return NextResponse.json({
       success: true,
-      message: `Successfully imported ${importedTransactions.length} transactions`,
-      imported: importedTransactions.length,
+      message: `Successfully imported ${imported.imported} transactions`,
+      imported: imported.imported,
       duplicates: 0,
       errors: parseResult.errors.length,
     });
@@ -141,10 +150,23 @@ async function handlePOST(
       );
     }
     console.error("Upload error:", error);
+    const persistError =
+      error instanceof ImportPersistError ? error.cause : error;
+    const { message } = await toFriendlyErrorAndFlush(
+      persistError,
+      "Import didn't complete. Please try again.",
+      {
+        context: "import:upload",
+        redactedFallback:
+          error instanceof ImportPersistError
+            ? FRIENDLY_MESSAGES.statementTooLong
+            : undefined,
+      },
+    );
     return NextResponse.json(
       {
         success: false,
-        message: error instanceof Error ? error.message : "Upload failed",
+        message,
         imported: 0,
         duplicates: 0,
         errors: 0,

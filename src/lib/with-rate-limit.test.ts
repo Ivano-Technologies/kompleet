@@ -1,10 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import * as Sentry from "@sentry/nextjs";
 
 // Mock the rate-limit module
 vi.mock("./rate-limit", () => ({
   rateLimit: vi.fn(),
   rateLimitAsync: vi.fn(),
   getIdentifier: vi.fn(() => "127.0.0.1"),
+}));
+
+vi.mock("@sentry/nextjs", () => ({
+  captureException: vi.fn(),
+  flush: vi.fn(async () => true),
 }));
 
 import { withRateLimit } from "./with-rate-limit";
@@ -131,6 +137,20 @@ describe("withRateLimit", () => {
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual({ reports: [] });
     expect(response.headers.get("X-RateLimit-Limit")).toBe("60");
+  });
+
+  it("flushes Sentry before returning a handler response", async () => {
+    mockedRateLimit.mockResolvedValue({
+      success: true,
+      remaining: 59,
+      reset: new Date(Date.now() + 60000),
+    });
+    const handler = vi
+      .fn()
+      .mockResolvedValue(new Response(JSON.stringify({ ok: true })));
+    const wrappedHandler = withRateLimit(handler);
+    await wrappedHandler(createMockRequest());
+    expect(Sentry.flush).toHaveBeenCalled();
   });
 
   it("passes context to handler", async () => {

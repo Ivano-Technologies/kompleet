@@ -17,14 +17,20 @@ import {
   stripStackFrames,
   toFriendlyMessage,
   toFriendlyError,
+  toFriendlyErrorAndFlush,
   generateRef,
   splitRef,
   withRef,
   friendlyErrorBody,
+  flushSentry,
+  isConvexResourceLimitError,
   userFacingError,
 } from "@/lib/friendly-error";
 
-vi.mock("@sentry/nextjs", () => ({ captureException: vi.fn() }));
+vi.mock("@sentry/nextjs", () => ({
+  captureException: vi.fn(),
+  flush: vi.fn(async () => true),
+}));
 
 const convexWrap = (inner: string) =>
   `[CONVEX A(auth:signIn)] [Request ID: 7f3a9c1e2b] Server Error\nUncaught Error: ${inner}\n    at handler (../convex/auth.ts:42:11)\n\n  Called by client`;
@@ -312,6 +318,45 @@ describe("friendly-error", () => {
       expect(
         msg(new FakeConvexError({ message: "Pick a client." })),
       ).toBe("Pick a client.");
+    });
+
+    it("maps Convex read/write/array limit errors to the statement-too-long copy", () => {
+      const tooMany = new Error(
+        "Too many documents read in a single function execution (limit: 4096 documents).",
+      );
+      expect(isConvexResourceLimitError(tooMany)).toBe(true);
+      expect(msg(tooMany)).toBe(FRIENDLY_MESSAGES.statementTooLong);
+      expect(msg(tooMany)).not.toMatch(/[\u2013\u2014]/);
+      expect(
+        msg(new Error("Array is too long (limit: 8192 array elements)")),
+      ).toBe(FRIENDLY_MESSAGES.statementTooLong);
+      expect(
+        msg(
+          new Error(
+            "[Request ID: xyz] Server Error\nUncaught Error: Value is too large",
+          ),
+        ),
+      ).toBe(FRIENDLY_MESSAGES.statementTooLong);
+      expect(Sentry.captureException).not.toHaveBeenCalled();
+    });
+
+    it("does not treat unrelated Convex faults as a statement size limit", () => {
+      expect(isConvexResourceLimitError(new Error("Not authenticated"))).toBe(
+        false,
+      );
+      expect(msg(new Error("column foo does not exist"), "fallback")).toBe(
+        "fallback",
+      );
+    });
+
+    it("flushes Sentry after reporting an unexpected server error", async () => {
+      vi.mocked(Sentry.flush).mockClear();
+      const err = new Error("[Request ID: abc] Server Error");
+      const result = await toFriendlyErrorAndFlush(err);
+      expect(result.message).toBe(FRIENDLY_FALLBACK);
+      expect(Sentry.captureException).toHaveBeenCalled();
+      expect(Sentry.flush).toHaveBeenCalled();
+      await expect(flushSentry()).resolves.toBe(true);
     });
 
     it("maps allowlisted validation messages from our Convex functions", () => {

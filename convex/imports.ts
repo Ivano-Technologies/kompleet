@@ -1,6 +1,15 @@
-import { v } from "convex/values";
-import { internalMutation, mutation, query } from "./_generated/server";
+import { ConvexError, v } from "convex/values";
+import {
+  internalMutation,
+  mutation,
+  query,
+  type MutationCtx,
+} from "./_generated/server";
 import { getCurrentUser } from "./lib/auth";
+import {
+  IMPORT_WRITE_BATCH_MAX,
+  STATEMENT_TOO_LONG_MESSAGE,
+} from "./lib/importWrite";
 import { newExternalId, toMs } from "./lib/ids";
 import {
   cursorValidator,
@@ -249,36 +258,44 @@ export const listErrors = query({
   },
 });
 
+export async function addDuplicatesHandler(
+  ctx: MutationCtx,
+  args: { sessionExternalId: string; candidates: unknown[] },
+) {
+  if (args.candidates.length > IMPORT_WRITE_BATCH_MAX) {
+    throw new ConvexError(STATEMENT_TOO_LONG_MESSAGE);
+  }
+  const user = await getCurrentUser(ctx);
+  const session = await ctx.db
+    .query("importSessions")
+    .withIndex("by_externalId", (q) =>
+      q.eq("externalId", args.sessionExternalId),
+    )
+    .unique();
+  if (!session || session.userId !== user._id) {
+    throw new Error("Import session not found");
+  }
+  for (const payload of args.candidates) {
+    await ctx.db.insert("duplicateCandidates", {
+      externalId: newExternalId(),
+      sessionId: session._id,
+      sessionExternalId: session.externalId,
+      userId: user._id,
+      payload,
+      status: "pending",
+      createdAt: Date.now(),
+    });
+  }
+  return args.candidates.length;
+}
+
 export const addDuplicates = mutation({
   args: {
     sessionExternalId: v.string(),
     candidates: v.array(v.any()),
   },
   returns: v.number(),
-  handler: async (ctx, args) => {
-    const user = await getCurrentUser(ctx);
-    const session = await ctx.db
-      .query("importSessions")
-      .withIndex("by_externalId", (q) =>
-        q.eq("externalId", args.sessionExternalId),
-      )
-      .unique();
-    if (!session || session.userId !== user._id) {
-      throw new Error("Import session not found");
-    }
-    for (const payload of args.candidates) {
-      await ctx.db.insert("duplicateCandidates", {
-        externalId: newExternalId(),
-        sessionId: session._id,
-        sessionExternalId: session.externalId,
-        userId: user._id,
-        payload,
-        status: "pending",
-        createdAt: Date.now(),
-      });
-    }
-    return args.candidates.length;
-  },
+  handler: addDuplicatesHandler,
 });
 
 export const listDuplicates = query({
