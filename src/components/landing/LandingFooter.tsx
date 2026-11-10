@@ -3,13 +3,19 @@ import { BrandLockup } from "@/components/brand/BrandLockup";
 import { CookieSettingsButton } from "@/components/cookies/CookieSettingsButton";
 import { COMPANY_LEGAL } from "@/lib/legal";
 
+const COLUMN_HEADING =
+  "mb-3 flex h-5 items-center text-sm font-semibold text-text-1";
+const COLUMN_LINKS = "space-y-3 text-sm text-text-2";
+const COLUMN_LINK =
+  "inline-flex min-h-11 min-w-11 items-center hover:text-text-1";
+
 export default function LandingFooter() {
   return (
     <footer className="border-t border-border bg-surface py-12">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-10 grid grid-cols-2 gap-8 md:grid-cols-5">
           <div className="col-span-2 md:col-span-1">
-            <div className="mb-4">
+            <div className="mb-3 flex h-5 items-center">
               <BrandLockup size="sm" />
             </div>
             <p className="text-sm leading-relaxed text-text-2">
@@ -17,95 +23,75 @@ export default function LandingFooter() {
             </p>
           </div>
           <div>
-            <h2 className="mb-4 text-sm font-semibold text-text-1">Product</h2>
-            <ul className="space-y-1 text-sm text-text-2">
+            <h2 className={COLUMN_HEADING}>Product</h2>
+            <ul className={COLUMN_LINKS}>
               <li>
-                <Link href="/#features" className="inline-flex min-h-11 min-w-11 items-center hover:text-text-1">
-                  Features
-                </Link>
-              </li>
-              <li>
-                <Link href="/pricing" className="inline-flex min-h-11 min-w-11 items-center hover:text-text-1">
-                  Pricing
-                </Link>
-              </li>
-              <li>
-                <Link href="/#security" className="inline-flex min-h-11 min-w-11 items-center hover:text-text-1">
+                <Link href="/privacy" className={COLUMN_LINK}>
                   Security
                 </Link>
               </li>
               <li>
-                <Link href="/api-docs" className="inline-flex min-h-11 min-w-11 items-center hover:text-text-1">
+                <Link href="/api-docs" className={COLUMN_LINK}>
                   API Docs
                 </Link>
               </li>
             </ul>
           </div>
           <div>
-            <h2 className="mb-4 text-sm font-semibold text-text-1">Company</h2>
-            <ul className="space-y-1 text-sm text-text-2">
+            <h2 className={COLUMN_HEADING}>Company</h2>
+            <ul className={COLUMN_LINKS}>
               <li>
-                <Link href="/about" className="inline-flex min-h-11 min-w-11 items-center hover:text-text-1">
+                <Link href="/about" className={COLUMN_LINK}>
                   About
                 </Link>
               </li>
               <li>
-                <Link href="/help" className="inline-flex min-h-11 min-w-11 items-center hover:text-text-1">
-                  Help
-                </Link>
-              </li>
-              <li>
-                <Link href="/careers" className="inline-flex min-h-11 min-w-11 items-center hover:text-text-1">
+                <Link href="/careers" className={COLUMN_LINK}>
                   Careers
                 </Link>
               </li>
               <li>
-                <Link href="/contact" className="inline-flex min-h-11 min-w-11 items-center hover:text-text-1">
+                <Link href="/contact" className={COLUMN_LINK}>
                   Contact
                 </Link>
               </li>
             </ul>
           </div>
           <div>
-            <h2 className="mb-4 text-sm font-semibold text-text-1">Resources</h2>
-            <ul className="space-y-1 text-sm text-text-2">
+            <h2 className={COLUMN_HEADING}>Resources</h2>
+            <ul className={COLUMN_LINKS}>
               <li>
-                <Link href="/help" className="inline-flex min-h-11 min-w-11 items-center hover:text-text-1">
+                <Link href="/help" className={COLUMN_LINK}>
                   Help Center
                 </Link>
               </li>
               <li>
-                <Link href="/press" className="inline-flex min-h-11 min-w-11 items-center hover:text-text-1">
+                <Link href="/press" className={COLUMN_LINK}>
                   Press
-                </Link>
-              </li>
-              <li>
-                <Link href="/help" className="inline-flex min-h-11 min-w-11 items-center hover:text-text-1">
-                  Guides
                 </Link>
               </li>
             </ul>
           </div>
           <div>
-            <h2 className="mb-4 text-sm font-semibold text-text-1">Legal</h2>
-            <ul className="space-y-1 text-sm text-text-2">
+            <h2 className={COLUMN_HEADING}>Legal</h2>
+            <ul className={COLUMN_LINKS}>
               <li>
-                <a href={COMPANY_LEGAL.privacy} className="inline-flex min-h-11 min-w-11 items-center hover:text-text-1">
+                <a href={COMPANY_LEGAL.privacy} className={COLUMN_LINK}>
                   Privacy
                 </a>
               </li>
               <li>
-                <a href={COMPANY_LEGAL.terms} className="inline-flex min-h-11 min-w-11 items-center hover:text-text-1">
+                <a href={COMPANY_LEGAL.terms} className={COLUMN_LINK}>
                   Terms
                 </a>
               </li>
               <li>
-                <a href={COMPANY_LEGAL.refunds} className="inline-flex min-h-11 min-w-11 items-center hover:text-text-1">
+                <a href={COMPANY_LEGAL.refunds} className={COLUMN_LINK}>
                   Refunds
                 </a>
               </li>
               <li>
-                <Link href="/cookies" className="inline-flex min-h-11 min-w-11 items-center hover:text-text-1">
+                <Link href="/cookies" className={COLUMN_LINK}>
                   Cookies
                 </Link>
               </li>
@@ -115,22 +101,30 @@ export default function LandingFooter() {
             </ul>
           </div>
         </div>
-        <div className="flex flex-col items-center justify-between gap-4 border-t border-border pt-8 text-sm text-text-2 md:flex-row">
-          <p>&copy; 2026 KOMPLEET by Ivano Technologies Ltd. All rights reserved.</p>
-          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1">
-            <a
-              href="mailto:hi@ivanotechnologies.com"
-              className="inline-flex min-h-11 min-w-11 items-center hover:text-text-1"
-            >
+        <div className="flex flex-col gap-6 border-t border-border pt-8 text-sm text-text-2 md:flex-row md:items-center md:justify-between">
+          <p>
+            &copy; 2026 Kompleet by Ivano Technologies Ltd. All rights reserved.
+          </p>
+          <nav
+            className="flex flex-wrap items-center gap-6"
+            aria-label="Legal and contact"
+          >
+            <Link href="/terms" className={COLUMN_LINK}>
+              Terms of Service
+            </Link>
+            <Link href="/privacy" className={COLUMN_LINK}>
+              Privacy Policy
+            </Link>
+            <a href="mailto:hi@ivanotechnologies.com" className={COLUMN_LINK}>
               hi@ivanotechnologies.com
             </a>
             <a
               href="mailto:support@ivanotechnologies.com"
-              className="inline-flex min-h-11 min-w-11 items-center hover:text-text-1"
+              className={COLUMN_LINK}
             >
               support@ivanotechnologies.com
             </a>
-          </div>
+          </nav>
         </div>
       </div>
     </footer>

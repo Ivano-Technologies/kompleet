@@ -22,7 +22,7 @@ test.describe("Cookie consent", () => {
   test("does not load Google Analytics until the visitor accepts", async ({
     page,
   }) => {
-    await page.goto("/pricing");
+    await page.goto("/about");
 
     const banner = page.getByRole("dialog", { name: "Cookie notice" });
     await expect(banner).toBeVisible();
@@ -83,7 +83,7 @@ test.describe("Cookie consent", () => {
     expect(Math.abs(declineBox!.width - acceptBox!.width)).toBeLessThan(2);
     expect(acceptBox!.x).toBeGreaterThan(declineBox!.x);
 
-    const submit = page.getByRole("button", { name: /Create account/ });
+    const submit = page.getByRole("button", { name: /^Create account$/ });
     await submit.scrollIntoViewIfNeeded();
     const submitBox = await submit.boundingBox();
     expect(submitBox).not.toBeNull();
@@ -93,17 +93,15 @@ test.describe("Cookie consent", () => {
   });
 
   test("footer legal links point at the company site", async ({ page }) => {
-    await page.goto("/pricing");
+    await page.goto("/about");
 
     const footer = page.locator("footer");
-    await expect(footer.getByRole("link", { name: "Privacy" })).toHaveAttribute(
-      "href",
-      COMPANY_LEGAL.privacy,
-    );
-    await expect(footer.getByRole("link", { name: "Terms" })).toHaveAttribute(
-      "href",
-      COMPANY_LEGAL.terms,
-    );
+    await expect(
+      footer.getByRole("link", { name: "Privacy", exact: true }),
+    ).toHaveAttribute("href", COMPANY_LEGAL.privacy);
+    await expect(
+      footer.getByRole("link", { name: "Terms", exact: true }),
+    ).toHaveAttribute("href", COMPANY_LEGAL.terms);
     await expect(footer.getByRole("link", { name: "Refunds" })).toHaveAttribute(
       "href",
       COMPANY_LEGAL.refunds,

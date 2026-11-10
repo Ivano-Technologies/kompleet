@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/press" },
   title: "Kompleet: Press",
   description:
-    "Press resources and media information for KOMPLEET by Ivano Technologies Ltd.",
+    "Press resources and media information for Kompleet by Ivano Technologies Ltd.",
 };
 
 export default function PressPage() {
@@ -24,7 +24,7 @@ export default function PressPage() {
             Press &amp; Media
           </h1>
           <p className="text-lg text-light-text-secondary dark:text-dark-text-secondary leading-relaxed">
-            Resources for journalists and media professionals covering KOMPLEET
+            Resources for journalists and media professionals covering Kompleet
             and the Nigerian fintech space.
           </p>
         </div>
@@ -69,17 +69,14 @@ export default function PressPage() {
 
         <div className="bg-light-surface dark:bg-dark-surface rounded-lg p-8 mb-8">
           <h2 className="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">
-            About KOMPLEET
+            About Kompleet
           </h2>
-          <p className="text-light-text-secondary dark:text-dark-text-secondary leading-relaxed mb-4">
-            KOMPLEET is a bookkeeping and invoicing platform built for Nigerian
+          <p className="text-light-text-secondary dark:text-dark-text-secondary leading-relaxed">
+            Kompleet is a bookkeeping and invoicing platform built for Nigerian
             SMEs. Developed by Ivano Technologies Ltd, it supports Nigerian
             bank statement import, transaction categorization, expense
             tracking, invoicing with payment tracking, and P&amp;L and balance
             sheet reports.
-          </p>
-          <p className="text-light-text-secondary dark:text-dark-text-secondary leading-relaxed">
-            Currently in beta. Product claims reflect shipped capabilities only.
           </p>
         </div>
 

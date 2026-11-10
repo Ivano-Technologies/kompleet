@@ -23,7 +23,7 @@ const SIGNUP_SELECTORS = {
   businessName: "e.g. Tunde Ventures Ltd",
   businessEmail: "name@company.ng",
   password: "Minimum 8 characters",
-  submit: /Create account/,
+  submit: /^Create account$/,
 };
 
 const LOGIN_SELECTORS = {
@@ -145,7 +145,7 @@ test.describe("Auth flow", () => {
   test("the login page shows the reclaim note", async ({ page }) => {
     await page.goto("/login");
     await expect(page.getByTestId("reclaim-note")).toHaveText(
-      "Existing Kompleet users: choose Get started and use this same email to reclaim your data.",
+      "Already used Kompleet with this email? Sign up with the same address to keep your books.",
     );
   });
 

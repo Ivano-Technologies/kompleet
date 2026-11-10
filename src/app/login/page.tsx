@@ -29,7 +29,7 @@ import { ErrorText } from "@/components/ui/error-ref";
 import { didSignInComplete, verifyEmailPath } from "@/lib/auth/sign-in-result";
 
 const RECLAIM_NOTE =
-  "Existing Kompleet users: choose Get started and use this same email to reclaim your data.";
+  "Already used Kompleet with this email? Sign up with the same address to keep your books.";
 
 function LoginForm() {
   const [email, setEmail] = useState("");

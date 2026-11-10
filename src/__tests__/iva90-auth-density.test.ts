@@ -9,6 +9,7 @@ const density = read("src/components/layout/auth-density.ts");
 const globals = read("src/app/globals.css");
 const signup = read("src/app/signup/page.tsx");
 const login = read("src/app/login/page.tsx");
+const authCopy = read("src/lib/auth/copy.ts");
 const forgot = read("src/app/forgot-password/page.tsx");
 const reset = read("src/app/reset-password/ResetPasswordClient.tsx");
 const verify = read("src/app/verify-email/page.tsx");
@@ -55,7 +56,14 @@ describe("IVA-90 AUTH-DENSITY lock", () => {
     expect(signup).toMatch(/Create account/);
     expect(signup).not.toMatch(/Create Free Account/);
     expect(signup).toMatch(/AUTH_TRUST/);
-    expect(signup).toMatch(/NDPR/);
+    expect(signup).toMatch(/Encrypted at rest/);
+    expect(signup).toMatch(/reclaim-note/);
+    expect(signup).toMatch(/RECLAIM_SIGNUP_NOTE/);
+    expect(authCopy).toMatch(
+      /Already used Kompleet with this email\? Sign up with the same address to keep your books\./,
+    );
+    expect(signup).not.toMatch(/Account Created/);
+    expect(signup).not.toMatch(/Your account is ready/);
   });
 
   it("does not change homepage hero auth density", () => {
