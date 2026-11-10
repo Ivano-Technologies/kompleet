@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import ContactFormClient from "@/components/contact/ContactFormClient";
 import LandingNav from "@/components/landing/LandingNav";
 import LandingFooter from "@/components/landing/LandingFooter";
+import { OperatorDetails } from "@/components/legal/OperatorDetails";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/contact" },
@@ -51,7 +52,7 @@ export default function ContactPage() {
                 </a>
               </p>
               <p className="text-sm text-text-2">
-                Support:{" "}
+                Support and data-protection requests:{" "}
                 <a
                   href="mailto:support@ivanotechnologies.com"
                   className="font-medium text-primary hover:underline"
@@ -63,11 +64,12 @@ export default function ContactPage() {
 
             <div className="rounded-xl border border-border bg-surface p-6 shadow-1">
               <h3 className="font-display mb-2 text-lg font-bold">Office</h3>
-              <p className="text-sm leading-relaxed text-text-2">
-                Ivano Technologies Ltd
-                <br />
-                Lagos, Nigeria
-              </p>
+              <OperatorDetails
+                showEmails={false}
+                showRc={false}
+                showDpo={false}
+                lineClassName="text-sm leading-relaxed text-text-2 mb-1 last:mb-0"
+              />
             </div>
 
             <div className="rounded-xl border border-border bg-surface p-6 shadow-1">

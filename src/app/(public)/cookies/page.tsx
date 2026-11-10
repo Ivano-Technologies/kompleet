@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { OperatorDetails } from "@/components/legal/OperatorDetails";
+import { COOKIE_POLICY_SOURCE_OF_TRUTH } from "@/lib/legal";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/cookies" },
@@ -22,8 +24,11 @@ export default function CookiesPage() {
         <h1 className="text-4xl font-bold text-light-text-primary dark:text-dark-text-primary mb-4">
           Cookie Policy
         </h1>
-        <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-8">
+        <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-2">
           Last updated: 10 November 2026
+        </p>
+        <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-8">
+          {COOKIE_POLICY_SOURCE_OF_TRUTH}
         </p>
 
         <div className="prose prose-lg max-w-none">
@@ -77,7 +82,6 @@ export default function CookiesPage() {
               personalized experience:
             </p>
             <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
-              <li>Theme preference (light/dark mode)</li>
               <li>Language and locale settings</li>
               <li>Dashboard layout preferences</li>
             </ul>
@@ -148,16 +152,10 @@ export default function CookiesPage() {
             <h2 className="text-2xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">
               6. Contact
             </h2>
-            <p className="text-light-text-secondary dark:text-dark-text-secondary">
-              If you have questions about our use of cookies, contact us at{" "}
-              <a
-                href="mailto:support@ivanotechnologies.com"
-                className="text-primary hover:underline"
-              >
-                support@ivanotechnologies.com
-              </a>
-              .
+            <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
+              If you have questions about our use of cookies, contact us:
             </p>
+            <OperatorDetails />
           </section>
         </div>
 

@@ -29,7 +29,7 @@ describe("IVA-292 legal processor copy", () => {
 
   it("keeps the no Nigerian residency disclaimer and the OCR processor clause", () => {
     expect(privacy).toMatch(/We do not claim Nigerian data residency/);
-    expect(privacy).toMatch(/third-party OCR and document processing/);
+    expect(privacy).toMatch(/third-party\s+OCR and document processing/);
   });
 
   it("sets Last updated to 10 November 2026 and keeps original Effective dates", () => {
@@ -44,5 +44,21 @@ describe("IVA-292 legal processor copy", () => {
       /Last updated: 10 November 2026\. Effective date: February 25, 2026\./,
     );
     expect(terms).not.toMatch(/Last updated: February/);
+  });
+
+  it("does not claim Google OAuth or Sign in with Google", () => {
+    expect(privacy).not.toMatch(/Google OAuth/i);
+    expect(privacy).not.toMatch(/Sign in with Google/i);
+    expect(terms).not.toMatch(/Google OAuth/i);
+    expect(terms).not.toMatch(/Sign in with Google/i);
+  });
+
+  it("keeps the Cookie Policy as the product source of truth without a theme toggle", () => {
+    expect(cookies).toMatch(/COOKIE_POLICY_SOURCE_OF_TRUTH/);
+    expect(cookies).not.toMatch(
+      /Last updated: 10 November 2026\. \{COOKIE_POLICY_SOURCE_OF_TRUTH\}/,
+    );
+    expect(cookies).not.toMatch(/light\/dark/i);
+    expect(cookies).not.toMatch(/dark mode/i);
   });
 });
