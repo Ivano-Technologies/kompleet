@@ -7,7 +7,8 @@ import { mkdirSync } from "node:fs";
 import { chromium } from "@playwright/test";
 
 const BASE = process.env.SHOT_BASE_URL || "http://localhost:3000";
-const SHA = (process.env.SHOT_SHA || "unknown").slice(0, 12);
+const SHA = process.env.SHOT_SHA || "unknown";
+const SHA_SHORT = SHA.slice(0, 12);
 const OUT = process.env.SHOT_OUT || "/opt/cursor/artifacts";
 const VIEWPORTS = [
   { name: "1280", width: 1280, height: 900 },
@@ -38,7 +39,7 @@ async function shot(page, viewport, name, setup) {
   });
   await setup();
   await stamp(page, name);
-  const file = `${OUT}/${name}_${viewport.name}_${SHA}.png`;
+  const file = `${OUT}/${name}_${viewport.name}_${SHA_SHORT}.png`;
   await page.screenshot({ path: file, fullPage: false });
   console.log(file);
 }
