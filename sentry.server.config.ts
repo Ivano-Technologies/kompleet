@@ -1,8 +1,9 @@
 // sentry.server.config.ts
 import * as Sentry from "@sentry/nextjs";
+import { resolveSentryDsn } from "./src/lib/sentry/dsn";
 
 Sentry.init({
-  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+  dsn: resolveSentryDsn(),
 
   // Performance: capture 10% of server transactions in production
   tracesSampleRate: process.env.NODE_ENV === "development" ? 1.0 : 0.1,
@@ -14,7 +15,7 @@ Sentry.init({
   environment: process.env.VERCEL_ENV || process.env.NODE_ENV,
 
   // Give flush() a bounded wait when API routes await it before responding.
-  shutdownTimeout: 2000,
+  shutdownTimeout: 8000,
 
   // Pino integration: capture Pino logs as Sentry logs + errors
   // KOMPLEET already uses Pino — this bridges them

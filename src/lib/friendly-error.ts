@@ -56,11 +56,18 @@ export function isConvexResourceLimitError(err: unknown): boolean {
  * Empty queue resolves immediately; failures are swallowed so flush never
  * masks the original error.
  */
-export async function flushSentry(timeoutMs = 2000): Promise<boolean> {
+export async function flushSentry(timeoutMs = 5000): Promise<boolean> {
   try {
-    if (typeof Sentry.flush !== "function") return false;
-    const flushed = await Sentry.flush(timeoutMs);
-    return flushed !== false;
+    const client = Sentry.getClient?.();
+    if (client && typeof client.flush === "function") {
+      const flushed = await client.flush(timeoutMs);
+      if (flushed !== false) return true;
+    }
+    if (typeof Sentry.flush === "function") {
+      const flushed = await Sentry.flush(timeoutMs);
+      return flushed !== false;
+    }
+    return false;
   } catch {
     return false;
   }

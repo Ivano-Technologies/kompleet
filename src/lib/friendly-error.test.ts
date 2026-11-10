@@ -30,6 +30,7 @@ import {
 vi.mock("@sentry/nextjs", () => ({
   captureException: vi.fn(),
   flush: vi.fn(async () => true),
+  getClient: vi.fn(() => undefined),
 }));
 
 const convexWrap = (inner: string) =>

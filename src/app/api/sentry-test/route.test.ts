@@ -1,9 +1,15 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 
+const clientFlush = vi.fn(async () => true);
+
 vi.mock("@sentry/nextjs", () => ({
   captureException: vi.fn(() => "0123456789abcdef0123456789abcdef"),
   flush: vi.fn(async () => true),
+  getClient: vi.fn(() => ({
+    getDsn: () => ({ host: "ingest.example" }),
+    flush: clientFlush,
+  })),
 }));
 
 vi.mock("@/lib/with-rate-limit", () => ({
@@ -44,7 +50,8 @@ describe("GET /api/sentry-test", () => {
     expect(body.ok).toBe(true);
     expect(body.eventId).toBe("0123456789abcdef0123456789abcdef");
     expect(body.flushed).toBe(true);
+    expect(body.hasDsn).toBe(true);
     expect(Sentry.captureException).toHaveBeenCalled();
-    expect(Sentry.flush).toHaveBeenCalled();
+    expect(clientFlush).toHaveBeenCalled();
   });
 });

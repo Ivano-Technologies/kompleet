@@ -21,6 +21,7 @@ async function handleGET(_request: NextRequest) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
+  const hasDsn = Boolean(Sentry.getClient()?.getDsn());
   const eventId = Sentry.captureException(
     new Error("kompleet sentry-test: preview proof"),
     {
@@ -29,16 +30,18 @@ async function handleGET(_request: NextRequest) {
       },
       extra: {
         vercelEnv: process.env.VERCEL_ENV,
+        hasDsn,
       },
     },
   );
-  const flushed = await flushSentry();
+  const flushed = await flushSentry(8000);
   const ref = refFromEventId(eventId) ?? generateRef();
   return NextResponse.json({
     ok: true,
     eventId,
     ref,
     flushed,
+    hasDsn,
   });
 }
 
