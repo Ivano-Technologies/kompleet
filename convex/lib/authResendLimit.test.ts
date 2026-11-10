@@ -1,12 +1,15 @@
 /** @vitest-environment node */
 
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   EMAIL_SEND_COOLDOWN_MS,
   EMAIL_SEND_HOUR_MS,
   EMAIL_SEND_MAX_PER_HOUR,
+  dummyVerificationSendWork,
   isMissingAuthAccountError,
   nextEmailSendState,
+  padElapsed,
+  withEqualResendWork,
 } from "./authResendLimit";
 
 describe("nextEmailSendState", () => {
@@ -61,5 +64,52 @@ describe("isMissingAuthAccountError", () => {
     expect(isMissingAuthAccountError(new Error("Invalid credentials"))).toBe(
       false,
     );
+  });
+});
+
+describe("equal resend work", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("pads both known and unknown paths to the same floor", async () => {
+    vi.useFakeTimers();
+    const minMs = 40;
+    const unknown = withEqualResendWork(
+      async () => {
+        throw new Error("InvalidAccountId");
+      },
+      async () => "missing",
+      minMs,
+    );
+    const known = withEqualResendWork(
+      async () => "found",
+      async () => "missing",
+      minMs,
+    );
+    await vi.advanceTimersByTimeAsync(minMs);
+    expect(await unknown).toBe("missing");
+    expect(await known).toBe("found");
+  });
+
+  it("still throws non-enumeration errors after padding", async () => {
+    await expect(
+      withEqualResendWork(
+        async () => {
+          throw new Error("Too many attempts");
+        },
+        async () => null,
+        0,
+      ),
+    ).rejects.toThrow("Too many attempts");
+  });
+
+  it("builds dummy send work without throwing", async () => {
+    await expect(dummyVerificationSendWork()).resolves.toBeUndefined();
+  });
+
+  it("padElapsed is a no-op when enough time has elapsed", async () => {
+    const started = Date.now() - 50;
+    await padElapsed(started, 10);
   });
 });

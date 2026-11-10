@@ -1,4 +1,5 @@
 import { Email } from "@convex-dev/auth/providers/Email";
+import { assertEmailSendAllowed, consumeAuthEmailSend } from "./authResend";
 import { recordE2eOtp } from "./e2eOtp";
 import {
   EMAIL_VERIFICATION_MAX_AGE_SECONDS,
@@ -23,6 +24,11 @@ export const EmailVerificationOtp = Email({
     identifier: string;
     token: string;
   }) {
+    const allowed = await consumeAuthEmailSend(arguments[1], {
+      email,
+      purpose: "email-verification",
+    });
+    assertEmailSendAllowed(allowed);
     await sendAuthEmail({
       email,
       token,

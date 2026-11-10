@@ -7,7 +7,8 @@ import {
 } from "./authResend";
 import { EmailVerificationOtp } from "./emailVerification";
 import {
-  isMissingAuthAccountError,
+  dummyVerificationSendWork,
+  withEqualResendWork,
 } from "./lib/authResendLimit";
 import { PasswordResetEmail } from "./passwordReset";
 import {
@@ -52,19 +53,18 @@ function withPasswordAuthGuards(provider: PasswordProvider): PasswordProvider {
           params.code === null ||
           params.code === "");
       if (resendWithoutCode && email) {
-        const allowed = await consumeAuthEmailSend(ctx, {
-          email,
-          purpose: "email-verification",
-        });
-        assertEmailSendAllowed(allowed);
-        try {
-          return await inner(params, ctx);
-        } catch (error) {
-          if (isMissingAuthAccountError(error)) {
+        return await withEqualResendWork(
+          () => inner(params, ctx),
+          async () => {
+            const allowed = await consumeAuthEmailSend(ctx, {
+              email,
+              purpose: "email-verification",
+            });
+            assertEmailSendAllowed(allowed);
+            await dummyVerificationSendWork();
             return null;
-          }
-          throw error;
-        }
+          },
+        );
       }
       return inner(params, ctx);
     },
