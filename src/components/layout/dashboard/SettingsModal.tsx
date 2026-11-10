@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useAuthActions } from "@convex-dev/auth/react";
 import Link from "next/link";
 import {
   Dialog,
@@ -35,6 +36,8 @@ import { cn } from "@/lib/utils";
 import type { SettingsSection } from "./settings-types";
 import { BusinessProfileSection } from "@/components/settings/BusinessProfileSection";
 import { ClientsSection } from "@/components/settings/ClientsSection";
+import { DeleteAccountDialog } from "@/components/settings/DeleteAccountDialog";
+import { DELETE_ACCOUNT_PHRASE } from "@/lib/account-deletion";
 import { apiErrorMessage, toFriendlyMessage, userFacingError } from "@/lib/friendly-error";
 import { ErrorText } from "@/components/ui/error-ref";
 
@@ -76,6 +79,7 @@ export function SettingsModal({
   initialSection = "general",
 }: SettingsModalProps) {
   const router = useRouter();
+  const { signOut } = useAuthActions();
   const { theme, setTheme } = useTheme();
   const [section, setSection] = useState<SettingsSection>(initialSection);
   const [loading, setLoading] = useState(false);
@@ -100,6 +104,8 @@ export function SettingsModal({
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
   const [language, setLanguage] = useState("English (US)");
   const [currency, setCurrency] = useState("NGN (Nigerian Naira)");
   const [timezone, setTimezone] = useState("GMT+01:00, West Africa Time");
@@ -192,28 +198,33 @@ export function SettingsModal({
     }
   };
 
-  const handleDeleteAccount = async () => {
-    const confirmText = prompt(
-      "Type DELETE to permanently delete your account. This action cannot be undone."
-    );
-    if (confirmText !== "DELETE") return;
+  const handleDeleteAccount = async (confirmText: string) => {
+    if (confirmText !== DELETE_ACCOUNT_PHRASE) {
+      setDeleteError("Type delete my account to confirm.");
+      return;
+    }
     setDeleteLoading(true);
+    setDeleteError("");
     setError("");
     try {
       const res = await fetch("/api/auth/delete-account", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ confirmText: "DELETE" }),
+        body: JSON.stringify({ confirmText: DELETE_ACCOUNT_PHRASE }),
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(apiErrorMessage(data, "We couldn't delete your account. Please try again."));
-      } else {
-        onOpenChange(false);
-        router.push("/login");
+        setDeleteError(
+          apiErrorMessage(data, "We couldn't delete your account. Please try again."),
+        );
+        return;
       }
+      setDeleteDialogOpen(false);
+      onOpenChange(false);
+      await signOut();
+      router.push("/login");
     } catch (err) {
-      setError(toFriendlyMessage(err, "Something went wrong. Please try again."));
+      setDeleteError(toFriendlyMessage(err, "Something went wrong. Please try again."));
     } finally {
       setDeleteLoading(false);
     }
@@ -230,21 +241,37 @@ export function SettingsModal({
   ];
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className={cn(
           "p-0 gap-0 overflow-hidden border border-light-border dark:border-dark-border",
           "bg-white dark:bg-dark-surface shadow-xl",
-          "max-sm:inset-0 max-sm:left-0 max-sm:top-0 max-sm:translate-x-0 max-sm:translate-y-0 max-sm:w-full max-sm:h-full max-sm:max-h-none max-sm:rounded-none",
-          "sm:w-[calc(100%-2rem)] sm:min-w-[min(calc(100%-2rem),28rem)] sm:max-w-4xl sm:h-[85vh] sm:max-h-[85vh] sm:rounded-lg md:min-w-[32rem]"
+          "w-[calc(100vw-2rem)] max-w-full rounded-lg",
+          "h-[calc(100vh-2rem)] max-h-[calc(100vh-2rem)]",
+          "sm:max-w-4xl sm:h-[85vh] sm:max-h-[85vh] md:min-w-[32rem]"
         )}
-        onPointerDownOutside={(e) => onOpenChange(false)}
-        onEscapeKeyDown={() => onOpenChange(false)}
+        onPointerDownOutside={(e) => {
+          if (deleteDialogOpen) {
+            e.preventDefault();
+            return;
+          }
+          onOpenChange(false);
+        }}
+        onEscapeKeyDown={(e) => {
+          if (deleteDialogOpen) {
+            e.preventDefault();
+            setDeleteDialogOpen(false);
+            return;
+          }
+          onOpenChange(false);
+        }}
       >
-        <div className="flex flex-col md:flex-row h-full sm:min-h-[85vh] max-h-[90vh] sm:max-h-[85vh]">
-          {/* Left: section nav — opaque background for visibility in light and dark theme */}
+        <div className="flex min-w-0 w-full flex-col md:flex-row h-full sm:min-h-[85vh] max-h-[90vh] sm:max-h-[85vh] overflow-hidden">
+          {/* Left: section nav. pr-14 keeps the close control off the scrolling tabs at 390. */}
+          <div className="relative min-w-0 w-full md:w-52 md:shrink-0 border-b md:border-b-0 md:border-r border-light-border dark:border-dark-border bg-white dark:bg-dark-background pr-14 md:pr-0 overflow-hidden">
           <nav
-            className="flex md:flex-col md:w-52 shrink-0 border-b md:border-b-0 md:border-r border-light-border dark:border-dark-border bg-white dark:bg-dark-background p-2 gap-0.5 overflow-x-auto md:overflow-y-auto"
+            className="flex min-w-0 w-full md:flex-col p-2 gap-0.5 overflow-x-auto md:overflow-y-auto"
             aria-label="Settings sections"
           >
             {navSections.map(({ id, label, icon: Icon }) => (
@@ -264,6 +291,7 @@ export function SettingsModal({
               </button>
             ))}
           </nav>
+          </div>
 
           {/* Right: content — fixed min height so modal size stays consistent when switching tabs */}
           <div className="flex-1 overflow-y-auto p-4 md:p-6 min-h-0 sm:min-h-[70vh]">
@@ -488,20 +516,23 @@ export function SettingsModal({
                   <h2 className="text-sm font-semibold text-red-600 dark:text-red-400 mb-1">
                     Danger zone
                   </h2>
-                  <div className="flex items-center justify-between gap-4 flex-wrap">
+                  <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
                     <div>
                       <h3 className="text-sm font-medium text-light-text-primary dark:text-dark-text-primary">
                         Delete account
                       </h3>
                       <p className="text-xs text-light-text-tertiary dark:text-dark-text-tertiary">
-                        Permanently remove your account and all data
+                        Remove your profile and files. Issued invoices stay as tax records.
                       </p>
                     </div>
                     <button
                       type="button"
-                      onClick={handleDeleteAccount}
+                      onClick={() => {
+                        setDeleteError("");
+                        setDeleteDialogOpen(true);
+                      }}
                       disabled={deleteLoading}
-                      className="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1.5 rounded-lg font-medium flex items-center gap-1 disabled:opacity-50"
+                      className="self-start bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1.5 rounded-lg font-medium flex items-center gap-1 disabled:opacity-50"
                     >
                       {deleteLoading ? (
                         <Loader2 className="w-3 h-3 animate-spin" />
@@ -750,7 +781,16 @@ export function SettingsModal({
         >
           <X className="w-5 h-5 stroke-[2.5]" />
         </button>
+        {deleteDialogOpen ? (
+          <DeleteAccountDialog
+            error={deleteError}
+            busy={deleteLoading}
+            onClose={() => setDeleteDialogOpen(false)}
+            onConfirm={(text) => void handleDeleteAccount(text)}
+          />
+        ) : null}
       </DialogContent>
     </Dialog>
+    </>
   );
 }
