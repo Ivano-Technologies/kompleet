@@ -1,6 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CompanyLegalNotice } from "@/components/legal/CompanyLegalNotice";
+import {
+  COMPANY_ADDRESS,
+  COMPANY_NAME,
+  COMPANY_RC,
+  DSR_EMAIL,
+} from "@/lib/legal";
 
 export const metadata: Metadata = {
   title: "Kompleet: Terms of Service",
@@ -24,7 +30,7 @@ export default function TermsPage() {
             Terms of Service
           </h1>
         <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-8">
-          Last updated: February 25, 2026. Effective date: February 25, 2026.
+          Last updated 10 Nov 2026
         </p>
 
         <CompanyLegalNotice page="terms" />
@@ -99,16 +105,10 @@ export default function TermsPage() {
             </h3>
             <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
               To access certain features of KOMPLEET, you must create an account
-              by providing:
+              with a valid email address and a secure password. Sign-in is
+              email and password only. We do not offer Google sign-in or other
+              third-party authentication providers.
             </p>
-            <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
-              <li>Valid email address</li>
-              <li>Secure password, or</li>
-              <li>
-                Authentication through a third-party provider (e.g., Google
-                OAuth)
-              </li>
-            </ul>
 
             <h3 className="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-3">
               3.2 Account Responsibilities
@@ -228,10 +228,6 @@ export default function TermsPage() {
             </p>
             <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
               <li>Store and process your data to provide the Services</li>
-              <li>
-                Use aggregated, anonymized data for analytics and service
-                improvement
-              </li>
               <li>Display your calculation results and reports to you</li>
             </ul>
             <p className="text-light-text-secondary dark:text-dark-text-secondary">
@@ -356,35 +352,37 @@ export default function TermsPage() {
             </h2>
 
             <h3 className="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-3">
-              9.1 Free and Paid Services
+              9.1 Paid plans
             </h3>
             <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              KOMPLEET may offer both free and paid features. Pricing for paid
-              features will be clearly displayed before you subscribe or
-              purchase.
+              Kompleet is currently offered without paid plans. If and when paid
+              plans are offered, we will show the terms before you subscribe,
+              and we may use a payment processor. This notice will be updated
+              then.
             </p>
 
             <h3 className="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-3">
-              9.2 Payment Terms
+              9.2 If and when paid plans are offered
             </h3>
             <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              If you subscribe to paid services:
+              If you later subscribe to a paid plan:
             </p>
             <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
-              <li>You agree to pay all applicable fees</li>
+              <li>You agree to pay the fees shown at checkout</li>
               <li>Fees are non-refundable unless otherwise stated</li>
-              <li>We may change our pricing with 30 days' notice</li>
+              <li>We may change fees with 30 days&apos; notice</li>
               <li>
-                You are responsible for all taxes associated with your purchase
+                You are responsible for all taxes associated with a paid plan
               </li>
             </ul>
 
             <h3 className="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-3">
-              9.3 Subscription Cancellation
+              9.3 Subscription cancellation
             </h3>
             <p className="text-light-text-secondary dark:text-dark-text-secondary">
-              You may cancel your subscription at any time. Cancellation will be
-              effective at the end of your current billing period.
+              If and when paid plans are offered, you may cancel a subscription
+              at any time. Cancellation will be effective at the end of your
+              current billing period.
             </p>
           </section>
 
@@ -454,9 +452,10 @@ export default function TermsPage() {
               including:
             </p>
             <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
-              <li>Authentication providers (e.g., Google OAuth)</li>
-              <li>Payment processors</li>
-              <li>Cloud infrastructure providers</li>
+              <li>Cloud infrastructure and email delivery providers</li>
+              <li>
+                Payment processors, if and when paid plans are offered
+              </li>
             </ul>
             <p className="text-light-text-secondary dark:text-dark-text-secondary">
               We are not responsible for the content, privacy policies, or
@@ -589,28 +588,31 @@ export default function TermsPage() {
             </p>
             <div className="bg-light-background dark:bg-dark-background p-6 rounded-lg">
               <p className="text-light-text-secondary dark:text-dark-text-secondary mb-2">
-                <strong>Ivano Technologies Ltd</strong>
+                <strong>{COMPANY_NAME}</strong>
+              </p>
+              <p className="text-light-text-secondary dark:text-dark-text-secondary mb-2">
+                {COMPANY_RC}
+              </p>
+              <p className="text-light-text-secondary dark:text-dark-text-secondary mb-2">
+                {COMPANY_ADDRESS}
               </p>
               <p className="text-light-text-secondary dark:text-dark-text-secondary mb-2">
                 Email:{" "}
                 <a
-                  href="mailto:support@ivanotechnologies.com"
+                  href={`mailto:${DSR_EMAIL}`}
                   className="text-primary hover:underline"
                 >
-                  support@ivanotechnologies.com
-                </a>
-              </p>
-              <p className="text-light-text-secondary dark:text-dark-text-secondary mb-2">
-                Website:{" "}
-                <a
-                  href="https://techivano.com"
-                  className="text-primary hover:underline"
-                >
-                  https://techivano.com
+                  {DSR_EMAIL}
                 </a>
               </p>
               <p className="text-light-text-secondary dark:text-dark-text-secondary">
-                Location: Nigeria
+                Website:{" "}
+                <a
+                  href="https://www.ivanotechnologies.com"
+                  className="text-primary hover:underline"
+                >
+                  https://www.ivanotechnologies.com
+                </a>
               </p>
             </div>
           </section>
