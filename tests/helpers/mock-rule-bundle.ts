@@ -13,6 +13,12 @@ export interface MockRuleSeed {
   value: Record<string, any>;
   confidenceLevel?: RuleConfidenceLevel;
   notes?: string | null;
+  ruleVersionId?: string;
+}
+
+export interface MockRuleBundleOptions {
+  activeVersionId?: string | null;
+  unverifiedVersionId?: string | null;
 }
 
 /**
@@ -20,7 +26,12 @@ export interface MockRuleSeed {
  */
 export function buildMockRuleBundle(
   rulesByTypeAndKey: Record<string, Record<string, MockRuleSeed>>,
+  options: MockRuleBundleOptions = {},
 ): RuleBundle {
+  const activeVersionId =
+    options.activeVersionId === undefined
+      ? "test-active-version"
+      : options.activeVersionId;
   const rules = new Map<string, LoadedRule>();
 
   for (const [ruleType, keys] of Object.entries(rulesByTypeAndKey)) {
@@ -31,7 +42,7 @@ export function buildMockRuleBundle(
         value: seed.value,
         confidenceLevel: seed.confidenceLevel ?? "high",
         sourceId: "test-source",
-        ruleVersionId: "test-active-version",
+        ruleVersionId: seed.ruleVersionId ?? activeVersionId ?? "test-active-version",
         notes: seed.notes ?? null,
         lastReviewedAt: new Date("2026-01-01").toISOString(),
       });
@@ -39,8 +50,8 @@ export function buildMockRuleBundle(
   }
 
   return {
-    activeVersionId: "test-active-version",
-    unverifiedVersionId: null,
+    activeVersionId,
+    unverifiedVersionId: options.unverifiedVersionId ?? null,
     rules,
   };
 }

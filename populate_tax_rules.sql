@@ -94,11 +94,23 @@ BEGIN
         v_version_id,
         v_ey_id,
         'business_tax',
-        'minimum_effective_tax_rate',
-        '{"rate": 15, "unit": "percentage", "applies_to": "very_large_company", "threshold_turnover": 20000000000}',
+        'minimum_etr',
+        '{"rate": 15, "unit": "percentage", "applies_to": "very_large_company"}',
         'high',
         NOW(),
         'MNE group constituent entities and companies with turnover ≥ N20 billion must maintain 15% minimum ETR. Aligns with OECD BEPS Pillar 2.'
+    );
+
+    INSERT INTO tax_rules (rule_version_id, source_id, rule_type, rule_key, rule_value, confidence_level, last_reviewed_at, notes)
+    VALUES (
+        v_version_id,
+        v_ey_id,
+        'business_tax',
+        'very_large_turnover_threshold',
+        '{"threshold": 20000000000, "currency": "NGN", "unit": "annual", "operator": ">="}',
+        'high',
+        NOW(),
+        'Companies with turnover ≥ N20 billion are classified as very large and subject to the minimum ETR.'
     );
 
     -- Development Levy

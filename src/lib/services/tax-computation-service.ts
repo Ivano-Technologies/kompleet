@@ -9,7 +9,7 @@
  * falling back to a default. See docs/TAX_RULE_PROVENANCE.md.
  */
 import { MissingTaxRuleError } from "@/lib/tax/errors";
-import { getRulesByType, requireRule } from "@/lib/tax/rule-loader";
+import { TrackedRuleBundle } from "@/lib/tax/rule-loader";
 import type { RuleBundle } from "@/lib/tax/types";
 
 export interface TaxComputationInput {
@@ -50,11 +50,20 @@ export interface TaxComputationResult {
   // Tax Computation
   incomeTax: number;
   developmentLevy: number;
+  /** Extra CIT to bring CIT + development levy up to minimum_etr × PBT. */
+  minimumEtrTopUp: number;
   totalTaxLiability: number;
   effectiveTaxRate: number;
 
   // Breakdown
   taxBreakdown: TaxBreakdownItem[];
+
+  /**
+   * Rule keys this computation used that came from a non-active or
+   * unverified rule version, or that are marked `unverified`. Empty when
+   * every used rule is from the active verified set.
+   */
+  unverifiedRuleKeys: string[];
 
   // Reliefs & Exemptions
   reliefs: ReliefItem[];
@@ -93,27 +102,36 @@ export class TaxComputationService {
     input: TaxComputationInput,
     rules: RuleBundle,
   ): TaxComputationResult {
-    const classification = this.classifyBusiness(input, rules);
+    const tracked = new TrackedRuleBundle(rules);
+    const classification = this.classifyBusiness(input, tracked);
     const qualifiesAsSmall = classification === "Small Company";
 
-    const assessableProfit = this.calculateAssessableProfit(input, rules);
+    const assessableProfit = this.calculateAssessableProfit(input, tracked);
     const taxableIncome = this.calculateTaxableIncome(input, assessableProfit);
 
     const incomeTax = this.calculateIncomeTax(
       input,
       taxableIncome,
       qualifiesAsSmall,
-      rules,
+      tracked,
     );
 
     const developmentLevy = this.calculateDevelopmentLevy(
       input,
       assessableProfit,
       qualifiesAsSmall,
-      rules,
+      tracked,
     );
 
-    const totalTaxLiability = incomeTax + developmentLevy;
+    const minimumEtrTopUp = this.calculateMinimumEtrTopUp(
+      input,
+      assessableProfit,
+      incomeTax,
+      developmentLevy,
+      tracked,
+    );
+
+    const totalTaxLiability = incomeTax + developmentLevy + minimumEtrTopUp;
 
     const effectiveTaxRate =
       input.totalRevenue > 0
@@ -126,18 +144,19 @@ export class TaxComputationService {
       taxableIncome,
       incomeTax,
       developmentLevy,
-      rules,
+      minimumEtrTopUp,
+      tracked,
     );
 
-    const reliefs = this.identifyReliefs(input, rules);
-    const exemptions = this.identifyExemptions(input, qualifiesAsSmall, rules);
+    const reliefs = this.identifyReliefs(input, tracked);
+    const exemptions = this.identifyExemptions(input, qualifiesAsSmall, tracked);
 
     const filingRequirements = this.getFilingRequirements(
       input,
       qualifiesAsSmall,
-      rules,
+      tracked,
     );
-    const nextSteps = this.getNextSteps(input, qualifiesAsSmall, rules);
+    const nextSteps = this.getNextSteps(input, qualifiesAsSmall, tracked);
 
     return {
       businessClassification: classification,
@@ -148,6 +167,7 @@ export class TaxComputationService {
       taxableIncome,
       incomeTax,
       developmentLevy,
+      minimumEtrTopUp,
       totalTaxLiability,
       effectiveTaxRate,
       taxBreakdown,
@@ -155,6 +175,7 @@ export class TaxComputationService {
       exemptions,
       filingRequirements,
       nextSteps,
+      unverifiedRuleKeys: tracked.unverifiedUsedKeys(),
     };
   }
 
@@ -179,13 +200,25 @@ export class TaxComputationService {
     isProfessionalService: boolean,
     rules: RuleBundle,
   ): "small_company" | "other_company" | "very_large_company" {
-    const turnoverThreshold = requireRule(
-      rules,
+    return this.classifyBusinessTypeTracked(
+      turnover,
+      totalAssets,
+      isProfessionalService,
+      new TrackedRuleBundle(rules),
+    );
+  }
+
+  private static classifyBusinessTypeTracked(
+    turnover: number,
+    totalAssets: number,
+    isProfessionalService: boolean,
+    tracked: TrackedRuleBundle,
+  ): "small_company" | "other_company" | "very_large_company" {
+    const turnoverThreshold = tracked.require(
       "business_tax",
       "small_company_turnover_threshold",
     ).value.value as number;
-    const assetsThreshold = requireRule(
-      rules,
+    const assetsThreshold = tracked.require(
       "business_tax",
       "small_company_assets_threshold",
     ).value.value as number;
@@ -198,8 +231,7 @@ export class TaxComputationService {
       return "small_company";
     }
 
-    const veryLargeThreshold = requireRule(
-      rules,
+    const veryLargeThreshold = tracked.require(
       "business_tax",
       "very_large_turnover_threshold",
     ).value.threshold as number;
@@ -216,17 +248,17 @@ export class TaxComputationService {
    */
   private static classifyBusiness(
     input: TaxComputationInput,
-    rules: RuleBundle,
+    tracked: TrackedRuleBundle,
   ): string {
     if (input.businessType === "individual") {
       return "Individual Taxpayer";
     }
 
-    const category = this.classifyBusinessType(
+    const category = this.classifyBusinessTypeTracked(
       input.turnover,
       input.totalAssets,
       input.isProfessionalService,
-      rules,
+      tracked,
     );
 
     if (category === "small_company") {
@@ -234,7 +266,7 @@ export class TaxComputationService {
     }
 
     if (category === "very_large_company") {
-      const minEtr = requireRule(rules, "business_tax", "minimum_etr").value
+      const minEtr = tracked.require("business_tax", "minimum_etr").value
         .rate as number;
       return `Very Large Company (Minimum ETR ${minEtr}%)`;
     }
@@ -250,13 +282,13 @@ export class TaxComputationService {
    */
   private static calculateAssessableProfit(
     input: TaxComputationInput,
-    rules: RuleBundle,
+    tracked: TrackedRuleBundle,
   ): number {
     const netProfit = input.totalRevenue - input.totalExpenses;
     const capitalGainsNet = input.capitalGains - input.capitalLosses;
 
     if (input.capitalGains !== 0 || input.capitalLosses !== 0) {
-      requireRule(rules, "business_tax", "capital_gains_integration");
+      tracked.require("business_tax", "capital_gains_integration");
     }
 
     return netProfit + capitalGainsNet;
@@ -279,35 +311,56 @@ export class TaxComputationService {
     input: TaxComputationInput,
     taxableIncome: number,
     qualifiesAsSmall: boolean,
-    rules: RuleBundle,
+    tracked: TrackedRuleBundle,
   ): number {
-    if (input.businessType === "individual" && input.annualIncome) {
-      return this.calculateIndividualTax(input.annualIncome, input, rules);
+    if (
+      input.businessType === "individual" &&
+      input.annualIncome !== undefined
+    ) {
+      return this.calculateIndividualTax(input.annualIncome, input, tracked);
     }
 
     if (qualifiesAsSmall) {
       const rate =
-        (requireRule(rules, "business_tax", "corporate_tax_rate_small").value
+        (tracked.require("business_tax", "corporate_tax_rate_small").value
           .rate as number) / 100;
       return taxableIncome * rate;
     }
 
-    if (input.businessType === "very_large_company") {
-      const standardRate =
-        (requireRule(rules, "business_tax", "corporate_tax_rate_other").value
-          .rate as number) / 100;
-      const minimumEtrRate =
-        (requireRule(rules, "business_tax", "minimum_etr").value
-          .rate as number) / 100;
-      const standardTax = taxableIncome * standardRate;
-      const minimumTax = input.totalRevenue * minimumEtrRate;
-      return Math.max(standardTax, minimumTax);
-    }
-
     const rate =
-      (requireRule(rules, "business_tax", "corporate_tax_rate_other").value
+      (tracked.require("business_tax", "corporate_tax_rate_other").value
         .rate as number) / 100;
     return taxableIncome * rate;
+  }
+
+  /**
+   * 15% floor on profit before tax, counting CIT plus the development levy.
+   * topUp = max(0, minimum_etr × PBT − (CIT + development levy)).
+   * Applies only when the input is a very_large_company (existing gate).
+   */
+  private static calculateMinimumEtrTopUp(
+    input: TaxComputationInput,
+    profitBeforeTax: number,
+    incomeTax: number,
+    developmentLevy: number,
+    tracked: TrackedRuleBundle,
+  ): number {
+    if (input.businessType !== "very_large_company") {
+      return 0;
+    }
+
+    const minimumEtrRate =
+      (tracked.require("business_tax", "minimum_etr").value.rate as number) /
+      100;
+
+    if (profitBeforeTax <= 0) {
+      return 0;
+    }
+
+    return Math.max(
+      0,
+      minimumEtrRate * profitBeforeTax - (incomeTax + developmentLevy),
+    );
   }
 
   /**
@@ -320,13 +373,12 @@ export class TaxComputationService {
   private static calculateIndividualTax(
     annualIncome: number,
     input: TaxComputationInput,
-    rules: RuleBundle,
+    tracked: TrackedRuleBundle,
   ): number {
     let taxableIncome = annualIncome;
 
     if (input.rentPaid) {
-      const rentReliefRule = requireRule(
-        rules,
+      const rentReliefRule = tracked.require(
         "individual_income_tax",
         "rent_relief",
       );
@@ -338,14 +390,16 @@ export class TaxComputationService {
 
     if (input.ownerOccupierInterest) {
       // Confirms the deduction is a verified rule before applying it.
-      requireRule(rules, "individual_income_tax", "owner_occupier_interest");
+      tracked.require("individual_income_tax", "owner_occupier_interest");
       taxableIncome -= input.ownerOccupierInterest;
     }
 
     taxableIncome = Math.max(0, taxableIncome);
 
-    const brackets = getRulesByType(rules, "individual_income_tax")
+    const brackets = tracked
+      .rulesByType("individual_income_tax")
       .filter((rule) => rule.ruleKey.startsWith("tax_bracket_"))
+      .map((rule) => tracked.record(rule))
       .sort(
         (a, b) => (a.value.from as number) - (b.value.from as number),
       );
@@ -386,10 +440,9 @@ export class TaxComputationService {
     input: TaxComputationInput,
     assessableProfit: number,
     qualifiesAsSmall: boolean,
-    rules: RuleBundle,
+    tracked: TrackedRuleBundle,
   ): number {
-    const exemptCategories = requireRule(
-      rules,
+    const exemptCategories = tracked.require(
       "business_tax",
       "development_levy_exemptions",
     ).value.exempt as string[];
@@ -402,7 +455,7 @@ export class TaxComputationService {
     }
 
     const rate =
-      (requireRule(rules, "business_tax", "development_levy_rate").value
+      (tracked.require("business_tax", "development_levy_rate").value
         .rate as number) / 100;
 
     return assessableProfit * rate;
@@ -417,7 +470,8 @@ export class TaxComputationService {
     taxableIncome: number,
     incomeTax: number,
     developmentLevy: number,
-    rules: RuleBundle,
+    minimumEtrTopUp: number,
+    tracked: TrackedRuleBundle,
   ): TaxBreakdownItem[] {
     const breakdown: TaxBreakdownItem[] = [];
 
@@ -463,12 +517,12 @@ export class TaxComputationService {
     });
 
     let incomeTaxRate: number | undefined;
-    if (input.businessType === "other_company") {
-      incomeTaxRate = requireRule(rules, "business_tax", "corporate_tax_rate_other")
+    if (
+      input.businessType === "other_company" ||
+      input.businessType === "very_large_company"
+    ) {
+      incomeTaxRate = tracked.require("business_tax", "corporate_tax_rate_other")
         .value.rate as number;
-    } else if (input.businessType === "very_large_company") {
-      incomeTaxRate = requireRule(rules, "business_tax", "minimum_etr").value
-        .rate as number;
     }
 
     breakdown.push({
@@ -478,12 +532,22 @@ export class TaxComputationService {
     });
 
     if (developmentLevy > 0) {
-      const levyRate = requireRule(rules, "business_tax", "development_levy_rate")
+      const levyRate = tracked.require("business_tax", "development_levy_rate")
         .value.rate as number;
       breakdown.push({
         description: "Development Levy",
         amount: developmentLevy,
         rate: levyRate,
+      });
+    }
+
+    if (input.businessType === "very_large_company") {
+      const minEtr = tracked.require("business_tax", "minimum_etr").value
+        .rate as number;
+      breakdown.push({
+        description: "Minimum ETR top-up",
+        amount: minimumEtrTopUp,
+        rate: minEtr,
       });
     }
 
@@ -495,14 +559,13 @@ export class TaxComputationService {
    */
   private static identifyReliefs(
     input: TaxComputationInput,
-    rules: RuleBundle,
+    tracked: TrackedRuleBundle,
   ): ReliefItem[] {
     const reliefs: ReliefItem[] = [];
 
     if (input.businessType === "individual") {
       if (input.rentPaid) {
-        const rentReliefRule = requireRule(
-          rules,
+        const rentReliefRule = tracked.require(
           "individual_income_tax",
           "rent_relief",
         );
@@ -517,7 +580,7 @@ export class TaxComputationService {
       }
 
       if (input.ownerOccupierInterest) {
-        requireRule(rules, "individual_income_tax", "owner_occupier_interest");
+        tracked.require("individual_income_tax", "owner_occupier_interest");
         reliefs.push({
           name: "Owner-Occupier Interest",
           amount: input.ownerOccupierInterest,
@@ -541,20 +604,18 @@ export class TaxComputationService {
   private static identifyExemptions(
     input: TaxComputationInput,
     qualifiesAsSmall: boolean,
-    rules: RuleBundle,
+    tracked: TrackedRuleBundle,
   ): ExemptionItem[] {
     const exemptions: ExemptionItem[] = [];
 
     if (qualifiesAsSmall) {
-      const smallRate = requireRule(rules, "business_tax", "corporate_tax_rate_small")
+      const smallRate = tracked.require("business_tax", "corporate_tax_rate_small")
         .value.rate as number;
-      const turnoverThreshold = requireRule(
-        rules,
+      const turnoverThreshold = tracked.require(
         "business_tax",
         "small_company_turnover_threshold",
       ).value.value as number;
-      const assetsThreshold = requireRule(
-        rules,
+      const assetsThreshold = tracked.require(
         "business_tax",
         "small_company_assets_threshold",
       ).value.value as number;
@@ -570,8 +631,7 @@ export class TaxComputationService {
       });
 
       if (input.capitalGains !== 0 || input.capitalLosses !== 0) {
-        const cgtRule = requireRule(
-          rules,
+        const cgtRule = tracked.require(
           "business_tax",
           "capital_gains_integration",
         );
@@ -588,8 +648,7 @@ export class TaxComputationService {
       input.businessType === "individual" &&
       input.annualIncome !== undefined
     ) {
-      const firstBracket = requireRule(
-        rules,
+      const firstBracket = tracked.require(
         "individual_income_tax",
         "tax_bracket_1",
       );
@@ -611,7 +670,7 @@ export class TaxComputationService {
   private static getFilingRequirements(
     input: TaxComputationInput,
     qualifiesAsSmall: boolean,
-    rules: RuleBundle,
+    tracked: TrackedRuleBundle,
   ): string[] {
     const requirements: string[] = [];
 
@@ -626,7 +685,7 @@ export class TaxComputationService {
       requirements.push("File VAT returns (monthly)");
 
       if (!qualifiesAsSmall) {
-        const levyRate = requireRule(rules, "business_tax", "development_levy_rate")
+        const levyRate = tracked.require("business_tax", "development_levy_rate")
           .value.rate as number;
         requirements.push(
           `Pay development levy (${levyRate}% of assessable profits)`,
@@ -634,7 +693,7 @@ export class TaxComputationService {
       }
 
       if (input.businessType === "very_large_company") {
-        const minEtr = requireRule(rules, "business_tax", "minimum_etr").value
+        const minEtr = tracked.require("business_tax", "minimum_etr").value
           .rate as number;
         requirements.push(`Maintain ${minEtr}% minimum effective tax rate`);
         requirements.push("Submit transfer pricing documentation");
@@ -653,12 +712,12 @@ export class TaxComputationService {
   private static getNextSteps(
     input: TaxComputationInput,
     qualifiesAsSmall: boolean,
-    rules: RuleBundle,
+    tracked: TrackedRuleBundle,
   ): string[] {
     const steps: string[] = [];
 
     if (qualifiesAsSmall) {
-      const smallRate = requireRule(rules, "business_tax", "corporate_tax_rate_small")
+      const smallRate = tracked.require("business_tax", "corporate_tax_rate_small")
         .value.rate as number;
       steps.push("Confirm eligibility for small company status with NRS");
       steps.push(
@@ -668,9 +727,9 @@ export class TaxComputationService {
         "VAT registration/exemption threshold is unresolved for your turnover. Verify manually via the VAT calculator before assuming exemption (see review_queue)",
       );
     } else {
-      const otherRate = requireRule(rules, "business_tax", "corporate_tax_rate_other")
+      const otherRate = tracked.require("business_tax", "corporate_tax_rate_other")
         .value.rate as number;
-      const levyRate = requireRule(rules, "business_tax", "development_levy_rate")
+      const levyRate = tracked.require("business_tax", "development_levy_rate")
         .value.rate as number;
       steps.push(`Prepare for ${otherRate}% corporate income tax payment`);
       steps.push(`Budget for ${levyRate}% development levy`);
