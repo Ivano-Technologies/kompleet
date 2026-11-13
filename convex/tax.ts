@@ -5,12 +5,19 @@ import {
   query,
   type MutationCtx,
 } from "./_generated/server";
+import type { Doc } from "./_generated/dataModel";
 import {
   getCurrentUser,
   getCurrentUserOrNull,
   isPlatformAdmin,
 } from "./lib/auth";
 import { throwForbidden } from "./lib/errors";
+import {
+  assertVatPeriod,
+  computeVatPosition,
+  isVatComputation,
+  type VatPosition,
+} from "./lib/vatPosition";
 import { newExternalId, toMs } from "./lib/ids";
 import {
   cursorValidator,
@@ -550,6 +557,124 @@ export const saveReport = mutation({
     if (!row) throw new Error("Tax report not found");
     return reportToApi(row);
   },
+});
+
+/**
+ * VAT position for the signed-in user (IVA-321): stored invoice VAT minus
+ * stored expense VAT for the period. No VAT rate is applied here.
+ */
+async function loadVatPosition(
+  ctx: MutationCtx,
+  user: Doc<"users">,
+  periodStart: string,
+  periodEnd: string,
+): Promise<VatPosition> {
+  assertVatPeriod(periodStart, periodEnd);
+  const invoices = await ctx.db
+    .query("invoices")
+    .withIndex("by_user", (q) => q.eq("userId", user._id))
+    .collect();
+  const expenses = await ctx.db
+    .query("expenses")
+    .withIndex("by_user_and_date", (q) =>
+      q.eq("userId", user._id).gte("date", periodStart).lte("date", periodEnd),
+    )
+    .collect();
+  return computeVatPosition({ invoices, expenses, periodStart, periodEnd });
+}
+
+export async function generateVatReportHandler(
+  ctx: MutationCtx,
+  args: { taxYear: number; periodStart: string; periodEnd: string },
+) {
+  const user = await getCurrentUser(ctx);
+  const position = await loadVatPosition(
+    ctx,
+    user,
+    args.periodStart,
+    args.periodEnd,
+  );
+  const now = Date.now();
+  const externalId = newExternalId();
+  const id = await ctx.db.insert("taxReports", {
+    externalId,
+    userId: user._id,
+    userExternalId: user.externalId,
+    reportType: "vat",
+    taxYear: args.taxYear,
+    computationData: { ...position, status: "draft" },
+    createdAt: now,
+    updatedAt: now,
+  });
+  const row = await ctx.db.get(id);
+  if (!row) throw new Error("Tax report not found");
+  return reportToApi(row);
+}
+
+/** Create a VAT report from the user's invoices and expenses. */
+export const generateVatReport = mutation({
+  args: {
+    taxYear: v.number(),
+    periodStart: v.string(),
+    periodEnd: v.string(),
+  },
+  returns: v.any(),
+  handler: generateVatReportHandler,
+});
+
+const REPORT_STATE_KEYS = [
+  "status",
+  "filed_at",
+  "paid_at",
+  "payment_reference",
+] as const;
+
+export async function regenerateVatReportHandler(
+  ctx: MutationCtx,
+  args: { externalId: string },
+) {
+  const user = await getCurrentUser(ctx);
+  const row = await ctx.db
+    .query("taxReports")
+    .withIndex("by_externalId", (q) => q.eq("externalId", args.externalId))
+    .unique();
+  if (!row || row.userId !== user._id) throw new Error("Report not found");
+  if (row.reportType !== "vat") {
+    throw new Error("Only VAT reports can be regenerated");
+  }
+  const prev =
+    row.computationData && typeof row.computationData === "object"
+      ? (row.computationData as Record<string, unknown>)
+      : {};
+  const periodStart = String(prev.period_start ?? "");
+  const periodEnd = String(prev.period_end ?? "");
+  const position = await loadVatPosition(ctx, user, periodStart, periodEnd);
+  // Replace the stored figures outright so no income tax fields survive.
+  // Only the filing state carries over.
+  const next: Record<string, unknown> = { ...position };
+  for (const key of REPORT_STATE_KEYS) {
+    if (prev[key] !== undefined) next[key] = prev[key];
+  }
+  if (next.status === undefined) next.status = "draft";
+  if (!isVatComputation(prev)) next.regenerated_from = "income_tax";
+  await ctx.db.patch(row._id, {
+    computationData: next,
+    updatedAt: Date.now(),
+  });
+  const updated = await ctx.db.get(row._id);
+  if (!updated) throw new Error("Report not found");
+  return reportToApi(updated);
+}
+
+/**
+ * Replace a VAT report's figures with the VAT computation for its own
+ * period. Used for VAT reports that were saved with the income tax
+ * computation before IVA-321.
+ */
+export const regenerateVatReport = mutation({
+  args: { externalId: v.string() },
+  returns: v.any(),
+  handler: regenerateVatReportHandler,
 });
 
 export const updateReport = mutation({

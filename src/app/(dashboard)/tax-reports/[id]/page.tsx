@@ -12,6 +12,11 @@ import {
 } from "lucide-react";
 import { notifyError } from "@/components/ui/error-toast";
 import { responseError, toFriendlyMessage } from "@/lib/friendly-error";
+import {
+  VatLegacyNotice,
+  VatReportSummary,
+  vatFiguresOf,
+} from "@/components/tax/VatReportDetail";
 
 interface TaxReport {
   id: string;
@@ -43,6 +48,7 @@ export default function TaxReportDetailPage() {
   const [report, setReport] = useState<TaxReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
 
   const fetchReport = useCallback(async () => {
     try {
@@ -85,6 +91,24 @@ export default function TaxReportDetailPage() {
     }
   };
 
+  const regenerateVat = async () => {
+    if (!report) return;
+    try {
+      setRegenerating(true);
+      const response = await fetch(
+        `/api/tax-reports/${params.id}/regenerate`,
+        { method: "POST" },
+      );
+      if (!response.ok) throw await responseError(response, "We couldn't regenerate the report. Please try again.");
+      const data = await response.json();
+      setReport(data.report);
+    } catch (error) {
+      notifyError(toFriendlyMessage(error, "We couldn't regenerate the report. Please try again.", { context: "tax-reports:regenerate" }));
+    } finally {
+      setRegenerating(false);
+    }
+  };
+
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat("en-NG", {
       style: "currency",
@@ -121,6 +145,10 @@ export default function TaxReportDetailPage() {
   }
 
   const computation = report.computation_data;
+  // IVA-321: a VAT report shows the VAT position, never the income tax
+  // computation. A VAT report saved before the fix has no VAT figures yet.
+  const isVat = report.report_type === "vat";
+  const vatFigures = isVat ? vatFiguresOf(computation) : null;
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -135,7 +163,7 @@ export default function TaxReportDetailPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-light-text-primary dark:text-dark-text-primary">
-              Tax Report {report.tax_year}
+              {isVat ? "VAT Report" : "Tax Report"} {report.tax_year}
             </h1>
             <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mt-1">
               {formatDate(report.period_start)} to{" "}
@@ -173,7 +201,9 @@ export default function TaxReportDetailPage() {
 
       {/* Print Header */}
       <div className="hidden print:block mb-8 text-center">
-        <h1 className="text-2xl font-bold">TAX COMPUTATION REPORT</h1>
+        <h1 className="text-2xl font-bold">
+          {isVat ? "VAT REPORT" : "TAX COMPUTATION REPORT"}
+        </h1>
         <p className="text-light-text-secondary dark:text-dark-text-secondary">
           Tax Year {report.tax_year} | {formatDate(report.period_start)} to{" "}
           {formatDate(report.period_end)}
@@ -183,6 +213,21 @@ export default function TaxReportDetailPage() {
         </p>
       </div>
 
+      {isVat &&
+        (vatFigures ? (
+          <VatReportSummary
+            figures={vatFigures}
+            formatCurrency={formatCurrency}
+          />
+        ) : (
+          <VatLegacyNotice
+            onRegenerate={regenerateVat}
+            regenerating={regenerating}
+          />
+        ))}
+
+      {!isVat && (
+        <>
       {/* Business Classification */}
       <div className="p-5 rounded-xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface">
         <h2 className="text-base font-semibold text-light-text-primary dark:text-dark-text-primary mb-3">
@@ -407,6 +452,9 @@ export default function TaxReportDetailPage() {
             ))}
           </ol>
         </div>
+      )}
+
+        </>
       )}
 
       {/* Disclaimer */}
