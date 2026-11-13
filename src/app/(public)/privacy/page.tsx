@@ -1,10 +1,21 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SkipToContent } from "@/components/a11y/SkipToContent";
-import { CompanyLegalNotice } from "@/components/legal/CompanyLegalNotice";
-import { OperatorDetails } from "@/components/legal/OperatorDetails";
+import {
+  DATA_PROTECTION_EMAIL,
+  GENERAL_CONTACT_EMAIL,
+  OPERATOR_ADDRESS,
+  OPERATOR_DPO,
+  OPERATOR_LEGAL_NAME,
+  OPERATOR_RC,
+} from "@/lib/legal";
 
 const PRIVACY_LINK = "text-primary underline underline-offset-2";
+const HEADING =
+  "text-2xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-4";
+const BODY = "text-light-text-secondary dark:text-dark-text-secondary mb-4";
+const LIST =
+  "list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2";
 
 export const metadata: Metadata = {
   title: "Kompleet: Privacy Policy",
@@ -12,6 +23,14 @@ export const metadata: Metadata = {
     "Privacy Policy for Kompleet, the bookkeeping and invoicing web app. Covers data collection, use, storage, and your rights under Nigerian law.",
   alternates: { canonical: "/privacy" },
 };
+
+function SupportEmail() {
+  return (
+    <a href={`mailto:${DATA_PROTECTION_EMAIL}`} className={PRIVACY_LINK}>
+      {DATA_PROTECTION_EMAIL}
+    </a>
+  );
+}
 
 export default function PrivacyPage() {
   return (
@@ -28,346 +47,197 @@ export default function PrivacyPage() {
           <h1 className="text-4xl font-bold text-light-text-primary dark:text-dark-text-primary mb-4">
             Privacy Policy
           </h1>
-        <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-8">
-          Last updated: 10 November 2026. Effective date: February 25, 2026.
-        </p>
+          <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-8">
+            Last updated: 13 November 2026
+          </p>
 
-        <CompanyLegalNotice page="privacy" />
+          <div className="prose prose-lg max-w-none">
+            <section className="mb-8">
+              <p className={BODY}>
+                Kompleet is provided by {OPERATOR_LEGAL_NAME} (&quot;Ivano&quot;,
+                &quot;we&quot;, &quot;us&quot;), a company registered in Nigeria
+                with the Corporate Affairs Commission under {OPERATOR_RC}. Our
+                registered address is {OPERATOR_ADDRESS}. This policy explains
+                what personal data Kompleet handles, why, and the rights you
+                have under the Nigeria Data Protection Act 2023. This page is
+                the current Privacy Policy for Kompleet.
+              </p>
+            </section>
 
-        <div className="prose prose-lg max-w-none">
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">
-              1. Introduction
-            </h2>
-            <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              Welcome to Kompleet ("we," "our," or "us"). We are committed to
-              protecting your personal information and your right to privacy.
-              This Privacy Policy explains how we collect, use, disclose, and
-              safeguard your information when you use our bookkeeping and
-              invoicing platform.
-            </p>
-            <p className="text-light-text-secondary dark:text-dark-text-secondary">
-              By using Kompleet, you agree to the collection and use of
-              information in accordance with this policy. If you do not agree
-              with our policies and practices, please do not use our services.
-            </p>
-          </section>
+            <section className="mb-8">
+              <h2 className={HEADING}>1. Who is responsible for your data</h2>
+              <p className={BODY}>
+                {OPERATOR_LEGAL_NAME} is the data controller for the personal
+                data described in this policy. Our Data Protection Officer is{" "}
+                {OPERATOR_DPO}. You can reach the Data Protection Officer and
+                our support team at <SupportEmail />; for a data protection
+                request, use the subject &quot;Data request&quot;.
+              </p>
+            </section>
 
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">
-              2. Information We Collect
-            </h2>
+            <section className="mb-8">
+              <h2 className={HEADING}>2. The data we handle</h2>
+              <ul className={LIST}>
+                <li>
+                  <strong>Account data:</strong> your name, email address and
+                  password (stored in hashed form), given when you create an
+                  account. You sign in with your email address and password,
+                  with a verification code sent to your email.
+                </li>
+                <li>
+                  <strong>Your business records:</strong> the transactions,
+                  invoices, expenses, categories and reports you create in
+                  Kompleet, and bank statement files you choose to import.
+                </li>
+                <li>
+                  <strong>Details of your own customers and suppliers:</strong>{" "}
+                  names and contact details you enter, for example on invoices.
+                  You are the controller of that data towards your customers;
+                  we process it only to provide Kompleet to you.
+                </li>
+                <li>
+                  <strong>Technical data:</strong> device, browser and log data
+                  needed to run and secure the service, and your cookie
+                  choices.
+                </li>
+              </ul>
+            </section>
 
-            <h3 className="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-3">
-              2.1 Personal Information
-            </h3>
-            <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              We collect personal information that you voluntarily provide to us
-              when you register on the platform, including:
-            </p>
-            <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
-              <li>
-                Name and contact information (email address, phone number)
-              </li>
-              <li>Account credentials (username, password)</li>
-              <li>Tax identification numbers (TIN)</li>
-              <li>
-                Business information (company name, registration number,
-                business type)
-              </li>
-              <li>Financial information necessary for tax calculations</li>
-              <li>
-                Uploaded documents (e.g. bank statements, receipts) for
-                transaction import and receipt storage
-              </li>
-            </ul>
+            <section className="mb-8">
+              <h2 className={HEADING}>
+                3. Why we handle it, and our lawful bases
+              </h2>
+              <ul className={LIST}>
+                <li>
+                  To provide Kompleet to you under our contract: account data,
+                  your business records, and the customer details you enter.
+                </li>
+                <li>
+                  To meet legal obligations, including tax record keeping:
+                  issued invoices and related records are retained as described
+                  in section 6.
+                </li>
+                <li>
+                  For our legitimate interests in keeping Kompleet secure,
+                  preventing abuse and improving the service: technical and log
+                  data.
+                </li>
+                <li>
+                  With your consent, where the law requires it: optional
+                  cookies, as described in our{" "}
+                  <Link href="/cookies" className={PRIVACY_LINK}>
+                    Cookie Notice
+                  </Link>
+                  . You can withdraw consent at any time.
+                </li>
+              </ul>
+            </section>
 
-            <h3 className="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-3">
-              2.2 Sign-in information
-            </h3>
-            <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              You sign in to Kompleet with your email address and password. We
-              collect the email address you provide and store a hashed copy of
-              your password so you can sign in.
-            </p>
+            <section className="mb-8">
+              <h2 className={HEADING}>4. Who we share it with</h2>
+              <p className={BODY}>
+                We share personal data only with the processors that run
+                Kompleet: Convex, which hosts the application database; Vercel,
+                which hosts the website and application; Resend, which sends
+                account and verification emails; and Sentry, which provides
+                error tracking so we can find and fix faults (where an error
+                occurs, Sentry may record a masked replay of the session, with
+                text and inputs hidden). If you use Kompleet&apos;s AI features,
+                such as automatic transaction categorisation or document
+                import, the content you submit for those features is processed
+                by Anthropic and OpenAI to produce the result. When you buy a
+                Kompleet licence through our company website, payment is
+                processed by Paystack under the Ivano Technologies Terms of
+                Service and Refund Policy; we do not receive or store your full
+                card details. We do not sell personal data. We may disclose
+                data where the law requires it.
+              </p>
+              <p className={BODY}>
+                Some processors store data outside Nigeria. Where personal data
+                is transferred across borders, we rely on the safeguards the
+                Nigeria Data Protection Act 2023 permits and on our contracts
+                with those processors.
+              </p>
+            </section>
 
-            <h3 className="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-3">
-              2.3 Usage Data
-            </h3>
-            <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              We automatically collect certain information when you visit, use,
-              or navigate our platform:
-            </p>
-            <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
-              <li>Device and browser information</li>
-              <li>IP address and location data</li>
-              <li>Usage patterns and preferences</li>
-              <li>Tax calculation history and saved reports</li>
-            </ul>
-          </section>
+            <section className="mb-8">
+              <h2 className={HEADING}>5. Your rights</h2>
+              <p className={BODY}>
+                Under the Nigeria Data Protection Act 2023 you can ask us to:
+                give you access to your personal data; correct data that is
+                wrong; delete your data, subject to section 6; give you a copy
+                in a portable format; restrict or object to how we use it; and
+                withdraw consent where consent is the basis. You can export
+                your business records yourself at any time from the Export
+                Centre in Kompleet, and you can delete your account in
+                Settings, Account. For any other request, email{" "}
+                <SupportEmail /> with the subject &quot;Data request&quot;. We
+                respond within the time the Act allows. If you are not
+                satisfied, you may complain to the Nigeria Data Protection
+                Commission.
+              </p>
+            </section>
 
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">
-              3. How We Use Your Information
-            </h2>
-            <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              We use the information we collect or receive to:
-            </p>
-            <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
-              <li>
-                Provide, operate, and maintain our services
-              </li>
-              <li>Process your tax calculations and generate reports</li>
-              <li>Manage your account and provide customer support</li>
-              <li>
-                Send you updates, notifications, and administrative information
-              </li>
-              <li>Improve and personalize your experience on our platform</li>
-              <li>Comply with Nigerian tax laws and regulatory requirements</li>
-              <li>
-                Detect, prevent, and address technical issues and security
-                threats
-              </li>
-              <li>Analyze usage patterns to enhance our services</li>
-            </ul>
-          </section>
+            <section className="mb-8">
+              <h2 className={HEADING}>6. How long we keep it</h2>
+              <p className={BODY}>
+                Account data is kept while your account is active. If you
+                delete your account, we delete or anonymise your personal data
+                except records the law requires us to keep: issued invoices and
+                tax records are retained for six years from the end of the
+                relevant tax year, as Nigerian tax law requires, and are then
+                deleted.
+              </p>
+            </section>
 
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">
-              4. Data Storage and Security
-            </h2>
-            <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              We implement appropriate technical and organizational security
-              measures to protect your personal information:
-            </p>
-            <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
-              <li>Data is encrypted in transit using SSL/TLS protocols</li>
-              <li>
-                Sensitive data is encrypted at rest in our secure databases
-              </li>
-              <li>
-                Access to personal information is restricted to authorized
-                personnel only
-              </li>
-              <li>
-                We use industry-standard authentication and authorization
-                mechanisms
-              </li>
-              <li>
-                Regular security audits and vulnerability assessments are
-                conducted
-              </li>
-            </ul>
-            <p className="text-light-text-secondary dark:text-dark-text-secondary">
-              We do not claim Nigerian data residency. We may use
-              third-party OCR and document processing services to extract data
-              from uploaded documents; such processors are bound by appropriate
-              data protection terms.
-            </p>
-          </section>
+            <section className="mb-8">
+              <h2 className={HEADING}>7. Security</h2>
+              <p className={BODY}>
+                Access to Kompleet is over encrypted connections, account
+                access is protected by password and email verification, and
+                application data is held with our processors under access
+                controls. No system is perfectly secure; if we become aware of
+                a personal data breach that affects you, we will notify you and
+                the Nigeria Data Protection Commission as the Act requires.
+              </p>
+            </section>
 
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">
-              5. Data Sharing and Disclosure
-            </h2>
-            <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              We do not sell, trade, or rent your personal information to third
-              parties. We may share your information only in the following
-              circumstances:
-            </p>
-            <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
-              <li>
-                <strong>Service Providers:</strong> With trusted third-party
-                vendors who assist us in operating our platform (e.g., hosting,
-                analytics, authentication services)
-              </li>
-              <li>
-                <strong>Legal Requirements:</strong> When required by law or in
-                response to valid requests by public authorities (e.g., Nigerian
-                tax authorities, law enforcement)
-              </li>
-              <li>
-                <strong>Business Transfers:</strong> In connection with any
-                merger, sale, or acquisition of all or a portion of our business
-              </li>
-              <li>
-                <strong>With Your Consent:</strong> When you explicitly
-                authorize us to share your information
-              </li>
-            </ul>
-          </section>
+            <section className="mb-8">
+              <h2 className={HEADING}>8. Children</h2>
+              <p className={BODY}>
+                Kompleet is a business tool and is not offered to anyone under
+                18.
+              </p>
+            </section>
 
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">
-              6. Your Privacy Rights
-            </h2>
-            <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              Under Nigerian data protection laws (Nigeria Data Protection Act
-              2023), you have the following rights:
-            </p>
-            <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
-              <li>
-                <strong>Access:</strong> Request access to your personal
-                information
-              </li>
-              <li>
-                <strong>Correction:</strong> Request correction of inaccurate or
-                incomplete data
-              </li>
-              <li>
-                <strong>Deletion:</strong> Request deletion of your personal
-                information
-              </li>
-              <li>
-                <strong>Objection:</strong> Object to the processing of your
-                personal information
-              </li>
-              <li>
-                <strong>Data Portability:</strong> Request a copy of your data
-                in a structured format
-              </li>
-              <li>
-                <strong>Withdraw Consent:</strong> Withdraw your consent at any
-                time
-              </li>
-            </ul>
-            <p className="text-light-text-secondary dark:text-dark-text-secondary">
-              To exercise any of these rights, please contact us at{" "}
-              <a
-                href="mailto:support@ivanotechnologies.com"
-                className={`inline-flex min-h-11 items-center ${PRIVACY_LINK}`}
-              >
-                support@ivanotechnologies.com
-              </a>
-              .
-            </p>
-          </section>
+            <section className="mb-8">
+              <h2 className={HEADING}>9. Changes to this policy</h2>
+              <p className={BODY}>
+                We may update this policy. The date at the top shows when it
+                last changed. Material changes will be announced in Kompleet or
+                by email before they take effect.
+              </p>
+            </section>
 
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">
-              7. Data Retention
-            </h2>
-            <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              We retain your personal information for as long as necessary to:
-            </p>
-            <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
-              <li>Provide our services to you</li>
-              <li>
-                Comply with legal obligations (Nigerian tax records must be
-                retained for at least 6 years)
-              </li>
-              <li>Resolve disputes and enforce our agreements</li>
-            </ul>
-            <p className="text-light-text-secondary dark:text-dark-text-secondary">
-              When we no longer need your information, we will securely delete
-              or anonymize it.
-            </p>
-          </section>
-
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">
-              8. Cookies and Tracking Technologies
-            </h2>
-            <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              We use cookies and similar tracking technologies to:
-            </p>
-            <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
-              <li>Maintain your session and keep you logged in</li>
-              <li>Remember your preferences and settings</li>
-              <li>Analyze how you use our platform</li>
-              <li>Improve our services and user experience</li>
-            </ul>
-            <p className="text-light-text-secondary dark:text-dark-text-secondary">
-              You can control cookies through your browser settings. However,
-              disabling cookies may affect the functionality of our platform.
-            </p>
-          </section>
-
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">
-              9. Third-Party Services
-            </h2>
-            <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              Our platform integrates with third-party services, including:
-            </p>
-            <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
-              <li>
-                <strong>OCR / document processing:</strong> To extract data from
-                uploaded bank statements and receipts
-              </li>
-              <li>
-                <strong>Hosting and analytics:</strong> For deployment and
-                product improvement
-              </li>
-            </ul>
-            <p className="text-light-text-secondary dark:text-dark-text-secondary">
-              These third parties have their own privacy policies, and we
-              encourage you to review them. We are not responsible for the
-              privacy practices of these external services.
-            </p>
-          </section>
-
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">
-              10. Children's Privacy
-            </h2>
-            <p className="text-light-text-secondary dark:text-dark-text-secondary">
-              Kompleet is not intended for use by individuals under the age of
-              18. We do not knowingly collect personal information from
-              children. If you believe we have collected information from a
-              child, please contact us immediately.
-            </p>
-          </section>
-
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">
-              11. Changes to This Privacy Policy
-            </h2>
-            <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              We may update this Privacy Policy from time to time to reflect
-              changes in our practices or legal requirements. We will notify you
-              of any material changes by:
-            </p>
-            <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
-              <li>Posting the updated policy on this page</li>
-              <li>Updating the "Last updated" date</li>
-              <li>
-                Sending you an email notification (for significant changes)
-              </li>
-            </ul>
-            <p className="text-light-text-secondary dark:text-dark-text-secondary">
-              Your continued use of Kompleet after any changes indicates your
-              acceptance of the updated Privacy Policy.
-            </p>
-          </section>
-
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">
-              12. Contact Us
-            </h2>
-            <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              If you have any questions, concerns, or requests regarding this
-              Privacy Policy or our data practices, please contact us:
-            </p>
-            <OperatorDetails
-              className="bg-light-background dark:bg-dark-background p-6 rounded-lg"
-              linkClassName={`inline-flex min-h-11 items-center ${PRIVACY_LINK}`}
-              showWebsite
-            />
-          </section>
-
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">
-              13. Governing Law
-            </h2>
-            <p className="text-light-text-secondary dark:text-dark-text-secondary">
-              This Privacy Policy is governed by and construed in accordance
-              with the laws of the Federal Republic of Nigeria, including the
-              Nigeria Data Protection Act 2023 and regulations issued by the
-              Nigeria Data Protection Commission (NDPC).
-            </p>
-          </section>
-        </div>
+            <section className="mb-8">
+              <h2 className={HEADING}>10. Contact us</h2>
+              <p className={BODY}>
+                {OPERATOR_LEGAL_NAME}, {OPERATOR_RC}, {OPERATOR_ADDRESS}.
+              </p>
+              <p className={BODY}>
+                General contact:{" "}
+                <a
+                  href={`mailto:${GENERAL_CONTACT_EMAIL}`}
+                  className={PRIVACY_LINK}
+                >
+                  {GENERAL_CONTACT_EMAIL}
+                </a>
+                . Support and data requests: <SupportEmail />. Data Protection
+                Officer: {OPERATOR_DPO}, reachable at <SupportEmail /> with the
+                subject &quot;Data request&quot;.
+              </p>
+            </section>
+          </div>
 
           <div className="mt-12 pt-8 border-t border-light-border dark:border-dark-border">
             <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary text-center">

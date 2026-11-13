@@ -21,29 +21,41 @@ describe("IVA-292 legal processor copy", () => {
     expect(cookies).not.toMatch(/Supabase/i);
   });
 
-  it("does not invent a replacement processor or storage jurisdiction", () => {
-    expect(privacy).not.toMatch(/Convex/i);
-    expect(cookies).not.toMatch(/Convex/i);
+  it("names the processors from the IVA-224 drafts and no storage jurisdiction", () => {
+    const sharing = privacy.slice(
+      privacy.indexOf("4. Who we share it with"),
+      privacy.indexOf("5. Your rights"),
+    );
+    for (const processor of [
+      "Convex",
+      "Vercel",
+      "Resend",
+      "Sentry",
+      "Anthropic",
+      "OpenAI",
+      "Paystack",
+    ]) {
+      expect(sharing, processor).toContain(processor);
+    }
+    expect(sharing).toMatch(/We do not sell personal data/);
+    expect(sharing).toMatch(/Some processors store data outside Nigeria/);
     expect(privacy).not.toMatch(/EU \(Ireland\)/);
+    expect(privacy).not.toMatch(/Nigerian data residency/);
   });
 
-  it("keeps the no Nigerian residency disclaimer and the OCR processor clause", () => {
-    expect(privacy).toMatch(/We do not claim Nigerian data residency/);
-    expect(privacy).toMatch(/third-party\s+OCR and document processing/);
+  it("keeps prices off Privacy and the Cookie Notice", () => {
+    for (const page of [privacy, cookies]) {
+      expect(page).not.toMatch(/\u20a6|NGN|\bnaira\b/i);
+    }
   });
 
-  it("sets Last updated to 10 November 2026 and keeps original Effective dates", () => {
-    expect(privacy).toMatch(
-      /Last updated: 10 November 2026\. Effective date: February 25, 2026\./,
-    );
-    expect(privacy).not.toMatch(/Last updated: February/);
-    expect(cookies).toMatch(/Last updated: 10 November 2026/);
-    expect(cookies).not.toMatch(/Last updated: February/);
-    expect(cookies).not.toMatch(/Effective date:/);
-    expect(terms).toMatch(
-      /Last updated: 10 November 2026\. Effective date: February 25, 2026\./,
-    );
-    expect(terms).not.toMatch(/Last updated: February/);
+  it("uses a single Last updated line of 13 November 2026 with no Effective date", () => {
+    for (const page of [privacy, cookies, terms]) {
+      expect(page).toMatch(/Last updated: 13 November 2026\n/);
+      expect(page).not.toMatch(/Last updated: February/);
+      expect(page).not.toMatch(/Effective date:/i);
+      expect(page).not.toMatch(/set on the day of publication/);
+    }
   });
 
   it("does not claim Google OAuth or Sign in with Google", () => {
@@ -53,11 +65,7 @@ describe("IVA-292 legal processor copy", () => {
     expect(terms).not.toMatch(/Sign in with Google/i);
   });
 
-  it("keeps the Cookie Policy as the product source of truth without a theme toggle", () => {
-    expect(cookies).toMatch(/COOKIE_POLICY_SOURCE_OF_TRUTH/);
-    expect(cookies).not.toMatch(
-      /Last updated: 10 November 2026\. \{COOKIE_POLICY_SOURCE_OF_TRUTH\}/,
-    );
+  it("keeps the Cookie Notice without a theme toggle", () => {
     expect(cookies).not.toMatch(/light\/dark/i);
     expect(cookies).not.toMatch(/dark mode/i);
   });
