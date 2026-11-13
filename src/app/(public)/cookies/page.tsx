@@ -1,13 +1,23 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { OperatorDetails } from "@/components/legal/OperatorDetails";
-import { COOKIE_POLICY_SOURCE_OF_TRUTH } from "@/lib/legal";
+import {
+  DATA_PROTECTION_EMAIL,
+  OPERATOR_ADDRESS,
+  OPERATOR_LEGAL_NAME,
+  OPERATOR_RC,
+} from "@/lib/legal";
+
+const HEADING =
+  "text-2xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-4";
+const BODY = "text-light-text-secondary dark:text-dark-text-secondary mb-4";
+const LIST =
+  "list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2";
 
 export const metadata: Metadata = {
   alternates: { canonical: "/cookies" },
-  title: "Kompleet: Cookie Policy",
+  title: "Kompleet: Cookie Notice",
   description:
-    "Cookie Policy for Kompleet: how we use cookies and similar technologies.",
+    "Cookie Notice for Kompleet: how we use cookies and similar technologies.",
 };
 
 export default function CookiesPage() {
@@ -22,140 +32,82 @@ export default function CookiesPage() {
         </Link>
 
         <h1 className="text-4xl font-bold text-light-text-primary dark:text-dark-text-primary mb-4">
-          Cookie Policy
+          Cookie Notice
         </h1>
-        <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-2">
-          Last updated: 10 November 2026
-        </p>
         <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-8">
-          {COOKIE_POLICY_SOURCE_OF_TRUTH}
+          Last updated: 13 November 2026
         </p>
 
         <div className="prose prose-lg max-w-none">
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">
-              1. What Are Cookies
-            </h2>
-            <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              Cookies are small text files placed on your device when you visit
-              a website. They are widely used to make websites work more
-              efficiently and to provide information to the website owners.
+            <p className={BODY}>
+              Kompleet uses a small number of cookies and similar storage. This
+              notice explains what they are. The banner shown on the site lets
+              you accept or decline the optional ones, and &quot;Cookie
+              settings&quot; in the footer reopens your choices at any time.
             </p>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">
-              2. How We Use Cookies
-            </h2>
-            <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              Kompleet uses cookies for the following purposes:
-            </p>
-
-            <h3 className="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-3">
-              2.1 Essential Cookies
-            </h3>
-            <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              These cookies are required for the platform to function. They
-              enable core features such as authentication, session management,
-              and security. You cannot opt out of essential cookies.
-            </p>
-            <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
+            <h2 className={HEADING}>Storage we use</h2>
+            <ul className={LIST}>
               <li>
-                <strong>Authentication tokens:</strong> Keep you signed in
-                securely
+                <strong>Essential (always on).</strong> Cookies and local
+                storage that keep you signed in, remember security tokens, and
+                route traffic. Kompleet cannot work without these. Set by
+                Kompleet, by Convex (our application platform, which keeps your
+                sign in token in local storage) and by Vercel, our hosting
+                provider.
               </li>
               <li>
-                <strong>Session cookies:</strong> Maintain your session state as
-                you navigate
+                <strong>Your cookie choice.</strong> Your accept or decline
+                choice is stored in local storage on your device, so we do not
+                ask on every visit. It is not a cookie.
               </li>
               <li>
-                <strong>CSRF tokens:</strong> Protect against cross-site request
-                forgery
-              </li>
-            </ul>
-
-            <h3 className="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-3">
-              2.2 Functional Cookies
-            </h3>
-            <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              These cookies remember your preferences and settings to provide a
-              personalized experience:
-            </p>
-            <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
-              <li>Language and locale settings</li>
-              <li>Dashboard layout preferences</li>
-            </ul>
-
-            <h3 className="text-xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-3">
-              2.3 Analytics Cookies
-            </h3>
-            <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              Google Analytics is off until you accept analytics cookies in the
-              cookie banner. If you decline, we do not load GA or set its
-              cookies. You can change that later from Cookie settings in the
-              footer. Analytics data is aggregated and anonymized.
-            </p>
-          </section>
-
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">
-              3. Third-Party Cookies
-            </h2>
-            <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              Some cookies are placed by third-party services we use:
-            </p>
-            <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
-              <li>
-                <strong>Vercel:</strong> Performance monitoring and analytics
+                <strong>Error tracking.</strong> We use Sentry to detect and
+                fix errors. Sentry keeps a session storage entry on your device
+                and, when an error occurs, may record a replay of the session
+                with text and inputs masked, so we can see what went wrong
+                without seeing what you typed.
               </li>
               <li>
-                <strong>Sentry:</strong> Error tracking and reporting
+                <strong>Analytics (optional, off unless you accept).</strong>{" "}
+                Kompleet includes Google Analytics, which loads and sets
+                cookies only after you accept optional cookies, and only when a
+                measurement ID is configured for the site. No measurement ID is
+                configured at present, so no analytics cookies are set today.
+                We will update this notice before analytics is switched on.
               </li>
             </ul>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">
-              4. Managing Cookies
-            </h2>
-            <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              You can control cookies through your browser settings. Most
-              browsers allow you to:
-            </p>
-            <ul className="list-disc pl-6 text-light-text-secondary dark:text-dark-text-secondary mb-4 space-y-2">
-              <li>View what cookies are stored and delete them individually</li>
-              <li>Block third-party cookies</li>
-              <li>Block cookies from specific sites</li>
-              <li>Block all cookies</li>
-              <li>Delete all cookies when you close your browser</li>
-            </ul>
-            <p className="text-light-text-secondary dark:text-dark-text-secondary">
-              Please note that disabling essential cookies will prevent you from
-              using Kompleet, as they are required for authentication and
-              security.
+            <h2 className={HEADING}>What we do not use</h2>
+            <p className={BODY}>
+              We do not use advertising cookies. If we add any other optional
+              storage, we will update this notice and ask for your consent
+              before it is set.
             </p>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">
-              5. Updates to This Policy
-            </h2>
-            <p className="text-light-text-secondary dark:text-dark-text-secondary">
-              We may update this Cookie Policy from time to time. Changes will
-              be posted on this page with an updated date. Your continued use of
-              Kompleet after changes constitutes acceptance of the updated
-              policy.
+            <h2 className={HEADING}>Managing cookies</h2>
+            <p className={BODY}>
+              You can also block or delete cookies in your browser settings.
+              Blocking the essential cookies will sign you out and stop
+              Kompleet from working.
             </p>
-          </section>
-
-          <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-light-text-primary dark:text-dark-text-primary mb-4">
-              6. Contact
-            </h2>
-            <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              If you have questions about our use of cookies, contact us:
+            <p className={BODY}>
+              Questions:{" "}
+              <a
+                href={`mailto:${DATA_PROTECTION_EMAIL}`}
+                className="text-primary hover:underline"
+              >
+                {DATA_PROTECTION_EMAIL}
+              </a>
+              . {OPERATOR_LEGAL_NAME}, {OPERATOR_RC}, {OPERATOR_ADDRESS}.
             </p>
-            <OperatorDetails />
           </section>
         </div>
 

@@ -24,8 +24,8 @@ describe("founding-access copy on legal and pricing pages", () => {
     expect(privacy).not.toMatch(/KOMPLEET/);
     expect(cookies).not.toMatch(/KOMPLEET/);
     expect(terms).toMatch(/Welcome to Kompleet/);
-    expect(privacy).toMatch(/Welcome to Kompleet/);
-    expect(cookies).toMatch(/Kompleet uses cookies/);
+    expect(privacy).toMatch(/Kompleet is provided by/);
+    expect(cookies).toMatch(/Kompleet uses a small number of cookies/);
   });
 
   it("keeps Terms §17 in sentence case and renders it uppercase", () => {

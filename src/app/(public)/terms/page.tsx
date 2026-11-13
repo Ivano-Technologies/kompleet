@@ -1,8 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CompanyLegalNotice } from "@/components/legal/CompanyLegalNotice";
-import { OperatorDetails } from "@/components/legal/OperatorDetails";
-import { COMPANY_LEGAL } from "@/lib/legal";
+import {
+  COMPANY_LEGAL,
+  DATA_PROTECTION_EMAIL,
+  GENERAL_CONTACT_EMAIL,
+  OPERATOR_ADDRESS,
+  OPERATOR_DPO,
+  OPERATOR_LEGAL_NAME,
+  OPERATOR_RC,
+} from "@/lib/legal";
 
 export const metadata: Metadata = {
   title: "Kompleet: Terms of Service",
@@ -26,7 +33,7 @@ export default function TermsPage() {
             Terms of Service
           </h1>
         <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-8">
-          Last updated: 10 November 2026. Effective date: February 25, 2026.
+          Last updated: 13 November 2026
         </p>
 
         <CompanyLegalNotice page="terms" />
@@ -597,13 +604,31 @@ export default function TermsPage() {
               16. Contact Information
             </h2>
             <p className="text-light-text-secondary dark:text-dark-text-secondary mb-4">
-              If you have any questions, concerns, or feedback regarding these
-              Terms of Service, please contact us:
+              {OPERATOR_LEGAL_NAME}, {OPERATOR_RC}, {OPERATOR_ADDRESS}. General
+              contact:{" "}
+              <a
+                href={`mailto:${GENERAL_CONTACT_EMAIL}`}
+                className="text-primary hover:underline"
+              >
+                {GENERAL_CONTACT_EMAIL}
+              </a>
+              . Support, refunds and payment disputes:{" "}
+              <a
+                href={`mailto:${DATA_PROTECTION_EMAIL}`}
+                className="text-primary hover:underline"
+              >
+                {DATA_PROTECTION_EMAIL}
+              </a>
+              . Data protection requests:{" "}
+              <a
+                href={`mailto:${DATA_PROTECTION_EMAIL}`}
+                className="text-primary hover:underline"
+              >
+                {DATA_PROTECTION_EMAIL}
+              </a>{" "}
+              with the subject &quot;Data request&quot;, for the attention of
+              the Data Protection Officer, {OPERATOR_DPO}.
             </p>
-            <OperatorDetails
-              className="bg-light-background dark:bg-dark-background p-6 rounded-lg"
-              showWebsite
-            />
           </section>
 
           <section className="mb-8">

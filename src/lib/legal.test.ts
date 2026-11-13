@@ -30,7 +30,7 @@ describe("company legal URLs", () => {
     expect(companyLegalUrl("refunds")).toBe(COMPANY_LEGAL.refunds);
   });
 
-  it("points Kompleet /terms and /privacy at the company pages", () => {
+  it("points Kompleet /terms at the company page and keeps /privacy as its own", () => {
     const terms = readFileSync(
       resolve(process.cwd(), "src/app/(public)/terms/page.tsx"),
       "utf8",
@@ -40,7 +40,12 @@ describe("company legal URLs", () => {
       "utf8",
     );
     expect(terms).toMatch(/CompanyLegalNotice page="terms"/);
-    expect(privacy).toMatch(/CompanyLegalNotice page="privacy"/);
+    // IVA-224: the Kompleet Privacy Policy is a full replacement that says
+    // it is the current policy, so it no longer defers to the company page.
+    expect(privacy).not.toMatch(/CompanyLegalNotice/);
+    expect(privacy).toMatch(
+      /This page is\s+the current Privacy Policy for Kompleet\./,
+    );
   });
 
   it("pins the registered operator as Ivano Technologies Ltd RC 9326735 in Abuja", () => {
