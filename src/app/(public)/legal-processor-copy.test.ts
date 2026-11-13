@@ -51,7 +51,7 @@ describe("IVA-292 legal processor copy", () => {
 
   it("uses a single Last updated line of 13 November 2026 with no Effective date", () => {
     for (const page of [privacy, cookies, terms]) {
-      expect(page).toMatch(/Last updated: 13 November 2026\n/);
+      expect(page).toMatch(/Last updated: 13 November 2026\r?\n/);
       expect(page).not.toMatch(/Last updated: February/);
       expect(page).not.toMatch(/Effective date:/i);
       expect(page).not.toMatch(/set on the day of publication/);
