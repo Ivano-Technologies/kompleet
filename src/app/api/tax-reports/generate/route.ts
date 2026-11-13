@@ -64,6 +64,24 @@ async function handlePOST(request: NextRequest) {
       ownerOccupierInterest,
     } = parsed.data;
 
+    // IVA-321: a VAT report is the VAT position for the period (stored
+    // invoice VAT minus stored expense VAT). It never runs the income tax
+    // computation and takes no figures from the request body.
+    if (reportType === "vat") {
+      if (periodStart > periodEnd) {
+        return NextResponse.json(
+          { ...apiErrorBody("Period start must not be after period end") },
+          { status: 400 },
+        );
+      }
+      const vatReport = await convex.mutation(api.tax.generateVatReport, {
+        taxYear,
+        periodStart,
+        periodEnd,
+      });
+      return NextResponse.json({ report: vatReport });
+    }
+
     const validBusinessTypes = [
       "individual",
       "small_company",

@@ -13,9 +13,11 @@ interface TaxReport {
   tax_year: number;
   period_start: string;
   period_end: string;
-  business_classification: string;
-  total_tax_liability: number;
-  effective_tax_rate: number;
+  business_classification?: string;
+  total_tax_liability?: number;
+  effective_tax_rate?: number;
+  /** Set on VAT reports generated with the VAT computation (IVA-321). */
+  net_vat?: number;
   status: string;
   created_at: string;
 }
@@ -267,13 +269,19 @@ export default function TaxReportsPage({
                       {formatDate(report.period_end)}
                     </td>
                     <td className="px-4 py-3 text-light-text-secondary dark:text-dark-text-secondary">
-                      {report.business_classification}
+                      {report.business_classification ?? "N/A"}
                     </td>
                     <td className="px-4 py-3 font-medium text-light-text-primary dark:text-dark-text-primary">
-                      {formatCurrency(report.total_tax_liability)}
+                      {typeof report.net_vat === "number"
+                        ? formatCurrency(report.net_vat)
+                        : typeof report.total_tax_liability === "number"
+                          ? formatCurrency(report.total_tax_liability)
+                          : "N/A"}
                     </td>
                     <td className="px-4 py-3 text-light-text-secondary dark:text-dark-text-secondary">
-                      {report.effective_tax_rate.toFixed(2)}%
+                      {typeof report.effective_tax_rate === "number"
+                        ? `${report.effective_tax_rate.toFixed(2)}%`
+                        : "N/A"}
                     </td>
                     <td className="px-4 py-3">
                       <span
